@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › Management API (docs/proposals/management-api.md): the switch
+ * and the limit, saved through UpdateSettings, and the keys, made by
+ * CreateApiKey and revoked by RevokeApiKey. A new key's secret is answered
+ * as JSON, once, and never reaches the session.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -21,12 +32,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › Management API (docs/proposals/management-api.md): the switch
- * and the limit, saved through UpdateSettings, and the keys, made by
- * CreateApiKey and revoked by RevokeApiKey. A new key's secret is answered
- * as JSON, once, and never reaches the session.
- */
 final class ManagementApiController extends Controller
 {
     public function show(ManagementApiScreen $screen): Response

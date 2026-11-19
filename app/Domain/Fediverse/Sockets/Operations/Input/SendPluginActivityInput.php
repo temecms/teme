@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What SendPluginActivity needs: the plugin sending, the activity's type
+ * and object, which of the site's accounts sends it (the blog's when
+ * null), and the person the plugin acts for.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What SendPluginActivity needs: the plugin sending, the activity's type
- * and object, which of the site's accounts sends it (the blog's when
- * null), and the person the plugin acts for.
- */
 final readonly class SendPluginActivityInput implements OperationInput
 {
     /**

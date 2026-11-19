@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Stops previewing a theme on Site › Themes: the design draft's switch to it
+ * goes, and with it the unpublished changes to that theme's own settings and
+ * menu places. Every other waiting change stays, and nothing live changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations;
@@ -12,11 +22,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Themes\ThemeRegistry;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Stops previewing a theme on Site › Themes: the design draft's switch to it
- * goes, and with it the unpublished changes to that theme's own settings and
- * menu places. Every other waiting change stays, and nothing live changes.
- */
 final class StopPreviewingTheme extends BaseOperation
 {
     use ManagesDesign;

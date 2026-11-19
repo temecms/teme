@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Blocks that hold markup of their own (I-329): raw HTML as an Imported
+ * content card, a formula as its LaTeX in a code block, and a block whose
+ * type WordPress no longer had as the block it was; a shortcode block's text
+ * read as any HTML, so its shortcodes run.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -10,12 +21,6 @@ use App\Domain\Import\Convert\Html\HtmlFragment;
 use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 
-/**
- * Blocks that hold markup of their own (I-329): raw HTML as an Imported
- * content card, a formula as its LaTeX in a code block, and a block whose
- * type WordPress no longer had as the block it was; a shortcode block's text
- * read as any HTML, so its shortcodes run.
- */
 final readonly class Markup implements BlockMapping
 {
     public function blocks(): array

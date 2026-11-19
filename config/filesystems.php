@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The disks Teme stores files on, including the media disks.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 return [

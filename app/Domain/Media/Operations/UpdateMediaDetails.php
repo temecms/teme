@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes an item's title, default alt text, caption, credit, licence and focal
+ * point. Anyone who may change the item can do it. The defaults apply at
+ * once wherever the item is used without an override (decision 4A); a moved
+ * focal point remakes the variants.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -18,12 +29,6 @@ use LogicException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes an item's title, default alt text, caption, credit, licence and focal
- * point. Anyone who may change the item can do it. The defaults apply at
- * once wherever the item is used without an override (decision 4A); a moved
- * focal point remakes the variants.
- */
 final class UpdateMediaDetails extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

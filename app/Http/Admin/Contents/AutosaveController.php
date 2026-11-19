@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Keeps the editor's draft while the person types. A JSON endpoint rather
+ * than an Inertia one, because it fires while typing and must not re-render
+ * the page. It hands the draft to SaveAutosave and changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -12,11 +22,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Keeps the editor's draft while the person types. A JSON endpoint rather
- * than an Inertia one, because it fires while typing and must not re-render
- * the page. It hands the draft to SaveAutosave and changes nothing itself.
- */
 final class AutosaveController extends Controller
 {
     public function store(Request $request, string $content, SaveAutosave $save): JsonResponse

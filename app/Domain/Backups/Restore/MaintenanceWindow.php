@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The site closed for a restore: Laravel's maintenance mode with a bypass
+ * secret for the restore's own checks and a marker of the restore and its
+ * safety backup's place, kept outside the database, so a restore that stops leaves
+ * the site closed and the next one knows. It never reopens by itself. The
+ * payload the operator had set, if the site was already down, comes back
+ * when the restore opens it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -8,14 +21,6 @@ use Illuminate\Foundation\Events\MaintenanceModeDisabled;
 use Illuminate\Foundation\Events\MaintenanceModeEnabled;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * The site closed for a restore: Laravel's maintenance mode with a bypass
- * secret for the restore's own checks and a marker of the restore and its
- * safety backup's place, kept outside the database, so a restore that stops leaves
- * the site closed and the next one knows. It never reopens by itself. The
- * payload the operator had set, if the site was already down, comes back
- * when the restore opens it.
- */
 final class MaintenanceWindow
 {
     public const string MARK = 'teme_restore';

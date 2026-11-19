@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * What a public page is, for choosing its template: its kind, and what the
+ * kind needs (study B §3d, I-442). `latest` is the latest posts; the site's
+ * home page is either that or a `single`, and `isFront` says which page is
+ * the home page without changing its candidates.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
 
 use InvalidArgumentException;
 
-/**
- * What a public page is, for choosing its template: its kind, and what the
- * kind needs (study B §3d, I-442). `latest` is the latest posts; the site's
- * home page is either that or a `single`, and `isFront` says which page is
- * the home page without changing its candidates.
- */
 final readonly class ViewIntent
 {
     /** @var list<string> */

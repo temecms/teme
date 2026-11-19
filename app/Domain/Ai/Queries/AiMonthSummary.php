@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The figures above Tools › AI activity's list (I-1307): a month's spend, its requests and those with no price, and, for this month only, the budget and whether it is reached; and the month's totals by plugin. Read from the monthly totals, never summed from the record.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
@@ -10,9 +18,6 @@ use App\Domain\Ai\UsageLimits;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The figures above Tools › AI activity's list (I-1307): a month's spend, its requests and those with no price, and, for this month only, the budget and whether it is reached; and the month's totals by plugin. Read from the monthly totals, never summed from the record.
- */
 final readonly class AiMonthSummary
 {
     public function __construct(private AiSpend $spend, private PluginAiTasks $pluginTasks, private PluginAiSection $section) {}
@@ -27,6 +32,8 @@ final readonly class AiMonthSummary
      * when no plugin asked that month.
      *
      * @return list<array{code: string, label: string, costMicrounits: int, requests: int, unpricedRequests: int, budget: array{limitMicrounits: int, countedMicrounits: int, reached: bool}|null}>
+     *
+     * @since 1.0.0
      */
     public function byPlugin(?string $month): array
     {

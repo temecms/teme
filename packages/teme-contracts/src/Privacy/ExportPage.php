@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One page of a holder's answer to an export request: the groups it found, and
+ * whether it has given the last of them.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Privacy;

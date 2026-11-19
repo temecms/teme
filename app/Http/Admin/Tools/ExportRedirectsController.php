@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every redirect as a download (I-872): a CSV file to edit and import
+ * again, or nginx rules for a server in front of the site, streamed as
+ * RedirectExport reads them, so a large site's never sit in memory.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -8,11 +18,6 @@ use App\Domain\Redirects\Queries\RedirectExport;
 use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-/**
- * Every redirect as a download (I-872): a CSV file to edit and import
- * again, or nginx rules for a server in front of the site, streamed as
- * RedirectExport reads them, so a large site's never sit in memory.
- */
 final class ExportRedirectsController extends Controller
 {
     public function __invoke(RedirectExport $export, string $format): StreamedResponse

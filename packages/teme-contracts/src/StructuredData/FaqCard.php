@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One FAQ card in an article: its own ID, the @id core would give a node for
+ * it, and its questions with their answers, in order.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\StructuredData;

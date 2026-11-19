@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One thing Teme did to its backups (I-362): a backup, a copy, a check, a read-back, a test restore, a prune or a restore, when it ran, what started it, how it ended, and restic's snapshot and figures. Never a key or a secret, in its message too. Only the backup Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Models;
@@ -15,8 +23,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use stdClass;
 
 /**
- * One thing Teme did to its backups (I-362): a backup, a copy, a check, a read-back, a test restore, a prune or a restore, when it ran, what started it, how it ended, and restic's snapshot and figures. Never a key or a secret, in its message too. Only the backup Operations write it.
- *
  * @property string $id
  * @property BackupRunKind $kind
  * @property BackupRunState $state

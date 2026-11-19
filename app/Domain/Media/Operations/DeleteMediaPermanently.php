@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Deletes a trashed item for good; its files are deleted after commit, by the
+ * paths its row recorded. Only items already in the trash, by someone who may
+ * remove them, or by the operator's scheduled purge.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -17,11 +27,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes a trashed item for good; its files are deleted after commit, by the
- * paths its row recorded. Only items already in the trash, by someone who may
- * remove them, or by the operator's scheduled purge.
- */
 final class DeleteMediaPermanently extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

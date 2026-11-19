@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Settings › Site code's settings group: ads.txt text or a redirect at
+ * /ads.txt (I-064). Edited only on the Site code screen; administrators only.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode;
@@ -8,10 +17,6 @@ use App\Domain\Cache\PageTags;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * Settings › Site code's settings group: ads.txt text or a redirect at
- * /ads.txt (I-064). Edited only on the Site code screen; administrators only.
- */
 final class SiteCodeSettings
 {
     public const string KEY = 'site_code';

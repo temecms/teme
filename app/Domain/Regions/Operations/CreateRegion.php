@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Makes a theme's region's content (study B §3e): one row of the region
+ * type per theme and region, slug "{theme}--{region}", titled by the
+ * region's label, a draft with an empty document. It is the only way a
+ * region's row is made; CreateDraft refuses the type.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Regions\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Makes a theme's region's content (study B §3e): one row of the region
- * type per theme and region, slug "{theme}--{region}", titled by the
- * region's label, a draft with an empty document. It is the only way a
- * region's row is made; CreateDraft refuses the type.
- */
 final class CreateRegion extends BaseOperation
 {
     public function __construct(

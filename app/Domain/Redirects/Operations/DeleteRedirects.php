@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Deletes redirects, for whoever holds redirects.manage (I-850): their
+ * addresses answer "not found" again and reach the 404 log. Recorded and
+ * purged for each; returns how many went.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations;
@@ -17,11 +27,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes redirects, for whoever holds redirects.manage (I-850): their
- * addresses answer "not found" again and reach the 404 log. Recorded and
- * purged for each; returns how many went.
- */
 final class DeleteRedirects extends BaseOperation
 {
     public function __construct(private readonly RedirectChanges $changes) {}

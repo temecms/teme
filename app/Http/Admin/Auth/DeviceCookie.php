@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Marks a browser that has signed in to an account before, so strangers
+ * failing on that account never lock its owner out. Laravel's cookie
+ * encryption also authenticates the value; it holds keyed hashes of email
+ * addresses, never the addresses. OWASP's device-cookie protocol; study G, S4.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Auth;
@@ -9,12 +20,6 @@ use Illuminate\Support\Facades\Cookie as CookieJar;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Cookie;
 
-/**
- * Marks a browser that has signed in to an account before, so strangers
- * failing on that account never lock its owner out. Laravel's cookie
- * encryption also authenticates the value; it holds keyed hashes of email
- * addresses, never the addresses. OWASP's device-cookie protocol; study G, S4.
- */
 final class DeviceCookie
 {
     public const string NAME = 'teme_device';

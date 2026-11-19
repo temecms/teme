@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The site's address settings (I-393) as one typed value: a pattern per
+ * public type, each type's archive page, a base per public taxonomy, the
+ * author base, and what the home page shows (I-396). Read once per request
+ * (a scoped binding).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -11,12 +22,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The site's address settings (I-393) as one typed value: a pattern per
- * public type, each type's archive page, a base per public taxonomy, the
- * author base, and what the home page shows (I-396). Read once per request
- * (a scoped binding).
- */
 final readonly class AddressSettings
 {
     /** The home page lists the latest posts. */

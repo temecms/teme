@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One image with its caption, credit and the alt text for this use. The
+ * image is held by ID; its address and its sizes are worked out at render
+ * time (rule 9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -13,11 +23,6 @@ use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Media\ImageMarkup;
 
-/**
- * One image with its caption, credit and the alt text for this use. The
- * image is held by ID; its address and its sizes are worked out at render
- * time (rule 9).
- */
 final class ImageCard implements CardType
 {
     public function name(): string

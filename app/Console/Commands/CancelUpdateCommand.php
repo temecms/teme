@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:updates:cancel — cancels the update request that waits, as the operator (I-3326), while the updater
+ * hasn't begun it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,10 +22,6 @@ use App\Domain\Updates\Requests\UpdateStatus;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:updates:cancel — cancels the update request that waits, as the operator (I-3326), while the updater
- * hasn't begun it.
- */
 final class CancelUpdateCommand extends Command
 {
     /** @var string */

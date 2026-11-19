@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Decides who may create, edit and publish content: anyone holding the
+ * ability the item's type names for that action, and authors only for their
+ * own work (I-413). The content Operations ask it before they write.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Policies;
@@ -8,11 +18,6 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Models\User;
 
-/**
- * Decides who may create, edit and publish content: anyone holding the
- * ability the item's type names for that action, and authors only for their
- * own work (I-413). The content Operations ask it before they write.
- */
 final class ContentPolicy
 {
     /**

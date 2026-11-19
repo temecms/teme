@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A chart block's numbers: its labels, `Y-m-d` dates or category words, and
+ * each declared series' values, one per label.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

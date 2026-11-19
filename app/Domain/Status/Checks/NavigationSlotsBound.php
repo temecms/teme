@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Says when a place the active theme draws a menu in has none, so visitors
+ * see nothing there (study B, decision 2), naming each place by its label.
+ * It reads only the active theme's manifest and its one cached settings
+ * group: every admin page asks every check.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -9,12 +20,6 @@ use App\Domain\Status\StatusBanner;
 use App\Domain\Status\StatusCheck;
 use App\Domain\Themes\ActiveTheme;
 
-/**
- * Says when a place the active theme draws a menu in has none, so visitors
- * see nothing there (study B, decision 2), naming each place by its label.
- * It reads only the active theme's manifest and its one cached settings
- * group: every admin page asks every check.
- */
 final readonly class NavigationSlotsBound implements StatusCheck
 {
     public function __construct(
@@ -27,6 +32,9 @@ final readonly class NavigationSlotsBound implements StatusCheck
         return 'navigation.manage';
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Navigation');

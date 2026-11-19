@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One figure of a figures block: a number, a ratio shown as a percentage, or a
+ * short text, with an optional change shown as an up or down arrow.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

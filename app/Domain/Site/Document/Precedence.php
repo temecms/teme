@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Whose entry wins when two give the same key (I-228): a plugin's, then the
+ * site's own, then core's default. Lower wins.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Document;
 
 use UnexpectedValueException;
 
-/**
- * Whose entry wins when two give the same key (I-228): a plugin's, then the
- * site's own, then core's default. Lower wins.
- */
 enum Precedence: int
 {
     case Plugin = 1;

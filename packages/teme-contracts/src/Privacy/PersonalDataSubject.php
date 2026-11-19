@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who a privacy request is about: an email address, lower-cased, and the
+ * account it belongs to, when one does.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Privacy;

@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-
 /**
  * The month rows of content_counts for the items already there, in the
  * site's zone (I-3131), in a migration of its own so this INSERT never holds
  * the column's ALTER lock. teme:counts:rebuild after deploying covers what
  * the old code wrote meanwhile (CHANGELOG.md's Deploy note).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     public function up(): void

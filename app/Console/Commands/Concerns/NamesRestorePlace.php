@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Reads a place and its key from a restore command's options, every secret from a file or a hidden prompt.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands\Concerns;
@@ -12,9 +20,6 @@ use App\Domain\Backups\Tools\SshKeyscan;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
-/**
- * Reads a place and its key from a restore command's options, every secret from a file or a hidden prompt.
- */
 trait NamesRestorePlace
 {
     /** The options a command that names a place on a new server adds to its signature. */

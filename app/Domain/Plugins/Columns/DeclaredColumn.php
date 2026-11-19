@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * One list column a running plugin offers for a content type: the key the
+ * person's Columns preference stores, and the facts the list page draws.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Columns;
 
-/**
- * One list column a running plugin offers for a content type: the key the
- * person's Columns preference stores, and the facts the list page draws.
- */
 final readonly class DeclaredColumn
 {
     public function __construct(

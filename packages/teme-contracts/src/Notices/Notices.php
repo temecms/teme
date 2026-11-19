@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Sends a notice of a declared kind.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Notices;

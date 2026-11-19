@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Phases\Menus;
-
 /**
  * One item of a WordPress menu on its way to Teme (I-343): how the report
  * names it, its label, where it led on WordPress and what's under it; then,
  * once found, what it is on Teme, or a heading that leads nowhere.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Phases\Menus;
+
 final readonly class MenuNode
 {
     /** A WordPress post or page, by its ID. */
@@ -23,7 +28,11 @@ final readonly class MenuNode
     /** WordPress's page list: its published pages under the page $objectId, or every one for 0. */
     public const string PAGES = 'pages';
 
-    /** A language switcher, which leads to the page's versions (I-3446). */
+    /**
+     * A language switcher, which leads to the page's versions (I-3446).
+     *
+     * @since 1.0.0
+     */
     public const string LANGUAGES = 'languages';
 
     /** An address, as WordPress gave it. */

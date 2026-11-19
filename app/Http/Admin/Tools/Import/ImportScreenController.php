@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Tools › Import's two pages (I-227): the sites Teme knows with the connect form, and a site's steps.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Import;
@@ -19,9 +27,6 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Tools › Import's two pages (I-227): the sites Teme knows with the connect form, and a site's steps.
- */
 final class ImportScreenController extends Controller
 {
     public function index(ImportScreen $screen, SettingsReader $settings): Response

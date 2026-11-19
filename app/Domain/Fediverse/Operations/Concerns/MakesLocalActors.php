@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Makes one of the site's new fediverse accounts at its /ap/ address
+ * (proposal, Settled 3), with a key pair of its own whose private half is
+ * encrypted as it is stored.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations\Concerns;
@@ -7,11 +17,6 @@ namespace App\Domain\Fediverse\Operations\Concerns;
 use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Signatures\KeyPairs;
 
-/**
- * Makes one of the site's new fediverse accounts at its /ap/ address
- * (proposal, Settled 3), with a key pair of its own whose private half is
- * encrypted as it is stored.
- */
 trait MakesLocalActors
 {
     protected function makeLocalActor(string $kind, string $username, string $uri, bool $enabled = true, ?string $personId = null): FediverseActor

@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * An account's picture (I-3410): the ID of an image in Media, never an
+ * address, so a new domain changes nothing. Deleting the image for good
+ * clears it; until then a trashed image is simply not shown.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * An account's picture (I-3410): the ID of an image in Media, never an
- * address, so a new domain changes nothing. Deleting the image for good
- * clears it; until then a trashed image is simply not shown.
- */
 return new class extends Migration
 {
     public function up(): void

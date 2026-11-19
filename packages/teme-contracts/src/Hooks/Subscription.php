@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The handle a subscription gives back, and the only way to remove it.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

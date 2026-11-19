@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Security;
-
 /**
  * What a ReencryptSecrets run did, one entry per registered column in the
  * registry's order (I-359). It carries counts and row keys only, so it is
  * safe to report, log or print.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Security;
+
 final readonly class ReencryptedSecrets
 {
     /**

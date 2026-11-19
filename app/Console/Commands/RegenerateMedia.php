@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * teme:media:regenerate — remakes the variants of every image made with an
+ * older variant set, in this process, as the operator, a chunk at a time. Safe
+ * to stop and run again: finished items are no longer older. It also makes the
+ * share images of every image used as a featured or social image that lacks
+ * them (I-855).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -17,13 +29,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Throwable;
 
-/**
- * teme:media:regenerate — remakes the variants of every image made with an
- * older variant set, in this process, as the operator, a chunk at a time. Safe
- * to stop and run again: finished items are no longer older. It also makes the
- * share images of every image used as a featured or social image that lacks
- * them (I-855).
- */
 final class RegenerateMedia extends Command
 {
     /** @var string */

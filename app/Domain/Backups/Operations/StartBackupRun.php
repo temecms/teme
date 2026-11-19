@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Records that a backup, a prune or one of their steps has started (I-362):
+ * one running row, in a short transaction of its own, so the run is seen
+ * while it works. Starting a whole backup or prune first ends, as failed,
+ * every one still running: those work only under the backup lock, which
+ * the caller now holds, so whatever ran them has ended.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -20,13 +32,6 @@ use InvalidArgumentException;
 use LogicException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records that a backup, a prune or one of their steps has started (I-362):
- * one running row, in a short transaction of its own, so the run is seen
- * while it works. Starting a whole backup or prune first ends, as failed,
- * every one still running: those work only under the backup lock, which
- * the caller now holds, so whatever ran them has ended.
- */
 final class StartBackupRun extends BaseOperation
 {
     use AuthorizesBackupRuns;

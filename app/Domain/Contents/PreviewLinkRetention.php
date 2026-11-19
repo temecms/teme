@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Old preview links are records, not anyone's work, so they are pruned here,
+ * as SecurityLog prunes its events. Recent ones stay, so the writer can
+ * still see what they shared.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -7,11 +17,6 @@ namespace App\Domain\Contents;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Old preview links are records, not anyone's work, so they are pruned here,
- * as SecurityLog prunes its events. Recent ones stay, so the writer can
- * still see what they shared.
- */
 final class PreviewLinkRetention
 {
     /**

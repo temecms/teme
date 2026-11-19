@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Settings hub: the menu's Settings opens it, it lists every Settings
+ * page for the palette, and its own page draws a card for each, under the
+ * hub's headings, a plugin's last under "From plugins".
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Navigation;
@@ -9,11 +19,6 @@ use App\Domain\Settings\Queries\SettingsNavigation;
 use App\Domain\Settings\SettingsRegistry;
 use App\Models\User;
 
-/**
- * The Settings hub: the menu's Settings opens it, it lists every Settings
- * page for the palette, and its own page draws a card for each, under the
- * hub's headings, a plugin's last under "From plugins".
- */
 final readonly class SettingsHub implements NavHub
 {
     /** Over plugins' pages, which come last. */

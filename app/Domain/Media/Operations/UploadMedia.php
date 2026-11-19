@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Stores an uploaded file and creates its media item. Anyone who may upload
+ * can do it, and the operator from the command line. The file is checked by
+ * its content, and records the item it was uploaded for when its uploader
+ * may edit it (I-553); an image's variants are made afterwards, on the queue.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -29,12 +40,6 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * Stores an uploaded file and creates its media item. Anyone who may upload
- * can do it, and the operator from the command line. The file is checked by
- * its content, and records the item it was uploaded for when its uploader
- * may edit it (I-553); an image's variants are made afterwards, on the queue.
- */
 final class UploadMedia extends BaseOperation
 {
     /** A content item's ID: 26 lower-case letters and digits (I-418). */

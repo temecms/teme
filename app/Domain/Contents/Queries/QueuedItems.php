@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The content reader's queue (docs/plans/plugin-sockets-3.md): unpublished
+ * items, draft, in review or scheduled, that one person may edit, oldest
+ * first, one page at a time by an opaque cursor. Who may edit what is
+ * ContentAbilities' restatement of ContentPolicy::update, type by type.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -16,12 +27,6 @@ use Teme\Contracts\Content\QueuedItem;
 use Teme\Contracts\Content\QueuePage;
 use Teme\Contracts\Content\QueueQuery;
 
-/**
- * The content reader's queue (docs/plans/plugin-sockets-3.md): unpublished
- * items, draft, in review or scheduled, that one person may edit, oldest
- * first, one page at a time by an opaque cursor. Who may edit what is
- * ContentAbilities' restatement of ContentPolicy::update, type by type.
- */
 final readonly class QueuedItems
 {
     public const array STATUSES = ['draft', 'review', 'scheduled'];

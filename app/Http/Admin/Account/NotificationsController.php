@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Account › Notifications (I-691): every kind of notice a person may turn
+ * off, from the registry and worded for them, core's own and then each
+ * plugin's under its name, beside a word about their inbox; saved through UpdatePreferences, the offered choices' keys and
+ * nothing else.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Account;
@@ -13,12 +24,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Account › Notifications (I-691): every kind of notice a person may turn
- * off, from the registry and worded for them, core's own and then each
- * plugin's under its name, beside a word about their inbox; saved through UpdatePreferences, the offered choices' keys and
- * nothing else.
- */
 final class NotificationsController extends Controller
 {
     public function edit(Request $request, NoticeChoices $choices): Response

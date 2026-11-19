@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Joins items, and every member of their translation groups, into one
+ * group (I-3360, D10): the first named item's group that has one, else a
+ * new one. Refused when two would share a language, when the types
+ * differ, or when one is in the trash. Answers the group's ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -23,12 +34,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Joins items, and every member of their translation groups, into one
- * group (I-3360, D10): the first named item's group that has one, else a
- * new one. Refused when two would share a language, when the types
- * differ, or when one is in the trash. Answers the group's ID.
- */
 final class LinkTranslations extends BaseOperation
 {
     use MovesVersionAddresses;

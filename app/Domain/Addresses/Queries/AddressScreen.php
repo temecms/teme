@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What Settings › Addresses shows: the public types and taxonomies in
+ * registry order with their current patterns and bases, the author base,
+ * each type's archive page, the site's own address for the previews, and the newest item's details of the type whose
+ * address takes the presets.
+ * It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Queries;
@@ -17,13 +29,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What Settings › Addresses shows: the public types and taxonomies in
- * registry order with their current patterns and bases, the author base,
- * each type's archive page, the site's own address for the previews, and the newest item's details of the type whose
- * address takes the presets.
- * It reads only.
- */
 final class AddressScreen
 {
     /**

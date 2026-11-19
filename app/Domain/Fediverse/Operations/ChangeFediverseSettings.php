@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Changes the fediverse group on Settings › Fediverse, against the version
+ * the page was opened on, for whoever holds settings.fediverse.manage. Who
+ * can be followed takes effect at once: the blog's account answers or
+ * doesn't, and authors' accounts stop answering while only the blog can be
+ * followed, keeping their followers. Returns the group's new version.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -16,13 +28,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes the fediverse group on Settings › Fediverse, against the version
- * the page was opened on, for whoever holds settings.fediverse.manage. Who
- * can be followed takes effect at once: the blog's account answers or
- * doesn't, and authors' accounts stop answering while only the blog can be
- * followed, keeping their followers. Returns the group's new version.
- */
 final class ChangeFediverseSettings extends BaseOperation
 {
     use AuthorizesFediverseWork;

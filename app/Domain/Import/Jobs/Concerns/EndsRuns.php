@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * How a job of a run stops it: the details as the run's own messages, then
+ * the stop, both for this attempt's token only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Jobs\Concerns;
@@ -10,10 +19,6 @@ use App\Domain\Import\Operations\RecordImportMessages;
 use App\Domain\Import\Operations\StopImportRun;
 use App\Domain\Import\Phases\ImportMessage;
 
-/**
- * How a job of a run stops it: the details as the run's own messages, then
- * the stop, both for this attempt's token only.
- */
 trait EndsRuns
 {
     /**

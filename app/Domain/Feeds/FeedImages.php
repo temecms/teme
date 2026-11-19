@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * The pictures of a feed: the one variant a reader is given, nearest a width, at an absolute address, and the plain `<img>` of a card, with none of the page's loading hints.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
 
-/**
- * The pictures of a feed: the one variant a reader is given, nearest a width, at an absolute address, and the plain `<img>` of a card, with none of the page's loading hints.
- */
 final readonly class FeedImages
 {
     public const int BODY_WIDTH = 1000;

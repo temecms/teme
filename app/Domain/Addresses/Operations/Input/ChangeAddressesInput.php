@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Addresses\Operations\Input;
-
-use Teme\Contracts\Operations\OperationInput;
-
 /**
  * What ChangeAddresses needs: the patterns and bases to set, the author base,
  * the home page, each type's archive page's address, and who is asking. A
@@ -13,7 +7,18 @@ use Teme\Contracts\Operations\OperationInput;
  * value, and so does the author base or a home page field given as null:
  * Settings › Addresses sends no home page, and Reading's Home page sends
  * nothing else.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Addresses\Operations\Input;
+
+use Teme\Contracts\Operations\OperationInput;
+
 final readonly class ChangeAddressesInput implements OperationInput
 {
     /**

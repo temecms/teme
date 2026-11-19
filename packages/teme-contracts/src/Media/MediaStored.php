@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A file was stored in the media library: a new upload, or a new file in place
+ * of an item's old one.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Media;

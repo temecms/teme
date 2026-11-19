@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The site's own content types and taxonomies: the types' table, and the
+ * copy of both tables the cache store keeps with one version, which every
+ * process reads instead of the tables, and a change puts again after it
+ * commits (I-3296).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -7,12 +18,6 @@ namespace App\Domain\Types;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The site's own content types and taxonomies: the types' table, and the
- * copy of both tables the cache store keeps with one version, which every
- * process reads instead of the tables, and a change puts again after it
- * commits (I-3296).
- */
 final class StoredTypes
 {
     public const string TABLE = 'content_type_definitions';

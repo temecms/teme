@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes a person's role to one of the core roles. Only someone who may
+ * manage users — or the operator — can do it, it asks for a fresh password
+ * confirmation, and it never changes your own role or demotes the last active
+ * administrator. The person is signed out everywhere, and it says what it did, for the screen's toast.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Validation\Rule;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Changes a person's role to one of the core roles. Only someone who may
- * manage users — or the operator — can do it, it asks for a fresh password
- * confirmation, and it never changes your own role or demotes the last active
- * administrator. The person is signed out everywhere, and it says what it did, for the screen's toast.
- */
 final class ChangeUserRole extends BaseOperation implements RequiresElevation
 {
     use ManagesUsers;

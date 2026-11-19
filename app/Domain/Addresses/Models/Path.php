@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One public address: the current one for its target, or an old one that answers with a 301.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Models;
@@ -7,8 +15,6 @@ namespace App\Domain\Addresses\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One public address: the current one for its target, or an old one that answers with a 301.
- *
  * @property int $id
  * @property string $path
  * @property string $target_type

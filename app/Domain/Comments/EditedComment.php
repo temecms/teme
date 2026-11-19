@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What EditComment did (1.8c′'s D9): the comment, the name it's saved under,
+ * for the toast, and whether its formatting went with a change of words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
 
-/**
- * What EditComment did (1.8c′'s D9): the comment, the name it's saved under,
- * for the toast, and whether its formatting went with a change of words.
- */
 final readonly class EditedComment
 {
     public function __construct(

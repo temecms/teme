@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every settings group and setting the site declares, checked as each is
+ * registered. The reader, the settings form and the generated reference all
+ * look groups up here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -9,11 +19,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Every settings group and setting the site declares, checked as each is
- * registered. The reader, the settings form and the generated reference all
- * look groups up here.
- */
 final class SettingsRegistry implements SettingsRegistrar
 {
     private const string GROUP_KEY = '/^[a-z][a-z0-9_]*(\.[a-z0-9][a-z0-9_-]*)?$/';

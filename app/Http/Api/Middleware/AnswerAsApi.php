@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The API group's outermost middleware: every answer is marked nosniff and
+ * noindex, a 200 gets a strong ETag of its body, and no answer sets a
+ * cookie (docs/superpowers/plans/2026-11-11-phase3-slice31-delivery-api-first-release.md, D12, D15).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\Middleware;
@@ -8,11 +18,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * The API group's outermost middleware: every answer is marked nosniff and
- * noindex, a 200 gets a strong ETag of its body, and no answer sets a
- * cookie (docs/superpowers/plans/2026-11-11-phase3-slice31-delivery-api-first-release.md, D12, D15).
- */
 final class AnswerAsApi
 {
     public function handle(Request $request, Closure $next): Response

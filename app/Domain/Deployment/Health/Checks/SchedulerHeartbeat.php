@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Says when the scheduler last ran (I-3112), in every environment: the
+ * Status banner shows only in production, but a developer or a deploy log
+ * should learn of a scheduler that isn't running too. Always a warning,
+ * so a first deploy, which runs before the scheduler exists, isn't refused.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -11,12 +22,6 @@ use App\Domain\Deployment\Health\Severity;
 use App\Domain\Status\Checks\SchedulerRunning;
 use Carbon\CarbonImmutable;
 
-/**
- * Says when the scheduler last ran (I-3112), in every environment: the
- * Status banner shows only in production, but a developer or a deploy log
- * should learn of a scheduler that isn't running too. Always a warning,
- * so a first deploy, which runs before the scheduler exists, isn't refused.
- */
 final readonly class SchedulerHeartbeat implements DoctorCheck
 {
     private const string FIX = 'Start the scheduler role, which runs php artisan schedule:work.';

@@ -56,11 +56,27 @@ function documentationSummary(string|false $docComment): string
     return implode(' ', $prose);
 }
 
-it('gives every class in app/ a docblock that says what it is for', function (): void {
+/**
+ * The prose of a file's header, the docblock between `<?php` and `declare`.
+ */
+function documentationFileHeader(string|false $file): string
+{
+    $source = $file === false ? '' : (string) file_get_contents($file);
+
+    if (preg_match('#\A<\?php\s+(/\*\*.*?\*/)\s*declare\(#s', $source, $match) !== 1) {
+        return '';
+    }
+
+    return documentationSummary($match[1]);
+}
+
+it('gives every class in app/ a header or docblock that says what it is for', function (): void {
     $undocumented = [];
 
     foreach (documentationClassesIn(dirname(__DIR__, 2).'/app', 'App') as $class) {
-        if (documentationSummary((new ReflectionClass($class))->getDocComment()) === '') {
+        $reflection = new ReflectionClass($class);
+
+        if (documentationSummary($reflection->getDocComment()) === '' && documentationFileHeader($reflection->getFileName()) === '') {
             $undocumented[] = $class;
         }
     }

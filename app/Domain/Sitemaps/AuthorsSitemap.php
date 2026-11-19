@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The author archives as a child of their own (I-296): the people credited
+ * on live items of the types with an archive, each at their archive's
+ * address; accounts in ID order, then people with no account in theirs
+ * (I-3366). None while Search and social hides author archives.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps;
@@ -12,12 +23,6 @@ use App\Domain\Seo\TitlesAndListing;
 use App\Domain\Sitemaps\Queries\ListedItems;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The author archives as a child of their own (I-296): the people credited
- * on live items of the types with an archive, each at their archive's
- * address; accounts in ID order, then people with no account in theirs
- * (I-3366). None while Search and social hides author archives.
- */
 final readonly class AuthorsSitemap implements SitemapProvider
 {
     public const string NAME = 'authors';

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * A document's words, for search and the word count. Text nodes give their
  * text, a card gives its own plainText(), and a code block gives nothing:
  * code is not prose, and indexing it drowns the search index. Each block
  * boundary is one space.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 final class PlainText
 {
     /**

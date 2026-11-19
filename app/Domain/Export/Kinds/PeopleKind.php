@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Every account with its name, email address (I-2408), roles and state, by ID.
+ * Never a password hash, a token, a two-factor value, a preference or a log.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -10,10 +19,6 @@ use App\Domain\Export\ExportKind;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every account with its name, email address (I-2408), roles and state, by ID.
- * Never a password hash, a token, a two-factor value, a preference or a log.
- */
 final readonly class PeopleKind implements ExportKind
 {
     public function name(): string

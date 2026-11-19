@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What UnblockHost needs: the blocked server's name, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What UnblockHost needs: the blocked server's name, and who is asking.
- */
 final readonly class UnblockHostInput implements OperationInput
 {
     public function __construct(

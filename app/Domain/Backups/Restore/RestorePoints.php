@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The preflight (I-363): finds the backup to restore and refuses, before
+ * anything is written, with every problem in words: the tools, this
+ * server's database, the place and its backup, the manifest and the key,
+ * compatibility, the media's folders, room, and the safety backup.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -24,12 +35,6 @@ use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The preflight (I-363): finds the backup to restore and refuses, before
- * anything is written, with every problem in words: the tools, this
- * server's database, the place and its backup, the manifest and the key,
- * compatibility, the media's folders, room, and the safety backup.
- */
 final readonly class RestorePoints
 {
     public const string NO_PLACE = 'There’s no place backups are kept, so there’s nothing to restore from. On a new server, name the place with --kind.';

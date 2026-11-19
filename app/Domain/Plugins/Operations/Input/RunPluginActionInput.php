@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What RunPluginAction needs: the plugin's code, the action's id, the
+ * person who clicked it, and, from a plugin's own area, the area's permission.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What RunPluginAction needs: the plugin's code, the action's id, the
- * person who clicked it, and, from a plugin's own area, the area's permission.
- */
 final readonly class RunPluginActionInput implements OperationInput
 {
     public function __construct(

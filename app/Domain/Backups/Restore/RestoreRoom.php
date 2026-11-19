@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups\Restore;
-
 /**
  * Whether a folder's disk has room for what a restore writes there, in words
  * with sizes people read, written without PHP's intl, which Teme doesn't
  * require.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups\Restore;
+
 final class RestoreRoom
 {
     /**

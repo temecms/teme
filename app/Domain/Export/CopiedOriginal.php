@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * One media original copied into the export: its path inside it, its size and
+ * its SHA-256, as copied.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
 
-/**
- * One media original copied into the export: its path inside it, its size and
- * its SHA-256, as copied.
- */
 final readonly class CopiedOriginal
 {
     /** @param string $path Relative to the export: media/<ID>.<ext> */

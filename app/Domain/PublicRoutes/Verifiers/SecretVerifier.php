@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Compares a named header, field or query value to the plugin's secret with
+ * hash_equals.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes\Verifiers;
 
 use Teme\Contracts\Routes\PublicRequest;
 
-/**
- * Compares a named header, field or query value to the plugin's secret with
- * hash_equals.
- */
 final class SecretVerifier
 {
     /**

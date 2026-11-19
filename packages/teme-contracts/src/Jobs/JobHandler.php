@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A plugin's handler for one declared job.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Jobs;

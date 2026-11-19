@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * One plugin as the console, the Status banner and the Plugins page show it
+ * (I-3353): what it is, where it stands and why, what was agreed to,
+ * what it asks for now, and its AI spending this month when granted ai.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Plugins\PluginState;
 
-/**
- * One plugin as the console, the Status banner and the Plugins page show it
- * (I-3353): what it is, where it stands and why, what was agreed to,
- * what it asks for now, and its AI spending this month when granted ai.
- */
 final readonly class PluginRow
 {
     /**

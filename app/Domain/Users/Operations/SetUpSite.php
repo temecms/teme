@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Makes a new site's first administrator and names the site, once, while no
+ * account exists (issue 246). Authorised by the setup code; under a lock, so
+ * two people submitting at once can't both win.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -28,11 +38,6 @@ use LogicException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Makes a new site's first administrator and names the site, once, while no
- * account exists (issue 246). Authorised by the setup code; under a lock, so
- * two people submitting at once can't both win.
- */
 final class SetUpSite extends BaseOperation
 {
     /** Held for the transaction; the second of two requests waits here, then finds the first's account. */

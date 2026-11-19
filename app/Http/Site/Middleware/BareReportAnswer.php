@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Makes every answer to a policy report the same bare 204 (I-3375): outside
+ * the rate limiter, so it removes the headers the limiter adds, which would
+ * tell a sender how much of the site's budget is left, and gives an
+ * accepted, a dropped and a limited report the same Cache-Control.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Middleware;
@@ -8,12 +19,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Makes every answer to a policy report the same bare 204 (I-3375): outside
- * the rate limiter, so it removes the headers the limiter adds, which would
- * tell a sender how much of the site's budget is left, and gives an
- * accepted, a dropped and a limited report the same Cache-Control.
- */
 final class BareReportAnswer
 {
     /** What the limiter adds, and what says when to come back. */

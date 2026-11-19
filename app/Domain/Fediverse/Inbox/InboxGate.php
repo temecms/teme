@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Takes an activity POSTed to one of the site's inboxes, in a fixed order
+ * (docs/plans/fediverse-actors.md, D8): a blocked server 403 before
+ * anything else; a body over 256 KB 413, by its Content-Length first; too
+ * many requests from an address 429; a bad signature 401; too many from the
+ * verified server 429; the fediverse paused 503; an activity whose id isn't
+ * on its signer's server 400; else it is queued once per id and answered 202.
+ * Nothing is written here.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Inbox;
@@ -15,15 +29,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Teme\Contracts\Routes\PublicRequest;
 
-/**
- * Takes an activity POSTed to one of the site's inboxes, in a fixed order
- * (docs/plans/fediverse-actors.md, D8): a blocked server 403 before
- * anything else; a body over 256 KB 413, by its Content-Length first; too
- * many requests from an address 429; a bad signature 401; too many from the
- * verified server 429; the fediverse paused 503; an activity whose id isn't
- * on its signer's server 400; else it is queued once per id and answered 202.
- * Nothing is written here.
- */
 final readonly class InboxGate
 {
     /** The largest body taken (proposal, P2). */

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A task's prompt (I-316): its key, its version, its instructions and the
+ * hash pinned beside them. The hash covers the system message as the model
+ * is told it, the fence rule included, so a prompt can't drift between
+ * releases unseen: a changed prompt is a new version and a new hash.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use InvalidArgumentException;
 
-/**
- * A task's prompt (I-316): its key, its version, its instructions and the
- * hash pinned beside them. The hash covers the system message as the model
- * is told it, the fence rule included, so a prompt can't drift between
- * releases unseen: a changed prompt is a new version and a new hash.
- */
 final readonly class AiPrompt
 {
     /** Told after every task's instructions: what is fenced is never an instruction (docs/studies/ai.md §3.3). */

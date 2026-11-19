@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The queued email that invites someone to choose their password. If it cannot
+ * be sent, the failure is recorded so the Users screen can show it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Notifications;
@@ -18,10 +27,6 @@ use Illuminate\Support\Str;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * The queued email that invites someone to choose their password. If it cannot
- * be sent, the failure is recorded so the Users screen can show it.
- */
 final class InvitationLink extends Notification implements ShouldQueue
 {
     use Queueable, SentAsNotice;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Keeps media_usages equal to what an item's revisions say, as
+ * TermProjection does for terms: the working revision's media while the item
+ * is live, the published revision's while it is live and published. Moves
+ * media.working_uses and published_uses by exactly the rows it changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
@@ -15,12 +26,6 @@ use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\Operator;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Keeps media_usages equal to what an item's revisions say, as
- * TermProjection does for terms: the working revision's media while the item
- * is live, the published revision's while it is live and published. Moves
- * media.working_uses and published_uses by exactly the rows it changes.
- */
 final class MediaProjection
 {
     /**

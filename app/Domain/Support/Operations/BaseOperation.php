@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Enforces the fixed order every mutation follows:
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Operations;
@@ -22,8 +30,6 @@ use Teme\Contracts\Operations\RequiresElevation;
 use Throwable;
 
 /**
- * Enforces the fixed order every mutation follows:
- *
  *   authorize -> elevation -> validate -> mutate (in a transaction)
  *              -> its own after-commit work -> invalidate cache
  *              -> purge pages -> notify plugins -> return

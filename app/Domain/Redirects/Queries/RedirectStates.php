@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Each redirect's state now, for the redirect list (I-857, I-858): a
+ * statement for the rows, one for what answers their exact sources, one for
+ * their items and one for their files, whatever their number.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Queries;
@@ -13,11 +23,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Each redirect's state now, for the redirect list (I-857, I-858): a
- * statement for the rows, one for what answers their exact sources, one for
- * their items and one for their files, whatever their number.
- */
 final readonly class RedirectStates
 {
     public function __construct(private ContentTypeRegistry $types) {}

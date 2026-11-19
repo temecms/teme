@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Chooses which content types and taxonomies are translated (D25, I-3370),
+ * stored as the ones that aren't. Turning translation off is refused while
+ * anything of the type, trash included, is in another language or linked;
+ * turning it on moves nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations;
@@ -19,12 +30,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Chooses which content types and taxonomies are translated (D25, I-3370),
- * stored as the ones that aren't. Turning translation off is refused while
- * anything of the type, trash included, is in another language or linked;
- * turning it on moves nothing.
- */
 final class ChangeTranslatedTypes extends BaseOperation
 {
     use WritesSiteLanguages;

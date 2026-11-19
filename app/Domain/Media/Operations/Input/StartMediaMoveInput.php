@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What StartMediaMove needs: the run's kind and direction, the roles and
+ * items it covers, the site's disks as it starts, and the run to resume,
+ * if any. Only the operator, with no actor, may start one.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Media\Operations\Input;
 use Carbon\CarbonImmutable;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What StartMediaMove needs: the run's kind and direction, the roles and
- * items it covers, the site's disks as it starts, and the run to resume,
- * if any. Only the operator, with no actor, may start one.
- */
 final readonly class StartMediaMoveInput implements OperationInput
 {
     /**

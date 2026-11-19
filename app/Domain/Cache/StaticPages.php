@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * The static-file driver's plain copies of stored pages, which the web
+ * server serves itself with no PHP at all (I-086): a page answered 200 with
+ * nothing but HTML, at the site's own address with no query, as a file
+ * named by its address, `/about/` as `about/index.html`, so nginx or Caddy
+ * finds it from the address alone. `page_cache_files` knows every file: a
+ * row is written before its file and deleted only after it, by the prune,
+ * so nothing lists the folder. A file's row expires EARLY seconds before its
+ * page does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -12,16 +27,6 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-/**
- * The static-file driver's plain copies of stored pages, which the web
- * server serves itself with no PHP at all (I-086): a page answered 200 with
- * nothing but HTML, at the site's own address with no query, as a file
- * named by its address, `/about/` as `about/index.html`, so nginx or Caddy
- * finds it from the address alone. `page_cache_files` knows every file: a
- * row is written before its file and deleted only after it, by the prune,
- * so nothing lists the folder. A file's row expires EARLY seconds before its
- * page does.
- */
 final readonly class StaticPages
 {
     /**

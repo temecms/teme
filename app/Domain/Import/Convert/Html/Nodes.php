@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Builds the nodes the converter writes, each as the editor's own schema
+ * wants it (I-452): headings at levels 2 to 4, a list item that starts with
+ * a paragraph, cells and quotes that never stand empty, and a cell's
+ * attributes written in full, as the editor writes them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Html;
@@ -7,12 +18,6 @@ namespace App\Domain\Import\Convert\Html;
 use App\Domain\Cards\DocumentSchema;
 use Dom\Element;
 
-/**
- * Builds the nodes the converter writes, each as the editor's own schema
- * wants it (I-452): headings at levels 2 to 4, a list item that starts with
- * a paragraph, cells and quotes that never stand empty, and a cell's
- * attributes written in full, as the editor writes them.
- */
 final class Nodes
 {
     /** An element standing where held nodes go, which HtmlBlocks reads as those nodes; never stored. */

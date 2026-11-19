@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Puts the run's pages back under their WordPress parents (I-3363), two
+ * hundred at a time, parents first, each through PlaceImportedPage, at its
+ * WordPress address. On an old site's catch-up, whose tree was never
+ * placed, it does nothing and says so once. Reads nothing from the old site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Content;
@@ -18,12 +29,6 @@ use App\Domain\Import\Queries\ImportRuns;
 use App\Domain\Import\Queries\ImportSources;
 use App\Domain\Import\Source\SourceReader;
 
-/**
- * Puts the run's pages back under their WordPress parents (I-3363), two
- * hundred at a time, parents first, each through PlaceImportedPage, at its
- * WordPress address. On an old site's catch-up, whose tree was never
- * placed, it does nothing and says so once. Reads nothing from the old site.
- */
 final readonly class PageParentsStep implements StepPhase
 {
     public const int PAGE = 200;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An image as structured data describes it (I-700): an ImageObject at its
+ * widest public size, since originals are private, with its caption and
+ * its credit, and the three 1,200-pixel crops once they have been made.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -9,11 +19,6 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Media\MediaDisks;
 use Illuminate\Support\Facades\DB;
 
-/**
- * An image as structured data describes it (I-700): an ImageObject at its
- * widest public size, since originals are private, with its caption and
- * its credit, and the three 1,200-pixel crops once they have been made.
- */
 final readonly class ImageObjects
 {
     /** The crops an article's image lists after the image itself (I-700), by their variants' keys. */

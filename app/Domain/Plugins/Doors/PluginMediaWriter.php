@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's media.write door: fetches a file from an agreed host through
+ * the same outbound rules as http, then stores it with UploadMedia
+ * (docs/proposals/plugin-content-write.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -21,11 +31,6 @@ use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * A plugin's media.write door: fetches a file from an agreed host through
- * the same outbound rules as http, then stores it with UploadMedia
- * (docs/proposals/plugin-content-write.md).
- */
 final readonly class PluginMediaWriter implements MediaWriter
 {
     /**

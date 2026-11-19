@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The alt text kept from before and after a used suggestion (I-1312), for
+ * Tools › AI activity's drawer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\AltText\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * The alt text kept from before and after a used suggestion (I-1312), for
- * Tools › AI activity's drawer.
- */
 final class AltTextChanges
 {
     /**

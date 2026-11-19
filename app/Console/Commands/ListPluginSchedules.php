@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:plugins:schedules`: each enabled plugin's schedules, with how often
+ * they run, when each was last queued and is next due, and why they can't
+ * run, if they can't (docs/guides/developers/plugins/jobs.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,11 +23,6 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use Illuminate\Console\Command;
 
-/**
- * `teme:plugins:schedules`: each enabled plugin's schedules, with how often
- * they run, when each was last queued and is next due, and why they can't
- * run, if they can't (docs/guides/developers/plugins/jobs.md).
- */
 final class ListPluginSchedules extends Command
 {
     /** @var string */

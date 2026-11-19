@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Settings;
-
 /**
  * Where core's Settings pages draw a group or a setting that isn't theirs by
  * name (docs/architecture/admin-design.md, the parity sweep's items 12, 15 and 16).
  * Groups never move: each keeps its key, its values, its ability and how
  * it saves; only the page that draws it changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Settings;
+
 final class SettingsPlacement
 {
     /**

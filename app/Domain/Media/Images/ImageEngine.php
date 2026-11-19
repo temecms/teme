@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Teme's own seam around the image library (study K decision 3A), so the
+ * library or its driver can change without touching an Operation or a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Images;
 
-/**
- * Teme's own seam around the image library (study K decision 3A), so the
- * library or its driver can change without touching an Operation or a job.
- */
 interface ImageEngine
 {
     /**

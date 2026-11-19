@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Adds a language to the site (D10): last among the other languages, with
+ * its address prefix, shown to readers or hidden while it is translated.
+ * Nothing has an address in it yet, so nothing moves.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations;
@@ -11,11 +21,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds a language to the site (D10): last among the other languages, with
- * its address prefix, shown to readers or hidden while it is translated.
- * Nothing has an address in it yet, so nothing moves.
- */
 final class AddSiteLanguage extends BaseOperation
 {
     use WritesSiteLanguages;

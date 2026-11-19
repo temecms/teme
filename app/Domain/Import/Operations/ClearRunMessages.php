@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Clears a step's own run messages as it starts again (I-345): those of a
+ * running run with no object, whose code starts with the step's word, so a
+ * run carried on lists each once, and what was mended disappears.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -14,11 +24,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Clears a step's own run messages as it starts again (I-345): those of a
- * running run with no object, whose code starts with the step's word, so a
- * run carried on lists each once, and what was mended disappears.
- */
 final class ClearRunMessages extends BaseOperation
 {
     use AuthorizesImports;

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Accounts are invited, never self-registered (I-101), and an administrator
+ * never sets or sees another person's password (study G, S11).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -24,10 +33,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Accounts are invited, never self-registered (I-101), and an administrator
- * never sets or sees another person's password (study G, S11).
- */
 final class InviteUser extends BaseOperation implements RequiresElevation
 {
     use ManagesUsers;

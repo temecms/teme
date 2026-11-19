@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Draws one public page as a reader's request would, through the whole
+ * application in this process, so the page cache stores it if it may:
+ * warming never asks over HTTP, where a CDN in front would answer with its
+ * own copy (D7). Each page gets a fresh scope, as the queue worker gives
+ * each job, so nothing one page read reaches the next.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -8,13 +20,6 @@ use App\Domain\Support\Security\Elevation;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 
-/**
- * Draws one public page as a reader's request would, through the whole
- * application in this process, so the page cache stores it if it may:
- * warming never asks over HTTP, where a CDN in front would answer with its
- * own copy (D7). Each page gets a fresh scope, as the queue worker gives
- * each job, so nothing one page read reaches the next.
- */
 final readonly class PageWarmer
 {
     /**

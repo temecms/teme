@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * What moving the pages under a page did (I-3363): how many moved in the
+ * save, how many a queued job will move and its ID, the pages that kept
+ * their old address because the new one is someone else's, and what the
+ * page cache must set aside after commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Tree;
 
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * What moving the pages under a page did (I-3363): how many moved in the
- * save, how many a queued job will move and its ID, the pages that kept
- * their old address because the new one is someone else's, and what the
- * page cache must set aside after commit.
- */
 final readonly class SubtreeOutcome
 {
     /**

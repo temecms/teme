@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The hooks the enabled plugins declare for other plugins
+ * (docs/plans/plugin-sockets-3.md), each under its full name
+ * `{code}:{name}`: how a listener's class is named, and what the reference
+ * lists under each plugin. It reads manifests and rows, never a plugin's code.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Hooks;
@@ -7,12 +18,6 @@ namespace App\Domain\Plugins\Hooks;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 
-/**
- * The hooks the enabled plugins declare for other plugins
- * (docs/plans/plugin-sockets-3.md), each under its full name
- * `{code}:{name}`: how a listener's class is named, and what the reference
- * lists under each plugin. It reads manifests and rows, never a plugin's code.
- */
 final readonly class PluginHookCatalogue
 {
     public function __construct(

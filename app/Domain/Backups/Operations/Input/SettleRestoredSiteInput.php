@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What SettleRestoredSite needs: the run that made the backup and its manifest's snapshot, the backup's moment, when the restore began, the place it came from and its repository, the safety backup, and who restores.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations\Input;
@@ -7,9 +15,6 @@ namespace App\Domain\Backups\Operations\Input;
 use Carbon\CarbonImmutable;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What SettleRestoredSite needs: the run that made the backup and its manifest's snapshot, the backup's moment, when the restore began, the place it came from and its repository, the safety backup, and who restores.
- */
 final readonly class SettleRestoredSiteInput implements OperationInput
 {
     public function __construct(

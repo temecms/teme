@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records how a run ended (I-362): finished or failed, when, its figures,
+ * restic's snapshot, the place that took it and its message; and each place
+ * it reached for turned ready or failing by what it saw there.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -15,11 +25,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records how a run ended (I-362): finished or failed, when, its figures,
- * restic's snapshot, the place that took it and its message; and each place
- * it reached for turned ready or failing by what it saw there.
- */
 final class EndBackupRun extends BaseOperation
 {
     use AuthorizesBackupRuns;

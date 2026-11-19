@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the pages drawn outside the admin's app print around their words: the
+ * site's mark, or Teme's when the site has none or cannot be read, and the
+ * way back (docs/proposals/sign-in-pages.md).
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Standalone;
@@ -8,11 +18,6 @@ use App\Domain\Navigation\Queries\ShellBrand;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * What the pages drawn outside the admin's app print around their words: the
- * site's mark, or Teme's when the site has none or cannot be read, and the
- * way back (docs/proposals/sign-in-pages.md).
- */
 final readonly class StandalonePage
 {
     public function __construct(

@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Phases\Redirects;
-
 /**
  * A WordPress plugin's regex rule in Teme's own form (I-287): read, never
  * run, so a catastrophic pattern costs nothing and nothing of PCRE's dialect
@@ -11,7 +7,16 @@ namespace App\Domain\Import\Phases\Redirects;
  * between slashes plain text or one group matching that part, a group taking
  * the rest only last, and nothing after its end; its groups become [p1],
  * [p2], [...p3], in the target too. Otherwise, the reason in words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Phases\Redirects;
+
 final class RegexPaths
 {
     /** Group bodies that match one part of an address; counted digits (COUNTED) too. */

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Jobs;
-
 /**
  * A kind of background work Teme can retry and cancel (I-104): an import,
  * Select all matching, a backup, and in time a plugin's work. The part that
  * owns the work tags it under JobKinds::TAG from its own provider.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Jobs;
+
 interface JobKind
 {
     /**

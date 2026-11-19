@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Checks a plugin's declared permissions and area against every bound of
+ * docs/plans/plugin-sockets-2.md (A1, A2), each refusal one plain sentence,
+ * before anything of them is made or drawn.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -7,11 +17,6 @@ namespace App\Domain\Plugins\Area;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use Teme\Contracts\Lists\Cell;
 
-/**
- * Checks a plugin's declared permissions and area against every bound of
- * docs/plans/plugin-sockets-2.md (A1, A2), each refusal one plain sentence,
- * before anything of them is made or drawn.
- */
 final class AreaValidator
 {
     /** The places an area's menu entry may go. */

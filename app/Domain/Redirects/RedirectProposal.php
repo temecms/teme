@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Redirects;
-
 /**
  * A whole redirect as a form or a CSV line asks for it, read and checked on
  * its own, before the table is consulted (I-297): its source, its status,
  * its target (none for 410 and 451) and its note.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Redirects;
+
 final readonly class RedirectProposal
 {
     /** The longest note, in characters. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One item in a listing, from its published revision: its title and address,
+ * the excerpt someone wrote, its kicker, its authors, when it was published
+ * and that date to show, its featured image, and its fields.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

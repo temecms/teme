@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Answers two questions about a person's account for the admin's middleware:
+ * whether it is suspended, and whether their role requires two-factor sign-in
+ * that they have not set up.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Users\Queries;
 use App\Models\User;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Answers two questions about a person's account for the admin's middleware:
- * whether it is suspended, and whether their role requires two-factor sign-in
- * that they have not set up.
- */
 final class AccountStatus
 {
     public function __construct(private readonly SettingsReader $settings) {}

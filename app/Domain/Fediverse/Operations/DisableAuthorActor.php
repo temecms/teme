@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Stops people following one author: their account no longer answers, and
+ * its keys and followers are kept for when it is turned on again. For
+ * whoever holds settings.fediverse.manage; returns whether it was on.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -10,11 +20,6 @@ use App\Domain\Fediverse\Operations\Input\AuthorActorInput;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Stops people following one author: their account no longer answers, and
- * its keys and followers are kept for when it is turned on again. For
- * whoever holds settings.fediverse.manage; returns whether it was on.
- */
 final class DisableAuthorActor extends BaseOperation
 {
     use AuthorizesFediverseWork;

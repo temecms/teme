@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The inline scripts in a plugin's code fields that may hold them
+ * (docs/plans/plugin-sockets-2.md, A-T9): asked for when a form or the
+ * plugin's settings are saved, and, on the form, which of them wait and
+ * whether the person may approve them there.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -18,12 +29,6 @@ use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * The inline scripts in a plugin's code fields that may hold them
- * (docs/plans/plugin-sockets-2.md, A-T9): asked for when a form or the
- * plugin's settings are saved, and, on the form, which of them wait and
- * whether the person may approve them there.
- */
 final class CodeScripts
 {
     /** The kind of notice the people who may approve a plugin's script get. */

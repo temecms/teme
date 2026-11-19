@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Where plugins' areas show in the admin's menu (docs/plans/plugin-sockets-2.md,
+ * A2; I-216, I-3401): one entry each, under the plugin's own name (I-3468),
+ * in the task section it names, at most five site-wide in the order they
+ * were enabled; an area that asks for Tools, or comes sixth or later, is a
+ * card on the Tools hub. Budgets place entries; they never refuse a plugin.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -8,13 +20,6 @@ use App\Domain\Navigation\NavEntry;
 use App\Domain\Navigation\NavSection;
 use App\Models\User;
 
-/**
- * Where plugins' areas show in the admin's menu (docs/plans/plugin-sockets-2.md,
- * A2; I-216, I-3401): one entry each, under the plugin's own name (I-3468),
- * in the task section it names, at most five site-wide in the order they
- * were enabled; an area that asks for Tools, or comes sixth or later, is a
- * card on the Tools hub. Budgets place entries; they never refuse a plugin.
- */
 final readonly class AreaEntries
 {
     /** The most plugin entries the menu holds. */

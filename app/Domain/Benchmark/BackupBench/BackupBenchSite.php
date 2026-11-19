@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The backup benchmark's site made real (I-367): every media row an image
+ * whose original and five sizes are files of random bytes in the media
+ * folders, each original's SHA-256 on its row; the night's new images; and
+ * reader passwords for a restore to re-encrypt. It writes only the
+ * benchmark's own database and the two media folders it is given.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark\BackupBench;
@@ -9,13 +21,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-/**
- * The backup benchmark's site made real (I-367): every media row an image
- * whose original and five sizes are files of random bytes in the media
- * folders, each original's SHA-256 on its row; the night's new images; and
- * reader passwords for a restore to re-encrypt. It writes only the
- * benchmark's own database and the two media folders it is given.
- */
 final class BackupBenchSite
 {
     /** Rows read, and SHA-256s written, a statement at a time. */

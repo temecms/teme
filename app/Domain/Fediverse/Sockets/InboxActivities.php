@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * What the inbox's queued job does with an activity beyond following
+ * (docs/plans/fediverse-publishing.md, D5): plugins granted fediverse.read
+ * hear of every activity taken; a reply goes to the comments; any other
+ * type Teme does not take itself goes to the plugins' handlers for it,
+ * each run as tracked, queued work for the administrator who enabled its
+ * plugin (follow-up R7).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets;
@@ -18,14 +31,6 @@ use Teme\Contracts\Fediverse\ActivityReceived;
 use Teme\Contracts\Fediverse\CollectActivityHandlers;
 use Throwable;
 
-/**
- * What the inbox's queued job does with an activity beyond following
- * (docs/plans/fediverse-publishing.md, D5): plugins granted fediverse.read
- * hear of every activity taken; a reply goes to the comments; any other
- * type Teme does not take itself goes to the plugins' handlers for it,
- * each run as tracked, queued work for the administrator who enabled its
- * plugin (follow-up R7).
- */
 final readonly class InboxActivities
 {
     /** The largest activity, with what goes with it, kept on a handler's job. */

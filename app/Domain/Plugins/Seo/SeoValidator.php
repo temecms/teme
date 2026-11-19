@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Checks what a plugin declares for search engines (docs/guides/developers/plugins/seo.md):
+ * its editor checks, its Search and social section, its sitemaps and the
+ * schema.org terms its graph nodes use; the capabilities each needs; and, as
+ * the plugin starts, that its class hands over what it declares. Every
+ * refusal is one plain sentence.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -12,13 +24,6 @@ use Teme\Contracts\Sitemaps\HasSitemaps;
 use Teme\Contracts\Sitemaps\PluginSitemap;
 use Throwable;
 
-/**
- * Checks what a plugin declares for search engines (docs/guides/developers/plugins/seo.md):
- * its editor checks, its Search and social section, its sitemaps and the
- * schema.org terms its graph nodes use; the capabilities each needs; and, as
- * the plugin starts, that its class hands over what it declares. Every
- * refusal is one plain sentence.
- */
 final class SeoValidator
 {
     /** An editor check's or a sitemap's id. */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Deletes comments permanently from the Comments screen (1.8c's D12): each
+ * through DeleteCommentPermanently, deepest first, so a comment whose replies
+ * all go goes too, at most 100 a request, the person read once for the
+ * batch. Nothing to undo; the confirmation came first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Comments;
@@ -17,12 +28,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Deletes comments permanently from the Comments screen (1.8c's D12): each
- * through DeleteCommentPermanently, deepest first, so a comment whose replies
- * all go goes too, at most 100 a request, the person read once for the
- * batch. Nothing to undo; the confirmation came first.
- */
 final class CommentDeletionController extends Controller
 {
     public function __invoke(Request $request, DeleteCommentPermanently $delete, CommentList $list, Actors $actors): RedirectResponse

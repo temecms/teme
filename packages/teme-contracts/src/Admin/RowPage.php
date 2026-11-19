@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One page of a record's rows, and how many there are in all when the plugin
+ * knows.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What makes a Laravel notification one of Teme's notices: it names its kind,
+ * and the channels it goes by are whatever NoticeChoices says this recipient
+ * gets that kind by. Laravel decides a queued notification's channels once,
+ * when it queues it, so shouldSend() asks again as the worker sends each one:
+ * a choice made, or an account suspended, in between is honoured.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -8,13 +20,6 @@ use App\Domain\Notices\Channels\InboxChannel;
 use App\Domain\Notices\Queries\NoticeChoices;
 use Teme\Contracts\Notices\NoticeKind;
 
-/**
- * What makes a Laravel notification one of Teme's notices: it names its kind,
- * and the channels it goes by are whatever NoticeChoices says this recipient
- * gets that kind by. Laravel decides a queued notification's channels once,
- * when it queues it, so shouldSend() asks again as the worker sends each one:
- * a choice made, or an account suspended, in between is honoured.
- */
 trait SentAsNotice
 {
     /**

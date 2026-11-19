@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Reads HTML's block structure from the native parser's tree into Tiptap
+ * nodes the editor's schema accepts: paragraphs, headings, lists, quotes,
+ * code, rules, tables and images. Inline content beside blocks becomes a
+ * paragraph of its own; other elements pass their contents through.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Html;
@@ -9,12 +20,6 @@ use Dom\Element;
 use Dom\Node;
 use Dom\Text;
 
-/**
- * Reads HTML's block structure from the native parser's tree into Tiptap
- * nodes the editor's schema accepts: paragraphs, headings, lists, quotes,
- * code, rules, tables and images. Inline content beside blocks becomes a
- * paragraph of its own; other elements pass their contents through.
- */
 final readonly class HtmlBlocks
 {
     /** Elements holding inline content: a run of them and of text makes a paragraph. */

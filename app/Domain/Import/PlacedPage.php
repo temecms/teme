@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import;
-
 /**
  * What putting one imported page back under its WordPress parent did
  * (I-3363): placed it, found it already placed, or left it where it was;
  * the note's code and words when there is one; and the pages under it that
  * kept their old address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import;
+
 final readonly class PlacedPage
 {
     public const string PLACED = 'placed';

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The plugins' tabs in Search and social (docs/guides/developers/plugins/seo.md):
+ * which a content type shows, and their values as an item's fields keep
+ * them, one object under each plugin's key, typed and checked as declared.
+ * A value of a plugin that doesn't show its tab now travels with the item
+ * untouched, as a removed field's does.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -7,13 +19,6 @@ namespace App\Domain\Plugins\Seo;
 use App\Domain\Plugins\ManifestText;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The plugins' tabs in Search and social (docs/guides/developers/plugins/seo.md):
- * which a content type shows, and their values as an item's fields keep
- * them, one object under each plugin's key, typed and checked as declared.
- * A value of a plugin that doesn't show its tab now travels with the item
- * untouched, as a removed field's does.
- */
 final readonly class PluginSearchFields
 {
     /** What every plugin's key in an item's fields starts with. */

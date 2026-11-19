@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A plugin's content.write door: creates, changes, publishes and schedules
+ * items, sets their slugs and credits and links language versions, through
+ * Teme's Operations, always on behalf of a named person
+ * (docs/proposals/plugin-content-write.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -38,12 +49,6 @@ use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Media\MediaRef;
 use Throwable;
 
-/**
- * A plugin's content.write door: creates, changes, publishes and schedules
- * items, sets their slugs and credits and links language versions, through
- * Teme's Operations, always on behalf of a named person
- * (docs/proposals/plugin-content-write.md).
- */
 final readonly class PluginContentWriter implements ContentWriter
 {
     public function __construct(private string $code) {}

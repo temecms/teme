@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Before the switch (I-339): every address the old site answers, from the
+ * companion's urls, asked of this site in-process through SiteAnswers, as a
+ * reader's request would meet it; each one that doesn't answer listed, an
+ * error that holds up "Ready to switch". Fifty seconds a job, carried on
+ * after the last address done; started again, it starts its messages again.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Check;
@@ -21,13 +33,6 @@ use App\Domain\Redirects\RedirectSource;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Str;
 
-/**
- * Before the switch (I-339): every address the old site answers, from the
- * companion's urls, asked of this site in-process through SiteAnswers, as a
- * reader's request would meet it; each one that doesn't answer listed, an
- * error that holds up "Ready to switch". Fifty seconds a job, carried on
- * after the last address done; started again, it starts its messages again.
- */
 final readonly class CheckStep implements StepPhase
 {
     /** Seconds a job checks for before it hands on to the next. */

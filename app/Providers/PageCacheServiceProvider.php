@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Wires the page cache (slice 1.7): its store, files, files the web server
+ * serves itself, or Redis, chosen by `page_cache.driver` each time one is
+ * asked for, so the config a test sets reaches it, and the record each
+ * page's render keeps and the list each Operation tells, and whether the
+ * Redis connection could be made, one per request or job, and the Status
+ * checks for a folder not every process shares and for a CDN that refuses
+ * purges.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -21,15 +35,6 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 
-/**
- * Wires the page cache (slice 1.7): its store, files, files the web server
- * serves itself, or Redis, chosen by `page_cache.driver` each time one is
- * asked for, so the config a test sets reaches it, and the record each
- * page's render keeps and the list each Operation tells, and whether the
- * Redis connection could be made, one per request or job, and the Status
- * checks for a folder not every process shares and for a CDN that refuses
- * purges.
- */
 final class PageCacheServiceProvider extends ServiceProvider
 {
     public function register(): void

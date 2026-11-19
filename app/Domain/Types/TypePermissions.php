@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A content type's own six permissions (I-413): their names, who holds
+ * them, and making and removing them. The type Operations write through it,
+ * inside their transaction and under the types' lock, with the query
+ * builder only: Spatie's models would reload and cache the permission list
+ * from inside the transaction.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -8,13 +20,6 @@ use App\Domain\Users\Roles;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * A content type's own six permissions (I-413): their names, who holds
- * them, and making and removing them. The type Operations write through it,
- * inside their transaction and under the types' lock, with the query
- * builder only: Spatie's models would reload and cache the permission list
- * from inside the transaction.
- */
 final class TypePermissions
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The image's own packages, pinned at their exact versions, which the
+ * extensions folder's composer.json replaces and provides, so Composer
+ * resolves every plugin against Teme's real versions and never installs a
+ * second copy of a package Teme has (docs/plans/plugin-installer.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions;
@@ -7,12 +18,6 @@ namespace App\Domain\Extensions;
 use JsonException;
 use RuntimeException;
 
-/**
- * The image's own packages, pinned at their exact versions, which the
- * extensions folder's composer.json replaces and provides, so Composer
- * resolves every plugin against Teme's real versions and never installs a
- * second copy of a package Teme has (docs/plans/plugin-installer.md).
- */
 final readonly class CorePins
 {
     /** Where `teme:extensions:pins` writes the pins at image build. */

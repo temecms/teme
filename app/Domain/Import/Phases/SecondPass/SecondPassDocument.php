@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The second pass's work on one document (I-333), pure: each reusable
+ * block put in at the place the converter noted, the last first, blocks
+ * inside blocks too, a block met inside itself once, never past the nodes
+ * a document may hold; and links left as paths finished by ID wherever the
+ * document holds them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\SecondPass;
@@ -8,13 +20,6 @@ use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\Exceptions\InvalidDocumentException;
 use Closure;
 
-/**
- * The second pass's work on one document (I-333), pure: each reusable
- * block put in at the place the converter noted, the last first, blocks
- * inside blocks too, a block met inside itself once, never past the nodes
- * a document may hold; and links left as paths finished by ID wherever the
- * document holds them.
- */
 final class SecondPassDocument
 {
     /** How deep blocks inside blocks are put in. */

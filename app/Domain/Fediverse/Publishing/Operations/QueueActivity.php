@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Turns a change to a federated item into what its followers are sent
+ * (docs/plans/fediverse-publishing.md, D1): a Create the first time it goes
+ * public, an Update after, a Delete when it leaves the public site; in one
+ * transaction, the activity and one delivery per distinct inbox of the
+ * sending actor's followers, a shared inbox standing for every follower on
+ * its server. Nothing while the fediverse is paused or an import runs.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing\Operations;
@@ -27,14 +40,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Turns a change to a federated item into what its followers are sent
- * (docs/plans/fediverse-publishing.md, D1): a Create the first time it goes
- * public, an Update after, a Delete when it leaves the public site; in one
- * transaction, the activity and one delivery per distinct inbox of the
- * sending actor's followers, a shared inbox standing for every follower on
- * its server. Nothing while the fediverse is paused or an import runs.
- */
 final class QueueActivity extends BaseOperation
 {
     use AuthorizesFediverseWork;

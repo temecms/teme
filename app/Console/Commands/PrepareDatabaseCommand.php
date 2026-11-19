@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:database:prepare — the database step of a container that runs every role: makes Teme's own limited login
+ * on the PostgreSQL service it was given (or finds it can't, and says so). With --shell it prints the login
+ * as lines for a shell to read, and says everything else on the error output, so what it prints is only that.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,11 +20,6 @@ use App\Domain\Deployment\PrepareDatabase;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * teme:database:prepare — the database step of a container that runs every role: makes Teme's own limited login
- * on the PostgreSQL service it was given (or finds it can't, and says so). With --shell it prints the login
- * as lines for a shell to read, and says everything else on the error output, so what it prints is only that.
- */
 final class PrepareDatabaseCommand extends Command
 {
     /** @var string */

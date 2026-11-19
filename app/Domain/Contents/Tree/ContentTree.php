@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Reads the tree of a type whose items nest, such as pages (I-3363), stored
+ * as an adjacency list on contents: every walk is one bounded recursive
+ * query, so a loop written outside the Operations can never make one hang.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Tree;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Reads the tree of a type whose items nest, such as pages (I-3363), stored
- * as an adjacency list on contents: every walk is one bounded recursive
- * query, so a loop written outside the Operations can never make one hang.
- */
 final class ContentTree
 {
     /** The deepest a tree goes: an item and seven ancestors. */

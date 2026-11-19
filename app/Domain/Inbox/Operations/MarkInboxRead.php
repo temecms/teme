@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Marks one of a person's inbox items read, or all of them, when they open it
+ * or ask (I-221). Only the person whose inbox it is may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox\Operations;
@@ -10,10 +19,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Marks one of a person's inbox items read, or all of them, when they open it
- * or ask (I-221). Only the person whose inbox it is may.
- */
 final class MarkInboxRead extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

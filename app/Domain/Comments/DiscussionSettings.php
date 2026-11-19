@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The Discussion settings, read and typed for the comment Operations and
+ * core's moderator (docs/studies/comments.md §3.10), and how a new item of a
+ * type starts (I-274). Read afresh at each call; the reader's memo keeps it
+ * to one lookup a request.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -7,12 +18,6 @@ namespace App\Domain\Comments;
 use App\Domain\Types\ContentTypeRegistry;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The Discussion settings, read and typed for the comment Operations and
- * core's moderator (docs/studies/comments.md §3.10), and how a new item of a
- * type starts (I-274). Read afresh at each call; the reader's memo keeps it
- * to one lookup a request.
- */
 final readonly class DiscussionSettings
 {
     /** The settings group these are read from. */

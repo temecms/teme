@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a table asks of a record's rows: its page, how many a page, the search,
+ * the chosen filters, and the sorted column and direction.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

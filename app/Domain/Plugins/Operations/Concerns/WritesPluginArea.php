@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What the writes in a plugin's area share (docs/plans/plugin-sockets-2.md):
+ * who may write, a call into the plugin under its 2-second budget that
+ * rolls everything back on a refusal or a fault, and the purge of the
+ * area's declared tags after commit.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations\Concerns;
@@ -19,12 +30,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\WriteRefused;
 use Throwable;
 
-/**
- * What the writes in a plugin's area share (docs/plans/plugin-sockets-2.md):
- * who may write, a call into the plugin under its 2-second budget that
- * rolls everything back on a refusal or a fault, and the purge of the
- * area's declared tags after commit.
- */
 trait WritesPluginArea
 {
     /**

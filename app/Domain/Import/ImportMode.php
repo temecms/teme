@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whether the work in hand is an import run's (I-332): while it is, each
+ * Operation's purge of the page cache is held, and the run ends with one
+ * purge of everything. Only the engine's jobs enter it, for a run that is
+ * running; it is bound scoped, so it ends with the job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import;
@@ -8,12 +19,6 @@ use App\Domain\Import\Models\ImportRun;
 use Closure;
 use LogicException;
 
-/**
- * Whether the work in hand is an import run's (I-332): while it is, each
- * Operation's purge of the page cache is held, and the run ends with one
- * purge of everything. Only the engine's jobs enter it, for a run that is
- * running; it is bound scoped, so it ends with the job.
- */
 final class ImportMode
 {
     private ?string $runId = null;

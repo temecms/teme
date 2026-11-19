@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The old site's addresses as the converter needs them: its home, from the
+ * source; where WordPress keeps its uploads and which shortcodes were
+ * registered at export, from the companion's analyze report, kept in the
+ * cache six hours as the analysis is (I-261: the cache is disposable).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Content;
@@ -13,12 +24,6 @@ use App\Domain\Support\Network\AddressRefused;
 use Illuminate\Contracts\Cache\Repository;
 use InvalidArgumentException;
 
-/**
- * The old site's addresses as the converter needs them: its home, from the
- * source; where WordPress keeps its uploads and which shortcodes were
- * registered at export, from the companion's analyze report, kept in the
- * cache six hours as the analysis is (I-261: the cache is disposable).
- */
 final readonly class ContentSite
 {
     /** How long the report's answer is kept: as long as Tools › Import keeps the analysis. */

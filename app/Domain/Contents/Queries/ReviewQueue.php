@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The pending reviews of a page of content items, read from content_reviews —
+ * never from the status, because a live article's update in review stays
+ * published. One query, the same on every page whether it holds a review or
+ * not (as B-173 holds schedules). It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -7,12 +18,6 @@ namespace App\Domain\Contents\Queries;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The pending reviews of a page of content items, read from content_reviews —
- * never from the status, because a live article's update in review stays
- * published. One query, the same on every page whether it holds a review or
- * not (as B-173 holds schedules). It reads only.
- */
 final class ReviewQueue
 {
     /**

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The prose blocks of a stored document that carry a permanent ID beside
+ * cards (I-3362), and the step that gives each one lacking an ID a new one.
+ * DocumentSchema says which blocks may carry one; the editor gives the same
+ * blocks theirs (resources/js/components/editor/block-ids.ts).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
 
 use Closure;
 
-/**
- * The prose blocks of a stored document that carry a permanent ID beside
- * cards (I-3362), and the step that gives each one lacking an ID a new one.
- * DocumentSchema says which blocks may carry one; the editor gives the same
- * blocks theirs (resources/js/components/editor/block-ids.ts).
- */
 final class BlockIds
 {
     /**

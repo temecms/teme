@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert\Html;
-
-use App\Domain\Cards\CardProse;
-
 /**
  * Converted blocks as the rich text a card holds (CardProse): paragraphs
  * and lists stay, a heading becomes a paragraph, and anything a card's text
  * can't hold, such as an image, a table or a card, means it can't be held
  * at all, so the caller keeps the blocks as the body's own instead and
  * nothing is lost.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert\Html;
+
+use App\Domain\Cards\CardProse;
+
 final class CardText
 {
     /**

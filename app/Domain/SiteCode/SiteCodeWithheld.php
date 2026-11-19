@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\SiteCode;
-
 /**
  * Whether the page this request draws leaves Settings › Site code out. The
  * signed-in preview does, so no third-party script runs on the admin's
  * address (I-1324). Bound scoped: it holds one request's answer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\SiteCode;
+
 final class SiteCodeWithheld
 {
     private bool $withheld = false;

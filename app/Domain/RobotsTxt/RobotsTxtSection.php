@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Search and social's section "robots.txt" (I-300): the lines an
+ * administrator adds to the file, checked line by line when saved. The
+ * switch that asks AI training crawlers to stay away is named here, but
+ * drawn under "For apps and AI tools".
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\RobotsTxt;
@@ -9,12 +20,6 @@ use App\Domain\Seo\SearchAndSocialSection;
 use App\Domain\Settings\SettingsCheck;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * Search and social's section "robots.txt" (I-300): the lines an
- * administrator adds to the file, checked line by line when saved. The
- * switch that asks AI training crawlers to stay away is named here, but
- * drawn under "For apps and AI tools".
- */
 final class RobotsTxtSection implements SearchAndSocialSection, SettingsCheck
 {
     public const string EXTRA = 'robots_extra_rules';

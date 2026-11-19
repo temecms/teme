@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Publishing is a pointer assignment. No content is rewritten, no revision
+ * is destroyed, and the previously published revision remains addressable.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -39,10 +48,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Publishing is a pointer assignment. No content is rewritten, no revision
- * is destroyed, and the previously published revision remains addressable.
- */
 final class PublishRevision extends BaseOperation
 {
     use FollowsTree;

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The sitemaps' addresses (I-296): the index, every page a child has, the
+ * stylesheet, and WordPress's and Yoast's index addresses, sent to the
+ * index. While the site discourages search engines, and for a page that
+ * isn't one, PublicController answers with the site's own 404 page. Marked
+ * cacheable by its routes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -14,13 +26,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
-/**
- * The sitemaps' addresses (I-296): the index, every page a child has, the
- * stylesheet, and WordPress's and Yoast's index addresses, sent to the
- * index. While the site discourages search engines, and for a page that
- * isn't one, PublicController answers with the site's own 404 page. Marked
- * cacheable by its routes.
- */
 final class SitemapController extends Controller
 {
     /** Every sitemap's headers: XML, and kept out of search results itself. */

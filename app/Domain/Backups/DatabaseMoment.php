@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * One moment of the database, held while a backup reads it (I-358): a
+ * REPEATABLE READ, READ ONLY transaction on a session of its own exports
+ * its snapshot and reads what the manifest says of the database and the
+ * media rows, and stays open until pg_dump has copied the database as that
+ * same snapshot sees it. The manifest, the dump and the media files then
+ * describe one instant.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -10,14 +23,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * One moment of the database, held while a backup reads it (I-358): a
- * REPEATABLE READ, READ ONLY transaction on a session of its own exports
- * its snapshot and reads what the manifest says of the database and the
- * media rows, and stays open until pg_dump has copied the database as that
- * same snapshot sees it. The manifest, the dump and the media files then
- * describe one instant.
- */
 final class DatabaseMoment
 {
     /** The session the moment is held on, made when it opens. */

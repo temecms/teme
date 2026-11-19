@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A settings group's words in each of the site's other languages, as the
+ * "In other languages" table sends them, the group's version the form was
+ * opened on, and who asks.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * A settings group's words in each of the site's other languages, as the
- * "In other languages" table sends them, the group's version the form was
- * opened on, and who asks.
- */
 final readonly class SaveSettingsWordsInput implements OperationInput
 {
     /**

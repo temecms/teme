@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The preferences 1.5 actually reads, and nothing speculative: each one here
+ * has a screen that uses it. Their order is the order the account's
+ * preferences screen shows them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Preferences;
@@ -15,11 +25,6 @@ use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * The preferences 1.5 actually reads, and nothing speculative: each one here
- * has a screen that uses it. Their order is the order the account's
- * preferences screen shows them.
- */
 final class BuiltInPreferences
 {
     public static function register(PreferenceRegistry $registry): void

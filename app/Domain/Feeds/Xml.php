@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Everything a feed does to text on its way into XML: escaping, removing what
+ * XML 1.0 cannot carry, wrapping HTML in CDATA, and dating in RFC 822. One
+ * place, so no value reaches a feed by another road. It holds no state.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -7,11 +17,6 @@ namespace App\Domain\Feeds;
 use DateTimeImmutable;
 use DateTimeInterface;
 
-/**
- * Everything a feed does to text on its way into XML: escaping, removing what
- * XML 1.0 cannot carry, wrapping HTML in CDATA, and dating in RFC 822. One
- * place, so no value reaches a feed by another road. It holds no state.
- */
 final class Xml
 {
     /**

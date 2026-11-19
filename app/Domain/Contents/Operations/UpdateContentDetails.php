@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Quick edit and bulk edit: changes an item's title, slug, author, categories
+ * and tags, or published date, and the fields it is given, such as the
+ * featured image. On a published item with nothing else waiting the change
+ * goes live, as WordPress's quick edit does; with unpublished changes
+ * waiting it stays in the draft, so no one's unfinished work is published
+ * by accident.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -47,14 +60,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Quick edit and bulk edit: changes an item's title, slug, author, categories
- * and tags, or published date, and the fields it is given, such as the
- * featured image. On a published item with nothing else waiting the change
- * goes live, as WordPress's quick edit does; with unpublished changes
- * waiting it stays in the draft, so no one's unfinished work is published
- * by accident.
- */
 final class UpdateContentDetails extends BaseOperation
 {
     use PurgesTranslations;

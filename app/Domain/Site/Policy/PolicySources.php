@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The origins a page's content security policy allows beside its own
+ * (I-3375): the public media disk's, the asset address's and the embed
+ * providers' frames, worked out from configuration, shared by the public
+ * site's policy and the admin's signed-in preview.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Policy;
 
 use App\Domain\Media\MediaDisks;
 
-/**
- * The origins a page's content security policy allows beside its own
- * (I-3375): the public media disk's, the asset address's and the embed
- * providers' frames, worked out from configuration, shared by the public
- * site's policy and the admin's signed-in preview.
- */
 final class PolicySources
 {
     /**

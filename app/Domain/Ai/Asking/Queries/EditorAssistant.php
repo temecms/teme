@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the editor's assistant pane offers one person (I-321): the tasks
+ * about an item they may ask for now, where those tasks' text may be sent
+ * (I-1304), whether they may change Settings › AI, and the hourly limit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking\Queries;
@@ -13,11 +23,6 @@ use App\Domain\Ai\ModelChoices;
 use App\Domain\Ai\UsageLimits;
 use App\Models\User;
 
-/**
- * What the editor's assistant pane offers one person (I-321): the tasks
- * about an item they may ask for now, where those tasks' text may be sent
- * (I-1304), whether they may change Settings › AI, and the hourly limit.
- */
 final readonly class EditorAssistant
 {
     public function __construct(

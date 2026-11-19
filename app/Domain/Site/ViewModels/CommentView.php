@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One place in a thread, as a theme is given it: a comment, a tombstone or a
+ * ping kept from WordPress, with its replies.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A call to action that leads either to another article, held by its ID and
+ * resolved at render time (rule 9), or to an address elsewhere. Exactly one of
+ * the two. A button whose article is not public renders nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -13,11 +23,6 @@ use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RenderContext;
 use Illuminate\Validation\ValidationException;
 
-/**
- * A call to action that leads either to another article, held by its ID and
- * resolved at render time (rule 9), or to an address elsewhere. Exactly one of
- * the two. A button whose article is not public renders nothing.
- */
 final class ButtonCard implements CardType
 {
     public function name(): string

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Lets plugins change one of the site's accounts as other servers read it,
+ * such as adding profile fields.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

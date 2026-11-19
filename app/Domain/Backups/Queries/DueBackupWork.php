@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What the schedule should start now (I-361), read from the settings and
+ * backup_runs alone: the nightly backup once its hour has come in the
+ * site's time zone and none has started since, and the weekly prune after
+ * that night's backup. A server that was off at the hour backs up when it's
+ * back, and a changed hour needs no schedule rebuilt.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -11,13 +23,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What the schedule should start now (I-361), read from the settings and
- * backup_runs alone: the nightly backup once its hour has come in the
- * site's time zone and none has started since, and the weekly prune after
- * that night's backup. A server that was off at the hour backs up when it's
- * back, and a changed hour needs no schedule rebuilt.
- */
 final readonly class DueBackupWork
 {
     /** Days between prunes. */

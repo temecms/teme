@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:updates:request — asks for Teme to be updated, or rolled back to the release before, as the operator
+ * (I-3326); every administrator is emailed and the updater carries it out.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -14,10 +23,6 @@ use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\Console\Exception\RuntimeException;
 
-/**
- * teme:updates:request — asks for Teme to be updated, or rolled back to the release before, as the operator
- * (I-3326); every administrator is emailed and the updater carries it out.
- */
 final class RequestUpdateCommand extends Command
 {
     /** @var string */

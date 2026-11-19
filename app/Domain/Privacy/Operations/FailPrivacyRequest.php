@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Ends a privacy request that stopped, with why (I-3375). The reason never
+ * keeps the request's address, which the record outlives (I-270): it is
+ * taken out of the whole reason before the reason is cut to its length. A
+ * failed export's files are deleted after commit. A request that already
+ * ended is left alone.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Operations;
@@ -13,13 +25,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Ends a privacy request that stopped, with why (I-3375). The reason never
- * keeps the request's address, which the record outlives (I-270): it is
- * taken out of the whole reason before the reason is cut to its length. A
- * failed export's files are deleted after commit. A request that already
- * ended is left alone.
- */
 final class FailPrivacyRequest extends BaseOperation
 {
     use AuthorizesPrivacyWork;

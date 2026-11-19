@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The Tools hub (I-467): a card for each tool the person may open; 403 when
+ * there is none.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -10,10 +19,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The Tools hub (I-467): a card for each tool the person may open; 403 when
- * there is none.
- */
 final class ToolsController extends Controller
 {
     public function __invoke(Request $request, ToolsHub $hub): Response

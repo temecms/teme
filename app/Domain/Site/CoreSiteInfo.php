@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The site's public facts as Teme gives them to plugins
+ * (docs/plans/plugin-sockets-1.md, A5): the address from the same source
+ * Addresses::urlFor() reads, the name from Settings › General, and a main
+ * feed for each language readers are shown.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -9,12 +20,6 @@ use App\Domain\Languages\SiteLanguages;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
 
-/**
- * The site's public facts as Teme gives them to plugins
- * (docs/plans/plugin-sockets-1.md, A5): the address from the same source
- * Addresses::urlFor() reads, the name from Settings › General, and a main
- * feed for each language readers are shown.
- */
 final readonly class CoreSiteInfo implements SiteInfo
 {
     public function __construct(

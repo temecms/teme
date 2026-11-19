@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
-use App\Domain\Cards\DocumentSchema;
-use App\Domain\Cards\LinkResolver;
-
 /**
  * A comment's restricted document (I-267) as HTML for the public site:
  * paragraphs, quotes, line breaks, bold, italic, code and links, every word
@@ -14,7 +7,19 @@ use App\Domain\Cards\LinkResolver;
  * (`rel="ugc nofollow"`); a link to an item here is stored by its ID and
  * given its address now (rule 9), or drawn as words when it has none. Only
  * http, https and mailto addresses are ever drawn as links.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
+use App\Domain\Cards\DocumentSchema;
+use App\Domain\Cards\LinkResolver;
+
 final class CommentBody
 {
     /**

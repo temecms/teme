@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Rebuilds every item's comment_stats row from the comments themselves,
+ * once after an import has brought its comments (I-273), with the SQL
+ * teme:counts:rebuild uses for them: the approved and waiting counts, the
+ * conversations and the last comment. It holds the table
+ * against concurrent changes while it works, rewrites it only when a row
+ * differs, and returns how many items' rows did. Only an importer may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -11,14 +24,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Rebuilds every item's comment_stats row from the comments themselves,
- * once after an import has brought its comments (I-273), with the SQL
- * teme:counts:rebuild uses for them: the approved and waiting counts, the
- * conversations and the last comment. It holds the table
- * against concurrent changes while it works, rewrites it only when a row
- * differs, and returns how many items' rows did. Only an importer may.
- */
 final class RebuildCommentStats extends BaseOperation
 {
     use AuthorizesImports;

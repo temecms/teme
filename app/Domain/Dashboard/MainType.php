@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The content type the Home screen writes and links to: the first listed
+ * type with an archive, or else the first listed type — posts today. The
+ * dashboard never names it; it asks here, and this asks the registry each
+ * time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard;
@@ -8,12 +19,6 @@ use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use RuntimeException;
 
-/**
- * The content type the Home screen writes and links to: the first listed
- * type with an archive, or else the first listed type — posts today. The
- * dashboard never names it; it asks here, and this asks the registry each
- * time.
- */
 final class MainType
 {
     public static function get(): ContentType

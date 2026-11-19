@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Forgets a saved package source and its key (I-433): a person who holds extensions.install, after
+ * their password, or the operator. Refused while a package in the current plugins and themes came from
+ * it, or an open request uses it, since the installer needs it to build them again.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -13,11 +23,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Forgets a saved package source and its key (I-433): a person who holds extensions.install, after
- * their password, or the operator. Refused while a package in the current plugins and themes came from
- * it, or an open request uses it, since the installer needs it to build them again.
- */
 final class RemoveExtensionSource extends BaseOperation implements RequiresElevation
 {
     use AuthorizesExtensionChanges;

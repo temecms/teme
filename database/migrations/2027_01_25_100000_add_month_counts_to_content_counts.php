@@ -1,17 +1,22 @@
 <?php
 
-declare(strict_types=1);
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-
 /**
  * Room in content_counts for month rows (I-3131): every item by the site
  * month of its last change, for everyone and for its author, as
  * u:{state}:{YYYY-MM}, and a live public item by the month it was published,
  * for everyone, as p:{YYYY-MM}; and an index for reading a tab's months by
  * their bucket's prefix. The rows themselves come in the next migration.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     public function up(): void

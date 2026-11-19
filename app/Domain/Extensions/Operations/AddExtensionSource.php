@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Saves a place packages come from, a Git address or a vendor's Composer source, with its key encrypted
+ * under the app key (I-433): a person who holds extensions.install, after their password, or the
+ * operator. The key is never shown again. Returns the source's ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Saves a place packages come from, a Git address or a vendor's Composer source, with its key encrypted
- * under the app key (I-433): a person who holds extensions.install, after their password, or the
- * operator. The key is never shown again. Returns the source's ID.
- */
 final class AddExtensionSource extends BaseOperation implements RequiresElevation
 {
     use AuthorizesExtensionChanges;

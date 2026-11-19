@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What CreateApiKey needs: the key's name, the person it acts as, its
+ * abilities, an optional expiry, and who is asking.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What CreateApiKey needs: the key's name, the person it acts as, its
- * abilities, an optional expiry, and who is asking.
- */
 final readonly class CreateApiKeyInput implements OperationInput
 {
     /**

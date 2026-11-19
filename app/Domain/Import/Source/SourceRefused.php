@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Why a source can't be read, with the field it belongs to, whether trying
+ * again could help, and one plain sentence. Its message is its sentence; it
+ * never carries a URL with a credential, or the site's own error text.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Source;
 
 use RuntimeException;
 
-/**
- * Why a source can't be read, with the field it belongs to, whether trying
- * again could help, and one plain sentence. Its message is its sentence; it
- * never carries a URL with a credential, or the site's own error text.
- */
 final class SourceRefused extends RuntimeException
 {
     public const string UNREACHABLE = 'unreachable';
@@ -31,6 +36,9 @@ final class SourceRefused extends RuntimeException
 
     public const string HTTPS_ONLY = 'https';
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public const string BLOCKED = 'blocked';
 
     public const string BAD_ANSWER = 'bad-answer';
@@ -95,6 +103,9 @@ final class SourceRefused extends RuntimeException
         return new self(self::NOT_ADMINISTRATOR, 'user_name', false, 'This WordPress account isn’t an administrator. Use an administrator’s user name, and an application password made for that account.');
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public static function blocked(): self
     {
         return new self(self::BLOCKED, 'address', false, 'Something in front of WordPress, such as a firewall or Cloudflare’s bot check, blocked Teme before WordPress answered. Let Teme’s server through, then try again.');

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai\Providers;
-
 /**
  * Reads a price written in US dollars (I-1303), such as 3 or 0.125, as whole
  * micro-dollars, exactly: no floating point, so a price typed or listed is
  * the price charged.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai\Providers;
+
 final class Dollars
 {
     private const string PATTERN = '/^(\d{1,6})(?:\.(\d{1,6}))?$/';

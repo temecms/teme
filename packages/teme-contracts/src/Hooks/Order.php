@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Where a listener runs among a hook's listeners: a stage, and the plugins it
+ * runs after or before inside that stage, by their Composer package names.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

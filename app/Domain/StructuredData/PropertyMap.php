@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\StructuredData;
-
-use App\Domain\Fields\FieldRegistry;
-
 /**
  * A type's property map applied to one item (I-709): each schema.org
  * property read from the first of its fields whose value says something,
  * through that field type's own converter, replacing core's value; a
  * property whose fields are all empty keeps core's. Fields are named by
  * their keys, which never change, never by template strings.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\StructuredData;
+
+use App\Domain\Fields\FieldRegistry;
+
 final readonly class PropertyMap
 {
     public function __construct(private FieldRegistry $fields) {}

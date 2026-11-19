@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What a translation starts from (I-3360, D8): a revision's title, document
+ * (every block ID kept), excerpt and fields, the canonical cleared, its links
+ * by ID pointed at the target language's versions where their groups have
+ * one, live or not, and its terms mapped to their siblings, the missing ones
+ * made. Call it inside TranslateContent's perform(), after its locks.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -13,13 +25,6 @@ use App\Domain\Taxonomy\TermSiblings;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * What a translation starts from (I-3360, D8): a revision's title, document
- * (every block ID kept), excerpt and fields, the canonical cleared, its links
- * by ID pointed at the target language's versions where their groups have
- * one, live or not, and its terms mapped to their siblings, the missing ones
- * made. Call it inside TranslateContent's perform(), after its locks.
- */
 final class TranslationCopy
 {
     /**

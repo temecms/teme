@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What the site answers at an address, found in-process with no HTTP and
+ * nothing drawn or counted, in the order a reader's request meets it: the
+ * path table, then the redirects, then an old WordPress file address the
+ * import brought (docs/studies/import.md, I-1851). The importer
+ * checks every old address with it before a site moves.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Queries;
@@ -10,13 +22,6 @@ use App\Domain\Redirects\SiteAnswer;
 use App\Domain\Site\PathResolver;
 use InvalidArgumentException;
 
-/**
- * What the site answers at an address, found in-process with no HTTP and
- * nothing drawn or counted, in the order a reader's request meets it: the
- * path table, then the redirects, then an old WordPress file address the
- * import brought (docs/studies/import.md, I-1851). The importer
- * checks every old address with it before a site moves.
- */
 final readonly class SiteAnswers
 {
     public function __construct(private RedirectLookup $redirects) {}

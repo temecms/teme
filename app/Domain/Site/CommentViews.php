@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * An item's comments as the public site gives them to a theme
+ * (docs/studies/comments.md §3.1, I-272): its thread on one page with the
+ * pages' addresses, a later page, a comment's own address, and the item a
+ * comment form posts to, as view models that hold a name and a website
+ * and nothing more personal (D19), and a browser's own comments (1.8b′).
+ * Nothing at all while comments are switched off, the item is Hidden or its
+ * type takes none (I-484, I-274).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -37,15 +51,6 @@ use App\Domain\Site\ViewModels\Pagination;
 use App\Domain\Types\ContentTypeRegistry;
 use Carbon\CarbonImmutable;
 
-/**
- * An item's comments as the public site gives them to a theme
- * (docs/studies/comments.md §3.1, I-272): its thread on one page with the
- * pages' addresses, a later page, a comment's own address, and the item a
- * comment form posts to, as view models that hold a name and a website
- * and nothing more personal (D19), and a browser's own comments (1.8b′).
- * Nothing at all while comments are switched off, the item is Hidden or its
- * type takes none (I-484, I-274).
- */
 final readonly class CommentViews
 {
     public function __construct(

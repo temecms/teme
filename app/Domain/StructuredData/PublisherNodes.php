@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Who publishes the site, as structured data (I-708, I-725): the
+ * organization, local business or person the site represents, its logo
+ * and the organization that owns it, and the reference every page's
+ * WebSite and every article give as their publisher. Nothing for nobody in
+ * particular, or for a person whose account is gone (I-878). Resolved once
+ * a page, for its view model, as PageHead resolves the head's values.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -15,14 +28,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\StructuredData\NodeIds;
 
-/**
- * Who publishes the site, as structured data (I-708, I-725): the
- * organization, local business or person the site represents, its logo
- * and the organization that owns it, and the reference every page's
- * WebSite and every article give as their publisher. Nothing for nobody in
- * particular, or for a person whose account is gone (I-878). Resolved once
- * a page, for its view model, as PageHead resolves the head's values.
- */
 final class PublisherNodes
 {
     private const array NONE = ['reference' => null, 'nodes' => [], 'siteAlternateName' => null];

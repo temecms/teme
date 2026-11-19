@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Once the items are here (I-342): the old site's title, tagline, feeds,
+ * search engines' switch, Discussion, the comments module and its home
+ * page, each group on its own and what a person changed since kept; and its
+ * SEO plugin's sitemaps sent on to /sitemap.xml (I-1717). One job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Settings;
@@ -27,12 +38,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Once the items are here (I-342): the old site's title, tagline, feeds,
- * search engines' switch, Discussion, the comments module and its home
- * page, each group on its own and what a person changed since kept; and its
- * SEO plugin's sitemaps sent on to /sitemap.xml (I-1717). One job.
- */
 final readonly class SiteSettingsStep implements StepPhase
 {
     /** The map row this step's settings are kept on. */

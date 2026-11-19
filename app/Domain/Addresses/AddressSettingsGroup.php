@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The `addresses` settings group, built from the type and taxonomy
+ * registries (study Y §4.1): a pattern per public type, each type's archive
+ * page, and a base per public taxonomy, with the defaults each declares,
+ * then the author base and the home page. It has its own screen, Settings › Addresses.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -12,12 +23,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * The `addresses` settings group, built from the type and taxonomy
- * registries (study Y §4.1): a pattern per public type, each type's archive
- * page, and a base per public taxonomy, with the defaults each declares,
- * then the author base and the home page. It has its own screen, Settings › Addresses.
- */
 final class AddressSettingsGroup
 {
     /**

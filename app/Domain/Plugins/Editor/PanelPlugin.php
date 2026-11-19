@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One editor panel of an enabled plugin: the plugin's Composer name, code
+ * and label, the panel as declared, and the plugin's panel while the
+ * plugin runs in this process.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
@@ -7,11 +17,6 @@ namespace App\Domain\Plugins\Editor;
 use App\Domain\Plugins\Area\PluginPermissions;
 use Teme\Contracts\Editor\EditorPanel;
 
-/**
- * One editor panel of an enabled plugin: the plugin's Composer name, code
- * and label, the panel as declared, and the plugin's panel while the
- * plugin runs in this process.
- */
 final readonly class PanelPlugin
 {
     public function __construct(

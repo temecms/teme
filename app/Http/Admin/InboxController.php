@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The inbox (I-221): the signed-in person's own background results, a page at
+ * a time. Opening one marks it read through MarkInboxRead and follows its
+ * link; Mark all as read marks the rest. The bell's latest items come as
+ * JSON. It shows nobody else's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -16,12 +27,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The inbox (I-221): the signed-in person's own background results, a page at
- * a time. Opening one marks it read through MarkInboxRead and follows its
- * link; Mark all as read marks the rest. The bell's latest items come as
- * JSON. It shows nobody else's.
- */
 final class InboxController extends Controller
 {
     /** How many items the bell's panel lists. */

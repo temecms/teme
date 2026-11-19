@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The Ed25519 key pair Teme signs in to one SFTP place with (I-2403): made
+ * with sodium, its private half written in OpenSSH's own unencrypted
+ * format for ssh to read from a file that lives for one call, its public
+ * half for a person to add to the server's authorized_keys. It hides its
+ * private half when dumped and refuses to be serialized.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
@@ -8,13 +20,6 @@ use InvalidArgumentException;
 use LogicException;
 use SensitiveParameter;
 
-/**
- * The Ed25519 key pair Teme signs in to one SFTP place with (I-2403): made
- * with sodium, its private half written in OpenSSH's own unencrypted
- * format for ssh to read from a file that lives for one call, its public
- * half for a person to add to the server's authorized_keys. It hides its
- * private half when dumped and refuses to be serialized.
- */
 final readonly class SftpKeyPair
 {
     public const string COMMENT = 'teme-backup';

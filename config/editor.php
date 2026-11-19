@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The numbers the editor screen hands the browser, such as autosave and
+ * presence timings.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 /*

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One editor panel as a plugin's manifest declares it: its id, words,
+ * icon, the content types it shows on, the permission it may need and its
+ * actions, each with its job and form fields. Read from the manifest each
+ * time; the validator refused anything malformed first.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
@@ -9,12 +20,6 @@ use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\PluginWords;
 use App\Domain\Types\ContentTypeRegistry;
 
-/**
- * One editor panel as a plugin's manifest declares it: its id, words,
- * icon, the content types it shows on, the permission it may need and its
- * actions, each with its job and form fields. Read from the manifest each
- * time; the validator refused anything malformed first.
- */
 final readonly class DeclaredPanel
 {
     /**

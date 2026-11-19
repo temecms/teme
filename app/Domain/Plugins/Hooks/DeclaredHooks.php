@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The hooks a plugin declares for other plugins, `contributes.hooks`
+ * (docs/plans/plugin-sockets-3.md): their shape as the manifest gives
+ * them, and, once the plugin's code is loaded, whether each class is a hook
+ * the plugin may send.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Hooks;
@@ -13,12 +24,6 @@ use Teme\Contracts\Hooks\Notification;
 use Teme\Contracts\Hooks\Transform;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * The hooks a plugin declares for other plugins, `contributes.hooks`
- * (docs/plans/plugin-sockets-3.md): their shape as the manifest gives
- * them, and, once the plugin's code is loaded, whether each class is a hook
- * the plugin may send.
- */
 final class DeclaredHooks
 {
     /** A declared hook's short name; its full name is `{code}:{name}`. */

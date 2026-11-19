@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Whether an image's details offer Suggest alt text to one person (I-321):
+ * AI is on with a model that reads images, they hold ai.use and may change
+ * the image, it isn't in the trash, and it has a copy to send.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\AltText\Queries;
@@ -14,11 +24,6 @@ use App\Domain\Media\Models\Media;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Whether an image's details offer Suggest alt text to one person (I-321):
- * AI is on with a model that reads images, they hold ai.use and may change
- * the image, it isn't in the trash, and it has a copy to send.
- */
 final readonly class AltTextOffer
 {
     public function __construct(

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The fidelity check (I-337): each post and page whose words changed since
+ * it was last compared, and is as the import left it, read beside
+ * WordPress's rendered page; more than 2% of its words lost is said on the
+ * item, with where the missing text begins. Only the pages that hold an
+ * item to check are read. Fifty seconds a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Finish;
@@ -19,13 +31,6 @@ use App\Domain\Import\Source\SourceReader;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The fidelity check (I-337): each post and page whose words changed since
- * it was last compared, and is as the import left it, read beside
- * WordPress's rendered page; more than 2% of its words lost is said on the
- * item, with where the missing text begins. Only the pages that hold an
- * item to check are read. Fifty seconds a job.
- */
 final readonly class FidelityStep implements StepPhase
 {
     /** Seconds a job works before it hands on to the next. */

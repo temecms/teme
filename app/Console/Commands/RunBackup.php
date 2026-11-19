@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:backup:run — backs the site up now, inline, as the operator
+ * (docs/architecture/operations.md): the database, the media, the APP_KEY and
+ * the manifest at the first place that answers, saying each step.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -14,11 +24,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * teme:backup:run — backs the site up now, inline, as the operator
- * (docs/architecture/operations.md): the database, the media, the APP_KEY and
- * the manifest at the first place that answers, saying each step.
- */
 final class RunBackup extends Command
 {
     /** @var string */

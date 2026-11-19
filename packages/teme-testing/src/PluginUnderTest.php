@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One plugin on the test's site: enabled, disabled, configured and its jobs
+ * run through the same Operations and doors the admin and a running site
+ * use, so a test meets every check a person would.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Testing;
@@ -33,11 +43,6 @@ use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Plugins\Plugin;
 use Throwable;
 
-/**
- * One plugin on the test's site: enabled, disabled, configured and its jobs
- * run through the same Operations and doors the admin and a running site
- * use, so a test meets every check a person would.
- */
 final class PluginUnderTest
 {
     /** Who enabled it in this test, whom its jobs run as. */

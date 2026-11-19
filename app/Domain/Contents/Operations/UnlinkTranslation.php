@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Takes one item out of its translation group (I-3360, D10); the others
+ * stay linked, and a group left with one member keeps it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -16,10 +25,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Takes one item out of its translation group (I-3360, D10); the others
- * stay linked, and a group left with one member keeps it.
- */
 final class UnlinkTranslation extends BaseOperation
 {
     use MovesVersionAddresses;

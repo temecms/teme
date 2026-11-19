@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A new comment as its moderator is shown it: where it was written, its words
+ * as the writer typed them and how many links they hold, who wrote it and from
+ * where, and whether an approved comment of theirs exists already (the same
+ * account, or the same email address from the same browser).
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Comments;

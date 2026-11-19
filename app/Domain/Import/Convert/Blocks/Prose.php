@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Core's text blocks (I-335): paragraphs, headings, verse, quotes and
+ * pullquotes, code and preformatted text, and separators, each read from
+ * its own markup.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -12,11 +22,6 @@ use Dom\Element;
 use Dom\Node;
 use Dom\Text;
 
-/**
- * Core's text blocks (I-335): paragraphs, headings, verse, quotes and
- * pullquotes, code and preformatted text, and separators, each read from
- * its own markup.
- */
 final readonly class Prose implements BlockMapping
 {
     public function blocks(): array

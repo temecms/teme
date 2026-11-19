@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Laravel Fortify's sign-in features: which are on, and where they answer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Laravel\Fortify\Features;

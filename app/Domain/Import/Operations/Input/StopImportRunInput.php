@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What `StopImportRun` needs: the run, who stops it, the attempt's token when a job stops it, and why.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `StopImportRun` needs: the run, who stops it, the attempt's token when a job stops it, and why.
- */
 final readonly class StopImportRunInput implements OperationInput
 {
     public function __construct(

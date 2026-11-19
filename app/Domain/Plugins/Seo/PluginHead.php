@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Plugins' head tags and structured data on public pages
+ * (docs/guides/developers/plugins/seo.md), at the plugin's precedence: each
+ * enabled plugin granted pages.head is asked within 100 ms for its `<meta>`
+ * tags and its graph nodes. A node is kept only with an @id on this site
+ * and only schema.org terms on the graph's list or the plugin's own; core's
+ * graph rules then merge and tidy it. A plugin that fails is recorded as a
+ * fault, and the page draws without what it would have given.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -25,15 +39,6 @@ use Teme\Contracts\StructuredData\GraphNode;
 use Teme\Contracts\StructuredData\HasStructuredData;
 use Throwable;
 
-/**
- * Plugins' head tags and structured data on public pages
- * (docs/guides/developers/plugins/seo.md), at the plugin's precedence: each
- * enabled plugin granted pages.head is asked within 100 ms for its `<meta>`
- * tags and its graph nodes. A node is kept only with an @id on this site
- * and only schema.org terms on the graph's list or the plugin's own; core's
- * graph rules then merge and tidy it. A plugin that fails is recorded as a
- * fault, and the page draws without what it would have given.
- */
 final readonly class PluginHead implements HeadContributor
 {
     public const int CALL_BUDGET_MS = 100;

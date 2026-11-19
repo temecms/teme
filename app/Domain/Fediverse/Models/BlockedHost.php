@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A server the site neither hears from nor delivers to (proposal, Settled
+ * 8): refused at the inbox before anything is fetched.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Models;
@@ -8,9 +17,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * A server the site neither hears from nor delivers to (proposal, Settled
- * 8): refused at the inbox before anything is fetched.
- *
  * @property string $host
  * @property string|null $reason
  * @property CarbonImmutable $created_at

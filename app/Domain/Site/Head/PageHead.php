@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Resolves a public page's head values once, from its kind, its view model,
+ * the item's stored fields and Search and social's settings, and keeps them
+ * while that page is drawn, so the title and the head's entries agree.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Head;
@@ -29,11 +39,6 @@ use Closure;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Resolves a public page's head values once, from its kind, its view model,
- * the item's stored fields and Search and social's settings, and keeps them
- * while that page is drawn, so the title and the head's entries agree.
- */
 final class PageHead
 {
     /** The view model whose values are kept, compared by identity. */

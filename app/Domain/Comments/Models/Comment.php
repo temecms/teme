@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One reader's comment on one content item, placed in its thread by `path`
+ * (I-272). Only the comment Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Models;
@@ -12,9 +21,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One reader's comment on one content item, placed in its thread by `path`
- * (I-272). Only the comment Operations write it.
- *
  * @property string $id
  * @property string $content_id
  * @property string|null $parent_id

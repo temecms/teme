@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A web address, http or https. Stored trimmed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -7,9 +15,6 @@ namespace App\Domain\Fields\Types;
 use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 
-/**
- * A web address, http or https. Stored trimmed.
- */
 final class UrlField implements FieldType
 {
     public function name(): string

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Writes the site's content, people and media into a new folder as NDJSON
+ * files, the originals, the site's own types as teme-types.json and a
+ * manifest (I-365), a page at a time: from one
+ * moment of the database when it runs as the outermost transaction, as
+ * teme:export runs it, and never otherwise. The operator only (I-2407). A
+ * failure leaves nothing behind, and no security event says it was made.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Operations;
@@ -25,14 +38,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * Writes the site's content, people and media into a new folder as NDJSON
- * files, the originals, the site's own types as teme-types.json and a
- * manifest (I-365), a page at a time: from one
- * moment of the database when it runs as the outermost transaction, as
- * teme:export runs it, and never otherwise. The operator only (I-2407). A
- * failure leaves nothing behind, and no security event says it was made.
- */
 final class ExportSite extends BaseOperation
 {
     public function __construct(

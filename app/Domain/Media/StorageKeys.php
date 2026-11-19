@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Where a media item's files live on their disk: under the item's ID and file
+ * version, so a key is unique without looking at storage and a replaced file
+ * never shares a URL with its predecessor.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
 
 use Illuminate\Support\Str;
 
-/**
- * Where a media item's files live on their disk: under the item's ID and file
- * version, so a key is unique without looking at storage and a replaced file
- * never shares a URL with its predecessor.
- */
 final class StorageKeys
 {
     /**

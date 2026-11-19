@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:plugins:enable`: enables a plugin as the operator (I-3353), saying
+ * first why it can't be used, if it can't, or else what it asks to do, and
+ * enabling it only once run again with --agree. A plugin with schedules
+ * needs --as, the administrator they run as (docs/proposals/plugin-sockets-1.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -26,12 +37,6 @@ use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * `teme:plugins:enable`: enables a plugin as the operator (I-3353), saying
- * first why it can't be used, if it can't, or else what it asks to do, and
- * enabling it only once run again with --agree. A plugin with schedules
- * needs --as, the administrator they run as (docs/proposals/plugin-sockets-1.md).
- */
 final class EnablePluginCommand extends Command
 {
     /** @var string */

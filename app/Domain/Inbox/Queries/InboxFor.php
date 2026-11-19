@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A person's inbox (I-221): their background results, newest first, a keyset
+ * page at a time, each with the address its link leads to for them now, and
+ * how many they haven't read. It writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox\Queries;
@@ -16,10 +26,6 @@ use Illuminate\Support\Facades\Route;
 use stdClass;
 
 /**
- * A person's inbox (I-221): their background results, newest first, a keyset
- * page at a time, each with the address its link leads to for them now, and
- * how many they haven't read. It writes nothing.
- *
  * @phpstan-type InboxRow array{id: string, title: string, text: string|null, href: string|null, read: bool, at: string, owner: string, plugin: string|null}
  */
 final readonly class InboxFor

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Counts the month rows of content_counts again after the site's time zone
+ * changes (I-3131). It carries whoever changed the zone, an administrator or
+ * the operator, whom the Operation authorizes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Jobs;
@@ -10,11 +20,6 @@ use App\Domain\Support\Security\JobActor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/**
- * Counts the month rows of content_counts again after the site's time zone
- * changes (I-3131). It carries whoever changed the zone, an administrator or
- * the operator, whom the Operation authorizes.
- */
 final class RecountContentMonthsJob implements ShouldQueue
 {
     use Queueable;

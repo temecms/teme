@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What ConfirmRecoveryKey needs: the challenge a shown key came with, the two
+ * groups as typed, who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations\Input;
@@ -8,10 +17,6 @@ use App\Domain\Backups\RecoveryKeyChallenge;
 use SensitiveParameter;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ConfirmRecoveryKey needs: the challenge a shown key came with, the two
- * groups as typed, who is asking.
- */
 final readonly class ConfirmRecoveryKeyInput implements OperationInput
 {
     /**

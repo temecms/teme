@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Runs a plugin's migrations that haven't run, in name order, inside the
+ * caller's transaction (PostgreSQL changes tables transactionally), and
+ * checks what each created and dropped against the plugin's manifest.
+ * Returns the row's new record. Throws PluginTablesRefused, which undoes
+ * the whole run with the caller's transaction.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Tables;
@@ -12,12 +24,6 @@ use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
- * Runs a plugin's migrations that haven't run, in name order, inside the
- * caller's transaction (PostgreSQL changes tables transactionally), and
- * checks what each created and dropped against the plugin's manifest.
- * Returns the row's new record. Throws PluginTablesRefused, which undoes
- * the whole run with the caller's transaction.
- *
  * Teme can't see a migration change one of Teme's own tables: plugins are
  * trusted code (docs/architecture/plugins.md › Trust).
  */

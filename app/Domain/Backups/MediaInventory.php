@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * What a backup holds of the media (I-2404): every file the moment's media
+ * rows name, originals and variants, each checked on its disk by its
+ * recorded path, never by listing a folder; every original's SHA-256 for
+ * the manifest; and the folders restic backs up. A role whose disk is a
+ * bucket is left to the bucket: its files are listed and counted, never
+ * checked or backed up (I-3456).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -10,17 +23,13 @@ use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Filesystem\LocalFilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * What a backup holds of the media (I-2404): every file the moment's media
- * rows name, originals and variants, each checked on its disk by its
- * recorded path, never by listing a folder; every original's SHA-256 for
- * the manifest; and the folders restic backs up. A role whose disk is a
- * bucket is left to the bucket: its files are listed and counted, never
- * checked or backed up (I-3456).
- */
 final class MediaInventory
 {
-    /** What the media part of a backup holds when both roles are in a bucket. */
+    /**
+     * What the media part of a backup holds when both roles are in a bucket.
+     *
+     * @since 1.0.0
+     */
     public const string IN_BUCKET_FILE = 'media-in-object-storage.json';
 
     /** The most missing files the manifest names; it counts them all. */
@@ -132,6 +141,8 @@ final class MediaInventory
 
     /**
      * How many of them are on a role in a bucket, left to the bucket.
+     *
+     * @since 1.0.0
      */
     public function bucketFileCount(): int
     {
@@ -142,6 +153,8 @@ final class MediaInventory
      * Where each role's files were, as the manifest says it.
      *
      * @return array{public: 'server'|'bucket', originals: 'server'|'bucket'}
+     *
+     * @since 1.0.0
      */
     public function locations(): array
     {

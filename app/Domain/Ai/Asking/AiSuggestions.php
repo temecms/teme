@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where an answer waits for the page that asked (I-320): one entry per
+ * request in Laravel's disposable cache (I-261), arrays only, for 15
+ * minutes, and a separate entry for a cancel, so the job and the person
+ * never overwrite each other. Forgotten once the suggestion is settled.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking;
@@ -8,12 +19,6 @@ use App\Domain\Ai\AiSubject;
 use Closure;
 use Illuminate\Contracts\Cache\Repository;
 
-/**
- * Where an answer waits for the page that asked (I-320): one entry per
- * request in Laravel's disposable cache (I-261), arrays only, for 15
- * minutes, and a separate entry for a cancel, so the job and the person
- * never overwrite each other. Forgotten once the suggestion is settled.
- */
 final readonly class AiSuggestions
 {
     public const int TTL_MINUTES = 15;

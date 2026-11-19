@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
-use App\Domain\Themes\ActiveTheme;
-
 /**
  * The cards, embed providers and image sizes as the editor in the browser
  * needs them. It exists so that the browser never carries a second copy of
  * a card's definition: each card's name, label, menu entry, attributes and
  * defaults come from its CardType on the server, and the editor reads them
  * from here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
+use App\Domain\Themes\ActiveTheme;
+
 final class CardManifest
 {
     /**

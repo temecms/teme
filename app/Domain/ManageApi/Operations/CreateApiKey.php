@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Makes a management API key that acts as one person, with the abilities
+ * chosen from ApiAbility and an optional expiry (docs/proposals/management-api.md).
+ * An administrator's change, after their password; the secret is returned
+ * this once and only its hash is kept.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Operations;
@@ -23,12 +34,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Makes a management API key that acts as one person, with the abilities
- * chosen from ApiAbility and an optional expiry (docs/proposals/management-api.md).
- * An administrator's change, after their password; the secret is returned
- * this once and only its hash is kept.
- */
 final class CreateApiKey extends BaseOperation implements RequiresElevation
 {
     public function requiresElevation(OperationInput $input): bool

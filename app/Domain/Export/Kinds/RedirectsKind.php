@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every redirect, by ID, with its target as an ID or an address. Never the
+ * compiled pattern or the derived target path, which an importer rebuilds
+ * from source and target. A table's own kind column is written as match.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -9,11 +19,6 @@ use App\Domain\Export\ExportJson;
 use App\Domain\Export\ExportKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every redirect, by ID, with its target as an ID or an address. Never the
- * compiled pattern or the derived target path, which an importer rebuilds
- * from source and target. A table's own kind column is written as match.
- */
 final readonly class RedirectsKind implements ExportKind
 {
     private const int PAGE = 1000;

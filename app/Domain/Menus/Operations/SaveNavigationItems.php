@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Replaces a menu's items with a whole new tree, in one transaction. Each
+ * item points at a content item or a term by ID (rule 9), at the home page,
+ * or at an outside address or a path on this site, or is a heading, which
+ * leads nowhere and opens the items under it (I-2628), or a language
+ * switcher, which expands into the page's versions. An address typed in
+ * full as this site's own is stored as what it names, never as the site's
+ * URL. A menu is at most three levels deep and 200 items long, and every
+ * problem names the item it is on, as "Item 3 › 2: …". Its checks are
+ * ImportNavigation's too, and its writing their shared trait's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations;
@@ -15,17 +31,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Replaces a menu's items with a whole new tree, in one transaction. Each
- * item points at a content item or a term by ID (rule 9), at the home page,
- * or at an outside address or a path on this site, or is a heading, which
- * leads nowhere and opens the items under it (I-2628), or a language
- * switcher, which expands into the page's versions. An address typed in
- * full as this site's own is stored as what it names, never as the site's
- * URL. A menu is at most three levels deep and 200 items long, and every
- * problem names the item it is on, as "Item 3 › 2: …". Its checks are
- * ImportNavigation's too, and its writing their shared trait's.
- */
 final class SaveNavigationItems extends BaseOperation
 {
     use ManagesNavigation;
@@ -45,6 +50,8 @@ final class SaveNavigationItems extends BaseOperation
      * the page's own language (I-3360).
      *
      * @var list<string>
+     *
+     * @since 1.0.0
      */
     public const array SWITCHER_OPTIONS = ['dropdown', 'show_names', 'hide_current'];
 

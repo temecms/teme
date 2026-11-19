@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * Where an update request stands: open while it waits or runs, then how it ended.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Requests;
 
-/**
- * Where an update request stands: open while it waits or runs, then how it ended.
- */
 enum UpdateStatus: string
 {
     case Requested = 'requested';

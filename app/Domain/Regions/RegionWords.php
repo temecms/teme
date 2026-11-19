@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Regions;
-
 /**
  * What a theme's region takes, and what a theme's activation leaves to fill,
  * in the words Content › Regions, the editor's region mode and Site › Themes
  * show (I-395): the most blocks it holds, and the cards it allows beside text.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Regions;
+
 final class RegionWords
 {
     /**

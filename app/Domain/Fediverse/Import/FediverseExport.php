@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The companion's fediverse route (docs/specs/companion-fediverse-export.md):
+ * the WordPress ActivityPub plugin's settings and accounts, whole, and its
+ * followers, the sources of its replies and its older posts' permalinks,
+ * each a keyset page. Reads an answer into plain shapes, refusing one that
+ * isn't the route's.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Import;
@@ -7,13 +19,6 @@ namespace App\Domain\Fediverse\Import;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Source\SourceRefused;
 
-/**
- * The companion's fediverse route (docs/specs/companion-fediverse-export.md):
- * the WordPress ActivityPub plugin's settings and accounts, whole, and its
- * followers, the sources of its replies and its older posts' permalinks,
- * each a keyset page. Reads an answer into plain shapes, refusing one that
- * isn't the route's.
- */
 final class FediverseExport
 {
     /** The companion's export API that first has the route. */

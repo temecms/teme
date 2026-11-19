@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Which other sites' browsers may call Teme's addresses, as Laravel's CORS
+ * middleware reads it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 /*

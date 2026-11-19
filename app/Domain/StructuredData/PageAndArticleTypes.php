@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Search and social's section "Structured data" (I-709): for each
+ * public content type, what search engines are told its items are, set to
+ * what the type declares until the site chooses otherwise. Made from the
+ * registry, so a type registered later gets its own; an item's own choice
+ * still comes first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -8,13 +20,6 @@ use App\Domain\Seo\SearchAndSocialSection;
 use App\Domain\Types\ContentTypeRegistry;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * Search and social's section "Structured data" (I-709): for each
- * public content type, what search engines are told its items are, set to
- * what the type declares until the site chooses otherwise. Made from the
- * registry, so a type registered later gets its own; an item's own choice
- * still comes first.
- */
 final class PageAndArticleTypes implements SearchAndSocialSection
 {
     /** The page types' labels, as an item's own choice words them. */

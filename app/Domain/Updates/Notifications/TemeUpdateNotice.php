@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The administrators' email about an update of Teme (I-3326): that it was asked for, that the updater began,
+ * or how it ended. Sent at once by SendTemeUpdateEmails, which is itself the queued job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Notifications;
@@ -10,10 +19,6 @@ use App\Domain\Notices\SentAsNotice;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-/**
- * The administrators' email about an update of Teme (I-3326): that it was asked for, that the updater began,
- * or how it ended. Sent at once by SendTemeUpdateEmails, which is itself the queued job.
- */
 final class TemeUpdateNotice extends Notification
 {
     use SentAsNotice;

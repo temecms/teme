@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Your drafts: the viewer's own drafts of the given types, most recently
+ * changed first. One query on contents_mine_status_updated. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Panels;
@@ -11,10 +20,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Your drafts: the viewer's own drafts of the given types, most recently
- * changed first. One query on contents_mine_status_updated. It reads only.
- */
 final class MyDrafts implements DashboardPanelQuery
 {
     public function rows(User $viewer, array $types, int $limit): array

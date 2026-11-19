@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The panels a Settings page splits its group into, where it splits it at
+ * all (I-3128): core's pages as the approved design draws them, and a
+ * plugin's declared sections
+ * (docs/plans/plugin-sockets-2.md, A4). Every other group page is one
+ * panel. Every setting of a split group is in exactly one
+ * (SettingsPanelsDataTest).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
@@ -8,14 +21,6 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Settings\SettingsRegistry;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * The panels a Settings page splits its group into, where it splits it at
- * all (I-3128): core's pages as the approved design draws them, and a
- * plugin's declared sections
- * (docs/plans/plugin-sockets-2.md, A4). Every other group page is one
- * panel. Every setting of a split group is in exactly one
- * (SettingsPanelsDataTest).
- */
 final class SettingsPanels
 {
     /**

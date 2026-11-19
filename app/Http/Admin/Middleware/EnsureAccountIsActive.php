@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A suspended person is signed out on their next request, however they got
+ * in — password, remember-me or a second factor. Only someone who already
+ * knew the password learns the account is suspended.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Middleware;
@@ -10,11 +20,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * A suspended person is signed out on their next request, however they got
- * in — password, remember-me or a second factor. Only someone who already
- * knew the password learns the account is suspended.
- */
 final class EnsureAccountIsActive
 {
     public function __construct(private readonly AccountStatus $status) {}

@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * What one ask of GitHub came to: a release list found, nothing changed since the last ETag, or a failure with the sentence that says why.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
 
-/**
- * What one ask of GitHub came to: a release list found, nothing changed since the last ETag, or a failure with the sentence that says why.
- */
 final readonly class ReleaseCheck
 {
     public const string FOUND = 'found';

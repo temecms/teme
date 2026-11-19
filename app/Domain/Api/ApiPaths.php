@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Api;
-
 /**
  * Where the API lives and what it allows a reader: every address under /api
  * is the API's (I-091), and each address may ask for so many drawn answers
  * a minute (docs/superpowers/plans/2026-11-11-phase3-slice31-delivery-api-first-release.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Api;
+
 final class ApiPaths
 {
     /** Drawn answers a minute per address; the page cache's stored ones aren't counted. */

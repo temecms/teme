@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cache;
-
-use Carbon\CarbonInterface;
-use Illuminate\Support\Facades\DB;
-
 /**
  * Recent purges, for the race guard (I-264): a page whose drawing began
  * before a purge of one of its tags may show what the purge removed, so it
@@ -14,7 +7,19 @@ use Illuminate\Support\Facades\DB;
  * so "before" is the order they were noted in, whichever server noted them
  * and whatever its clock said (slice 1.7d). Kept in `page_cache_purges`
  * only as long as a page may take to draw (PageCache::RENDER_WINDOW).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cache;
+
+use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\DB;
+
 final readonly class PurgeTimes
 {
     /** Rows written per statement. */

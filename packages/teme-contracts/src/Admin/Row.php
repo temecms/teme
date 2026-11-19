@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One record's row in a table: its id, its cells by declared column id, and
+ * the actions not offered on it, such as Enable on one already enabled.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Security;
-
 /**
  * Every column Teme keeps encrypted under APP_KEY, the list ReencryptSecrets
  * works through (I-119). A model's encrypted cast or a call that
  * encrypts into a table must have its column here:
  * tests/Feature/Security/EncryptedValuesTest.php fails until it does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Security;
+
 final class EncryptedValues
 {
     /**

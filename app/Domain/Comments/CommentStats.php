@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Each item's comment counts, the conversations its pages show (1.8b's D2)
+ * and its last comment (I-273), kept by every comment Operation inside its
+ * own transaction, so they can't drift from the rows; teme:counts:rebuild
+ * is the safety net. The one place a comment's change of status reaches
+ * them (D5).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -7,13 +19,6 @@ namespace App\Domain\Comments;
 use App\Domain\Comments\Models\Comment;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Each item's comment counts, the conversations its pages show (1.8b's D2)
- * and its last comment (I-273), kept by every comment Operation inside its
- * own transaction, so they can't drift from the rows; teme:counts:rebuild
- * is the safety net. The one place a comment's change of status reaches
- * them (D5).
- */
 final class CommentStats
 {
     /**

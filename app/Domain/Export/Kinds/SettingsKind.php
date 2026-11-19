@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Every registered settings group with its values as the site reads them:
+ * each saved override, else the registry's default. Never a secret setting or
+ * the discussion lists that can hold IP addresses (I-2408). It reads the
+ * table itself, because the settings repository fills the cache, and nothing
+ * may be cached from inside the export's snapshot.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -12,13 +24,6 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * Every registered settings group with its values as the site reads them:
- * each saved override, else the registry's default. Never a secret setting or
- * the discussion lists that can hold IP addresses (I-2408). It reads the
- * table itself, because the settings repository fills the cache, and nothing
- * may be cached from inside the export's snapshot.
- */
 final readonly class SettingsKind implements ExportKind
 {
     /** Settings never exported by name: moderators can type IP addresses into them (I-2408). */

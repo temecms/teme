@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Where the page cache keeps pages: a driver (spec §5.6). Nothing a store
+ * keeps may grow with the number of pages in one piece, and nothing lists a
+ * folder to find a page (docs/studies/page-cache.md §3.8).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
 
 use Illuminate\Contracts\Cache\Lock;
 
-/**
- * Where the page cache keeps pages: a driver (spec §5.6). Nothing a store
- * keeps may grow with the number of pages in one piece, and nothing lists a
- * folder to find a page (docs/studies/page-cache.md §3.8).
- */
 interface PageStore
 {
     /**

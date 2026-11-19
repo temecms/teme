@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The page's typed head (I-228): every head contributor's entries, read
+ * plugin, then site, then core, each key's first entry kept and nodes
+ * sharing an @id merged, then filtered and tidied, for the document shell to draw. Internal until the
+ * plugin API publishes its contract.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Document;
 
 use Illuminate\Contracts\Container\Container;
 
-/**
- * The page's typed head (I-228): every head contributor's entries, read
- * plugin, then site, then core, each key's first entry kept and nodes
- * sharing an @id merged, then filtered and tidied, for the document shell to draw. Internal until the
- * plugin API publishes its contract.
- */
 final readonly class DocumentMeta
 {
     /** The container tag a head contributor is registered under, from its own provider's register(). */

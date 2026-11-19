@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The theme checker's one-H1 rule: a published single item's page and the
+ * home page, each drawn with the theme being checked, must have exactly one
+ * `<h1>`. The caller draws the pages, so they take the public site's own
+ * rendering path; this class picks the item, makes the theme the one drawing
+ * while it does, and counts the headings.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -11,13 +23,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * The theme checker's one-H1 rule: a published single item's page and the
- * home page, each drawn with the theme being checked, must have exactly one
- * `<h1>`. The caller draws the pages, so they take the public site's own
- * rendering path; this class picks the item, makes the theme the one drawing
- * while it does, and counts the headings.
- */
 final class ThemeH1Check
 {
     public function __construct(private readonly ActiveTheme $active, private readonly ThemeRegistry $themes) {}

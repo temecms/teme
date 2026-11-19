@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One version of the item being edited, as the plugin's checks read it: its
+ * title, address, document and text, its fields by handle, its terms, the
+ * plugin's own values from its Search and social section, and who is looking.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

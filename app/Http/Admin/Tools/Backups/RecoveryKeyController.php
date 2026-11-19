@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The recovery keys on Tools › Backups (I-2401): making, replacing, checking
+ * and extending them, and the groups typed back to finish one, which answers
+ * JSON so the key page can stay open.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -29,11 +39,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-/**
- * The recovery keys on Tools › Backups (I-2401): making, replacing, checking
- * and extending them, and the groups typed back to finish one, which answers
- * JSON so the key page can stay open.
- */
 final class RecoveryKeyController extends Controller
 {
     use WaitsForRestic;

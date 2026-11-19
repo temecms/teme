@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers the Home screen's panel registry, and core's panels: the
+ * person's own work first (study P §3, I-161). A panel names the actions it
+ * needs as ContentType::ACTIONS keys, never an ability.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -14,11 +24,6 @@ use App\Domain\Dashboard\Panels\Scheduled;
 use App\Domain\Dashboard\Panels\WaitingForMyReview;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers the Home screen's panel registry, and core's panels: the
- * person's own work first (study P §3, I-161). A panel names the actions it
- * needs as ContentType::ACTIONS keys, never an ability.
- */
 final class DashboardServiceProvider extends ServiceProvider
 {
     public function register(): void

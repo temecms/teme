@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Every public address that ends in a feed name (I-299): the feed of the
+ * site, a term or an author as XML in the bound format, a permanent redirect
+ * to the canonical spelling, or 410 for a comment feed. Anything that
+ * is not a feed's goes back to PublicController, unchanged, so redirects and
+ * the 404 log still see it. Marked cacheable by its route.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Feeds;
@@ -19,13 +31,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as BaseResponse;
 
-/**
- * Every public address that ends in a feed name (I-299): the feed of the
- * site, a term or an author as XML in the bound format, a permanent redirect
- * to the canonical spelling, or 410 for a comment feed. Anything that
- * is not a feed's goes back to PublicController, unchanged, so redirects and
- * the 404 log still see it. Marked cacheable by its route.
- */
 final class FeedController extends Controller
 {
     public function __construct(

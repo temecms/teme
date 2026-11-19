@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tools › Redirects' changes (I-694, I-871, I-872): each handed to its
+ * Operation, which authorizes it again and refuses what it must. This says
+ * what happened in a toast, and goes back to the list it came from. It
+ * changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -22,11 +33,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 /**
- * Tools › Redirects' changes (I-694, I-871, I-872): each handed to its
- * Operation, which authorizes it again and refuses what it must. This says
- * what happened in a toast, and goes back to the list it came from. It
- * changes nothing itself.
- *
  * @phpstan-import-type RedirectRow from RedirectList
  * @phpstan-import-type RedirectTo from RedirectList
  */

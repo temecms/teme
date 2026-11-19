@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The screens at /admin/{segment}: a taxonomy's terms, or a type's items.
+ * Which one is found from the segment on each request, so a taxonomy or a
+ * type made in the admin answers at once (I-3296); the request goes to that
+ * screen's own controller once that screen's own permission allows it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -12,12 +23,6 @@ use App\Http\Admin\Taxonomy\TermController;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * The screens at /admin/{segment}: a taxonomy's terms, or a type's items.
- * Which one is found from the segment on each request, so a taxonomy or a
- * type made in the admin answers at once (I-3296); the request goes to that
- * screen's own controller once that screen's own permission allows it.
- */
 final class AdminScreenController extends Controller
 {
     public function index(string $segment): mixed

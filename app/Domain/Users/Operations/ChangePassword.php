@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Changes your own password after checking the current one. The new password
+ * must follow the password rules, your other sessions end, the change is
+ * recorded, and a notice is emailed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -19,11 +29,6 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Validator as ValidatorInstance;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes your own password after checking the current one. The new password
- * must follow the password rules, your other sessions end, the change is
- * recorded, and a notice is emailed.
- */
 final class ChangePassword extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

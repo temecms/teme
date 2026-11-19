@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The one place that decides who receives a notice (I-3375): whether the
+ * kind exists on this site now, the site's switch, who may receive it and
+ * each person's own choice. Read again as the worker sends the notice
+ * (SentAsNotice::shouldSend()), so a choice made after it was queued holds.
+ * It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices\Queries;
@@ -11,13 +23,6 @@ use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Models\User;
 use Teme\Contracts\Notices\NoticeKind;
 
-/**
- * The one place that decides who receives a notice (I-3375): whether the
- * kind exists on this site now, the site's switch, who may receive it and
- * each person's own choice. Read again as the worker sends the notice
- * (SentAsNotice::shouldSend()), so a choice made after it was queued holds.
- * It reads only.
- */
 final class NoticeChoices
 {
     public function __construct(private readonly NoticeRegistry $registry) {}
@@ -122,6 +127,8 @@ final class NoticeChoices
      * the registry lists them (docs/plans/plugin-sockets-3.md).
      *
      * @return array{core: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>, plugins: list<array{name: string, plugin: string, notices: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>}>}
+     *
+     * @since 1.0.0
      */
     public function grouped(User $user): array
     {

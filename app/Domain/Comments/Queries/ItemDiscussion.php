@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The Publish panel's Discussion row for one item (I-687): its state and the
+ * days after publishing that new comments stop.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -9,10 +18,6 @@ use App\Domain\Settings\Modules;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The Publish panel's Discussion row for one item (I-687): its state and the
- * days after publishing that new comments stop.
- */
 final readonly class ItemDiscussion
 {
     public function __construct(private ContentTypeRegistry $types) {}

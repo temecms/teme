@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What every site code Operation shares (I-288): who may change site code,
+ * the host's switch, the password asked again, the security log's before
+ * and after, and what the page cache learns.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Operations\Concerns;
@@ -15,11 +25,6 @@ use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What every site code Operation shares (I-288): who may change site code,
- * the host's switch, the password asked again, the security log's before
- * and after, and what the page cache learns.
- */
 trait ChangesSiteCode
 {
     public function requiresElevation(OperationInput $input): bool

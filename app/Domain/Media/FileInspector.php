@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Decides whether a file may be stored, from its content alone: an accepted
+ * type, within the size limit, and for images one the driver can read, whole, and
+ * within the pixel limit, checked before the image is decoded.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
@@ -8,11 +18,6 @@ use App\Domain\Media\Images\ImageEngine;
 use finfo;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Decides whether a file may be stored, from its content alone: an accepted
- * type, within the size limit, and for images one the driver can read, whole, and
- * within the pixel limit, checked before the image is decoded.
- */
 final class FileInspector
 {
     public function __construct(private readonly ImageEngine $engine) {}

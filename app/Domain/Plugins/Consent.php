@@ -1,15 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins;
-
-use App\Domain\Ai\Plugins\PluginAiTasks;
-use App\Domain\Plugins\Area\PluginPermissions;
-use App\Domain\Plugins\Notices\DeclaredNotices;
-use App\Domain\PublicRoutes\DeclaredRoute;
-use App\Domain\PublicRoutes\RootFile;
-
 /**
  * What a person agreed to a plugin doing, against what its manifest asks for
  * now (I-3353): an update that asks for nothing more starts at once, and one
@@ -20,7 +10,22 @@ use App\Domain\PublicRoutes\RootFile;
  * (`contributes.csp`, docs/plans/plugin-sockets-2.md, B3), and the kinds of
  * notice it sends and the plugins it requires (docs/plans/plugin-sockets-3.md).
  * So do declared AI tasks: a new one, or one that sends or needs more.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins;
+
+use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Plugins\Area\PluginPermissions;
+use App\Domain\Plugins\Notices\DeclaredNotices;
+use App\Domain\PublicRoutes\DeclaredRoute;
+use App\Domain\PublicRoutes\RootFile;
+
 final readonly class Consent
 {
     /**
@@ -78,6 +83,8 @@ final readonly class Consent
      * record keeps them.
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public static function declaredNotices(Manifest $manifest): array
     {
@@ -89,6 +96,8 @@ final readonly class Consent
      * consent record keeps them.
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public static function declaredRequires(Manifest $manifest): array
     {
@@ -103,6 +112,8 @@ final readonly class Consent
      * @param  array{hostsFrom?: list<string>}  $consent
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public static function hostsFrom(array $consent, Manifest $manifest): array
     {
@@ -115,6 +126,8 @@ final readonly class Consent
      * @param  array{hostsFrom?: list<string>}  $consent
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public static function hostsFromAdded(array $consent, Manifest $manifest): array
     {
@@ -127,6 +140,8 @@ final readonly class Consent
      * kinds it lists none for are absent.
      *
      * @return array<string, list<string>>
+     *
+     * @since 1.0.0
      */
     public static function declaredInsertionHosts(Manifest $manifest): array
     {
@@ -154,6 +169,8 @@ final readonly class Consent
      * @param  array{csp?: array<string, list<string>>}  $consent
      *
      * @return array<string, list<string>>
+     *
+     * @since 1.0.0
      */
     public static function insertionHosts(array $consent, Manifest $manifest): array
     {
@@ -178,6 +195,8 @@ final readonly class Consent
      * @param  array{csp?: array<string, list<string>>}  $consent
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public static function insertionHostsAdded(array $consent, Manifest $manifest): array
     {
@@ -257,6 +276,8 @@ final readonly class Consent
      * @param  array{permissions?: list<string>}  $consent
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public static function permissionsAdded(array $consent, Manifest $manifest): array
     {
@@ -295,6 +316,8 @@ final readonly class Consent
      * asks again too.
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public static function routeLines(Manifest $manifest): array
     {
@@ -322,6 +345,8 @@ final readonly class Consent
      * them: without the importer class, and empty when it declares none.
      *
      * @return array{}|array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}
+     *
+     * @since 1.0.0
      */
     public static function declaredImports(Manifest $manifest): array
     {
@@ -337,6 +362,8 @@ final readonly class Consent
      * @param  array{imports?: array<string, mixed>}  $consent
      *
      * @return array{importer: string, options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}
+     *
+     * @since 1.0.0
      */
     public static function agreedImports(array $consent): array
     {
@@ -350,6 +377,8 @@ final readonly class Consent
      * @param  array{imports?: array<string, mixed>}  $consent
      *
      * @return array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}
+     *
+     * @since 1.0.0
      */
     public static function imports(array $consent, Manifest $manifest): array
     {

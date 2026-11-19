@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Which types each public listing holds (I-3298): a term's archive and
+ * feed every public type that uses its taxonomy; an author's and a date's
+ * the public types with an archive; the home page, the posts page and the
+ * main feed the types Settings › Reading ticks among those. Asked of the
+ * registry each time, so a type made or changed a moment ago counts.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -9,13 +21,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Closure;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Which types each public listing holds (I-3298): a term's archive and
- * feed every public type that uses its taxonomy; an author's and a date's
- * the public types with an archive; the home page, the posts page and the
- * main feed the types Settings › Reading ticks among those. Asked of the
- * registry each time, so a type made or changed a moment ago counts.
- */
 final class ListingTypes
 {
     /** The Reading setting naming the home page's and the main feed's types. */

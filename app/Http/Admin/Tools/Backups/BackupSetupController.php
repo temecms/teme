@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Setting backups up from Tools › Backups (I-2401): the setup page, and the
+ * request that makes the first place and shows the recovery key, once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -16,10 +25,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-/**
- * Setting backups up from Tools › Backups (I-2401): the setup page, and the
- * request that makes the first place and shows the recovery key, once.
- */
 final class BackupSetupController extends Controller
 {
     use WaitsForRestic;

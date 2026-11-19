@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A date and time, stored in UTC as an ISO 8601 string, or a date alone,
+ * stored as Y-m-d and never moved by a zone (I-3321). An empty value is
+ * stored as null.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -12,11 +22,6 @@ use DateTimeZone;
 use Illuminate\Support\Carbon;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * A date and time, stored in UTC as an ISO 8601 string, or a date alone,
- * stored as Y-m-d and never moved by a zone (I-3321). An empty value is
- * stored as null.
- */
 final class DatetimeField implements FieldType
 {
     /**

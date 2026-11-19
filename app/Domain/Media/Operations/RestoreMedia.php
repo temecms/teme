@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Brings an item back from the trash, exactly as it was, so every page that
+ * used it shows it again. Anyone who may remove the item can do it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -16,10 +25,6 @@ use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings an item back from the trash, exactly as it was, so every page that
- * used it shows it again. Anyone who may remove the item can do it.
- */
 final class RestoreMedia extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

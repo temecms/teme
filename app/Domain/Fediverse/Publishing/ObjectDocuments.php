@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An item as the fediverse reads it (docs/plans/fediverse-publishing.md, D2):
+ * its object address, an Article or a Note, the live page as its url, the
+ * actor it is attributed to, its body drawn as a feed reader gets it with
+ * absolute links (rule 9), public and copied to that actor's followers.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
@@ -18,12 +29,6 @@ use App\Domain\People\Credits;
 use App\Domain\People\Models\Person;
 use Carbon\CarbonImmutable;
 
-/**
- * An item as the fediverse reads it (docs/plans/fediverse-publishing.md, D2):
- * its object address, an Article or a Note, the live page as its url, the
- * actor it is attributed to, its body drawn as a feed reader gets it with
- * absolute links (rule 9), public and copied to that actor's followers.
- */
 final readonly class ObjectDocuments
 {
     public function __construct(

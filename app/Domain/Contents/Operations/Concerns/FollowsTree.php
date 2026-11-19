@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * For an Operation that may change what the addresses of the pages under
+ * an item are made of (I-3363): the tree lock first, before any row; the
+ * children's chain read under the row lock; then the pages under it moved,
+ * and the page cache told after commit. A type that doesn't nest, and a
+ * page with nothing under it, cost nothing more than the lock and one look.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Concerns;
@@ -8,13 +20,6 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Tree\SubtreeAddresses;
 use App\Domain\Contents\Tree\SubtreeOutcome;
 
-/**
- * For an Operation that may change what the addresses of the pages under
- * an item are made of (I-3363): the tree lock first, before any row; the
- * children's chain read under the row lock; then the pages under it moved,
- * and the page cache told after commit. A type that doesn't nest, and a
- * page with nothing under it, cost nothing more than the lock and one look.
- */
 trait FollowsTree
 {
     /** The item's type, read where the Operation first reads the item, so perform() locks its tree before any row. */

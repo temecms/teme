@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Contents\Operations\Input;
-
-use Teme\Contracts\Operations\OperationInput;
-
 /**
  * What `PublishRevision` needs: which content, which of its revisions to
  * publish, who is asking, and whether their autosave on that revision goes.
@@ -14,7 +8,18 @@ use Teme\Contracts\Operations\OperationInput;
  * skips the required-field check, which the schedule already passed, and
  * keeps a page under it at its old address when the new one is taken,
  * since nobody is there to read a refusal (I-3363).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Contents\Operations\Input;
+
+use Teme\Contracts\Operations\OperationInput;
+
 final readonly class PublishRevisionInput implements OperationInput
 {
     public function __construct(

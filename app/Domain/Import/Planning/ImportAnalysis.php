@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A site's analysis, read from its Teme Companion's site report and kept in
+ * the cache for six hours, so the analyze and choices steps ask the old site
+ * once (I-261: the cache is disposable, and the summary holds no personal
+ * data). A refusal is never kept.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Planning;
@@ -14,12 +25,6 @@ use App\Domain\Support\Network\AddressRefused;
 use Illuminate\Contracts\Cache\Repository;
 use InvalidArgumentException;
 
-/**
- * A site's analysis, read from its Teme Companion's site report and kept in
- * the cache for six hours, so the analyze and choices steps ask the old site
- * once (I-261: the cache is disposable, and the summary holds no personal
- * data). A refusal is never kept.
- */
 final readonly class ImportAnalysis
 {
     /** How long a site's analysis is kept: six hours. */

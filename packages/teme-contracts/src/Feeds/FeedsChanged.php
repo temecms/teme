@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Feeds a change touched: the main feeds, a type's, a term's or an author's,
+ * as the public sees them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Feeds;

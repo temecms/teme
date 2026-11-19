@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Finds trashed content for the daily purge.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -8,9 +16,6 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Tree\SubtreeJobKind;
 use Carbon\CarbonInterface;
 
-/**
- * Finds trashed content for the daily purge.
- */
 final class TrashedContent
 {
     /**

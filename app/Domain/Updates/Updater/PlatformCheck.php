@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Whether the updater can reach Dokploy with the API key, tried by the updater every two minutes and kept in the
+ * cache, a telemetry sink: Settings › Updates shows the sentence Dokploy's refusal gave, and nothing decides from it.
+ * The key itself is never kept here.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -8,11 +18,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
 
-/**
- * Whether the updater can reach Dokploy with the API key, tried by the updater every two minutes and kept in the
- * cache, a telemetry sink: Settings › Updates shows the sentence Dokploy's refusal gave, and nothing decides from it.
- * The key itself is never kept here.
- */
 final readonly class PlatformCheck
 {
     public const string KEY = 'teme.updater.platform-check';

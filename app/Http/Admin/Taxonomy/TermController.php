@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The screen of every taxonomy, such as Categories and Tags. It lists terms
+ * and hands each change to its Operation; it changes nothing itself. The
+ * taxonomy comes from the URL's segment. A nesting taxonomy is shown as whole
+ * branches.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Taxonomy;
@@ -24,12 +35,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The screen of every taxonomy, such as Categories and Tags. It lists terms
- * and hands each change to its Operation; it changes nothing itself. The
- * taxonomy comes from the URL's segment. A nesting taxonomy is shown as whole
- * branches.
- */
 final class TermController extends Controller
 {
     public function index(Request $request, string $taxonomy, TermList $terms, TermScreen $screen, TermPicker $picker): Response

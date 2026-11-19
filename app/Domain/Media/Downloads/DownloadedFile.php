@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Media\Downloads;
-
 /**
  * A file the downloader fetched, waiting in a temporary file: its name, its
  * type and kind as its bytes say, its size, and where it came from. Release
  * it when done, whatever happened; releasing it twice does nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Media\Downloads;
+
 final readonly class DownloadedFile
 {
     public function __construct(

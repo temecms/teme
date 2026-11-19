@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The embed card in a feed: a link to the original, worded by its kind and provider, since a feed reader runs no frame.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -7,9 +15,6 @@ namespace App\Domain\Feeds\Cards;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Feeds\FeedCardRenderer;
 
-/**
- * The embed card in a feed: a link to the original, worded by its kind and provider, since a feed reader runs no frame.
- */
 final readonly class PlainEmbed implements FeedCardRenderer
 {
     private const array PROVIDERS = ['youtube' => 'YouTube', 'vimeo' => 'Vimeo', 'spotify' => 'Spotify'];

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's declared jobs and schedules as the runner and scheduler read
+ * them (I-3445): defaults filled, keyed by job key. Built only from a
+ * manifest ManifestValidator has already accepted.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
@@ -7,10 +17,6 @@ namespace App\Domain\Plugins\Jobs;
 use App\Domain\Plugins\Manifest;
 
 /**
- * A plugin's declared jobs and schedules as the runner and scheduler read
- * them (I-3445): defaults filled, keyed by job key. Built only from a
- * manifest ManifestValidator has already accepted.
- *
  * @phpstan-type JobDeclaration array{key: string, label: string, long: bool, tries: int, backoff: list<int>}
  * @phpstan-type ScheduleDeclaration array{job: string, every: string, enabledBy?: string, everyFrom?: string}
  */

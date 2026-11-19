@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * restic's ID for one key of one place's repository, machine or recovery (I-359), and who added and removed it. Never the key itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Models;
@@ -11,8 +19,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * restic's ID for one key of one place's repository, machine or recovery (I-359), and who added and removed it. Never the key itself.
- *
  * @property string $id
  * @property string $destination_id
  * @property string $restic_key_id

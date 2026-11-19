@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Where an inbox item leads, kept as a route's name, its parameters and the
+ * ability a reader needs, so the address is made when the item is drawn (rule 9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox;
 
-/**
- * Where an inbox item leads, kept as a route's name, its parameters and the
- * ability a reader needs, so the address is made when the item is drawn (rule 9).
- */
 final readonly class InboxLink
 {
     /**

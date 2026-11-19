@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Answers a fediverse document (an actor, its outbox, followers or
+ * following, a post's object) at the full address asked for, new or
+ * imported; 410 with a Tombstone for a post taken back, 404 when the site
+ * has none there.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Fediverse;
@@ -10,12 +21,6 @@ use Teme\Contracts\Routes\PublicRequest;
 use Teme\Contracts\Routes\PublicResponse;
 use Teme\Contracts\Routes\PublicRoute;
 
-/**
- * Answers a fediverse document (an actor, its outbox, followers or
- * following, a post's object) at the full address asked for, new or
- * imported; 410 with a Tombstone for a post taken back, 404 when the site
- * has none there.
- */
 final readonly class DocumentRoute implements PublicRoute
 {
     public function __construct(private FediverseDocuments $documents) {}

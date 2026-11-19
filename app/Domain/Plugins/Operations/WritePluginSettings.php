@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Saves a plugin's own settings for the person its work runs for
+ * (docs/proposals/plugin-sockets-1.md): that person must manage plugins and
+ * the plugin must be enabled. Only declared, non-secret, non-address values
+ * are written, by the group's own rules and checks, recorded as through the
+ * plugin. No elevation: the person isn't present.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -22,13 +34,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * Saves a plugin's own settings for the person its work runs for
- * (docs/proposals/plugin-sockets-1.md): that person must manage plugins and
- * the plugin must be enabled. Only declared, non-secret, non-address values
- * are written, by the group's own rules and checks, recorded as through the
- * plugin. No elevation: the person isn't present.
- */
 final class WritePluginSettings extends BaseOperation
 {
     /** The setting types a plugin may write for itself. */

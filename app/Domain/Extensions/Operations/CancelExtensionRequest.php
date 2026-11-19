@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Cancels a plugin or theme request the installer hasn't begun, or one waiting for the administrator's
+ * agreement (I-211): a person who holds extensions.install, after their password, or the operator. A
+ * running request can't be cancelled; it ends on its own. The request's upload goes with it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -14,11 +24,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Cancels a plugin or theme request the installer hasn't begun, or one waiting for the administrator's
- * agreement (I-211): a person who holds extensions.install, after their password, or the operator. A
- * running request can't be cancelled; it ends on its own. The request's upload goes with it.
- */
 final class CancelExtensionRequest extends BaseOperation implements RequiresElevation
 {
     use AuthorizesExtensionChanges;

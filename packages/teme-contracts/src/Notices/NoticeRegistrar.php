@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Where kinds of notice are declared, as SettingsRegistrar declares settings.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Notices;

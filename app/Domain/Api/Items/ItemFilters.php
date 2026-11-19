@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a request to the items list asks for (D5): its types, term, author,
+ * dates, parent, language (I-3360), sort, size and cursor, each checked,
+ * every problem refused at once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
@@ -19,11 +29,6 @@ use DateTimeZone;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-/**
- * What a request to the items list asks for (D5): its types, term, author,
- * dates, parent, language (I-3360), sort, size and cursor, each checked,
- * every problem refused at once.
- */
 final readonly class ItemFilters
 {
     /** Newest first, the default. */

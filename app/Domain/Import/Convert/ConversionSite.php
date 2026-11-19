@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert;
-
 /**
  * The old site's own addresses, so the converter can tell its files from
  * other sites': its home, its other old hosts (staging and former domains),
  * and where WordPress keeps its uploads (`wp_upload_dir()`'s `baseurl`, on
  * the same host or another). Hosts are compared without case and without a
  * leading `www.`.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert;
+
 final readonly class ConversionSite
 {
     private string $host;
@@ -94,6 +99,8 @@ final readonly class ConversionSite
     /**
      * Whether a bare host is this site's home, another of its old addresses,
      * or neither.
+     *
+     * @since 1.0.0
      */
     public function hostKind(string $host): ?string
     {

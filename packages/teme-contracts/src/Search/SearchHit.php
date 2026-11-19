@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One item found: its content ID, and a snippet of its text.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Search;

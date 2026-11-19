@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * One refusal of the management API, as the API's problems are written
+ * (RFC 9457, App\Domain\Api\Problems): a status, a code a client switches
+ * on, a plain sentence from ManageApiWords, and each refused field's
+ * reason. Never the exception's own message, SQL, class or path (I-091),
+ * and never stored by any cache.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
@@ -15,13 +27,6 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-/**
- * One refusal of the management API, as the API's problems are written
- * (RFC 9457, App\Domain\Api\Problems): a status, a code a client switches
- * on, a plain sentence from ManageApiWords, and each refused field's
- * reason. Never the exception's own message, SQL, class or path (I-091),
- * and never stored by any cache.
- */
 final class ManageApiProblem extends RuntimeException implements Responsable, ShouldntReport
 {
     /**

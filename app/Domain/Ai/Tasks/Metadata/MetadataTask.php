@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The metadata task (I-1313): from an item's title, excerpt and body, an SEO
+ * title, a meta description, an excerpt, a social title and a social
+ * description, each proposed under its own field and written only when the
+ * person uses it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\Metadata;
@@ -16,12 +27,6 @@ use App\Domain\Ai\Asking\Operations\ApplyAiSuggestion;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Fields\BuiltInFields;
 
-/**
- * The metadata task (I-1313): from an item's title, excerpt and body, an SEO
- * title, a meta description, an excerpt, a social title and a social
- * description, each proposed under its own field and written only when the
- * person uses it.
- */
 final readonly class MetadataTask implements AiTask
 {
     public const string KEY = 'metadata';

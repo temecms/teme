@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Media\Downloads;
-
 /**
  * Guzzle's progress callback for a download: once the size a site announces,
  * or the bytes received, pass the limit, it answers true, which stops the
  * transfer in Guzzle's curl handlers, and remembers why.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Media\Downloads;
+
 final class SizeLimit
 {
     public bool $exceeded = false;

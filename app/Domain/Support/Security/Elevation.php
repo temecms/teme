@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Whether the current context has a fresh proof of identity for this actor.
+ * Bound per context; the default denies. docs/architecture/security.md.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Security;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Whether the current context has a fresh proof of identity for this actor.
- * Bound per context; the default denies. docs/architecture/security.md.
- */
 interface Elevation
 {
     /**

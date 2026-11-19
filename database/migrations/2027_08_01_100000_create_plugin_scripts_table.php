@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's inline scripts and what a person decided about each
+ * (docs/plans/plugin-sockets-2.md, B4): kept on a page only by its exact
+ * text's hash, once approved for that plugin.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
@@ -7,11 +17,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * A plugin's inline scripts and what a person decided about each
- * (docs/plans/plugin-sockets-2.md, B4): kept on a page only by its exact
- * text's hash, once approved for that plugin.
- */
 return new class extends Migration
 {
     public function up(): void

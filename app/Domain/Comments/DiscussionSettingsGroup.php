@@ -1,14 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
-use App\Domain\Cache\PageTags;
-use App\Domain\Types\ContentTypeRegistry;
-use Teme\Contracts\Settings\Setting;
-use Teme\Contracts\Settings\SettingsGroup;
-
 /**
  * The `discussion` settings group (docs/studies/comments.md §3.10): who may
  * comment, which comments wait for approval, and how deep replies go. Built
@@ -18,7 +9,21 @@ use Teme\Contracts\Settings\SettingsGroup;
  * what it reads (D6 of 1.8a): 1.8b adds `ask_website` and `per_page`, and
  * the tag every page that draws a thread carries; 1.8d the emails,
  * `keep_ip_days` and the screen that edits them (Settings › Discussion).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
+use App\Domain\Cache\PageTags;
+use App\Domain\Types\ContentTypeRegistry;
+use Teme\Contracts\Settings\Setting;
+use Teme\Contracts\Settings\SettingsGroup;
+
 final class DiscussionSettingsGroup
 {
     public static function build(ContentTypeRegistry $types): SettingsGroup

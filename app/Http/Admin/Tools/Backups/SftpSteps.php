@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * An SFTP place's two steps (I-2403): the server's fingerprint read and a
+ * key pair made in the first, kept in the session until the person has added
+ * the public half and confirmed the fingerprint. The private half is kept
+ * encrypted under APP_KEY, since sessions are stored rows; it never reaches
+ * the page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -15,13 +27,6 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
-/**
- * An SFTP place's two steps (I-2403): the server's fingerprint read and a
- * key pair made in the first, kept in the session until the person has added
- * the public half and confirmed the fingerprint. The private half is kept
- * encrypted under APP_KEY, since sessions are stored rows; it never reaches
- * the page.
- */
 final readonly class SftpSteps
 {
     public const string SESSION = 'backups.sftp';

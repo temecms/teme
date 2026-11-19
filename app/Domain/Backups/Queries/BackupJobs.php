@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The backups' tracked jobs (I-104), all of the run `backup`/`site`: which
+ * waits next, which a dead process left running, and the one Tools › Backups
+ * shows, as Tools › Jobs draws it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -10,10 +20,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The backups' tracked jobs (I-104), all of the run `backup`/`site`: which
- * waits next, which a dead process left running, and the one Tools › Backups
- * shows, as Tools › Jobs draws it.
- *
  * @phpstan-import-type JobRow from TrackedJobList
  */
 final readonly class BackupJobs

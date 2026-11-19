@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The site as the API names it (D28): its title, tagline, address, language,
+ * the languages it shows readers (I-3360), zone and what its home is, from
+ * six named settings and the languages group's, and nothing else, so no
+ * secret, no administration email and no version can reach an answer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Catalogue;
@@ -11,12 +22,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\SiteLanguage;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The site as the API names it (D28): its title, tagline, address, language,
- * the languages it shows readers (I-3360), zone and what its home is, from
- * six named settings and the languages group's, and nothing else, so no
- * secret, no administration email and no version can reach an answer.
- */
 final readonly class SiteShape
 {
     public function __construct(private SettingsReader $settings, private SiteLanguage $language) {}

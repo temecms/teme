@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Instantiates the plugin's InboundVerifier class and asks it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes\Verifiers;
@@ -7,9 +15,6 @@ namespace App\Domain\PublicRoutes\Verifiers;
 use Teme\Contracts\Routes\InboundVerifier;
 use Teme\Contracts\Routes\PublicRequest;
 
-/**
- * Instantiates the plugin's InboundVerifier class and asks it.
- */
 final class CustomVerifier
 {
     /**

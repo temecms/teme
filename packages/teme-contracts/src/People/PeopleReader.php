@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Names the people who write on the site, for a plugin granted people.read:
+ * each one's account ID and display name, never an email address or anything
+ * else about them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\People;

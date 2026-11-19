@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Stops a remote account following one of the site's actors, or all of
+ * them, and marks it gone when it deleted itself. Run from the inbox's job
+ * for the verified account itself, or by whoever holds
+ * settings.fediverse.manage; returns how many follows ended.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -12,12 +23,6 @@ use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Stops a remote account following one of the site's actors, or all of
- * them, and marks it gone when it deleted itself. Run from the inbox's job
- * for the verified account itself, or by whoever holds
- * settings.fediverse.manage; returns how many follows ended.
- */
 final class RemoveFollower extends BaseOperation
 {
     public const string ABILITY = 'settings.fediverse.manage';

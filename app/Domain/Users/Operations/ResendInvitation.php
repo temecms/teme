@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Sends a pending invitation again with a fresh link. Only someone who may
+ * manage users, or the operator, can do it, and only while the invitation is
+ * still pending.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Sends a pending invitation again with a fresh link. Only someone who may
- * manage users, or the operator, can do it, and only while the invitation is
- * still pending.
- */
 final class ResendInvitation extends BaseOperation
 {
     use ManagesUsers;

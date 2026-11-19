@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The active SEO plugin's values for one item, as the companion sends them
+ * (I-330), in Teme's built-in fields: titles and descriptions as plain words
+ * cut to Teme's lengths; the canonical by ID, or left for the second pass;
+ * the social image by ID; the three snippet directives and Yoast's page and
+ * article types. Never the old site's address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Content;
@@ -16,13 +28,6 @@ use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\Terms\WordPressText;
 use App\Domain\StructuredData\TypeSchemas;
 
-/**
- * The active SEO plugin's values for one item, as the companion sends them
- * (I-330), in Teme's built-in fields: titles and descriptions as plain words
- * cut to Teme's lengths; the canonical by ID, or left for the second pass;
- * the social image by ID; the three snippet directives and Yoast's page and
- * article types. Never the old site's address.
- */
 final readonly class WordPressSeo
 {
     /** Each text field: its key, its length, the companion's key and its name in a message. */

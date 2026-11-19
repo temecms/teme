@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins;
-
 /**
  * A host a plugin may reach (docs/architecture/plugins.md, Trust): a host
  * name, or one leading wildcard label, in lower case. One rule for consent
  * and for the outbound door, so the two can never disagree (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins;
+
 final class HostPattern
 {
     /** api.example.com or *.example.com: letters, digits and hyphens, a dot between labels, a top label of letters; never an address, never localhost. */

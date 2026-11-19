@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Management API keys' secrets: making one, and finding the live key a
+ * request's secret belongs to. Only the secret's SHA-256 is stored; the
+ * secret itself is shown once and never kept or logged.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
@@ -8,11 +18,6 @@ use App\Domain\ManageApi\Models\ApiKey;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Management API keys' secrets: making one, and finding the live key a
- * request's secret belongs to. Only the secret's SHA-256 is stored; the
- * secret itself is shown once and never kept or logged.
- */
 final class ApiKeys
 {
     /** Every secret starts with this, so a leaked one is easy to recognize. */

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Migration: adds languages to navigations.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;

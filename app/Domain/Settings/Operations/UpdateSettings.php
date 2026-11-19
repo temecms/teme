@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Changes one settings group. The person must hold the group's ability, a
+ * sensitive group asks for a fresh password confirmation, and a form opened on
+ * an older version is refused. Only changed values are stored, never defaults,
+ * and every change is recorded. A plugin's setting that names a host it may
+ * not reach yet is saved only when the person agrees to that host, after
+ * their password (docs/plans/plugin-sockets-1.md, A2).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Operations;
@@ -29,14 +42,6 @@ use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * Changes one settings group. The person must hold the group's ability, a
- * sensitive group asks for a fresh password confirmation, and a form opened on
- * an older version is refused. Only changed values are stored, never defaults,
- * and every change is recorded. A plugin's setting that names a host it may
- * not reach yet is saved only when the person agrees to that host, after
- * their password (docs/plans/plugin-sockets-1.md, A2).
- */
 final class UpdateSettings extends BaseOperation implements RequiresElevation
 {
     public function __construct(

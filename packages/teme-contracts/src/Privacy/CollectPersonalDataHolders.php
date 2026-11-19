@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Gathers the plugins' holders of personal data, asked at each step of a
+ * privacy request.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Privacy;

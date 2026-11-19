@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Teme's settings for a WordPress site's options (I-342): the time
+ * zone and the language, which items are written with, so set first; then
+ * the title, the feeds, discussion and the comments module. Pure, but for
+ * the languages Teme offers and the settings' labels.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Settings;
@@ -13,12 +24,6 @@ use App\Domain\Settings\Modules;
 use App\Domain\Settings\SettingsRegistry;
 use DateTimeZone;
 
-/**
- * Teme's settings for a WordPress site's options (I-342): the time
- * zone and the language, which items are written with, so set first; then
- * the title, the feeds, discussion and the comments module. Pure, but for
- * the languages Teme offers and the settings' labels.
- */
 final class WordPressSettings
 {
     /** `show_on_front` when the home page is a page. */

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A page of hits, and how many there are in all.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Search;

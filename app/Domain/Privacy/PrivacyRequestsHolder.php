@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The record of a person's erasure requests, found by their address, or by
+ * its hash once the address is hidden: exported with what each did, and
+ * kept on erasure, since the record is pruned on its own clock (I-3375).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy;
@@ -14,11 +24,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * The record of a person's erasure requests, found by their address, or by
- * its hash once the address is hidden: exported with what each did, and
- * kept on erasure, since the record is pruned on its own clock (I-3375).
- */
 final class PrivacyRequestsHolder implements PersonalDataHolder
 {
     public function key(): string

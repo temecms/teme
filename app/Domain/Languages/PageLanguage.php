@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The language of the public page being drawn (I-3360), set once per
+ * request by whatever decided what the page is. Unset, as in the admin, a
+ * queue job or the console, it is the site's default language.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -7,11 +17,6 @@ namespace App\Domain\Languages;
 use Illuminate\Support\Facades\App;
 use InvalidArgumentException;
 
-/**
- * The language of the public page being drawn (I-3360), set once per
- * request by whatever decided what the page is. Unset, as in the admin, a
- * queue job or the console, it is the site's default language.
- */
 final class PageLanguage
 {
     private ?string $tag = null;

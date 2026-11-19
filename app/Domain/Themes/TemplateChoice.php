@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Which page templates an item may choose (I-443): those the active theme
+ * declares for its type. Only a new choice is checked. A template already
+ * stored stays, even once a later theme lacks it, so saving other edits
+ * never fails over it; the resolver passes over it to the next template down.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -7,12 +18,6 @@ namespace App\Domain\Themes;
 use App\Domain\Fields\BuiltInFields;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Which page templates an item may choose (I-443): those the active theme
- * declares for its type. Only a new choice is checked. A template already
- * stored stays, even once a later theme lacks it, so saving other edits
- * never fails over it; the resolver passes over it to the next template down.
- */
 final class TemplateChoice
 {
     /**

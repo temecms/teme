@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Drops a plugin's recorded tables (I-3442): a person who holds
+ * plugins.manage, after their password, or the operator. The plugin must
+ * be disabled, or its code gone. Works from the row alone, so a plugin
+ * whose code is gone can still have its tables removed. Keeps the row and
+ * its consent. Returns the tables dropped.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -22,13 +34,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Drops a plugin's recorded tables (I-3442): a person who holds
- * plugins.manage, after their password, or the operator. The plugin must
- * be disabled, or its code gone. Works from the row alone, so a plugin
- * whose code is gone can still have its tables removed. Keeps the row and
- * its consent. Returns the tables dropped.
- */
 final class RemovePluginData extends BaseOperation implements RequiresElevation
 {
     use AuthorizesPluginChanges;

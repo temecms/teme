@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A plugin migration run was refused (I-3442): the migration isn't a
+ * Migration, can't run in a transaction, failed while running, or created
+ * or dropped a table that isn't the plugin's. The sentence goes on the
+ * screen and the console.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Tables;
@@ -8,12 +19,6 @@ use App\Domain\Plugins\FoundPlugin;
 use RuntimeException;
 use Throwable;
 
-/**
- * A plugin migration run was refused (I-3442): the migration isn't a
- * Migration, can't run in a transaction, failed while running, or created
- * or dropped a table that isn't the plugin's. The sentence goes on the
- * screen and the console.
- */
 final class PluginTablesRefused extends RuntimeException
 {
     public static function notAMigration(FoundPlugin $plugin, string $name): self

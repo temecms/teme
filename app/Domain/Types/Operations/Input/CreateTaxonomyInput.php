@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What CreateTaxonomy needs: the taxonomy, the listed types that use it, and
+ * who is asking (null for the operator).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations\Input;
@@ -7,10 +16,6 @@ namespace App\Domain\Types\Operations\Input;
 use App\Domain\Types\TaxonomyDefinition;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What CreateTaxonomy needs: the taxonomy, the listed types that use it, and
- * who is asking (null for the operator).
- */
 final readonly class CreateTaxonomyInput implements OperationInput
 {
     /**

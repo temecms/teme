@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Drives PostgreSQL's pg_dump and pg_restore (I-366): the database named by
+ * PostgreSQL's own variables in the child's environment, never on its
+ * command line, and a password prompt never waited for.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
@@ -10,11 +20,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use InvalidArgumentException;
 
-/**
- * Drives PostgreSQL's pg_dump and pg_restore (I-366): the database named by
- * PostgreSQL's own variables in the child's environment, never on its
- * command line, and a password prompt never waited for.
- */
 final readonly class PostgresTools
 {
     /** What a database administrator sees in pg_stat_activity while one runs. */

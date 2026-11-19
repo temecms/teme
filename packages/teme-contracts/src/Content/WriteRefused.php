@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Thrown when a plugin's content or media write is refused.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

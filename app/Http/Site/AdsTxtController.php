@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * /ads.txt: the text saved under Site code, as plain UTF-8; a permanent
+ * redirect to another host’s file when that mode is chosen; or 404 while
+ * empty. The page cache stores either answer like robots.txt (I-064).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -11,11 +21,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * /ads.txt: the text saved under Site code, as plain UTF-8; a permanent
- * redirect to another host’s file when that mode is chosen; or 404 while
- * empty. The page cache stores either answer like robots.txt (I-064).
- */
 final class AdsTxtController extends Controller
 {
     public function __invoke(Request $request, SettingsReader $settings): Response

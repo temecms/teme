@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers structured data (I-698): the gate's required properties, which
+ * packs add to, core's nodes on every public page, and Search and social's
+ * section on who publishes the site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -18,11 +28,6 @@ use App\Domain\StructuredData\Vocabulary;
 use App\Domain\StructuredData\WhoPublishes;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers structured data (I-698): the gate's required properties, which
- * packs add to, core's nodes on every public page, and Search and social's
- * section on who publishes the site.
- */
 final class JsonLdServiceProvider extends ServiceProvider
 {
     public function register(): void

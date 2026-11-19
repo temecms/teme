@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One comment's drawer on the Comments screen (1.8c's D13, D14, D16), or why
+ * it can't open.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -15,10 +24,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * One comment's drawer on the Comments screen (1.8c's D13, D14, D16), or why
- * it can't open.
- */
 final class CommentDetails
 {
     public function __construct(

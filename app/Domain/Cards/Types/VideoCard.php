@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One video file from the library, played by the browser's own player with
+ * its poster, its size, a caption and caption tracks, or looping silently
+ * like a moving picture (I-446). Every file is held by ID and its address
+ * worked out when drawn, never stored.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -19,12 +30,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\StructuredData\NodeIds;
 
-/**
- * One video file from the library, played by the browser's own player with
- * its poster, its size, a caption and caption tracks, or looping silently
- * like a moving picture (I-446). Every file is held by ID and its address
- * worked out when drawn, never stored.
- */
 final class VideoCard implements CardType, StructuredDataCard
 {
     /** The kinds of caption track a reader's player shows; HTML's `metadata` is for scripts. */

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * What ImportSiteLanguages needs: the old site's other languages, each as
+ * the Teme language it becomes and its address prefix, in its order; the
+ * content types and taxonomies not translated here, or null to leave them;
+ * and who is asking.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ImportSiteLanguages needs: the old site's other languages, each as
- * the Teme language it becomes and its address prefix, in its order; the
- * content types and taxonomies not translated here, or null to leave them;
- * and who is asking.
- */
 final readonly class ImportSiteLanguagesInput implements OperationInput
 {
     /**

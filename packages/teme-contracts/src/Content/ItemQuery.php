@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Which published items ContentReader::published() lists, and from where.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Who may read an item (I-1700): Public, Private or Password protected,
+ * the password sealed with the application key, and published private
+ * items counted apart.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Who may read an item (I-1700): Public, Private or Password protected,
- * the password sealed with the application key, and published private
- * items counted apart.
- */
 return new class extends Migration
 {
     public function up(): void

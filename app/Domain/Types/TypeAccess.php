@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Types;
-
 /**
  * Who may change the site's own content types, and whether the host has
  * locked them so they only arrive by file (I-411), and the gate a type's
  * list screens ask.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Types;
+
 final class TypeAccess
 {
     public const string MANAGE = 'types.manage';

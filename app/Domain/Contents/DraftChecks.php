@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The checks a draft of an existing item must pass, whether it is being saved
+ * as a revision or autosaved: its title, its document (normalised, then held
+ * to the schema), its fields, its template and its terms. SaveDraft and SaveAutosave share
+ * them, so a checkpoint can never fail on something an autosave accepted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -14,12 +25,6 @@ use App\Domain\Taxonomy\TermRules;
 use App\Domain\Themes\TemplateChoice;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * The checks a draft of an existing item must pass, whether it is being saved
- * as a revision or autosaved: its title, its document (normalised, then held
- * to the schema), its fields, its template and its terms. SaveDraft and SaveAutosave share
- * them, so a checkpoint can never fail on something an autosave accepted.
- */
 final class DraftChecks
 {
     /**

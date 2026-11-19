@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Downloads one file from another site into a temporary file, safely
+ * (I-453): http or https with no password in the address; every host it
+ * connects to checked public and pinned, each redirect's too, followed by
+ * hand; the media library's size limit held as the bytes arrive; a time
+ * limit over the whole download, its tries included; a certificate checked,
+ * never switched off; the type read from the bytes, never the name or the
+ * header. It stores nothing: the caller hands the file to UploadMedia, then
+ * releases it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Downloads;
@@ -17,16 +32,6 @@ use RuntimeException;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * Downloads one file from another site into a temporary file, safely
- * (I-453): http or https with no password in the address; every host it
- * connects to checked public and pinned, each redirect's too, followed by
- * hand; the media library's size limit held as the bytes arrive; a time
- * limit over the whole download, its tries included; a certificate checked,
- * never switched off; the type read from the bytes, never the name or the
- * header. It stores nothing: the caller hands the file to UploadMedia, then
- * releases it.
- */
 final readonly class FileDownloader
 {
     /** The seconds a download may take by default, its tries and waits included. */

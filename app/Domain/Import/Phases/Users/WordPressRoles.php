@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Where a WordPress role goes in Teme (I-340): WordPress's own roles by
+ * name, a subscriber nowhere, and a custom role where the run's choices
+ * put it, or where a plugin's well-known role belongs. A role it can't
+ * place is never given a writing role by guess.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Users;
 
 use App\Domain\Users\Roles;
 
-/**
- * Where a WordPress role goes in Teme (I-340): WordPress's own roles by
- * name, a subscriber nowhere, and a custom role where the run's choices
- * put it, or where a plugin's well-known role belongs. A role it can't
- * place is never given a writing role by guess.
- */
 final class WordPressRoles
 {
     /** The choice that leaves a custom role's people behind, as subscribers are. */

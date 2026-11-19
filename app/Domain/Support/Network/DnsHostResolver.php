@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Looks a name up as the server would: the system's resolver for IPv4,
+ * which reads the hosts file a local site is often named in, and DNS for
+ * IPv6. Empty when the name is unknown.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Network;
 
 use Throwable;
 
-/**
- * Looks a name up as the server would: the system's resolver for IPv4,
- * which reads the hosts file a local site is often named in, and DNS for
- * IPv6. Empty when the name is unknown.
- */
 final class DnsHostResolver implements HostResolver
 {
     public function resolve(string $host): array

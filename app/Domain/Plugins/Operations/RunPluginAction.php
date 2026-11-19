@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Runs an action from a plugin's settings page (docs/proposals/plugin-sockets-1.md):
+ * queues the job it names as the person who clicked, with the action in its
+ * payload, once while one waits. Returns the tracked job's ID and the
+ * action's label.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -18,12 +29,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Jobs\QueueOptions;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Runs an action from a plugin's settings page (docs/proposals/plugin-sockets-1.md):
- * queues the job it names as the person who clicked, with the action in its
- * payload, once while one waits. Returns the tracked job's ID and the
- * action's label.
- */
 final class RunPluginAction extends BaseOperation
 {
     public function __construct(

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
 /**
  * What SubmitComment did with a comment: its ID, and its status, approved,
  * pending or spam. The form's answer (1.8b) tells its writer only whether it
  * shows now or waits; spam reads as waiting.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
 final readonly class SubmittedComment
 {
     public function __construct(

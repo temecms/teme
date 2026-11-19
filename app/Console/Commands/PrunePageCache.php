@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * `teme:cache:prune`: removes the pages whose life has ended, found through
+ * the tag table's expiry index, so the files of addresses nobody asks for
+ * again never pile up, and forgets purges older than any page still being
+ * drawn (I-264). Runs every minute, as often as pages expire. While the
+ * cache is off it removes every page, so turning it on again starts afresh
+ * (I-475), and purges the whole site at the CDN the first time it removes
+ * any. It also queues the drain of whatever purges wait for the CDN, and,
+ * while the static-file driver is off, removes every file it left (slice
+ * 1.7d″).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,17 +29,6 @@ use App\Domain\Cache\StaticPages;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
-/**
- * `teme:cache:prune`: removes the pages whose life has ended, found through
- * the tag table's expiry index, so the files of addresses nobody asks for
- * again never pile up, and forgets purges older than any page still being
- * drawn (I-264). Runs every minute, as often as pages expire. While the
- * cache is off it removes every page, so turning it on again starts afresh
- * (I-475), and purges the whole site at the CDN the first time it removes
- * any. It also queues the drain of whatever purges wait for the CDN, and,
- * while the static-file driver is off, removes every file it left (slice
- * 1.7d″).
- */
 final class PrunePageCache extends Command
 {
     /** @var string */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Says whether the weekly test restore has its spare database (I-2406):
+ * named, reachable, not the site's own, and owned by the role Teme connects
+ * to it as. Always a warning: without it the test is skipped, and a deploy
+ * mustn't stop for that. It reads the catalog only, and empties nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -12,12 +23,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use PDOException;
 
-/**
- * Says whether the weekly test restore has its spare database (I-2406):
- * named, reachable, not the site's own, and owned by the role Teme connects
- * to it as. Always a warning: without it the test is skipped, and a deploy
- * mustn't stop for that. It reads the catalog only, and empties nothing.
- */
 final readonly class TestRestoreDatabase implements DoctorCheck
 {
     public function title(): string

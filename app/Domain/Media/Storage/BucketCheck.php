@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Proves a bucket setup before any media moves there (I-3456): on each
+ * bucket it writes a test file, reads its size back, and checks that the
+ * public bucket serves it at its public address while the originals bucket
+ * serves it only through a signed address, then deletes it. It changes no
+ * database state, and never shows a key or a secret.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Storage;
@@ -13,13 +25,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * Proves a bucket setup before any media moves there (I-3456): on each
- * bucket it writes a test file, reads its size back, and checks that the
- * public bucket serves it at its public address while the originals bucket
- * serves it only through a signed address, then deletes it. It changes no
- * database state, and never shows a key or a secret.
- */
 final class BucketCheck
 {
     /** Where the test files are written, inside each bucket's root. */

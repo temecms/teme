@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The second pass (I-333): every imported post and page with a reusable
+ * block, a link or a canonical left for it gets them, now that everything
+ * the run brings exists, in a revision of the import's; what stays open is
+ * said and tried again by every later run. Fifty seconds a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\SecondPass;
@@ -27,12 +38,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The second pass (I-333): every imported post and page with a reusable
- * block, a link or a canonical left for it gets them, now that everything
- * the run brings exists, in a revision of the import's; what stays open is
- * said and tried again by every later run. Fifty seconds a job.
- */
 final readonly class SecondPassStep implements StepPhase
 {
     /** Seconds a job works before it hands on to the next. */

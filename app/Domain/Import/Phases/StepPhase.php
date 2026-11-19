@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A phase that runs once, or in several jobs, each starting at the cursor
+ * the one before left: the address settings, the second pass, the check.
+ * Idempotent: a run carried on runs it again from the start.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
@@ -8,11 +18,6 @@ use App\Domain\Import\Source\SourceReader;
 use App\Domain\Import\Source\SourceRefused;
 use Illuminate\Auth\Access\AuthorizationException;
 
-/**
- * A phase that runs once, or in several jobs, each starting at the cursor
- * the one before left: the address settings, the second pass, the check.
- * Idempotent: a run carried on runs it again from the start.
- */
 interface StepPhase extends ImportPhase
 {
     /**

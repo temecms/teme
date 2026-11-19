@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
-use App\Domain\Site\Insertions\InsertionPlan;
-
 /**
  * What a card needs while rendering: how to turn a content ID into an
  * address, which output is being produced, the media the document's cards
@@ -13,7 +7,18 @@ use App\Domain\Site\Insertions\InsertionPlan;
  * a page draws, which image card, if any, is the page's lead image, the
  * insertion plan for a published article page (I-064), and the attributes
  * plugins ask for on an article's links (docs/plans/plugin-sockets-3.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
+use App\Domain\Site\Insertions\InsertionPlan;
+
 final readonly class RenderContext
 {
     /**

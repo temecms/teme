@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What ChangeContentLanguage did (I-3360): the item's slug now, the slug it
+ * had when that one was taken in the new language, and its new address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
 
-/**
- * What ChangeContentLanguage did (I-3360): the item's slug now, the slug it
- * had when that one was taken in the new language, and its new address.
- */
 final readonly class ChangedLanguage
 {
     public function __construct(

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Settings › Discussion (1.8d's D2, D3): the switch and the Discussion
+ * settings, each saved by its own Operation; it changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -17,10 +26,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › Discussion (1.8d's D2, D3): the switch and the Discussion
- * settings, each saved by its own Operation; it changes nothing itself.
- */
 final class DiscussionSettingsController extends Controller
 {
     public function show(Request $request, DiscussionScreen $screen): Response

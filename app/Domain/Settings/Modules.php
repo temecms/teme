@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The optional parts of Teme an administrator switches on or off (I-077):
+ * one key per module in the `modules` settings group, its value an enum the
+ * module declares (docs/studies/settings-registry.md §3), each shown at the
+ * top of its own feature's settings page (I-485). Comments are the first.
+ * A switch changes every page, so a change purges them all (I-484).
+ * Its switch is edited on Settings › Discussion, with its own Operation
+ * (1.8d's D2, D3).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -9,19 +23,13 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The optional parts of Teme an administrator switches on or off (I-077):
- * one key per module in the `modules` settings group, its value an enum the
- * module declares (docs/studies/settings-registry.md §3), each shown at the
- * top of its own feature's settings page (I-485). Comments are the first.
- * A switch changes every page, so a change purges them all (I-484).
- * Its switch is edited on Settings › Discussion, with its own Operation
- * (1.8d's D2, D3).
- */
 final class Modules
 {
     public const string COMMENTS = 'comments';
 
+    /**
+     * @since 1.0.0
+     */
     public const string FEDIVERSE = 'fediverse';
 
     public const string ON = 'on';

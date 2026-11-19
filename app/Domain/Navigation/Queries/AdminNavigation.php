@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The admin's main menu as one person sees it: the registry's entries plus
+ * one per listed content type and taxonomy and one per plugin area in the menu, a taxonomy under the first type
+ * that uses it, less what they may not open, in section order, then as they
+ * arranged it, each with its badge's count and, for a hub, its screens. A
+ * preference can hide, reorder or pin, but never reveal anything (I-220).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Navigation\Queries;
@@ -16,13 +28,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
 
-/**
- * The admin's main menu as one person sees it: the registry's entries plus
- * one per listed content type and taxonomy and one per plugin area in the menu, a taxonomy under the first type
- * that uses it, less what they may not open, in section order, then as they
- * arranged it, each with its badge's count and, for a hub, its screens. A
- * preference can hide, reorder or pin, but never reveal anything (I-220).
- */
 final readonly class AdminNavigation
 {
     public function __construct(private NavigationRegistry $registry) {}

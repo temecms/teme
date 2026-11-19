@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What each item of a WordPress menu is on Teme (I-343): a post, page or
+ * term the import brought, by ID; a page list as the pages it showed; an
+ * address as a menu can hold it, the old site's own pages as paths here,
+ * never its host; and, for what the import didn't bring, its old address.
+ * Reads the import map; writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Menus;
@@ -13,13 +25,6 @@ use App\Domain\Menus\Operations\SaveNavigationItems;
 use App\Domain\Taxonomy\Models\Term;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What each item of a WordPress menu is on Teme (I-343): a post, page or
- * term the import brought, by ID; a page list as the pages it showed; an
- * address as a menu can hold it, the old site's own pages as paths here,
- * never its host; and, for what the import didn't bring, its old address.
- * Reads the import map; writes nothing.
- */
 final class MenuTargets
 {
     /** No address: a heading over items, or nothing. */

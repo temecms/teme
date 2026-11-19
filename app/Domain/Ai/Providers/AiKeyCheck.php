@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What Check key found when it asked the provider (I-315): the key works, the
+ * provider refused it, the provider couldn't be reached, or there is no key.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Providers;
 
-/**
- * What Check key found when it asked the provider (I-315): the key works, the
- * provider refused it, the provider couldn't be reached, or there is no key.
- */
 enum AiKeyCheck: string
 {
     case Works = 'works';

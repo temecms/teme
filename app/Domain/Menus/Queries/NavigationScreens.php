@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What Content › Navigation shows (I-098): the menus with where each is
+ * shown, and one menu's tree for its editor, each item with what it points
+ * at in words and, when it has no address, why it isn't shown. Slots are the
+ * active theme's. A fixed number of queries, however long the menu.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Queries;
@@ -11,12 +22,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What Content › Navigation shows (I-098): the menus with where each is
- * shown, and one menu's tree for its editor, each item with what it points
- * at in words and, when it has no address, why it isn't shown. Slots are the
- * active theme's. A fixed number of queries, however long the menu.
- */
 final readonly class NavigationScreens
 {
     public function __construct(

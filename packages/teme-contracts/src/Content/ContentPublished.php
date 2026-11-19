@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * An item became public, or its public revision changed: published by a
+ * person, or by its schedule, acting for whoever scheduled it.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

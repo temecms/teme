@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Reads a media file for the API (D26, D40): only while a live, public,
+ * unprotected item that shows it through the API does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Catalogue;
@@ -14,10 +23,6 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\Types\MediaField;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Reads a media file for the API (D26, D40): only while a live, public,
- * unprotected item that shows it through the API does.
- */
 final class MediaQuery
 {
     /**

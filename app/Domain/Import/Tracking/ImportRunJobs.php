@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An import run as a tracked job (I-1714): the job each attempt starts, or
+ * takes up again, each step the run reaches, and the run's end, as the
+ * engine tells it. Tracking never stops an import: whatever goes wrong
+ * here is reported, and the run goes on without its job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Tracking;
@@ -28,12 +39,6 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
 
-/**
- * An import run as a tracked job (I-1714): the job each attempt starts, or
- * takes up again, each step the run reaches, and the run's end, as the
- * engine tells it. Tracking never stops an import: whatever goes wrong
- * here is reported, and the run goes on without its job.
- */
 final readonly class ImportRunJobs
 {
     /** The run type a run's tracked jobs carry. */

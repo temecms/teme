@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Ends an update request that was open (I-3326): done, switched back or failed, with the sentence that says
+ * why, and every administrator is emailed. The operator only: the updater, or a restore that ends it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Operations;
@@ -16,10 +25,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Ends an update request that was open (I-3326): done, switched back or failed, with the sentence that says
- * why, and every administrator is emailed. The operator only: the updater, or a restore that ends it.
- */
 final class EndTemeUpdate extends BaseOperation
 {
     /** The statuses an open request may end in. */

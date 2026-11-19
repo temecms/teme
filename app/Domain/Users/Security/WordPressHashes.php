@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Verifies the three password hash formats WordPress has written, the way
+ * WordPress checks them, so an imported account signs in until its hash is
+ * replaced (I-124). Ported from WordPress's behaviour, not its code, and
+ * every comparison is timing-safe.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Security;
 
 use SensitiveParameter;
 
-/**
- * Verifies the three password hash formats WordPress has written, the way
- * WordPress checks them, so an imported account signs in until its hash is
- * replaced (I-124). Ported from WordPress's behaviour, not its code, and
- * every comparison is timing-safe.
- */
 final class WordPressHashes
 {
     /** WordPress refuses a longer password before phpass or bcrypt runs. */

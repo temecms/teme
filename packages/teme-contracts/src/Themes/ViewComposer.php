@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Adds data to theme views.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Themes;

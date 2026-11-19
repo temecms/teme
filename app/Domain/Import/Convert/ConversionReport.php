@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What one conversion left out or changed, counted by code and by block or
+ * element name, and given as import messages in the report's words (I-345).
+ * It holds no article text: names, file names and hosts only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Convert;
 use App\Domain\Import\Phases\ImportMessage;
 use LogicException;
 
-/**
- * What one conversion left out or changed, counted by code and by block or
- * element name, and given as import messages in the report's words (I-345).
- * It holds no article text: names, file names and hosts only.
- */
 final class ConversionReport
 {
     /** The most files or hosts a message names. */

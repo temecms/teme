@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The People screen: its views, each counted, and exactly what the screen
+ * shows of the people in the one asked for. A site's staff is counted in
+ * dozens, not thousands, so everyone is read at once; paging arrives if a
+ * publication ever needs it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Queries;
@@ -10,11 +21,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The People screen: its views, each counted, and exactly what the screen
- * shows of the people in the one asked for. A site's staff is counted in
- * dozens, not thousands, so everyone is read at once; paging arrives if a
- * publication ever needs it.
- *
  * @phpstan-type PersonRow array{id: int, name: string, email: string, role: string|null, status: 'active'|'invited'|'suspended', twoFactor: bool, lastSignInAt: string|null, invitationFailed: bool, invitedAt: string|null, invitedBy: string|null, linkWorksUntil: string|null, picture: string|null}
  */
 final class UserList

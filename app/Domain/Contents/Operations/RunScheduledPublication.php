@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Runs one claimed scheduled publication, as the person who scheduled it and
+ * with their permission checked again now, through the same PublishRevision
+ * a person would press. It locks its row and does nothing if the row is no
+ * longer pending, so a second runner, or a slow run's reclaimed row, can
+ * never publish twice.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -17,13 +29,6 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Runs one claimed scheduled publication, as the person who scheduled it and
- * with their permission checked again now, through the same PublishRevision
- * a person would press. It locks its row and does nothing if the row is no
- * longer pending, so a second runner, or a slow run's reclaimed row, can
- * never publish twice.
- */
 final class RunScheduledPublication extends BaseOperation
 {
     /** The item's type, read as it is authorized, so perform() takes its tree first. */

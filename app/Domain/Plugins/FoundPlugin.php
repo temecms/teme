@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins;
-
 /**
  * One plugin found on disk: its Composer name, its code, its folder, its
  * manifest (null when teme-plugin.json couldn't be read at all), its
  * migration names, and every problem found in it. A plugin with any
  * problem can't be used, and is listed with its problems.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins;
+
 final readonly class FoundPlugin
 {
     /**

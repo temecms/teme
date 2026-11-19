@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A link that opens one of the site's pages with Settings › Design's drafts
+ * shown: signed and expiring within the hour, and granting nothing else.
+ * Only a site-relative address is taken, so it can't lead anywhere else.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations;
@@ -10,11 +20,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * A link that opens one of the site's pages with Settings › Design's drafts
- * shown: signed and expiring within the hour, and granting nothing else.
- * Only a site-relative address is taken, so it can't lead anywhere else.
- */
 final class CreateDesignPreview extends BaseOperation
 {
     use ManagesDesign;

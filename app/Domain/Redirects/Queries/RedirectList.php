@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tools › Redirects' list (I-872): a page of redirects at a time, newest
+ * first, found by address, typed target or note, each with where it sends
+ * readers in words, what it answers, its hits, and what it does now
+ * (I-857, I-858).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Queries;
@@ -19,11 +30,6 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 
 /**
- * Tools › Redirects' list (I-872): a page of redirects at a time, newest
- * first, found by address, typed target or note, each with where it sends
- * readers in words, what it answers, its hits, and what it does now
- * (I-857, I-858).
- *
  * @phpstan-type RedirectTo array{kind: string|null, address: string|null, title: string|null, contentId: string|null, mediaId: string|null}
  * @phpstan-type RedirectRow array{id: string, from: string, pattern: bool, status: int, statusLabel: string, to: RedirectTo, note: string, origin: string, hits: int, lastHitAt: string|null, on: bool, state: string, stateLabel: string}
  */

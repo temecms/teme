@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Moving the pages under a page in the background as a kind of tracked job
+ * (I-3363, I-104): retrying starts again from the first page, since every
+ * step is idempotent, as whoever retries; cancelling leaves nothing to drop.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Tree;
@@ -12,11 +22,6 @@ use App\Domain\Support\Security\JobActor;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Moving the pages under a page in the background as a kind of tracked job
- * (I-3363, I-104): retrying starts again from the first page, since every
- * step is idempotent, as whoever retries; cancelling leaves nothing to drop.
- */
 final readonly class SubtreeJobKind implements JobKind
 {
     /** The kind's key. */

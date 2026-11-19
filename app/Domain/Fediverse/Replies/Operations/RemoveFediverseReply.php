@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Takes a fediverse reply off the site when its writer deletes it: the
+ * comment moves to the trash, where moderators decide as for any other,
+ * and the reply's address is marked deleted. Only the account that wrote
+ * it may. Returns the comment's ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies\Operations;
@@ -19,12 +30,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Comments\CommentStatusChanged;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Takes a fediverse reply off the site when its writer deletes it: the
- * comment moves to the trash, where moderators decide as for any other,
- * and the reply's address is marked deleted. Only the account that wrote
- * it may. Returns the comment's ID.
- */
 final class RemoveFediverseReply extends BaseOperation
 {
     use WrittenByTheSender;

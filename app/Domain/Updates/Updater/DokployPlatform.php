@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The Dokploy platform for Teme's one Compose service (I-3333): finds the service by its App Name, sets one image line
+ * of its environment and its compose file, deploys it, and reads its deployments and its containers. It holds the
+ * Dokploy API key from Settings › Updates and the service's whole environment text, which carries every secret, and
+ * never lets either reach an exception, a log line, a row or a title.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -13,12 +24,6 @@ use Illuminate\Support\Facades\Http;
 use SensitiveParameter;
 use Throwable;
 
-/**
- * The Dokploy platform for Teme's one Compose service (I-3333): finds the service by its App Name, sets one image line
- * of its environment and its compose file, deploys it, and reads its deployments and its containers. It holds the
- * Dokploy API key from Settings › Updates and the service's whole environment text, which carries every secret, and
- * never lets either reach an exception, a log line, a row or a title.
- */
 final class DokployPlatform implements Platform
 {
     /** The four parts whose containers Dokploy lists, in the order the updater watches them. */
@@ -40,6 +45,9 @@ final class DokployPlatform implements Platform
         return 'Dokploy';
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function hasUpdaterOfItsOwn(): bool
     {
         return true;
@@ -71,6 +79,9 @@ final class DokployPlatform implements Platform
         }
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function compose(): PlatformCompose
     {
         $service = $this->service();
@@ -84,6 +95,9 @@ final class DokployPlatform implements Platform
         return new PlatformCompose($text, $source !== self::PASTED);
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function setCompose(string $compose): void
     {
         $before = $this->compose();

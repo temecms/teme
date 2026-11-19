@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The addresses a document's links are drawn with now, absolute (rule 9):
+ * a link by ID at its target's address with its place kept, a path on this
+ * site made absolute, any other allowed address as stored; null when the
+ * target has none or the address isn't allowed, as LinkMark then draws no link.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
@@ -9,12 +20,6 @@ use App\Domain\Cards\LinkResolver;
 use App\Domain\Feeds\AbsoluteLinks;
 use App\Domain\Feeds\FeedUrls;
 
-/**
- * The addresses a document's links are drawn with now, absolute (rule 9):
- * a link by ID at its target's address with its place kept, a path on this
- * site made absolute, any other allowed address as stored; null when the
- * target has none or the address isn't allowed, as LinkMark then draws no link.
- */
 final readonly class DocumentLinks
 {
     private LinkResolver $links;

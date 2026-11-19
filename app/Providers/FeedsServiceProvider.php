@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Registers the feeds: the plain version of every card, the format a feed is
+ * written in, the discovery links and the Feeds section of Search and social.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -20,10 +29,6 @@ use App\Domain\Site\Document\DocumentMeta;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers the feeds: the plain version of every card, the format a feed is
- * written in, the discovery links and the Feeds section of Search and social.
- */
 final class FeedsServiceProvider extends ServiceProvider
 {
     public function register(): void

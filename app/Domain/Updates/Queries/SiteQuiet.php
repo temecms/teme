@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Whether nothing is in flight that a deploy would cut short or wait on: no backup holds the backup lock and no job is reserved on
+ * either queue, both read from Teme's own database (I-3336).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Queries;
@@ -7,10 +16,6 @@ namespace App\Domain\Updates\Queries;
 use App\Domain\Backups\BackupLock;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Whether nothing is in flight that a deploy would cut short or wait on: no backup holds the backup lock and no job is reserved on
- * either queue, both read from Teme's own database (I-3336).
- */
 final readonly class SiteQuiet
 {
     public function __construct(private BackupLock $backups) {}

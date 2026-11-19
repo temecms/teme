@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Slugs for content: made from a title, unique among live items of one type
+ * in one language (I-3360). Trashed items do not hold their slug (I-142).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -7,10 +16,6 @@ namespace App\Domain\Contents;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Slugs for content: made from a title, unique among live items of one type
- * in one language (I-3360). Trashed items do not hold their slug (I-142).
- */
 final class Slugs
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An item's nodes (I-701): the page it is drawn on, its main entity
+ * when its type gives one, a person for each author with an address, its
+ * primary image, its trail and its cards' nodes, from the head's values
+ * and the revision the page shows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -13,12 +24,6 @@ use App\Domain\Site\ViewModels\Person;
 use App\Domain\Site\ViewModels\TermLink;
 use Teme\Contracts\StructuredData\NodeIds;
 
-/**
- * An item's nodes (I-701): the page it is drawn on, its main entity
- * when its type gives one, a person for each author with an address, its
- * primary image, its trail and its cards' nodes, from the head's values
- * and the revision the page shows.
- */
 final readonly class ItemNodes
 {
     public function __construct(

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Chooses what every admin page receives from the server: the site title,
+ * chosen fields of the signed-in person, their main menu, the settings groups
+ * they may manage, the content types and taxonomies other screens read, the
+ * header's counts, the sidebar state and the admin's words, once a visit.
+ * Nothing else of the user model reaches the browser.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -23,13 +35,6 @@ use Inertia\Middleware;
 use Inertia\OnceProp;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Chooses what every admin page receives from the server: the site title,
- * chosen fields of the signed-in person, their main menu, the settings groups
- * they may manage, the content types and taxonomies other screens read, the
- * header's counts, the sidebar state and the admin's words, once a visit.
- * Nothing else of the user model reaches the browser.
- */
 final class HandleInertiaRequests extends Middleware
 {
     /** @var string */

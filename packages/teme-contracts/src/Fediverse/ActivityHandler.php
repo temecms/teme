@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A plugin's handler for activities of the types it names, such as Like.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

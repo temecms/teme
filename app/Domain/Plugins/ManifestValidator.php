@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Checks a teme-plugin.json against manifest version 1, and says in plain
+ * words what is wrong (I-3353). The plugin's class is read from its source,
+ * never loaded, so checking a plugin runs none of its code. A plugin with any
+ * problem can't be used. Duplicate codes need the other plugins, so
+ * PluginRegistry checks those.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -29,13 +41,6 @@ use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\Plugins\Capability;
 use UnexpectedValueException;
 
-/**
- * Checks a teme-plugin.json against manifest version 1, and says in plain
- * words what is wrong (I-3353). The plugin's class is read from its source,
- * never loaded, so checking a plugin runs none of its code. A plugin with any
- * problem can't be used. Duplicate codes need the other plugins, so
- * PluginRegistry checks those.
- */
 final readonly class ManifestValidator
 {
     /** A plugin's Composer name, Composer's own pattern, between delimiters that aren't in it. */

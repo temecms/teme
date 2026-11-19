@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Approves a pending review, which publishes the revision that was submitted
+ * — never the one typed since, and never anyone's autosave — now, or at a
+ * chosen time (I-437). Whoever may publish the article decides.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * Approves a pending review, which publishes the revision that was submitted
- * — never the one typed since, and never anyone's autosave — now, or at a
- * chosen time (I-437). Whoever may publish the article decides.
- */
 final class ApproveReview extends BaseOperation
 {
     /** The article's type, read as it is authorized, so perform() takes its tree first. */

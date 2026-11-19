@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Adds the steps a piece of work has done since its last report, and its
+ * latest words, as it runs (I-104); a waiting job becomes running. A job that
+ * has ended stays as it ended, and the answer false tells the work to stop.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations;
@@ -13,11 +23,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds the steps a piece of work has done since its last report, and its
- * latest words, as it runs (I-104); a waiting job becomes running. A job that
- * has ended stays as it ended, and the answer false tells the work to stop.
- */
 final class ReportJobProgress extends BaseOperation
 {
     public function __construct(private JobAccess $access) {}

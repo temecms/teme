@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Before posts and pages, after the media: the posts and pages an import
+ * made before Teme kept items private or protected become work again, once,
+ * so the content phase brings them as WordPress had them (I-2643). Full
+ * runs only, where the content list sends every item.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Content;
@@ -12,12 +23,6 @@ use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
 
-/**
- * Before posts and pages, after the media: the posts and pages an import
- * made before Teme kept items private or protected become work again, once,
- * so the content phase brings them as WordPress had them (I-2643). Full
- * runs only, where the content list sends every item.
- */
 final readonly class ContentVisibilityStep implements StepPhase
 {
     public function key(): string

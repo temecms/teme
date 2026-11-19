@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Each outcome of a posted comment form (I-593), as core's page about it, or,
+ * for core's script, which asks for JSON, as the answer it puts in place
+ * (1.8b′'s D8): what happened, the words for the form's status region, the
+ * comment's place drawn by the theme, or core's form drawn again. The pages'
+ * statuses (I-616); nothing keeps either.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -11,13 +23,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Each outcome of a posted comment form (I-593), as core's page about it, or,
- * for core's script, which asks for JSON, as the answer it puts in place
- * (1.8b′'s D8): what happened, the words for the form's status region, the
- * comment's place drawn by the theme, or core's form drawn again. The pages'
- * statuses (I-616); nothing keeps either.
- */
 final readonly class CommentAnswers
 {
     public function __construct(

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A plugin's teme-plugin.json, read into typed getters (I-3353). It holds
+ * what the file says even when ManifestValidator found problems, so a broken
+ * plugin can still be named; a getter whose value is missing or of the wrong
+ * type answers empty, and a list answers each value once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
 use App\Domain\Support\HttpsLink;
 
-/**
- * A plugin's teme-plugin.json, read into typed getters (I-3353). It holds
- * what the file says even when ManifestValidator found problems, so a broken
- * plugin can still be named; a getter whose value is missing or of the wrong
- * type answers empty, and a list answers each value once.
- */
 final readonly class Manifest
 {
     /**
@@ -124,6 +129,8 @@ final readonly class Manifest
      * The tables the plugin declares under owns.tables, each once, in the file's order.
      *
      * @return list<string>
+     *
+     * @since 0.8.0-alpha.1
      */
     public function ownsTables(): array
     {
@@ -137,6 +144,8 @@ final readonly class Manifest
      * The public routes the plugin declares, each as the file says it.
      *
      * @return list<array<string, mixed>>
+     *
+     * @since 1.0.0
      */
     public function routes(): array
     {
@@ -157,6 +166,8 @@ final readonly class Manifest
      * declares nothing or a part is of the wrong type.
      *
      * @return array{importer: string, options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}
+     *
+     * @since 1.0.0
      */
     public function imports(): array
     {
@@ -190,6 +201,8 @@ final readonly class Manifest
 
     /**
      * The author’s website, or ''.
+     *
+     * @since 1.0.0
      */
     public function authorUrl(): string
     {

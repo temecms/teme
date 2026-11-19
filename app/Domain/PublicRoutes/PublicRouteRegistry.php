@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every declared public route from core and from enabled plugins granted
+ * routes.public. Built on demand; forgotten when a plugin's state changes.
+ * Core entries always win over an overlapping plugin entry.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
@@ -12,11 +22,6 @@ use App\Domain\Plugins\SafeMode;
 use Illuminate\Http\Request;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Every declared public route from core and from enabled plugins granted
- * routes.public. Built on demand; forgotten when a plugin's state changes.
- * Core entries always win over an overlapping plugin entry.
- */
 final class PublicRouteRegistry
 {
     /** @var list<DeclaredRoute> */

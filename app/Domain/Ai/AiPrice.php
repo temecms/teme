@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What a model costs, in whole US micro-dollars per million tokens (I-1303):
+ * input, output, cache reads and cache writes. A cache price left out costs
+ * as input, so spend is never under-counted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use InvalidArgumentException;
 
-/**
- * What a model costs, in whole US micro-dollars per million tokens (I-1303):
- * input, output, cache reads and cache writes. A cache price left out costs
- * as input, so spend is never under-counted.
- */
 final readonly class AiPrice
 {
     private const int MILLION = 1_000_000;

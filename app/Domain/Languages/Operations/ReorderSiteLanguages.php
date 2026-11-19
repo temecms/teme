@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Puts the site's other languages in a new order, the order the language
+ * switcher lists them in (docs/proposals/multilingual-screens.md). One
+ * settings change, versioned and logged; the default language stays first.
+ * Every page that drew a switcher read the languages, so the writer's
+ * purge of the settings tag after commit reaches them all.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations;
@@ -11,13 +23,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Puts the site's other languages in a new order, the order the language
- * switcher lists them in (docs/proposals/multilingual-screens.md). One
- * settings change, versioned and logged; the default language stays first.
- * Every page that drew a switcher read the languages, so the writer's
- * purge of the settings tag after commit reaches them all.
- */
 final class ReorderSiteLanguages extends BaseOperation
 {
     use WritesSiteLanguages;

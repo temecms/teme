@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The security log's entries about a person, found by their account or by
+ * their address's hashed subject: exported, and kept on erasure, since the
+ * log protects the site and prunes itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Security\Privacy;
@@ -14,11 +24,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * The security log's entries about a person, found by their account or by
- * their address's hashed subject: exported, and kept on erasure, since the
- * log protects the site and prunes itself.
- */
 final class SecurityLogHolder implements PersonalDataHolder
 {
     private const int EXPORT_PAGE = 500;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The markup an Imported content card may hold (I-329): a tree of parts
+ * from one list, stored as JSON and never as a string of HTML. It checks a
+ * tree, draws it, and reads its words, pictures and links, all by the same
+ * list.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Imported;
@@ -11,12 +22,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Cards\Tiptap\LinkMark;
 use Closure;
 
-/**
- * The markup an Imported content card may hold (I-329): a tree of parts
- * from one list, stored as JSON and never as a string of HTML. It checks a
- * tree, draws it, and reads its words, pictures and links, all by the same
- * list.
- */
 final class MarkupTree
 {
     /** The most parts one card may hold. */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Scheduling an article's publication, and cancelling it, through
+ * SchedulePublication and CancelScheduledPublication. The editor asks for
+ * JSON and gets the article's new state; anything else goes back with a
+ * message.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -14,12 +25,6 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Scheduling an article's publication, and cancelling it, through
- * SchedulePublication and CancelScheduledPublication. The editor asks for
- * JSON and gets the article's new state; anything else goes back with a
- * message.
- */
 final class ScheduleController extends Controller
 {
     public function store(Request $request, string $content, SchedulePublication $schedule, SettingsReader $settings): Response

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Several lines of plain text, such as a meta description or an excerpt.
+ * Stored trimmed; the field's maxLength caps it, 5,000 by default.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -7,10 +16,6 @@ namespace App\Domain\Fields\Types;
 use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 
-/**
- * Several lines of plain text, such as a meta description or an excerpt.
- * Stored trimmed; the field's maxLength caps it, 5,000 by default.
- */
 final class TextareaField implements FieldType
 {
     public function name(): string

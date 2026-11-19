@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Asks a task's model, and its fallback once if the first can't be reached,
+ * is busy or takes too long, all within one deadline (I-1321): the call core's
+ * assistant and the plugins' SiteAi share. The service's own words never leave
+ * it: any other error becomes unavailable, reported by its class alone.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
@@ -9,12 +20,6 @@ use Closure;
 use RuntimeException;
 use Throwable;
 
-/**
- * Asks a task's model, and its fallback once if the first can't be reached,
- * is busy or takes too long, all within one deadline (I-1321): the call core's
- * assistant and the plugins' SiteAi share. The service's own words never leave
- * it: any other error becomes unavailable, reported by its class alone.
- */
 final readonly class ModelCall
 {
     /** The fallback isn't asked with less time than this left (I-1321). */

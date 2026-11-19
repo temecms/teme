@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The language of the page being drawn, as every theme view sees it, as
+ * `$language`: its BCP 47 tag, its PHP locale, its own name, whether it is the
+ * site's default, and its home address.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

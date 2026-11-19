@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * The preflight's refusal: every problem found, in words, before anything is written (I-363).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
 
 use RuntimeException;
 
-/**
- * The preflight's refusal: every problem found, in words, before anything is written (I-363).
- */
 final class RestoreRefused extends RuntimeException
 {
     /**

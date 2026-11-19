@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The theme the public site is drawn with: the one `design.theme` names,
+ * when it is usable, or null, and core's fallback views draw the site. It is
+ * read once per request or job, on first use and never at boot, and then
+ * points the `theme::` view namespace at the theme's views or the fallback.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -7,12 +18,6 @@ namespace App\Domain\Themes;
 use Illuminate\Support\Facades\View;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The theme the public site is drawn with: the one `design.theme` names,
- * when it is usable, or null, and core's fallback views draw the site. It is
- * read once per request or job, on first use and never at boot, and then
- * points the `theme::` view namespace at the theme's views or the fallback.
- */
 final class ActiveTheme
 {
     private bool $read = false;

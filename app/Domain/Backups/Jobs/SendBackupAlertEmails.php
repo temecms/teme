@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Emails one backup alert to every administrator (I-2409): everyone who
+ * holds backups.manage, verified and not suspended, read when it runs. No
+ * one can turn it off: a backup is a guarantee. It carries only the
+ * alert's ID, calls no Operation and asks no elevation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Jobs;
@@ -14,12 +25,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Emails one backup alert to every administrator (I-2409): everyone who
- * holds backups.manage, verified and not suspended, read when it runs. No
- * one can turn it off: a backup is a guarantee. It carries only the
- * alert's ID, calls no Operation and asks no elevation.
- */
 final class SendBackupAlertEmails implements ShouldQueue
 {
     use Queueable;

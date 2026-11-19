@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Creates a new item of any listed content type as a draft, with its first
+ * revision and a unique slug. Its title may be empty, as a new draft's is
+ * until written (I-425). Anyone holding the type's create ability can do it,
+ * and nothing is published. It is written in a site language, the default
+ * unless named (I-3360). A type with one item only gets no second in a
+ * language. A type
+ * that isn't listed, such as a region, is made by its own Operation, which
+ * shares start().
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -42,16 +57,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\ContentSaved;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Creates a new item of any listed content type as a draft, with its first
- * revision and a unique slug. Its title may be empty, as a new draft's is
- * until written (I-425). Anyone holding the type's create ability can do it,
- * and nothing is published. It is written in a site language, the default
- * unless named (I-3360). A type with one item only gets no second in a
- * language. A type
- * that isn't listed, such as a region, is made by its own Operation, which
- * shares start().
- */
 final class CreateDraft extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * What a path ending in a feed name means (I-299): a feed of a subject, a permanent redirect to its canonical address, a 410 for a comment feed, or an address that is not a feed's, which the public site answers.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
 
-/**
- * What a path ending in a feed name means (I-299): a feed of a subject, a permanent redirect to its canonical address, a 410 for a comment feed, or an address that is not a feed's, which the public site answers.
- */
 final readonly class FeedAnswer
 {
     public const string FEED = 'feed';

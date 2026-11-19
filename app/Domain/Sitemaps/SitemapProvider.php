@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Sitemaps;
-
 /**
  * A source of child sitemaps (I-306): core's site address, items, terms
  * and authors, and later a plugin's news or video sitemap or a feed's. It
  * names its children, finds where each page after a child's first starts,
  * and draws a page. Registered under TAG from its part's own provider, in
  * register(); the index lists its children after those registered before.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Sitemaps;
+
 interface SitemapProvider
 {
     public const string TAG = 'teme.sitemaps.providers';

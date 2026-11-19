@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Phases;
-
 /**
  * A phase that reads lists of objects from the old site, a page at a time
  * in ID order, and imports each one through ImportObject, in its own
  * transaction with its map row (I-332).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Phases;
+
 interface ListPhase extends ImportPhase
 {
     /**

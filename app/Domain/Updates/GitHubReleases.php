@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The one request the update check makes (I-?? draft): Teme's release list
+ * from GitHub's API, with the read-only token while the repository is
+ * private, sending nothing about this site; and what the answer means.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
@@ -7,11 +17,6 @@ namespace App\Domain\Updates;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
-/**
- * The one request the update check makes (I-?? draft): Teme's release list
- * from GitHub's API, with the read-only token while the repository is
- * private, sending nothing about this site; and what the answer means.
- */
 final readonly class GitHubReleases
 {
     public const string API = 'https://api.github.com';

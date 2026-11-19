@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Opens a place with the machine key and says, in words, whether it answers,
+ * opens and has room (I-360); the place's state follows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -18,10 +27,6 @@ use Illuminate\Support\Number;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Opens a place with the machine key and says, in words, whether it answers,
- * opens and has room (I-360); the place's state follows.
- */
 final class TestBackupDestination extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

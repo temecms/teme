@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What `RevokeInvitation` needs: whose pending invitation to withdraw, and
+ * who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `RevokeInvitation` needs: whose pending invitation to withdraw, and
- * who is asking.
- */
 final readonly class RevokeInvitationInput implements OperationInput
 {
     public function __construct(

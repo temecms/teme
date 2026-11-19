@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Puts one imported page back under its WordPress parent, at its rank among
+ * its WordPress siblings (I-3363), unless a person moved it in Teme or
+ * something stands in the way, which its map row's note then says. Its
+ * object, the tree and the page are locked before anything is checked; the
+ * pages a person put under it move with it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -27,13 +39,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Puts one imported page back under its WordPress parent, at its rank among
- * its WordPress siblings (I-3363), unless a person moved it in Teme or
- * something stands in the way, which its map row's note then says. Its
- * object, the tree and the page are locked before anything is checked; the
- * pages a person put under it move with it.
- */
 final class PlaceImportedPage extends BaseOperation
 {
     use AuthorizesImports;

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Starts Select all matching (I-143): a run over one content list, as its filters stand, with its own tracked job, its first step queued once both have committed. Each item is authorized as the run reaches it; this checks only that the person may work on the type's list at all.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -28,9 +36,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Starts Select all matching (I-143): a run over one content list, as its filters stand, with its own tracked job, its first step queued once both have committed. Each item is authorized as the run reaches it; this checks only that the person may work on the type's list at all.
- */
 final class StartBulkRun extends BaseOperation
 {
     public function __construct(

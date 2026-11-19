@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tells whoever manages addresses when something of the site already had an
+ * address under /api/, which the API now answers (I-091): an item, term or
+ * person there, an address setting starting with it, or an old address or
+ * a redirect beneath it. Nothing is moved; the address is the owner's to change.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -16,12 +27,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-/**
- * Tells whoever manages addresses when something of the site already had an
- * address under /api/, which the API now answers (I-091): an item, term or
- * person there, an address setting starting with it, or an old address or
- * a redirect beneath it. Nothing is moved; the address is the owner's to change.
- */
 final readonly class ApiAddressTaken implements StatusCheck
 {
     /** The API's first segment. */
@@ -39,6 +44,9 @@ final readonly class ApiAddressTaken implements StatusCheck
         return 'settings.addresses.manage';
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Management API');

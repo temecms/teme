@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A block of code in one of the languages in config/code.php, highlighted on
+ * the server by scrivo/highlight.php — never Shiki, which needs Node at
+ * runtime. Plain text is escaped and not highlighted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -13,11 +23,6 @@ use App\Domain\Cards\RenderContext;
 use DomainException;
 use Highlight\Highlighter;
 
-/**
- * A block of code in one of the languages in config/code.php, highlighted on
- * the server by scrivo/highlight.php — never Shiki, which needs Node at
- * runtime. Plain text is escaped and not highlighted.
- */
 final class SnippetCard implements CardType
 {
     public function name(): string

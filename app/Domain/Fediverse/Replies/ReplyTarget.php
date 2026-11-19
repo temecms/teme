@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a reply answers (docs/plans/fediverse-publishing.md, D4): one of the
+ * site's federated items, by its object address, or a reply already taken
+ * as a comment on one, by that reply's address.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies;
@@ -16,11 +26,6 @@ use App\Domain\Settings\Modules;
 use App\Domain\Types\ContentTypeRegistry;
 use Carbon\CarbonImmutable;
 
-/**
- * What a reply answers (docs/plans/fediverse-publishing.md, D4): one of the
- * site's federated items, by its object address, or a reply already taken
- * as a comment on one, by that reply's address.
- */
 final readonly class ReplyTarget
 {
     private function __construct(

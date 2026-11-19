@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Imports one redirect rule of the old site (I-297): its redirects through
+ * ImportRedirect, sent straight on and over the import's own but never a
+ * person's, each one a person changed or deleted here since left as it is;
+ * then its map row and messages, in one transaction. A rule whose hash
+ * hasn't changed writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -26,13 +38,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Imports one redirect rule of the old site (I-297): its redirects through
- * ImportRedirect, sent straight on and over the import's own but never a
- * person's, each one a person changed or deleted here since left as it is;
- * then its map row and messages, in one transaction. A rule whose hash
- * hasn't changed writes nothing.
- */
 final class ImportOldRedirect extends BaseOperation
 {
     use AuthorizesImports;

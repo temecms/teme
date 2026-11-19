@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The attributes plugins granted content.links ask for on the links an
+ * article draws (docs/plans/plugin-sockets-3.md): ArticleLinks is
+ * asked once, with each link once, and what comes back is kept only where
+ * Teme's rules allow it. A link to this site is changed only when the
+ * plugin names its host. Asks nothing when no plugin listens. The page is
+ * tagged with the insertions tag, so a plugin enabled or disabled purges it.
+ * Its listeners have the time page insertions have, one budget a page.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Links;
@@ -17,15 +31,6 @@ use Teme\Contracts\Content\ArticleLinks;
 use Teme\Contracts\Content\LinkAttributes;
 use Teme\Contracts\Content\OutboundLink;
 
-/**
- * The attributes plugins granted content.links ask for on the links an
- * article draws (docs/plans/plugin-sockets-3.md): ArticleLinks is
- * asked once, with each link once, and what comes back is kept only where
- * Teme's rules allow it. A link to this site is changed only when the
- * plugin names its host. Asks nothing when no plugin listens. The page is
- * tagged with the insertions tag, so a plugin enabled or disabled purges it.
- * Its listeners have the time page insertions have, one budget a page.
- */
 final class ArticleLinkAttributes
 {
     /** At most this many characters of a link's words are handed over. */

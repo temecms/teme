@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Agreeing to let a plugin reach hosts a person entered in its settings:
+ * its Composer name, the hosts, and the person agreeing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Agreeing to let a plugin reach hosts a person entered in its settings:
- * its Composer name, the hosts, and the person agreeing.
- */
 final readonly class AgreePluginHostsInput implements OperationInput
 {
     /**

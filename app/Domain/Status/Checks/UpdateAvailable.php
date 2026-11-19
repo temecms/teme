@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Tells administrators that a newer Teme release exists on this site's channel (I-221): info,
+ * or a warning when any newer release carries security fixes. It reads versions and marks only,
+ * never the notes, since every admin page asks every check.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -9,11 +19,6 @@ use App\Domain\Status\StatusCheck;
 use App\Domain\Updates\Queries\UpdateState;
 use App\Domain\Updates\TemeVersion;
 
-/**
- * Tells administrators that a newer Teme release exists on this site's channel (I-221): info,
- * or a warning when any newer release carries security fixes. It reads versions and marks only,
- * never the notes, since every admin page asks every check.
- */
 final readonly class UpdateAvailable implements StatusCheck
 {
     public function __construct(private UpdateState $state) {}
@@ -23,6 +28,9 @@ final readonly class UpdateAvailable implements StatusCheck
         return 'updates.manage';
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Updates');

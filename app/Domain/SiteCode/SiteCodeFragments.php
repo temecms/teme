@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Site code on every page the document shell draws (I-288): each entry that
+ * is on, in its placement and the order it was added, as one fragment holding
+ * the code exactly as an administrator wrote it, at the site's precedence,
+ * its hashes and origins noted for the page's content security policy.
+ * Nothing while the host disallows site code, or while this request's page
+ * withholds it, as the signed-in preview does (I-1324).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode;
@@ -11,14 +24,6 @@ use App\Domain\Site\Document\PlacementContributor;
 use App\Domain\Site\Document\Precedence;
 use App\Domain\Site\Policy\PagePolicy;
 
-/**
- * Site code on every page the document shell draws (I-288): each entry that
- * is on, in its placement and the order it was added, as one fragment holding
- * the code exactly as an administrator wrote it, at the site's precedence,
- * its hashes and origins noted for the page's content security policy.
- * Nothing while the host disallows site code, or while this request's page
- * withholds it, as the signed-in preview does (I-1324).
- */
 final class SiteCodeFragments implements PlacementContributor
 {
     public function precedence(): Precedence

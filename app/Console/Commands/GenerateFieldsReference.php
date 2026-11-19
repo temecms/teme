@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:docs:fields`: writes `docs/reference/fields.md` from the field
+ * registry, so the reference can never drift from the code.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,10 +18,6 @@ use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Console\Command;
 
-/**
- * `teme:docs:fields`: writes `docs/reference/fields.md` from the field
- * registry, so the reference can never drift from the code.
- */
 final class GenerateFieldsReference extends Command
 {
     /** @var string */

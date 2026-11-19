@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The database login Teme runs as, and where: the one the database step made, or the one it was given when it
+ * could make none. It holds a password, so it prints only as lines for a shell to read, never in a sentence.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
 
 use SensitiveParameter;
 
-/**
- * The database login Teme runs as, and where: the one the database step made, or the one it was given when it
- * could make none. It holds a password, so it prints only as lines for a shell to read, never in a sentence.
- */
 final readonly class DatabaseLogin
 {
     public function __construct(

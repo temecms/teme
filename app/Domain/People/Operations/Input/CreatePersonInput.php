@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What `CreatePerson` needs: the person's name, the address slug and
+ * biography when given, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `CreatePerson` needs: the person's name, the address slug and
- * biography when given, and who is asking.
- */
 final readonly class CreatePersonInput implements OperationInput
 {
     /**

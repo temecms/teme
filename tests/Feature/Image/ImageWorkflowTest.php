@@ -32,6 +32,7 @@ it('pins every action it uses by commit', function (): void {
 
     expect($found[1])->toBe([
         'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
+        'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
         'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a',
         'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
     ]);
@@ -147,8 +148,9 @@ it('gives a version tag the image already built for its commit, with the tag’s
         ->and(strpos($run, 'test "$env" = "TEME_VERSION=${VERSION}"'))->toBeLessThan(strpos($run, 'docker push'))
         ->and($run)->not->toContain('skopeo copy')
         ->and($run)->not->toContain('crane')
-        ->and($workflow['jobs']['image']['needs'])->toBe('existing')
-        ->and($workflow['jobs']['image']['if'])->toBe("!cancelled() && needs.existing.result != 'failure' && needs.existing.outputs.promoted != 'true'");
+        ->and($existing['needs'])->toBe('since')
+        ->and($workflow['jobs']['image']['needs'])->toBe(['since', 'existing'])
+        ->and($workflow['jobs']['image']['if'])->toBe("!cancelled() && needs.since.result != 'failure' && needs.existing.result != 'failure' && needs.existing.outputs.promoted != 'true'");
 
     foreach ($existing['steps'] as $step) {
         expect((string) ($step['run'] ?? ''))->not->toContain('${{');
@@ -160,7 +162,7 @@ it('makes a GitHub Release with the changelog on every version tag, once its ima
     $release = $workflow['jobs']['release'];
     $steps = collect($release['steps'])->keyBy('name');
 
-    expect(array_keys($workflow['jobs']))->toBe(['existing', 'image', 'release'])
+    expect(array_keys($workflow['jobs']))->toBe(['since', 'existing', 'image', 'release'])
         ->and($release['needs'])->toBe(['existing', 'image'])
         ->and($release['if'])->toBe("github.ref_type == 'tag' && !cancelled() && needs.existing.result == 'success' && (needs.existing.outputs.promoted == 'true' || needs.image.result == 'success')")
         ->and($release['permissions'])->toBe(['contents' => 'write'])
@@ -187,4 +189,16 @@ it('bakes the tag’s version and the commit into a tag’s build, and no versio
 
     expect($build['env'])->toMatchArray(['TEME_VERSION' => '${{ steps.name.outputs.version }}'])
         ->and($build['run'])->toContain('--build-arg "TEME_VERSION=${TEME_VERSION}"', '--build-arg "TEME_REVISION=${GITHUB_SHA}"');
+});
+
+it('stops a version tag that still says @since next before any image is published', function (): void {
+    $workflow = ImageFiles::workflow();
+    $since = $workflow['jobs']['since'];
+    $steps = collect($since['steps'])->keyBy('name');
+
+    expect($since['if'])->toBe("github.ref_type == 'tag'")
+        ->and($steps['Checkout code']['with'])->toBe(['persist-credentials' => false])
+        ->and($steps['Check that the release step stamped every @since next']['run'])->toBe('php scripts/file-headers.php check-release')
+        ->and($workflow['jobs']['existing']['needs'])->toBe('since')
+        ->and($workflow['jobs']['image']['if'])->toContain("needs.since.result != 'failure'");
 });

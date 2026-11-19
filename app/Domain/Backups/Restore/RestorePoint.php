@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A plan, and what carrying it out needs: the place's repository, the run, its manifest and APP_KEY, the media's folders, and the places this site knew before, and whether the place was named on the command line. Lives only inside one PlaceRepositories call.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -8,9 +16,6 @@ use App\Domain\Backups\Manifest;
 use App\Domain\Backups\Tools\ResticRepository;
 use App\Domain\Backups\Tools\SnapshotRun;
 
-/**
- * A plan, and what carrying it out needs: the place's repository, the run, its manifest and APP_KEY, the media's folders, and the places this site knew before, and whether the place was named on the command line. Lives only inside one PlaceRepositories call.
- */
 final readonly class RestorePoint
 {
     /**

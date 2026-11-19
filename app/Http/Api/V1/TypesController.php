@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * GET /api/v1/types: the public content types, their archives, public
+ * taxonomies and the fields they show (D28).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\V1;
@@ -10,10 +19,6 @@ use App\Domain\Api\Problems;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * GET /api/v1/types: the public content types, their archives, public
- * taxonomies and the fields they show (D28).
- */
 final class TypesController
 {
     /** The parameters this address takes: none. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A fediverse account on another server that Teme has heard from: its
+ * address, where to deliver to it, its public key and the document it was
+ * read from, refreshed when a signature no longer matches.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Models;
@@ -9,10 +19,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * A fediverse account on another server that Teme has heard from: its
- * address, where to deliver to it, its public key and the document it was
- * read from, refreshed when a signature no longer matches.
- *
  * @property string $id
  * @property string $uri
  * @property string|null $handle

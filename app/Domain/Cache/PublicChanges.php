@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What the running Operations tell the page cache (I-263): a list of tags
+ * for each Operation executing, nested as Operations nest, which
+ * BaseOperation opens before perform(), closes after it, and purges after
+ * the outermost commit (rule 6). Scoped to a request or a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -8,12 +19,6 @@ use LogicException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Throwable;
 
-/**
- * What the running Operations tell the page cache (I-263): a list of tags
- * for each Operation executing, nested as Operations nest, which
- * BaseOperation opens before perform(), closes after it, and purges after
- * the outermost commit (rule 6). Scoped to a request or a job.
- */
 final class PublicChanges
 {
     /** @var array<int, array<string, true>> */

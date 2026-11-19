@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai;
-
-use RuntimeException;
-
 /**
  * A request that failed, by type only (I-314). It is made by its five named
  * constructors and carries no message of the service's and no earlier
@@ -14,7 +8,18 @@ use RuntimeException;
  * its library's errors to these and lets the originals go. An answer that
  * was billed but can't be used carries its usage, so its cost is counted
  * (I-1322).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai;
+
+use RuntimeException;
+
 final class AiFailure extends RuntimeException
 {
     private function __construct(

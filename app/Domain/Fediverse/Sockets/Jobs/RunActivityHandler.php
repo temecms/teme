@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Runs one plugin's handler for one inbox activity, tracked
+ * (docs/plans/fediverse-publishing.md, follow-up R7): as the administrator
+ * who enabled the plugin, with that person's own permissions and never
+ * the operator's, only while the plugin is still enabled with
+ * fediverse.read. The activity, the plugin and the handler are kept on the
+ * tracked job.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets\Jobs;
@@ -19,14 +32,6 @@ use Illuminate\Support\Facades\Auth;
 use Teme\Contracts\Plugins\Capability;
 use Throwable;
 
-/**
- * Runs one plugin's handler for one inbox activity, tracked
- * (docs/plans/fediverse-publishing.md, follow-up R7): as the administrator
- * who enabled the plugin, with that person's own permissions and never
- * the operator's, only while the plugin is still enabled with
- * fediverse.read. The activity, the plugin and the handler are kept on the
- * tracked job.
- */
 final class RunActivityHandler implements ShouldQueue
 {
     use Queueable;

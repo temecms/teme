@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The old site's public addresses, from the companion's urls list (I-339):
+ * read one kind after another, a page at a time, from a cursor of the kind
+ * and the last ID read, by the clash step, the old addresses step and the
+ * check.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Addresses;
@@ -8,12 +19,6 @@ use App\Domain\Import\Source\SourceReader;
 use App\Domain\Import\Source\SourceRefused;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The old site's public addresses, from the companion's urls list (I-339):
- * read one kind after another, a page at a time, from a cursor of the kind
- * and the last ID read, by the clash step, the old addresses step and the
- * check.
- */
 final readonly class OldSiteUrls
 {
     /** Every kind the companion lists, in the order they're read. */

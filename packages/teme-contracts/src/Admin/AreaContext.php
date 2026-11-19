@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who is looking at a plugin's area, in which language and time zone, and
+ * which of the plugin's own permissions they hold.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

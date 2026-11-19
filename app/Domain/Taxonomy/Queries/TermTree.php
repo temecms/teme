@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Reads the hierarchy of a nesting taxonomy, such as categories, which is
+ * stored as an adjacency list: one recursive query answers "this term and
+ * everything under it".
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Taxonomy\Queries;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Reads the hierarchy of a nesting taxonomy, such as categories, which is
- * stored as an adjacency list: one recursive query answers "this term and
- * everything under it".
- */
 final class TermTree
 {
     /**

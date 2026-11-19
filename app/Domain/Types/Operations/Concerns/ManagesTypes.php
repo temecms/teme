@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What every change to the site's own types shares (I-411): who may make
+ * it, the checks only the stored rows and the items can answer, made under
+ * the types' lock, and what follows its commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations\Concerns;
@@ -23,11 +33,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * What every change to the site's own types shares (I-411): who may make
- * it, the checks only the stored rows and the items can answer, made under
- * the types' lock, and what follows its commit.
- */
 trait ManagesTypes
 {
     /**

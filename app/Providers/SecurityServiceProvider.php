@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Sign-in and admin security, wired in one place. docs/architecture/security.md.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -44,9 +52,6 @@ use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Sign-in and admin security, wired in one place. docs/architecture/security.md.
- */
 final class SecurityServiceProvider extends ServiceProvider
 {
     public function register(): void

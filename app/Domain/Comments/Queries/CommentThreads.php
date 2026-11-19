@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The comment thread's reads for the public site (docs/studies/comments.md
+ * §3.1, I-272): a page of an item's conversations, the page a comment is on,
+ * one comment shown with everything above it, the item's counts, and a
+ * browser's own comments. Each
+ * statement names the shown statuses and `depth = 1` word for word, as the
+ * indexes' predicates do, so any plan can use them (CommentStatus::THREAD).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -10,14 +23,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The comment thread's reads for the public site (docs/studies/comments.md
- * §3.1, I-272): a page of an item's conversations, the page a comment is on,
- * one comment shown with everything above it, the item's counts, and a
- * browser's own comments. Each
- * statement names the shown statuses and `depth = 1` word for word, as the
- * indexes' predicates do, so any plan can use them (CommentStatus::THREAD).
- */
 final readonly class CommentThreads
 {
     /** The columns a thread is drawn from: never an email address, an IP address, a browser, a token's hash or a moderation record (D19). */

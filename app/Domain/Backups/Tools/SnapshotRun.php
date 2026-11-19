@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * One backup run as a place holds it: its ID, when its first part was made,
+ * each part's snapshot, and every snapshot it has.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
 
 use Carbon\CarbonImmutable;
 
-/**
- * One backup run as a place holds it: its ID, when its first part was made,
- * each part's snapshot, and every snapshot it has.
- */
 final readonly class SnapshotRun
 {
     /**

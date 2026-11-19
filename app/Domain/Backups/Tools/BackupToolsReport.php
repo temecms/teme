@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * What teme:backup:tools reports: restic, pg_dump and pg_restore as found, in that order, the database server's version, and what is wrong in words; ready when nothing is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
 
-/**
- * What teme:backup:tools reports: restic, pg_dump and pg_restore as found, in that order, the database server's version, and what is wrong in words; ready when nothing is.
- */
 final readonly class BackupToolsReport
 {
     /**

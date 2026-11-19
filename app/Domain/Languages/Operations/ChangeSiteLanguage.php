@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Changes one of the site's other languages (D10): its address prefix, whose
+ * every address then moves in the background with the old ones kept as
+ * history, and whether readers are shown it, which moves nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations;
@@ -13,11 +23,6 @@ use App\Domain\Support\Security\JobActor;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes one of the site's other languages (D10): its address prefix, whose
- * every address then moves in the background with the old ones kept as
- * history, and whether readers are shown it, which moves nothing.
- */
 final class ChangeSiteLanguage extends BaseOperation
 {
     use WritesSiteLanguages;

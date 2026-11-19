@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Media;
-
 /**
  * The registered set of image variants every image gets (study K, §7). A
  * change to the widths, the thumbnail or the quality raises SET, and
  * teme:media:regenerate remakes every older item. Images used as a featured
  * or social image also get the share images (I-855), which change no SET.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Media;
+
 final class MediaVariants
 {
     public const int SET = 1;

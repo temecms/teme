@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A settings group's words in one other language, for the screens that
+ * write them (I-3360): the words saved for it, the default language's
+ * beside them, and the version a save is checked against. Reads only.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -8,11 +18,6 @@ use App\Domain\Settings\Models\SettingsGroupRecord;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * A settings group's words in one other language, for the screens that
- * write them (I-3360): the words saved for it, the default language's
- * beside them, and the version a save is checked against. Reads only.
- */
 final readonly class SettingsTranslations
 {
     public function __construct(private SettingsRegistry $registry) {}

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Translations;
-
 /**
  * What the analyze step says of an old site's languages before an import
  * starts (I-3446): Polylang addresses Teme can't keep, the default
  * language's first part of the address, and the other translation
  * plugins whose translations v1 doesn't import.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Translations;
+
 final class LanguageNotes
 {
     /**

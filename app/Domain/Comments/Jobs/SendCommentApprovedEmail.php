@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Emails an item's author that a comment on it is approved (E6, I-690;
+ * 1.8d's D8, D9). Everything is read when it runs: the comment must still be
+ * approved, its item published and out of the trash, comments and the email
+ * on, and the author must want it. It carries the person whose action
+ * approved it, and the author is never emailed about their own comment or
+ * their own approval; it calls no Operation, writes nothing and asks for no
+ * elevation, so it runs as the queue does, under DeniedElevation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Jobs;
@@ -18,15 +32,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/**
- * Emails an item's author that a comment on it is approved (E6, I-690;
- * 1.8d's D8, D9). Everything is read when it runs: the comment must still be
- * approved, its item published and out of the trash, comments and the email
- * on, and the author must want it. It carries the person whose action
- * approved it, and the author is never emailed about their own comment or
- * their own approval; it calls no Operation, writes nothing and asks for no
- * elevation, so it runs as the queue does, under DeniedElevation.
- */
 final class SendCommentApprovedEmail implements ShouldQueue
 {
     use Queueable;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the reply Operations need: the remote account that wrote it, the
+ * reply's object as it came (for a removal, only its address matters),
+ * and the verified sender, who must be that account.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Fediverse\Replies\Operations\Input;
 use App\Domain\Fediverse\Signatures\VerifiedSender;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What the reply Operations need: the remote account that wrote it, the
- * reply's object as it came (for a removal, only its address matters),
- * and the verified sender, who must be that account.
- */
 final readonly class FediverseReplyInput implements OperationInput
 {
     /**

@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Search and social's section "Titles in search results", which holds the hide settings too, drawn under "What search engines may list"
+ * (docs/studies/seo.md §3.14): the title separator, and a title template and
+ * hide box for each public content type and taxonomy, each type's archive
+ * page, and each kind of archive, made from the registries, so a type registered later gets its own
+ * rows (I-853). The home page and "page not found" have no hide box (I-854),
+ * and search results are always hidden. Its own check refuses a template that
+ * names a token Teme hasn't got.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo;
@@ -14,15 +28,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "Titles in search results", which holds the hide settings too, drawn under "What search engines may list"
- * (docs/studies/seo.md §3.14): the title separator, and a title template and
- * hide box for each public content type and taxonomy, each type's archive
- * page, and each kind of archive, made from the registries, so a type registered later gets its own
- * rows (I-853). The home page and "page not found" have no hide box (I-854),
- * and search results are always hidden. Its own check refuses a template that
- * names a token Teme hasn't got.
- */
 final class TitlesAndListing implements SearchAndSocialSection, SettingsCheck
 {
     /** An item's title, then the site's (I-852). */

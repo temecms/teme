@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Why a language may not take an address prefix (I-3360): the first thing
+ * that already holds it, in words that name it. The site's own words,
+ * another language, a type's archive page, a taxonomy's or the author
+ * base, a type's pattern, or a live address at the prefix or under it. An
+ * old address or a redirect never holds one: the language's home answers
+ * first, and the banner warns of a redirect.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -12,14 +25,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-/**
- * Why a language may not take an address prefix (I-3360): the first thing
- * that already holds it, in words that name it. The site's own words,
- * another language, a type's archive page, a taxonomy's or the author
- * base, a type's pattern, or a live address at the prefix or under it. An
- * old address or a redirect never holds one: the language's home answers
- * first, and the banner warns of a redirect.
- */
 final class PrefixConflicts
 {
     /**

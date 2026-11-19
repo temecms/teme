@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The files an editor can choose from the media modal: live, ready, of an
+ * allowed kind, newest first, paged by keyset and searchable — the same row
+ * shape MediaLibrary uses, so the modal's grid and the Media screen's share
+ * one component. Never a trashed or still-processing item.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Support\Queries\Cursor;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The files an editor can choose from the media modal: live, ready, of an
- * allowed kind, newest first, paged by keyset and searchable — the same row
- * shape MediaLibrary uses, so the modal's grid and the Media screen's share
- * one component. Never a trashed or still-processing item.
- */
 final class MediaPicker
 {
     private const int PAGE = 30;

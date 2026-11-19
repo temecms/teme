@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The counts every list and thread reads, compared with the rows and
+ * rewritten where they differ (I-141): the operator's weekly safety net, and
+ * an import's at its end. The month rows are counted too.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Concerns;
@@ -10,11 +20,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The counts every list and thread reads, compared with the rows and
- * rewritten where they differ (I-141): the operator's weekly safety net, and
- * an import's at its end. The month rows are counted too.
- */
 trait RecountsContent
 {
     /**

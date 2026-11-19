@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Secrets are decrypted on demand and never cached. An environment variable,
+ * when the declaration names one and the server sets it, wins. With config
+ * cached, only real environment variables count — not the .env file.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -11,11 +21,6 @@ use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * Secrets are decrypted on demand and never cached. An environment variable,
- * when the declaration names one and the server sets it, wins. With config
- * cached, only real environment variables count — not the .env file.
- */
 final class SecretStore implements SecretReader
 {
     public function __construct(private readonly SettingsRegistry $registry) {}

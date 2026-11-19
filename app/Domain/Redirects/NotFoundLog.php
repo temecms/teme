@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Redirects;
-
 /**
  * What the 404 log keeps (I-298, I-874): how many addresses, which it never
  * keeps, the probes bots send to every site, and what it keeps of where a
  * reader came from, the host alone. Its constants are the defaults of
  * Settings › Search and social's 404 log section, which the minute's run reads.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Redirects;
+
 final class NotFoundLog
 {
     /** The most addresses the log keeps by default, the least recently seen making room (I-874). */

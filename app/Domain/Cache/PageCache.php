@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The full-page cache's policy (docs/studies/page-cache.md §3, I-262):
+ * which requests it answers or passes by, what it stores and for how long,
+ * what it purges, and the headers that say what it did. It serves anonymous
+ * readers of public pages, and never lets a failure of its own break a page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -16,12 +27,6 @@ use Illuminate\Support\Sleep;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-/**
- * The full-page cache's policy (docs/studies/page-cache.md §3, I-262):
- * which requests it answers or passes by, what it stores and for how long,
- * what it purges, and the headers that say what it did. It serves anonymous
- * readers of public pages, and never lets a failure of its own break a page.
- */
 final readonly class PageCache
 {
     /**
@@ -87,6 +92,8 @@ final readonly class PageCache
     /**
      * The request attribute AdsTxtController sets when /ads.txt answers with
      * a permanent redirect that the page cache may store like its text.
+     *
+     * @since 1.0.0
      */
     public const string REDIRECT_OK = 'teme.page-cache.redirect-ok';
 

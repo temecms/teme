@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The Dokploy platform for Teme as one Application: every part runs in its one container, so there is one image to
+ * change, one deployment to watch, and one container to read. It changes that Application's image with one field,
+ * redeploys it, and reads its deployments and its container; it never reads or writes its environment, its
+ * registry login or its source. An Application built from a source has no image to change, and says so.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -8,12 +19,6 @@ use App\Domain\Updates\ImageName;
 use Carbon\CarbonImmutable;
 use Throwable;
 
-/**
- * The Dokploy platform for Teme as one Application: every part runs in its one container, so there is one image to
- * change, one deployment to watch, and one container to read. It changes that Application's image with one field,
- * redeploys it, and reads its deployments and its container; it never reads or writes its environment, its
- * registry login or its source. An Application built from a source has no image to change, and says so.
- */
 final class DokployApplicationPlatform implements Platform
 {
     /** What Dokploy calls the ways an Application takes its source, in the words people read. */

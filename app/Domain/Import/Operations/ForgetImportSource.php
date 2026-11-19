@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Erases a source's application password and nothing else (I-1708): the
+ * site, its runs, its map and its messages stay, since the report reads
+ * them. Refused while a run is running, which needs the password.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Erases a source's application password and nothing else (I-1708): the
- * site, its runs, its map and its messages stay, since the report reads
- * them. Refused while a run is running, which needs the password.
- */
 final class ForgetImportSource extends BaseOperation
 {
     use AuthorizesImports;

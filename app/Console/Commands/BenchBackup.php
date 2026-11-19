@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * `teme:bench:backup`: builds the backup benchmark's synthetic site in its
+ * own benchmark database, backs it up, checks and test-restores it, times
+ * every step, and writes the result to docs/benchmarks/. It only ever touches
+ * a database whose name ends in _bench, starts by wiping it, and writes the
+ * site's files into this checkout's media folders, so it asks first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -18,13 +30,6 @@ use Illuminate\Support\Number;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
-/**
- * `teme:bench:backup`: builds the backup benchmark's synthetic site in its
- * own benchmark database, backs it up, checks and test-restores it, times
- * every step, and writes the result to docs/benchmarks/. It only ever touches
- * a database whose name ends in _bench, starts by wiping it, and writes the
- * site's files into this checkout's media folders, so it asks first.
- */
 final class BenchBackup extends Command
 {
     /** @var string */

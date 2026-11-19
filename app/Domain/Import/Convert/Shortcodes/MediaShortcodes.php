@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * WordPress's audio, video and playlist shortcodes as Audio and Video cards
+ * (I-1705): a file by `src` or its format's attribute, else the first one
+ * attached to the item, as WordPress does; a playlist as a card for each
+ * file.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Shortcodes;
@@ -8,12 +19,6 @@ use App\Domain\Import\Convert\BlockContext;
 use App\Domain\Import\Convert\Html\HtmlFragment;
 use App\Domain\Import\Convert\Media\PlayerCards;
 
-/**
- * WordPress's audio, video and playlist shortcodes as Audio and Video cards
- * (I-1705): a file by `src` or its format's attribute, else the first one
- * attached to the item, as WordPress does; a playlist as a card for each
- * file.
- */
 final readonly class MediaShortcodes implements ShortcodeMapping
 {
     /** The attributes that may hold a sound's address, in the order WordPress tries them. */

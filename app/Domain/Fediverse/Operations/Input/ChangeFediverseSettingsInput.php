@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What ChangeFediverseSettings needs: the fediverse group's values by key,
+ * the version the page was opened on, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ChangeFediverseSettings needs: the fediverse group's values by key,
- * the version the page was opened on, and who is asking.
- */
 final readonly class ChangeFediverseSettingsInput implements OperationInput
 {
     /**

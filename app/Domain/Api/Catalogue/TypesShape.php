@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The public content types as the API lists them (D28): each with its
+ * archive page, its public taxonomies and the fields it shows, which come
+ * from the one rule an item's values read too, so the two cannot disagree.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Catalogue;
@@ -14,11 +24,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 
-/**
- * The public content types as the API lists them (D28): each with its
- * archive page, its public taxonomies and the fields it shows, which come
- * from the one rule an item's values read too, so the two cannot disagree.
- */
 final readonly class TypesShape
 {
     public function __construct(private ContentTypeRegistry $types, private TaxonomyRegistry $taxonomies) {}

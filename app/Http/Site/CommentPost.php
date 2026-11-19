@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A comment form as it was posted, read once: each field a string, '' for
+ * one missing or sent as anything else. `path` is the item's address, never
+ * its ID (1.8b's D9); `subject` is the honeypot (D8); `token` is the
+ * browser's own key, which core's script fills (1.8b′).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
 
 use Illuminate\Http\Request;
 
-/**
- * A comment form as it was posted, read once: each field a string, '' for
- * one missing or sent as anything else. `path` is the item's address, never
- * its ID (1.8b's D9); `subject` is the honeypot (D8); `token` is the
- * browser's own key, which core's script fills (1.8b′).
- */
 final readonly class CommentPost
 {
     public function __construct(

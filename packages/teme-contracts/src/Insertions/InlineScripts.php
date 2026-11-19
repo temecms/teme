@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Asks for one of a plugin's inline scripts to be approved, so its inserted
+ * markup may keep it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

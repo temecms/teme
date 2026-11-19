@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Where search engines should look for an item's content (I-292): nothing for
+ * the item itself, another item by its ID, or an address on another site;
+ * never this site's own address, which is its item (rule 9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -9,11 +19,6 @@ use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 use App\Domain\Fields\Rules\CanonicalChoice;
 
-/**
- * Where search engines should look for an item's content (I-292): nothing for
- * the item itself, another item by its ID, or an address on another site;
- * never this site's own address, which is its item (rule 9).
- */
 final class CanonicalField implements FieldType
 {
     public function name(): string

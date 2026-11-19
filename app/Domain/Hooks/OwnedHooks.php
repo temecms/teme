@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One owner's way to listen (I-3353): bound to its name, what it was
+ * granted, the hooks it declared and its quarantined subscriptions, open
+ * until close(). It adds to the dispatcher as on() is called. A plugin's
+ * own hook is named `{code}:{name}`, as its listeners declare it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks;
@@ -11,12 +22,6 @@ use Teme\Contracts\Hooks\Hooks;
 use Teme\Contracts\Hooks\Order;
 use Teme\Contracts\Hooks\Subscription;
 
-/**
- * One owner's way to listen (I-3353): bound to its name, what it was
- * granted, the hooks it declared and its quarantined subscriptions, open
- * until close(). It adds to the dispatcher as on() is called. A plugin's
- * own hook is named `{code}:{name}`, as its listeners declare it.
- */
 final class OwnedHooks implements Hooks
 {
     /** @var array<string, class-string<Hook>> */

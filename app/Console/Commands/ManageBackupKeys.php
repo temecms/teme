@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:backup:key: checks, adds, extends and replaces the recovery keys that
+ * open the backups, as the operator (I-359). Every action shows or asks for a
+ * key, so a person must run it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -22,11 +32,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:backup:key: checks, adds, extends and replaces the recovery keys that
- * open the backups, as the operator (I-359). Every action shows or asks for a
- * key, so a person must run it.
- */
 final class ManageBackupKeys extends Command
 {
     private const int TRIES = 3;

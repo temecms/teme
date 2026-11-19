@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One theme on the test's site: checked as `teme:theme:check` checks it,
+ * and made the one the site is drawn with through ActivateTheme.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Testing;
@@ -10,10 +19,6 @@ use App\Domain\Themes\ActiveTheme;
 use Closure;
 use Illuminate\Support\Facades\Artisan;
 
-/**
- * One theme on the test's site: checked as `teme:theme:check` checks it,
- * and made the one the site is drawn with through ActivateTheme.
- */
 final readonly class ThemeUnderTest
 {
     /**

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The feeds a public page links in its head (I-299): the site's on every
+ * page, in the page's language (I-3360), a term's or an author's on their own archive, and a type's on its
+ * archive page. Core's own
+ * entries, so a site or a plugin can still say otherwise. There is no link
+ * to a comment feed, which does not exist.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -16,13 +28,6 @@ use App\Domain\Site\ViewModels\ListingView;
 use App\Domain\Types\TaxonomyRegistry;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The feeds a public page links in its head (I-299): the site's on every
- * page, in the page's language (I-3360), a term's or an author's on their own archive, and a type's on its
- * archive page. Core's own
- * entries, so a site or a plugin can still say otherwise. There is no link
- * to a comment feed, which does not exist.
- */
 final class FeedLinks implements HeadContributor
 {
     public function __construct(

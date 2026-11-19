@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Core's robots meta (I-291, I-714): `noindex, nofollow` on every page while
+ * the site discourages search engines; otherwise `noindex, nofollow` on
+ * core's pages about writing a comment, `noindex, follow` on a search's page
+ * and on a hidden page, nothing on a 404 or an error, and on every other page
+ * the default directives, shaped by the item's own snippet controls.
+ * directives() builds the list; PageHead resolves it once for the page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Head;
@@ -11,14 +24,6 @@ use App\Domain\Site\Document\HeadContributor;
 use App\Domain\Site\Document\MetaTag;
 use App\Domain\Site\Document\Precedence;
 
-/**
- * Core's robots meta (I-291, I-714): `noindex, nofollow` on every page while
- * the site discourages search engines; otherwise `noindex, nofollow` on
- * core's pages about writing a comment, `noindex, follow` on a search's page
- * and on a hidden page, nothing on a 404 or an error, and on every other page
- * the default directives, shaped by the item's own snippet controls.
- * directives() builds the list; PageHead resolves it once for the page.
- */
 final class RobotsMeta implements HeadContributor
 {
     /** Pages whose status already keeps them out of search engines' lists. */

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Thrown when a draft is saved from an older revision than the current one, so
+ * the save would silently overwrite a newer edit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Exceptions;
 
 use RuntimeException;
 
-/**
- * Thrown when a draft is saved from an older revision than the current one, so
- * the save would silently overwrite a newer edit.
- */
 final class StaleRevisionException extends RuntimeException
 {
     public static function for(string $expected, ?string $actual): self

@@ -1,10 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-
 /**
  * The Comments screen's reads (1.8c's D8, the design pass's C10): each view
  * newest first, site-wide, from an index of its own statuses; Spam and
@@ -12,7 +7,17 @@ use Illuminate\Support\Facades\DB;
  * from the items with comments waiting alone. Partial, so each holds only
  * the rows it serves. Not built concurrently: comments arrived in 1.8a, and
  * no site holds enough of them yet for a lock to matter.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     public function up(): void

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A later page of an item's comments, as its template sees it, as `$page`: the
+ * item's title, address and kicker, and the thread's page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

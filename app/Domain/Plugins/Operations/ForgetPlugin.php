@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Forgets a disabled plugin whose package is gone and that owns no tables: a
+ * person who holds plugins.manage, after their password, or the operator.
+ * Deletes the row so its code is free for a renamed package. Returns its name.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -19,11 +29,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Forgets a disabled plugin whose package is gone and that owns no tables: a
- * person who holds plugins.manage, after their password, or the operator.
- * Deletes the row so its code is free for a renamed package. Returns its name.
- */
 final class ForgetPlugin extends BaseOperation implements RequiresElevation
 {
     use AuthorizesPluginChanges;

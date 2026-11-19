@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Layouts flattened (I-335): columns, groups, covers, media and
+ * text, details, accordions, tabs and Canvas's blocks give what they hold,
+ * in order. Teme's theme owns the layout.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -11,11 +21,6 @@ use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\Media\PlayerCards;
 use App\Domain\Import\Convert\ParsedBlock;
 
-/**
- * Layouts flattened (I-335): columns, groups, covers, media and
- * text, details, accordions, tabs and Canvas's blocks give what they hold,
- * in order. Teme's theme owns the layout.
- */
 final readonly class Layout implements BlockMapping
 {
     public function blocks(): array

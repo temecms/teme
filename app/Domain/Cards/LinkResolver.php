@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * Turns what a link stores into the address it is drawn with now: an
  * article's ID, a term's, a person's or a library file's, and a path on this
  * site. Internal links store the ID and never the URL (rule 9), so this is
  * asked at render time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 interface LinkResolver
 {
     /**

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A WordPress menu read as one tree (I-343), whatever its shape: a classic
+ * menu's items under their parents in WordPress's order, an item whose
+ * parent it doesn't list at the top as WordPress shows it; or a navigation
+ * post's link blocks. Reads nothing; says what a Teme menu can't keep. One
+ * instance reads one menu at a time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Menus;
@@ -7,13 +19,6 @@ namespace App\Domain\Import\Phases\Menus;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\Terms\WordPressText;
 
-/**
- * A WordPress menu read as one tree (I-343), whatever its shape: a classic
- * menu's items under their parents in WordPress's order, an item whose
- * parent it doesn't list at the top as WordPress shows it; or a navigation
- * post's link blocks. Reads nothing; says what a Teme menu can't keep. One
- * instance reads one menu at a time.
- */
 final class WordPressMenus
 {
     /** A classic item's type for a post or page, and a link block's kind for one. */
@@ -43,7 +48,11 @@ final class WordPressMenus
     /** A label or an address holding an email address, which a message never repeats. */
     public const string EMAIL = '/[^\s@]+@[^\s@]+\.[^\s@]+/';
 
-    /** The address of Polylang's language switcher. */
+    /**
+     * The address of Polylang's language switcher.
+     *
+     * @since 1.0.0
+     */
     public const string SWITCHER = '#pll_switcher';
 
     /** Polylang's switcher options Teme's switcher has, each true or false. */

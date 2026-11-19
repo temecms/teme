@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What a plugin can ask an administrator to let it do in the first release.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Plugins;

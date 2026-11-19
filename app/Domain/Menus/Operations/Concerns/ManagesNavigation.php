@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the menu Operations share: only someone who may manage navigation
+ * changes a menu, a menu's name is 1 to 120 characters, and its language
+ * is one of the site's, stored as null for the default (I-3360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations\Concerns;
@@ -11,11 +21,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What the menu Operations share: only someone who may manage navigation
- * changes a menu, a menu's name is 1 to 120 characters, and its language
- * is one of the site's, stored as null for the default (I-3360).
- */
 trait ManagesNavigation
 {
     private function authorizeNavigation(OperationInput $input): void

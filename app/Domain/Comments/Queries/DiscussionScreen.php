@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › Discussion's data (E1, E2; 1.8d's D2, D4): the comments switch
+ * from the `modules` group, then the `discussion` group's settings in the
+ * approved design's five sections, with the drawn line that isn't a setting.
+ * People's pictures are on Settings › People.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Settings\Queries\SettingsForm;
 use App\Models\User;
 use RuntimeException;
 
-/**
- * Settings › Discussion's data (E1, E2; 1.8d's D2, D4): the comments switch
- * from the `modules` group, then the `discussion` group's settings in the
- * approved design's five sections, with the drawn line that isn't a setting.
- * People's pictures are on Settings › People.
- */
 final readonly class DiscussionScreen
 {
     /**

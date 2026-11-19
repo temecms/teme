@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records a plugin's failed status check with its other faults, through
+ * the ListenerFaults bound when it fails, once a request however often its
+ * banner is drawn (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
@@ -10,11 +20,6 @@ use Illuminate\Http\Request;
 use Throwable;
 use WeakMap;
 
-/**
- * Records a plugin's failed status check with its other faults, through
- * the ListenerFaults bound when it fails, once a request however often its
- * banner is drawn (I-3353).
- */
 final class RecordedStatusFaults implements StatusFaults
 {
     /** @var WeakMap<Request, array<string, true>> each request's checks already recorded */

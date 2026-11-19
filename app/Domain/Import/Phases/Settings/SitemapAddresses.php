@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Phases\Settings;
-
 /**
  * The addresses of the sitemaps the old site served (I-1717): its SEO
  * plugin's, each type's and taxonomy's first page and every later one the
  * import's counts need, or WordPress's own. Pure.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Phases\Settings;
+
 final class SitemapAddresses
 {
     /** WordPress's name for authors in sitemaps' addresses. */

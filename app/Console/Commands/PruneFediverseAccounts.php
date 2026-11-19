@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:fediverse:prune — removes the remote fediverse accounts the site no
+ * longer needs, through PruneFediverse as the operator (I-058). Runs daily.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,10 +19,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:fediverse:prune — removes the remote fediverse accounts the site no
- * longer needs, through PruneFediverse as the operator (I-058). Runs daily.
- */
 final class PruneFediverseAccounts extends Command
 {
     /** @var string */

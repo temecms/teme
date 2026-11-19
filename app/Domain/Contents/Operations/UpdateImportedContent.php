@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Brings an item an earlier import made up to date with WordPress (I-332),
+ * only while it is as the import left it: any save a person made here since
+ * moves its fingerprint, and from then on WordPress's changes are left for
+ * the report, never written. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -18,12 +29,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings an item an earlier import made up to date with WordPress (I-332),
- * only while it is as the import left it: any save a person made here since
- * moves its fingerprint, and from then on WordPress's changes are left for
- * the report, never written. Only an import's actor may call it.
- */
 final class UpdateImportedContent extends BaseOperation
 {
     use AuthorizesImports;

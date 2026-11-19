@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The teme-types.json file, version 1: the site's own content types,
+ * taxonomies and fields as a portable list, with each own type's grants
+ * (I-411, I-414).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -9,11 +19,6 @@ use App\Domain\Types\Exceptions\InvalidTaxonomyDefinition;
 use App\Domain\Types\Exceptions\InvalidTypeDefinition;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The teme-types.json file, version 1: the site's own content types,
- * taxonomies and fields as a portable list, with each own type's grants
- * (I-411, I-414).
- */
 final class TypesFile
 {
     /** @var list<string> */

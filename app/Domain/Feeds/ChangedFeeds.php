@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The feeds a change touched, read from the tags the Operation gave the
+ * page cache (docs/plans/plugin-sockets-1.md, A4): a list a main feed
+ * holds, a type's archive, a term's or an author's, each as an absolute
+ * address. Holds nothing.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -12,12 +23,6 @@ use App\Domain\Cache\PageTags;
 use App\Domain\Site\CoreSiteInfo;
 use Teme\Contracts\Feeds\FeedsChanged;
 
-/**
- * The feeds a change touched, read from the tags the Operation gave the
- * page cache (docs/plans/plugin-sockets-1.md, A4): a list a main feed
- * holds, a type's archive, a term's or an author's, each as an absolute
- * address. Holds nothing.
- */
 final readonly class ChangedFeeds
 {
     public function __construct(

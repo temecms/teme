@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Lets people follow one author: their account answers again, or is made
+ * at /ap/people/{person} under their author slug, with keys of its own.
+ * For whoever holds settings.fediverse.manage, while authors can be
+ * followed; returns the account's user name.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -15,12 +26,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Lets people follow one author: their account answers again, or is made
- * at /ap/people/{person} under their author slug, with keys of its own.
- * For whoever holds settings.fediverse.manage, while authors can be
- * followed; returns the account's user name.
- */
 final class EnableAuthorActor extends BaseOperation
 {
     use AuthorizesFediverseWork;

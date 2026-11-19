@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every Posts and Pages list: one page of rows, by number up to the cap and
+ * by keyset past it, so a deep page costs what page one does (I-140, I-3421),
+ * with the tab counts from content_counts. A filtered list's total is capped.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -24,11 +34,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-/**
- * Every Posts and Pages list: one page of rows, by number up to the cap and
- * by keyset past it, so a deep page costs what page one does (I-140, I-3421),
- * with the tab counts from content_counts. A filtered list's total is capped.
- */
 final class ContentList
 {
     /** Rows per page when the request asks for a size the lists do not offer. */

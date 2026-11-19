@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:extensions:cancel — cancels the plugin or theme request that waits, as the operator (I-211),
+ * while the installer isn't carrying it out.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,10 +22,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:extensions:cancel — cancels the plugin or theme request that waits, as the operator (I-211),
- * while the installer isn't carrying it out.
- */
 final class CancelExtensionCommand extends Command
 {
     /** @var string */

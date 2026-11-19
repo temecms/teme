@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Stores an activity a plugin sends through FediverseSender, with one
+ * delivery per distinct inbox of the sending account's followers
+ * (docs/plans/fediverse-publishing.md, D5): only for an enabled plugin
+ * granted fediverse.send, acting for a person (follow-up R7) who manages
+ * the fediverse, or who sends as their own author account; never a type or
+ * an object Teme keeps for itself.
+ * Core signs and delivers it once the plugin's work commits.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets\Operations;
@@ -25,15 +39,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Stores an activity a plugin sends through FediverseSender, with one
- * delivery per distinct inbox of the sending account's followers
- * (docs/plans/fediverse-publishing.md, D5): only for an enabled plugin
- * granted fediverse.send, acting for a person (follow-up R7) who manages
- * the fediverse, or who sends as their own author account; never a type or
- * an object Teme keeps for itself.
- * Core signs and delivers it once the plugin's work commits.
- */
 final class SendPluginActivity extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

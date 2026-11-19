@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who each item credits (I-3366): its bylines in order, or, with none, its
+ * owner. Every reader of the byline asks here, so the rule is one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People;
@@ -9,10 +18,6 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\People\Queries\People;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Who each item credits (I-3366): its bylines in order, or, with none, its
- * owner. Every reader of the byline asks here, so the rule is one.
- */
 final class Credits
 {
     /** The most people one item credits. */

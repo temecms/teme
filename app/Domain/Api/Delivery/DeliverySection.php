@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Search and social's section "For apps and AI tools" (I-3359): the two
+ * switches that let apps read the published content through the API and
+ * publish llms.txt, each off on a new site (I-713), and the one that asks AI
+ * training crawlers to stay away (I-300). Their help gives the
+ * full address, made from the site's address when the section is read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Delivery;
@@ -8,13 +20,6 @@ use App\Domain\RobotsTxt\RobotsTxtSection;
 use App\Domain\Seo\SearchAndSocialSection;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * Search and social's section "For apps and AI tools" (I-3359): the two
- * switches that let apps read the published content through the API and
- * publish llms.txt, each off on a new site (I-713), and the one that asks AI
- * training crawlers to stay away (I-300). Their help gives the
- * full address, made from the site's address when the section is read.
- */
 final class DeliverySection implements SearchAndSocialSection
 {
     public function order(): int

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Writes the import's second pass into an item it made (I-333): its
+ * reusable blocks put in and its links finished, as one revision of the
+ * import's, only while the item is as the import left it, since a person's
+ * save here is never undone. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -28,12 +39,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Writes the import's second pass into an item it made (I-333): its
- * reusable blocks put in and its links finished, as one revision of the
- * import's, only while the item is as the import left it, since a person's
- * save here is never undone. Only an import's actor may call it.
- */
 final class CompleteImportedContent extends BaseOperation
 {
     use AuthorizesImports;

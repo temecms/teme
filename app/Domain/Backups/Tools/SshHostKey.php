@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * An SSH server's public host key (I-2403), as ssh-keyscan reads it: the one
+ * a person confirms by its fingerprint before Teme trusts the server, and
+ * the line ssh then checks every connection against.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
 
 use InvalidArgumentException;
 
-/**
- * An SSH server's public host key (I-2403), as ssh-keyscan reads it: the one
- * a person confirms by its fingerprint before Teme trusts the server, and
- * the line ssh then checks every connection against.
- */
 final readonly class SshHostKey
 {
     /** The key types Teme accepts, the one it prefers first. */

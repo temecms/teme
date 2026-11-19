@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A person who can sign in to the admin. Its roles come from the permission
+ * tables, and only the user Operations write it, apart from Fortify's own
+ * credential fields.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Models;
@@ -20,10 +30,6 @@ use Spatie\Permission\Traits\HasRoles;
 use stdClass;
 
 /**
- * A person who can sign in to the admin. Its roles come from the permission
- * tables, and only the user Operations write it, apart from Fortify's own
- * credential fields.
- *
  * @property string $slug
  * @property CarbonInterface|null $invited_at
  * @property CarbonInterface|null $suspended_at

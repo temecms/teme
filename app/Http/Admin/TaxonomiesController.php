@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Site › Taxonomies (I-3319): the taxonomies and a taxonomy's page, each
+ * change handed to CreateTaxonomy, UpdateTaxonomy or DeleteTaxonomy. It
+ * changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -19,11 +29,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Site › Taxonomies (I-3319): the taxonomies and a taxonomy's page, each
- * change handed to CreateTaxonomy, UpdateTaxonomy or DeleteTaxonomy. It
- * changes nothing itself.
- */
 final class TaxonomiesController extends Controller
 {
     public function index(TaxonomiesScreen $screen): Response

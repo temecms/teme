@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Which items search engines may list, as each page's head decides it:
+ * live, at a current address, not hidden by its own box, its canonical
+ * pointing nowhere else, and the front page and the posts page as the head
+ * treats them. Read a page at a time from a key, never by OFFSET; llms.txt
+ * is to read the same rule (I-713). A type's own hide box is its caller's
+ * to ask. A sitemap's pages list every shown language's items (I-3360);
+ * the newest, the latest and whether a type has any keep to one language,
+ * the default unless one is named; one item is read in any shown language.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps\Queries;
@@ -10,16 +25,6 @@ use App\Domain\Languages\SiteLanguages;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Which items search engines may list, as each page's head decides it:
- * live, at a current address, not hidden by its own box, its canonical
- * pointing nowhere else, and the front page and the posts page as the head
- * treats them. Read a page at a time from a key, never by OFFSET; llms.txt
- * is to read the same rule (I-713). A type's own hide box is its caller's
- * to ask. A sitemap's pages list every shown language's items (I-3360);
- * the newest, the latest and whether a type has any keep to one language,
- * the default unless one is named; one item is read in any shown language.
- */
 final class ListedItems
 {
     /** At most this many live items a page (I-296). */
@@ -176,6 +181,8 @@ final class ListedItems
 
     /**
      * Whether this type has a live item in any shown language.
+     *
+     * @since 1.0.0
      */
     public function anyShown(string $type): bool
     {
@@ -220,6 +227,8 @@ final class ListedItems
      * @param  list<string>  $ids
      *
      * @return array<string, array{path: string, type: string, changed_at: string}>
+     *
+     * @since 1.1.0
      */
     public function addressesOf(array $ids): array
     {
@@ -256,6 +265,8 @@ final class ListedItems
      * lists them; null for no types, or none live.
      *
      * @param  list<string>  $types
+     *
+     * @since 1.0.0
      */
     public function newestIn(array $types, ?string $language): ?CarbonImmutable
     {
@@ -298,6 +309,8 @@ final class ListedItems
      * @param  list<string>  $groups
      *
      * @return array<string, list<array{id: string, language: string|null, type: string, path: string}>>
+     *
+     * @since 1.0.0
      */
     public function versions(array $groups): array
     {

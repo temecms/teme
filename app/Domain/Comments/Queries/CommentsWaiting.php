@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The comments waiting for approval on the items a person looks after
+ * (1.8c's D19, D20): the Comments menu entry's badge, its first provider,
+ * and Home's figure. Summed from comment_stats through comment_stats_waiting,
+ * so only items with a comment waiting are read, items in the trash left out.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Settings\Modules;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The comments waiting for approval on the items a person looks after
- * (1.8c's D19, D20): the Comments menu entry's badge, its first provider,
- * and Home's figure. Summed from comment_stats through comment_stats_waiting,
- * so only items with a comment waiting are read, items in the trash left out.
- */
 final readonly class CommentsWaiting implements BadgeProvider
 {
     /**

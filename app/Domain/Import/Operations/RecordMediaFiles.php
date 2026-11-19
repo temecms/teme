@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Records an attachment's file addresses in the import map (I-338): one row
+ * of type file per key no row of the source has yet, leading to its media
+ * item, in no run, so a run's counts stay the old site's objects. A key
+ * another item holds stays theirs; none is ever moved or deleted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -15,12 +26,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records an attachment's file addresses in the import map (I-338): one row
- * of type file per key no row of the source has yet, leading to its media
- * item, in no run, so a run's counts stay the old site's objects. A key
- * another item holds stays theirs; none is ever moved or deleted.
- */
 final class RecordMediaFiles extends BaseOperation
 {
     use AuthorizesImports;

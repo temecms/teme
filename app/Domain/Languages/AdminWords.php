@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The admin's words: which language a person's admin is in, and that
+ * language's catalogue, the one lang/{locale}.json list that PHP's __() and
+ * the React screens both read, keyed by the English text.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -7,11 +17,6 @@ namespace App\Domain\Languages;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Translation\Translator;
 
-/**
- * The admin's words: which language a person's admin is in, and that
- * language's catalogue, the one lang/{locale}.json list that PHP's __() and
- * the React screens both read, keyed by the English text.
- */
 final class AdminWords
 {
     private const string ENGLISH = 'en';

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A reusable block (I-333): left for the second pass, which inlines the
+ * `wp_block` post it names once every item exists. One with no reference
+ * is left out.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -9,11 +19,6 @@ use App\Domain\Import\Convert\BlockMapping;
 use App\Domain\Import\Convert\ParsedBlock;
 use App\Domain\Import\Phases\SourceRef;
 
-/**
- * A reusable block (I-333): left for the second pass, which inlines the
- * `wp_block` post it names once every item exists. One with no reference
- * is left out.
- */
 final readonly class Reusable implements BlockMapping
 {
     public function blocks(): array

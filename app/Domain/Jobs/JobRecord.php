@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * A tracked job as a kind is told of it when it's retried or cancelled: what
+ * it is, whose it is, the run it belongs to, and how far it got.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs;
 
 use App\Domain\Jobs\Models\TrackedJob;
 
-/**
- * A tracked job as a kind is told of it when it's retried or cancelled: what
- * it is, whose it is, the run it belongs to, and how far it got.
- */
 final readonly class JobRecord
 {
     public function __construct(

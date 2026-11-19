@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Signs a request one of the site's actors sends, draft-cavage style
+ * (proposal, Settled 5): a SHA-256 digest of a POST's body, the date, and
+ * an rsa-sha256 signature over the request target, host, date and digest.
+ * The private key is opened only here and never returned, logged or passed on.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Signatures;
@@ -8,12 +19,6 @@ use App\Domain\Fediverse\Models\FediverseActor;
 use RuntimeException;
 use SensitiveParameter;
 
-/**
- * Signs a request one of the site's actors sends, draft-cavage style
- * (proposal, Settled 5): a SHA-256 digest of a POST's body, the date, and
- * an rsa-sha256 signature over the request target, host, date and digest.
- * The private key is opened only here and never returned, logged or passed on.
- */
 final class Signer
 {
     /**

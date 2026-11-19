@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Saves a Settings page from its one save bar (I-3437): the page's own
+ * group, and the section another group lends it (General's brand colour,
+ * Reading's home page), all or nothing. Each part is changed by its own
+ * Operation, run inside this one.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Operations;
@@ -15,12 +26,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Saves a Settings page from its one save bar (I-3437): the page's own
- * group, and the section another group lends it (General's brand colour,
- * Reading's home page), all or nothing. Each part is changed by its own
- * Operation, run inside this one.
- */
 final class SaveSettingsPage extends BaseOperation
 {
     public function __construct(

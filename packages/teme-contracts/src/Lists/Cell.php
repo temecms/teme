@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One cell a list column returns for a row: plain text, a number, or a badge
+ * with a Status-pill tone.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Lists;

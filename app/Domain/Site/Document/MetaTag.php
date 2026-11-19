@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One `<meta>` in the page's head (I-228): `name` and content, as robots and
+ * a verification tag are written, or `property` and content, as Open
+ * Graph's are. Its key is checked when it is made, and its content is
+ * escaped when it is drawn, so no value can add markup to the head.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Document;
 
 use InvalidArgumentException;
 
-/**
- * One `<meta>` in the page's head (I-228): `name` and content, as robots and
- * a verification tag are written, or `property` and content, as Open
- * Graph's are. Its key is checked when it is made, and its content is
- * escaped when it is drawn, so no value can add markup to the head.
- */
 final readonly class MetaTag
 {
     /**

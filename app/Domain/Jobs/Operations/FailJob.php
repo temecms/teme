@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Ends a piece of work as failed, with what went wrong, and tells whoever started it in their inbox that retrying carries on (I-1714). A job that has already ended stays as it ended.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations;
@@ -16,9 +24,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Ends a piece of work as failed, with what went wrong, and tells whoever started it in their inbox that retrying carries on (I-1714). A job that has already ended stays as it ended.
- */
 final class FailJob extends BaseOperation
 {
     public function __construct(private JobAccess $access, private SendToInbox $inbox) {}

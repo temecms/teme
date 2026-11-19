@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes the Discussion settings on Settings › Discussion (1.8d's D3): whoever
+ * holds settings.discussion.manage, against the version the form was opened
+ * on, each value checked as the generic screen checks it. While comments are
+ * off it changes nothing, so the settings the page hides stay as they were (E1).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes the Discussion settings on Settings › Discussion (1.8d's D3): whoever
- * holds settings.discussion.manage, against the version the form was opened
- * on, each value checked as the generic screen checks it. While comments are
- * off it changes nothing, so the settings the page hides stay as they were (E1).
- */
 final class ChangeDiscussionSettings extends BaseOperation
 {
     public function __construct(

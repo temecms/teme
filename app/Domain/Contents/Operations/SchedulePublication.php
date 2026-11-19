@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Schedules one revision of an article to be published at a chosen time, as
+ * a row the scheduler claims (I-181, 4A), replacing any schedule the article
+ * already has. A draft becomes scheduled; a live article stays published,
+ * because a scheduled update changes nothing until it runs.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -23,12 +34,6 @@ use Teme\Contracts\Content\ContentScheduled;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * Schedules one revision of an article to be published at a chosen time, as
- * a row the scheduler claims (I-181, 4A), replacing any schedule the article
- * already has. A draft becomes scheduled; a live article stays published,
- * because a scheduled update changes nothing until it runs.
- */
 final class SchedulePublication extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

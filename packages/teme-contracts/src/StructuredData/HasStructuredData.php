@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A plugin granted pages.head that adds nodes to public pages' JSON-LD graph.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\StructuredData;

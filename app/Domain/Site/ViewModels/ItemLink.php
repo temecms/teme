@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * An item as a link: its published title, its address, and its type's key.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

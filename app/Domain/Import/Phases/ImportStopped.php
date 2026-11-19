@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The whole run must stop, in the phase's own words: an address both sites claim, say (I-1706).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
@@ -7,9 +15,6 @@ namespace App\Domain\Import\Phases;
 use InvalidArgumentException;
 use RuntimeException;
 
-/**
- * The whole run must stop, in the phase's own words: an address both sites claim, say (I-1706).
- */
 final class ImportStopped extends RuntimeException
 {
     /**

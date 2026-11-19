@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Search and social's section "Feeds": how many items each feed holds and
+ * whether it carries the full text or the excerpt (I-874). Read through the
+ * settings, so a feed carries the group's tag and a change removes it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -9,11 +19,6 @@ use App\Domain\Seo\SearchAndSocialSection;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "Feeds": how many items each feed holds and
- * whether it carries the full text or the excerpt (I-874). Read through the
- * settings, so a feed carries the group's tag and a change removes it.
- */
 final class FeedsSection implements SearchAndSocialSection
 {
     public const string ITEMS = 'feed_items';

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Queues one of the calling plugin's declared jobs.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Jobs;

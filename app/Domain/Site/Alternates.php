@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Every shown language version of the page being drawn that a reader can
+ * open, this page included, in the site's language order (I-3360): an
+ * item's or a term's group, each language's home on the home page, and on a
+ * type's archive the languages that have its items. Empty when there is
+ * only the page itself, and on every other page. Read once a page, so the
+ * view data, the head and the API agree; scoped, so each request starts
+ * afresh.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -22,15 +36,6 @@ use App\Domain\Themes\ComposerRegistry;
 use Illuminate\Container\Attributes\Scoped;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every shown language version of the page being drawn that a reader can
- * open, this page included, in the site's language order (I-3360): an
- * item's or a term's group, each language's home on the home page, and on a
- * type's archive the languages that have its items. Empty when there is
- * only the page itself, and on every other page. Read once a page, so the
- * view data, the head and the API agree; scoped, so each request starts
- * afresh.
- */
 #[Scoped]
 final class Alternates
 {

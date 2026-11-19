@@ -1,5 +1,22 @@
 <?php
 
+/**
+ * The page store for one server, or several sharing one folder (I-265):
+ * each page is a file named by the SHA-256 of its key, one line of JSON and
+ * then its HTML, and `page_cache_tags` finds files by tag and by expiry, so
+ * nothing lists the folder. A file is written before its rows and deleted
+ * when they can't be, so the table knows every file. Its folder is named in
+ * a small file, so a process removing pages from another folder can say so.
+ * A change to a list it shows sets it aside, renamed, as a copy served
+ * while it is drawn afresh. With the static-file driver, each page the web
+ * server may serve gets a plain copy too (StaticPages, slice 1.7d″), written
+ * after the page's rows and removed after them, batch by batch.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -15,18 +32,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
 
-/**
- * The page store for one server, or several sharing one folder (I-265):
- * each page is a file named by the SHA-256 of its key, one line of JSON and
- * then its HTML, and `page_cache_tags` finds files by tag and by expiry, so
- * nothing lists the folder. A file is written before its rows and deleted
- * when they can't be, so the table knows every file. Its folder is named in
- * a small file, so a process removing pages from another folder can say so.
- * A change to a list it shows sets it aside, renamed, as a copy served
- * while it is drawn afresh. With the static-file driver, each page the web
- * server may serve gets a plain copy too (StaticPages, slice 1.7d″), written
- * after the page's rows and removed after them, batch by batch.
- */
 final readonly class FilePageStore implements PageStore
 {
     /** Pages flush() and prune() take from the table per statement. */

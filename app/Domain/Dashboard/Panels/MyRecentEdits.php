@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * You edited recently: up to five articles, each once, newest first, from
+ * the viewer's latest 50 revisions (content_revisions_author_created). That
+ * keeps it one bounded query on an index; the price of the bound is that
+ * someone who saved one article fifty times in a row sees only that one.
+ * It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Panels;
@@ -11,13 +23,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * You edited recently: up to five articles, each once, newest first, from
- * the viewer's latest 50 revisions (content_revisions_author_created). That
- * keeps it one bounded query on an index; the price of the bound is that
- * someone who saved one article fifty times in a row sees only that one.
- * It reads only.
- */
 final class MyRecentEdits implements DashboardPanelQuery
 {
     /** How many of the viewer's latest revisions are looked through. */

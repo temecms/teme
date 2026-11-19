@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Registers the alt-text task (I-319) with the AI task registry.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -8,9 +16,6 @@ use App\Domain\Ai\AiTasks;
 use App\Domain\Ai\Tasks\AltText\AltTextTask;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers the alt-text task (I-319) with the AI task registry.
- */
 final class AltTextServiceProvider extends ServiceProvider
 {
     public function register(): void

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Benchmark;
-
 /**
  * What a scenario's measured run broke beyond its plans' own rules, in
  * plain words: a hit that read the database, a request that wrote to it, an
  * index its plans were to read and didn't, or more items than fit the time
  * something allows them (I-148).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Benchmark;
+
 final class ScenarioChecks
 {
     /**

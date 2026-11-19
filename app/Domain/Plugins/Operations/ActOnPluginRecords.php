@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Runs a built-in action on records in a plugin's area
+ * (docs/plans/plugin-sockets-2.md, A8): duplicate, enable, disable or
+ * delete, as a table declares it, on 1 to 100 records, a delete only once
+ * confirmed. The plugin acts inside this transaction; a refusal or a fault
+ * rolls everything back. Returns how many records it acted on.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -13,13 +25,6 @@ use Teme\Contracts\Admin\PluginArea;
 use Teme\Contracts\Admin\Saved;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Runs a built-in action on records in a plugin's area
- * (docs/plans/plugin-sockets-2.md, A8): duplicate, enable, disable or
- * delete, as a table declares it, on 1 to 100 records, a delete only once
- * confirmed. The plugin acts inside this transaction; a refusal or a fault
- * rolls everything back. Returns how many records it acted on.
- */
 final class ActOnPluginRecords extends BaseOperation
 {
     use WritesPluginArea;

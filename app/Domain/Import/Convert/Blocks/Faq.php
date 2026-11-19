@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Yoast's and Rank Math's FAQ blocks as Teme's FAQ card: each question its
+ * words, each answer its text. A block whose answers hold what a card's
+ * text can't, such as an image, or with a question left unanswered, which
+ * the card refuses, becomes headings and paragraphs instead,
+ * each question a level-3 heading (I-335), so nothing is lost; a block with
+ * no question found is read as any HTML.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -13,14 +26,6 @@ use App\Domain\Import\Convert\Html\HtmlFragment;
 use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 
-/**
- * Yoast's and Rank Math's FAQ blocks as Teme's FAQ card: each question its
- * words, each answer its text. A block whose answers hold what a card's
- * text can't, such as an image, or with a question left unanswered, which
- * the card refuses, becomes headings and paragraphs instead,
- * each question a level-3 heading (I-335), so nothing is lost; a block with
- * no question found is read as any HTML.
- */
 final readonly class Faq implements BlockMapping
 {
     /** For each block, its sections' selector, then the question's and the answer's within one. */

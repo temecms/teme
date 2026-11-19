@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Accepts a remote account's Follow of one of the site's enabled actors:
+ * keeps it as a follower, or updates the Follow it came by, and queues an
+ * Accept to its inbox. Run from the inbox's job for the verified follower
+ * itself; returns the Accept activity.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -19,12 +30,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Accepts a remote account's Follow of one of the site's enabled actors:
- * keeps it as a follower, or updates the Follow it came by, and queues an
- * Accept to its inbox. Run from the inbox's job for the verified follower
- * itself; returns the Accept activity.
- */
 final class AcceptFollow extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

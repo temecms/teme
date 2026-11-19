@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:plugins:disable`: disables a plugin as the operator (I-3353),
+ * keeping its row and what was agreed to.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -12,10 +21,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * `teme:plugins:disable`: disables a plugin as the operator (I-3353),
- * keeping its row and what was agreed to.
- */
 final class DisablePluginCommand extends Command
 {
     /** @var string */

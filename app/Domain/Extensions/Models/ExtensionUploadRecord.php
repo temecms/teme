@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A ZIP archive someone uploaded, kept as data until the installer unpacks
+ * it: the web process reads only its composer.json. Deleted when its
+ * request ends.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Models;
@@ -9,10 +19,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * A ZIP archive someone uploaded, kept as data until the installer unpacks
- * it: the web process reads only its composer.json. Deleted when its
- * request ends.
- *
  * @property string $id
  * @property string $file_name
  * @property int $size

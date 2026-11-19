@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Sitemaps;
-
 /**
  * The stylesheet a browser shows a sitemap through (I-868): the index as a
  * table of its lists, a page as a table of its addresses, when each last
  * changed and how many images it names, light or dark as the reader's
  * system is. Search engines read the XML and never this.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Sitemaps;
+
 final class SitemapStylesheet
 {
     /** Its address, from the site's root. */

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A number, whole or decimal. An empty value is stored as null.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -7,9 +15,6 @@ namespace App\Domain\Fields\Types;
 use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 
-/**
- * A number, whole or decimal. An empty value is stored as null.
- */
 final class NumberField implements FieldType
 {
     public function name(): string

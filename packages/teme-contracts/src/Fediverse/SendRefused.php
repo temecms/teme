@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * FediverseSender would not send an activity; the message says why.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

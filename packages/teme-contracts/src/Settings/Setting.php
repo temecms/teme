@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One setting's declaration: its type, its default, its constraints and the
+ * documentation that the reference is generated from.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Settings;
@@ -12,6 +21,7 @@ use InvalidArgumentException;
  * modifier returns a new declaration.
  *
  * @since 0.1.0
+ * @since 1.0.0 Term, content type, code and repeater settings, and sections: $taxonomy, $multiple, $section, $fields, $itemTitle and $scripts.
  */
 final class Setting
 {

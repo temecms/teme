@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Authorised only by a valid reset token. Fortify's reset step calls this
+ * while the token still exists, so an API, job or AI tool reaching this
+ * Operation without the token is refused.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -17,11 +27,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Authorised only by a valid reset token. Fortify's reset step calls this
- * while the token still exists, so an API, job or AI tool reaching this
- * Operation without the token is refused.
- */
 final class ResetPassword extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

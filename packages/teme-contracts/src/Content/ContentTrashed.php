@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * An item was moved to the trash, and so left the site if it was public.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

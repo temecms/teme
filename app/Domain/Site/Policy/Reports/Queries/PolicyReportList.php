@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The policy reports table for the console and the doctor (I-3375): what
+ * browsers said the public site's policy blocked or would block, lately.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Policy\Reports\Queries;
@@ -7,10 +16,6 @@ namespace App\Domain\Site\Policy\Reports\Queries;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The policy reports table for the console and the doctor (I-3375): what
- * browsers said the public site's policy blocked or would block, lately.
- */
 final readonly class PolicyReportList
 {
     /**

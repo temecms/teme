@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `<x-teme::inline-script>`: one of core's own inline scripts, written exactly
+ * as its hash is noted in the page's policy, so the page stays shared and a
+ * policy allows it without a nonce.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

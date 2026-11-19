@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The routes of Settings › Management API, where keys are made and revoked.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Http\Admin\Settings\ManagementApiController;

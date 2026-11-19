@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:setup-code`: prints the first-run page's address and setup code again
+ * (issue 246), for an operator who lost the deploy log. It changes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,10 +18,6 @@ use App\Domain\Users\Queries\FirstRun;
 use App\Domain\Users\SetupCode;
 use Illuminate\Console\Command;
 
-/**
- * `teme:setup-code`: prints the first-run page's address and setup code again
- * (issue 246), for an operator who lost the deploy log. It changes nothing.
- */
 final class ShowSetupCode extends Command
 {
     use PrintsSetupCode;

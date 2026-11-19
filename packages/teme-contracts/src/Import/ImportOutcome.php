@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a plugin's importer made of one record: brought across, skipped with
+ * why, or failed with a sentence the run's report shows.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Import;

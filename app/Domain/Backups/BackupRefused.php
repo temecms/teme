@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Why a backup run stopped, in words people read, with what it saw at each
+ * place it reached for; the run records both as it ends (I-362).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
 
 use RuntimeException;
 
-/**
- * Why a backup run stopped, in words people read, with what it saw at each
- * place it reached for; the run records both as it ends (I-362).
- */
 final class BackupRefused extends RuntimeException
 {
     /**

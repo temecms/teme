@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One run of teme:media:move (I-3456): a copy between two media locations,
+ * or the deletion of the source's copies after one, how far it got and what
+ * it found. Only the three move Operations write it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Models;
@@ -10,10 +20,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One run of teme:media:move (I-3456): a copy between two media locations,
- * or the deletion of the source's copies after one, how far it got and what
- * it found. Only the three move Operations write it.
- *
  * @property string $id
  * @property string $kind copy | delete_source
  * @property string $from_location

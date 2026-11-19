@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:themes:clear`: deletes the theme cache, so themes are found and
+ * validated from Composer's runtime data again. `optimize:clear` runs it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -8,10 +17,6 @@ use App\Domain\Themes\ThemeRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
-/**
- * `teme:themes:clear`: deletes the theme cache, so themes are found and
- * validated from Composer's runtime data again. `optimize:clear` runs it.
- */
 final class ClearThemes extends Command
 {
     /** @var string */

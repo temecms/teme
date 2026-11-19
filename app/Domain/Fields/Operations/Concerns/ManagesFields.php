@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What every change to the site's own fields shares (I-3320): who may make
+ * it, the search a change of searchable fields rebuilds, and what follows
+ * its commit. It declares nothing ManagesTypes has, so an Operation may use both.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Operations\Concerns;
@@ -19,11 +29,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * What every change to the site's own fields shares (I-3320): who may make
- * it, the search a change of searchable fields rebuilds, and what follows
- * its commit. It declares nothing ManagesTypes has, so an Operation may use both.
- */
 trait ManagesFields
 {
     /**

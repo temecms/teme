@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Support\Queries;
-
 /**
  * Keyset paging positions (I-140): the sort values of the last row shown,
  * encoded so a URL can carry them. A cursor that does not decode to the
  * expected number of values is ignored, so a tampered URL shows page one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Support\Queries;
+
 final class Cursor
 {
     /**

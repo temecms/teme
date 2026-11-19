@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What ImportOldRedirect needs: the source and run, the rule's object and hash, the redirects it becomes and what was said of it, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
@@ -8,9 +16,6 @@ use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\SourceRef;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ImportOldRedirect needs: the source and run, the rule's object and hash, the redirects it becomes and what was said of it, and who is asking.
- */
 final readonly class ImportOldRedirectInput implements OperationInput
 {
     /**

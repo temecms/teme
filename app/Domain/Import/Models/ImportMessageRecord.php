@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A warning or error an import run met, tied to an object's map row or to
+ * the run alone. Written only by the import Operations (I-345).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Models;
@@ -12,9 +21,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * A warning or error an import run met, tied to an object's map row or to
- * the run alone. Written only by the import Operations (I-345).
- *
  * @property string $id
  * @property string $run_id
  * @property string|null $map_id

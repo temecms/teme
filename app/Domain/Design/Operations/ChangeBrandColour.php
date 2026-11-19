@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes the site's brand colour, the design group's accent, from Settings ›
+ * General: live at once, never as a draft. It must pass contrast against the
+ * light background of the live theme and of a theme being previewed on Site ›
+ * Themes (I-457); a colour waiting there goes, so publishing can't bring it back.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations;
@@ -20,12 +31,6 @@ use LogicException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * Changes the site's brand colour, the design group's accent, from Settings ›
- * General: live at once, never as a draft. It must pass contrast against the
- * light background of the live theme and of a theme being previewed on Site ›
- * Themes (I-457); a colour waiting there goes, so publishing can't bring it back.
- */
 final class ChangeBrandColour extends BaseOperation
 {
     use ManagesDesign;

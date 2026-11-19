@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Every theme on disk: Composer packages of type `teme-theme`, found through
+ * Composer's runtime data (InstalledVersions) and cached with their
+ * validated manifests by `teme:themes:cache`, then the folders in
+ * `config('teme.theme_paths')`, always read live. Each manifest is
+ * validated as it is found. It only reads; nothing under a theme is written.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -8,13 +20,6 @@ use App\Domain\Extensions\ActiveRelease;
 use Composer\InstalledVersions;
 use JsonException;
 
-/**
- * Every theme on disk: Composer packages of type `teme-theme`, found through
- * Composer's runtime data (InstalledVersions) and cached with their
- * validated manifests by `teme:themes:cache`, then the folders in
- * `config('teme.theme_paths')`, always read live. Each manifest is
- * validated as it is found. It only reads; nothing under a theme is written.
- */
 final class ThemeRegistry
 {
     /** @var array<string, array<string, Theme>> each discovery, by the settings it was made from */

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Every kind of notice, declared once (I-3375). Each declaration is checked
+ * as it arrives, as PreferenceRegistry checks preferences: the key's shape,
+ * no duplicate, no key that is the prefix of another, known channels and
+ * defaults among them. Core's own rules beside a kind live here too, never
+ * in the contract.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -8,13 +20,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Notices\NoticeKind;
 use Teme\Contracts\Notices\NoticeRegistrar;
 
-/**
- * Every kind of notice, declared once (I-3375). Each declaration is checked
- * as it arrives, as PreferenceRegistry checks preferences: the key's shape,
- * no duplicate, no key that is the prefix of another, known channels and
- * defaults among them. Core's own rules beside a kind live here too, never
- * in the contract.
- */
 final class NoticeRegistry implements NoticeRegistrar
 {
     private const string KEY = '/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/';

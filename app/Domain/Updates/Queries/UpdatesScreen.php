@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What Tools › Updates shows (I-3329): the version running, the releases after it with their notes,
+ * the update check, the last deploys, and the update request in hand with its steps. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Queries;
@@ -16,10 +25,6 @@ use App\Domain\Updates\UpdateChannel;
 use App\Domain\Updates\UpdatePlan;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What Tools › Updates shows (I-3329): the version running, the releases after it with their notes,
- * the update check, the last deploys, and the update request in hand with its steps. It reads only.
- */
 final readonly class UpdatesScreen
 {
     public function __construct(

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * How a plugin granted media.write adds media, including from an outside
+ * address on a host the administrator agreed to.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Media;

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What a redirect answers (I-297): four ways of sending readers on, and two
+ * of sending them nowhere, gone for good or withheld for legal reasons.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects;
 
-/**
- * What a redirect answers (I-297): four ways of sending readers on, and two
- * of sending them nowhere, gone for good or withheld for legal reasons.
- */
 enum RedirectStatus: int
 {
     case MovedPermanently = 301;

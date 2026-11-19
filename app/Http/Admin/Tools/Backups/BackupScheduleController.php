@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Changes when the nightly backup starts and what is kept, from Tools ›
+ * Backups (I-361), through ChangeBackupSchedule.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -15,10 +24,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Changes when the nightly backup starts and what is kept, from Tools ›
- * Backups (I-361), through ChangeBackupSchedule.
- */
 final class BackupScheduleController extends Controller
 {
     public function __invoke(Request $request, ChangeBackupSchedule $change, BackupWords $words): RedirectResponse

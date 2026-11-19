@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Audio and Video cards from WordPress's players (I-446): a file by its
+ * attachment ID, else its address traced as an image's is. A file Teme
+ * doesn't have is left out and named; one on another site becomes a link
+ * to it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Media;
@@ -10,12 +21,6 @@ use App\Domain\Import\Convert\Html\InlineContent;
 use App\Domain\Import\Convert\Html\Nodes;
 use Dom\Element;
 
-/**
- * Audio and Video cards from WordPress's players (I-446): a file by its
- * attachment ID, else its address traced as an image's is. A file Teme
- * doesn't have is left out and named; one on another site becomes a link
- * to it.
- */
 final class PlayerCards
 {
     /** The longest side a video's size may give (VideoCard's rule). */

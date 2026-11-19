@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One titled group of values in a person's export: a comment, an account, an
+ * event.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Privacy;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers the content policy and core's site search, and sets
+ * application-wide defaults: immutable dates, and a ban on destructive
+ * database commands in production.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -22,11 +32,6 @@ use Illuminate\Support\ServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
 use Teme\Contracts\Search\SiteSearch;
 
-/**
- * Registers the content policy and core's site search, and sets
- * application-wide defaults: immutable dates, and a ban on destructive
- * database commands in production.
- */
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void

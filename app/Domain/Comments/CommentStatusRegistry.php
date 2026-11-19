@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Every comment status (I-224): core's five, which phase 5 lets a plugin add
+ * to. Operations ask it which statuses a moderator may choose, which readers
+ * see and which one deletes from; nothing hard-codes a list of them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
 
 use InvalidArgumentException;
 
-/**
- * Every comment status (I-224): core's five, which phase 5 lets a plugin add
- * to. Operations ask it which statuses a moderator may choose, which readers
- * see and which one deletes from; nothing hard-codes a list of them.
- */
 final class CommentStatusRegistry
 {
     /** A status's key: a plain word, as stored in `comments.status` (varchar 32). */

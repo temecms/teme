@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One of the site's own fediverse accounts (I-058): the blog, an author or
+ * the application. Its address is stored verbatim and never changes, and
+ * its private key is encrypted under APP_KEY and hidden from every array.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Models;
@@ -12,10 +22,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One of the site's own fediverse accounts (I-058): the blog, an author or
- * the application. Its address is stored verbatim and never changes, and
- * its private key is encrypted under APP_KEY and hidden from every array.
- *
  * @property string $id
  * @property string $kind blog, person or application
  * @property string|null $person_id

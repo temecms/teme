@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The Settings pages a person may open, for the Settings menu, the palette
+ * and Find a setting: the settings groups they may manage and the pages
+ * that aren't groups, in the menu's order. Groups and pages they may not
+ * manage are never listed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
@@ -11,12 +22,6 @@ use App\Domain\Settings\SettingsRegistry;
 use App\Models\User;
 use Illuminate\Contracts\Container\Container;
 
-/**
- * The Settings pages a person may open, for the Settings menu, the palette
- * and Find a setting: the settings groups they may manage and the pages
- * that aren't groups, in the menu's order. Groups and pages they may not
- * manage are never listed.
- */
 final class SettingsNavigation
 {
     /** Lets a person see every settings group (SettingsController::VIEW). */

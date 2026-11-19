@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The page where an invited person chooses their password. It shows the form
+ * and hands the choice to the `AcceptInvitation` Operation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Auth;
@@ -15,10 +24,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The page where an invited person chooses their password. It shows the form
- * and hands the choice to the `AcceptInvitation` Operation.
- */
 final class InvitationController extends Controller
 {
     public function show(Request $request, string $token): Response

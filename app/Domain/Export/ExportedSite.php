@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What an export wrote: its folder, each file with its lines, bytes and
+ * SHA-256, and the media originals copied, missing or changed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
 
-/**
- * What an export wrote: its folder, each file with its lines, bytes and
- * SHA-256, and the media originals copied, missing or changed.
- */
 final readonly class ExportedSite
 {
     /**

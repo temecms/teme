@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Draws again, on the queue, the pages a change removed or set aside
+ * (docs/studies/page-cache.md §3.11), one at a time inside Teme, and only
+ * then starts the CDN's purge: Teme regenerates first, then the CDN is
+ * purged (§3.10), so the CDN's first fetch after its purge finds a stored
+ * page (D8).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache\Jobs;
@@ -11,13 +23,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
-/**
- * Draws again, on the queue, the pages a change removed or set aside
- * (docs/studies/page-cache.md §3.11), one at a time inside Teme, and only
- * then starts the CDN's purge: Teme regenerates first, then the CDN is
- * purged (§3.10), so the CDN's first fetch after its purge finds a stored
- * page (D8).
- */
 final class WarmPages implements ShouldQueue
 {
     use Queueable;

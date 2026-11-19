@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Says which places a recovery key opens, keeping nothing of it (I-359); an
+ * Operation because it asks for the password again and leaves a security log
+ * entry.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -17,11 +27,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Says which places a recovery key opens, keeping nothing of it (I-359); an
- * Operation because it asks for the password again and leaves a security log
- * entry.
- */
 final class CheckRecoveryKey extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

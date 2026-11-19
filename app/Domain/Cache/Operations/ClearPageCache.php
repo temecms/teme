@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Clears the page cache by hand, for whoever holds page-cache.clear (I-467,
+ * I-850): every stored page goes once the change commits, the CDN in front
+ * with it, so each is drawn afresh on its next visit. Recorded in the
+ * security log, so the screen can say who cleared it last. Refused while
+ * the page cache is off, when there is nothing to clear.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache\Operations;
@@ -16,13 +28,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Clears the page cache by hand, for whoever holds page-cache.clear (I-467,
- * I-850): every stored page goes once the change commits, the CDN in front
- * with it, so each is drawn afresh on its next visit. Recorded in the
- * security log, so the screen can say who cleared it last. Refused while
- * the page cache is off, when there is nothing to clear.
- */
 final class ClearPageCache extends BaseOperation
 {
     public function __construct(private readonly SecurityLog $log) {}

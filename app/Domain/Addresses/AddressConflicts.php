@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whether new address settings would put two things at one address, found
+ * with a few set queries rather than by rendering every item. The pairs it
+ * checks come from the registries, so a type registered later is checked
+ * too.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -8,12 +19,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Whether new address settings would put two things at one address, found
- * with a few set queries rather than by rendering every item. The pairs it
- * checks come from the registries, so a type registered later is checked
- * too.
- */
 final class AddressConflicts
 {
     /** The most clashes one refusal lists. */

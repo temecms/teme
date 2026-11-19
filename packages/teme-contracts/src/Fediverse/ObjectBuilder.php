@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A plugin's builder of the object an item of its content types is sent as,
+ * such as an Event for an events type.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

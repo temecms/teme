@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * teme:backup:list — the backups kept at a place, newest first, by run ID, to choose one to restore (docs/architecture/backups.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -19,9 +27,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * teme:backup:list — the backups kept at a place, newest first, by run ID, to choose one to restore (docs/architecture/backups.md).
- */
 final class ListBackups extends Command
 {
     use NamesRestorePlace;

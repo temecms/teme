@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Keeps a departing account's credit (issue 396): what it wrote still names
+ * it, now as a person with no account who keeps the account's name, address
+ * and biography, and its author page. Inside the deleting Operation's
+ * perform(), after its locks on the user and their items.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations\Concerns;
@@ -9,12 +20,6 @@ use App\Domain\People\Credits;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Keeps a departing account's credit (issue 396): what it wrote still names
- * it, now as a person with no account who keeps the account's name, address
- * and biography, and its author page. Inside the deleting Operation's
- * perform(), after its locks on the user and their items.
- */
 trait KeepsDepartedWriters
 {
     use GivesAccountsPeople;

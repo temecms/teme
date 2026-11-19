@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The queued notice that sends a person the personal data they asked for,
+ * as a JSON file read from the private disk when it is sent (I-3375). The
+ * site's title is in the subject only, a header, never a Markdown line.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Notifications;
@@ -14,11 +24,6 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The queued notice that sends a person the personal data they asked for,
- * as a JSON file read from the private disk when it is sent (I-3375). The
- * site's title is in the subject only, a header, never a Markdown line.
- */
 final class PersonalDataExported extends Notification implements ShouldQueue
 {
     use Queueable, SentAsNotice;

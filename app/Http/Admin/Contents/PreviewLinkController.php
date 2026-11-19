@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Share panel's endpoints: the preview links made for an article, making
+ * one for its working revision, and revoking one. The Operations and the
+ * query decide who may; anyone who may edit the article may share it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -15,11 +25,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-/**
- * The Share panel's endpoints: the preview links made for an article, making
- * one for its working revision, and revoking one. The Operations and the
- * query decide who may; anyone who may edit the article may share it.
- */
 final class PreviewLinkController extends Controller
 {
     public function index(Request $request, string $content, PreviewLinkList $links): JsonResponse

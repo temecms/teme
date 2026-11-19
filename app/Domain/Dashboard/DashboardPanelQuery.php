@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What fills one dashboard panel: one bounded query, on an index made for
+ * it, that reads only items of the types it is given.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard;
@@ -7,10 +16,6 @@ namespace App\Domain\Dashboard;
 use App\Domain\Types\ContentType;
 use App\Models\User;
 
-/**
- * What fills one dashboard panel: one bounded query, on an index made for
- * it, that reads only items of the types it is given.
- */
 interface DashboardPanelQuery
 {
     /**

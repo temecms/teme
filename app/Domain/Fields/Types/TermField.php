@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A reference to a term, stored as its ID, never its name or slug, so it
+ * survives a rename (rule 9); only a term of a hierarchical taxonomy, as a
+ * primary category is (I-295).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -14,11 +24,6 @@ use App\Domain\Site\ListingViews;
 use App\Domain\Site\ViewModels\TermLink;
 use Illuminate\Support\Facades\DB;
 
-/**
- * A reference to a term, stored as its ID, never its name or slug, so it
- * survives a rename (rule 9); only a term of a hierarchical taxonomy, as a
- * primary category is (I-295).
- */
 final class TermField implements FieldType
 {
     public function name(): string

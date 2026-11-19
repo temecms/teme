@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A term's version in another language (I-3360, D13): found through the
+ * terms' translation group, or made as a copy in that language, parent
+ * first, linked into the source term's group (minted on it when it has
+ * none), through the code CreateTerm writes with. Call it inside an
+ * Operation's perform(), after the languages' lock and any content row's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy;
@@ -9,13 +21,6 @@ use App\Domain\Languages\TranslationGroups;
 use App\Domain\Taxonomy\Models\Term;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * A term's version in another language (I-3360, D13): found through the
- * terms' translation group, or made as a copy in that language, parent
- * first, linked into the source term's group (minted on it when it has
- * none), through the code CreateTerm writes with. Call it inside an
- * Operation's perform(), after the languages' lock and any content row's.
- */
 final class TermSiblings
 {
     /**

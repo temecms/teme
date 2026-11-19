@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Contents\Tree;
-
 /**
  * The words for moving the pages under a page (I-3363): the save's answer,
  * a page kept at its old address, and the background move's label,
  * progress and closing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Contents\Tree;
+
 final class SubtreeWords
 {
     /** The most kept pages a closing names. */

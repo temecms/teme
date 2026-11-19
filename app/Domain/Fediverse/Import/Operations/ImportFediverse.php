@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Writes what the WordPress ActivityPub plugin had (docs/plans/fediverse-import.md):
+ * its accounts, each at its old address with its key pair, never replaced
+ * once written; its settings and switch; its followers, replaced on every
+ * run; and the addresses of the posts and replies it federated. The private
+ * key is encrypted as it is stored, and never put in the map, a message or a log.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Import\Operations;
@@ -35,13 +47,6 @@ use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * Writes what the WordPress ActivityPub plugin had (docs/plans/fediverse-import.md):
- * its accounts, each at its old address with its key pair, never replaced
- * once written; its settings and switch; its followers, replaced on every
- * run; and the addresses of the posts and replies it federated. The private
- * key is encrypted as it is stored, and never put in the map, a message or a log.
- */
 final class ImportFediverse extends BaseOperation
 {
     use AuthorizesImports;

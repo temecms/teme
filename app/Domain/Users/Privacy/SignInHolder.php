@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * How a person signs in: their open sessions and any password reset they
+ * asked for. Exported as counts and dates, never a token or a session's
+ * contents; erased by ending the sessions and deleting the reset.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Privacy;
@@ -14,11 +24,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * How a person signs in: their open sessions and any password reset they
- * asked for. Exported as counts and dates, never a token or a session's
- * contents; erased by ending the sessions and deleting the reset.
- */
 final class SignInHolder implements PersonalDataHolder
 {
     public function key(): string

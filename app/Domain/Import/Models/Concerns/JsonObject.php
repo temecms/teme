@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A JSONB column that must hold an object: an empty array is written as
+ * {}, never [], which its CHECK would refuse (.ai/rules/models.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Models\Concerns;
@@ -7,10 +16,6 @@ namespace App\Domain\Import\Models\Concerns;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use stdClass;
 
-/**
- * A JSONB column that must hold an object: an empty array is written as
- * {}, never [], which its CHECK would refuse (.ai/rules/models.md).
- */
 trait JsonObject
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The `reading` settings group: how many items a listing page shows, and
+ * which types the home page and the main feed list (I-3298), offered from
+ * the public types with an archive and built again when the types change.
+ * Its page also draws the addresses group's Home page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -10,12 +21,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * The `reading` settings group: how many items a listing page shows, and
- * which types the home page and the main feed list (I-3298), offered from
- * the public types with an archive and built again when the types change.
- * Its page also draws the addresses group's Home page.
- */
 final class ReadingSettingsGroup
 {
     public static function build(ContentTypeRegistry $types): SettingsGroup

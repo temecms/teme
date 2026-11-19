@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Reads a plugin's editor panel for one item (docs/proposals/plugin-sockets-3.md,
+ * B4): view() under 250 ms, each suggestion checked against the item and
+ * dropped with a recorded fault when it fails, every value plain text. A
+ * view that throws, runs over or answers wrongly is recorded under the
+ * plugin and the panel says it couldn't be shown; its jobs still show.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
@@ -15,13 +27,6 @@ use Teme\Contracts\Editor\EditorPanelContext;
 use Teme\Contracts\Editor\PanelView;
 use Throwable;
 
-/**
- * Reads a plugin's editor panel for one item (docs/proposals/plugin-sockets-3.md,
- * B4): view() under 250 ms, each suggestion checked against the item and
- * dropped with a recorded fault when it fails, every value plain text. A
- * view that throws, runs over or answers wrongly is recorded under the
- * plugin and the panel says it couldn't be shown; its jobs still show.
- */
 final readonly class PanelReads
 {
     public const int CALL_BUDGET_MS = 250;

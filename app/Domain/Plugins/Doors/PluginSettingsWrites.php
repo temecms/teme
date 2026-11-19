@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's door to its own settings group: only for the person its work
+ * runs for, never the operator, through WritePluginSettings
+ * (docs/proposals/plugin-sockets-1.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -11,11 +21,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 
-/**
- * A plugin's door to its own settings group: only for the person its work
- * runs for, never the operator, through WritePluginSettings
- * (docs/proposals/plugin-sockets-1.md).
- */
 final readonly class PluginSettingsWrites implements PluginSettingsWriter
 {
     public function __construct(private string $code) {}

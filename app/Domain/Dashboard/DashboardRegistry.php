@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Every panel the Home screen can show, as the menu is a registry of
+ * entries: core registers its panels, and nothing names them anywhere else.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard;
 
 use InvalidArgumentException;
 
-/**
- * Every panel the Home screen can show, as the menu is a registry of
- * entries: core registers its panels, and nothing names them anywhere else.
- */
 final class DashboardRegistry
 {
     /** @var array<string, DashboardPanel> */

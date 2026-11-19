@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * A post address pattern made of fixed text and tokens, such as `/{year}/{month}/{slug}/` (I-393).
+ * Parsed once, it renders any post's address and says whether addresses end in a slash.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
 
 use InvalidArgumentException;
 
-/**
- * A post address pattern made of fixed text and tokens, such as `/{year}/{month}/{slug}/` (I-393).
- * Parsed once, it renders any post's address and says whether addresses end in a slash.
- */
 final readonly class AddressPattern
 {
     public const string POST_NAME = '/{slug}/';

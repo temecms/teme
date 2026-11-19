@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Feeds;
-
 /**
  * Makes the addresses in a feed absolute from the site's own address as the
  * request names it, when the feed is drawn and never before (rule 9): a
  * feed reader has no page to resolve a relative address against. It holds
  * nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Feeds;
+
 final class FeedUrls
 {
     /**

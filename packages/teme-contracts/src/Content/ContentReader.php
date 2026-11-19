@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Reads the site's content for a plugin granted content.read: published items
+ * for anyone, and drafts and the queue of unpublished items for a person who
+ * may edit them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

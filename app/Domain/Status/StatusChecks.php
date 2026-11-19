@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Every registered status check, with who added it, every banner a person
+ * may act on, and the one they see first: the highest-priority banner among
+ * the checks they may act on (I-221).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status;
 
 use App\Models\User;
 
-/**
- * Every registered status check, with who added it, every banner a person
- * may act on, and the one they see first: the highest-priority banner among
- * the checks they may act on (I-221).
- */
 final class StatusChecks
 {
     /** @var list<array{check: class-string<StatusCheck>|StatusCheck, owner: string}> */
@@ -58,6 +63,8 @@ final class StatusChecks
      * first, and among equals, in the order the checks were registered.
      *
      * @return list<StatusBanner>
+     *
+     * @since 0.8.0-alpha.1
      */
     public function bannersFor(User $user): array
     {

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A catch-up's list of the plugins' records WordPress no longer has
+ * (I-345): each list read again a page at a time and compared with the
+ * map. Nothing is deleted, in Teme or in a plugin's own tables; the plugin
+ * keeps what it has. Forty seconds a job.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -15,12 +26,6 @@ use App\Domain\Import\Source\SourceRefused;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Import\WordPressRecord;
 
-/**
- * A catch-up's list of the plugins' records WordPress no longer has
- * (I-345): each list read again a page at a time and compared with the
- * map. Nothing is deleted, in Teme or in a plugin's own tables; the plugin
- * keeps what it has. Forty seconds a job.
- */
 final readonly class PluginDataGoneStep implements StepPhase
 {
     /** Seconds a job reads before it hands on to the next. */

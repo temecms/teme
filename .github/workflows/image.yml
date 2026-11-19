@@ -33,12 +33,29 @@ defaults:
     shell: bash
 
 jobs:
+  # A version tag never holds `@since next`: the release step stamps every
+  # one with the version first (docs/architecture/coding-standards.md). A
+  # tag that still holds one stops here, before any image is published.
+  since:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check that the release step stamped every @since next
+        run: php scripts/file-headers.php check-release
+
   # A version tag on a commit whose image is already built, scanned and run
   # gives that image's layers its version: every layer is what was proved,
   # with one ENV and one label added, checked before the push. The release's
   # digest differs from the scanned sha- digest, which the scan and the SBOM
   # name (I-3264).
   existing:
+    needs: since
     if: github.ref_type == 'tag'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -85,8 +102,8 @@ jobs:
           skopeo logout ghcr.io
 
   image:
-    needs: existing
-    if: "!cancelled() && needs.existing.result != 'failure' && needs.existing.outputs.promoted != 'true'"
+    needs: [since, existing]
+    if: "!cancelled() && needs.since.result != 'failure' && needs.existing.result != 'failure' && needs.existing.outputs.promoted != 'true'"
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:

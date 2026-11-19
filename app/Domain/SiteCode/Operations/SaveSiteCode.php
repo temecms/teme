@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Adds an entry of site code, or changes one: its name, placement, code,
+ * switch and the hosts it also connects to (I-3375), the code kept exactly as
+ * it came (I-865). It asks for the password
+ * again, is logged with its before and after, and purges every stored page
+ * when pages draw it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Operations;
@@ -15,13 +27,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Adds an entry of site code, or changes one: its name, placement, code,
- * switch and the hosts it also connects to (I-3375), the code kept exactly as
- * it came (I-865). It asks for the password
- * again, is logged with its before and after, and purges every stored page
- * when pages draw it.
- */
 final class SaveSiteCode extends BaseOperation implements RequiresElevation
 {
     use ChangesSiteCode;

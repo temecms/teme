@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A queue worker's heartbeat (I-3112): after each job it finishes, done or
+ * failed, the queue it took the job from has a worker. A job run without
+ * one (sync, deferred or in the background) proves no worker runs.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
@@ -8,11 +18,6 @@ use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Jobs\SyncJob;
 
-/**
- * A queue worker's heartbeat (I-3112): after each job it finishes, done or
- * failed, the queue it took the job from has a worker. A job run without
- * one (sync, deferred or in the background) proves no worker runs.
- */
 final readonly class RecordQueueHeartbeat
 {
     public function __construct(private Heartbeats $heartbeats) {}

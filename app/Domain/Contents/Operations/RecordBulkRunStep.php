@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Adds one step of a run to the run (I-143): the rows it handled, what it skipped by reason, the first refusal's words, and where the next step starts; unless another step has already moved the run on from where this one read. Only the run's own person, as its steps run, records it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -14,9 +22,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds one step of a run to the run (I-143): the rows it handled, what it skipped by reason, the first refusal's words, and where the next step starts; unless another step has already moved the run on from where this one read. Only the run's own person, as its steps run, records it.
- */
 final class RecordBulkRunStep extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

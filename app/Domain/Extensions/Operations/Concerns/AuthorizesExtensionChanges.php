@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who may ask the installer for a change, and keep the sources and uploads it reads: a person who holds
+ * extensions.install, or the operator at the server's shell.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations\Concerns;
@@ -10,10 +19,6 @@ use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Who may ask the installer for a change, and keep the sources and uploads it reads: a person who holds
- * extensions.install, or the operator at the server's shell.
- */
 trait AuthorizesExtensionChanges
 {
     protected function authorize(OperationInput $input): void

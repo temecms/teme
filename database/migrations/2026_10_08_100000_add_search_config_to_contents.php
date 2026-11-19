@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The text-search configuration each item's search_tsv was built with
+ * (I-435), so a change of site language knows which rows to rebuild. Rows
+ * already searchable were built with `english`, config/search.php's default,
+ * which the site language replaces; a site that set another dictionary sets
+ * its language afterwards, which rebuilds search.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
@@ -7,13 +19,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The text-search configuration each item's search_tsv was built with
- * (I-435), so a change of site language knows which rows to rebuild. Rows
- * already searchable were built with `english`, config/search.php's default,
- * which the site language replaces; a site that set another dictionary sets
- * its language afterwards, which rebuilds search.
- */
 return new class extends Migration
 {
     public function up(): void

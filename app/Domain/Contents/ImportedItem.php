@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A WordPress post or page as the import decided it should be here
+ * (I-332): its type, words, status, dates, author, terms, fields, address
+ * and old addresses, for ImportContent or UpdateImportedContent to write.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -8,11 +18,6 @@ use App\Domain\Comments\Discussion;
 use Carbon\CarbonImmutable;
 use SensitiveParameter;
 
-/**
- * A WordPress post or page as the import decided it should be here
- * (I-332): its type, words, status, dates, author, terms, fields, address
- * and old addresses, for ImportContent or UpdateImportedContent to write.
- */
 final readonly class ImportedItem
 {
     /**

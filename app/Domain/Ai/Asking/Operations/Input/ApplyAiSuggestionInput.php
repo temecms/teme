@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A suggestion a person chose to use: the request's id; for a text block,
+ * the revision the editor's work is based on, the block's path now, and the
+ * block as the editor would have it after using the suggestion; and who is
+ * using it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * A suggestion a person chose to use: the request's id; for a text block,
- * the revision the editor's work is based on, the block's path now, and the
- * block as the editor would have it after using the suggestion; and who is
- * using it.
- */
 final readonly class ApplyAiSuggestionInput implements OperationInput
 {
     /**

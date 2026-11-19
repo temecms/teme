@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Update to … and Roll back on Tools › Updates (I-3326): asks RequestTemeUpdate to record the request,
+ * which asks the password again, and says when the updater starts it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Updates;
@@ -14,10 +23,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Update to … and Roll back on Tools › Updates (I-3326): asks RequestTemeUpdate to record the request,
- * which asks the password again, and says when the updater starts it.
- */
 final class RequestUpdateController extends Controller
 {
     public function __invoke(Request $request, RequestTemeUpdate $update): RedirectResponse

@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Verifies a signed request from another server (proposal, Settled 5),
+ * draft-cavage or RFC 9421 by its headers. Draft-cavage: the Signature
+ * header parses and covers the request target, host, date and, for a POST,
+ * digest. RFC 9421: Signature-Input names the method, the target (or the
+ * authority and path) and, for a POST, content-digest, created within the
+ * window. Either way the digest is the body's, the key belongs to the
+ * activity's actor, and the signature opens with that key. A key that no
+ * longer matches is fetched again, at most once in five minutes.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Signatures;
@@ -16,16 +31,6 @@ use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Routes\PublicRequest;
 use Throwable;
 
-/**
- * Verifies a signed request from another server (proposal, Settled 5),
- * draft-cavage or RFC 9421 by its headers. Draft-cavage: the Signature
- * header parses and covers the request target, host, date and, for a POST,
- * digest. RFC 9421: Signature-Input names the method, the target (or the
- * authority and path) and, for a POST, content-digest, created within the
- * window. Either way the digest is the body's, the key belongs to the
- * activity's actor, and the signature opens with that key. A key that no
- * longer matches is fetched again, at most once in five minutes.
- */
 final readonly class Verifier
 {
     /** How far the Date header may be from now, either way (Mastodon's 12 hours). */

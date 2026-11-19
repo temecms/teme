@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai\Providers;
-
 /**
  * Anthropic (I-315): its key, label, place in Settings › AI, its laravel/ai
  * driver, where Check key asks, and how it is told to reason as little as it
  * can.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai\Providers;
+
 final class AnthropicProvider extends LibraryProvider
 {
     public function key(): string

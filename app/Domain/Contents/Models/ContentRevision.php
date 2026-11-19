@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One saved version of a content item's title, document and fields. A revision
+ * is never edited: saving writes a new one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Models;
@@ -10,9 +19,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One saved version of a content item's title, document and fields. A revision
- * is never edited: saving writes a new one.
- *
  * @property array<string, mixed> $document
  * @property array<string, mixed> $fields
  * @property list<string> $terms

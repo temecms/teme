@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The hashes of every plugin's approved inline scripts, read once and kept
+ * in the cache until a plugin script Operation forgets them after its
+ * commit, as SiteCodeEntries are. Plain arrays of text, so the cache table
+ * holds nothing I-261 doesn't allow.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Scripts;
@@ -7,12 +18,6 @@ namespace App\Domain\Site\Insertions\Scripts;
 use App\Domain\Site\Policy\PagePolicy;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * The hashes of every plugin's approved inline scripts, read once and kept
- * in the cache until a plugin script Operation forgets them after its
- * commit, as SiteCodeEntries are. Plain arrays of text, so the cache table
- * holds nothing I-261 doesn't allow.
- */
 final class ApprovedScripts
 {
     public const string CACHE_KEY = 'plugin-scripts:approved:1';

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The coarse place a listener takes among a hook's listeners: every early one
+ * runs before every normal one, and every normal one before every late one,
+ * whatever their plugins name.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;
