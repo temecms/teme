@@ -293,37 +293,35 @@ function cbSavedTerms(Content $item): array
 }
 
 /**
- * The editor of this item, settled, with focus moved by Tab from the Tags section's header to its button.
+ * The editor of this item, settled, with focus in the side panel's tag input
+ * ("Add a tag and press Enter"), which took the combobox's place there.
  */
 function cbEditorAtTags(User $person, Content $item): mixed
 {
     $page = cmNavigate(cmSignIn($person)->resize(1280, 900), "/admin/content/{$item->id}/edit");
     cmEditorSettled($page);
 
-    $page->page()->locator('button:has(h2:text-is("Tags"))')->focus();
-    cbPress($page, 'Tab');
+    $page->page()->locator('[data-test="rail-terms-tag"] input')->focus();
 
-    return cmWaitUntil($page, "document.activeElement?.dataset.slot === 'combobox-trigger'");
+    return cmWaitUntil($page, "document.activeElement?.placeholder === 'Add a tag and press Enter'");
 }
 
-it('finds and chooses a tag in the editor with the keyboard alone, and keeps it on save', function (): void {
+/** The editor's chosen tags, as their pills read. */
+function cbEditorTags(): string
+{
+    return "Array.from(document.querySelectorAll('[data-test=\"rail-terms-tag\"] [data-slot=\"status-pill\"]')).map((tag) => tag.textContent.trim()).join(',')";
+}
+
+it('chooses an existing tag in the editor by typing its name and Enter, and keeps it on save', function (): void {
     $harbour = taxonomyTerm('tag', 'Harbour');
     $item = lifecycleDraft($this->admin, 'Ferry notes');
 
     $page = cbEditorAtTags($this->admin, $item);
 
-    cbType($page, 'harb');
-    shellSettled($page, '[data-slot="popover-content"]');
-    cmWaitUntil($page, "document.activeElement?.getAttribute('role') === 'combobox' && document.activeElement.value === 'harb'");
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Harbour,Create “harb”'");
-
-    // Two options, Harbour and Create: the arrow highlights Harbour, Enter ticks it.
-    cbPress($page, 'ArrowDown');
+    cbType($page, 'harbour');
     cbPress($page, 'Enter');
-    cmWaitUntil($page, "document.querySelector('[role=\"option\"]')?.getAttribute('aria-checked') === 'true'");
-    cbPress($page, 'Escape');
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"popover-content\"]') === null");
-    cmWaitUntil($page, "Array.from(document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]')).map((tag) => tag.textContent.trim()).join(',') === 'Harbour' && document.querySelector('[data-slot=\"status-pill-remove\"][aria-label=\"Remove Harbour\"]') !== null");
+    cmWaitUntil($page, cbEditorTags()." === 'Harbour' && document.querySelector('[data-slot=\"status-pill-remove\"][aria-label=\"Remove the tag Harbour\"]') !== null");
+    expect(DB::table('terms')->where('taxonomy', 'tag')->count())->toBe(1);
 
     $page->keys('.teme-prose', 'Control+s');
     cmWaitUntil($page, "document.querySelector('[data-test=\"save-state\"]')?.dataset.state === 'saved'");
@@ -337,13 +335,8 @@ it('creates a tag by typing its name, for someone who may create tags, and keeps
     $page = cbEditorAtTags($this->admin, $item);
 
     cbType($page, 'Lighthouse keepers');
-    shellSettled($page, '[data-slot="popover-content"]');
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Create “Lighthouse keepers”'");
-
-    // The only option: Enter chooses it.
     cbPress($page, 'Enter');
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"popover-content\"]') === null");
-    cmWaitUntil($page, "Array.from(document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]')).map((tag) => tag.textContent.trim()).join(',') === 'Lighthouse keepers'");
+    cmWaitUntil($page, cbEditorTags()." === 'Lighthouse keepers'");
 
     $page->keys('.teme-prose', 'Control+s');
     cmWaitUntil($page, "document.querySelector('[data-test=\"save-state\"]')?.dataset.state === 'saved'");
@@ -354,37 +347,18 @@ it('creates a tag by typing its name, for someone who may create tags, and keeps
         ->and(cbSavedTerms($item))->toContain($created);
 });
 
-it('offers no Create to someone who may not create tags', function (): void {
+it('creates no tag for someone who may not create tags, and says there is none of that name', function (): void {
     $author = User::factory()->create(['name' => 'Bea Author'])->assignRole('author');
     $item = lifecycleDraft($author, 'Ferry notes');
 
     $page = cbEditorAtTags($author, $item);
 
     cbType($page, 'Lighthouse keepers');
-    shellSettled($page, '[data-slot="popover-content"]');
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && document.querySelector('[data-slot=\"combobox-empty\"]')?.textContent === 'Nothing matches.'");
-
-    $page->assertScript("document.querySelectorAll('[role=\"option\"]').length === 0");
-    expect(DB::table('terms')->where('name', 'Lighthouse keepers')->exists())->toBeFalse();
-});
-
-it('ticks nothing when Enter is pressed while a new search is still loading', function (): void {
-    taxonomyTerm('tag', 'Harbour');
-    $item = lifecycleDraft($this->admin, 'Ferry notes');
-
-    $page = cbEditorAtTags($this->admin, $item);
-
-    cbType($page, 'harbour');
-    shellSettled($page, '[data-slot="popover-content"]');
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Harbour'");
-
-    // A new search starts; until it answers, the one result shown is the last search's.
-    cbType($page, 's');
     cbPress($page, 'Enter');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"rail-terms-tag\"] [role=\"alert\"]')?.textContent === 'There is no tag “Lighthouse keepers”.'");
 
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && document.activeElement?.value === 'harbours'");
-    $page->assertScript("document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]').length === 0")
-        ->assertScript("document.querySelectorAll('[role=\"option\"][aria-checked=\"true\"]').length === 0");
+    $page->assertScript(cbEditorTags()." === ''");
+    expect(DB::table('terms')->where('name', 'Lighthouse keepers')->exists())->toBeFalse();
 });
 
 it('removes nothing when Backspace is pressed on the closed button, and Backspace on a focused tag still removes it', function (): void {
@@ -437,17 +411,14 @@ it('shows the server\'s refusal under the field when Create is refused, and adds
 
     $page = cbEditorAtTags($this->admin, $item);
 
-    cbType($page, 'Lighthouse keepers');
-    shellSettled($page, '[data-slot="popover-content"]');
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Create “Lighthouse keepers”'");
-
-    // Between the offer and the choice, the person loses the right to manage terms.
+    // Between opening the editor and pressing Enter, the person loses the right to manage terms.
     $this->admin->syncRoles(['author']);
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
+    cbType($page, 'Lighthouse keepers');
     cbPress($page, 'Enter');
-    cmWaitUntil($page, "document.querySelector('[role=\"alert\"]')?.textContent === 'This action is unauthorized.'");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"rail-terms-tag\"] [role=\"alert\"]')?.textContent === 'This action is unauthorized.'");
 
-    $page->assertScript("document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]').length === 0");
+    $page->assertScript(cbEditorTags()." === ''");
     expect(DB::table('terms')->where('name', 'Lighthouse keepers')->exists())->toBeFalse();
 });

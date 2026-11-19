@@ -35,17 +35,17 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('content.edit', ['content' => $this->harbour->id]))->assertOk();
 });
 
-it('sets Discussion from the editor\'s Publish panel at once, its meaning under it, and keeps it after a reload (I-687)', function (): void {
+it('sets Discussion from the editor\'s Publish section at once, and keeps it after a reload (I-687)', function (): void {
     cmSignIn($this->editor)
         ->navigate("/admin/content/{$this->harbour->id}/edit")
-        ->assertSee('Readers see the comments and can add one.')
+        ->assertSeeIn('#editor-discussion', 'Open')
         ->click('#editor-discussion')
         ->click('[role="option"] >> text="Closed"')
-        ->assertSee('Readers see the comments but can’t add one.')
+        ->assertSeeIn('#editor-discussion', 'Closed')
         // The save is its own request; let it land before reading the page again.
         ->waitForEvent('networkidle')
         ->navigate("/admin/content/{$this->harbour->id}/edit")
-        ->assertSee('Readers see the comments but can’t add one.');
+        ->assertSeeIn('#editor-discussion', 'Closed');
 
     expect(($this->discussionOf)($this->harbour))->toBe(Discussion::Closed);
 });

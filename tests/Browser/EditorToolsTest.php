@@ -55,7 +55,7 @@ beforeEach(function (): void {
     $this->etlFocused = "(document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent ?? '')";
 
     // The bar's tools in order, by their names, Tools last; and Tools' rows by their names.
-    $this->etlBar = "Array.from(document.querySelectorAll('header [data-slot=\"editor-tools\"] button'), (button) => button.getAttribute('aria-label') ?? button.textContent.trim().split(' ')[0])";
+    $this->etlBar = "Array.from(document.querySelectorAll('header [data-slot=\"editor-tools\"] [role=\"group\"]:not([aria-label=\"View\"]) button'), (button) => button.getAttribute('aria-label') ?? button.textContent.trim().split(' ')[0])";
     $this->etlRows = "Array.from(document.querySelectorAll('[data-slot=\"tool-row\"] [data-slot=\"tool-name\"]'), (button) => button.textContent.trim())";
     $this->etlTools = 'header [data-test="editor-tools"]';
 

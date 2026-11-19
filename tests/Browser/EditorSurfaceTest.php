@@ -111,15 +111,15 @@ it('shows Title\'s and Excerpt\'s labels only while they are focused, and keeps 
     $page->assertScript(($this->esfLabelShown)('editor-title'), false);
 });
 
-it('counts words, characters and reading time under the body as it is typed', function (): void {
+it('counts words, characters and reading time under the body as it is typed, each number first', function (): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), "/admin/content/{$this->empty->id}/edit"));
 
     $page->type('.teme-prose', 'One two three four five six seven eight nine ten');
 
-    cmWaitUntil($page, "(document.querySelector('[data-slot=\"editor-body\"] [data-test=\"body-counts\"]')?.innerText ?? '').includes('Words\\n10') || (document.querySelector('[data-slot=\"editor-body\"] [data-test=\"body-counts\"] dd')?.textContent === '10')");
-    $page->assertSeeIn('[data-test="body-counts"]', 'Characters')
-        ->assertSeeIn('[data-test="body-counts"]', 'Reading time')
-        ->assertSeeIn('[data-test="body-counts"]', '1 min');
+    cmWaitUntil($page, "(document.querySelector('[data-slot=\"editor-body\"] [data-test=\"body-counts\"]')?.innerText ?? '').includes('10 words')");
+    $page->assertSeeIn('[data-test="body-counts"]', '48 characters')
+        ->assertSeeIn('[data-test="body-counts"]', '1 min read')
+        ->assertScript("[...document.querySelectorAll('[data-test=\"body-counts\"] strong')].map((number) => number.textContent).join('|')", '10|48|1');
 });
 
 it('keeps paragraphs at the reading measure and figures at the column\'s width', function (): void {
@@ -286,7 +286,7 @@ it('passes axe in light and dark with every target 24 pixels or more', function 
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('compares two revisions on the editor\'s page, with added and removed marked in words as well as color', function (): void {
+it('compares two revisions with added and removed marked in words as well as color', function (): void {
     $before = (string) $this->draft->working_revision_id;
     $after = docSave($this->draft, $this->editor, docWith(
         docText('The ferry leaves at ten.'),
@@ -296,11 +296,11 @@ it('compares two revisions on the editor\'s page, with added and removed marked 
     $this->actingAs($this->editor)->get($compare)->assertOk();
 
     $page = cmNavigate(cmSignIn($this->editor), $compare);
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"editor-shell\"] ol li') !== null");
+    cmWaitUntil($page, "document.querySelector('[aria-label=\"Changes\"] li[data-kind]') !== null");
 
-    // Every change says what it is in words; a change marked by color alone would say nothing.
-    $page->assertScript("(() => { const changes = Array.from(document.querySelectorAll('[data-slot=\"editor-shell\"] ol > li[data-kind]')).filter((item) => item.dataset.kind !== 'same'); return changes.length > 0 && changes.every((item) => /Added|Removed|Changed|Moved/.test(item.innerText)); })()")
-        ->assertScript("document.querySelector('[data-slot=\"editor-shell\"] aside') === null");
+    // Every change says what it is in words: struck or marked words, or the block's type with what happened to it.
+    $page->assertScript("(() => { const changes = Array.from(document.querySelectorAll('[aria-label=\"Changes\"] li[data-kind]')); return changes.length > 0 && changes.every((item) => item.querySelector('ins, del') !== null || /ADDED|REMOVED|MOVED/.test(item.innerText)); })()")
+        ->assertScript("document.querySelector('[data-slot=\"editor-shell\"]') === null");
 });
 
 it('opens the rail over the writing from the top bar on a tablet, and selecting a card does not open it', function (): void {
@@ -314,6 +314,6 @@ it('opens the rail over the writing from the top bar on a tablet, and selecting 
     $page->assertScript("document.querySelector('[data-slot=\"sheet-content\"]') === null");
 
     // From the top bar, the rail is a sheet over the writing.
-    $page->click('[data-slot="editor-shell"] > header [aria-label="Show settings"]');
+    $page->click('[data-test="rail-toggle"]');
     cmWaitUntil($page, "document.querySelector('[data-slot=\"sheet-content\"]') !== null");
 });

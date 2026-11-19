@@ -68,6 +68,20 @@ it('keeps a space between a removed word and the word that replaced it, so the w
         ->and($after)->not->toContain('</ins><del>');
 });
 
+it('marks each side with its own words, the removed in the before and the added in the after, and counts them', function (): void {
+    $blocks = app(DocumentDiff::class)->between(
+        docWith(docText('Tickets are hot today.')),
+        docWith(docText('Tickets are four pounds today.'), docText('Bring a coat.')),
+    );
+
+    expect($blocks[0]->markedBefore)->toBe('Tickets are <del>hot</del> today.')
+        ->and($blocks[0]->markedAfter)->toBe('Tickets are <ins>four pounds</ins> today.')
+        ->and([$blocks[0]->added, $blocks[0]->removed])->toBe([2, 1])
+        ->and($blocks[0]->label)->toBeNull()
+        ->and($blocks[1]->kind)->toBe('added')
+        ->and([$blocks[1]->added, $blocks[1]->removed])->toBe([3, 0]);
+});
+
 it('escapes the text it marks up', function (): void {
     $blocks = app(DocumentDiff::class)->between(
         docWith(docText('Plain.')),
@@ -91,6 +105,7 @@ it('describes a card that changed without pretending its attributes are prose', 
         ->and($blocks[0]->kind)->toBe('changed')
         ->and($blocks[0]->node)->toBe('image')
         ->and($blocks[0]->after)->toBe('Image — alt text changed')
+        ->and($blocks[0]->label)->toBe('Image')
         ->and($blocks[0]->after)->not->toContain('mediaId');
 });
 
@@ -121,7 +136,11 @@ it('compares the working revision with the published one by default', function (
             ->where('from.id', $published)
             ->where('to.id', $working)
             ->has('blocks', 1)
-            ->where('blocks.0.kind', 'changed'));
+            ->where('blocks.0.kind', 'changed')
+            ->where('type', ['plural' => 'Posts', 'segment' => 'posts'])
+            ->has('versions.rows', 3)
+            ->where('versions.rows.0.id', $working)
+            ->where('versions.older', null));
 });
 
 it('refuses the comparison to someone who may not edit the article, with a 403', function (): void {
@@ -260,9 +279,12 @@ it('shows a reviewer the field and category changes of a submitted update agains
 
 it('draws the field and category changes above the body diff, and links a review to it', function (): void {
     $page = uiComponent('pages/content/compare.tsx');
+    $diff = uiComponent('components/editor/diff-view.tsx');
 
+    // The field changes go into the diff's panel, drawn there before the blocks.
     expect($page)->toContain('<MetaChanges')
-        ->and(strpos($page, '<MetaChanges'))->toBeLessThan(strpos($page, '<DiffView'))
+        ->and($page)->toContain('meta={')
+        ->and(strpos($diff, '{meta}'))->toBeLessThan(strpos($diff, '<BlockPair'))
         ->and(uiComponent('components/editor/editor-rail.tsx'))->toContain('Compare with the published version');
 });
 

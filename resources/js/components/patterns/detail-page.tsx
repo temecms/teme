@@ -10,7 +10,8 @@ const COLUMNS = {
 /**
  * A detail page with a side panel (docs/architecture/design-system.md,
  * section 5): the page header, then the content beside a panel that stays
- * in view as the page scrolls; under 1024px the panel goes under.
+ * in view as the page scrolls; under 1024px the panel goes under. `back`,
+ * a way back to where the page was opened from, sits above the title.
  */
 export function DetailPage({
     title,
@@ -19,6 +20,7 @@ export function DetailPage({
     panel,
     panelLabel,
     titleAs,
+    back,
     children,
 }: {
     title: string;
@@ -28,10 +30,13 @@ export function DetailPage({
     /** The side panel's name, for its landmark. */
     panelLabel: string;
     titleAs?: 'h1' | 'div';
+    /** A link back, above the title: "← Back to the editor". */
+    back?: ReactNode;
     children: ReactNode;
 }) {
     return (
         <Page>
+            {back !== undefined && <div className="mt-2">{back}</div>}
             <PageHeader
                 title={title}
                 description={description}

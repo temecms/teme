@@ -94,8 +94,11 @@ export function PluginTab({
     };
 
     return (
-        <div className="grid gap-3" data-test={`search-tab-${tab.code}`}>
-            <div className="grid gap-1">
+        <div
+            className="divide-line grid grid-cols-1 divide-y"
+            data-test={`search-tab-${tab.code}`}
+        >
+            <div className="grid gap-1 px-6 py-5">
                 <PluginMark name={tab.plugin} />
                 {tab.description !== '' && (
                     <p className="text-ink-2 text-caption">{tab.description}</p>

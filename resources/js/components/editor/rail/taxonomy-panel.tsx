@@ -1,16 +1,30 @@
 import type { ReactNode } from 'react';
-import { TermPicker } from '@/components/term-picker';
 import { TermTreePicker } from '@/components/term-tree-picker';
 import type { EditorSession } from '@/types';
+import { __ } from '@/lib/i18n';
 import { RailSection } from './rail-section';
+import { TagInput } from './tag-input';
 
 export type ChosenTerm = { id: string; name: string; taxonomy: string };
 
+/** The section's title from the taxonomies' names: "Categories and tags". */
+function titleOf(names: string[]): string {
+    const lowered = names.map((name, index) =>
+        index === 0 ? name : name.toLowerCase(),
+    );
+
+    return lowered.length <= 1
+        ? (lowered[0] ?? '')
+        : `${lowered.slice(0, -1).join(', ')} ${__('and')} ${lowered.at(-1)}`;
+}
+
 /**
- * One picker per taxonomy of the article's type, in the type's order: the
- * tree for a hierarchical taxonomy, the tag input for a flat one. It never
- * names a taxonomy, and a type with none draws nothing. The primary category
- * sits under the first hierarchical taxonomy's tree, the one it is chosen from.
+ * The item's taxonomies as one rail section (docs/architecture/design-system.md,
+ * 4.39), "Categories and tags", its summary how many of each are chosen
+ * ("2 · 3"). In the type's order: a hierarchical taxonomy as a ticked list
+ * that scrolls past 176px, with the primary category under the first one; a
+ * flat one as removable pills over "Add a tag and press Enter". A custom
+ * taxonomy follows the same pattern; a type with none draws nothing.
  */
 export function TaxonomyPanel({
     taxonomies,
@@ -30,6 +44,8 @@ export function TaxonomyPanel({
     }
 
     const first = taxonomies.find((taxonomy) => taxonomy.hierarchical)?.key;
+    const mineOf = (key: string) =>
+        chosen.filter((term) => term.taxonomy === key);
 
     // Replaces one taxonomy's choices and keeps the rest in their order.
     const replace = (taxonomy: string, next: ChosenTerm[]) =>
@@ -39,64 +55,61 @@ export function TaxonomyPanel({
         ]);
 
     return (
-        <>
+        <RailSection
+            title={titleOf(taxonomies.map((taxonomy) => taxonomy.plural))}
+            testId="rail-terms"
+            summary={taxonomies
+                .map((taxonomy) => mineOf(taxonomy.key).length)
+                .join(' · ')}
+        >
             {taxonomies.map((taxonomy) => {
-                const mine = chosen.filter(
-                    (term) => term.taxonomy === taxonomy.key,
-                );
+                const mine = mineOf(taxonomy.key);
 
-                return (
-                    <RailSection key={taxonomy.key} title={taxonomy.plural}>
-                        {taxonomy.hierarchical && taxonomy.terms !== null ? (
-                            <TermTreePicker
-                                label={taxonomy.plural}
-                                segment={taxonomy.segment}
-                                terms={taxonomy.terms}
-                                value={mine.map((term) => term.id)}
-                                canAdd={canAdd}
-                                onChange={(ids) =>
-                                    replace(
-                                        taxonomy.key,
-                                        ids.map((id) => ({
-                                            id,
-                                            name:
-                                                taxonomy.terms?.find(
-                                                    (term) => term.id === id,
-                                                )?.name ??
-                                                mine.find(
-                                                    (term) => term.id === id,
-                                                )?.name ??
-                                                '',
-                                            taxonomy: taxonomy.key,
-                                        })),
-                                    )
-                                }
-                            />
-                        ) : (
-                            <TermPicker
-                                taxonomy={taxonomy.key}
-                                singular={taxonomy.singular}
-                                label={taxonomy.plural}
-                                labelHidden
-                                canCreate={taxonomy.canCreate}
-                                segment={taxonomy.segment}
-                                value={mine}
-                                onChange={(next) =>
-                                    replace(
-                                        taxonomy.key,
-                                        next.map((term) => ({
-                                            id: term.id,
-                                            name: term.name,
-                                            taxonomy: taxonomy.key,
-                                        })),
-                                    )
-                                }
-                            />
-                        )}
+                return taxonomy.hierarchical && taxonomy.terms !== null ? (
+                    <div
+                        key={taxonomy.key}
+                        className="grid gap-3"
+                        data-test={`rail-terms-${taxonomy.key}`}
+                    >
+                        <TermTreePicker
+                            label={taxonomy.plural}
+                            labelShown
+                            segment={taxonomy.segment}
+                            terms={taxonomy.terms}
+                            value={mine.map((term) => term.id)}
+                            canAdd={canAdd}
+                            onChange={(ids) =>
+                                replace(
+                                    taxonomy.key,
+                                    ids.map((id) => ({
+                                        id,
+                                        name:
+                                            taxonomy.terms?.find(
+                                                (term) => term.id === id,
+                                            )?.name ??
+                                            mine.find((term) => term.id === id)
+                                                ?.name ??
+                                            '',
+                                        taxonomy: taxonomy.key,
+                                    })),
+                                )
+                            }
+                        />
                         {taxonomy.key === first && primaryCategory}
-                    </RailSection>
+                    </div>
+                ) : (
+                    <TagInput
+                        key={taxonomy.key}
+                        taxonomy={taxonomy.key}
+                        label={taxonomy.plural}
+                        singular={taxonomy.singular}
+                        segment={taxonomy.segment}
+                        canCreate={taxonomy.canCreate}
+                        value={mine}
+                        onChange={(next) => replace(taxonomy.key, next)}
+                    />
                 );
             })}
-        </>
+        </RailSection>
     );
 }

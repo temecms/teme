@@ -18,7 +18,7 @@ it('says where saving stands in words that tell a writer when work isn\'t safe (
         ->not->toContain('Not connected');
 });
 
-it('shows the item\'s state as a chip beside the way back, in the words the Publish panel uses (I-1316)', function (): void {
+it('shows the item\'s state as a status pill after the crumbs in the editor\'s bar (I-1316)', function (): void {
     expect(uiComponent('components/editor/status-chip.tsx'))
         ->toContain("'Published, with unpublished changes'")
         ->toContain("'Published, with an update in review'")
@@ -31,8 +31,9 @@ it('shows the item\'s state as a chip beside the way back, in the words the Publ
         ->and(uiComponent('pages/content/edit.tsx'))
         ->toContain('statusChip={')
         ->toContain('setUnpublished(answer.body.unpublishedChanges)')
+        ->and(uiComponent('components/editor/status-chip.tsx'))->toContain('<StatusPill')
         ->and(uiComponent('components/editor/rail/publish-panel.tsx'))
-        ->toContain('<StatusChip')
+        ->not->toContain('<StatusChip')
         ->not->toContain('function statusLabel')
         ->and(uiComponent('components/editor/editor-rail.tsx'))
         ->not->toContain('function statusLabel');
@@ -58,8 +59,8 @@ it('opens Share as a pane of the rail, which saves before it makes a link (I-131
 
 it('schedules from one Publish row with one date-and-time field on the site\'s clock, and the bar\'s one button follows it (I-1316)', function (): void {
     expect(uiComponent('components/editor/rail/publish-when.tsx'))
-        ->toContain("label: 'Immediately'")
-        ->toContain("label: 'At a set time…'")
+        ->toContain("label: __('Immediately')")
+        ->toContain("label: __('At a set time…')")
         ->toContain("'When you approve it'")
         ->toContain("'After review'")
         ->toContain('Reschedule…')
@@ -75,6 +76,7 @@ it('schedules from one Publish row with one date-and-time field on the site\'s c
         ->toContain("'Schedule update'")
         ->toContain('futureIso(when.at, siteTimezone)')
         ->toContain('Save draft')
+        ->toContain('More publishing choices')
         ->not->toContain('onScheduling')
         ->not->toContain('Later (I-190): the AI panel');
 });
@@ -90,14 +92,14 @@ it('previews the latest saved version in a tab of its own, opened inside the cli
         ->toContain(', opens in a new tab');
 });
 
-it('says the item\'s visibility under a select, offers the author as a select to those who may change it, and links History in words (I-1700)', function (): void {
+it('sets the item\'s visibility with a select whose meaning is its title, offers the author as a select to those who may change it, and links History in words (I-1700)', function (): void {
     expect(uiComponent('components/editor/rail/publish-panel.tsx'))
         ->toContain('id="editor-visibility"')
         ->toContain("public: 'Anyone can read it once it’s published.'")
         ->toContain('id="editor-author"')
-        ->toContain('Changing it changes the published ${noun} at once.')
+        ->not->toContain('Changing it changes the published ${noun} at once.')
         ->toContain("'1 revision'")
-        ->toContain('<dt className="text-ink-2">History</dt>')
+        ->toContain("<Row label={__('History')}>")
         ->not->toContain('<select')
         ->and(uiComponent('pages/content/edit.tsx'))
         ->toContain('ContentEditorController.author(session.id).url')

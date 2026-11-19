@@ -47,10 +47,9 @@ export function PrimaryCategory({
     });
 
     const hint = [
-        `Names this ${noun}’s section above its title and in lists.`,
         seo.addressFollowsCategory
-            ? 'It also sets the category in its address.'
-            : null,
+            ? 'Shown above the headline and used in the address.'
+            : 'Shown above the headline.',
         seo.trail
             ? `Its trail: ${trailOf(taxonomy.terms ?? [], picked?.id ?? null, title).join(' › ')}.`
             : null,
@@ -60,7 +59,7 @@ export function PrimaryCategory({
     ].filter((sentence): sentence is string => sentence !== null);
 
     return (
-        <div className="grid gap-2 pt-3">
+        <div className="grid gap-2">
             <Label htmlFor="editor-primary-category">{field.label}</Label>
             <SelectField
                 id="editor-primary-category"

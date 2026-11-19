@@ -57,7 +57,7 @@ beforeEach(function (): void {
 const FC_ROWS = <<<'JS'
 (() => {
     const rows = {
-        excerpt: '#editor-excerpt', featuredImage: 'section[aria-labelledby="editor-featured-label"]',
+        excerpt: '#editor-excerpt', featuredImage: '[data-test="featured-strip"], #editor-featured-choose',
         seoTitle: '#editor-seo-title', metaDescription: '#editor-seo-description',
         socialTitle: '#editor-social-title', socialDescription: '#editor-social-description',
         noindex: '#editor-seo-noindex', nosnippet: '#editor-nosnippet', maxSnippet: '#editor-max-snippet',

@@ -57,8 +57,8 @@ beforeEach(function (): void {
         cmWaitUntil($page, "document.querySelector('[data-test=\"search-section\"] [role=\"tab\"][aria-selected=\"true\"]')?.textContent.trim() === ".json_encode($name, JSON_THROW_ON_ERROR));
     };
 
-    // The search result's text width, inside its padding.
-    $this->sbxSerpWidth = "(() => { const serp = document.querySelector('[data-test=\"serp\"]'); const style = getComputedStyle(serp); return Math.round(serp.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)); })()";
+    // The search result's width, as the drawing gives it: 600 on a desktop, 400 on a phone.
+    $this->sbxSerpWidth = "Math.round(document.querySelector('[data-test=\"serp\"]').getBoundingClientRect().width)";
 
     // The editor arrived: on a phone the menu is a drawer, so cmEditorSettled's folded menu never comes.
     $this->sbxArrived = fn (mixed $page, int $width): mixed => $width >= 1024
@@ -82,7 +82,7 @@ it('shows Search, Social, Schema and Advanced as tabs, one panel at a time, Sear
 });
 
 it('shows the result at true size, 600 wide on Desktop and 400 on Mobile, with the address only in the preview', function (): void {
-    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit)));
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1600, 900), $this->edit)));
 
     cmWaitUntil($page, "{$this->sbxSerpWidth} === 600");
     $page->click("{$this->sbxBox} [data-slot=\"segmented-item\"]:text-is(\"Mobile\")");
@@ -123,15 +123,18 @@ it('lays the label and guidance in a left column, stacking them on a narrow box'
     'a phone' => [375, false],
 ]);
 
-it('puts the checks after the fields, and a check\'s Fix opens its tab and focuses its field', function (): void {
+it('puts the checks after the Search tab\'s fields, and a check\'s Fix opens its tab and focuses its field', function (): void {
     $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit)));
 
-    $page->assertScript("(() => { const checks = document.querySelector('[data-test=\"search-section\"] [data-test=\"search-checks\"]'); const panels = document.querySelectorAll('[data-test=\"search-section\"] [role=\"tabpanel\"]'); return checks !== null && Array.from(panels).every((panel) => Boolean(panel.compareDocumentPosition(checks) & Node.DOCUMENT_POSITION_FOLLOWING)); })()");
+    $page->assertScript("(() => { const checks = document.querySelector('[data-test=\"search-section\"] [data-test=\"search-checks-toggle\"]'); const fields = ['editor-seo-title', 'editor-seo-description'].map((id) => document.getElementById(id)); return checks !== null && fields.every((field) => Boolean(field.compareDocumentPosition(checks) & Node.DOCUMENT_POSITION_FOLLOWING)); })()");
 
-    // The draft has no description, so its check warns; from Social, it leads back to Search's field.
-    ($this->sbxTab)($page, 'Social');
-    $page->click('[data-test="search-checks"] button:has-text("Description")');
-    cmWaitUntil($page, "document.activeElement?.id === 'editor-seo-description' && document.querySelector('[data-test=\"search-section\"] [role=\"tab\"][aria-selected=\"true\"]').textContent.trim() === 'Search'");
+    // Hidden from search engines on Advanced, the Search engines check warns; its Fix leads back to Advanced's field.
+    $page->click('#editor-advanced');
+    $page->click('#editor-seo-noindex');
+    ($this->sbxTab)($page, 'Search');
+    $page->click('[data-test="search-checks-toggle"]');
+    $page->click('[data-test="search-checks"] button[aria-label="Fix: Search engines"]');
+    cmWaitUntil($page, "document.activeElement?.id === 'editor-seo-noindex' && document.querySelector('[data-test=\"search-section\"] [role=\"tab\"][aria-selected=\"true\"]').textContent.trim() === 'Advanced'");
 });
 
 it('keeps what was typed across tabs and a fold', function (): void {
@@ -216,4 +219,170 @@ it('draws an empty meta description three lines tall, saying the excerpt stands 
     expect($field['value'])->toBe('')
         ->and($field['lines'])->toBeGreaterThanOrEqual(3)
         ->and($field['placeholder'])->toBe('Using the excerpt: Dearer crossings from October.');
+});
+
+it('folds the whole box down to a 52-pixel header strip naming the result\'s title and how many things to check', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit));
+
+    // What the folded box shows: its strip, and none of the preview, the tabs or the fields.
+    $folded = $page->script(<<<'JS'
+        () => {
+            const box = document.querySelector('[data-test="search-section"]');
+            const strip = box.querySelector('[data-test="search-strip"]');
+
+            return {
+                height: Math.round(strip.getBoundingClientRect().height),
+                ground: getComputedStyle(strip).backgroundColor === getComputedStyle(document.documentElement).getPropertyValue('--chrome').trim() || strip.className.includes('bg-chrome'),
+                name: document.getElementById('editor-search-label').textContent.trim(),
+                summary: box.querySelector('[data-test="search-check-line"]').textContent.trim(),
+                serp: box.querySelector('[data-test="serp"]')?.offsetParent ?? null,
+                words: box.innerText,
+            };
+        }
+        JS);
+
+    expect($folded['height'])->toBe(52)
+        ->and($folded['ground'])->toBeTrue()
+        ->and($folded['name'])->toBe('Search and social')
+        ->and($folded['summary'])->toMatch('/^Harbour news .+ · \d+ things to check$/')
+        ->and($folded['serp'])->toBeNull()
+        ->and($folded['words'])->not->toContain('How this')
+        ->not->toContain('Every check is in the side panel.')
+        ->not->toContain('Internal links. None');
+
+    cmOpenSearch($page);
+    cmWaitUntil($page, "document.querySelector('[data-test=\"serp\"]')?.offsetParent !== null");
+});
+
+it('draws underline tabs with icons, a warning triangle on Search while it has warnings', function (): void {
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit)));
+
+    $tabs = $page->script(<<<'JS'
+        () => Array.from(document.querySelectorAll('[data-test="search-section"] [role="tab"]'), (tab) => {
+            const style = getComputedStyle(tab);
+
+            return {
+                name: tab.textContent.trim(),
+                icon: tab.querySelector('svg')?.dataset.icon ?? null,
+                underline: tab.getAttribute('aria-selected') === 'true' ? style.borderBottomWidth === '2px' && style.backgroundColor === 'rgba(0, 0, 0, 0)' : style.borderBottomColor === 'rgba(0, 0, 0, 0)',
+            };
+        })
+        JS);
+
+    expect($tabs)->toBe([
+        ['name' => 'Search', 'icon' => 'warning', 'underline' => true],
+        ['name' => 'Social', 'icon' => 'social', 'underline' => true],
+        ['name' => 'Schema', 'icon' => 'schema', 'underline' => true],
+        ['name' => 'Advanced', 'icon' => 'advanced', 'underline' => true],
+    ]);
+});
+
+it('puts the result preview first on the Search tab: a Desktop and Mobile switch with icons, the site, the path, the cut title and the date', function (): void {
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit)));
+    $page->type('#editor-seo-title', 'Ferry fares to Bonny Island rise fifteen percent from October, the operator says, blaming diesel');
+
+    $preview = $page->script(<<<'JS'
+        () => {
+            const panel = document.querySelector('[data-test="search-section"] [role="tabpanel"]:not([hidden])');
+            const first = panel.querySelector('[data-slot="box-row"]');
+            const serp = document.querySelector('[data-test="serp"]');
+
+            return {
+                first: first.contains(serp),
+                guide: first.querySelector('[data-slot="box-row-guide"]').innerText.replace(/\s+/g, ' ').trim(),
+                icons: Array.from(first.querySelectorAll('[data-slot="segmented-item"]'), (item) => item.querySelector('svg') !== null),
+                mark: serp.querySelector('[data-test="serp-mark"]').textContent.trim(),
+                site: serp.querySelector('[data-test="serp-site"]').textContent.trim(),
+                path: serp.querySelector('[data-test="serp-path"]').textContent.trim(),
+                title: serp.querySelector('[data-test="serp-title"]').textContent.trim(),
+                date: serp.querySelector('[data-test="serp-date"]')?.textContent ?? '',
+                dateFirst: serp.querySelector('[data-test="serp-description"]').firstElementChild?.dataset.test === 'serp-date',
+                font: getComputedStyle(serp.querySelector('[data-test="serp-title"]')).fontFamily === getComputedStyle(document.body).fontFamily,
+            };
+        }
+        JS);
+
+    expect($preview['first'])->toBeTrue()
+        ->and($preview['guide'])->toBe('Result preview Desktop Mobile As a search result may show it.')
+        ->and($preview['icons'])->toBe([true, true])
+        ->and($preview['site'])->not->toBe('')
+        ->and($preview['mark'])->toBe(mb_substr($preview['site'], 0, 1))
+        ->and($preview['path'])->toEndWith('› harbour-news')
+        ->and($preview['path'])->not->toContain('://')
+        ->and($preview['title'])->toEndWith('…')
+        ->and($preview['date'])->toEndWith(' — ')
+        ->and($preview['dateFirst'])->toBeTrue()
+        ->and($preview['font'])->toBeTrue();
+});
+
+it('draws the SEO title as two lines with the template as its placeholder, and one short length line over a bar', function (): void {
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit)));
+
+    $title = fn (): array => $page->script(<<<'JS'
+        () => {
+            const field = document.getElementById('editor-seo-title');
+            const bar = document.querySelector('[data-test="seo-title-bar"] [data-slot="progress-fill"]');
+
+            return {
+                tag: field.tagName,
+                rows: field.rows,
+                placeholder: field.placeholder,
+                count: document.getElementById('editor-seo-title-count').textContent.trim(),
+                warn: bar.className.includes('bg-warn'),
+            };
+        }
+        JS);
+
+    $empty = $title();
+
+    expect($empty['tag'])->toBe('TEXTAREA')
+        ->and($empty['rows'])->toBe(2)
+        ->and($empty['placeholder'])->toStartWith('Using the title template: Harbour news')
+        ->and($empty['count'])->toMatch('/^\d+ characters, from the template · about 60 show$/')
+        ->and($empty['warn'])->toBeFalse();
+
+    $page->type('#editor-seo-title', 'Ferry fares to Bonny Island rise fifteen percent from October, the operator says');
+    cmWaitUntil($page, "document.getElementById('editor-seo-title-count').textContent.trim() === '80 characters · may be cut off'");
+
+    expect($title()['warn'])->toBeTrue();
+});
+
+it('draws the meta description as a three-line text area while it is empty', function (): void {
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit)));
+
+    $area = $page->script("(() => { const field = document.getElementById('editor-seo-description'); const style = getComputedStyle(field); return { lines: (field.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) / parseFloat(style.lineHeight), placeholder: field.placeholder }; })()");
+
+    expect($area['lines'])->toBeGreaterThanOrEqual(2.9)
+        ->and($area['placeholder'])->not->toBe('');
+});
+
+it('folds the checks after the fields, says how many to check, and a Fix moves focus to its field', function (): void {
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit)));
+
+    $fold = $page->script(<<<'JS'
+        () => {
+            const toggle = document.querySelector('[data-test="search-checks-toggle"]');
+            const description = document.getElementById('editor-seo-description');
+
+            return {
+                after: Boolean(description.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING),
+                words: toggle.textContent.replace(/\s+/g, ' ').trim(),
+                icon: toggle.querySelector('svg')?.dataset.icon ?? null,
+                expanded: toggle.getAttribute('aria-expanded'),
+            };
+        }
+        JS);
+
+    expect($fold['after'])->toBeTrue()
+        ->and($fold['words'])->toMatch('/^Checks · \d+ things to check$/')
+        ->and($fold['icon'])->toBe('warning')
+        ->and($fold['expanded'])->toBe('false');
+
+    $page->click('[data-test="search-checks-toggle"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"search-checks\"]')?.offsetParent !== null");
+    $page->assertSeeIn('[data-test="search-section"]', 'A warning never blocks publishing.');
+
+    // The draft has no description: its Fix puts the cursor on the meta description.
+    $page->click('[data-test="search-checks"] button[aria-label="Fix: Description"]');
+    cmWaitUntil($page, "document.activeElement?.id === 'editor-seo-description'");
 });

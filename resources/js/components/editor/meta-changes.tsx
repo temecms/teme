@@ -1,32 +1,43 @@
 import { __ } from '@/lib/i18n';
 import type { FieldChange, TermChange } from '@/types';
 
-/** One field's change in words: before → after, or whichever side there is. */
-function fieldLine(change: FieldChange): string {
+/**
+ * One field's change: the old value struck and the new one marked, or,
+ * when there was none before, the new value or what happened to it
+ * ("image added") as it stands.
+ */
+function FieldLine({ change }: { change: FieldChange }) {
     if (change.before === null) {
-        return change.after ?? 'empty';
+        return <>{change.after ?? __('empty')}</>;
     }
 
-    return `${change.before} → ${change.after ?? 'empty'}`;
+    return (
+        <>
+            <del>{change.before}</del>{' '}
+            {change.after === null ? __('empty') : <ins>{change.after}</ins>}
+        </>
+    );
 }
 
-/** One taxonomy's change: what was added, then what was removed. */
-function termLine(change: TermChange): string {
-    return [
-        change.added.length > 0 ? `added: ${change.added.join(', ')}` : '',
-        change.removed.length > 0
-            ? `removed: ${change.removed.join(', ')}`
-            : '',
-    ]
-        .filter((part) => part !== '')
-        .join('; ');
+/** One taxonomy's change: the terms removed struck, the terms added marked. */
+function TermLine({ change }: { change: TermChange }) {
+    return (
+        <>
+            {change.removed.length > 0 && (
+                <del>{change.removed.join(', ')}</del>
+            )}
+            {change.removed.length > 0 && change.added.length > 0 && ' '}
+            {change.added.length > 0 && <ins>{change.added.join(', ')}</ins>}
+        </>
+    );
 }
 
 /**
- * The fields and categories that changed between two revisions, above the
- * body's diff, so a change to the SEO title or a move to another category is
- * never an empty comparison. Plain text: unlike the blocks, these values are
- * not escaped by the server, so none is drawn as HTML.
+ * The title, excerpt, other fields and terms that changed between two
+ * revisions, above the body's diff, so a change to the SEO title or a move
+ * to another category is never an empty comparison. Plain text: unlike the
+ * blocks, these values are not escaped by the server, so none is drawn as
+ * HTML. The marks take their colors from the panel around them (DiffView).
  */
 export function MetaChanges({
     fields,
@@ -42,22 +53,36 @@ export function MetaChanges({
     return (
         <section
             aria-labelledby="meta-changes-title"
-            className="border-line text-small grid gap-2 rounded-md border px-4 py-3"
+            className="text-body grid gap-2"
         >
-            <h2 id="meta-changes-title" className="font-semibold">
-                {__('Fields and categories')}
+            <h2 id="meta-changes-title" className="text-lead font-semibold">
+                {__('Title, excerpt and terms')}
             </h2>
-            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1">
+            <dl className="grid gap-1">
                 {fields.map((change) => (
-                    <div key={change.key} className="contents">
-                        <dt className="text-ink-2">{change.label}</dt>
-                        <dd className="break-words">{fieldLine(change)}</dd>
+                    <div
+                        key={change.key}
+                        className="flex flex-wrap gap-x-3 max-sm:flex-col"
+                    >
+                        <dt className="text-ink-2 w-40 shrink-0">
+                            {change.label}
+                        </dt>
+                        <dd className="min-w-0 flex-1 break-words">
+                            <FieldLine change={change} />
+                        </dd>
                     </div>
                 ))}
                 {terms.map((change) => (
-                    <div key={change.taxonomy} className="contents">
-                        <dt className="text-ink-2">{change.label}</dt>
-                        <dd className="break-words">{termLine(change)}</dd>
+                    <div
+                        key={change.taxonomy}
+                        className="flex flex-wrap gap-x-3 max-sm:flex-col"
+                    >
+                        <dt className="text-ink-2 w-40 shrink-0">
+                            {change.label}
+                        </dt>
+                        <dd className="min-w-0 flex-1 break-words">
+                            <TermLine change={change} />
+                        </dd>
                     </div>
                 ))}
             </dl>

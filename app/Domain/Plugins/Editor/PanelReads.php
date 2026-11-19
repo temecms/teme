@@ -16,6 +16,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
 
+use App\Domain\Ai\Plugins\PluginAiSection;
+use App\Domain\Ai\Plugins\PluginAiSpend;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Languages\SiteLanguages;
@@ -37,13 +40,16 @@ final readonly class PanelReads
         private ListenerFaults $faults,
         private SiteLanguages $languages,
         private EditorPanels $panels,
+        private PluginAiTasks $aiTasks,
+        private PluginAiSection $aiSection,
+        private PluginAiSpend $aiSpend,
     ) {}
 
     /**
      * What the named panel shows this person on this item, or null when
      * they don't see it there; the plugin is never asked then.
      *
-     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool}|null
+     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool, ai: string|null}|null
      */
     public function forItem(string $contentId, string $code, string $panel, string $personId): ?array
     {
@@ -56,9 +62,11 @@ final readonly class PanelReads
     /**
      * What the panel shows this person on this item: its status line and
      * tone, its checked suggestions, the line saying it couldn't be shown
-     * (or null), its jobs, and whether the page should ask again.
+     * (or null), its jobs, whether the page should ask again, and whether
+     * the plugin's own AI is switched off (`off`) or its month's budget is
+     * spent (`budget`), null when neither or the plugin uses no AI.
      *
-     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool}
+     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool, ai: string|null}
      */
     public function read(PanelPlugin $panel, Content $content, string $personId): array
     {
@@ -66,7 +74,7 @@ final readonly class PanelReads
         $view = $this->view($panel, self::context($panel, $content, $personId, $this->languages));
 
         if ($view === null) {
-            return ['status' => null, 'tone' => 'neutral', 'suggestions' => [], 'failed' => __('This panel couldn’t be shown this time.'), 'jobs' => $jobs, 'busy' => PanelJobs::busy($jobs)];
+            return ['status' => null, 'tone' => 'neutral', 'suggestions' => [], 'failed' => __('This panel couldn’t be shown this time.'), 'jobs' => $jobs, 'busy' => PanelJobs::busy($jobs), 'ai' => $this->ai($panel)];
         }
 
         $suggestions = [];
@@ -94,7 +102,34 @@ final readonly class PanelReads
             'failed' => null,
             'jobs' => $jobs,
             'busy' => PanelJobs::busy($jobs),
+            'ai' => $this->ai($panel),
         ];
+    }
+
+    /**
+     * Whether the plugin's own AI is switched off in Settings › AI (`off`),
+     * or its budget for this month is spent (`budget`); null otherwise.
+     */
+    private function ai(PanelPlugin $panel): ?string
+    {
+        try {
+            $enabled = $this->aiTasks->enabled();
+            $code = $panel->code;
+
+            if (! isset($enabled[$code])) {
+                return null;
+            }
+
+            if (! $this->aiSection->on($code)) {
+                return 'off';
+            }
+
+            $budget = $this->aiSection->budgetMicrounits($code);
+
+            return $budget !== null && $this->aiSpend->month($code)->costMicrounits >= $budget ? 'budget' : null;
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**
