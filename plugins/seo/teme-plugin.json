@@ -4,7 +4,7 @@
     "code": "seo",
     "label": "Teme SEO",
     "description": "Suggests internal links as you write, counts the links in and out of each item, marks cornerstone items, audits the whole site, edits titles and descriptions in bulk, and shows your Search Console figures.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "requires": {
         "teme": "^1.0"
     },
