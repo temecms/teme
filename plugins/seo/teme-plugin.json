@@ -271,7 +271,7 @@
             }
         ],
         "area": {
-            "label": "SEO",
+            "label": "Teme SEO",
             "description": "The site-wide audit, links, titles and descriptions, and Search Console.",
             "permission": "manage",
             "menu": "content",

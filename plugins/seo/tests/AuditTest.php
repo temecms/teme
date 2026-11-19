@@ -101,4 +101,15 @@ final class AuditTest extends SeoTestCase
 
         $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'audit']))->assertForbidden();
     }
+
+    #[TestDox('names the area Teme SEO, the same as the plugin')]
+    public function test_it_names_the_area_teme_seo_the_same_as_the_plugin(): void
+    {
+        $this->signIn($this->editor);
+        $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'audit']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('plugin.name', 'Teme SEO')
+                ->where('area.label', 'Teme SEO'));
+    }
 }
