@@ -25,6 +25,9 @@ final class MediaLibrary
 {
     private const int PAGE = 60;
 
+    /** The most a chip counts; past it, the chip shows this many and a plus. */
+    public const int CHIP_MOST = 999;
+
     /** @var array<string, string> */
     private const array TABS = ['all' => 'All', 'trash' => 'Trash'];
 
@@ -50,7 +53,7 @@ final class MediaLibrary
             ->leftJoin('users', 'users.id', '=', 'media.uploaded_by')
             ->select([
                 'media.id', 'media.kind', 'media.title', 'media.original_filename', 'media.extension', 'media.width', 'media.height',
-                'media.size_bytes', 'media.variants', 'media.processing', 'media.working_uses', 'media.published_uses', 'media.alt', 'media.credit', 'media.licence',
+                'media.size_bytes', 'media.variants', 'media.processing', 'media.working_uses', 'media.published_uses', 'media.alt', 'media.credit', 'media.licence', 'media.source_url',
                 'media.created_at', 'media.deleted_at', 'users.name as uploader_name',
             ]);
 
@@ -97,6 +100,8 @@ final class MediaLibrary
                 'trashed' => $row->deleted_at !== null,
                 'createdAt' => $row->created_at,
                 'uploaderName' => $row->uploader_name,
+                // The site an imported file came from, as its tile names it.
+                'importedFrom' => $row->source_url === null ? null : (parse_url((string) $row->source_url, PHP_URL_HOST) ?: null),
             ])->values()->all(),
             'newer' => $first !== null && ($backwards ? $hasMore : $cursor !== null) ? Cursor::encode([$first->{$column}, $first->id]) : null,
             'older' => $last !== null && ($backwards ? true : $hasMore) ? Cursor::encode([$last->{$column}, $last->id]) : null,
@@ -133,6 +138,11 @@ final class MediaLibrary
             $filtered = true;
         }
 
+        if ($request->imported) {
+            $query->whereNotNull('media.source_url');
+            $filtered = true;
+        }
+
         if ($request->missingAlt) {
             $query->whereRaw("media.kind = 'image' AND (media.alt IS NULL OR media.alt = '')");
             $filtered = true;
@@ -153,6 +163,28 @@ final class MediaLibrary
 
         // Later (I-172): tags or collections, if search and filters prove not enough.
         return $filtered;
+    }
+
+    /**
+     * The live library's files under each filter chip: missing alt text,
+     * unused and imported, each counted up to CHIP_MOST plus one, in one query.
+     *
+     * @return array{missingAlt: int, unused: int, imported: int}
+     */
+    public function chips(): array
+    {
+        $capped = fn (string $where): string => '(SELECT count(*) FROM (SELECT 1 FROM media WHERE deleted_at IS NULL AND '.$where.' LIMIT '.(self::CHIP_MOST + 1).') AS found)';
+
+        $row = DB::selectOne('SELECT '
+            .$capped("kind = 'image' AND (alt IS NULL OR alt = '')").' AS missing_alt, '
+            .$capped('working_uses = 0 AND published_uses = 0').' AS unused, '
+            .$capped('source_url IS NOT NULL').' AS imported');
+
+        return [
+            'missingAlt' => (int) $row->missing_alt,
+            'unused' => (int) $row->unused,
+            'imported' => (int) $row->imported,
+        ];
     }
 
     /**

@@ -13,6 +13,7 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -152,4 +153,22 @@ it('sends the media modal the live library’s months on the site’s clock, and
         ->assertJsonPath('siteTimezone', 'Africa/Lagos')
         ->assertJsonPath('rows.0.title', 'september')
         ->assertJsonCount(1, 'rows');
+});
+
+it('narrows to imported files, and counts each chip’s files in the live library', function (): void {
+    $quay = ($this->at)('2026-10-01 09:00:00', 'quay.jpg');
+    ($this->at)('2026-10-01 09:01:00', 'fares.pdf', document: true);
+    $gone = ($this->at)('2026-10-01 09:02:00', 'gone.jpg');
+    DB::table('media')->whereIn('id', [$quay->id, $gone->id])->update(['source_url' => 'https://images.example.org/quay.jpg']);
+    app(TrashMedia::class)->execute(new MediaActionInput($gone->id, (string) $this->author->id));
+
+    expect(mfTitles(['imported' => true]))->toBe(['quay'])
+        ->and(app(MediaLibrary::class)->page(new MediaLibraryRequest(imported: true))['filtered'])->toBeTrue()
+        ->and(app(MediaLibrary::class)->chips())->toBe(['missingAlt' => 1, 'unused' => 2, 'imported' => 1]);
+
+    $this->actingAs($this->author)->get(route('media.index', ['imported' => '1']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.imported', '1')
+            ->where('chips', ['missingAlt' => 1, 'unused' => 2, 'imported' => 1])
+            ->where('rows.0.title', 'quay'));
 });

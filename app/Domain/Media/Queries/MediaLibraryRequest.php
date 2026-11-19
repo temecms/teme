@@ -30,6 +30,7 @@ final readonly class MediaLibraryRequest
     /**
      * @param  string  $zone  the site's time zone, whose months the Date filter means
      * @param  string|null  $uploadedFor  the content item whose files to show (I-553)
+     * @param  bool  $imported  only files brought in from another address
      */
     public function __construct(
         public string $tab = 'all',
@@ -45,6 +46,7 @@ final readonly class MediaLibraryRequest
         public string $zone = 'UTC',
         public int $viewerId = 0,
         public ?string $uploadedFor = null,
+        public bool $imported = false,
     ) {}
 
     /**
