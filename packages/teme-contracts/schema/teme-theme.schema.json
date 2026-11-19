@@ -328,13 +328,13 @@
         "icon": {
             "type": "string",
             "pattern": "^(?!/)(?!(?:.*/)?\\.\\.(?:/|$))[^\\\\\\s:]+\\.(?:[pP][nN][gG]|[jJ][pP][eE]?[gG]|[wW][eE][bB][pP]|[sS][vV][gG])$",
-            "$comment": "@since next",
+            "$comment": "@since 1.3.0",
             "description": "The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error."
         },
         "screenshots": {
             "type": "array",
             "maxItems": 8,
-            "$comment": "@since next",
+            "$comment": "@since 1.3.0",
             "description": "Up to 8 pictures of the theme at work, in the order Teme’s directory shows them.",
             "items": {
                 "type": "object",
