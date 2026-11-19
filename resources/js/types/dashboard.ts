@@ -47,8 +47,8 @@ export type DashboardLayout = {
 export type SiteFigure = {
     key: string;
     label: string;
-    /** The heading it sits under: a content type's plural, or none. */
-    group: string | null;
+    /** Its status dot: the colour token's name, such as `ok` or `warn`. */
+    dot: string;
     value: number;
     /** Its screen, or null when the person may not open it. */
     url: string | null;

@@ -2,18 +2,30 @@ import { Link } from '@inertiajs/react';
 import { __ } from '@/lib/i18n';
 import type { SiteFigure } from '@/types';
 
-/** One figure tile: the value large, its label with its group beneath. */
-function FigureTile({ figure }: { figure: SiteFigure }) {
-    const label = figure.group
-        ? `${figure.label} · ${figure.group}`
-        : figure.label;
+/** The dot's token by the figure's status colour, spelled out for Tailwind. */
+const DOTS: Record<string, string> = {
+    ok: 'bg-ok',
+    'neutral-dot': 'bg-neutral-dot',
+    info: 'bg-info',
+    warn: 'bg-warn',
+    accent: 'bg-accent',
+};
 
+/** One figure: the value large, its label beneath with its status dot. */
+function FigureTile({ figure }: { figure: SiteFigure }) {
     const body = (
         <>
             <span className="text-title font-semibold tabular-nums">
                 {figure.value.toLocaleString()}
             </span>
-            <span className="text-small text-ink-2">{label}</span>
+            <span className="text-small text-ink-2 flex items-center gap-2">
+                <span
+                    aria-hidden="true"
+                    data-dot={figure.dot}
+                    className={`size-2 shrink-0 rounded-full ${DOTS[figure.dot] ?? 'bg-neutral-dot'}`}
+                />
+                {figure.label}
+            </span>
         </>
     );
 
@@ -25,7 +37,7 @@ function FigureTile({ figure }: { figure: SiteFigure }) {
     ) : (
         <Link
             href={figure.url}
-            className={`${className} underline-offset-2 hover:underline`}
+            className={`${className} hover:bg-surface-2 focus-visible:outline-ring no-underline focus-visible:outline-2 focus-visible:outline-offset-2`}
         >
             {body}
         </Link>
@@ -33,8 +45,8 @@ function FigureTile({ figure }: { figure: SiteFigure }) {
 }
 
 /**
- * The site's figures as a row of tiles: 5 across from 1024, 3 from 768, 2
- * under 768. Each tile links to its list when the person may open it.
+ * The site's five figures as a row: 5 across from 1024, 3 from 768, 2 under
+ * 768. Each links to its list when the person may open it.
  */
 export function SiteFigures({ figures }: { figures: SiteFigure[] }) {
     return (

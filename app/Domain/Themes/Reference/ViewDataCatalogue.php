@@ -68,6 +68,7 @@ final class ViewDataCatalogue
     public const array TEMPLATE_VARIABLES = [
         '$page' => ['type' => '', 'description' => 'The page being drawn: its model is the one its kind of page names.'],
         '$site' => ['type' => 'SiteView', 'description' => 'The site: its name, tagline, home address, language and the current year.'],
+        '$teme' => ['type' => 'array{version: string, release: string}', 'description' => 'The version of Teme the site runs, such as 1.2.0, and its release, such as 1.2: a pre-release such as 1.2.0-rc.1 is release 1.2. An untagged build gives both as UNTAGGED.'],
         '$navigation' => ['type' => 'array<string, list<array{label: string, url: string|null, current: bool, opensNewTab: bool, heading: bool, children: list<mixed>}>|null>', 'description' => 'Each of the theme\'s navigation slots with its menu\'s tree, or null when it has none.'],
         '$themeSettings' => ['type' => 'array<string, mixed>', 'description' => 'The active theme\'s own settings, key to value, without its menu places.'],
         '$isFront' => ['type' => 'bool', 'description' => 'True only on the site\'s home page and its numbered pages.'],

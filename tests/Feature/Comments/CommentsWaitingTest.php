@@ -38,9 +38,9 @@ it('counts the comments waiting on the items a person looks after, spam and the 
 });
 
 it('gives Home the figure in each person\'s words, linked to the Pending view (C2, D20)', function (): void {
-    expect(($this->figure)($this->editor))->toBe(['key' => 'comments.waiting', 'label' => 'Comments waiting', 'group' => null, 'value' => 4, 'url' => route('comments.index', ['view' => 'pending'])])
+    expect(($this->figure)($this->editor))->toBe(['key' => 'comments.waiting', 'label' => 'Comments waiting', 'dot' => 'accent', 'value' => 4, 'url' => route('comments.index', ['view' => 'pending'])])
         ->and(($this->figure)($this->author))->toMatchArray(['label' => 'Comments waiting on your posts and pages', 'value' => 1])
-        ->and(array_column(app(SiteFigures::class)->forUser($this->editor), 'key'))->toContain('page.scheduled', 'comments.waiting', 'media');
+        ->and(array_column(app(SiteFigures::class)->forUser($this->editor), 'key'))->toBe(['published', 'drafts', 'scheduled', 'review', 'comments.waiting']);
 });
 
 it('gives Home no comments figure for someone who looks after none, nor while comments are off (D20)', function (): void {

@@ -38,8 +38,8 @@ it('sends the person\'s panels and the site figures, and nothing of the models',
                 ->whereType('subtitle', 'string')
                 ->whereType('url', 'string')
                 ->whereType('at', 'string'))
-            // toContain, not an exact list: 1.8 adds Comments to this row.
-            ->where('figures', fn ($figures): bool => collect(['post.published', 'post.drafts', 'post.scheduled', 'page.published', 'page.drafts', 'page.scheduled', 'media'])
+            // toContain, not an exact list: Comments waiting joins the row when it applies.
+            ->where('figures', fn ($figures): bool => collect(['published', 'drafts', 'scheduled', 'review'])
                 ->diff(collect($figures)->pluck('key'))->isEmpty())
             ->where('mainType', ['singular' => 'Post', 'segment' => 'posts', 'canCreate' => true]));
 });

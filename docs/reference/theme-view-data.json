@@ -22,6 +22,9 @@
         "$site": {
             "type": "SiteView"
         },
+        "$teme": {
+            "type": "array{version: string, release: string}"
+        },
         "$themeSettings": {
             "type": "array<string, mixed>"
         },

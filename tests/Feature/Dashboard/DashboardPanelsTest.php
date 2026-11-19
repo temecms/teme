@@ -188,13 +188,10 @@ it('reads the site figures from the maintained counts, not by counting rows', fu
     $sql = dashQueries(fn (): array => app(Dashboard::class)->forUser($this->editor));
     $figures = collect(app(Dashboard::class)->forUser($this->editor)['figures'])->pluck('value', 'key');
 
-    // toContain, not an exact list: 1.8 adds Comments to this row.
-    expect($figures->keys()->all())->toContain('post.published', 'post.drafts', 'post.scheduled', 'page.published', 'page.drafts', 'page.scheduled', 'media')
-        ->and($figures['post.published'])->toBe(lifecycleTruth('post')['published'])
-        ->and($figures['post.drafts'])->toBe(lifecycleTruth('post')['draft'])
-        ->and($figures['page.drafts'])->toBe(lifecycleTruth('page')['draft'])
-        ->and($figures['post.scheduled'])->toBe(0)
-        ->and($figures['media'])->toBe(0)
+    expect($figures->keys()->all())->toContain('published', 'drafts', 'scheduled', 'review')
+        ->and($figures['published'])->toBe(lifecycleTruth('post')['published'])
+        ->and($figures['drafts'])->toBe(lifecycleTruth('post')['draft'] + lifecycleTruth('page')['draft'])
+        ->and($figures['scheduled'])->toBe(0)
         ->and(collect($sql)->filter(fn (string $statement): bool => (bool) preg_match('/count\s*\(/i', $statement) && str_contains($statement, '"contents"')))->toBeEmpty();
 });
 
@@ -207,7 +204,7 @@ it('reads the site figures from the status rows only, never the month rows (I-31
     // SiteFigures' read, the one that asks for several types at once (GettingStarted asks for one).
     $read = collect(DB::getQueryLog())->first(fn (array $query): bool => str_contains($query['query'], 'from "content_counts"') && str_contains($query['query'], '"type" in ('));
 
-    expect($figures['post.published'])->toBe(1)
-        ->and($read['query'] ?? '')->toContain('"bucket" in (?, ?, ?)')
-        ->and($read['bindings'] ?? [])->toContain('published', 'draft', 'scheduled');
+    expect($figures['published'])->toBe(1)
+        ->and($read['query'] ?? '')->toContain('"bucket" in (?, ?, ?, ?)')
+        ->and($read['bindings'] ?? [])->toContain('published', 'draft', 'scheduled', 'review');
 });
