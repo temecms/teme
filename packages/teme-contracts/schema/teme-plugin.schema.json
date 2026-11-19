@@ -104,7 +104,9 @@
                     "notices.send",
                     "content.links",
                     "pages.head",
-                    "sitemaps"
+                    "sitemaps",
+                    "directory.read",
+                    "content.submissions"
                 ]
             }
         },

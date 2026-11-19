@@ -33,6 +33,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $position
  * @property string|null $language the stored language: null for the site's default (I-3360)
  * @property string|null $translation_group
+ * @property string|null $submitted_via the code of the plugin a visitor sent it through, or null when it isn't a submission
+ * @property string|null $submitted_from who sent it, as the visitor gave it
  */
 final class Content extends Model
 {

@@ -6,6 +6,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Notice } from '@/components/ui/notice';
 import { PluginIcon } from '@/components/ui/plugin-icon';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { SelectField } from '@/components/ui/select-field';
 import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
@@ -69,32 +70,34 @@ function PackageDetail({
             data-test="directory-detail"
         >
             {detail.screenshots.length > 0 && (
-                <ul
-                    className="flex min-w-0 gap-3 overflow-x-auto pb-1"
-                    aria-label={__('Screenshots')}
-                >
-                    {detail.screenshots.map((shot) => (
-                        <li key={shot.url} className="grid w-56 shrink-0 gap-1">
-                            <img
-                                src={shot.url}
-                                alt={
-                                    shot.caption === ''
-                                        ? __('A screenshot of :name', {
-                                              name: detail.label,
-                                          })
-                                        : ''
-                                }
-                                loading="lazy"
-                                className="border-line aspect-video w-full rounded-md border object-cover"
-                            />
-                            {shot.caption !== '' && (
-                                <span className="text-caption text-ink-2">
-                                    {shot.caption}
-                                </span>
-                            )}
-                        </li>
-                    ))}
-                </ul>
+                <ScrollArea axis="x" label={__('Screenshots')}>
+                    <ul className="flex min-w-0 gap-3 pb-1">
+                        {detail.screenshots.map((shot) => (
+                            <li
+                                key={shot.url}
+                                className="grid w-56 shrink-0 gap-1"
+                            >
+                                <img
+                                    src={shot.url}
+                                    alt={
+                                        shot.caption === ''
+                                            ? __('A screenshot of :name', {
+                                                  name: detail.label,
+                                              })
+                                            : ''
+                                    }
+                                    loading="lazy"
+                                    className="border-line aspect-video w-full rounded-md border object-cover"
+                                />
+                                {shot.caption !== '' && (
+                                    <span className="text-caption text-ink-2">
+                                        {shot.caption}
+                                    </span>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </ScrollArea>
             )}
             <div className="grid gap-1">
                 <h3 className="text-small text-ink font-semibold">

@@ -299,7 +299,7 @@ final readonly class PluginContentWriter implements ContentWriter
      */
     private function fields(string $type, array $byHandle, ?MediaRef $featuredImage, array $current = []): array
     {
-        $fields = $current === [] ? $this->keysFor($type, $byHandle) : [...$current, ...$this->keysFor($type, $byHandle)];
+        $fields = $current === [] ? self::keysFor($type, $byHandle) : [...$current, ...self::keysFor($type, $byHandle)];
 
         if ($featuredImage !== null) {
             $fields[BuiltInFields::FEATURED_IMAGE] = [
@@ -334,11 +334,16 @@ final readonly class PluginContentWriter implements ContentWriter
     }
 
     /**
+     * Field values by handle, keyed as a revision stores them; refused when
+     * the type has no such field. The Submissions door uses it too.
+     *
      * @param  array<string, mixed>  $byHandle
      *
      * @return array<string, mixed>
+     *
+     * @throws WriteRefused
      */
-    private function keysFor(string $type, array $byHandle): array
+    public static function keysFor(string $type, array $byHandle): array
     {
         if ($byHandle === []) {
             return [];
