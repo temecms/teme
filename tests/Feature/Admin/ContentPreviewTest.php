@@ -101,7 +101,7 @@ it('gives the preview the admin\'s policy with three additions and nothing wider
     expect(array_keys($directives))->toBe(['default-src', 'script-src', 'style-src', 'img-src', 'media-src', 'frame-src', 'font-src', 'connect-src', 'object-src', 'base-uri', 'form-action', 'frame-ancestors'])
         ->and($directives['default-src'])->toBe("default-src 'self'")
         ->and($directives['script-src'])->toMatch("/^script-src 'self' 'nonce-[^']+'$/")
-        ->and($directives['img-src'])->toBe("img-src 'self' data: https://media.example.test")
+        ->and($directives['img-src'])->toBe("img-src 'self' data: https://temecms.github.io https://media.example.test")
         ->and($directives['media-src'])->toBe("media-src 'self' https://media.example.test")
         ->and($directives['frame-src'])->toBe('frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://open.spotify.com')
         ->and($directives['connect-src'])->toBe("connect-src 'self'")
@@ -119,14 +119,14 @@ it('adds no media origin when the media disk is on the admin\'s own origin', fun
         ->assertOk()
         ->headers->get('Content-Security-Policy'));
 
-    expect($directives['img-src'])->toBe("img-src 'self' data:")
+    expect($directives['img-src'])->toBe("img-src 'self' data: https://temecms.github.io")
         ->and($directives['media-src'])->toBe("media-src 'self'");
 });
 
 it('leaves every other admin page\'s policy exactly as it was', function (): void {
     ($this->mediaAt)('https://media.example.test/files');
     $content = lifecycleDraft($this->author, 'Harbour festival');
-    $admin = "default-src 'self'; script-src 'self' 'nonce-X'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+    $admin = "default-src 'self'; script-src 'self' 'nonce-X'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://temecms.github.io; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
     // The preview first: what it adds must not stay for the next request.
     $this->actingAs($this->author)->get(route('content.preview', ['content' => $content->id]))->assertOk();
