@@ -31,11 +31,9 @@ use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Lists\Cell;
-use Teme\Contracts\Settings\SettingsReader;
 use Teme\Seo\Checks\BuiltInChecks;
 use Teme\Seo\Storage\ItemIndex;
 use Teme\Seo\Storage\SearchFigures;
-use Teme\Seo\TemeSeo;
 
 final readonly class SeoArea implements PluginArea
 {
@@ -47,7 +45,6 @@ final readonly class SeoArea implements PluginArea
         private SearchFigures $search,
         private ContentReader $reader,
         private ContentWriter $writer,
-        private SettingsReader $settings,
     ) {}
 
     /**
@@ -64,17 +61,14 @@ final readonly class SeoArea implements PluginArea
 
         if ($block === 'featured') {
             return [
-                'no-featured-image' => Figure::number((clone $published)->whereRaw(BuiltInChecks::conditions()['no-featured-image'])->count()),
+                'no-featured-image' => Figure::number((clone $published)->whereRaw("i.problems @> '\"no-featured-image\"'::jsonb")->count()),
             ];
         }
 
-        $problems = (clone $published)->whereRaw('('.$this->anyProblem().')', [$this->thinWords()]);
-        $orphaned = (clone $published)->whereRaw(BuiltInChecks::conditions()['orphaned']);
-
         return [
             'published' => Figure::number((clone $published)->count()),
-            'problems' => Figure::number($problems->count()),
-            'orphaned' => Figure::number($orphaned->count()),
+            'problems' => Figure::number((clone $published)->where('i.problem_count', '>', 0)->count()),
+            'orphaned' => Figure::number((clone $published)->whereRaw("i.problems @> '\"orphaned\"'::jsonb")->count()),
             'cornerstone' => Figure::number((clone $published)->where('i.cornerstone', true)->count()),
         ];
     }
@@ -248,12 +242,10 @@ final readonly class SeoArea implements PluginArea
     /**
      * One page of items for the audit and for titles and descriptions: core
      * doesn't say which table asks, so each row carries both tables' cells
-     * (plugins/seo/FINDINGS.md). Items with the most problems come first.
+     * (plugins/seo/FINDINGS.md). Problems come from what the index job stored.
      */
     private function itemRows(TableQuery $query, string $personId): RowPage
     {
-        $conditions = BuiltInChecks::conditions();
-        $thin = $this->thinWords();
         $editable = $this->editableDrafts($personId);
         $builder = $this->index->query()
             ->where('i.trashed', false)
@@ -267,9 +259,9 @@ final readonly class SeoArea implements PluginArea
         }
 
         if ($check === 'any') {
-            $builder->whereRaw('('.$this->anyProblem().')', [$thin]);
-        } elseif ($check !== null && isset($conditions[$check])) {
-            $builder->whereRaw($conditions[$check], $check === 'thin' ? [$thin] : []);
+            $builder->where('i.problem_count', '>', 0);
+        } elseif ($check !== null && array_key_exists($check, BuiltInChecks::conditions())) {
+            $builder->whereRaw('i.problems @> ?::jsonb', [json_encode($check)]);
         }
 
         if (($query->filters['cornerstone'] ?? null) === 'yes') {
@@ -289,19 +281,9 @@ final readonly class SeoArea implements PluginArea
         };
 
         $total = (clone $builder)->count();
-        $selects = ['i.*'];
-        $bindings = [];
-
-        foreach ($conditions as $id => $condition) {
-            $selects[] = '('.BuiltInChecks::published('i').' and '.$condition.') as "fails_'.$id.'"';
-
-            if ($id === 'thin') {
-                $bindings[] = $thin;
-            }
-        }
-
-        $builder->selectRaw(implode(', ', $selects), $bindings)
-            ->orderByRaw('('.$this->problemCount().') '.($query->sort === 'count' && $query->direction === 'asc' ? 'asc' : 'desc'), [$thin])
+        $direction = $query->sort === 'count' && $query->direction === 'asc' ? 'asc' : 'desc';
+        $builder->select('i.*')
+            ->orderByRaw('case when '.BuiltInChecks::published('i').' then i.problem_count else -1 end '.$direction)
             ->orderBy('i.title')
             ->orderBy('i.id');
 
@@ -309,11 +291,13 @@ final readonly class SeoArea implements PluginArea
         $rows = [];
 
         foreach ($builder->forPage($query->page, $query->perPage)->get() as $row) {
+            $stored = is_string($row->problems ?? null) ? json_decode($row->problems, true) : ($row->problems ?? []);
+            $stored = is_array($stored) ? $stored : [];
             $failing = [];
 
-            foreach (array_keys($conditions) as $id) {
+            foreach (array_keys($labels) as $id) {
                 // Featured image is its own figure; it never counts as a listed problem.
-                if ($id === 'no-featured-image' || ! (bool) $row->{'fails_'.$id}) {
+                if ($id === 'no-featured-image' || ! in_array($id, $stored, true)) {
                     continue;
                 }
 
@@ -325,7 +309,7 @@ final readonly class SeoArea implements PluginArea
                 'type' => Cell::text((string) $row->type),
                 'status' => self::status((string) $row->status),
                 'problems' => Cell::text($row->status !== 'published' ? __('Checked once published') : ($failing === [] ? __('None') : implode(', ', $failing))),
-                'count' => Cell::number(count($failing)),
+                'count' => Cell::number((int) ($row->problem_count ?? count($failing))),
                 'seo-title' => Cell::text((string) ($row->seo_title ?? '')),
                 'description' => Cell::text((string) ($row->meta_description ?? '')),
             ]);
@@ -436,42 +420,6 @@ final readonly class SeoArea implements PluginArea
 
         $like = '%'.addcslashes($words, '%_\\').'%';
         $builder->where(fn (Builder $query) => $query->where('i.title', 'ilike', $like)->orWhere('i.seo_title', 'ilike', $like)->orWhere('i.meta_description', 'ilike', $like));
-    }
-
-    /**
-     * Checks that count toward "with a problem" (featured image is its own figure).
-     *
-     * @return array<string, string>
-     */
-    private function countedConditions(): array
-    {
-        return array_diff_key(BuiltInChecks::conditions(), ['no-featured-image' => true]);
-    }
-
-    /**
-     * The SQL that is true when a published item fails any counted check; `?` is the fewest words.
-     */
-    private function anyProblem(): string
-    {
-        return implode(' or ', $this->countedConditions());
-    }
-
-    /**
-     * The SQL that counts a published item's counted problems; `?` is the fewest words.
-     */
-    private function problemCount(): string
-    {
-        $sum = implode(' + ', array_map(fn (string $condition): string => "(case when {$condition} then 1 else 0 end)", $this->countedConditions()));
-
-        return 'case when '.BuiltInChecks::published('i').' then '.$sum.' else -1 end';
-    }
-
-    /**
-     * The fewest words a published item may have before the audit calls it thin.
-     */
-    private function thinWords(): int
-    {
-        return max(1, $this->settings->int(TemeSeo::SETTINGS, 'thin_words'));
     }
 
     /**

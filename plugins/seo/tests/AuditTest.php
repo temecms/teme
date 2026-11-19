@@ -62,6 +62,8 @@ final class AuditTest extends SeoTestCase
         $second = seoWrite($this->editor, 'A garden guide', [seoParagraph($this->words, ['Feeding roses', $first], '.')], ['meta_description' => 'Everything about the garden.']);
         DB::table('seo_links')->insert(['source_id' => $first->id, 'target_id' => $second->id, 'occurrences' => 1]);
         DB::table('seo_items')->where('id', $first->id)->update(['links_out' => 1]);
+        // The index job stores problems; refresh after the manual link so the page reads them.
+        $this->seo->runJob('index-site');
 
         $this->signIn($this->editor);
         $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'audit', 't' => ['problems' => ['filters' => ['check' => 'any']]]]))
@@ -111,5 +113,29 @@ final class AuditTest extends SeoTestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('plugin.name', 'Teme SEO')
                 ->where('area.label', 'Teme SEO'));
+    }
+
+    #[TestDox('reads audit rows from stored problems, without working checks out on the view')]
+    public function test_it_reads_audit_rows_from_stored_problems_without_working_checks_out_on_the_view(): void
+    {
+        $poor = seoWrite($this->editor, 'A very long title about every single thing you could ever want to know', [seoParagraph('Too short.')]);
+        // Plant empty stored problems despite facts that would fail every check if recomputed.
+        DB::table('seo_items')->where('id', $poor->id)->update(['problems' => '[]', 'problem_count' => 0]);
+
+        $sql = [];
+        DB::listen(function (object $query) use (&$sql): void {
+            $sql[] = $query->sql;
+        });
+
+        $this->signIn($this->editor);
+        $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'audit', 't' => ['problems' => ['filters' => ['check' => 'any']]]]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->loadDeferredProps('block_problems', fn (Assert $reload) => $reload
+                ->where('block_problems.total', 0)));
+
+        $joined = implode("\n", $sql);
+        expect($joined)->not->toContain('images_missing_alt')
+            ->and($joined)->not->toContain('seo_links')
+            ->and($joined)->toContain('problem_count');
     }
 }
