@@ -225,7 +225,7 @@ final readonly class NavigationScreens
         $lower = mb_strtolower($singular);
 
         $warning = match (true) {
-            $content->deleted_at !== null => __('Not shown: the :singular is in the trash', ['singular' => $lower]),
+            $content->deleted_at !== null => __(':Singular is in the trash', ['singular' => $lower]),
             $content->status !== 'published' || $content->published_at === null || strtotime((string) $content->published_at) > time() => __('Not shown: the :singular isn\'t published', ['singular' => $lower]),
             ! in_array("content:{$content->id}", $addressed, true) => __('Not shown: the :singular has no address', ['singular' => $lower]),
             default => null,

@@ -1,13 +1,25 @@
 import {
+    draggable,
+    dropTargetForElements,
+    monitorForElements,
+} from '@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter';
+import { combine } from '@atlaskit/pragmatic-drag-and-drop/utils/combine';
+import { attachClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge/attach-closest-edge';
+import { extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge/extract-closest-edge';
+import type { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/types';
+import {
     ArrowDown,
     ArrowLeft,
     ArrowRight,
     ArrowUp,
+    ChevronRight,
+    GripVertical,
     MoreHorizontal,
     Trash2,
+    X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -20,6 +32,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import type { MenuItem } from '@/types';
 
 /** The deepest a menu goes (SaveNavigationItems::MAX_DEPTH). */
@@ -210,10 +223,194 @@ const MOVES: { move: Move; label: string; icon: typeof ArrowUp }[] = [
     { move: 'outdent', label: 'Move out a level', icon: ArrowLeft },
 ];
 
+/** What a dragged item carries: a marker, so nothing else dropped here is taken for one. */
+type ItemDrag = { teme: 'menu-item'; key: string };
+
+const isItemDrag = (data: Record<string | symbol, unknown>): data is ItemDrag =>
+    data.teme === 'menu-item';
+
+/** Where the item with this key sits in the tree, or null. */
+function pathOf(list: EditorItem[], key: string): number[] | null {
+    for (const [index, item] of list.entries()) {
+        if (item.key === key) {
+            return [index];
+        }
+
+        const below = pathOf(item.children, key);
+
+        if (below !== null) {
+            return [index, ...below];
+        }
+    }
+
+    return null;
+}
+
 /**
- * A menu's items as an editable tree: each with its label, what it points
- * at, why it isn't shown if it isn't, and "Open in new tab"; moved with
- * buttons or Alt and the arrow keys, never past MAX_DEPTH levels. Focus
+ * The tree after a dragged item lands before or after another, beside it,
+ * and how that is said aloud; or why it can't land there.
+ */
+function placed(
+    root: EditorItem[],
+    key: string,
+    targetKey: string,
+    after: boolean,
+): { tree: EditorItem[]; spoken: string } | string {
+    const from = pathOf(root, key);
+    const to = pathOf(root, targetKey);
+
+    if (from === null || to === null || key === targetKey) {
+        return '';
+    }
+
+    if (from.every((index, level) => to[level] === index)) {
+        return __('An item can’t go among the items under it.');
+    }
+
+    const item = listAt(root, from.slice(0, -1))[from[from.length - 1]];
+
+    if (to.length - 1 + height(item) > MAX_DEPTH) {
+        return __('Menus go :count levels deep at most.', {
+            count: MAX_DEPTH,
+        });
+    }
+
+    const depth = headingDepth(item);
+
+    if (depth > 0 && to.length + depth - 1 >= MAX_DEPTH) {
+        return 'A heading can’t go to the third level, where nothing can go under it.';
+    }
+
+    const tree = structuredClone(root);
+    const source = listAt(tree, from.slice(0, -1));
+    const [taken] = source.splice(from[from.length - 1], 1);
+    const landing = pathOf(tree, targetKey) as number[];
+    const list = listAt(tree, landing.slice(0, -1));
+    list.splice(landing[landing.length - 1] + (after ? 1 : 0), 0, taken);
+
+    return {
+        tree,
+        spoken: __('Moved “:name”.', { name: nameOf(taken) }),
+    };
+}
+
+/** What an item is, as its chip says it: Page, Category, Home page, Address. */
+function kindOf(item: EditorItem): string {
+    switch (item.kind) {
+        case 'home':
+            return __('Home page');
+        case 'heading':
+            return __('Heading');
+        case 'url':
+            return __('Address');
+        case 'languages':
+            return __('Language switcher');
+        default:
+            return item.target.includes(':')
+                ? item.target.slice(0, item.target.indexOf(':'))
+                : item.target;
+    }
+}
+
+/**
+ * One item's row: dragged by its grip onto another item, landing before or
+ * after it, with a line where it will land. The arrows do the same from
+ * the keyboard, and go under or out a level as well.
+ */
+function DragRow({
+    itemKey,
+    lead,
+    head,
+    onKeyDown,
+    children,
+}: {
+    itemKey: string;
+    lead: ReactNode;
+    /** The label and, on a phone, the "…" menu: kept on the row's first line. */
+    head: ReactNode;
+    onKeyDown: (event: KeyboardEvent) => void;
+    children: ReactNode;
+}) {
+    const row = useRef<HTMLDivElement>(null);
+    const grip = useRef<HTMLSpanElement>(null);
+    const [edge, setEdge] = useState<Edge | null>(null);
+    const [dragging, setDragging] = useState(false);
+
+    useEffect(() => {
+        const element = row.current;
+        const handle = grip.current;
+
+        if (element === null || handle === null) {
+            return;
+        }
+
+        return combine(
+            draggable({
+                element,
+                dragHandle: handle,
+                getInitialData: (): ItemDrag => ({
+                    teme: 'menu-item',
+                    key: itemKey,
+                }),
+                onDragStart: () => setDragging(true),
+                onDrop: () => setDragging(false),
+            }),
+            dropTargetForElements({
+                element,
+                canDrop: ({ source }) =>
+                    isItemDrag(source.data) && source.data.key !== itemKey,
+                getData: ({ input }) =>
+                    attachClosestEdge(
+                        { key: itemKey },
+                        { element, input, allowedEdges: ['top', 'bottom'] },
+                    ),
+                onDrag: ({ self }) => setEdge(extractClosestEdge(self.data)),
+                onDragLeave: () => setEdge(null),
+                onDrop: () => setEdge(null),
+            }),
+        );
+    }, [itemKey]);
+
+    return (
+        <div
+            ref={row}
+            className={cn(
+                'bg-surface relative flex flex-wrap items-center gap-2 rounded-md border px-2 py-1',
+                dragging && 'opacity-50',
+            )}
+            onKeyDown={onKeyDown}
+        >
+            <div className="flex min-w-0 items-center gap-2 max-sm:basis-full sm:flex-1">
+                {lead}
+                <span
+                    ref={grip}
+                    aria-hidden
+                    title={__('Drag to move')}
+                    className="text-ink-3 flex cursor-grab items-center"
+                >
+                    <GripVertical className="size-4" />
+                </span>
+                {head}
+            </div>
+            {children}
+            {edge !== null && (
+                <span
+                    aria-hidden
+                    className={cn(
+                        'bg-accent pointer-events-none absolute inset-x-0 h-0.5',
+                        edge === 'top' ? '-top-1' : '-bottom-1',
+                    )}
+                />
+            )}
+        </div>
+    );
+}
+
+/**
+ * A menu's items as an editable tree: each a compact row with its label,
+ * a chip saying what it is, why it isn't shown if it isn't, and "Open in
+ * new tab"; dragged by its grip, or moved with the arrows or Alt and the
+ * arrow keys, never past MAX_DEPTH levels; an item's children fold away. Focus
  * stays on the moved item, and each move is announced. `errors` are the
  * last save's, keyed as SaveNavigationItems names them (`tree.0.children.1`).
  */
@@ -232,6 +429,52 @@ export function TreeEditor({
         control: string;
         later?: boolean;
     } | null>(null);
+    // Items whose children are folded away, by key.
+    const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+    const toggle = (key: string) =>
+        setCollapsed((was) => {
+            const next = new Set(was);
+
+            if (!next.delete(key)) {
+                next.add(key);
+            }
+
+            return next;
+        });
+    // The latest tree and change, for a drop that lands after a render.
+    const latest = useRef({ items, onChange });
+    latest.current = { items, onChange };
+
+    useEffect(
+        () =>
+            monitorForElements({
+                canMonitor: ({ source }) => isItemDrag(source.data),
+                onDrop: ({ source, location }) => {
+                    const target = location.current.dropTargets[0];
+
+                    if (target === undefined || !isItemDrag(source.data)) {
+                        return;
+                    }
+
+                    const result = placed(
+                        latest.current.items,
+                        source.data.key,
+                        String(target.data.key),
+                        extractClosestEdge(target.data) === 'bottom',
+                    );
+
+                    if (typeof result === 'string') {
+                        setAnnouncement(result);
+
+                        return;
+                    }
+
+                    latest.current.onChange(result.tree);
+                    setAnnouncement(result.spoken);
+                },
+            }),
+        [],
+    );
     // A move chosen from an item's menu brings focus back to that menu's button itself,
     // once the menu has closed and let focus go.
     const movedFromMenu = useRef<{ key: string; control: string } | null>(null);
@@ -324,7 +567,7 @@ export function TreeEditor({
     };
 
     const rows = (list: EditorItem[], parentPath: number[], key: string) => (
-        <ul className="grid gap-2">
+        <ul className="grid gap-1">
             {list.map((item, index) => {
                 const path = [...parentPath, index];
                 const errorKey = `${key}.${index}`;
@@ -333,29 +576,42 @@ export function TreeEditor({
                 const heading = item.kind === 'heading';
                 const warning =
                     heading && item.children.length === 0
-                        ? 'Needs an item under it'
+                        ? __('Needs an item under it')
                         : item.warning;
+                const folded = collapsed.has(item.key);
 
                 return (
                     <li key={item.key} data-item-key={item.key}>
-                        <div
-                            className="bg-surface grid gap-2 rounded-md border p-3"
-                            onKeyDown={(event: KeyboardEvent) => {
-                                const move = event.altKey
-                                    ? KEYS[event.key]
-                                    : undefined;
-
-                                if (move !== undefined) {
-                                    event.preventDefault();
-                                    const control =
-                                        (event.target as HTMLElement).dataset
-                                            .control ?? 'label';
-                                    apply(path, move, control);
-                                }
-                            }}
-                        >
-                            <div className="flex flex-wrap items-center gap-2">
-                                <div className="flex min-w-0 flex-1 items-center gap-2 max-sm:basis-full sm:flex-none">
+                        <DragRow
+                            itemKey={item.key}
+                            lead={
+                                item.children.length > 0 ? (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        data-control="fold"
+                                        aria-expanded={!folded}
+                                        aria-label={__(
+                                            'Show or hide the items under :name',
+                                            { name },
+                                        )}
+                                        onClick={() => toggle(item.key)}
+                                    >
+                                        <ChevronRight
+                                            aria-hidden
+                                            className={cn(
+                                                'transition-transform motion-reduce:transition-none',
+                                                !folded && 'rotate-90',
+                                            )}
+                                        />
+                                    </Button>
+                                ) : (
+                                    <span aria-hidden className="size-8" />
+                                )
+                            }
+                            head={
+                                <>
                                     <Input
                                         data-control="label"
                                         aria-label={`Label for ${item.target}`}
@@ -378,7 +634,7 @@ export function TreeEditor({
                                                   })
                                         }
                                         maxLength={200}
-                                        className="h-(--ctl-h) w-64 max-w-full min-w-0 max-sm:flex-1"
+                                        className="h-(--ctl-h) min-w-0 flex-1"
                                         onChange={(event) =>
                                             update(path, {
                                                 label: event.target.value,
@@ -469,84 +725,98 @@ export function TreeEditor({
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                </div>
+                                </>
+                            }
+                            onKeyDown={(event: KeyboardEvent) => {
+                                const move = event.altKey
+                                    ? KEYS[event.key]
+                                    : undefined;
+
+                                if (move !== undefined) {
+                                    event.preventDefault();
+                                    const control =
+                                        (event.target as HTMLElement).dataset
+                                            .control ?? 'label';
+                                    apply(path, move, control);
+                                }
+                            }}
+                        >
+                            <StatusPill tone="neutral">
+                                {kindOf(item)}
+                            </StatusPill>
+                            {item.kind === 'url' && (
                                 <span className="text-small text-ink-2 min-w-0 truncate">
                                     {item.target}
                                 </span>
-                                {warning && (
-                                    <StatusPill tone="warn">
-                                        {warning}
-                                    </StatusPill>
-                                )}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-1">
-                                {!heading && (
-                                    <label className="text-small me-2 flex items-center gap-2">
-                                        <Checkbox
-                                            data-control="new-tab"
-                                            checked={item.opensNewTab}
-                                            onCheckedChange={(checked) =>
-                                                update(path, {
-                                                    opensNewTab:
-                                                        checked === true,
-                                                })
-                                            }
-                                        />
-                                        Open in new tab
-                                    </label>
-                                )}
-                                <div className="flex items-center gap-1 max-sm:hidden">
-                                    {MOVES.map(
-                                        ({ move, label, icon: Icon }) => {
-                                            const reason = refusal(
-                                                items,
-                                                path,
-                                                move,
-                                            );
+                            )}
+                            {warning && (
+                                <StatusPill tone="warn">{warning}</StatusPill>
+                            )}
+                            {!heading && (
+                                <label className="text-small flex items-center gap-2">
+                                    <Checkbox
+                                        data-control="new-tab"
+                                        checked={item.opensNewTab}
+                                        onCheckedChange={(checked) =>
+                                            update(path, {
+                                                opensNewTab: checked === true,
+                                            })
+                                        }
+                                    />
+                                    {__('Open in new tab')}
+                                </label>
+                            )}
+                            <div
+                                role="group"
+                                aria-label={__('Move or remove :name', {
+                                    name,
+                                })}
+                                className="flex items-center max-sm:hidden"
+                            >
+                                {MOVES.map(({ move, label, icon: Icon }) => {
+                                    const reason = refusal(items, path, move);
 
-                                            return (
-                                                <Button
-                                                    key={move}
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    data-control={move}
-                                                    aria-label={`${label}: ${name}`}
-                                                    title={reason ?? label}
-                                                    disabled={reason !== null}
-                                                    onClick={() =>
-                                                        apply(path, move, move)
-                                                    }
-                                                >
-                                                    <Icon className="size-4" />
-                                                </Button>
-                                            );
-                                        },
-                                    )}
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        data-control="remove"
-                                        aria-label={`Remove ${name}`}
-                                        title="Remove"
-                                        onClick={() => remove(path)}
-                                    >
-                                        <Trash2 className="size-4" />
-                                    </Button>
-                                </div>
+                                    return (
+                                        <Button
+                                            key={move}
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            data-control={move}
+                                            aria-label={`${label}: ${name}`}
+                                            title={reason ?? label}
+                                            disabled={reason !== null}
+                                            onClick={() =>
+                                                apply(path, move, move)
+                                            }
+                                        >
+                                            <Icon aria-hidden />
+                                        </Button>
+                                    );
+                                })}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    data-control="remove"
+                                    aria-label={`Remove ${name}`}
+                                    title={__('Remove')}
+                                    onClick={() => remove(path)}
+                                >
+                                    <X aria-hidden />
+                                </Button>
                             </div>
                             {error && (
                                 <p
                                     id={`${item.key}-error`}
-                                    className="text-small text-danger-ink"
+                                    className="text-small text-danger-ink basis-full"
                                 >
                                     {error}
                                 </p>
                             )}
-                        </div>
-                        {item.children.length > 0 && (
-                            <div className="ms-6 mt-2">
+                        </DragRow>
+                        {item.children.length > 0 && !folded && (
+                            <div className="ms-6 mt-1">
                                 {rows(
                                     item.children,
                                     path,
