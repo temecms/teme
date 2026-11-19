@@ -204,11 +204,14 @@ final readonly class SeoArea implements PluginArea
         $before = self::totals(array_slice($days, 0, max(0, count($days) - 28)));
         $change = fn (float $now, float $then): ?float => $then > 0 ? round(($now - $then) / $then, 4) : null;
 
+        // Position: lower is better, so flip the sign for core's up/down colouring.
+        $positionChange = $change($current['position'], $before['position']);
+
         return [
             'clicks' => Figure::number($current['clicks'], $change($current['clicks'], $before['clicks'])),
             'impressions' => Figure::number($current['impressions'], $change($current['impressions'], $before['impressions'])),
             'ctr' => Figure::percent($current['ctr'], $change($current['ctr'], $before['ctr'])),
-            'position' => Figure::number(round($current['position'], 1), $change($current['position'], $before['position'])),
+            'position' => Figure::number(round($current['position'], 1), $positionChange === null ? null : -$positionChange),
         ];
     }
 
