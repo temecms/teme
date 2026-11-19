@@ -228,21 +228,8 @@
                     },
                     {
                         "id": "cornerstone",
-                        "label": "Cornerstone",
-                        "job": "cornerstone",
-                        "fields": [
-                            {
-                                "key": "mark",
-                                "type": "select",
-                                "label": "This item is",
-                                "options": {
-                                    "yes": "Cornerstone content",
-                                    "no": "Not cornerstone content"
-                                },
-                                "required": true,
-                                "default": "yes"
-                            }
-                        ]
+                        "label": "Change",
+                        "job": "cornerstone"
                     }
                 ]
             },
