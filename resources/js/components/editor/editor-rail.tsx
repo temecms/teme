@@ -1,7 +1,15 @@
 import { Form, Link } from '@inertiajs/react';
 import type { Editor } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
-import { ArrowLeft, Eye, X } from 'lucide-react';
+import {
+    ArrowLeft,
+    CalendarClock,
+    ChevronDown,
+    Eye,
+    Send,
+    Trash2,
+    X,
+} from 'lucide-react';
 import {
     createContext,
     useCallback,
@@ -17,6 +25,12 @@ import type { ReactNode } from 'react';
 import ContentActionController from '@/actions/App/Http/Admin/Contents/ContentActionController';
 import { Button } from '@/components/ui/button';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -28,6 +42,7 @@ import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import { nextWholeHour } from '@/lib/zoned-time';
 import { compare } from '@/routes/content';
 import type {
@@ -40,9 +55,12 @@ import type {
     RailPane,
 } from '@/types';
 import { CardInspector } from './rail/card-inspector';
-import type { CheckId, CoreCheck, RegionFacts } from './rail/checks';
+import type { RegionFacts } from './rail/checks';
+import type { WritingCheck } from './rail/writing-checks';
 import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
 import { ChecksPanel, RegionChecksPanel } from './rail/checks-panel';
+import { OutlineSection } from './rail/document-panel';
+import { RegionFactsSection, RegionHistory } from './rail/region-facts';
 import { PublishPanel } from './rail/publish-panel';
 import type { Visibility, VisibilityRefusal } from './rail/publish-panel';
 import { TaxonomyPanel } from './rail/taxonomy-panel';
@@ -220,6 +238,7 @@ function ActionBar({
     notice,
     when,
     onWhenChange,
+    region = false,
 }: {
     session: EditorSession;
     status: string;
@@ -236,7 +255,10 @@ function ActionBar({
     /** The Publish row's choice: now, or a set time. */
     when: WhenChoice;
     onWhenChange: (next: WhenChoice) => void;
+    /** A theme region: Save draft and its one decision, with no more choices. */
+    region?: boolean;
 }) {
+    const split = session.can.publish && !region;
     const [returning, setReturning] = useState(false);
     const [approvingLater, setApprovingLater] = useState(false);
     const [approveAt, setApproveAt] = useState('');
@@ -338,7 +360,7 @@ function ActionBar({
                 {onPreview !== null && (
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         data-test="editor-preview"
                         disabled={disabled}
@@ -353,25 +375,87 @@ function ActionBar({
                 )}
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="neutral"
                     size="sm"
+                    data-test="editor-save"
                     disabled={saveDisabled}
                     onClick={onSave}
                 >
-                    {__('Save draft')}
+                    {live && !region ? __('Save') : __('Save draft')}
                 </Button>
                 <span className="flex-1" />
                 {pending !== null
                     ? canPublish && reviewButtons
                     : decision !== null && (
-                          <Button
-                              type="button"
-                              size="sm"
-                              disabled={disabled}
-                              onClick={decision.run}
-                          >
-                              {decision.label}
-                          </Button>
+                          <div className="flex" data-test="editor-decision">
+                              <Button
+                                  type="button"
+                                  size="sm"
+                                  disabled={disabled}
+                                  onClick={decision.run}
+                                  className={cn(
+                                      split && 'rounded-xs rounded-s-md',
+                                  )}
+                              >
+                                  {decision.label}
+                              </Button>
+                              {split && (
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button
+                                              type="button"
+                                              size="icon-sm"
+                                              disabled={disabled}
+                                              aria-label={__(
+                                                  'More publishing choices',
+                                              )}
+                                              title={__('More choices')}
+                                              className="ms-px rounded-xs rounded-e-md"
+                                          >
+                                              <ChevronDown />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem
+                                              onSelect={() => {
+                                                  onWhenChange({
+                                                      ...when,
+                                                      later: false,
+                                                      error: null,
+                                                  });
+                                                  actions.publish();
+                                              }}
+                                          >
+                                              <Send aria-hidden />
+                                              {live
+                                                  ? __('Update now')
+                                                  : __('Publish now')}
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem
+                                              onSelect={() => {
+                                                  onWhenChange({
+                                                      ...when,
+                                                      later: true,
+                                                      error: null,
+                                                  });
+                                                  requestAnimationFrame(() =>
+                                                      document
+                                                          .getElementById(
+                                                              'editor-when-at',
+                                                          )
+                                                          ?.focus(),
+                                                  );
+                                              }}
+                                          >
+                                              <CalendarClock aria-hidden />
+                                              {live
+                                                  ? __('Schedule the update…')
+                                                  : __('Schedule…')}
+                                          </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                              )}
+                          </div>
                       )}
             </div>
 
@@ -691,9 +775,11 @@ export function EditorRail({
     review,
     siteTimezone,
     notice,
-    checks,
+    writing,
+    searchCount,
     regionFacts,
-    onGoToCheck,
+    region,
+    onGoToWriting,
     onGoToSearch,
     pluginChecks,
     onGoToPlugin,
@@ -710,13 +796,13 @@ export function EditorRail({
     passwordUnreadable,
     onChangeVisibility,
     themeRegion = false,
-    unpublishedChanges,
     author,
     authors,
     onChangeAuthor,
     noun,
     addressPattern,
-    url,
+    sticky,
+    onChangeSticky,
 }: {
     session: EditorSession;
     editor: Editor | null;
@@ -737,10 +823,15 @@ export function EditorRail({
     review: EditorReview | null;
     siteTimezone: string;
     notice: string | null;
-    checks: CoreCheck[];
+    /** The rail's writing checks. */
+    writing: WritingCheck[];
+    /** How many of Search and social's checks want a look. */
+    searchCount: number;
     /** A theme region's own facts, checked in place of a post's search checks; absent for any other item. */
     regionFacts?: RegionFacts;
-    onGoToCheck: (check: CheckId) => void;
+    /** The theme that uses a region, and whether it is in use; null for any other item. */
+    region: { themeName: string; inUse: boolean } | null;
+    onGoToWriting: (check: WritingCheck['id']) => void;
     /** Goes to Search and social under the text; undefined for a theme's region, which has none. */
     onGoToSearch?: () => void;
     /** The plugins' checks, after core's (docs/guides/developers/plugins/seo.md). */
@@ -767,8 +858,6 @@ export function EditorRail({
     ) => Promise<VisibilityRefusal | null>;
     /** A theme region, whose Publish panel keeps only its status, schedule and revisions. */
     themeRegion?: boolean;
-    /** Whether a live item has changes readers don't see yet (I-1316). */
-    unpublishedChanges: boolean;
     /** The item's author: the session's, or the one just chosen. */
     author: EditorPerson | null;
     /** The people the Author select offers; null for someone who may not change who wrote it. */
@@ -779,8 +868,9 @@ export function EditorRail({
     noun: string;
     /** The address pattern: it follows a change of author. */
     addressPattern: string;
-    /** The live address, for View on site; null while it has none. */
-    url: string | null;
+    /** Whether the item sticks to the top of the blog; null for a type that has no pinning. */
+    sticky: boolean | null;
+    onChangeSticky: (on: boolean) => void;
 }) {
     const { pane, leavePane } = useRail();
     const [when, setWhen] = useState<WhenChoice>(() => ({
@@ -824,66 +914,89 @@ export function EditorRail({
                 notice={notice}
                 when={when}
                 onWhenChange={setWhen}
+                region={themeRegion}
             />
-            <PublishPanel
-                status={status}
-                review={review}
-                unpublishedChanges={unpublishedChanges}
-                publishedAt={publishedAt}
-                slug={slug}
-                addressPattern={addressPattern}
-                siteUrl={siteUrl}
-                url={url}
-                templates={session.templates}
-                template={template}
-                onChangeTemplate={onChangeTemplate}
-                themeRegion={themeRegion}
-                author={author}
-                authors={authors}
-                onChangeAuthor={onChangeAuthor}
-                noun={noun}
-                revisionCount={session.revisionCount}
-                canEdit={session.can.edit}
-                onChangeSlug={onChangeSlug}
-                onOpenHistory={onOpenHistory}
-                schedule={schedule}
-                siteTimezone={siteTimezone}
-                discussion={discussion}
-                canSetDiscussion={session.can.publish}
-                onChangeDiscussion={onChangeDiscussion}
-                visibility={visibility}
-                readerPassword={readerPassword}
-                passwordUnreadable={passwordUnreadable}
-                canSetVisibility={session.can.publish}
-                onChangeVisibility={onChangeVisibility}
-                canPublish={session.can.publish}
-                when={when}
-                onWhenChange={setWhen}
-                onCancelSchedule={actions.cancelSchedule}
-                busy={busy}
-            />
-            <TranslationsSection session={session} typeSegment={typeSegment} />
-            <TaxonomyPanel
-                taxonomies={session.taxonomies}
-                chosen={chosenTerms}
-                onChange={onTermsChange}
-                canAdd={session.can.manageTerms}
-                primaryCategory={primaryCategory}
-            />
-            {regionFacts ? (
-                <RegionChecksPanel facts={regionFacts} />
+            {region !== null && regionFacts !== undefined ? (
+                <RegionFactsSection
+                    themeName={region.themeName}
+                    inUse={region.inUse}
+                    facts={regionFacts}
+                />
             ) : (
-                <ChecksPanel
-                    checks={checks}
-                    onGoTo={onGoToCheck}
-                    onGoToSearch={onGoToSearch}
+                <PublishPanel
+                    status={status}
+                    review={review}
+                    publishedAt={publishedAt}
+                    slug={slug}
+                    addressPattern={addressPattern}
+                    siteUrl={siteUrl}
+                    templates={session.templates}
+                    template={template}
+                    onChangeTemplate={onChangeTemplate}
+                    themeRegion={themeRegion}
+                    author={author}
+                    authors={authors}
+                    onChangeAuthor={onChangeAuthor}
                     noun={noun}
-                    pluginChecks={pluginChecks}
-                    onGoToPlugin={onGoToPlugin}
+                    revisionCount={session.revisionCount}
+                    canEdit={session.can.edit}
+                    onChangeSlug={onChangeSlug}
+                    onOpenHistory={onOpenHistory}
+                    schedule={schedule}
+                    siteTimezone={siteTimezone}
+                    discussion={discussion}
+                    canSetDiscussion={session.can.publish}
+                    onChangeDiscussion={onChangeDiscussion}
+                    visibility={visibility}
+                    readerPassword={readerPassword}
+                    passwordUnreadable={passwordUnreadable}
+                    canSetVisibility={session.can.publish}
+                    onChangeVisibility={onChangeVisibility}
+                    canPublish={session.can.publish}
+                    when={when}
+                    onWhenChange={setWhen}
+                    onCancelSchedule={actions.cancelSchedule}
+                    busy={busy}
+                    sticky={sticky}
+                    onChangeSticky={onChangeSticky}
+                />
+            )}
+            <div className="grid gap-0.5">
+                <TranslationsSection
+                    session={session}
+                    typeSegment={typeSegment}
+                />
+                <TaxonomyPanel
+                    taxonomies={session.taxonomies}
+                    chosen={chosenTerms}
+                    onChange={onTermsChange}
+                    canAdd={session.can.manageTerms}
+                    primaryCategory={primaryCategory}
+                />
+                {editor !== null && regionFacts === undefined && (
+                    <OutlineSection editor={editor} />
+                )}
+                {regionFacts ? (
+                    <RegionChecksPanel facts={regionFacts} />
+                ) : (
+                    <ChecksPanel
+                        checks={writing}
+                        onGoTo={onGoToWriting}
+                        searchCount={searchCount}
+                        onGoToSearch={onGoToSearch}
+                        pluginChecks={pluginChecks}
+                        onGoToPlugin={onGoToPlugin}
+                    />
+                )}
+            </div>
+            {regionFacts !== undefined && (
+                <RegionHistory
+                    revisionCount={session.revisionCount}
+                    onOpenHistory={onOpenHistory}
                 />
             )}
             {session.can.delete && typeSegment !== null && (
-                <div className="border-line mt-auto border-t px-4 py-4">
+                <div className="mt-auto px-4 pt-4 pb-6">
                     <Form
                         {...ContentActionController.action.form({
                             type: typeSegment,
@@ -895,10 +1008,10 @@ export function EditorRail({
                             <>
                                 <Button
                                     type="submit"
-                                    variant="ghost"
+                                    variant="danger-quiet"
                                     size="sm"
-                                    className="text-danger-ink"
                                 >
+                                    <Trash2 />
                                     {__('Move to trash')}
                                 </Button>
                                 <InputError message={errors.action} />

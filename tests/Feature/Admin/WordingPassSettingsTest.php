@@ -64,8 +64,8 @@ it('says where the bio shows in a hint under the box, not in its label', functio
     $bio = ($this->at)($source, '<Field htmlFor="bio"');
 
     // The words are the bio Field's help, never its label; Field draws the help after the box and before the error, both tied to the box.
-    expect(($this->at)($source, "help={__( 'Shown on your author page and under your posts.', )}", $bio))
-        ->toBeGreaterThan(($this->at)($source, "label={__('Bio')}", $bio))
+    expect(($this->at)($source, "help={__( 'Shown on your author page and under your articles. Up to 1,000 characters.', )}", $bio))
+        ->toBeGreaterThan(($this->at)($source, "label={__('Short biography')}", $bio))
         ->toBeLessThan(($this->at)($source, 'id="bio"', $bio))
         ->and(($this->at)($field, '<FieldHelp id={id} help={help} />'))
         ->toBeGreaterThan(($this->at)($field, '{tie(children, id, help, error)}'))
@@ -74,17 +74,18 @@ it('says where the bio shows in a hint under the box, not in its label', functio
         ->and($source)->not->toContain('Bio — shown');
 });
 
-it('offers Resend confirmation email as a button, not a link inside a sentence', function (): void {
+it('offers Send it again as the notice\'s button, not a link inside a sentence', function (): void {
     $source = ($this->flat)('pages/account/profile.tsx');
-    $line = ($this->at)($source, 'Your email address isn’t confirmed yet.');
+    $notice = ($this->at)($source, 'data-test="email-unverified"');
 
-    expect(($this->at)($source, 'asChild', $line))->toBeLessThan(($this->at)($source, 'Resend confirmation email', $line))
+    expect(($this->at)($source, 'asChild', $notice))->toBeLessThan(($this->at)($source, "{__('Send it again')}", $notice))
+        ->and(($this->at)($source, "{__('Send it again')}", $notice))->toBeLessThan(($this->at)($source, 'Your email address isn’t verified yet.', $notice))
         ->and($source)->not->toContain('Click here');
 });
 
 it('offers Open inbox as a button beside the Inbox heading', function (): void {
     $source = ($this->flat)('pages/account/notifications.tsx');
-    $heading = ($this->at)($source, "title={__('Inbox')}");
+    $heading = ($this->at)($source, "{__('Inbox')}");
 
     expect(($this->at)($source, 'Open inbox', $heading))->toBeLessThan(($this->at)($source, '{notices.length === 0'))
         ->and(($this->at)($source, 'asChild', $heading))->toBeLessThan(($this->at)($source, 'Open inbox', $heading))
@@ -108,14 +109,14 @@ it('says why the reader is on the sign-in screen above the form', function (): v
 
 it('offers Back to sign in on its own, not inside a sentence', function (): void {
     expect(($this->flat)('pages/auth/forgot-password.tsx'))
-        ->toContain("<TextButton asChild className=\"min-h-(--ctl-h)\"> <Link href={login()}>{__('Back to sign in')}</Link> </TextButton>")
+        ->toContain("<AuthLink asChild> <Link href={login()}>{__('Back to sign in')}</Link> </AuthLink>")
         ->not->toContain('Or, return to');
 });
 
-it('offers the other way to sign in as a button of its own under Continue', function (): void {
+it('offers the other way to sign in as a link of its own under Continue', function (): void {
     $source = ($this->flat)('pages/auth/two-factor-challenge.tsx');
-    $continue = ($this->at)($source, 'Continue');
+    $continue = ($this->at)($source, "{__('Continue')}");
 
-    expect(($this->at)($source, 'variant="neutral"', $continue))->toBeLessThan(($this->at)($source, '{authConfigContent.toggleText}', $continue))
+    expect(($this->at)($source, '<AuthLink', $continue))->toBeLessThan(($this->at)($source, '{authConfigContent.toggleText}', $continue))
         ->and($source)->not->toContain('or you can');
 });

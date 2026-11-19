@@ -67,9 +67,6 @@ components/editor/rail/canonical-choice.tsx	Canonical address
 components/editor/rail/canonical-choice.tsx	Where the original of this
 components/editor/rail/canonical-choice.tsx	lives, if it was first published elsewhere. Search engines are then asked to list the original instead.
 components/editor/rail/publish-panel.tsx	Default
-components/editor/rail/publish-panel.tsx	History
-components/editor/rail/publish-when.tsx	At a set time…
-components/editor/rail/publish-when.tsx	Immediately
 components/editor/rail/template-choice.ts	{} (not in this theme)
 components/editor/rewrite/rewrite-presets.ts	Fix spelling and grammar
 components/editor/rewrite/rewrite-presets.ts	Improve
@@ -208,16 +205,6 @@ components/seo/who-publishes.tsx	Owned by
 components/seo/who-publishes.tsx	The business
 components/seo/who-publishes.tsx	This person no longer has an account, so search engines are told nobody in particular publishes the site. Choose someone else, or Nobody in particular.
 components/status-banner.tsx	Site notice
-components/term-tree-picker.tsx	+ Add
-components/term-tree-picker.tsx	Add
-components/term-tree-picker.tsx	Cancel
-components/term-tree-picker.tsx	Name
-components/term-tree-picker.tsx	None
-components/term-tree-picker.tsx	None yet.
-components/term-tree-picker.tsx	Nothing matches.
-components/term-tree-picker.tsx	Parent
-components/term-tree-picker.tsx	Search
-components/term-tree-picker.tsx	Search {}
 components/themes/theme-list.tsx	Active
 components/themes/theme-list.tsx	Available
 components/themes/theme-list.tsx	Broken

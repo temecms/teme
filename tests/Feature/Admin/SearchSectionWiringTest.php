@@ -16,7 +16,8 @@ it('opens the editor without a canonical that names an item gone from the site, 
     expect(uiComponent('pages/content/edit.tsx'))
         ->toContain('withoutGoneCanonical(session.fields, page.seo.canonicalItem)')
         ->toContain('useSearchPreview(')
-        ->toContain('checks={search.checks}')
+        ->toContain('searchToCheck(search.checks)')
+        ->toContain('checks={search.publishingChecks}')
         ->and(uiComponent('components/editor/rail/search-panel.tsx'))->toContain('check.search')
         ->and(uiComponent('components/editor/rail/canonical-choice.tsx'))->toContain('canonicalAddressProblem(');
 });

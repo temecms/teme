@@ -655,6 +655,8 @@ Skeletons appear only after 300ms, so fast loads do not flash.
 
 One look, two meanings. Look: a row of 36px items, radius `md`, padding 0 12, gap 4, `text-body` 500 `--ink-2`; hover `--surface-3`; **selected `--surface-3` with `--ink`**; a count after the label (4.15). One row, never wrapping: **the first five show, the rest go under "More ▾"** (when the selected one is in More, More shows its name). 16px below the row.
 
+**The underline look** (`TabsList variant="underline"`) is for a box's own tabs under its header, as Search and social's (4.39): 48px items, padding 0 16, gap 8, `text-body` 500 `--ink-2`, an icon before the label; hover `--ink`; **selected `--ink` with a 2px `--accent` line under it**; the row sits on a 1px `--line` with 8px above, inside a horizontal ScrollArea when the box is narrow.
+
 | Component | Built on | Meaning | Keyboard |
 |---|---|---|---|
 | **Tabs** | Radix Tabs (new dependency, approved: I-3404) | Panels of one screen that does not change address: the picker's Library / Upload / plugin sources, a dialog's sections | ←→ move and show; Tab leaves |
@@ -763,13 +765,13 @@ The `xl` fixed dialog, one picker for every image (I-3400). **Head**: the title 
 
 | Part | Rule |
 |---|---|
-| **Header strip** | `--chrome`, min height 52, padding 0 16 0 24, with the box's name and a summary; it **folds the box** (a Disclosure, 4.40). It sets the box apart from the article |
+| **Header strip** | `--chrome`, min height 52, padding 0 16 0 24, with the box's name and a summary (the result's title and "· 3 things to check"); it **folds the box** (a Disclosure, 4.40). It sets the box apart from the article |
 | **Tabs** | Tabs (4.27), **one on screen at a time**: Search first, then Social, Schema, Advanced. Core's first tab is always first. A plugin's tab sits where its author declared it relative to core's tabs (6.3); the SEO plugin's Analysis tab is drawn between Search and Social |
 | **Rows** | Each row has its **label and length guidance in a left column** (300 wide on `--surface-2`, in the reference design) and **the field at full width** on the right |
-| **Search tab** | The **result preview** at true size with a **Desktop / Mobile** segmented switch; the SEO title (from the site's template until overridden); the meta description (a Textarea, 4.5). **The address shows in the preview only** and is changed only in Publish › Address (the rail's Address row): one value, never a field of its own here |
+| **Search tab** | The **result preview** at true size as its first row ("Result preview", a Desktop / Mobile switch with monitor and phone icons, "As a search result may show it." on the left; the result on the right: the site's name and round mark, the path from the item's own address, the title cut by width, the date before the description), in the admin's own type; the SEO title as a two-line Textarea whose placeholder is "Using the title template: …", with one length line over a bar (accent; `--warn` once a result may cut it); the meta description as a three-line Textarea. **The address shows in the preview only** and is changed only in Publish › Address (the rail's Address row): one value, never a field of its own here |
 | **Social tab** | Inherits from Search: "Same as search" until changed, with **one card preview** |
 | **Schema tab** | The type and its summary |
-| **Checks** | Core's plain factual checks, **after the fields, never above them** |
+| **Checks** | Core's plain factual checks, **after the fields, never above them**: a fold on the Search tab headed by a warning icon and "Checks · 3 things to check", each failing check with a "Fix" that moves focus to its field, then "A warning never blocks publishing." |
 
 What is core's and what is the SEO plugin's is I-3413. A plugin adds to the box only through the declared places (6.3).
 
@@ -796,7 +798,7 @@ What is core's and what is the SEO plugin's is I-3413. A plugin adds to the box 
 | **Segmented control** | Built on Radix ToggleGroup (installed, unused today). `--surface-3` ground, radius `md`, padding 2, gap 2; buttons 28 tall, radius `sm`, padding 0 12, `text-small` 500 `--ink-2`; pressed: `--surface`, `--ink`, `shadow-raised`. For 2 to 4 mutually exclusive view choices (Today / 7 days / 30 days, List / Grid, S M L) |
 | **Kbd** | `ui/kbd.tsx`: `text-caption` 500 `--ink-3`, `--surface-3`, radius `sm`, padding 0 4, min width 20, line-height 20px |
 | **Plugin mark** | `ui/plugin-mark.tsx`: a 14px plug icon and the plugin's name, `text-caption` 500 `--ink-3`, gap 4; in tight places the icon alone, with the name in a tooltip and `sr-only` text. On everything a plugin adds to a shared screen |
-| **Progress bar** | `ui/progress.tsx`: 6px, fully rounded, `--surface-4` track, `--accent` fill, `role="progressbar"` with its value. No dependency |
+| **Progress bar** | `ui/progress.tsx`: 6px, fully rounded, `--surface-4` track, `--accent` fill, `role="progressbar"` with its value. Tones: accent, `warn` (a length past where a result may cut it, as Search and social's length bars, 4px), ok, danger, quiet. No dependency |
 | **Spinner** | `ui/spinner.tsx` (exists): a 16px turning icon, `--ink-3`, 1s per turn |
 | **Avatar** | The top bar's 32px account circle, for the person signed in. A person's picture elsewhere is the component in 4.49. **No pictures in dense lists** (I-3399): authors are names |
 | **Disclosure** | Radix Collapsible (installed): a button with a chevron rotating 90° and its region; replaces `<details>` |

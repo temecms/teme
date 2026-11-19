@@ -64,6 +64,7 @@ final readonly class EditorSession
         public string $id,
         public array $document,
         public bool $fromAutosave,
+        /** When this person's work was last saved: their autosave's time, else the working revision's; the editor's bar says it as "Saved 2 min ago". */
         public ?string $savedAt,
         public ?string $workingRevisionId,
         public array $otherEditors,
@@ -135,7 +136,7 @@ final readonly class EditorSession
             id: $content->id,
             document: $document,
             fromAutosave: $autosave !== null,
-            savedAt: self::iso($autosave?->saved_at),
+            savedAt: self::iso($autosave->saved_at ?? $revision?->created_at),
             workingRevisionId: $content->working_revision_id,
             otherEditors: EditorPresence::othersIn($content->id, (string) $viewer->id),
             title: $title,

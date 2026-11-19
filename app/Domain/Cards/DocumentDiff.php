@@ -66,11 +66,11 @@ final readonly class DocumentDiff
 
         foreach ($new as $j => $node) {
             foreach ($removedBefore[$j] ?? [] as $i) {
-                $blocks[] = new DiffBlock('removed', $this->text($old[$i]), null, self::type($old[$i]));
+                $blocks[] = $this->whole('removed', $old[$i]);
             }
 
             if (! isset($pairs[$j])) {
-                $blocks[] = new DiffBlock('added', null, $this->text($node), self::type($node));
+                $blocks[] = $this->whole('added', $node);
 
                 continue;
             }
@@ -79,7 +79,7 @@ final readonly class DocumentDiff
         }
 
         foreach ($removedBefore['end'] ?? [] as $i) {
-            $blocks[] = new DiffBlock('removed', $this->text($old[$i]), null, self::type($old[$i]));
+            $blocks[] = $this->whole('removed', $old[$i]);
         }
 
         return $blocks;
@@ -100,21 +100,44 @@ final readonly class DocumentDiff
         if ($identical) {
             $text = $this->text($after);
 
-            return new DiffBlock($moved ? 'moved' : 'same', $text, $text, $type);
+            return new DiffBlock($moved ? 'moved' : 'same', $text, $text, $type, label: $this->label($after));
         }
 
         if ($card !== null) {
             $description = e($card->describeChange((array) ($before['attrs'] ?? []), (array) ($after['attrs'] ?? [])));
 
-            return new DiffBlock($moved ? 'moved' : 'changed', null, $description, $type);
+            return new DiffBlock($moved ? 'moved' : 'changed', null, $description, $type, label: $this->label($after));
         }
+
+        $words = self::words(self::plain($before), self::plain($after));
 
         return new DiffBlock(
             $moved ? 'moved' : 'changed',
             $this->text($before),
-            self::words(self::plain($before), self::plain($after)),
+            $words['merged'],
             $type,
+            markedBefore: $words['before'],
+            markedAfter: $words['after'],
+            added: $words['added'],
+            removed: $words['removed'],
         );
+    }
+
+    /**
+     * A block added or removed whole: its text on its one side, and every
+     * word of it counted.
+     *
+     * @param  'added'|'removed'  $kind
+     * @param  array<mixed>  $node
+     */
+    private function whole(string $kind, array $node): DiffBlock
+    {
+        $text = $this->text($node);
+        $count = $this->wordCount($node);
+
+        return $kind === 'added'
+            ? new DiffBlock('added', null, $text, self::type($node), added: $count, label: $this->label($node))
+            : new DiffBlock('removed', $text, null, self::type($node), removed: $count, label: $this->label($node));
     }
 
     /**
@@ -270,20 +293,30 @@ final readonly class DocumentDiff
     }
 
     /**
-     * The later text with the words that differ marked: `<ins>` for added,
-     * `<del>` for removed. Every word is escaped before it is wrapped.
+     * The words that differ, marked: `merged` is the later text with `<ins>`
+     * for added words and `<del>` for removed ones, `before` the earlier
+     * text with its removed words marked, `after` the later text with its
+     * added words marked; with how many words each side gained and lost.
+     * Every word is escaped before it is wrapped.
+     *
+     * @return array{merged: string, before: string, after: string, added: int, removed: int}
      */
-    private static function words(string $before, string $after): string
+    private static function words(string $before, string $after): array
     {
         $split = fn (string $text): array => preg_split('/(\s+)/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY) ?: [];
         $diff = (new Differ(new DiffOnlyOutputBuilder))->diffToArray($split($before), $split($after));
 
         // Runs of words of the same kind, so a changed phrase is one <ins>.
         $runs = [];
+        $counts = [Differ::ADDED => 0, Differ::REMOVED => 0];
 
         foreach ($diff as [$token, $type]) {
             if (! in_array($type, [Differ::OLD, Differ::ADDED, Differ::REMOVED], true)) {
                 continue;
+            }
+
+            if ($type !== Differ::OLD && trim((string) $token) !== '') {
+                $counts[$type]++;
             }
 
             $last = array_key_last($runs);
@@ -296,6 +329,8 @@ final readonly class DocumentDiff
         }
 
         $html = '';
+        $older = '';
+        $later = '';
         $previous = null;
 
         foreach ($runs as [$type, $words]) {
@@ -311,10 +346,44 @@ final readonly class DocumentDiff
                 Differ::REMOVED => '<del>'.$words.'</del>',
                 default => $words,
             };
+            $older .= match ($type) {
+                Differ::ADDED => '',
+                Differ::REMOVED => '<del>'.$words.'</del>',
+                default => $words,
+            };
+            $later .= match ($type) {
+                Differ::ADDED => '<ins>'.$words.'</ins>',
+                Differ::REMOVED => '',
+                default => $words,
+            };
             $previous = [$type, $words];
         }
 
-        return $html;
+        return ['merged' => $html, 'before' => $older, 'after' => $later, 'added' => $counts[Differ::ADDED], 'removed' => $counts[Differ::REMOVED]];
+    }
+
+    /**
+     * How many words a block holds, for a block added or removed whole.
+     *
+     * @param  array<mixed>  $node
+     */
+    private function wordCount(array $node): int
+    {
+        $card = $this->cards->find(self::type($node));
+        $text = $card === null ? self::plain($node) : $card->plainText((array) ($node['attrs'] ?? []));
+
+        return count(preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+    }
+
+    /**
+     * What a card is called, for the block's type in the comparison; null
+     * for prose, which the screen names itself.
+     *
+     * @param  array<mixed>  $node
+     */
+    private function label(array $node): ?string
+    {
+        return $this->cards->find(self::type($node))?->label();
     }
 
     /**

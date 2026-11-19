@@ -158,7 +158,7 @@ it('offers the primary category once two are ticked, says it moves a published p
         ->click('[role="option"] >> text="Local"');
 
     cmWaitUntil($page, "document.querySelector('[role=\"listbox\"]') === null");
-    ($this->textShown)($page, 'Names this post’s section above its title and in lists. It also sets the category in its address.', '[data-test="primary-category-hint"]');
+    ($this->textShown)($page, 'Shown above the headline and used in the address.', '[data-test="primary-category-hint"]');
 
     $page->assertSeeIn('[data-test="primary-category-hint"]', 'Changing it moves this post’s address when you update it. The old address leads to the new one.')
         ->assertDontSeeIn('[data-test="primary-category-hint"]', 'Its trail:');

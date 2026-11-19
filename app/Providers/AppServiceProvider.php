@@ -21,6 +21,7 @@ use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Search\PostgresSiteSearch;
 use App\Domain\Status\StatusChecks;
 use App\Domain\Users\Actors;
+use App\Http\Standalone\ErrorReference;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -44,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
         // queue worker's next job and Octane's next request start with
         // nobody kept, whatever a caller forgot (I-087).
         $this->app->scoped(Actors::class);
+        // One reference for each request's failure, the log's and the 500 page's.
+        $this->app->scoped(ErrorReference::class);
 
         // Core's search; a plugin may bind another engine behind the contract.
         $this->app->bind(SiteSearch::class, PostgresSiteSearch::class);

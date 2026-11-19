@@ -26,6 +26,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Teme\Contracts\Settings\SettingsReader;
+use Throwable;
 
 final class FortifyServiceProvider extends ServiceProvider
 {
@@ -76,6 +77,8 @@ final class FortifyServiceProvider extends ServiceProvider
 
         Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
             'status' => $request->session()->get('status'),
+            // "It works for 60 minutes": the reset link's own lifetime.
+            'minutes' => (int) config('auth.passwords.'.config('fortify.passwords', 'users').'.expire', 60),
         ]));
 
         Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
@@ -84,7 +87,46 @@ final class FortifyServiceProvider extends ServiceProvider
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 
-        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
+        Fortify::confirmPasswordView(fn (Request $request) => Inertia::render('auth/confirm-password', [
+            'guards' => self::guardedPage($request->session()->get('url.intended')),
+            'cancelUrl' => self::cancelUrl($request),
+        ]));
+    }
+
+    /**
+     * The name of the admin page the password is asked for, such as
+     * "Security", from the address the person was going to; null for any
+     * other page, whose lead then names none.
+     */
+    private static function guardedPage(mixed $intended): ?string
+    {
+        if (! is_string($intended) || $intended === '') {
+            return null;
+        }
+
+        try {
+            $name = app('router')->getRoutes()->match(Request::create($intended))->getName() ?? '';
+        } catch (Throwable) {
+            return null;
+        }
+
+        return match (true) {
+            $name === 'security.edit' => __('Security'),
+            $name === 'two-factor.edit' => __('Two-factor sign-in'),
+            str_starts_with($name, 'tools.backups.') => __('Backups'),
+            default => null,
+        };
+    }
+
+    /**
+     * Where Cancel leads: the page the person came from, or Home when that
+     * was this page itself or nothing.
+     */
+    private static function cancelUrl(Request $request): string
+    {
+        $previous = url()->previous(route('dashboard'));
+
+        return $previous === $request->url() ? route('dashboard') : $previous;
     }
 
     /**

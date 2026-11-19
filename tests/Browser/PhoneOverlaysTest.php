@@ -317,8 +317,11 @@ it('asks to revoke an invitation from the foot of a phone\'s screen', function (
     $this->actingAs($this->admin)->get(route('users.index'))->assertOk();
 
     $page = cmNavigate(cmSignIn($this->admin)->resize(375, 667), '/admin/users?view=invited');
-    cmWaitUntil($page, 'document.querySelector(\'[aria-label="Actions for Ivy Invited"]\') !== null');
-    $page->click('[aria-label="Actions for Ivy Invited"] >> text="Revoke invitation"');
+    cmWaitUntil($page, 'document.querySelector(\'[aria-label="More actions for Ivy Invited"]\') !== null');
+    // Revoking is in the invited row's menu; the row's own line holds Send again and Change role….
+    $page->click('[aria-label="More actions for Ivy Invited"]');
+    shellSettled($page, '[role="menu"]');
+    $page->click('[role="menu"] >> text="Revoke invitation"');
     cmWaitUntil($page, 'document.querySelector(\'[role="dialog"]\')?.textContent.includes("Revoke the invitation to ivy@example.com?") === true');
     shellSettled($page, '[data-slot="dialog-content"]');
 

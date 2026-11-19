@@ -121,14 +121,17 @@ it('keeps the editor\'s header, its toolbar and its side panel in view while a 1
         ->and($railed['window'])->toBe(0);
 });
 
-it('fits the workspace beneath a site notice, with the side panel closed and in focus mode', function (): void {
-    // An administrator sees the search rebuild's notice above every screen, the editor's too.
+it('draws its own bar in place of the admin\'s top bar and site notice, the site status counting the notice, and fits the workspace with the side panel closed and in focus mode', function (): void {
+    // An administrator sees the search rebuild's notice above every other screen; the editor's bar counts it instead.
     $admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
     Cache::put(ReindexSearchJob::PROGRESS, 120, now()->addHour());
     $this->actingAs($admin)->get($this->edit)->assertOk();
 
     $page = cmEditorSettled(cmNavigate(cmSignIn($admin)->resize(1280, 640), $this->edit));
-    cmWaitUntil($page, "document.querySelector('[data-test=\"site-notice\"]') !== null");
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"editor-bar\"] [data-test=\"site-status-button\"]')?.getAttribute('aria-label')?.startsWith('Site status: ') === true");
+    $page->assertNotPresent('[data-test="site-notice"]')
+        ->assertNotPresent('[data-slot="app-header"]');
+    expect(($this->where)($page)['header'])->toBe(0);
     ($this->columnScrolls)($page);
 
     // In view halfway down, at the end the column has scrolled all of it, and the page never moves.
@@ -153,7 +156,7 @@ it('fits the workspace beneath a site notice, with the side panel closed and in 
     $noticed = $fits($page);
 
     // The side panel closed: the column takes its place and still scrolls on its own.
-    $page->click('[data-slot="editor-shell"] > header [aria-label="Hide settings"]');
+    $page->click('[data-test="rail-toggle"]');
     cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"]') === null");
     $closed = $fits($page);
 
@@ -161,7 +164,7 @@ it('fits the workspace beneath a site notice, with the side panel closed and in 
 
     // Focus mode hides the top bar; the workspace fills what it leaves.
     $page->script(<<<'JS'
-        () => [...document.querySelectorAll('[data-slot="editor-shell"] > header button')].find((button) => button.textContent.trim() === 'Focus').click()
+        () => document.querySelector('[data-test="editor-focus"]').click()
         JS);
     cmWaitUntil($page, "document.documentElement.classList.contains('editor-focus')");
     $focused = $fits($page);
@@ -181,7 +184,8 @@ it('keeps the toolbar in view on a phone, where the side panel stays a sheet', f
 
     expect($phone['rail'])->toBeNull()
         ->and($phone['window'])->toBe(0)
-        ->and($phone['topBar'])->toBe(0)
+        ->and($phone['topBar'])->toBeNull()
+        ->and($phone['header'])->toBe(0)
         ->and($phone['toolbar'])->toEqualWithDelta($phone['writing'], 1);
 
     ($this->scrollToEnd)($page, '[data-slot="editor-writing"]');
@@ -207,7 +211,8 @@ it('folds the menu as the editor opens unless the person unfolded it there, and 
         ->not->toMatch('/(^|;\s*)sidebar_state=/');
 
     // Back to the list by the editor's own way back: the menu as it was there.
-    $page->click('[data-slot="editor-shell"] > header a[href="/admin/posts"]');
+    $page->click('[data-test="editor-place"]')
+        ->click('[role="menuitem"] >> text="All posts"');
     cmWaitUntil($page, "location.pathname === '/admin/posts'");
     $menuIs($page, 'expanded');
 
@@ -246,7 +251,8 @@ it('gives the menu back as the person left it after going from one editor straig
     $menuIs($page, 'collapsed');
 
     // Leaving: the person never folded it, so the list has it unfolded.
-    $page->click('[data-slot="editor-shell"] > header a[href="/admin/posts"]');
+    $page->click('[data-test="editor-place"]')
+        ->click('[role="menuitem"] >> text="All posts"');
     cmWaitUntil($page, "location.pathname === '/admin/posts'");
     $menuIs($page, 'expanded');
 });

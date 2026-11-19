@@ -192,3 +192,26 @@ it('gives a region its own checks in the rail, and none of a post\'s search chec
         ->assertNotPresent('[data-test="rail-checks"]')
         ->assertNotPresent('[data-test="rail-search-note"]');
 });
+
+it('draws a region\'s own bar and facts in place of a post\'s Publish section, and counts a card\'s text in the word count', function (): void {
+    regionSave($this->region, $this->editor, [regionCardNode('callout')]);
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit));
+
+    // The bar: the crumbs, no Tools and no Focus.
+    $page->assertSeeIn('[data-slot="editor-bar"] [data-test="crumbs"]', 'Regions')
+        ->assertNotPresent('[data-test="editor-tools"]')
+        ->assertNotPresent('[data-test="editor-focus"]');
+
+    // The facts: the theme using it and whether it is in use, what it takes, and its blocks against its limit.
+    cmWaitUntil($page, "document.querySelector('[data-test=\"region-facts\"]') !== null")
+        ->assertSeeIn('[data-test="region-facts"]', 'Used by')
+        ->assertSeeIn('[data-test="region-facts"]', 'In use')
+        ->assertSeeIn('[data-test="region-facts"]', 'Takes')
+        ->assertScript("/^\\d+ of at most \\d+$/.test(document.querySelector('[data-test=\"region-blocks\"]').textContent)")
+        ->assertSeeIn('[data-test="region-facts"]', 'A region is not a page, so it has no title, address, preview or featured image. Visitors see it on their next page after you update.')
+        ->assertNotPresent('[data-test="publish-section"]')
+        ->assertNotPresent('#editor-when');
+
+    // The callout's eight words are counted.
+    cmWaitUntil($page, "(document.querySelector('[data-test=\"body-counts\"]')?.innerText ?? '').includes('8 words')");
+});

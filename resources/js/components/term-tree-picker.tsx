@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 
 /** One term of a hierarchical taxonomy (TermPicker::tree). */
 export type TreeTerm = { id: string; name: string; parentId: string | null };
@@ -64,11 +67,12 @@ function rowsOf(terms: TreeTerm[], checked: string[], query: string): Row[] {
 
 /**
  * A hierarchical taxonomy's terms as a tree of checkboxes. The list scrolls
- * past 240px, offers a search once there are more than eight terms, lists
+ * past 176px, offers a search once there are more than eight terms, lists
  * checked terms first, and ends with + Add for someone who may add terms.
  */
 export function TermTreePicker({
     label,
+    labelShown = false,
     segment,
     terms: initial,
     value,
@@ -76,6 +80,8 @@ export function TermTreePicker({
     canAdd,
 }: {
     label: string;
+    /** Whether the taxonomy's name shows over the list, as in the editor's rail. */
+    labelShown?: boolean;
     segment: string;
     terms: TreeTerm[];
     value: string[];
@@ -120,75 +126,92 @@ export function TermTreePicker({
             setAdding(false);
         } catch {
             setProblem(
-                'Couldn’t add it. Check that the name isn’t already used.',
+                __('Couldn’t add it. Check that the name isn’t already used.'),
             );
         }
     };
 
     return (
         <fieldset className="grid gap-2">
-            <legend className="sr-only">{label}</legend>
+            <legend
+                className={cn(
+                    labelShown
+                        ? 'text-small text-ink-2 mb-1 font-medium'
+                        : 'sr-only',
+                )}
+            >
+                {label}
+            </legend>
             {terms.length > SEARCH_AFTER && (
                 <Input
-                    aria-label={`Search ${label.toLowerCase()}`}
-                    placeholder="Search"
+                    aria-label={__('Search :plural', {
+                        plural: label.toLowerCase(),
+                    })}
+                    placeholder={__('Search')}
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    className="h-[30px]"
+                    className="h-8"
                 />
             )}
-            <ul className="max-h-60 overflow-y-auto">
-                {rows.map(({ term, depth }) => (
-                    <li
-                        key={term.id}
-                        className="flex items-center gap-2 py-1"
-                        style={{ paddingLeft: depth * 16 }}
-                    >
-                        <Checkbox
-                            id={`${id}-${term.id}`}
-                            checked={value.includes(term.id)}
-                            onCheckedChange={(on) =>
-                                toggle(term.id, on === true)
-                            }
-                        />
-                        <Label
-                            htmlFor={`${id}-${term.id}`}
-                            className="text-[13px] font-normal"
+            <ScrollArea className="max-h-44">
+                <ul className="p-1">
+                    {rows.map(({ term, depth }) => (
+                        <li
+                            key={term.id}
+                            className="flex items-center gap-2 py-1"
+                            style={{ paddingLeft: depth * 16 }}
                         >
-                            {term.name}
-                        </Label>
-                    </li>
-                ))}
-                {rows.length === 0 && (
-                    <li className="text-ink-2 py-1 text-[13px]">
-                        {terms.length === 0 ? 'None yet.' : 'Nothing matches.'}
-                    </li>
-                )}
-            </ul>
+                            <Checkbox
+                                id={`${id}-${term.id}`}
+                                checked={value.includes(term.id)}
+                                onCheckedChange={(on) =>
+                                    toggle(term.id, on === true)
+                                }
+                            />
+                            <Label
+                                htmlFor={`${id}-${term.id}`}
+                                className="text-body font-normal"
+                            >
+                                {term.name}
+                            </Label>
+                        </li>
+                    ))}
+                    {rows.length === 0 && (
+                        <li className="text-ink-2 text-small py-1">
+                            {terms.length === 0
+                                ? __('None yet.')
+                                : __('Nothing matches.')}
+                        </li>
+                    )}
+                </ul>
+            </ScrollArea>
             {canAdd &&
                 (adding ? (
                     <div className="border-line grid gap-2 border-t pt-2">
-                        <Label htmlFor={`${id}-name`}>Name</Label>
+                        <Label htmlFor={`${id}-name`}>{__('Name')}</Label>
                         <Input
                             id={`${id}-name`}
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            className="h-[30px]"
+                            className="h-8"
                         />
-                        <Label htmlFor={`${id}-parent`}>Parent</Label>
+                        <Label htmlFor={`${id}-parent`}>{__('Parent')}</Label>
                         <SelectField
                             id={`${id}-parent`}
                             value={parentId}
                             onValueChange={setParentId}
-                            emptyLabel="None"
+                            emptyLabel={__('None')}
                             options={terms.map((term) => ({
                                 value: term.id,
                                 label: term.name,
                             }))}
-                            className="h-[30px] w-full"
+                            className="h-8 w-full"
                         />
                         {problem && (
-                            <p role="alert" className="text-danger-ink text-xs">
+                            <p
+                                role="alert"
+                                className="text-danger-ink text-caption"
+                            >
                                 {problem}
                             </p>
                         )}
@@ -199,7 +222,7 @@ export function TermTreePicker({
                                 disabled={name.trim() === ''}
                                 onClick={() => void add()}
                             >
-                                Add
+                                {__('Add')}
                             </Button>
                             <Button
                                 type="button"
@@ -207,7 +230,7 @@ export function TermTreePicker({
                                 variant="ghost"
                                 onClick={() => setAdding(false)}
                             >
-                                Cancel
+                                {__('Cancel')}
                             </Button>
                         </div>
                     </div>
@@ -219,7 +242,7 @@ export function TermTreePicker({
                         className="justify-self-start"
                         onClick={() => setAdding(true)}
                     >
-                        + Add
+                        {__('+ Add')}
                     </Button>
                 ))}
         </fieldset>

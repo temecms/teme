@@ -219,7 +219,7 @@ it('keeps typed words in a box until the field is left, sending nothing at each 
     cmWaitUntil($page, $sent.' === 1');
 });
 
-it('opens Two-factor sign-in from the account list after the password, with Turn on two-factor sign-in', function (): void {
+it('opens Two-factor sign-in from the account list after the password, at its first step', function (): void {
     $page = cmNavigate(cmSignIn($this->admin), '/admin/account/profile');
     cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Account"]\') !== null');
 
@@ -229,7 +229,8 @@ it('opens Two-factor sign-in from the account list after the password, with Turn
         ->click('[data-test="confirm-password-button"]');
     cmWaitUntil($page, 'document.querySelector("h1")?.textContent === "Two-factor sign-in"');
 
-    $page->assertSee('Turn on two-factor sign-in');
+    $page->assertSee('Scan the code')
+        ->assertSee('Next: type a code');
 });
 
 it('passes axe on Preferences and Two-factor sign-in, every target 24 pixels or more, in both schemes', function (string $path, string $scheme): void {

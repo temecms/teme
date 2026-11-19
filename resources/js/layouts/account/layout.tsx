@@ -1,5 +1,7 @@
-import type { CSSProperties, PropsWithChildren } from 'react';
+import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import { Page } from '@/components/patterns/page';
+import { PageHeader } from '@/components/patterns/page-header';
+import { cn } from '@/lib/utils';
 import { AccountNav, AccountPagesButton } from './account-nav';
 
 /** The side list beside the page from 1024px: up to 200 wide, the page taking the rest. */
@@ -8,19 +10,41 @@ const COLUMNS = {
 } as CSSProperties;
 
 /**
- * The frame of every account page (docs/architecture/design-system.md,
- * section 4.43): the account's side list headed by you, and the page's
- * column; under 1024px one button opens the list.
+ * The account page's own settings-page frame gives its header and its
+ * width to this layout: the title runs across the top, and the panels fill
+ * the column 16 apart.
  */
-export default function AccountLayout({ children }: PropsWithChildren) {
+const PAGE_IN_FRAME =
+    '[&_[data-slot=settings-page]]:grid [&_[data-slot=settings-page]]:max-w-none [&_[data-slot=settings-page]]:gap-4 [&_[data-slot=settings-page]>[data-slot=page-header]]:hidden [&_[data-slot=settings-page]>form]:grid [&_[data-slot=settings-page]>form]:gap-4 [&_[data-slot=form-panel]]:mt-0!';
+
+/**
+ * The frame of every account page (docs/architecture/design-system.md,
+ * section 4.43): the page's title and line across the full width, then the
+ * account's side list headed by you beside the page's column; under 1024px
+ * one button opens the list. Each page names its title through its layout
+ * props, as it names its breadcrumbs.
+ */
+export default function AccountLayout({
+    title,
+    description,
+    children,
+}: PropsWithChildren<{
+    /** The page's h1. */
+    title?: string;
+    /** The line under it, saying what the page is for. */
+    description?: ReactNode;
+}>) {
     return (
         <Page>
+            {title !== undefined && (
+                <PageHeader title={title} description={description} />
+            )}
             <div
                 className="grid items-start gap-8 lg:grid-cols-(--account-cols)"
                 style={COLUMNS}
             >
                 <AccountNav />
-                <div className="grid min-w-0 gap-4">
+                <div className={cn('grid min-w-0 gap-4', PAGE_IN_FRAME)}>
                     <AccountPagesButton />
                     {children}
                 </div>

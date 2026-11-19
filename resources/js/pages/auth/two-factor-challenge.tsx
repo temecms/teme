@@ -1,7 +1,7 @@
-import { Form } from '@inertiajs/react';
+import { Form, Link } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
-import { AuthPage } from '@/components/patterns/auth-page';
+import { AuthLink, AuthPage } from '@/components/patterns/auth-page';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { __ } from '@/lib/i18n';
+import { login } from '@/routes';
 import { store } from '@/routes/two-factor/login';
 
 export default function TwoFactorChallenge() {
@@ -25,14 +26,14 @@ export default function TwoFactorChallenge() {
     }>(() => {
         if (showRecoveryInput) {
             return {
-                title: __('Recovery code'),
+                title: __('Use a recovery code'),
                 description: __('Type one of your recovery codes.'),
                 toggleText: __('Use your authenticator app instead'),
             };
         }
 
         return {
-            title: __('Authentication code'),
+            title: __('Two-factor sign-in'),
             description: __(
                 'Type the 6-digit code your authenticator app shows.',
             ),
@@ -51,6 +52,13 @@ export default function TwoFactorChallenge() {
             tabTitle={__('Two-factor sign-in')}
             title={authConfigContent.title}
             lead={authConfigContent.description}
+            links={
+                <AuthLink asChild>
+                    <Link href={login()} data-test="back-to-sign-in">
+                        {__('Back to sign in')}
+                    </Link>
+                </AuthLink>
+            }
         >
             <Form
                 {...store.form()}
@@ -64,6 +72,9 @@ export default function TwoFactorChallenge() {
                             <Field
                                 htmlFor="recovery-code"
                                 label={__('Recovery code')}
+                                help={__(
+                                    'Use one of the codes you saved when you turned on two-factor sign-in.',
+                                )}
                                 error={errors.recovery_code}
                             >
                                 <Input
@@ -90,15 +101,16 @@ export default function TwoFactorChallenge() {
                                     disabled={processing}
                                     pattern={REGEXP_ONLY_DIGITS}
                                     autoFocus
+                                    containerClassName="w-full"
                                 >
-                                    <InputOTPGroup>
+                                    <InputOTPGroup className="grid w-full grid-cols-6 gap-2">
                                         {Array.from(
                                             { length: OTP_MAX_LENGTH },
                                             (_, index) => (
                                                 <InputOTPSlot
                                                     key={index}
                                                     index={index}
-                                                    className="max-sm:size-10"
+                                                    className="text-lead h-12 w-full rounded-md border font-mono"
                                                 />
                                             ),
                                         )}
@@ -107,25 +119,22 @@ export default function TwoFactorChallenge() {
                             </Field>
                         )}
 
-                        <div className="grid gap-3">
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                className="w-full"
-                                loading={processing}
-                            >
-                                {__('Continue')}
-                            </Button>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            className="w-full"
+                            loading={processing}
+                        >
+                            {__('Continue')}
+                        </Button>
 
-                            <Button
-                                type="button"
-                                variant="neutral"
-                                className="w-full"
-                                onClick={() => toggleRecoveryMode(clearErrors)}
-                            >
-                                {authConfigContent.toggleText}
-                            </Button>
-                        </div>
+                        <AuthLink
+                            className="justify-self-center"
+                            data-test="two-factor-toggle"
+                            onClick={() => toggleRecoveryMode(clearErrors)}
+                        >
+                            {authConfigContent.toggleText}
+                        </AuthLink>
                     </>
                 )}
             </Form>

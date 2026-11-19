@@ -531,7 +531,7 @@ html.editor-workspace #main-content {
    serif at the lead size and 1.7. Everything else on the screen is the
    interface face. */
 .teme-prose {
-    --editor-measure: 692px;
+    --editor-measure: var(--measure);
     font-family: var(--font-serif);
     font-size: var(--text-lead);
     line-height: 1.7;
@@ -542,9 +542,10 @@ html.editor-workspace #main-content {
     margin-top: 0.85em;
 }
 
-/* The writing area fills the room between the menu and the side panel; text
-   keeps a reading measure centred in it, and tables, images and embeds take
-   the full width (I-3121). */
+/* The writing column is the reading measure (design system, 4.39): the
+   title, the excerpt, the featured image, the toolbar and the text share its
+   left edge; text gives way below it, and tables, images and embeds take the
+   column's width. */
 .teme-prose
     > :not(
         table,

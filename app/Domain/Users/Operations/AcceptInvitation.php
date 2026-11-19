@@ -41,8 +41,8 @@ final class AcceptInvitation extends BaseOperation
     {
         /** @var AcceptInvitationInput $input */
         Validator::make(
-            ['password' => $input->password, 'password_confirmation' => $input->passwordConfirmation],
-            ['password' => ['required', 'string', Password::defaults(), 'confirmed']],
+            ['password' => $input->password, 'password_confirmation' => $input->passwordConfirmation, 'name' => $input->name],
+            ['password' => ['required', 'string', Password::defaults(), 'confirmed'], 'name' => ['nullable', 'string', 'max:255']],
         )->validate();
     }
 
@@ -52,6 +52,11 @@ final class AcceptInvitation extends BaseOperation
         $user = User::query()->where('email', Str::lower(trim($input->email)))->lockForUpdate()->firstOrFail();
 
         $user->password = $input->password;
+
+        if ($input->name !== null && trim($input->name) !== '') {
+            $user->name = trim($input->name);
+        }
+
         $user->email_verified_at ??= Date::now();
         $user->invited_at = null;
         $user->setRememberToken(Str::random(60));

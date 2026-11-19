@@ -1,3 +1,6 @@
+import { CircleAlert, CircleCheck, LoaderCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { __, __n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { SaveFailure } from './save-failure';
 import type { AutosaveState } from './use-autosave';
@@ -87,19 +90,45 @@ export function saveWords(
           };
 }
 
-const DOTS: Record<SaveKind, string> = {
-    saved: 'bg-ok',
-    saving: 'bg-warn',
-    offline: 'bg-danger',
-    stale: 'bg-danger',
-    refused: 'bg-danger',
-};
+/**
+ * When the work was last saved, as the bar says it: "just now" for the
+ * first 45 seconds, then minutes ago for the first hour, then the time.
+ */
+export function savedAgo(savedAt: string, now: number): string {
+    const seconds = Math.max(0, (now - new Date(savedAt).getTime()) / 1000);
+
+    if (seconds < 45) {
+        return __('Saved just now');
+    }
+
+    if (seconds < 3600) {
+        const minutes = Math.max(1, Math.round(seconds / 60));
+
+        return __n('Saved :count min ago|Saved :count min ago', minutes);
+    }
+
+    return __('Saved :time', { time: clock(savedAt) });
+}
+
+/** The clock the "minutes ago" reads, moved on every 20 seconds. */
+function useNow(): number {
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        const timer = window.setInterval(() => setNow(Date.now()), 20000);
+
+        return () => window.clearInterval(timer);
+    }, []);
+
+    return now;
+}
 
 /**
- * A dot and a phrase in the header: where saving stands. The phrase is
- * 11px and muted, and hidden below 640px, where the dot and the sentence
- * for screen readers remain. `data-state` and `data-saved-at` are what
- * tests wait on, never the words.
+ * Where saving stands, after the status in the bar (4.39): a tick and
+ * "Saved 2 min ago" when the work is safe, a turning circle while it saves,
+ * an alert and the reason when it isn't. The phrase hides below 640px,
+ * where the icon and the sentence for screen readers remain.
+ * `data-state` and `data-saved-at` are what tests wait on, never the words.
  */
 export function SaveState({
     state,
@@ -112,8 +141,18 @@ export function SaveState({
     savedAt: string | null;
     failure: SaveFailure | null;
 }) {
+    const now = useNow();
     const words = saveWords(state, pending, savedAt, failure);
     const unsafe = words.kind !== 'saved' && words.kind !== 'saving';
+    const phrase =
+        words.kind === 'saved' && savedAt !== null
+            ? savedAgo(savedAt, now)
+            : words.phrase;
+    const Icon = unsafe
+        ? CircleAlert
+        : words.kind === 'saving'
+          ? LoaderCircle
+          : CircleCheck;
 
     return (
         <span
@@ -122,13 +161,20 @@ export function SaveState({
             data-state={words.kind}
             data-saved-at={savedAt ?? undefined}
             title={words.detail}
-            className="text-ink-2 text-caption inline-flex items-center gap-2 whitespace-nowrap"
+            className={cn(
+                'text-small inline-flex min-w-0 items-center gap-2 whitespace-nowrap',
+                unsafe ? 'text-danger-ink' : 'text-ink-3',
+            )}
         >
-            <span
+            <Icon
                 aria-hidden
-                className={cn('size-2 rounded-full', DOTS[words.kind])}
+                className={cn(
+                    'size-4 shrink-0',
+                    words.kind === 'saved' && 'text-ok-ink',
+                    words.kind === 'saving' && 'motion-safe:animate-spin',
+                )}
             />
-            <span className="max-sm:sr-only">{words.phrase}</span>
+            <span className="truncate max-sm:sr-only">{phrase}</span>
             {unsafe && <span className="sr-only"> {words.detail}</span>}
         </span>
     );

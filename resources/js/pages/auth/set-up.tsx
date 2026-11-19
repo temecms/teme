@@ -7,6 +7,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
 import { __ } from '@/lib/i18n';
+import { passwordMinimum } from '@/lib/password';
 
 type Props = {
     timezones: string[];
@@ -33,13 +34,17 @@ function WithCommand({ line }: { line: string }) {
     return (
         <>
             {line.slice(0, at)}
-            <code className="font-mono">{COMMAND}</code>
+            <code className="bg-surface-3 text-ink rounded-sm px-1 font-mono">
+                {COMMAND}
+            </code>
             {line.slice(at + COMMAND.length)}
         </>
     );
 }
 
 export default function SetUp({ timezones, passwordRules }: Props) {
+    const minimum = passwordMinimum(passwordRules);
+
     return (
         <AuthPage
             brand="teme"
@@ -102,6 +107,7 @@ export default function SetUp({ timezones, passwordRules }: Props) {
                                 id="timezone"
                                 name="timezone"
                                 defaultValue={browserZone(timezones)}
+                                className="w-full"
                                 options={timezones.map((zone) => ({
                                     value: zone,
                                     label: zone,
@@ -142,6 +148,13 @@ export default function SetUp({ timezones, passwordRules }: Props) {
                         <Field
                             htmlFor="password"
                             label={__('Password')}
+                            help={
+                                minimum === null
+                                    ? undefined
+                                    : __('At least :count characters.', {
+                                          count: minimum,
+                                      })
+                            }
                             error={errors.password}
                         >
                             <PasswordInput
@@ -155,7 +168,7 @@ export default function SetUp({ timezones, passwordRules }: Props) {
 
                         <Field
                             htmlFor="password_confirmation"
-                            label={__('Confirm password')}
+                            label={__('Type the password again')}
                             error={errors.password_confirmation}
                         >
                             <PasswordInput

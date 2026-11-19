@@ -25,7 +25,7 @@ import { useShellWidth } from '@/hooks/use-shell-width';
 import { __, __n } from '@/lib/i18n';
 import { index as usersIndex } from '@/routes/users';
 import type { RoleOption, UserRow, UsersIndexPage } from '@/types';
-import { formatDate, formatDateTime } from '@/lib/dates';
+import { formatDate, formatRecent } from '@/lib/dates';
 
 /** A role's label, as the role choices name it; "—" for none. */
 function roleLabel(roles: RoleOption[], role: string | null): string {
@@ -109,13 +109,15 @@ export default function UsersIndex({
     );
     const isYou = (user: UserRow) => user.id === currentUserId;
     const lineActions = (user: UserRow) =>
-        invited ? invitationActions(user) : accountActions(user, manage);
+        invited
+            ? invitationActions(user, manage)
+            : accountActions(user, manage);
     // Your own row has no menu: each of its actions is refused for yourself.
     const moreActions = (user: UserRow) =>
         isYou(user)
             ? []
             : invited
-              ? invitationMoreActions(user, manage)
+              ? invitationMoreActions(user)
               : accountMoreActions(user, manage);
 
     const empty = (() => {
@@ -207,7 +209,11 @@ export default function UsersIndex({
             cell: (user) => (
                 <span className="text-ink-2">
                     {user.lastSignInAt
-                        ? formatDateTime(user.lastSignInAt)
+                        ? formatRecent(user.lastSignInAt, {
+                              today: (time) => __('Today, :time', { time }),
+                              yesterday: (time) =>
+                                  __('Yesterday, :time', { time }),
+                          })
                         : __('Never')}
                 </span>
             ),
@@ -303,6 +309,7 @@ export default function UsersIndex({
             >
                 <InPageNav
                     label={__('Views')}
+                    shown={tabs.length}
                     items={tabs.map((tab) => ({
                         label: tab.label,
                         count: tab.count,

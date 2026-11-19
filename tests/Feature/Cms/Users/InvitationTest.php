@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -178,4 +179,46 @@ it('accepts through the invitation page and sends the person to sign in', functi
         'password' => 'another-long-passphrase-here',
         'password_confirmation' => 'another-long-passphrase-here',
     ])->assertSessionHasErrors('email');
+});
+
+it('shows the invitation page who sent it, the role and the site', function (): void {
+    $this->withElevation();
+    $result = usersInvite($this->admin, role: 'editor');
+
+    $this->get(InvitationUrl::for($result['token'], 'new@example.com'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('auth/accept-invitation')
+            ->where('invitation.name', 'New Person')
+            ->where('invitation.role', 'Editor')
+            ->where('invitation.invitedBy', $this->admin->name),
+        );
+});
+
+it('tells a wrong invitation link nothing about the invitation', function (): void {
+    $this->withElevation();
+    usersInvite($this->admin);
+
+    $this->get(InvitationUrl::for('wrong', 'new@example.com'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('invitation', null));
+});
+
+it('keeps the name the invited person types as they accept', function (): void {
+    $this->withElevation();
+    $result = usersInvite($this->admin);
+
+    app(AcceptInvitation::class)->execute(new AcceptInvitationInput('new@example.com', $result['token'], 'a-brand-new-long-passphrase', 'a-brand-new-long-passphrase', name: '  Ada Obi  '));
+
+    expect(User::query()->findOrFail($result['userId'])->name)->toBe('Ada Obi');
+});
+
+it('writes no name for a wrong invitation token', function (): void {
+    $this->withElevation();
+    $result = usersInvite($this->admin);
+
+    expect(fn () => app(AcceptInvitation::class)->execute(new AcceptInvitationInput('new@example.com', 'wrong', 'a-brand-new-long-passphrase', 'a-brand-new-long-passphrase', name: 'Ada Obi')))
+        ->toThrow(AuthorizationException::class);
+
+    expect(User::query()->findOrFail($result['userId'])->name)->toBe('New Person');
 });
