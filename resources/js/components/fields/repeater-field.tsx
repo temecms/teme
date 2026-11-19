@@ -34,7 +34,7 @@ export function RepeaterField({
     label: string;
     items: Item[];
     onChange: (items: Item[]) => void;
-    /** What one item is called, as in "Add version". */
+    /** What one item is called, as in "Add a version". */
     itemLabel: string;
     /** The key whose value titles a collapsed item. */
     itemTitle: string | null;
@@ -60,6 +60,15 @@ export function RepeaterField({
             ? title
             : `${itemLabel} ${index + 1}`;
     };
+
+    // The button names what it adds ("Add a service"); with no name declared, it stays "Add item".
+    const named = itemLabel.trim() !== '' && itemLabel !== __('Item');
+    const noun = itemLabel.trim().toLowerCase();
+    const addLabel = !named
+        ? __('Add item')
+        : /^[aeiou]/.test(noun)
+          ? __('Add an :item', { item: noun })
+          : __('Add a :item', { item: noun });
 
     const move = (from: number, to: number) => {
         const moved = [...items];
@@ -200,7 +209,7 @@ export function RepeaterField({
                     }}
                 >
                     <Plus aria-hidden="true" />
-                    {__('Add :item', { item: itemLabel.toLowerCase() })}
+                    {addLabel}
                 </Button>
             </div>
         </fieldset>

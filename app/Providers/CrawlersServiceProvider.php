@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers what crawlers read beside the pages: robots.txt's section of
+ * Search and social, which checks its own lines when saved (I-300), and
+ * the sitemaps' providers. In register(), as every part registers.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -15,11 +25,6 @@ use App\Domain\Sitemaps\SitemapProvider;
 use App\Domain\Sitemaps\TermsSitemap;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers what crawlers read beside the pages: robots.txt's section of
- * Search and social, which checks its own lines when saved (I-300), and
- * the sitemaps' providers. In register(), as every part registers.
- */
 final class CrawlersServiceProvider extends ServiceProvider
 {
     public function register(): void

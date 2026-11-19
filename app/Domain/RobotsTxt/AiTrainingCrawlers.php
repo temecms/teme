@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\RobotsTxt;
-
 /**
  * The crawlers "Ask AI training crawlers not to use this site" names
  * (I-707): those that gather pages to train AI models, never those that
@@ -12,7 +8,16 @@ namespace App\Domain\RobotsTxt;
  * then each one its maker documents as a training crawler; every entry
  * names its source, checked by hand for each release, never fetched at run
  * time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\RobotsTxt;
+
 final class AiTrainingCrawlers
 {
     /** @var list<array{agent: string, operator: string, source: string}> */

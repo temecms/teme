@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every comment but spam on an item not in the trash, with its commenter's
+ * name, email address and website (I-2408). Never an IP address, a browser,
+ * the private edit token or the spam check's verdict.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -10,11 +20,6 @@ use App\Domain\Export\ExportJson;
 use App\Domain\Export\ExportKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every comment but spam on an item not in the trash, with its commenter's
- * name, email address and website (I-2408). Never an IP address, a browser,
- * the private edit token or the spam check's verdict.
- */
 final readonly class CommentsKind implements ExportKind
 {
     public function name(): string

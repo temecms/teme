@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The plugins a person agreed to enable or disabled: exported, and kept on
+ * erasure, since the record is unlinked when the account is deleted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Privacy;
@@ -13,10 +22,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * The plugins a person agreed to enable or disabled: exported, and kept on
- * erasure, since the record is unlinked when the account is deleted.
- */
 final class PluginConsentHolder implements PersonalDataHolder
 {
     public function key(): string

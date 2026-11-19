@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Every per-person preference, declared once (I-110). Each declaration is
+ * checked as it arrives, as SettingsRegistry checks settings: the key's
+ * shape, no duplicate, no key that is both a leaf and the prefix of another,
+ * a known type, and a default the declaration itself allows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Preferences;
 
 use InvalidArgumentException;
 
-/**
- * Every per-person preference, declared once (I-110). Each declaration is
- * checked as it arrives, as SettingsRegistry checks settings: the key's
- * shape, no duplicate, no key that is both a leaf and the prefix of another,
- * a known type, and a default the declaration itself allows.
- */
 final class PreferenceRegistry
 {
     private const string KEY = '/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$/';

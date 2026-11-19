@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The ImageEngine on Intervention Image 4, with the GD or Imagick driver. It
+ * applies the camera's orientation, strips metadata, and turns animations
+ * into stills from their first frame.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Images;
@@ -13,11 +23,6 @@ use Intervention\Image\Interfaces\ExceptionInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 use Throwable;
 
-/**
- * The ImageEngine on Intervention Image 4, with the GD or Imagick driver. It
- * applies the camera's orientation, strips metadata, and turns animations
- * into stills from their first frame.
- */
 final class InterventionImageEngine implements ImageEngine
 {
     private readonly ImageManager $manager;

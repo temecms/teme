@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Hosts the companion's analysis lists as linked from the site that look
+ * like other addresses of this site (a subdomain of the home host), for the
+ * person to tick before a run (docs/proposals/import-v1-fixes.md). Kept from
+ * the analysis read, so the import page never asks the old site twice.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Import\Phases\Addresses\OldSiteUrls;
 use App\Domain\Import\Planning\ImportAnalysis;
 use Illuminate\Contracts\Cache\Repository;
 
-/**
- * Hosts the companion's analysis lists as linked from the site that look
- * like other addresses of this site (a subdomain of the home host), for the
- * person to tick before a run (docs/proposals/import-v1-fixes.md). Kept from
- * the analysis read, so the import page never asks the old site twice.
- */
 final readonly class SuggestedHosts
 {
     public function __construct(private Repository $cache) {}

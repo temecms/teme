@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Reading's Home page: what the home page shows, saved by ChangeAddresses,
+ * which keeps every other address setting as it is and moves addresses
+ * when the home page changes. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -11,11 +21,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-/**
- * Reading's Home page: what the home page shows, saved by ChangeAddresses,
- * which keeps every other address setting as it is and moves addresses
- * when the home page changes. It changes nothing itself.
- */
 final class HomePageController extends Controller
 {
     public function __invoke(Request $request, ChangeAddresses $change): RedirectResponse

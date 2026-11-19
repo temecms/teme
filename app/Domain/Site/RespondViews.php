@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Core's pages about writing a comment (I-593, I-594), in the words the
+ * design pass drew: one answer for each outcome of a form posted without
+ * JavaScript, each keeping what the reader wrote, and the reply page
+ * without it (I-594), and the form drawn again for core's script (1.8b′).
+ * Spam reads as held (I-592). A lead line is HTML built here, every word
+ * in it escaped.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -20,14 +33,6 @@ use App\Domain\Site\ViewModels\CommentView;
 use App\Domain\Site\ViewModels\RespondView;
 use App\Domain\Types\ContentTypeRegistry;
 
-/**
- * Core's pages about writing a comment (I-593, I-594), in the words the
- * design pass drew: one answer for each outcome of a form posted without
- * JavaScript, each keeping what the reader wrote, and the reply page
- * without it (I-594), and the form drawn again for core's script (1.8b′).
- * Spam reads as held (I-592). A lead line is HTML built here, every word
- * in it escaped.
- */
 final readonly class RespondViews
 {
     public function __construct(

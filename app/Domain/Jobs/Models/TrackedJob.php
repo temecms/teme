@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One piece of background work as people follow it: what it is, who started
+ * it, how far it's got and how it ended (I-104). Only the job Operations
+ * write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Models;
@@ -11,10 +21,6 @@ use Illuminate\Database\Eloquent\Model;
 use stdClass;
 
 /**
- * One piece of background work as people follow it: what it is, who started
- * it, how far it's got and how it ended (I-104). Only the job Operations
- * write it.
- *
  * @property string $id
  * @property string $kind
  * @property string $owner

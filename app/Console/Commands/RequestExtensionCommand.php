@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:extensions:request — asks the installer to install, update or remove a plugin or theme from
+ * Packagist, or to roll back to the plugins and themes kept before, as the operator (I-211); the
+ * installer carries it out.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,11 +23,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:extensions:request — asks the installer to install, update or remove a plugin or theme from
- * Packagist, or to roll back to the plugins and themes kept before, as the operator (I-211); the
- * installer carries it out.
- */
 final class RequestExtensionCommand extends Command
 {
     /** The changes an operator may ask for; Teme asks for a rebuild itself. */

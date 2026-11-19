@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The image card in a feed: the picture at an absolute address with its caption and credit, and none of the page's styling.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -8,9 +16,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Feeds\FeedCardRenderer;
 use App\Domain\Feeds\FeedImages;
 
-/**
- * The image card in a feed: the picture at an absolute address with its caption and credit, and none of the page's styling.
- */
 final readonly class PlainImage implements FeedCardRenderer
 {
     public function __construct(private FeedImages $images) {}

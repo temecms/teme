@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Asks the installer to install, update or remove a plugin or theme, or to roll back to the plugins and
+ * themes kept before (I-211): a person who holds extensions.install, after their password, or the
+ * operator. It records the request and changes no code; the installer carries it out. One at a time, and
+ * never while Teme is being updated. Returns the request's ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -28,12 +39,6 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 use UnexpectedValueException;
 
-/**
- * Asks the installer to install, update or remove a plugin or theme, or to roll back to the plugins and
- * themes kept before (I-211): a person who holds extensions.install, after their password, or the
- * operator. It records the request and changes no code; the installer carries it out. One at a time, and
- * never while Teme is being updated. Returns the request's ID.
- */
 final class RequestExtensionChange extends BaseOperation implements RequiresElevation
 {
     use AuthorizesExtensionChanges;

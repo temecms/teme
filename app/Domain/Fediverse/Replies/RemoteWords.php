@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A reply's HTML as the restricted comment document (I-267, rule 7): read
+ * by the same reader as an imported comment, which keeps paragraphs,
+ * quotes, line breaks, bold, italic, code and links, drops scripts and
+ * everything else, and links the site's own pages by their IDs (rule 9).
+ * HTML is never stored.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies;
@@ -10,13 +22,6 @@ use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Phases\Comments\CommentWords;
 use Illuminate\Validation\ValidationException;
 
-/**
- * A reply's HTML as the restricted comment document (I-267, rule 7): read
- * by the same reader as an imported comment, which keeps paragraphs,
- * quotes, line breaks, bold, italic, code and links, drops scripts and
- * everything else, and links the site's own pages by their IDs (rule 9).
- * HTML is never stored.
- */
 final readonly class RemoteWords
 {
     /** The longest reply taken, in characters of plain text. */

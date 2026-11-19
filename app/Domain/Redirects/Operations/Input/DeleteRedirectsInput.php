@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What DeleteRedirects needs: the redirects, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What DeleteRedirects needs: the redirects, and who is asking.
- */
 final readonly class DeleteRedirectsInput implements OperationInput
 {
     /**

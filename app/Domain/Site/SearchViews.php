@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The search page as its template sees it: 1.6c's ListingView, the class
+ * every archive receives, with a search subject, the results' items in hit
+ * order, pages at `/page/N/?s=…` (after the page language's prefix), and the search's own details beside them.
+ * A blank query searches nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -13,12 +24,6 @@ use Teme\Contracts\Search\SearchHit;
 use Teme\Contracts\Search\SearchRequest;
 use Teme\Contracts\Search\SiteSearch;
 
-/**
- * The search page as its template sees it: 1.6c's ListingView, the class
- * every archive receives, with a search subject, the results' items in hit
- * order, pages at `/page/N/?s=…` (after the page language's prefix), and the search's own details beside them.
- * A blank query searches nothing.
- */
 final readonly class SearchViews
 {
     /** The longest query searched and shown, in characters (as PostgresSiteSearch reads it). */

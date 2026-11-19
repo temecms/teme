@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Themes;
-
-use Illuminate\Support\Facades\View;
-
 /**
  * Chooses a page's template (study B §3d): at most three named candidates
  * for its kind, from the most specific down, and the first that exists
  * wins. The theme's `index` is the floor every kind but `error` falls to;
  * an error falls to core's own error view, never the theme's index.
  * `comments` and `respond` fall to core's own page instead.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Themes;
+
+use Illuminate\Support\Facades\View;
+
 final class TemplateResolver
 {
     /** Core's error page: outside `theme::`, so no theme composer runs on it. */

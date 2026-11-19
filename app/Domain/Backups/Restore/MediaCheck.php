@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The restored media against the backup (I-2404): every original the
+ * manifest names, at its path, with its SHA-256; every variant the restored
+ * rows name, at its path. Read by recorded path, never by listing a folder.
+ * What it finds is said, never a failure: the backup recorded what its
+ * server lacked, and the site is better open with it named.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -7,13 +19,6 @@ namespace App\Domain\Backups\Restore;
 use App\Domain\Backups\Manifest;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The restored media against the backup (I-2404): every original the
- * manifest names, at its path, with its SHA-256; every variant the restored
- * rows name, at its path. Read by recorded path, never by listing a folder.
- * What it finds is said, never a failure: the backup recorded what its
- * server lacked, and the site is better open with it named.
- */
 final readonly class MediaCheck
 {
     /** Files named in each list; the counts count them all. */

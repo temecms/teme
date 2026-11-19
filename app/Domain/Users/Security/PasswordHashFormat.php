@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Users\Security;
-
 /**
  * The password hash formats Teme can verify, each recognised by its exact
  * shape. Teme writes only Argon2id; the others verify until the person's
  * next sign-in replaces them (I-124). Any other shape is no format, and never
  * verifies.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Users\Security;
+
 enum PasswordHashFormat: string
 {
     case Argon2id = 'argon2id';

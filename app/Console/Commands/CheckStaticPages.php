@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * `teme:cache:check-static`: asks the web server whether it serves the
+ * static-file driver's pages as its settings intend (I-086, D11). It writes
+ * a probe page where the driver writes pages, and another at an address the
+ * router keeps for itself, asks for them as a reader would and as each kind
+ * of request that must reach PHP, then deletes them and asks once more. It
+ * says which rules hold, and lists what only a person can check.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -14,14 +27,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * `teme:cache:check-static`: asks the web server whether it serves the
- * static-file driver's pages as its settings intend (I-086, D11). It writes
- * a probe page where the driver writes pages, and another at an address the
- * router keeps for itself, asks for them as a reader would and as each kind
- * of request that must reach PHP, then deletes them and asks once more. It
- * says which rules hold, and lists what only a person can check.
- */
 final class CheckStaticPages extends Command
 {
     /** @var string */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The application's name, environment, address, locale and encryption key, as
+ * Laravel reads them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 return [

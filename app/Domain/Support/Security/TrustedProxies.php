@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * The proxies whose X-Forwarded-* headers Teme believes (I-380). Trusting
+ * every proxy lets any client set X-Forwarded-For and walk past every
+ * per-address limit, so only addresses, ranges and two named lists pass.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Security;
 
 use InvalidArgumentException;
 
-/**
- * The proxies whose X-Forwarded-* headers Teme believes (I-380). Trusting
- * every proxy lets any client set X-Forwarded-For and walk past every
- * per-address limit, so only addresses, ranges and two named lists pass.
- */
 final class TrustedProxies
 {
     /**

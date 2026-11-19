@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * How people sign in: Laravel's guards, user providers and password reset
+ * settings.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Models\User;

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Deployment;
-
 /**
  * Whether a site is reached over https alone (I-380): in production, at an
  * https APP_URL. Then its cookies are Secure, its session cookie is a
  * __Host- cookie, and every https answer carries Strict-Transport-Security.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Deployment;
+
 final class SecureTransport
 {
     /** The header's value unless TEME_HSTS says otherwise: a year, this host only, never preloaded. */

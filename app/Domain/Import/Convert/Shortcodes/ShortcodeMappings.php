@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The shortcode mapping registry (I-349): core's rows, and those plugins tag
+ * under TAG. A shortcode finds its row by its exact name; two rows for one
+ * name are refused when the registry is first asked.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Shortcodes;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Convert\Shortcodes;
 use Illuminate\Contracts\Container\Container;
 use LogicException;
 
-/**
- * The shortcode mapping registry (I-349): core's rows, and those plugins tag
- * under TAG. A shortcode finds its row by its exact name; two rows for one
- * name are refused when the registry is first asked.
- */
 final class ShortcodeMappings
 {
     public const string TAG = 'teme.import.shortcodes';

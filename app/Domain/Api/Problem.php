@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One API error as an RFC 9457 problem: its status, its code, the words a
+ * person reads, the path it was asked at, and each refused parameter for
+ * invalid_parameter. Its type is always about:blank in v1, so its title
+ * is the status's own phrase.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
 
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * One API error as an RFC 9457 problem: its status, its code, the words a
- * person reads, the path it was asked at, and each refused parameter for
- * invalid_parameter. Its type is always about:blank in v1, so its title
- * is the status's own phrase.
- */
 final readonly class Problem
 {
     /**

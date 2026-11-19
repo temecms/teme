@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Status;
-
 /**
  * One Status banner: how serious it is (error, warning or info), what is
  * wrong in plain words, where to fix it, its priority among banners, and
  * once collected, what it is about and the plugin that raised it. It has no
  * dismiss: it goes when the problem does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Status;
+
 final readonly class StatusBanner
 {
     public function __construct(
@@ -22,7 +27,11 @@ final readonly class StatusBanner
         public ?string $plugin = null,
     ) {}
 
-    /** The same banner with the row's label, and the plugin's name when a plugin raised it. */
+    /**
+     * The same banner with the row's label, and the plugin's name when a plugin raised it.
+     *
+     * @since 0.8.0-alpha.1
+     */
     public function labelled(string $label, ?string $plugin): self
     {
         return new self($this->level, $this->message, $this->actionLabel, $this->actionUrl, $this->priority, $label, $plugin);

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A single line of plain text, such as an SEO title. Stored trimmed; the
+ * field's maxLength caps it, 255 by default.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -7,10 +16,6 @@ namespace App\Domain\Fields\Types;
 use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 
-/**
- * A single line of plain text, such as an SEO title. Stored trimmed; the
- * field's maxLength caps it, 255 by default.
- */
 final class TextField implements FieldType
 {
     public function name(): string

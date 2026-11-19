@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups;
-
-use App\Domain\Backups\Tools\SnapshotRun;
-
 /**
  * Which of a place's backups are kept (I-361), as the backups settings word
  * it: the newest of each of the last keep_daily days that have one; then,
@@ -13,7 +7,18 @@ use App\Domain\Backups\Tools\SnapshotRun;
  * then, from the backups before those, the newest of each of keep_monthly
  * months; days, weeks and months in the site's time zone. Only complete
  * runs are kept.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups;
+
+use App\Domain\Backups\Tools\SnapshotRun;
+
 final class KeptRuns
 {
     /**

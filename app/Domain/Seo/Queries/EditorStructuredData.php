@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What the gate would leave out of an item's page as one of its revisions
+ * makes it (I-703), for the editor's check: each node, its types, and what
+ * it lacks. A draft with no address yet is checked at the address it would
+ * take, so the graph checked is the one it will publish. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo\Queries;
@@ -17,12 +28,6 @@ use App\Domain\Themes\ViewIntent;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * What the gate would leave out of an item's page as one of its revisions
- * makes it (I-703), for the editor's check: each node, its types, and what
- * it lacks. A draft with no address yet is checked at the address it would
- * take, so the graph checked is the one it will publish. It reads only.
- */
 final readonly class EditorStructuredData
 {
     public function __construct(private ArticleViews $views, private DocumentMeta $meta) {}

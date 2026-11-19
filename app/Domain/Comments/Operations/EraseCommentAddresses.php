@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Erases commenters' IP addresses and browsers once keep_ip_days have passed
+ * since each comment arrived (I-270; 1.8d's D13), a chunk at a time, as the
+ * operator. Imported comments go on the first run; nothing else on a comment
+ * changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -12,12 +23,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Erases commenters' IP addresses and browsers once keep_ip_days have passed
- * since each comment arrived (I-270; 1.8d's D13), a chunk at a time, as the
- * operator. Imported comments go on the first run; nothing else on a comment
- * changes.
- */
 final class EraseCommentAddresses extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

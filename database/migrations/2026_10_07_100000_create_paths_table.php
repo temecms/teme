@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Every public address, one row each (I-061): an item's, a term's or an
+ * author's current address, or an old one that answers with a 301.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
@@ -7,10 +16,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Every public address, one row each (I-061): an item's, a term's or an
- * author's current address, or an old one that answers with a 301.
- */
 return new class extends Migration
 {
     public function up(): void

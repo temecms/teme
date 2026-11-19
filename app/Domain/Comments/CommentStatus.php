@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
 /**
  * One comment status (I-224): its key, as stored in `comments.status`; its
  * label; whether readers see a comment in it, an approved one or a
  * tombstone's place; whether a moderator may move a comment to it; and
  * whether Delete permanently is offered from it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
 final readonly class CommentStatus
 {
     public const string PENDING = 'pending';

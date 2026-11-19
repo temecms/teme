@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The site's figures on the Home screen, from the maintained counts —
+ * content_counts' all-authors status rows and media_counts — never by counting
+ * rows: each public type's published, drafts and scheduled, then the comments
+ * waiting on the items the viewer looks after (1.8c), then media.
+ * A figure whose screen the viewer may not open has no link. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Queries;
@@ -12,13 +24,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The site's figures on the Home screen, from the maintained counts —
- * content_counts' all-authors status rows and media_counts — never by counting
- * rows: each public type's published, drafts and scheduled, then the comments
- * waiting on the items the viewer looks after (1.8c), then media.
- * A figure whose screen the viewer may not open has no link. It reads only.
- */
 final readonly class SiteFigures
 {
     public function __construct(private ContentTypeRegistry $types, private CommentsWaiting $waiting) {}

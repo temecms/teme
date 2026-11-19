@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The plugins' own WordPress data (docs/proposals/plugin-import-socket.md):
+ * for each plugin granted import.wordpress, in code order, each record of
+ * its declared post types, people's meta and terms' meta, read a page at a
+ * time and handed to its importer inside the record's own transaction with
+ * its map row (I-332). After core's people, terms and content, so a plugin
+ * can look up what they became; before the second pass.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -18,14 +31,6 @@ use Teme\Contracts\Import\ImportOutcome;
 use Teme\Contracts\Import\WordPressRecord;
 use Throwable;
 
-/**
- * The plugins' own WordPress data (docs/proposals/plugin-import-socket.md):
- * for each plugin granted import.wordpress, in code order, each record of
- * its declared post types, people's meta and terms' meta, read a page at a
- * time and handed to its importer inside the record's own transaction with
- * its map row (I-332). After core's people, terms and content, so a plugin
- * can look up what they became; before the second pass.
- */
 final readonly class PluginDataPhase implements ListPhase
 {
     /** A post's fields a plugin is given, as the extension route sends them. */

@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * One phase of an import, run in its order (I-333): a list phase or a step.
+ * Registered by container tag under ImportPhases::TAG, from a provider's
+ * register(); made for every job, so its constructor reads nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
 
 use App\Domain\Import\ImportRunKind;
 
-/**
- * One phase of an import, run in its order (I-333): a list phase or a step.
- * Registered by container tag under ImportPhases::TAG, from a provider's
- * register(); made for every job, so its constructor reads nothing.
- */
 interface ImportPhase
 {
     /** Lower-case words joined by hyphens, unique among the phases: `users`. */

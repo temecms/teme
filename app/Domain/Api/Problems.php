@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Turns anything thrown under /api into a problem (RFC 9457): its code and
+ * status from what was thrown, its words from ApiWords, never the
+ * exception's own message, SQL, class or path, in debug mode or not
+ * (I-091). Sets the API's own headers itself, since a 405, maintenance
+ * mode's 503 and anything thrown before the route's middleware never pass
+ * through AnswerAsApi.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
@@ -12,14 +25,6 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
-/**
- * Turns anything thrown under /api into a problem (RFC 9457): its code and
- * status from what was thrown, its words from ApiWords, never the
- * exception's own message, SQL, class or path, in debug mode or not
- * (I-091). Sets the API's own headers itself, since a 405, maintenance
- * mode's 503 and anything thrown before the route's middleware never pass
- * through AnswerAsApi.
- */
 final class Problems
 {
     /** The flags every API answer is encoded with. */

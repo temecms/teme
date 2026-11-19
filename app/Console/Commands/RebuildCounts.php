@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:counts:rebuild — recomputes the status counts behind the list tabs and
+ * reports any drift. With --check it only reports, and fails if there is any.
+ * Runs weekly.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,11 +20,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:counts:rebuild — recomputes the status counts behind the list tabs and
- * reports any drift. With --check it only reports, and fails if there is any.
- * Runs weekly.
- */
 final class RebuildCounts extends Command
 {
     /** @var string */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Keeps an uploaded plugin or theme archive as data until the installer unpacks it (I-211): the web
+ * process checks its size and that it is a ZIP, reads only its composer.json, never extracts a file,
+ * and stores the bytes with the package's name, version and checksum. A person who holds
+ * extensions.install, after their password, or the operator. Returns the upload's ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -17,12 +28,6 @@ use Teme\Contracts\Operations\RequiresElevation;
 use UnexpectedValueException;
 use ZipArchive;
 
-/**
- * Keeps an uploaded plugin or theme archive as data until the installer unpacks it (I-211): the web
- * process checks its size and that it is a ZIP, reads only its composer.json, never extracts a file,
- * and stores the bytes with the package's name, version and checksum. A person who holds
- * extensions.install, after their password, or the operator. Returns the upload's ID.
- */
 final class UploadExtension extends BaseOperation implements RequiresElevation
 {
     use AuthorizesExtensionChanges;

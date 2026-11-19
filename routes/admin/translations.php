@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The routes that translate an item, and link and unlink its versions.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Domain\Types\ContentTypeRegistry;

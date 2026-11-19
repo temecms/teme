@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Hands a release's rebuild to the job that does it, for the actor the
+ * deploy named (I-3113), only on a worker whose code ships the queuing
+ * release's newest migration. A worker still on the release before puts it
+ * back for a minute, for up to a day, until one on the new release takes it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Jobs;
@@ -13,12 +24,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use LogicException;
 
-/**
- * Hands a release's rebuild to the job that does it, for the actor the
- * deploy named (I-3113), only on a worker whose code ships the queuing
- * release's newest migration. A worker still on the release before puts it
- * back for a minute, for up to a day, until one on the new release takes it.
- */
 final class RunReleaseRebuild implements ShouldQueue
 {
     use Queueable;

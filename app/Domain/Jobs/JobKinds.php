@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The kinds of background work Teme can retry and cancel, each a JobKind its
+ * own part tags under TAG. Read from the container when asked, so nothing is
+ * kept between requests (I-087).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs;
@@ -7,11 +17,6 @@ namespace App\Domain\Jobs;
 use Illuminate\Contracts\Container\Container;
 use LogicException;
 
-/**
- * The kinds of background work Teme can retry and cancel, each a JobKind its
- * own part tags under TAG. Read from the container when asked, so nothing is
- * kept between requests (I-087).
- */
 final readonly class JobKinds
 {
     /** The container tag a kind is registered under. */

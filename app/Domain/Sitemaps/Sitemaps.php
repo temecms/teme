@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The sitemaps (I-296): the index of every page of every child the
+ * registered providers give, and the page an address names. A page's
+ * address carries its first key, which the index read off in one pass, so
+ * no page is found by OFFSET; the keys each child's index gave are kept,
+ * and a page answers only for one of them, so there are as many addresses
+ * as pages.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps;
@@ -11,14 +24,6 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Cache;
 use LogicException;
 
-/**
- * The sitemaps (I-296): the index of every page of every child the
- * registered providers give, and the page an address names. A page's
- * address carries its first key, which the index read off in one pass, so
- * no page is found by OFFSET; the keys each child's index gave are kept,
- * and a page answers only for one of them, so there are as many addresses
- * as pages.
- */
 final class Sitemaps
 {
     /** Every sitemap's page-cache tag, a thing's: purging it removes them all. */

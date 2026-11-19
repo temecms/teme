@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Proves the backups can be read and restored (I-362): nightly, a seventh of
+ * each place's stored data read back by restic's check; weekly, the newest
+ * backup's database restored into the spare database and compared with its
+ * manifest, and 50 of its media files read back. Under the backup lock, so
+ * never beside a backup, a prune or a restore; every row through the run
+ * Operations.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Verify;
@@ -45,14 +58,6 @@ use SensitiveParameter;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * Proves the backups can be read and restored (I-362): nightly, a seventh of
- * each place's stored data read back by restic's check; weekly, the newest
- * backup's database restored into the spare database and compared with its
- * manifest, and 50 of its media files read back. Under the backup lock, so
- * never beside a backup, a prune or a restore; every row through the run
- * Operations.
- */
 final readonly class VerifyBackups
 {
     use AuthorizesBackupRuns;

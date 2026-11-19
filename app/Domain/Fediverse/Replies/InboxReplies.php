@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Routes a verified Create, Update or Delete whose object is a reply to
+ * one of the site's posts, or to a reply on one, to the reply Operations
+ * (docs/plans/fediverse-publishing.md, D4). A reply the comment rules
+ * refuse is dropped and logged; anything else is not a reply of the
+ * site's, and is left to the plugins.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies;
@@ -20,13 +32,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Routes a verified Create, Update or Delete whose object is a reply to
- * one of the site's posts, or to a reply on one, to the reply Operations
- * (docs/plans/fediverse-publishing.md, D4). A reply the comment rules
- * refuse is dropped and logged; anything else is not a reply of the
- * site's, and is left to the plugins.
- */
 final readonly class InboxReplies
 {
     public function __construct(private RemoteFetcher $fetcher) {}

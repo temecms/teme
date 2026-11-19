@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Support\Network;
-
 /**
  * Checks an address an administrator typed before Teme connects to it:
  * http or https, no password in it, a host that is a name or a plain IP
@@ -11,7 +7,16 @@ namespace App\Domain\Support\Network;
  * special-purpose registries. The first is pinned for the request, so a
  * second lookup can't move it. Private addresses, and plain http to them,
  * only where teme.import.local_sources is on (docs/studies/import.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Support\Network;
+
 final readonly class PublicAddresses
 {
     /** IPv4 ranges that are never a public site. */

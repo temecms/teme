@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Builds the admin's menu registry with core's fixed entries and the
+ * Settings hub. The content types and taxonomies are not registered here:
+ * AdminNavigation adds them from their registries on every call. It also
+ * shares the shell's `brand` prop, and binds where plugins' Tools links
+ * and failed status checks go, and how the outbound door looks a host up
+ * (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -23,14 +36,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
-/**
- * Builds the admin's menu registry with core's fixed entries and the
- * Settings hub. The content types and taxonomies are not registered here:
- * AdminNavigation adds them from their registries on every call. It also
- * shares the shell's `brand` prop, and binds where plugins' Tools links
- * and failed status checks go, and how the outbound door looks a host up
- * (I-3353).
- */
 final class NavigationServiceProvider extends ServiceProvider
 {
     public function register(): void

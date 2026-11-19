@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The active theme's built assets as tags: its manifest's entries, from its
+ * own Vite build at `public/themes/{code}/build`, which `teme:themes:link`
+ * serves. The document shell places them in each page's `<head>`, and
+ * `@temeThemeAssets` echoes them for a view that writes its own document.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -7,12 +18,6 @@ namespace App\Domain\Themes;
 use App\Domain\Site\Policy\PagePolicy;
 use Illuminate\Support\Facades\App;
 
-/**
- * The active theme's built assets as tags: its manifest's entries, from its
- * own Vite build at `public/themes/{code}/build`, which `teme:themes:link`
- * serves. The document shell places them in each page's `<head>`, and
- * `@temeThemeAssets` echoes them for a view that writes its own document.
- */
 final readonly class ThemeAssets
 {
     public function __construct(private ActiveTheme $active) {}

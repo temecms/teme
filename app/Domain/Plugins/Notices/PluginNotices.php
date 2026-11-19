@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A plugin's Notices door (docs/plans/plugin-sockets-3.md): it sends
+ * only the kinds the plugin declares, a starter's kind only to the person
+ * the plugin's work acts for, messages held to PluginNoticeRules, at most
+ * NoticeRate's deliveries an hour, and never to an address. Core's sender
+ * delivers after commit and decides who receives it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Notices;
@@ -12,13 +24,6 @@ use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Notices\NoticeMessage;
 use Teme\Contracts\Notices\Notices;
 
-/**
- * A plugin's Notices door (docs/plans/plugin-sockets-3.md): it sends
- * only the kinds the plugin declares, a starter's kind only to the person
- * the plugin's work acts for, messages held to PluginNoticeRules, at most
- * NoticeRate's deliveries an hour, and never to an address. Core's sender
- * delivers after commit and decides who receives it.
- */
 final readonly class PluginNotices implements Notices
 {
     /**

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a place holds (I-364), asked of restic when a person asks, never when
+ * the screen opens; it writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -10,10 +19,6 @@ use App\Domain\Backups\Tools\Restic;
 use App\Domain\Backups\Tools\ResticResult;
 use Illuminate\Validation\ValidationException;
 
-/**
- * What a place holds (I-364), asked of restic when a person asks, never when
- * the screen opens; it writes nothing.
- */
 final readonly class PlaceStorage
 {
     public function __construct(

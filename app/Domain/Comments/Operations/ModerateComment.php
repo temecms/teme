@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Moves a comment between pending, approved, spam and trash, or restores it
+ * from the trash or spam to where it was (I-224). Whoever looks after the
+ * item's comments may (I-483); a tombstone never moves (I-278), and each move
+ * keeps its item's counts in the same transaction. It returns where the
+ * comment was and where it went (1.8c's D9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -22,13 +34,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Comments\CommentStatusChanged;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Moves a comment between pending, approved, spam and trash, or restores it
- * from the trash or spam to where it was (I-224). Whoever looks after the
- * item's comments may (I-483); a tombstone never moves (I-278), and each move
- * keeps its item's counts in the same transaction. It returns where the
- * comment was and where it went (1.8c's D9).
- */
 final class ModerateComment extends BaseOperation
 {
     /** Back from the trash or spam to where the comment was, or to pending. */

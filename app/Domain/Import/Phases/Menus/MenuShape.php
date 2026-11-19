@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A found WordPress menu made into the tree a Teme menu holds (I-343): an
+ * item with no address over items becomes a heading, an item left out
+ * gives its place to the items under it, items deeper than three levels
+ * sit at the third after the item they were under, and the first 200 items
+ * in reading order are kept. Reads nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Menus;
@@ -7,13 +19,6 @@ namespace App\Domain\Import\Phases\Menus;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Menus\Operations\SaveNavigationItems;
 
-/**
- * A found WordPress menu made into the tree a Teme menu holds (I-343): an
- * item with no address over items becomes a heading, an item left out
- * gives its place to the items under it, items deeper than three levels
- * sit at the third after the item they were under, and the first 200 items
- * in reading order are kept. Reads nothing.
- */
 final class MenuShape
 {
     /** The menu item that leads nowhere and opens its sub-menu. */

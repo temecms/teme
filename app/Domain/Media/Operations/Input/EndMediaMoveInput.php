@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What EndMediaMove needs: the run, how it ended (finished, or stopped to
+ * be resumed) and what it says.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What EndMediaMove needs: the run, how it ended (finished, or stopped to
- * be resumed) and what it says.
- */
 final readonly class EndMediaMoveInput implements OperationInput
 {
     /**

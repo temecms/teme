@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whether an image is used as a featured or social image, or is the site's
+ * default social image, which is what earns it the share images (I-855). Items'
+ * uses are read from media_usages, which records every revision's media fields
+ * as field:{key}.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -8,12 +19,6 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\Seo\SocialCards;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Whether an image is used as a featured or social image, or is the site's
- * default social image, which is what earns it the share images (I-855). Items'
- * uses are read from media_usages, which records every revision's media fields
- * as field:{key}.
- */
 final class ShareImageUse
 {
     /**

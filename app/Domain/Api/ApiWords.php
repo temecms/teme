@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Api;
-
 /**
  * Every sentence the API says to whoever calls it: each problem's detail
  * and each refused parameter's, so the words live in one place and a later
  * part reuses them rather than writing its own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Api;
+
 final class ApiWords
 {
     /**
@@ -209,6 +214,8 @@ final class ApiWords
      * A language the site doesn't show readers, naming the ones it does (I-3360).
      *
      * @param  list<string>  $languages
+     *
+     * @since 1.0.0
      */
     public static function badLanguage(array $languages): string
     {

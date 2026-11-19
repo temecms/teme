@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a plugin's importer may ask of the run it is part of: what the
+ * WordPress posts and people core imported became in Teme, and whether the run
+ * is a catch-up.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Import;

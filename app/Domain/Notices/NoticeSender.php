@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Sends a plain message of a declared kind, after the current transaction
+ * commits and never if it rolls back (rule 6). Who receives it is
+ * NoticeChoices' decision, made when each notification is sent.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -13,11 +23,6 @@ use Teme\Contracts\Notices\NoticeKind;
 use Teme\Contracts\Notices\NoticeMessage;
 use Teme\Contracts\Notices\Notices;
 
-/**
- * Sends a plain message of a declared kind, after the current transaction
- * commits and never if it rolls back (rule 6). Who receives it is
- * NoticeChoices' decision, made when each notification is sent.
- */
 final class NoticeSender implements Notices
 {
     public function __construct(private readonly NoticeRegistry $registry) {}

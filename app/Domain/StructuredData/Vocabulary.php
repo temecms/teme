@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\StructuredData;
-
 /**
  * The schema.org types and properties Teme's graph may use (I-706): a list
  * of names, not a copy of the vocabulary, checked against schema.org's
  * release file whenever either changes (teme:structured-data:check). A pack
  * registers its own; a test fails if a page core draws uses a term off it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\StructuredData;
+
 final class Vocabulary
 {
     /** The schema.org release the list was last checked against. */

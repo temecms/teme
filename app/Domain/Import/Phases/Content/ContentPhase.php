@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The posts and pages phase (I-335): each WordPress post, page and reusable
+ * block, converted before its transaction, then written as WordPress had it
+ * through ImportContent, or brought up to date through UpdateImportedContent
+ * while nobody changed it here. Its map rows keep what comments, menus, the
+ * check and the second pass read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Content;
@@ -52,13 +64,6 @@ use Illuminate\Support\Str;
 use LogicException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The posts and pages phase (I-335): each WordPress post, page and reusable
- * block, converted before its transaction, then written as WordPress had it
- * through ImportContent, or brought up to date through UpdateImportedContent
- * while nobody changed it here. Its map rows keep what comments, menus, the
- * check and the second pass read.
- */
 final class ContentPhase implements ListPhase, PreparesObjects
 {
     /** Items a page: the companion's own default without rendered pages. */

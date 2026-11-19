@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One remote account following one of the site's actors, and the Follow
+ * that started it. Keyed by the pair, so it is written and removed by
+ * query, never saved through the model.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Models;
@@ -9,10 +19,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One remote account following one of the site's actors, and the Follow
- * that started it. Keyed by the pair, so it is written and removed by
- * query, never saved through the model.
- *
  * @property string $local_actor_id
  * @property string $remote_actor_id
  * @property string|null $follow_uri

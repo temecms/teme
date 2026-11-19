@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * When the checks of the backups are due (I-362), read from backup_runs and
+ * the schedule alone, and which seventh of a place's data its next
+ * read-back reads.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -10,11 +20,6 @@ use App\Domain\Backups\Models\BackupRun;
 use App\Domain\Backups\Verify\SpareDatabase;
 use Carbon\CarbonImmutable;
 
-/**
- * When the checks of the backups are due (I-362), read from backup_runs and
- * the schedule alone, and which seventh of a place's data its next
- * read-back reads.
- */
 final readonly class DueVerification
 {
     /** Days between test restores. */

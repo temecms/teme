@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Privacy;
-
 /**
  * What one step through a privacy request did: whether the request ended,
  * the holder it just asked, and how it ended. The request's ID is last, for
  * the step's own work after commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Privacy;
+
 final readonly class PrivacyStep
 {
     /**

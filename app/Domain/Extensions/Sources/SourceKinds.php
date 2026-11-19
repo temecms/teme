@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every kind of package source: Packagist, which is always there, and each
+ * kind registered under the container tag. Read through the container each
+ * time, so it holds no state.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Sources;
@@ -8,11 +18,6 @@ use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 use UnexpectedValueException;
 
-/**
- * Every kind of package source: Packagist, which is always there, and each
- * kind registered under the container tag. Read through the container each
- * time, so it holds no state.
- */
 final readonly class SourceKinds
 {
     /** The container tag a source kind is registered under. */

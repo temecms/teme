@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Translation groups (I-3360): the lower-case ULID every language version of
+ * one item shares, minted fresh, never an item's own ID, never shown to a
+ * reader.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -7,11 +17,6 @@ namespace App\Domain\Languages;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Translation groups (I-3360): the lower-case ULID every language version of
- * one item shares, minted fresh, never an item's own ID, never shown to a
- * reader.
- */
 final class TranslationGroups
 {
     /**

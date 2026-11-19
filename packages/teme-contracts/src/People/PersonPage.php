@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One page of PeopleReader::writers(): its people, and the cursor for the next
+ * page.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\People;

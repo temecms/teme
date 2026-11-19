@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The comments phase (I-341): each WordPress comment, pingback and
+ * trackback whose post or page came across becomes a Teme comment on it,
+ * read in WordPress's ID order so a parent comes before its replies; a
+ * later run follows WordPress's changes until someone changes the comment
+ * here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Comments;
@@ -32,13 +44,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
-/**
- * The comments phase (I-341): each WordPress comment, pingback and
- * trackback whose post or page came across becomes a Teme comment on it,
- * read in WordPress's ID order so a parent comes before its replies; a
- * later run follows WordPress's changes until someone changes the comment
- * here.
- */
 final readonly class CommentsPhase implements ListPhase
 {
     /** The deepest a reply goes: past it, a path passes the thread index's largest entry (I-272). */

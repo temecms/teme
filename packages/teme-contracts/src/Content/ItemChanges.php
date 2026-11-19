@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What a plugin asks ContentWriter::change() to save on an item's draft.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tools › AI activity's list (I-1307): a page of AI requests at a time, newest
+ * first, by keyset, narrowed by person, task, month and plugin, each as the
+ * screen draws it. It reads the record and, only to name what a row is about,
+ * the people, items and files it points at; it writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
@@ -19,11 +30,6 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 
 /**
- * Tools › AI activity's list (I-1307): a page of AI requests at a time, newest
- * first, by keyset, narrowed by person, task, month and plugin, each as the
- * screen draws it. It reads the record and, only to name what a row is about,
- * the people, items and files it points at; it writes nothing.
- *
  * @phpstan-type ActivityRow array{id: string, at: string, person: array{id: int|null, name: string|null}, task: array{key: string, label: string}, variant: array{key: string, label: string}|null, plugin: array{code: string, label: string}|null, subject: array{kind: string, id: string, title: string|null, kindLabel: string, state: string}, outcome: array{key: string, label: string}, why: string|null, provider: string|null, model: string|null, prompt: array{key: string, version: int}, tokens: array{input: int, output: int, cacheRead: int, cacheWrite: int}, costMicrounits: int|null, latencyMs: int}
  */
 final readonly class AiActivityList
@@ -44,7 +50,11 @@ final readonly class AiActivityList
         'a.cache_read_tokens', 'a.cache_write_tokens', 'a.cost_microunits', 'a.latency_ms', 'a.created_at', 'a.plugin',
     ];
 
-    /** The plugin filter's value for core's own requests. */
+    /**
+     * The plugin filter's value for core's own requests.
+     *
+     * @since 1.0.0
+     */
     public const string TEME = 'teme';
 
     public function __construct(private AiTasks $tasks, private AiProviders $providers, private ContentTypeRegistry $types, private PluginAiTasks $pluginTasks) {}

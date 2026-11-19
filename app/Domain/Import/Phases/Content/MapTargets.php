@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * What one source's import made of the old site, as the converter asks for
+ * it (I-1702): its pages through the path table, where an imported item's
+ * current address and WordPress's own and old ones are; its posts, terms
+ * and people through the map; its media through the media import's map.
+ * Each answer is one indexed query or two, and a target still here, so a
+ * page job's memory never holds the whole map.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Content;
@@ -18,14 +31,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What one source's import made of the old site, as the converter asks for
- * it (I-1702): its pages through the path table, where an imported item's
- * current address and WordPress's own and old ones are; its posts, terms
- * and people through the map; its media through the media import's map.
- * Each answer is one indexed query or two, and a target still here, so a
- * page job's memory never holds the whole map.
- */
 final readonly class MapTargets implements SourceTargets
 {
     /** The path table's targets an old page can lead to: the kinds of Paths::KINDS but a type's archive page. */

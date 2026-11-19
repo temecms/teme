@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The one place an `<img>` is written for the public site (I-245): every
+ * width variant in `srcset`, the variant nearest 1,000 px as `src`, the
+ * original's width and height so nothing shifts (study Q §2), `sizes` from
+ * the theme's declared image context, the focal point, and lazy loading,
+ * or `fetchpriority="high"` for the one image a page loads first. The
+ * editor's `render.ts` draws the same markup from the same lookup.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
@@ -8,14 +21,6 @@ use App\Domain\Cards\CardMedia;
 use App\Domain\Site\PageWarnings;
 use App\Domain\Themes\ActiveTheme;
 
-/**
- * The one place an `<img>` is written for the public site (I-245): every
- * width variant in `srcset`, the variant nearest 1,000 px as `src`, the
- * original's width and height so nothing shifts (study Q §2), `sizes` from
- * the theme's declared image context, the focal point, and lazy loading,
- * or `fetchpriority="high"` for the one image a page loads first. The
- * editor's `render.ts` draws the same markup from the same lookup.
- */
 final readonly class ImageMarkup
 {
     /** The width the plain `src` aims for. */

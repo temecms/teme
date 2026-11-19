@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One AI request's figures (I-318): who asked, for which task and subject,
+ * which model answered, its prompt's version and hash, its tokens, cost and
+ * time, how it ended, and the revision it made. Never its prompt or its
+ * answer. Only RecordAiActivity, SettleAiActivity and PruneAiActivity write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Models;
@@ -12,11 +23,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One AI request's figures (I-318): who asked, for which task and subject,
- * which model answered, its prompt's version and hash, its tokens, cost and
- * time, how it ended, and the revision it made. Never its prompt or its
- * answer. Only RecordAiActivity, SettleAiActivity and PruneAiActivity write it.
- *
  * @property string $id
  * @property int|null $user_id
  * @property string $task

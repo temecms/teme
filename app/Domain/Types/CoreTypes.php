@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The content types and taxonomies phase 1 has: post, page and region,
+ * category and tag. The only place in app/ where those names decide
+ * anything; everything else asks the registries. Pages have no taxonomies
+ * (I-417).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -7,12 +18,6 @@ namespace App\Domain\Types;
 use App\Domain\Comments\Discussion;
 use App\Domain\StructuredData\TypeSchema;
 
-/**
- * The content types and taxonomies phase 1 has: post, page and region,
- * category and tag. The only place in app/ where those names decide
- * anything; everything else asks the registries. Pages have no taxonomies
- * (I-417).
- */
 final class CoreTypes
 {
     /** The type of a theme's region's content, which the region code asks for by this name. */

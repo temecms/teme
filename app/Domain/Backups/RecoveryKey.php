@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A recovery key (I-2401): 32 characters of Crockford's base 32, 160
+ * bits, shown as eight groups of four joined by hyphens, which is also the
+ * password restic opens the backups with. Teme shows one once and keeps
+ * none: this object hides its value when dumped and refuses to be
+ * serialized, so it can't reach a session, a queue or a log by accident.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -8,13 +20,6 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use SensitiveParameter;
 
-/**
- * A recovery key (I-2401): 32 characters of Crockford's base 32, 160
- * bits, shown as eight groups of four joined by hyphens, which is also the
- * password restic opens the backups with. Teme shows one once and keeps
- * none: this object hides its value when dumped and refuses to be
- * serialized, so it can't reach a session, a queue or a log by accident.
- */
 final readonly class RecoveryKey
 {
     public const string ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';

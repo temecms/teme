@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The settings of the roles and permissions package Teme's permissions are
+ * built on.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Spatie\Permission\DefaultTeamResolver;

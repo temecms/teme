@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The enabled plugins the search sockets ask, in the order they were
+ * enabled (docs/guides/developers/plugins/seo.md), and the one place their
+ * faults are recorded. Read from the records and manifests each time;
+ * holds nothing itself.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -14,12 +25,6 @@ use App\Domain\Plugins\PluginRegistry;
 use Closure;
 use Throwable;
 
-/**
- * The enabled plugins the search sockets ask, in the order they were
- * enabled (docs/guides/developers/plugins/seo.md), and the one place their
- * faults are recorded. Read from the records and manifests each time;
- * holds nothing itself.
- */
 final readonly class SeoPlugins
 {
     public function __construct(

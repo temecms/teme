@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The site's address as a child of its own: dated by the newest live item of
+ * the types Reading ticks while it shows the latest posts; while it shows a
+ * page, dated by that page, and only while the page is live and its own box
+ * and canonical let it be listed, its type's hide box aside (I-854). A front
+ * page is never listed at its own address, which answers 301.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps;
@@ -9,13 +21,6 @@ use App\Domain\Addresses\ListingTypes;
 use App\Domain\Cache\PageTags;
 use App\Domain\Sitemaps\Queries\ListedItems;
 
-/**
- * The site's address as a child of its own: dated by the newest live item of
- * the types Reading ticks while it shows the latest posts; while it shows a
- * page, dated by that page, and only while the page is live and its own box
- * and canonical let it be listed, its type's hide box aside (I-854). A front
- * page is never listed at its own address, which answers 301.
- */
 final readonly class HomeSitemap implements SitemapProvider
 {
     public const string NAME = 'home';

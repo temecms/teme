@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A short piece of rich text held inside a card's attributes, such as an FAQ
+ * answer or a step: a small document of paragraphs, lists, line breaks and
+ * marked text, stored as Tiptap JSON like the body (rule 7) and checked,
+ * drawn, read and searched by the body's own rules.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
@@ -7,12 +18,6 @@ namespace App\Domain\Cards;
 use App\Domain\Cards\Exceptions\InvalidDocumentException;
 use Illuminate\Validation\ValidationException;
 
-/**
- * A short piece of rich text held inside a card's attributes, such as an FAQ
- * answer or a step: a small document of paragraphs, lists, line breaks and
- * marked text, stored as Tiptap JSON like the body (rule 7) and checked,
- * drawn, read and searched by the body's own rules.
- */
 final class CardProse
 {
     /** The nodes it may hold: no headings, quotes, code, tables or cards. */

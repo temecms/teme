@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Find a setting: the Settings pages and the settings a person may change
+ * whose words hold every word typed, for the Settings screens' search and
+ * the command palette (I-440). It reads the registry, never the database
+ * and never a value.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Settings\SettingsRegistry;
 use App\Models\User;
 use Illuminate\Support\Str;
 
-/**
- * Find a setting: the Settings pages and the settings a person may change
- * whose words hold every word typed, for the Settings screens' search and
- * the command palette (I-440). It reads the registry, never the database
- * and never a value.
- */
 final readonly class FindSettings
 {
     public function __construct(private SettingsRegistry $registry, private SettingsNavigation $navigation) {}

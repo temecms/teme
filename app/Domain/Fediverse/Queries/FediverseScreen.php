@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Settings › Fediverse's data, as the maintainers approved its drawing: the
+ * switch and who can be followed, then the accounts, the servers not
+ * answering, the blocked servers, and what the import brought.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Queries;
@@ -16,11 +26,6 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Settings › Fediverse's data, as the maintainers approved its drawing: the
- * switch and who can be followed, then the accounts, the servers not
- * answering, the blocked servers, and what the import brought.
- */
 final readonly class FediverseScreen
 {
     /** The most rows the servers-not-answering table shows. */

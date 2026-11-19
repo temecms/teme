@@ -489,7 +489,7 @@ A **link** goes somewhere (`<Link>` from Inertia, or `<a>`); a **TextButton** ac
 
 ### 4.10 Switch
 
-**Built on** Radix Switch (new dependency, approved: I-3404). Track 36×20, fully rounded; off: `--surface-4` with a 1px inset `--edge`; on: `--accent`. Thumb 14px, `--surface` (on: `--on-accent`), moves 16px in 180ms. Label before it ("Show the author's name") or after it, never both. **A switch acts at once** and the result is announced (toast or the row's own words change); it never waits for Save.
+**Built on** Radix Switch (new dependency, approved: I-3404). Track 36×20, fully rounded; off: `--surface-4` with a 1px inset `--edge`; on: `--accent`. Thumb 14px, `--surface` (on: `--on-accent`), moves 16px in 180ms. Label before it ("Show the author's name") or after it, never both. **A switch acts at once** and the result is announced (toast or the row's own words change); it never waits for Save. **The exception is a settings page** (4.42): the approved v10 design draws every on/off setting there as a switch, and those switches wait for the page's one save bar like the page's other fields.
 
 ### 4.11 Field
 
@@ -811,7 +811,17 @@ What is core's and what is the SEO plugin's is I-3413. A plugin adds to the box 
 
 ### 4.42 Settings page layout and "Find a setting"
 
-**One layout for every settings page** (`Teme.settings.define`, the reference design's whole settings kit; a plugin's page uses it too): the form pattern (5, Settings) with the page's sections, **"Find a setting"** (a search over every settings page, which opens the right page and highlights the setting) and **the one save bar with its leave guard** (4.12). Rules for what a section holds: one purpose per section; settings are never grouped only because they sit next to each other in the registry. The reference design draws a list of the page's sections beside the form; section 12.4 notes that against "no second side menu".
+**One layout for every settings page** (`Teme.settings.define`, the reference design's whole settings kit; a plugin's page uses it too; built as `layouts/settings/layout.tsx` with `SettingsPage`):
+
+- The page's title and line across the full width, "Saved just now" at their end after a save.
+- Under them, a **200px side column** (gap 32 to the form): **"Find a setting"** at its top, then the Settings pages (`text-body` 500, 36px), core's with no heading and plugins' under "From plugins", each with the plug mark. The current page opens to its **section links** (`text-small`, 32px, under a 2px `--surface-4` rule), read from the page's titled form panels; the one in view is marked as the page scrolls, and a click jumps to it. Under 1024px the column's list opens from one button.
+- "Find a setting" searches every settings page the person may change and shows up to eight results as a list under the box, the typed words marked; ↑↓ and Enter choose, Escape closes, "N more: type more words to narrow them." and "No setting matches “…”. Try fewer words." say the rest; "/" anywhere on the page focuses it. A result opens its page and marks the setting.
+- The form's sections, one titled panel each, then **the one save bar with its leave guard** (4.12), saying "1 unsaved change" or "N unsaved changes" with "Save", and after a refused save "N settings need attention before you can save".
+- A field whose change asks for the password says "Asks for your password to change"; Save asks once for all of them ("You changed X and Y…").
+- Someone who holds `settings.view` but not a group's own permission sees its page **view only**: a banner naming the permission that changes it, fields disabled, no save bar.
+- The crumb reads "Settings / {page}"; Settings is the hub of cards (5, Hub).
+
+Rules for what a section holds: one purpose per section; settings are never grouped only because they sit next to each other in the registry.
 
 ### 4.43 Account layout
 
@@ -884,8 +894,8 @@ No page sets its own padding, width or header: it renders one **Page** pattern, 
 |---|---|---|---|---|---|
 | **List** | `ListPage` | `--page-max` 1280, centred; padding 8 32 64 (8 16 64 below 768) | Page header; then InPageNav (status views), filter row, bulk bar, table frame | Page header's end ("New post") | In the "…" menu and the bulk bar; permanent deletion only in the Trash view, confirmed |
 | **Form (edit)** | `FormPage` | 1280 container; the form column 760, left-aligned | Page header (title is the item's name or "New category") | Save, in the form footer (4.12) | "Delete {thing}" as a danger-quiet sm button at the foot of the last panel, confirmed |
-| **Settings** | `SettingsPage` | As Form | Page header; the crumb "Settings ⇅" switches between settings pages; "Find a setting" (4.42); no second side menu (see 12.4) | Save, in the form footer | As Form |
-| **Hub** (Tools) | `HubPage` | 1280 | Page header; a grid of clickable cards (`auto-fill, minmax(300px, 1fr)`, gap 16); then "From plugins" with its hint and its cards | None | None |
+| **Settings** | `SettingsPage` in the Settings frame | 1280; header across the width, then the 200px side column and the form column 760 (4.42) | Page header; the crumb "Settings ⇅" switches between settings pages; the side column with "Find a setting", the pages and the current page's sections (4.42) | Save, in the form footer | As Form |
+| **Hub** (Tools, Settings) | `HubPage` | 1280 | Page header; a grid of clickable cards (`auto-fill, minmax(300px, 1fr)`, gap 16), or the cards under headings (Settings: "The site", "Writing and discussion", "People and services"); then "From plugins" with its hint ("Each names its plugin.") and its cards | None | None |
 | **Dashboard** (Home) | `DashboardPage` | 1280 | Page header (greeting, date, quick actions: + Post primary, + Page, Upload media, Customise); figure tiles (5 across, gap 12; 3 then 2 on narrower screens); "Your work" panels; "From plugins" panels | "+ Post" | None |
 | **Detail with side panel** | `DetailPage` | 1280; grid `minmax(0, 1fr) 360px`, gap 24; the panel sticky | Page header | Header's end (Upload; Save on Edit image) | In the side panel's actions (Trash) |
 | **Editor** | `EditorPage` | Full height: grid writing column \| rail 344; no page padding; the sidebar folded | The editor's top bar (4.39) instead of a page header; the `h1` is the post title field | The rail's Publish | Move to trash at the rail's foot |
@@ -1154,6 +1164,6 @@ Between this document and the reference design's joining pass. Not resolved: eac
 | 36 | 4.12: Save is a footer bar on `--page` with `shadow-raised` | The shared save bar is a sticky inverse (ink) bar, radius 12, 16px above the bottom of the view, appearing on the first change | Which look is Teme's |
 | 37 | 4.40: the Progress bar is 6px tall | `.progress` is 8px (`--s-2`) | 6 or 8 |
 | 38 | 4.44 (written now) takes 420 from the reference design's stylesheet; the old text said 400 | 420 | Confirm 420 |
-| 39 | 5 and 12.3 #29: no second side menu in Settings | The shared settings layout has a side list and "Find a setting" | Whether the side list stays |
+| 39 | 5 and 12.3 #29: no second side menu in Settings | The shared settings layout has a side list and "Find a setting" | **Resolved** by the approved v10 design: the side list stays, with the current page's sections (4.42) |
 | 40 | 4.39: Checks is a rail section; 6.1: a plugin's Check is "a line in the editor's Checks" | I-3415: checks sit inside the Search and social box, after the fields | Whether Checks is one list, or two (the article's and the box's) |
 | 41 | 4.26: the reference design sets table rows by padding, not a fixed height | Rows are 72 or 92 only by arithmetic | Whether `--row-h` is enforced as a min height or left as content |

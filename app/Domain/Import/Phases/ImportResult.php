@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a phase made of one object: created or updated as a Teme item, or
+ * skipped, saying why, never silently (I-345); its warnings; and facts the
+ * map keeps for it (a post's language and translation group).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Phases;
 use App\Domain\Import\ImportOutcome;
 use InvalidArgumentException;
 
-/**
- * What a phase made of one object: created or updated as a Teme item, or
- * skipped, saying why, never silently (I-345); its warnings; and facts the
- * map keeps for it (a post's language and translation group).
- */
 final readonly class ImportResult
 {
     /**

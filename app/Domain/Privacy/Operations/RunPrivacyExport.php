@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Takes one step through a request for a person's personal data (I-3375):
+ * the next holder's next page, written to its own file; once every holder
+ * is done, the one file the person gets, and the pages deleted after commit,
+ * with the file emailed to the address when the request asks.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Operations;
@@ -15,12 +26,6 @@ use RuntimeException;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * Takes one step through a request for a person's personal data (I-3375):
- * the next holder's next page, written to its own file; once every holder
- * is done, the one file the person gets, and the pages deleted after commit,
- * with the file emailed to the address when the request asks.
- */
 final class RunPrivacyExport extends BaseOperation
 {
     use StepsThroughHolders;

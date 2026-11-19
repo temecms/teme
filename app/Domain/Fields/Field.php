@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fields;
-
 /**
  * One declared field: its immutable key, which is what stored values are
  * keyed by, a handle that may change, its type, the content types that have
  * it — named, or by a feature they support — and the documentation its
  * reference entry is generated from.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fields;
+
 final readonly class Field
 {
     /**

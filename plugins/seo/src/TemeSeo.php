@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Teme SEO, the free first-party SEO plugin: it keeps an index of the
+ * site's items and the links between them as content changes, and hands
+ * Teme its editor panels, list columns, jobs and its own pages.
+ *
+ * @package teme/seo
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Seo;
@@ -43,11 +53,6 @@ use Teme\Seo\Storage\ItemIndex;
 use Teme\Seo\Storage\SearchFigures;
 use Teme\Seo\Storage\SuggestionStore;
 
-/**
- * Teme SEO, the free first-party SEO plugin: it keeps an index of the
- * site's items and the links between them as content changes, and hands
- * Teme its editor panels, list columns, jobs and its own pages.
- */
 final class TemeSeo implements HasEditorPanels, HasListColumns, HasPluginArea, Plugin, PluginHasJobs
 {
     /** The plugin's settings group. */
@@ -69,7 +74,7 @@ final class TemeSeo implements HasEditorPanels, HasListColumns, HasPluginArea, P
     ) {
         $this->index = new ItemIndex;
         $this->suggestions = new SuggestionStore;
-        $this->indexer = new Indexer($reader, $this->index);
+        $this->indexer = new Indexer($reader, $this->index, $settings);
     }
 
     /**
@@ -120,7 +125,7 @@ final class TemeSeo implements HasEditorPanels, HasListColumns, HasPluginArea, P
      */
     public function pluginArea(): PluginArea
     {
-        return new SeoArea($this->index, new SearchFigures, $this->reader, $this->writer, $this->settings);
+        return new SeoArea($this->index, new SearchFigures, $this->reader, $this->writer);
     }
 
     /**
@@ -133,7 +138,7 @@ final class TemeSeo implements HasEditorPanels, HasListColumns, HasPluginArea, P
         $suggester = new LinkSuggester;
 
         return [
-            'index-site' => new IndexSite($this->reader, $this->indexer, $this->index),
+            'index-site' => new IndexSite($this->reader, $this->indexer, $this->index, $this->settings),
             'suggest-links' => new SuggestLinks($this->indexer, $this->index, $this->suggestions, $suggester),
             'cornerstone' => new MarkCornerstone($this->indexer, $this->index),
             'ai-links' => new AskAiForLinks($this->ai, $this->indexer, $this->index, $this->suggestions, $suggester),

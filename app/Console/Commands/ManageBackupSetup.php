@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:backup:setup: sets backups up at the server, as the operator
+ * (I-2401): the first place, then the recovery key shown once and two of its
+ * groups typed back. A person must run it: it never runs without one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -19,11 +29,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:backup:setup: sets backups up at the server, as the operator
- * (I-2401): the first place, then the recovery key shown once and two of its
- * groups typed back. A person must run it: it never runs without one.
- */
 final class ManageBackupSetup extends Command
 {
     private const int TRIES = 3;

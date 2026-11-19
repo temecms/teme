@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Widens paths.target_id to 32 characters, so a content type's key, which
+ * may be that long, can own the old address of its archive page (I-3304).
+ * Raising a varchar's limit rewrites no row and rebuilds no index.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Widens paths.target_id to 32 characters, so a content type's key, which
- * may be that long, can own the old address of its archive page (I-3304).
- * Raising a varchar's limit rewrites no row and rebuilds no index.
- */
 return new class extends Migration
 {
     public function up(): void

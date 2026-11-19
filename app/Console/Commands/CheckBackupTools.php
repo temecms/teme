@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:backup:tools`: where restic, pg_dump and pg_restore are and which
+ * versions they are, beside the database server's, and what is wrong in
+ * words. It fails when any is missing or too old to back this site up
+ * (I-366). It reads and changes nothing, so it acts as no one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -7,12 +18,6 @@ namespace App\Console\Commands;
 use App\Domain\Backups\Tools\BackupTools;
 use Illuminate\Console\Command;
 
-/**
- * `teme:backup:tools`: where restic, pg_dump and pg_restore are and which
- * versions they are, beside the database server's, and what is wrong in
- * words. It fails when any is missing or too old to back this site up
- * (I-366). It reads and changes nothing, so it acts as no one.
- */
 final class CheckBackupTools extends Command
 {
     /** @var string */

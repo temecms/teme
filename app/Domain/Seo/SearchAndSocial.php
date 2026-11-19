@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › Search and social, the `seo` group (docs/studies/seo.md §3.14):
+ * one group, one row and one ability, built from every section registered
+ * under SECTIONS, in the sections' own order. A page that reads any of its
+ * settings carries its tag, so a change removes the page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo;
@@ -9,12 +20,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsGroup;
 use UnexpectedValueException;
 
-/**
- * Settings › Search and social, the `seo` group (docs/studies/seo.md §3.14):
- * one group, one row and one ability, built from every section registered
- * under SECTIONS, in the sections' own order. A page that reads any of its
- * settings carries its tag, so a change removes the page.
- */
 final class SearchAndSocial
 {
     public const string KEY = 'seo';

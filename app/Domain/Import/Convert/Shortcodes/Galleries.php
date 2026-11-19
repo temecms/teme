@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * WordPress's gallery shortcode as Gallery cards (I-336), its images in the
+ * order WordPress shows them. Columns, size, link and the tags are the
+ * theme's, and a random order can't be stored.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Shortcodes;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Convert\Shortcodes;
 use App\Domain\Import\Convert\BlockContext;
 use App\Domain\Import\Convert\Blocks\Images;
 
-/**
- * WordPress's gallery shortcode as Gallery cards (I-336), its images in the
- * order WordPress shows them. Columns, size, link and the tags are the
- * theme's, and a random order can't be stored.
- */
 final readonly class Galleries implements ShortcodeMapping
 {
     public function shortcodes(): array

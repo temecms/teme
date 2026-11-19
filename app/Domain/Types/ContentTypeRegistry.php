@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Every content type: code's, registered as the application boots, then the
+ * site's own, stored in the database and read when first asked for (I-411),
+ * with the stored taxonomies, which it loads first (I-414).
+ * It refuses a type whose key, segment or abilities would break storage,
+ * routing or authorization; a stored one it refuses is left out and its
+ * reason kept, never thrown. Internal and unversioned until the plugin API
+ * (phase 5).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -11,15 +25,6 @@ use App\Domain\Types\Exceptions\UnknownContentType;
 use InvalidArgumentException;
 use Throwable;
 
-/**
- * Every content type: code's, registered as the application boots, then the
- * site's own, stored in the database and read when first asked for (I-411),
- * with the stored taxonomies, which it loads first (I-414).
- * It refuses a type whose key, segment or abilities would break storage,
- * routing or authorization; a stored one it refuses is left out and its
- * reason kept, never thrown. Internal and unversioned until the plugin API
- * (phase 5).
- */
 final class ContentTypeRegistry
 {
     /**

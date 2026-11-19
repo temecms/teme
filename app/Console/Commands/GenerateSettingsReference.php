@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:docs:settings`: writes `docs/reference/settings.md` from the settings
+ * registry. The reference is generated, never edited by hand.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -8,10 +17,6 @@ use App\Domain\Settings\SettingsRegistry;
 use Illuminate\Console\Command;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * `teme:docs:settings`: writes `docs/reference/settings.md` from the settings
- * registry. The reference is generated, never edited by hand.
- */
 final class GenerateSettingsReference extends Command
 {
     /** @var string */

@@ -22,15 +22,15 @@ beforeEach(function (): void {
         ->put('/admin/settings/seo', ['values' => [SiteVerification::TAGS => $tags], 'expected_version' => 0]);
 });
 
-it('registers Site verification at 500, a list of up to 20 name and content pairs (I-288)', function (): void {
+it('registers Site verification at 300, a list of up to 20 name and value pairs (I-288)', function (): void {
     $sections = array_map(fn (SearchAndSocialSection $section): array => [$section->order(), $section->key(), $section->label()], SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS)));
     $setting = app(SettingsRegistry::class)->find('seo')?->setting(SiteVerification::TAGS);
 
-    expect($sections)->toContain([500, 'site-verification', 'Site verification'])
+    expect($sections)->toContain([300, 'site-verification', 'Site verification'])
         ->and($setting?->type)->toBe(SettingType::Pairs)
         ->and($setting?->label)->toBe('Site verification')
-        ->and($setting?->description)->toBe('One name and content pair per service.')
-        ->and($setting?->options)->toBe(['name' => 'Name', 'value' => 'Content'])
+        ->and($setting?->description)->toBe('Google’s name is google-site-verification, Bing’s msvalidate.01, Yandex’s yandex-verification, Pinterest’s p:domain_verify and Facebook’s facebook-domain-verification.')
+        ->and($setting?->options)->toBe(['name' => 'Name', 'value' => 'Value'])
         ->and([$setting?->max, $setting?->maxLength])->toBe([20, 500])
         ->and(SiteVerification::tags())->toBe([]);
 });

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Settles a restored database (docs/architecture/backups.md, Restoring): the
+ * run that made the backup finished, whatever else the old server had
+ * running ended, every place paused until a person says whether this
+ * server is now the site, the restore's own run written, and the restore's
+ * start logged again, since the log it was first written in is gone.
+ * Returns the restore's run ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -22,14 +35,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Settles a restored database (docs/architecture/backups.md, Restoring): the
- * run that made the backup finished, whatever else the old server had
- * running ended, every place paused until a person says whether this
- * server is now the site, the restore's own run written, and the restore's
- * start logged again, since the log it was first written in is gone.
- * Returns the restore's run ID.
- */
 final class SettleRestoredSite extends BaseOperation
 {
     use AuthorizesRestores;

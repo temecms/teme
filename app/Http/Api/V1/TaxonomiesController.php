@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * GET /api/v1/taxonomies: the public taxonomies and the public types using
+ * them (D28).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\V1;
@@ -10,10 +19,6 @@ use App\Domain\Api\Problems;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * GET /api/v1/taxonomies: the public taxonomies and the public types using
- * them (D28).
- */
 final class TaxonomiesController
 {
     /** The parameters this address takes: none. */

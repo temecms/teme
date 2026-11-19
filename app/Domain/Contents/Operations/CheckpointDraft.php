@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Gathers one person's autosave into a revision — title, document, fields
+ * and terms together — through SaveDraft's own path, then clears the
+ * autosave in the same transaction. This is how the history stays readable:
+ * a revision per checkpoint, not per keystroke. With no autosave it writes
+ * nothing. An autosave whose base is no longer the working revision is
+ * refused by SaveDraft, and nothing is written.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -14,14 +27,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Gathers one person's autosave into a revision — title, document, fields
- * and terms together — through SaveDraft's own path, then clears the
- * autosave in the same transaction. This is how the history stays readable:
- * a revision per checkpoint, not per keystroke. With no autosave it writes
- * nothing. An autosave whose base is no longer the working revision is
- * refused by SaveDraft, and nothing is written.
- */
 final class CheckpointDraft extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

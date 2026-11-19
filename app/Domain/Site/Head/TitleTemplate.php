@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A title template filled in (I-290): Teme's own tokens, each replaced once,
+ * with empty pieces and the separators beside them dropped, as Yoast and
+ * Rank Math collapse theirs. The editor's previews follow the same rule.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Head;
 
 use Closure;
 
-/**
- * A title template filled in (I-290): Teme's own tokens, each replaced once,
- * with empty pieces and the separators beside them dropped, as Yoast and
- * Rank Math collapse theirs. The editor's previews follow the same rule.
- */
 final class TitleTemplate
 {
     /** The tokens a template may use, in the order Search and social lists them (I-851). */

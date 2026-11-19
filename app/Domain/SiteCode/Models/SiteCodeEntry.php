@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One entry of site code (I-288): a name, the placement it goes in, the code
+ * exactly as an administrator wrote it, whether it is on, and the hosts it
+ * also connects to (I-3375). Only the site code Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Models;
@@ -8,10 +18,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One entry of site code (I-288): a name, the placement it goes in, the code
- * exactly as an administrator wrote it, whether it is on, and the hosts it
- * also connects to (I-3375). Only the site code Operations write it.
- *
  * @property string $id
  * @property string $name
  * @property string $placement

@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * One update request as the teme_updates row holds it (I-3326): both versions, where it stands, the step in hand and every step's record.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Requests;
 
 use Carbon\CarbonImmutable;
 
-/**
- * One update request as the teme_updates row holds it (I-3326): both versions, where it stands, the step in hand and every step's record.
- */
 final readonly class TemeUpdate
 {
     /**

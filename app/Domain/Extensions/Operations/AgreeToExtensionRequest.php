@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Agrees to what the installer found and waits on (I-211): files that run on every request, a Composer
+ * plugin that won't run, a different source, a replaced version. It records exactly the list the person
+ * was shown, and refuses when the installer has found something else since; the installer then checks
+ * again and goes on. A person who holds extensions.install, after their password, or the operator.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -13,12 +24,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Agrees to what the installer found and waits on (I-211): files that run on every request, a Composer
- * plugin that won't run, a different source, a replaced version. It records exactly the list the person
- * was shown, and refuses when the installer has found something else since; the installer then checks
- * again and goes on. A person who holds extensions.install, after their password, or the operator.
- */
 final class AgreeToExtensionRequest extends BaseOperation implements RequiresElevation
 {
     use AuthorizesExtensionChanges;

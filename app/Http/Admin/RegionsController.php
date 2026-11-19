@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Content › Regions (I-395): the active theme's regions with their state,
+ * and the rows kept from other themes. Filling a region the first time
+ * hands it to CreateRegion, then opens it in the editor; the controller
+ * changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -13,12 +24,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Content › Regions (I-395): the active theme's regions with their state,
- * and the rows kept from other themes. Filling a region the first time
- * hands it to CreateRegion, then opens it in the editor; the controller
- * changes nothing itself.
- */
 final class RegionsController extends Controller
 {
     public function index(RegionScreens $screens): Response

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Gathers the plugins' object builders, asked each time an item's object is
+ * built; the first that names the item's type builds it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

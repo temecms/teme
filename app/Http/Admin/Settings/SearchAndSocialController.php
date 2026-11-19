@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Settings › Search and social (I-874): a screen of its own, drawn from the
+ * group's sections, and saved by UpdateSettings as the generic form saves
+ * any group; it changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -17,11 +27,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › Search and social (I-874): a screen of its own, drawn from the
- * group's sections, and saved by UpdateSettings as the generic form saves
- * any group; it changes nothing itself.
- */
 final class SearchAndSocialController extends Controller
 {
     public function show(Request $request, SearchAndSocialScreen $screen): Response

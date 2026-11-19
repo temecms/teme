@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What `TranslateSettings` needs: the group, the other language whose words
+ * are written, the words to set and the keys to return to the default
+ * language's, the group's version the form was opened on, and who is asking.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `TranslateSettings` needs: the group, the other language whose words
- * are written, the words to set and the keys to return to the default
- * language's, the group's version the form was opened on, and who is asking.
- */
 final readonly class TranslateSettingsInput implements OperationInput
 {
     /**

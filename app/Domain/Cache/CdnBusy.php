@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * A CDN's answer when it takes no more purges for now, with the seconds to
+ * wait before asking again: Cloudflare's 429 and its Retry-After.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
 
 use RuntimeException;
 
-/**
- * A CDN's answer when it takes no more purges for now, with the seconds to
- * wait before asking again: Cloudflare's 429 and its Retry-After.
- */
 final class CdnBusy extends RuntimeException
 {
     public function __construct(public readonly int $seconds)

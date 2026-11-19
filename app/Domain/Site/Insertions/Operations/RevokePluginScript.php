@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Revokes a decision on a plugin's script, approved or refused: the row
+ * goes, so the script is removed from pages again, and the plugin may ask
+ * once more (docs/plans/plugin-sockets-2.md, B4).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Operations;
@@ -13,11 +23,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Revokes a decision on a plugin's script, approved or refused: the row
- * goes, so the script is removed from pages again, and the plugin may ask
- * once more (docs/plans/plugin-sockets-2.md, B4).
- */
 final class RevokePluginScript extends BaseOperation implements RequiresElevation
 {
     use DecidesPluginScripts;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a reader can see, once (D19): the one predicate every item query of
+ * the API goes through, matching the public site's own, with the type's
+ * public flag added; and the public types and taxonomies.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
@@ -14,11 +24,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * What a reader can see, once (D19): the one predicate every item query of
- * the API goes through, matching the public site's own, with the type's
- * public flag added; and the public types and taxonomies.
- */
 final class Live
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The security event log: a telemetry sink, read by people, never by code
+ * that decides anything (docs/architecture/operations.md). Typed addresses
+ * are never stored — only a keyed hash, so two failures on one made-up
+ * address still count together.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Security;
@@ -9,12 +20,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use stdClass;
 
-/**
- * The security event log: a telemetry sink, read by people, never by code
- * that decides anything (docs/architecture/operations.md). Typed addresses
- * are never stored — only a keyed hash, so two failures on one made-up
- * address still count together.
- */
 final class SecurityLog
 {
     /**

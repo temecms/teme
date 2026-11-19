@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Puts a new file of the same kind behind an existing item, so every use of
+ * it follows (study K, §7). The file version rises, so the new file never
+ * shares a URL with the old; an image keeps its old variants until the new
+ * ones are recorded, and the old version's files are deleted after commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -26,12 +37,6 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * Puts a new file of the same kind behind an existing item, so every use of
- * it follows (study K, §7). The file version rises, so the new file never
- * shares a URL with the old; an image keeps its old variants until the new
- * ones are recorded, and the old version's files are deleted after commit.
- */
 final class ReplaceMediaFile extends BaseOperation
 {
     public function __construct(

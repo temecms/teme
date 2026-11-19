@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What this site answers at each address the old site lists, asked as a
+ * reader would (I-339), through the whole application in this process. It
+ * writes nothing itself; its requests write what a reader's do, as
+ * docs/architecture/addresses.md describes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
@@ -15,12 +26,6 @@ use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * What this site answers at each address the old site lists, asked as a
- * reader would (I-339), through the whole application in this process. It
- * writes nothing itself; its requests write what a reader's do, as
- * docs/architecture/addresses.md describes.
- */
 final readonly class AddressWalk
 {
     /** The statuses that send readers on. */

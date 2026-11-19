@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Forgets a remote account: its follows end, its kept profile is removed,
+ * and its replies keep their words but lose its name and address. For
+ * whoever holds settings.fediverse.manage, or the operator; returns whether
+ * the site knew the account.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -15,12 +26,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Forgets a remote account: its follows end, its kept profile is removed,
- * and its replies keep their words but lose its name and address. For
- * whoever holds settings.fediverse.manage, or the operator; returns whether
- * the site knew the account.
- */
 final class ForgetRemoteActor extends BaseOperation
 {
     use AuthorizesFediverseWork;

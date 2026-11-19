@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every media item not in the trash, with what people wrote about it, and its
+ * original copied beside the export as each line is made. Never the sizes made
+ * from it, nor this server's own path to the file.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -10,11 +20,6 @@ use App\Domain\Export\ExportKind;
 use App\Domain\Media\MediaDisks;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every media item not in the trash, with what people wrote about it, and its
- * original copied beside the export as each line is made. Never the sizes made
- * from it, nor this server's own path to the file.
- */
 final readonly class MediaKind implements ExportKind
 {
     public function name(): string

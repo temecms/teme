@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * How many notices a plugin may deliver
+ * (docs/plans/plugin-sockets-3.md): at most 100 an hour, counted per
+ * recipient. Those beyond are dropped, and one fault an hour is recorded
+ * under the plugin.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Notices;
@@ -10,12 +21,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use RuntimeException;
 use Teme\Contracts\Notices\Notices;
 
-/**
- * How many notices a plugin may deliver
- * (docs/plans/plugin-sockets-3.md): at most 100 an hour, counted per
- * recipient. Those beyond are dropped, and one fault an hour is recorded
- * under the plugin.
- */
 final class NoticeRate
 {
     /** Deliveries a plugin may make in an hour. */

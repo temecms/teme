@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Whether each article a document links to can be reached: published, not
+ * published, in the trash, or gone. The editor's checks warn about links to
+ * any but the first (I-427). It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Whether each article a document links to can be reached: published, not
- * published, in the trash, or gone. The editor's checks warn about links to
- * any but the first (I-427). It reads only.
- */
 final class LinkedContent
 {
     /**

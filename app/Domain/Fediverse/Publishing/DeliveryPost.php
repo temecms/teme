@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Posts one activity to one inbox, as the fetcher reaches a server (D3 of
+ * docs/plans/fediverse-actors.md): https only, the address checked public
+ * and pinned, no redirect followed, no proxy, five seconds at most; signed
+ * by the sending actor, whose key never leaves the Signer.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
@@ -14,12 +25,6 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Posts one activity to one inbox, as the fetcher reaches a server (D3 of
- * docs/plans/fediverse-actors.md): https only, the address checked public
- * and pinned, no redirect followed, no proxy, five seconds at most; signed
- * by the sending actor, whose key never leaves the Signer.
- */
 final readonly class DeliveryPost
 {
     public function __construct(

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Asks the site's AI connection for one of the calling plugin's declared
+ * tasks, for a named person.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Ai;

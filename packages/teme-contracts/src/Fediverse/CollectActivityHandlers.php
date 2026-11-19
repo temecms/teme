@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Gathers the plugins' handlers for the activities other servers send, asked
+ * each time one arrives whose type Teme does not take itself.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

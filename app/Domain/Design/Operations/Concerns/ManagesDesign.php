@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the design Operations share: who may change the site's design, which
+ * settings groups are part of it, and how a group's draft is taken and
+ * cleared.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations\Concerns;
@@ -12,11 +22,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What the design Operations share: who may change the site's design, which
- * settings groups are part of it, and how a group's draft is taken and
- * cleared.
- */
 trait ManagesDesign
 {
     private const string DESIGN_GROUP = 'design';

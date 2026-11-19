@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Changes your own name and email address. Changing the address asks for a
+ * fresh password confirmation and marks the new address unverified.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -19,10 +28,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Changes your own name and email address. Changing the address asks for a
- * fresh password confirmation and marks the new address unverified.
- */
 final class UpdateProfile extends BaseOperation implements RequiresElevation
 {
     public function requiresElevation(OperationInput $input): bool

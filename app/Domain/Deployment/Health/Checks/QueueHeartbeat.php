@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Says which queues have jobs no worker is taking, and when a worker last
+ * finished a job on each other queue (I-3112), in every environment. Always
+ * a warning, so a first deploy, which runs before the workers exist, isn't
+ * refused.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -11,12 +22,6 @@ use App\Domain\Deployment\Health\Severity;
 use App\Domain\Deployment\Health\UntakenJobs;
 use Carbon\CarbonInterface;
 
-/**
- * Says which queues have jobs no worker is taking, and when a worker last
- * finished a job on each other queue (I-3112), in every environment. Always
- * a warning, so a first deploy, which runs before the workers exist, isn't
- * refused.
- */
 final readonly class QueueHeartbeat implements DoctorCheck
 {
     public function __construct(private UntakenJobs $jobs, private Heartbeats $heartbeats) {}

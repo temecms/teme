@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Moves every address to where the settings now put it, 500 targets a run:
+ * content, then terms, then authors, each run queueing the next from the
+ * last ID. With a term, only the items filed under it or beneath it; with
+ * a language, only its items and terms, whose prefix moved (I-3360). It
+ * carries the person who changed things (I-392), and RebuildPaths
+ * authorizes them. Progress is kept in the cache for Settings › Addresses.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Jobs;
@@ -14,14 +27,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Moves every address to where the settings now put it, 500 targets a run:
- * content, then terms, then authors, each run queueing the next from the
- * last ID. With a term, only the items filed under it or beneath it; with
- * a language, only its items and terms, whose prefix moved (I-3360). It
- * carries the person who changed things (I-392), and RebuildPaths
- * authorizes them. Progress is kept in the cache for Settings › Addresses.
- */
 final class RecomputeAddresses implements ShouldQueue
 {
     use Queueable;

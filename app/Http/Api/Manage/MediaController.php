@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * POST /api/manage/v1/media stores a file, sent as multipart (`file`) or
+ * as the raw body named by its Content-Disposition; PATCH changes its alt
+ * text, caption, title and credit. Both need media.write, and the key's
+ * person's own permission through the Operations.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\Manage;
@@ -10,12 +21,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 
-/**
- * POST /api/manage/v1/media stores a file, sent as multipart (`file`) or
- * as the raw body named by its Content-Disposition; PATCH changes its alt
- * text, caption, title and credit. Both need media.write, and the key's
- * person's own permission through the Operations.
- */
 final class MediaController
 {
     /** The details PATCH may change. */

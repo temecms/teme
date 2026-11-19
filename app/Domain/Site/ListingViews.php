@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Listings as their templates see them (I-250): a term's, an author's, a
+ * date's or a type's own items of the types each lists (I-3298), newest first, a page at a
+ * time, each with its published title, never a newer draft's. Items are
+ * built in a few queries for the whole page, never one per item.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -37,12 +48,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Listings as their templates see them (I-250): a term's, an author's, a
- * date's or a type's own items of the types each lists (I-3298), newest first, a page at a
- * time, each with its published title, never a newer draft's. Items are
- * built in a few queries for the whole page, never one per item.
- */
 final readonly class ListingViews
 {
     public function __construct(

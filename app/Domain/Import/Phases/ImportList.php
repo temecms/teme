@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * One list a phase reads from the old site: a route of the export API, its
+ * query, a page's size, and the item keys whose change means nothing. A
+ * whole list is one answer's key, read in one go (menus).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
 
 use InvalidArgumentException;
 
-/**
- * One list a phase reads from the old site: a route of the export API, its
- * query, a page's size, and the item keys whose change means nothing. A
- * whole list is one answer's key, read in one go (menus).
- */
 final readonly class ImportList
 {
     public bool $paged;

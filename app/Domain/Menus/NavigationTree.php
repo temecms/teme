@@ -1,5 +1,22 @@
 <?php
 
+/**
+ * One menu as the site draws it: each item's label and site-relative URL,
+ * made now from the path table (rule 9), whether it is the page being
+ * shown, whether it is a heading, which has no URL and opens the items
+ * under it (I-2628), and its children. An item whose target has no
+ * address, being unpublished, trashed or deleted, is left out with its
+ * children, and so is a heading with nothing drawn under it. A language
+ * switcher becomes a link to each of the page's language versions
+ * (I-3360). Four queries at most: the items, their
+ * content, their terms and their paths, and the page's versions when a
+ * switcher asks for them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus;
@@ -15,18 +32,6 @@ use App\Domain\Site\LanguageLinks;
 use App\Domain\Site\ViewModels\Alternate;
 use Illuminate\Support\Facades\DB;
 
-/**
- * One menu as the site draws it: each item's label and site-relative URL,
- * made now from the path table (rule 9), whether it is the page being
- * shown, whether it is a heading, which has no URL and opens the items
- * under it (I-2628), and its children. An item whose target has no
- * address, being unpublished, trashed or deleted, is left out with its
- * children, and so is a heading with nothing drawn under it. A language
- * switcher becomes a link to each of the page's language versions
- * (I-3360). Four queries at most: the items, their
- * content, their terms and their paths, and the page's versions when a
- * switcher asks for them.
- */
 final class NavigationTree
 {
     /**

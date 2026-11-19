@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Dates as the public site shows them: in the site's time zone, and written
+ * the way the item's language writes them, with Carbon's own localised
+ * formats. There is no date-format setting (I-436).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -9,11 +19,6 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Dates as the public site shows them: in the site's time zone, and written
- * the way the item's language writes them, with Carbon's own localised
- * formats. There is no date-format setting (I-436).
- */
 final class SiteDates
 {
     /**

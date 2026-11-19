@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Users;
-
-use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-
 /**
  * The people Operations act as, each loaded once, with their roles and
  * permissions, while a caller keeps them: the scheduler for its pass, Bulk
@@ -14,7 +7,19 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  * a finally, and the binding is scoped, so nothing outlives the pass, the
  * batch, the request or the job (I-087). With nobody kept, find() loads its
  * person as every Operation always has.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Users;
+
+use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 final class Actors
 {
     /** @var array<string, User> */

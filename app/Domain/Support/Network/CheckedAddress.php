@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Support\Network;
-
 /**
  * An address the check accepted: its scheme, its host, its port, and the IP
  * address a request must connect to. The host is empty for an address typed
  * as an IP, which needs no pin.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Support\Network;
+
 final readonly class CheckedAddress
 {
     public function __construct(

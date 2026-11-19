@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Cleans the HTML WordPress drew into the tree an Imported content card
+ * holds (I-329): parsed by HTML5's rules with PHP's own parser, kept to
+ * MarkupTree's list, and each removal a reader could notice counted by name
+ * for the import's report.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Imported;
@@ -11,12 +22,6 @@ use Dom\HTMLDocument;
 use Dom\Node;
 use Dom\Text;
 
-/**
- * Cleans the HTML WordPress drew into the tree an Imported content card
- * holds (I-329): parsed by HTML5's rules with PHP's own parser, kept to
- * MarkupTree's list, and each removal a reader could notice counted by name
- * for the import's report.
- */
 final readonly class MarkupCleaner
 {
     /** Removed with all they hold, and counted: a reader could notice each. */

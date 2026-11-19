@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Search and social's section "Structured data" (I-709): for each
+ * public content type, what search engines are told its items are, set to
+ * what the type declares until the site chooses otherwise. Made from the
+ * registry, so a type registered later gets its own; an item's own choice
+ * still comes first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -8,24 +20,17 @@ use App\Domain\Seo\SearchAndSocialSection;
 use App\Domain\Types\ContentTypeRegistry;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * Search and social's section "Page and article types" (I-709): for each
- * public content type, what search engines are told its items are, set to
- * what the type declares until the site chooses otherwise. Made from the
- * registry, so a type registered later gets its own; an item's own choice
- * still comes first.
- */
 final class PageAndArticleTypes implements SearchAndSocialSection
 {
     /** The page types' labels, as an item's own choice words them. */
-    private const array PAGE_LABELS = ['WebPage' => 'Web page', 'AboutPage' => 'About page', 'ContactPage' => 'Contact page', 'CollectionPage' => 'Collection page'];
+    private const array PAGE_LABELS = ['WebPage' => 'A web page', 'AboutPage' => 'An About page', 'ContactPage' => 'A contact page', 'CollectionPage' => 'A collection page'];
 
     /** The article types' labels; any other main entity goes by its schema.org name. */
-    private const array ENTITY_LABELS = ['Article' => 'Article', 'NewsArticle' => 'News article', 'BlogPosting' => 'Blog post'];
+    private const array ENTITY_LABELS = ['Article' => 'An article', 'NewsArticle' => 'A news article', 'BlogPosting' => 'A blog post'];
 
     public function order(): int
     {
-        return 350;
+        return 860;
     }
 
     public function key(): string
@@ -35,7 +40,7 @@ final class PageAndArticleTypes implements SearchAndSocialSection
 
     public function label(): string
     {
-        return 'Page and article types';
+        return 'Structured data';
     }
 
     public function settings(): array
@@ -50,13 +55,14 @@ final class PageAndArticleTypes implements SearchAndSocialSection
 
             $schema = $type->schema ?? new TypeSchema;
             $plural = mb_strtolower($type->plural);
+            $singular = mb_strtolower($type->singular);
             $pages = [];
 
             foreach (TypeSchema::PAGE_TYPES as $pageType) {
                 $pages[$pageType] = self::PAGE_LABELS[$pageType];
             }
 
-            $settings[] = Setting::select(self::pageKey($type->key), "Page type for {$plural}", 'What search engines are told each of them is, unless one says otherwise in the editor.', $since, $pages)
+            $settings[] = Setting::select(self::pageKey($type->key), "Each {$singular} is", 'What search engines are told each of them is, unless one says otherwise in the editor.', $since, $pages)
                 ->default($schema->pageType);
 
             if ($schema->mainEntities === []) {
@@ -69,9 +75,9 @@ final class PageAndArticleTypes implements SearchAndSocialSection
                 $entities[$entity] = self::ENTITY_LABELS[$entity] ?? $entity;
             }
 
-            $entities[TypeSchemas::NONE] = array_diff($schema->mainEntities, TypeSchema::ARTICLES) === [] ? 'Not an article' : 'Nothing';
+            $entities[TypeSchemas::NONE] = array_diff($schema->mainEntities, TypeSchema::ARTICLES) === [] ? 'No article' : 'Nothing';
 
-            $settings[] = Setting::select(self::articleKey($type->key), "Article type for {$plural}", 'What kind of article search engines are told each of them is, if any, unless one says otherwise in the editor.', $since, $entities)
+            $settings[] = Setting::select(self::articleKey($type->key), "Article kind for {$plural}", 'What kind of article search engines are told each of them is, if any, unless one says otherwise in the editor.', $since, $entities)
                 ->default($schema->mainEntity ?? TypeSchemas::NONE);
         }
 

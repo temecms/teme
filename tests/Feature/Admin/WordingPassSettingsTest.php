@@ -34,28 +34,27 @@ it('offers Open Search and social as a button beside Home’s search engines not
         ->and($source)->not->toContain('className="font-medium underline underline-offset-2"');
 });
 
-it('explains Search and social’s rows above them, not under them', function (): void {
+it('explains each of Search and social’s sections in its heading, not under its settings', function (): void {
     $source = ($this->flat)('pages/settings/search-and-social.tsx');
 
-    expect(($this->at)($source, '{section.note}'))
-        ->toBeGreaterThan(($this->at)($source, "section.key === 'titles-and-listing' && ("))
-        ->toBeLessThan(($this->at)($source, 'aria-label="Titles, and hiding from search engines, by kind of page"'))
-        ->and($source)->toContain("section.key !== 'titles-and-listing'");
+    expect($source)->toContain('description={describe(key)}')
+        ->and($source)->not->toContain('section.note');
 });
 
-it('offers Choose the home page as Addresses’ header button', function (): void {
+it('links Reading inside Addresses’ description, with no header button or info notice', function (): void {
     $source = ($this->flat)('pages/settings/addresses.tsx');
 
-    expect(($this->at)($source, 'Choose the home page'))
-        ->toBeGreaterThan(($this->at)($source, 'title="Addresses"'))
-        ->toBeLessThan(($this->at)($source, 'Old addresses keep working'))
+    expect($source)->toContain("{__('The home page is chosen in')}")
+        ->and($source)->not->toContain('Choose the home page')
+        ->and($source)->not->toContain('Old addresses keep working')
         ->and($source)->not->toContain('Settings › Reading');
 });
 
 it('says where one item’s code goes in Site code’s description, not at its foot', function (): void {
     $source = ($this->flat)('pages/settings/site-code.tsx');
 
-    expect(($this->at)($source, 'add an Embed card to that item instead."'))->toBeLessThan(($this->at)($source, 'data-test="site-code-add"'))
+    expect(($this->at)($source, 'add an Embed card to that item instead.'))->toBeGreaterThan(($this->at)($source, '<SettingsPage'))
+        ->toBeLessThan(($this->at)($source, '<Head title='))
         ->and($source)->not->toContain('There’s no code for a single post or page');
 });
 

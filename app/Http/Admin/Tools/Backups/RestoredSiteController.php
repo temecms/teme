@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A person's answer, on Tools › Backups, to the pause a restore leaves
+ * (I-363): this server is now the site, or this is a copy.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -14,10 +23,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * A person's answer, on Tools › Backups, to the pause a restore leaves
- * (I-363): this server is now the site, or this is a copy.
- */
 final class RestoredSiteController extends Controller
 {
     public function __invoke(Request $request, ConfirmRestoredSite $confirm): RedirectResponse

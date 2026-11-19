@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Registers what a started plugin's manifest contributes to the admin
+ * (I-3353): Contributions does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
 
-/**
- * Registers what a started plugin's manifest contributes to the admin
- * (I-3353): Contributions does.
- */
 interface PluginContributions
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The `backups` settings group (I-361): the hour the nightly backup starts,
+ * how many daily, weekly and monthly backups are kept, and the machine key
+ * Teme's own runs open the backups with. Changed on its own screen only:
+ * it is never a Settings page, and the generic settings form refuses it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -7,12 +18,6 @@ namespace App\Domain\Backups;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * The `backups` settings group (I-361): the hour the nightly backup starts,
- * how many daily, weekly and monthly backups are kept, and the machine key
- * Teme's own runs open the backups with. Changed on its own screen only:
- * it is never a Settings page, and the generic settings form refuses it.
- */
 final class BackupSettings
 {
     public const string GROUP = 'backups';

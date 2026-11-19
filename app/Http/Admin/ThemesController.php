@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Site › Themes: the installed themes, a theme's preview and activation, the
+ * regions each places, and the chosen theme's settings with its menu
+ * places, every change drafted and published through the design's
+ * Operations. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -33,12 +44,6 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * Site › Themes: the installed themes, a theme's preview and activation, the
- * regions each places, and each chosen theme's settings page with its menu
- * places, every change drafted and published through the design's
- * Operations. It changes nothing itself.
- */
 final class ThemesController extends Controller
 {
     public function index(Request $request, DesignScreen $screen, RegionScreens $regions, ThemeRegistry $themes, ExtensionsScreen $extensions): Response
@@ -57,20 +62,22 @@ final class ThemesController extends Controller
     }
 
     /**
-     * One theme's own settings and menu places. Only the theme the design names
-     * has them to change (the one previewed, else the one in use), so any other
-     * installed theme's address leads back to the list.
+     * The old address of a theme's own settings: they are drawn on Themes,
+     * under the theme, so the theme the design names (the one previewed,
+     * else the one in use) leads there, and any other installed theme's
+     * address to the list.
+     *
+     * @since 0.8.0-alpha.1
      */
-    public function settings(string $code, DesignScreen $screen, ThemeRegistry $themes): Response|RedirectResponse
+    public function settings(string $code, DesignScreen $screen, ThemeRegistry $themes): RedirectResponse
     {
         $theme = $themes->find($code) ?? abort(404);
-        $data = $screen->data();
 
-        if ($theme->code !== $data['theme'] || ! $theme->usable()) {
+        if ($theme->code !== $screen->data()['theme'] || ! $theme->usable()) {
             return to_route('themes.index');
         }
 
-        return Inertia::render('themes/settings', $data);
+        return redirect()->to(route('themes.index').'#theme-settings');
     }
 
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Reads a piece of WordPress's HTML with PHP's own HTML5 parser (I-1722), so
+ * broken or unclosed markup is repaired as a browser repairs it before
+ * anything else reads it. Text outside preformatted elements has its runs
+ * of spaces and line breaks collapsed, as a browser shows them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Html;
@@ -11,12 +22,6 @@ use Dom\Node;
 use Dom\Text;
 use LogicException;
 
-/**
- * Reads a piece of WordPress's HTML with PHP's own HTML5 parser (I-1722), so
- * broken or unclosed markup is repaired as a browser repairs it before
- * anything else reads it. Text outside preformatted elements has its runs
- * of spaces and line breaks collapsed, as a browser shows them.
- */
 final class HtmlFragment
 {
     /** Elements an article never keeps: left out, and counted by name. */

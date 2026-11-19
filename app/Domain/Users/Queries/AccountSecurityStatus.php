@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What the account pages may know about a person's sign-in security, so that
+ * controllers read it through a query like everything else (I-136).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Queries;
@@ -7,10 +16,6 @@ namespace App\Domain\Users\Queries;
 use App\Models\User;
 use Laravel\Fortify\Features;
 
-/**
- * What the account pages may know about a person's sign-in security, so that
- * controllers read it through a query like everything else (I-136).
- */
 final class AccountSecurityStatus
 {
     /**

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Registers the per-person preference registry, and declares the built-in
+ * preferences into it, as every other registry has its own provider.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -8,10 +17,6 @@ use App\Domain\Preferences\BuiltInPreferences;
 use App\Domain\Preferences\PreferenceRegistry;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers the per-person preference registry, and declares the built-in
- * preferences into it, as every other registry has its own provider.
- */
 final class PreferenceServiceProvider extends ServiceProvider
 {
     public function register(): void

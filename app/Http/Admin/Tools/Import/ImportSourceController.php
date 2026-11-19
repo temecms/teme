@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Connecting a WordPress site, reading its report again, and forgetting its application password (I-1708).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Import;
@@ -19,12 +27,13 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Connecting a WordPress site, reading its report again, and forgetting its application password (I-1708).
- */
 final class ImportSourceController extends Controller
 {
-    /** The session key the hosts are kept under across the password's confirmation, followed by the site's ID. */
+    /**
+     * The session key the hosts are kept under across the password's confirmation, followed by the site's ID.
+     *
+     * @since 1.0.0
+     */
     public const string REMEMBERED_HOSTS = 'import.other-hosts.';
 
     public function connect(Request $request, ConnectImportSource $connect, ImportScreen $screen): RedirectResponse
@@ -70,6 +79,9 @@ final class ImportSourceController extends Controller
         return self::told("Teme has forgotten the application password for {$site['address']}. Revoke it in WordPress too: Users › Profile › Application Passwords.");
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function hosts(Request $request, string $source, ImportScreen $screen, SetImportSourceHosts $set): RedirectResponse
     {
         abort_if($screen->site($source) === null, 404);

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What inspecting an uploaded file found: its detected type, kind and
+ * extension, its size and fingerprint, and an image's dimensions.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
 
-/**
- * What inspecting an uploaded file found: its detected type, kind and
- * extension, its size and fingerprint, and an image's dimensions.
- */
 final readonly class InspectedFile
 {
     public function __construct(

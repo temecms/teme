@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Someone an item can credit (I-3366): an account's own person, whose name,
+ * slug and biography are the account's, or a person with no account, who
+ * holds their own. Only the people Operations write them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Models;
@@ -11,10 +21,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Someone an item can credit (I-3366): an account's own person, whose name,
- * slug and biography are the account's, or a person with no account, who
- * holds their own. Only the people Operations write them.
- *
  * @property string $id
  * @property int|null $user_id the account this person is, or null
  * @property string|null $name a person with no account's own; null for an account's

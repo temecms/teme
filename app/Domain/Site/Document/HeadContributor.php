@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Document;
-
 /**
  * Something that adds typed entries to every page's head (I-228): core's
  * robots, canonical and social tags, a site's verification tags, a plugin's
  * pieces of the graph. Registered under DocumentMeta::CONTRIBUTORS from its
  * part's own provider, and resolved through the container each time a page
  * is drawn, so it holds no state of its own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Document;
+
 interface HeadContributor
 {
     /**

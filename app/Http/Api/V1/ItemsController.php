@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The API's items (D4, D37): a list of live, public items, one item by its
+ * ID, and one by an address of it. Reads only, through the item queries.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\V1;
@@ -17,10 +26,6 @@ use App\Domain\Api\Items\ItemsQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * The API's items (D4, D37): a list of live, public items, one item by its
- * ID, and one by an address of it. Reads only, through the item queries.
- */
 final class ItemsController
 {
     /**

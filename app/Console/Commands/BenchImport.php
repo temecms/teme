@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:bench:import`: imports a synthetic WordPress site into its own
+ * benchmark database, stops the import halfway, carries it on, times every
+ * step, and writes the result to docs/benchmarks/. It only ever touches a
+ * database whose name ends in _bench, and it starts by wiping that database.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -12,12 +23,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-/**
- * `teme:bench:import`: imports a synthetic WordPress site into its own
- * benchmark database, stops the import halfway, carries it on, times every
- * step, and writes the result to docs/benchmarks/. It only ever touches a
- * database whose name ends in _bench, and it starts by wiping that database.
- */
 final class BenchImport extends Command
 {
     /** @var string */

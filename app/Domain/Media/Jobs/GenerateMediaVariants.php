@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Makes an image's variants on the queue and records them through
+ * RecordMediaVariants, as the person whose change caused it
+ * (docs/architecture/media.md, "The processing pipeline"), or, for an image's
+ * first use as a featured or social image, as the person who used it, with
+ * the item ($usedBy) that gives them the right (I-855). Idempotent: a
+ * second run writes the same files and records the same map. Its actor
+ * (I-392) is the person, or the operator made at the shell, and bind() gives
+ * a worker the operator's elevation only for the operator. It runs on the long queue,
+ * whose retry window outlasts its timeout (docs/architecture/media.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Jobs;
@@ -17,17 +33,6 @@ use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * Makes an image's variants on the queue and records them through
- * RecordMediaVariants, as the person whose change caused it
- * (docs/architecture/media.md, "The processing pipeline"), or, for an image's
- * first use as a featured or social image, as the person who used it, with
- * the item ($usedBy) that gives them the right (I-855). Idempotent: a
- * second run writes the same files and records the same map. Its actor
- * (I-392) is the person, or the operator made at the shell, and bind() gives
- * a worker the operator's elevation only for the operator. It runs on the long queue,
- * whose retry window outlasts its timeout (docs/architecture/media.md).
- */
 #[Connection('database-long')]
 #[Queue('long')]
 final class GenerateMediaVariants implements ShouldQueue

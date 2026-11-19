@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The months that hold files, for the library's and the modal's Date select:
+ * the site's months, newest first, as the content lists bound theirs, found
+ * without reading the library (I-1316).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Media\Queries;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The months that hold files, for the library's and the modal's Date select:
- * the site's months, newest first, as the content lists bound theirs, found
- * without reading the library (I-1316).
- */
 final class MediaMonths
 {
     /**

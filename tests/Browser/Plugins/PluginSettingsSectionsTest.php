@@ -68,7 +68,9 @@ it('draws each section as a panel and shows a setting only while its condition h
         ->assertSee('Ad network')
         ->assertScript('document.querySelector("#field-publisher_id")?.closest("[hidden]") !== null', true);
 
-    $page->select('#field-provider', 'adsense');
+    // A select is the kit's list now (the approved design), not the browser's own.
+    $page->click('#field-provider')
+        ->click('[role="option"] >> text="AdSense"');
     cmWaitUntil($page, 'document.querySelector("#field-publisher_id")?.closest("[hidden]") === null');
     $page->type('#field-publisher_id', 'pub-1234');
 

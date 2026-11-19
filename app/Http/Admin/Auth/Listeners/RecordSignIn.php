@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Runs for every sign-in, including one restored from a remember-me cookie.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Auth\Listeners;
@@ -12,9 +20,6 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
 
-/**
- * Runs for every sign-in, including one restored from a remember-me cookie.
- */
 final class RecordSignIn
 {
     public function handle(Login $event): void

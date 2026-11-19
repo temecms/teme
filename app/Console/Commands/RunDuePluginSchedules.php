@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:plugins:run-due-schedules — queues each enabled plugin's due schedules
+ * (I-3445). Runs every minute on one server, without overlapping;
+ * `--plugin=<code>` limits a pass to one plugin.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,11 +19,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:plugins:run-due-schedules — queues each enabled plugin's due schedules
- * (I-3445). Runs every minute on one server, without overlapping;
- * `--plugin=<code>` limits a pass to one plugin.
- */
 final class RunDuePluginSchedules extends Command
 {
     /** @var string */

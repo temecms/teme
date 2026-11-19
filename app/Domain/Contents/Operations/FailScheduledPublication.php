@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records that a scheduled publication failed, and why. A failed row is not
+ * retried: a publication that failed needs a person to look, and retrying it
+ * every minute is noise. Only the operator records a failure.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -12,11 +22,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Date;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records that a scheduled publication failed, and why. A failed row is not
- * retried: a publication that failed needs a person to look, and retrying it
- * every minute is noise. Only the operator records a failure.
- */
 final class FailScheduledPublication extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Head;
-
 /**
  * What one public page's head resolves to (I-290 to I-293): its title,
  * description, addresses, robots directives and social card, for the head's
  * contributors and for the parts that describe the page elsewhere.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Head;
+
 final readonly class HeadValues
 {
     /**

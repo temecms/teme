@@ -1,13 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cache;
-
-use App\Domain\Api\ApiPaths;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-
 /**
  * What the page cache never stores (docs/studies/page-cache.md §3.1,
  * I-262): anything but a GET's page or "not found", a response that sets a
@@ -17,7 +9,20 @@ use Symfony\Component\HttpFoundation\Response;
  * with a query, which would be stored once for every value anyone sends;
  * and a degraded render. Each rule names itself, and the name is the
  * reason `X-Teme-Cache` gives.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cache;
+
+use App\Domain\Api\ApiPaths;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
 final class StoreRules
 {
     /** What a stored page may vary by: the key holds the host, and the body is stored unencoded. */

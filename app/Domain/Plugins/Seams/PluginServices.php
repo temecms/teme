@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What Teme hands a plugin's constructor, by interface: the only way a
+ * plugin is given anything, never the container (I-3353): PluginDoors
+ * answers.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
@@ -22,11 +32,6 @@ use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
 
-/**
- * What Teme hands a plugin's constructor, by interface: the only way a
- * plugin is given anything, never the container (I-3353): PluginDoors
- * answers.
- */
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */

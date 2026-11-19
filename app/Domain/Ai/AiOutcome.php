@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai;
-
 /**
  * How one request ended, and the word people read for it (I-1307).
  * A request is recorded suggested, discarded, failed or refused; a suggestion
  * is settled later as used, discarded or out of date. A plugin's request
  * through SiteAi is recorded answered: its answer went to the plugin.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai;
+
 enum AiOutcome: string
 {
     case Suggested = 'suggested';

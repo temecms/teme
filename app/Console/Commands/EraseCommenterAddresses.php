@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:comments:erase-addresses — erases the IP address and browser of every
+ * comment that arrived keep_ip_days ago or earlier, a chunk at a time, through
+ * EraseCommentAddresses as the operator (I-270). Runs daily.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -11,11 +21,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * teme:comments:erase-addresses — erases the IP address and browser of every
- * comment that arrived keep_ip_days ago or earlier, a chunk at a time, through
- * EraseCommentAddresses as the operator (I-270). Runs daily.
- */
 final class EraseCommenterAddresses extends Command
 {
     /** @var string */

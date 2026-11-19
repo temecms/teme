@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Runs an import's phases in their order (I-333), each as one batch of
+ * queued jobs: a list phase's pages, or a step's job and its
+ * continuations. Every job and the batch's end carry the attempt's token
+ * and its actor, so a stopped or superseded attempt's leftovers do nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import;
@@ -23,12 +34,6 @@ use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
 
-/**
- * Runs an import's phases in their order (I-333), each as one batch of
- * queued jobs: a list phase's pages, or a step's job and its
- * continuations. Every job and the batch's end carry the attempt's token
- * and its actor, so a stopped or superseded attempt's leftovers do nothing.
- */
 final readonly class ImportEngine
 {
     /** What a refusal's stop message ends with: what to do next. */

@@ -1,5 +1,22 @@
 <?php
 
+/**
+ * Reads a plugin's code without ever running it (I-3353): which files
+ * Composer would load for it, what its own class says of itself, and
+ * whether it writes any name in Teme's own App namespace. Nothing here
+ * includes, autoloads or instantiates a plugin's class. A plugin that
+ * declares autoload.files is refused, but Composer has already included
+ * those files on every request since the package was installed, and Teme
+ * can neither prevent that nor see into the plugin's own dependencies.
+ * The scan is there to catch a plugin reaching into Teme's own code by
+ * mistake; it can't see an alias such as `use App as A`, a name built from
+ * strings, or a facade, so it stops honest mistakes, not hidden intent.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -13,18 +30,6 @@ use SplFileInfo;
 use Teme\Contracts\Plugins\Plugin;
 use UnexpectedValueException;
 
-/**
- * Reads a plugin's code without ever running it (I-3353): which files
- * Composer would load for it, what its own class says of itself, and
- * whether it writes any name in Teme's own App namespace. Nothing here
- * includes, autoloads or instantiates a plugin's class. A plugin that
- * declares autoload.files is refused, but Composer has already included
- * those files on every request since the package was installed, and Teme
- * can neither prevent that nor see into the plugin's own dependencies.
- * The scan is there to catch a plugin reaching into Teme's own code by
- * mistake; it can't see an alias such as `use App as A`, a name built from
- * strings, or a facade, so it stops honest mistakes, not hidden intent.
- */
 final readonly class CodeScan
 {
     /** The most PHP files one plugin's scan reads; one more refuses it. */
@@ -61,6 +66,8 @@ final readonly class CodeScan
      * @param  array<string, mixed>|null  $composer
      *
      * @return list<string>
+     *
+     * @since 1.0.0
      */
     public function sentences(string $path, ?array $composer): array
     {

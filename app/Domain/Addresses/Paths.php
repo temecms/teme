@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Lookups in the path table: a target's current address, the row at an
+ * address, whether an address is already someone else's, and which
+ * account a target names.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -10,11 +20,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Lookups in the path table: a target's current address, the row at an
- * address, whether an address is already someone else's, and which
- * account a target names.
- */
 final class Paths
 {
     /**

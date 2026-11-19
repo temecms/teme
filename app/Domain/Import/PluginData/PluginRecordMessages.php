@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The words a run's report shows about a plugin's data that every plugin
+ * step says the same way.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
 
 use App\Domain\Import\Phases\ImportMessage;
 
-/**
- * The words a run's report shows about a plugin's data that every plugin
- * step says the same way.
- */
 final readonly class PluginRecordMessages
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a person's or a file's content type must meet before it is stored
+ * (I-411): keys, labels, admin address, features, and a public type's
+ * address pattern.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -11,11 +21,6 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Spatie\Permission\Models\Permission;
 
-/**
- * What a person's or a file's content type must meet before it is stored
- * (I-411): keys, labels, admin address, features, and a public type's
- * address pattern.
- */
 final class TypeRules
 {
     private const string KEY = '/^[a-z][a-z0-9_]{0,31}$/';

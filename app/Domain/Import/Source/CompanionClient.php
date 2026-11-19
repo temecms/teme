@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Reads a WordPress site through the Teme Companion plugin's export API
+ * (I-334): over the checked address, pinned; the application password by
+ * Basic authentication only; no redirect followed; every answer's shape
+ * checked, and every refusal one SourceRefused with its words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Source;
@@ -11,12 +22,6 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use SensitiveParameter;
 
-/**
- * Reads a WordPress site through the Teme Companion plugin's export API
- * (I-334): over the checked address, pinned; the application password by
- * Basic authentication only; no redirect followed; every answer's shape
- * checked, and every refusal one SourceRefused with its words.
- */
 final class CompanionClient implements SourceReader
 {
     /** The oldest export API this client reads. */

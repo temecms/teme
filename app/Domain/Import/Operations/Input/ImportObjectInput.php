@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What `ImportObject` needs: the attempt's token, the phase, the run's context, the object and its item and hash, and what the phase prepared.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
@@ -9,9 +17,6 @@ use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\SourceRef;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `ImportObject` needs: the attempt's token, the phase, the run's context, the object and its item and hash, and what the phase prepared.
- */
 final readonly class ImportObjectInput implements OperationInput
 {
     /**

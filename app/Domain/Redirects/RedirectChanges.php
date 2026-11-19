@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What every redirect change leaves behind (I-694, I-297): an entry in the
+ * security log, and the stored "not found" pages it could replace, purged
+ * after commit: its source's address for an exact redirect, and every
+ * stored "not found" page for a pattern, which might match any of them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects;
@@ -10,12 +21,6 @@ use App\Domain\Security\SecurityLog;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * What every redirect change leaves behind (I-694, I-297): an entry in the
- * security log, and the stored "not found" pages it could replace, purged
- * after commit: its source's address for an exact redirect, and every
- * stored "not found" page for a pattern, which might match any of them.
- */
 final readonly class RedirectChanges
 {
     public function __construct(private SecurityLog $log) {}

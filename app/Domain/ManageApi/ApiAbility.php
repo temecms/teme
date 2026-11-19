@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\ManageApi;
-
 /**
  * What a management API key may be used for, chosen when it is made from
  * this fixed list (docs/proposals/management-api.md). A request needs the
  * route's abilities and its person's permission through the Operation.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\ManageApi;
+
 enum ApiAbility: string
 {
     case SiteRead = 'site.read';

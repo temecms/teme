@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The checks on a change of the address settings, from Settings › Addresses
+ * or Reading or an import (I-393), one rule for all: each pattern, base,
+ * the author base and each archive page's address Teme can write, a published
+ * page for the home page, and no two things at one address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Operations\Concerns;
@@ -15,12 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
-/**
- * The checks on a change of the address settings, from Settings › Addresses
- * or Reading or an import (I-393), one rule for all: each pattern, base,
- * the author base and each archive page's address Teme can write, a published
- * page for the home page, and no two things at one address.
- */
 trait ChecksAddressSettings
 {
     /**

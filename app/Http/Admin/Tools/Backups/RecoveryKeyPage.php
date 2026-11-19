@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The page that shows a new recovery key (I-2401): the answer to the request
+ * that made the key, and nothing else. Its groups go to that one response,
+ * which no cache keeps and the browser's history holds only encrypted; the
+ * session keeps the challenge, which holds no part of the key.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -16,12 +27,6 @@ use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The page that shows a new recovery key (I-2401): the answer to the request
- * that made the key, and nothing else. Its groups go to that one response,
- * which no cache keeps and the browser's history holds only encrypted; the
- * session keeps the challenge, which holds no part of the key.
- */
 final readonly class RecoveryKeyPage
 {
     /** Where the challenge waits until two groups are typed back. */

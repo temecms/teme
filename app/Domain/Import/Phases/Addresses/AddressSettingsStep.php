@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Before anyone or anything is written (I-393): the old site's address
+ * settings, its time zone and its language, so every item, term and author
+ * the import makes takes the address it had. One job; a run carried on runs
+ * it again, and it keeps what a person changed since.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Addresses;
@@ -21,12 +32,6 @@ use App\Domain\Import\Translations\PolylangLanguages;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Before anyone or anything is written (I-393): the old site's address
- * settings, its time zone and its language, so every item, term and author
- * the import makes takes the address it had. One job; a run carried on runs
- * it again, and it keeps what a person changed since.
- */
 final readonly class AddressSettingsStep implements StepPhase
 {
     /** The map row this step's settings are kept on. */

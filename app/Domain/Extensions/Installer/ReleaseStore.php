@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The extensions folder's releases: each a folder under releases/ named by a
+ * lowercase ULID, and `current`, a relative link to the one that runs,
+ * replaced in one rename. Only the installer writes here.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
@@ -7,11 +17,6 @@ namespace App\Domain\Extensions\Installer;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 
-/**
- * The extensions folder's releases: each a folder under releases/ named by a
- * lowercase ULID, and `current`, a relative link to the one that runs,
- * replaced in one rename. Only the installer writes here.
- */
 final readonly class ReleaseStore
 {
     /** How many releases are kept: the current one and the two before it. */

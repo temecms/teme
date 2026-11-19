@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Replays every list, tab, sort, filter, search, term screen, quick-edit
+ * save and address lookup against the data set, the page cache's hits,
+ * misses and changes (CacheScenarios), and the comments' (CommentScenarios), the SEO scenarios (SeoScenarios), the AI record's (AiScenarios), timing each one and checking its
+ * query plans against the scale rules (I-148). Every scenario
+ * calls the production query classes and Operations — none reimplements a
+ * query — so what it measures is what the admin does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -49,14 +62,6 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-/**
- * Replays every list, tab, sort, filter, search, term screen, quick-edit
- * save and address lookup against the data set, the page cache's hits,
- * misses and changes (CacheScenarios), and the comments' (CommentScenarios), the SEO scenarios (SeoScenarios), the AI record's (AiScenarios), timing each one and checking its
- * query plans against the scale rules (I-148). Every scenario
- * calls the production query classes and Operations — none reimplements a
- * query — so what it measures is what the admin does.
- */
 final class BenchmarkRunner
 {
     /**

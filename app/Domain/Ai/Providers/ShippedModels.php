@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The models Teme offers for each provider, updated for each release (I-1302):
+ * what each can do, its prices in US dollars per million tokens (input,
+ * output, cache reads, cache writes) and whether it reasons. Every price is
+ * copied by hand from the page named, on the day given, and never fetched at
+ * run time. Where a page gives two prices, the higher, so spend is never
+ * under-counted. A model with no price records its tokens and costs an
+ * unknown amount.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Providers;
@@ -9,15 +23,6 @@ use App\Domain\Ai\AiModel;
 use App\Domain\Ai\AiPrice;
 use UnexpectedValueException;
 
-/**
- * The models Teme offers for each provider, updated for each release (I-1302):
- * what each can do, its prices in US dollars per million tokens (input,
- * output, cache reads, cache writes) and whether it reasons. Every price is
- * copied by hand from the page named, on the day given, and never fetched at
- * run time. Where a page gives two prices, the higher, so spend is never
- * under-counted. A model with no price records its tokens and costs an
- * unknown amount.
- */
 final class ShippedModels
 {
     private const string ANTHROPIC = 'https://platform.claude.com/docs/en/about-claude/pricing';

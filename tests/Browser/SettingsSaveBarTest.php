@@ -117,9 +117,9 @@ it('switches comments at once, and holds the switch while the sections below hav
 it('marks the field Find a setting lands on', function (): void {
     $page = cmNavigate(cmSignIn($this->admin), '/admin/settings/media');
     $page->type('[data-test="find-setting"]', 'time zone');
-    cmWaitUntil($page, 'document.querySelector(\'#settings-found a[href$="#field-timezone"]\') !== null');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="find-setting-item"][data-key="general.timezone"]\') !== null');
 
-    $page->click('#settings-found a[href$="#field-timezone"]');
+    $page->click('[data-test="find-setting-item"][data-key="general.timezone"]');
     cmWaitUntil($page, 'document.querySelector("#field-timezone")?.closest(\'[data-slot="settings-field"]\')?.hasAttribute("data-found") === true');
 });
 

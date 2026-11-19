@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Links one batch of an imported site's translations (I-351), as starting
+ * an import allows: each group of WordPress IDs becomes one translation
+ * group of the items, or the terms, the import made of them, joining any
+ * group they are in already. A group whose items aren't of one type, or one
+ * translated here, or that would hold two in one language, is skipped and
+ * answered with why, never half-linked. A version that becomes another
+ * language's home page moves to that language's home, its old address
+ * kept as history.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -23,16 +38,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Links one batch of an imported site's translations (I-351), as starting
- * an import allows: each group of WordPress IDs becomes one translation
- * group of the items, or the terms, the import made of them, joining any
- * group they are in already. A group whose items aren't of one type, or one
- * translated here, or that would hold two in one language, is skipped and
- * answered with why, never half-linked. A version that becomes another
- * language's home page moves to that language's home, its old address
- * kept as history.
- */
 final class LinkImportedTranslations extends BaseOperation
 {
     use AuthorizesImports;

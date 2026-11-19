@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One field of an item as a template draws it: its handle, label and type, its
+ * value as a plain PHP value, the words to print, and, for a web address, an
+ * item or an image, what to link or draw.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

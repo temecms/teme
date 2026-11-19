@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What an action needs to know about each item before calling its
+ * Operation: its type and status, the current working revision and that
+ * revision's terms.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * What an action needs to know about each item before calling its
- * Operation: its type and status, the current working revision and that
- * revision's terms.
- */
 final class ContentPointers
 {
     /**

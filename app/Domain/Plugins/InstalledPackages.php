@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What Composer actually installed (I-3353): each package's entry in
+ * vendor/composer/installed.json, the image's then the extensions release's, the file Composer's autoloader and
+ * Laravel's discovery read, which can differ from the package's own
+ * composer.json (a private or `package` repository).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -7,12 +18,6 @@ namespace App\Domain\Plugins;
 use App\Domain\Extensions\ActiveRelease;
 use Illuminate\Support\Env;
 
-/**
- * What Composer actually installed (I-3353): each package's entry in
- * vendor/composer/installed.json, the image's then the extensions release's, the file Composer's autoloader and
- * Laravel's discovery read, which can differ from the package's own
- * composer.json (a private or `package` repository).
- */
 final class InstalledPackages
 {
     /** @var array<string, array<string, mixed>>|null each package's entry, by name, read once */

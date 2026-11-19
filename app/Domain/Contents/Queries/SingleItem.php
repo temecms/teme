@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The one item of a type with one item only (I-415): its ID, its author and
+ * whether it is in the trash; null while it has none. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * The one item of a type with one item only (I-415): its ID, its author and
- * whether it is in the trash; null while it has none. It reads only.
- */
 final class SingleItem
 {
     /**

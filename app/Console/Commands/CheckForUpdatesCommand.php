@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:updates:check — asks GitHub for Teme's releases as the operator
+ * (I-?? draft), sending nothing about this site, and says what it found.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,10 +22,6 @@ use App\Domain\Updates\TemeVersion;
 use App\Domain\Updates\UpdateChannel;
 use Illuminate\Console\Command;
 
-/**
- * teme:updates:check — asks GitHub for Teme's releases as the operator
- * (I-?? draft), sending nothing about this site, and says what it found.
- */
 final class CheckForUpdatesCommand extends Command
 {
     /** @var string */

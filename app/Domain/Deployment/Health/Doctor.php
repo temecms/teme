@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The doctor's checks, by key (I-157): core's, then those a later part or a
+ * plugin registers as the application boots. Its findings come most
+ * serious first, and a check that fails to run is an error of its own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
@@ -20,11 +30,6 @@ use Illuminate\Database\QueryException;
 use LogicException;
 use Throwable;
 
-/**
- * The doctor's checks, by key (I-157): core's, then those a later part or a
- * plugin registers as the application boots. Its findings come most
- * serious first, and a check that fails to run is an error of its own.
- */
 final class Doctor
 {
     /**

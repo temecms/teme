@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Shows the imported menus in the active theme's places (I-343), once
+ * every menu is here, as the import's choices map WordPress's menu
+ * locations to them: only on the run that made each menu, never over a
+ * place a person filled, and every menu left unplaced said. Reads
+ * WordPress's locations live; a run carried on runs it again from the
+ * start.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Menus;
@@ -25,14 +38,6 @@ use App\Domain\Themes\ActiveTheme;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Shows the imported menus in the active theme's places (I-343), once
- * every menu is here, as the import's choices map WordPress's menu
- * locations to them: only on the run that made each menu, never over a
- * place a person filled, and every menu left unplaced said. Reads
- * WordPress's locations live; a run carried on runs it again from the
- * start.
- */
 final readonly class MenuPlacesStep implements StepPhase
 {
     public function __construct(private ImportMap $map, private ActiveTheme $theme) {}

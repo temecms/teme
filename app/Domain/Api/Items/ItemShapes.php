@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An item's summary as the API gives it (D6), and the parts every item of a
+ * page shares a statement for (D33): their terms, their authors and their
+ * featured images, one statement each, whatever the page's size.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
@@ -23,11 +33,6 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-/**
- * An item's summary as the API gives it (D6), and the parts every item of a
- * page shares a statement for (D33): their terms, their authors and their
- * featured images, one statement each, whatever the page's size.
- */
 final readonly class ItemShapes
 {
     /**

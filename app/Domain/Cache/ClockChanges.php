@@ -1,13 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cache;
-
-use App\Domain\Site\SiteDates;
-use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
-
 /**
  * The next moment a public page can change with no Operation to purge it
  * (docs/studies/page-cache.md §3.9, I-266): a published item dated ahead
@@ -16,7 +8,20 @@ use Illuminate\Support\Facades\DB;
  * shows. No stored page lives past it. A scheduled publication needs no
  * cap: RunScheduledPublication publishes through PublishRevision, which
  * purges.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cache;
+
+use App\Domain\Site\SiteDates;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+
 final readonly class ClockChanges
 {
     /**

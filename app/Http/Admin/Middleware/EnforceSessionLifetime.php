@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Idle and absolute limits from the security settings (study G, S9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Middleware;
@@ -12,8 +20,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
 /**
- * Idle and absolute limits from the security settings (study G, S9).
- *
  * An expired session is emptied, not signed out: a valid remember-me cookie
  * then signs the browser in again on the next request, as a fresh sign-in,
  * and without one the auth middleware sends it to the sign-in page.

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Asks plugins' editor checks about one version of an item
+ * (docs/guides/developers/plugins/seo.md): each enabled plugin granted
+ * content.read that declares checks for the item's type, within 250 ms,
+ * reading only. A plugin that throws, runs over or answers wrongly is
+ * recorded as a fault and its group says it couldn't check this time;
+ * nothing it does holds up typing or saving, which never wait for this.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -21,14 +34,6 @@ use Teme\Contracts\Editor\CheckResult;
 use Teme\Contracts\Editor\HasEditorChecks;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Asks plugins' editor checks about one version of an item
- * (docs/guides/developers/plugins/seo.md): each enabled plugin granted
- * content.read that declares checks for the item's type, within 250 ms,
- * reading only. A plugin that throws, runs over or answers wrongly is
- * recorded as a fault and its group says it couldn't check this time;
- * nothing it does holds up typing or saving, which never wait for this.
- */
 final readonly class PluginChecks
 {
     public const int CALL_BUDGET_MS = 250;

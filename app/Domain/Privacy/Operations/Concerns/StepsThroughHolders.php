@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * One step through a privacy request: the next page of the first holder not
+ * yet done, asked and recorded in the step's own transaction, so a page is
+ * written and recorded together or not at all; with none left, the request
+ * is finished. A holder that throws, or a plugin's listener that fails,
+ * rolls the step back.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Operations\Concerns;
@@ -18,13 +30,6 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * One step through a privacy request: the next page of the first holder not
- * yet done, asked and recorded in the step's own transaction, so a page is
- * written and recorded together or not at all; with none left, the request
- * is finished. A holder that throws, or a plugin's listener that fails,
- * rolls the step back.
- */
 trait StepsThroughHolders
 {
     use AuthorizesPrivacyWork;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Removes one of the site's other languages (D10), refused while any item,
+ * in the trash too, or any term is in it, naming how many. Its words in
+ * settings, once there are any, stay where they are.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations;
@@ -13,11 +23,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Removes one of the site's other languages (D10), refused while any item,
- * in the trash too, or any term is in it, naming how many. Its words in
- * settings, once there are any, stay where they are.
- */
 final class RemoveSiteLanguage extends BaseOperation
 {
     use WritesSiteLanguages;

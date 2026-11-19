@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What the update check has found (I-?? draft): the stored releases, the ones this site is offered, and when GitHub was last asked.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Queries;
@@ -10,9 +18,6 @@ use App\Domain\Updates\UpdateChannel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What the update check has found (I-?? draft): the stored releases, the ones this site is offered, and when GitHub was last asked.
- */
 final class UpdateState
 {
     /**

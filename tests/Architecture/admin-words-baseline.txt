@@ -1,46 +1,3 @@
-components/ai-settings/month-figures.tsx	1 request used a model with no price, so its cost is left out.
-components/ai-settings/month-figures.tsx	AI is unavailable to everyone until the new month starts.
-components/ai-settings/month-figures.tsx	Budget
-components/ai-settings/month-figures.tsx	Months follow UTC, as the AI companies bill.
-components/ai-settings/month-figures.tsx	None set
-components/ai-settings/month-figures.tsx	Requests
-components/ai-settings/month-figures.tsx	See every request in Tools › AI activity
-components/ai-settings/month-figures.tsx	Spent
-components/ai-settings/month-figures.tsx	The budget is reached.
-components/ai-settings/month-figures.tsx	This month:
-components/ai-settings/month-figures.tsx	{} a month, {}
-components/ai-settings/month-figures.tsx	{} requests used a model with no price, so their cost is left out.
-components/ai-settings/service-panel.tsx	API key
-components/ai-settings/service-panel.tsx	API key
-components/ai-settings/service-panel.tsx	Another
-components/ai-settings/service-panel.tsx	Cancel
-components/ai-settings/service-panel.tsx	Cancel new {} key
-components/ai-settings/service-panel.tsx	Check key
-components/ai-settings/service-panel.tsx	Check key for {}
-components/ai-settings/service-panel.tsx	Checking key for {}
-components/ai-settings/service-panel.tsx	Checking…
-components/ai-settings/service-panel.tsx	Keep key
-components/ai-settings/service-panel.tsx	Keep key for {}
-components/ai-settings/service-panel.tsx	New
-components/ai-settings/service-panel.tsx	Remove key
-components/ai-settings/service-panel.tsx	Remove key for {}
-components/ai-settings/service-panel.tsx	Replace key
-components/ai-settings/service-panel.tsx	Replace key for {}
-components/ai-settings/service-panel.tsx	Set key
-components/ai-settings/service-panel.tsx	Set key for {}
-components/ai-settings/service-panel.tsx	Teme keeps keys encrypted and never shows them again, here or anywhere else.
-components/ai-settings/service-panel.tsx	Text you ask AI about is sent to
-components/ai-settings/service-panel.tsx	The key will be removed when you save.
-components/ai-settings/service-panel.tsx	Your host set this key on the server, so it can’t be changed or removed here.
-components/ai-settings/service-panel.tsx	model
-components/ai-settings/service-panel.tsx	when a task uses one of its models.
-components/ai-settings/service-panel.tsx	’s models stop working until it has a key again.
-components/ai-settings/task-row.tsx	Chosen model (no longer offered)
-components/ai-settings/task-row.tsx	Fallback
-components/ai-settings/task-row.tsx	Model
-components/ai-settings/task-row.tsx	No fallback
-components/ai-settings/task-row.tsx	None (off)
-components/ai-settings/task-row.tsx	{} (no key yet)
 components/ai/proposal.tsx	(empty)
 components/ai/proposal.tsx	Current:
 components/ai/proposal.tsx	Discard
@@ -121,33 +78,10 @@ components/editor/rewrite/rewrite-presets.ts	Simpler
 components/editor/schedule-control.tsx	Quick choices
 components/editor/share-panel.tsx	Preview links
 components/editor/stale-dialog.tsx	Someone else changed this {}
-components/fields/brand-colour-setting.tsx	Brand colour
-components/fields/brand-colour-setting.tsx	Brand colour
-components/fields/brand-colour-setting.tsx	Only someone who may change the site’s design can change the brand colour.
-components/fields/brand-colour-setting.tsx	Pick the brand colour
-components/fields/brand-colour-setting.tsx	Sample button
-components/fields/brand-colour-setting.tsx	The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme.
-components/fields/brand-colour-setting.tsx	The theme sets no colour of its own.
-components/fields/brand-colour-setting.tsx	The theme’s own colour is used in each of its colour schemes.
-components/fields/brand-colour-setting.tsx	Theme’s own
-components/fields/brand-colour-setting.tsx	Use the theme’s own colour
-components/fields/brand-colour-setting.tsx	Write the colour as # and six digits, such as the value the picker gives.
-components/fields/brand-colour-setting.tsx	dark uses {}, {}:1 {}
-components/fields/brand-colour-setting.tsx	{}:1 on light {}
 components/fields/field-control.tsx	Choose a person
-components/fields/field-control.tsx	Not set
-components/fields/field-control.tsx	Provided by the server's environment.
-components/fields/field-control.tsx	Set — leave empty to keep
 components/fields/field-control.tsx	https://
-components/fields/home-page-setting.tsx	A page
 components/fields/home-page-setting.tsx	Chosen:
-components/fields/home-page-setting.tsx	Home page
-components/fields/home-page-setting.tsx	Home page
-components/fields/home-page-setting.tsx	Home page shows
-components/fields/home-page-setting.tsx	Only someone who may change the site’s addresses can change the home page.
 components/fields/home-page-setting.tsx	Search published pages
-components/fields/home-page-setting.tsx	What visitors see at the site’s own address.
-components/fields/home-page-setting.tsx	{} page
 components/fields/hours-setting.tsx	Add a second opening
 components/fields/hours-setting.tsx	Closed
 components/fields/hours-setting.tsx	Closes
@@ -158,11 +92,6 @@ components/fields/hours-setting.tsx	Opens
 components/fields/hours-setting.tsx	Remove
 components/fields/hours-setting.tsx	{}: add a second opening
 components/fields/hours-setting.tsx	’s second opening
-components/fields/media-setting.tsx	Choose an image
-components/fields/media-setting.tsx	Remove
-components/fields/media-setting.tsx	Replace
-components/fields/media-setting.tsx	This image is no longer in the library.
-components/fields/pairs-setting.tsx	Remove
 components/flash-toast.tsx	Dismiss
 components/flash-toast.tsx	Error:
 components/flash-toast.tsx	Undo
@@ -286,7 +215,6 @@ components/themes/theme-list.tsx	Installed themes
 components/themes/theme-list.tsx	No themes are installed.
 components/themes/theme-list.tsx	Preview
 components/themes/theme-list.tsx	Previewing
-components/themes/theme-list.tsx	Theme settings
 components/themes/theme-list.tsx	This is the site’s theme, but it can’t be used, so visitors see plain pages until it’s fixed or you activate another theme.
 components/themes/theme-preview-panel.tsx	. Choose them under Menus below.
 components/themes/theme-preview-panel.tsx	Activate
@@ -362,15 +290,6 @@ components/ui/sidebar.tsx	The menu for every admin screen.
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
-layouts/settings/layout.tsx	Clear
-layouts/settings/layout.tsx	Find a setting
-layouts/settings/layout.tsx	Find a setting, e.g. time zone
-layouts/settings/layout.tsx	No setting matches
-layouts/settings/layout.tsx	Searching…
-layouts/settings/layout.tsx	Settings
-layouts/settings/layout.tsx	Settings search
-layouts/settings/layout.tsx	Try another word. The search reads every setting’s name and description.
-layouts/settings/layout.tsx	{} for “{}”
 lib/discussion.ts	Closed
 lib/discussion.ts	Hidden
 lib/discussion.ts	Open
@@ -435,126 +354,7 @@ pages/regions/index.tsx	There’s nothing to fill here while {} is the active th
 pages/regions/index.tsx	Your own content in the spots the active theme sets aside, such as a box after each article.
 pages/regions/index.tsx	Your own content in the spots the active theme, {}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.
 pages/regions/index.tsx	{} has no regions
-pages/settings/addresses.tsx	Addresses
-pages/settings/addresses.tsx	Addresses settings
-pages/settings/addresses.tsx	At {}. Its feed is at {}.
-pages/settings/addresses.tsx	Author base
-pages/settings/addresses.tsx	Bases
-pages/settings/addresses.tsx	Choose the home page
-pages/settings/addresses.tsx	Custom
-pages/settings/addresses.tsx	Custom {} address
-pages/settings/addresses.tsx	Day and name
-pages/settings/addresses.tsx	Every address is up to date.
-pages/settings/addresses.tsx	Month and name
-pages/settings/addresses.tsx	Numeric
-pages/settings/addresses.tsx	Old addresses keep working: visitors and search engines are sent to the new one.
-pages/settings/addresses.tsx	Other addresses
-pages/settings/addresses.tsx	Post name
-pages/settings/addresses.tsx	The home page and the posts page are chosen in Reading.
-pages/settings/addresses.tsx	The public addresses of every public type, taxonomy and author.
-pages/settings/addresses.tsx	These would share an address:
-pages/settings/addresses.tsx	Your newest
-pages/settings/addresses.tsx	address
-pages/settings/addresses.tsx	base
-pages/settings/addresses.tsx	will share the root with other addresses.
-pages/settings/addresses.tsx	would be at
-pages/settings/addresses.tsx	{} address
-pages/settings/addresses.tsx	{} archive page
-pages/settings/addresses.tsx	{} shows {} instead, because it had the address first. Give the archive page another address, or move {}.
-pages/settings/ai.tsx	AI
-pages/settings/ai.tsx	AI is switched off on this server.
-pages/settings/ai.tsx	AI services
-pages/settings/ai.tsx	AI settings
-pages/settings/ai.tsx	Choose the model each task uses. A task with no model is off, and nobody sees it. The fallback is asked once when the first model can’t be reached or is busy.
-pages/settings/ai.tsx	Each service needs a key from your account with that company. A task’s text goes only to the service whose model the task uses.
-pages/settings/ai.tsx	How often one person may ask, and how much the site may spend in a month.
-pages/settings/ai.tsx	No AI task is installed yet.
-pages/settings/ai.tsx	No AI task is on yet.
-pages/settings/ai.tsx	Nobody is offered AI and nothing is sent to an AI service. These settings can’t be changed until your host switches it on again; they’re kept as they were.
-pages/settings/ai.tsx	Set a key for one of the services below and save, then choose a model for each task under Models.
-pages/settings/discussion.tsx	Comments are an optional part of Teme, switched on or off for the whole site.
-pages/settings/discussion.tsx	Comments are off, so the settings for them are hidden. They’re kept, unchanged, for when comments are switched back on.
-pages/settings/discussion.tsx	Comments on this site
-pages/settings/discussion.tsx	Discussion
-pages/settings/discussion.tsx	Discussion settings
-pages/settings/discussion.tsx	Only administrators can switch comments on or off.
-pages/settings/group.tsx	The default is {}.
 pages/settings/group.tsx	{} settings
-pages/settings/group.tsx	{}’s own number is {}.
-pages/settings/search-and-social.tsx	As last saved.
-pages/settings/search-and-social.tsx	Each category, tag and author has one too: its own address, then /feed/.
-pages/settings/search-and-social.tsx	Every page asks search engines not to list it, whatever these rows say.
-pages/settings/search-and-social.tsx	Feed
-pages/settings/search-and-social.tsx	Goes between the parts of every title. Empty uses the one
-pages/settings/search-and-social.tsx	It asks search engines to stay away, whatever these settings say. The live site follows them.
-pages/settings/search-and-social.tsx	It doesn’t change while search engines are discouraged: a search engine kept out couldn’t read each page’s request not to be listed.
-pages/settings/search-and-social.tsx	No verification tags.
-pages/settings/search-and-social.tsx	Open the 404 log
-pages/settings/search-and-social.tsx	Page 2 shows as:
-pages/settings/search-and-social.tsx	Scripts belong in
-pages/settings/search-and-social.tsx	Search and social
-pages/settings/search-and-social.tsx	Search and social settings
-pages/settings/search-and-social.tsx	Search engines are asked to stay away from the whole site.
-pages/settings/search-and-social.tsx	Separator
-pages/settings/search-and-social.tsx	Shows as:
-pages/settings/search-and-social.tsx	Site code
-pages/settings/search-and-social.tsx	Site code
-pages/settings/search-and-social.tsx	Sitemap
-pages/settings/search-and-social.tsx	Switched off while search engines are discouraged
-pages/settings/search-and-social.tsx	Teme writes all three from the settings below, so none of them is a file to edit.
-pages/settings/search-and-social.tsx	Teme’s list:
-pages/settings/search-and-social.tsx	This copy isn’t the live site.
-pages/settings/search-and-social.tsx	Titles are made from templates. Tokens:
-pages/settings/search-and-social.tsx	Titles, and hiding from search engines, by kind of page
-pages/settings/search-and-social.tsx	User-agent: * Disallow: /print/
-pages/settings/search-and-social.tsx	What robots.txt says now
-pages/settings/search-and-social.tsx	What search engines and feed readers fetch
-pages/settings/search-and-social.tsx	gives “Page 2 of 7” from the second page on, and empty tokens and doubled separators are dropped. An item’s own SEO title takes the place of its template, word for word.
-pages/settings/search-and-social.tsx	is the page’s own heading: an item’s title, an archive’s name, or what was searched for.
-pages/settings/search-and-social.tsx	robots.txt
-pages/settings/search-and-social.tsx	suggests, “
-pages/settings/search-and-social.tsx	{page}
-pages/settings/search-and-social.tsx	{title}
-pages/settings/site-code.tsx	Add code
-pages/settings/site-code.tsx	Add code
-pages/settings/site-code.tsx	Add code to every page
-pages/settings/site-code.tsx	Added to every public page, in the place you chose.
-pages/settings/site-code.tsx	After
-pages/settings/site-code.tsx	Before
-pages/settings/site-code.tsx	Before and after
-pages/settings/site-code.tsx	Cancel
-pages/settings/site-code.tsx	Changes
-pages/settings/site-code.tsx	Code
-pages/settings/site-code.tsx	Code added to every public page, such as analytics. To show something from another site in one item, add an Embed card to that item instead.
-pages/settings/site-code.tsx	Code here runs in every reader’s browser.
-pages/settings/site-code.tsx	Delete
-pages/settings/site-code.tsx	Delete code
-pages/settings/site-code.tsx	Delete “{}”?
-pages/settings/site-code.tsx	Edit
-pages/settings/site-code.tsx	Edit “{}”
-pages/settings/site-code.tsx	It runs in yours too when you view the site, and in everyone’s who’s signed in. Add only code you trust. Saving may ask for your password, and every change is logged, with what it was before.
-pages/settings/site-code.tsx	It’s taken out of every public page. The list of changes keeps a copy of its code.
-pages/settings/site-code.tsx	Last changed by
-pages/settings/site-code.tsx	Name
-pages/settings/site-code.tsx	Name it, choose where it goes, and paste the code.
-pages/settings/site-code.tsx	Newest first. The security log keeps each one for a year.
-pages/settings/site-code.tsx	No changes yet.
-pages/settings/site-code.tsx	None of the code below is added to any page, and none of it can be changed here. It’s kept as it was, for when the host allows site code again.
-pages/settings/site-code.tsx	Nothing
-pages/settings/site-code.tsx	Nothing
-pages/settings/site-code.tsx	Nothing here.
-pages/settings/site-code.tsx	Off keeps it here without adding it to any page.
-pages/settings/site-code.tsx	Save code
-pages/settings/site-code.tsx	Site code
-pages/settings/site-code.tsx	Site code settings
-pages/settings/site-code.tsx	So everyone can tell what it is, such as “Visitor analytics”.
-pages/settings/site-code.tsx	Switch off
-pages/settings/site-code.tsx	Switch on
-pages/settings/site-code.tsx	Switched on
-pages/settings/site-code.tsx	Teme already describes each page to search engines. A script of type application/ld+json here adds a second description, which search engines read separately and may find at odds with Teme’s.
-pages/settings/site-code.tsx	The host has switched site code off.
-pages/settings/site-code.tsx	This code holds structured data.
-pages/settings/site-code.tsx	Where it goes
 pages/taxonomies/index.tsx	Actions for {}
 pages/taxonomies/index.tsx	Add new taxonomy
 pages/taxonomies/index.tsx	Can’t be used
@@ -647,14 +447,6 @@ pages/taxonomies/show.tsx	genre
 pages/taxonomies/show.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	picker, and a
 pages/taxonomies/show.tsx	’s page lists their items. The same choice as each type’s Taxonomies, on Site › Types.
-pages/themes/index.tsx	How the public site looks. A theme draws the site; it adds no features of its own.
-pages/themes/index.tsx	Open Settings › General
-pages/themes/index.tsx	Saved as a draft.
-pages/themes/index.tsx	Saving the draft…
-pages/themes/index.tsx	The last change was not saved. Check the fields marked below.
-pages/themes/index.tsx	The site’s name, tagline and brand colour stay when you change theme.
-pages/themes/index.tsx	Themes
-pages/themes/index.tsx	Themes
 pages/tools/backups/place.tsx	Another place to keep backups, kept in step with the others.
 pages/tools/backups/place.tsx	Backups
 pages/tools/backups/place.tsx	Cancel

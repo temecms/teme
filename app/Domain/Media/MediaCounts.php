@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The exact counts behind the library's tabs, maintained by every media
+ * Operation inside its transaction, as ContentCounts is for content (I-141).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * The exact counts behind the library's tabs, maintained by every media
- * Operation inside its transaction, as ContentCounts is for content (I-141).
- */
 final class MediaCounts
 {
     /**

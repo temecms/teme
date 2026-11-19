@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Where on a public page an insertion sits: the head, the start or end of the
+ * body, between the items of a list, before or after a theme's region, or
+ * fixed to an edge of the screen.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

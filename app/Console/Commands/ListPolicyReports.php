@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:csp:reports — lists what browsers reported the public site's policy
+ * blocked, or would block, in the last days (I-3375): the page to read
+ * before the policy is enforced.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,11 +19,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 
-/**
- * teme:csp:reports — lists what browsers reported the public site's policy
- * blocked, or would block, in the last days (I-3375): the page to read
- * before the policy is enforced.
- */
 final class ListPolicyReports extends Command
 {
     /** @var string */

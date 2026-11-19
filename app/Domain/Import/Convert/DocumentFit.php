@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Brings a converted document within what Teme stores (I-452): a list or a
+ * quote nested deeper than DocumentSchema::MAX_DEPTH becomes its
+ * paragraphs, in order, innermost first; the second pass's markers are
+ * taken out and their places noted; and an empty document holds
+ * one empty paragraph, as the editor's does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert;
@@ -8,13 +20,6 @@ use App\Domain\Cards\DocumentSchema;
 use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Phases\SourceRef;
 
-/**
- * Brings a converted document within what Teme stores (I-452): a list or a
- * quote nested deeper than DocumentSchema::MAX_DEPTH becomes its
- * paragraphs, in order, innermost first; the second pass's markers are
- * taken out and their places noted; and an empty document holds
- * one empty paragraph, as the editor's does.
- */
 final class DocumentFit
 {
     /** Nodes holding other blocks. */

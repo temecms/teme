@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * The platform when none is set up: every call refuses, saying to update by hand.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
 
-/**
- * The platform when none is set up: every call refuses, saying to update by hand.
- */
 final class NoPlatform implements Platform
 {
     public function name(): string
@@ -14,6 +19,9 @@ final class NoPlatform implements Platform
         return 'No platform';
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function hasUpdaterOfItsOwn(): bool
     {
         return false;
@@ -29,11 +37,17 @@ final class NoPlatform implements Platform
         throw PlatformRefused::notSetUp();
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function compose(): PlatformCompose
     {
         throw PlatformRefused::notSetUp();
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function setCompose(string $compose): void
     {
         throw PlatformRefused::notSetUp();

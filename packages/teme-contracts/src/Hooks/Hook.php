@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What every hook is: a class that is its own name, its payload and its
+ * contract.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

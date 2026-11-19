@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What ActOnPluginRecords needs: the plugin's code, the record's kind, the
+ * action, the records it acts on, whether a delete was confirmed, and who acts.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ActOnPluginRecords needs: the plugin's code, the record's kind, the
- * action, the records it acts on, whether a delete was confirmed, and who acts.
- */
 final readonly class ActOnPluginRecordsInput implements OperationInput
 {
     /**

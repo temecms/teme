@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Deletes one chunk of jobs that ended before a moment, as the operator
+ * (I-104: kept 90 days after they end); a job under way is never deleted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations;
@@ -12,10 +21,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes one chunk of jobs that ended before a moment, as the operator
- * (I-104: kept 90 days after they end); a job under way is never deleted.
- */
 final class PruneJobs extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

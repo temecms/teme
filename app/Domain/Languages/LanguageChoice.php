@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The language an Operation gives a new item or term, as a tag (I-3360):
+ * checked against the site's languages when it validates, then again under
+ * the languages' lock, read from the group's row, so a language removed in
+ * between is refused rather than written.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -7,12 +18,6 @@ namespace App\Domain\Languages;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The language an Operation gives a new item or term, as a tag (I-3360):
- * checked against the site's languages when it validates, then again under
- * the languages' lock, read from the group's row, so a language removed in
- * between is refused rather than written.
- */
 final class LanguageChoice
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The kinds an export writes, in order: each before the kinds that refer
+ * to it, so an importer can read the files in turn (I-365). A test binds
+ * its own list.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
@@ -15,11 +25,6 @@ use App\Domain\Export\Kinds\RedirectsKind;
 use App\Domain\Export\Kinds\SettingsKind;
 use App\Domain\Export\Kinds\TermsKind;
 
-/**
- * The kinds an export writes, in order: each before the kinds that refer
- * to it, so an importer can read the files in turn (I-365). A test binds
- * its own list.
- */
 final readonly class ExportKinds
 {
     /** @var list<class-string<ExportKind>> */

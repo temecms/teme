@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * What Teme offers a plugin's constructor: the settings reader, its own
+ * secrets, the site's public facts, the content and media write doors when granted, the outbound
+ * door to its hosts and those agreed in its settings when it was granted
+ * http, InsertionsChanged and the InlineScripts door when it was granted
+ * content.insert or pages.insert (I-064), and the other doors its capabilities open
+ * (I-3353), the writer of its own settings when it declares any, the
+ * content reader when it was granted content.read, the people reader
+ * when it was granted people.read, SiteAi when it was granted ai and
+ * declares AI tasks, HookSender when it declares hooks of its own, and
+ * Notices for its declared kinds when it was granted notices.send.
+ * Bound as the loader's PluginServices.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -46,19 +64,6 @@ use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
 
-/**
- * What Teme offers a plugin's constructor: the settings reader, its own
- * secrets, the site's public facts, the content and media write doors when granted, the outbound
- * door to its hosts and those agreed in its settings when it was granted
- * http, InsertionsChanged and the InlineScripts door when it was granted
- * content.insert or pages.insert (I-064), and the other doors its capabilities open
- * (I-3353), the writer of its own settings when it declares any, the
- * content reader when it was granted content.read, the people reader
- * when it was granted people.read, SiteAi when it was granted ai and
- * declares AI tasks, HookSender when it declares hooks of its own, and
- * Notices for its declared kinds when it was granted notices.send.
- * Bound as the loader's PluginServices.
- */
 final readonly class PluginDoors implements PluginServices
 {
     public function __construct(

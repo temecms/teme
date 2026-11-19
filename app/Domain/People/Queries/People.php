@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * How a person is shown (I-3366): an account from its own name, address
+ * slug and biography, with or without a person row; a person with no
+ * account from theirs. Every public reader of a byline asks here or in
+ * Credits, never the users table.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\People\Credit;
 use Illuminate\Support\Facades\DB;
 
-/**
- * How a person is shown (I-3366): an account from its own name, address
- * slug and biography, with or without a person row; a person with no
- * account from theirs. Every public reader of a byline asks here or in
- * Credits, never the users table.
- */
 final class People
 {
     /**

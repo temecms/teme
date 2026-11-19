@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Sign-in and admin security, wired in one place. docs/architecture/security.md.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -44,9 +52,6 @@ use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Sign-in and admin security, wired in one place. docs/architecture/security.md.
- */
 final class SecurityServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -103,25 +108,25 @@ final class SecurityServiceProvider extends ServiceProvider
             section: 'security',
             ability: 'settings.security.manage',
             settings: [
-                Setting::number('password_min_length', 'Minimum password length', 'The fewest characters a new password may have. Applies when a password is set, never at sign-in.', '0.1.0')
-                    ->default(15)->min(8)->max(64),
-                Setting::boolean('password_check_breached', 'Refuse breached passwords', 'Checks new passwords against Have I Been Pwned without sending the password. Turn off if your server can’t reach the internet.', '0.1.0')
+                Setting::number('password_min_length', 'Shortest password', 'The fewest characters a new password may have. Applies when a password is set, never at sign-in.', '0.1.0')
+                    ->default(15)->min(8)->max(64)->unit('characters')->required(),
+                Setting::boolean('password_check_breached', 'Check new passwords against known leaks', 'Checks new passwords against Have I Been Pwned without sending the password. Turn off if your server can’t reach the internet.', '0.1.0')
                     ->default(true),
-                Setting::number('login_attempts_per_account_ip', 'Attempts per account and IP address', 'Failed sign-ins allowed for one account from one IP address in 15 minutes.', '0.1.0')
-                    ->default(5)->min(1)->max(100),
-                Setting::number('login_attempts_per_ip', 'Attempts per IP address', 'Failed sign-ins allowed from one IP address, across all accounts, in an hour.', '0.1.0')
-                    ->default(50)->min(1)->max(10000),
-                Setting::number('login_untrusted_attempts_per_account', 'Attempts per account from new browsers', 'Failed sign-ins allowed for one account in an hour from browsers that have never signed in to it. Browsers that have are not held back by this limit.', '0.1.0')
-                    ->default(10)->min(1)->max(1000),
-                Setting::number('session_idle_minutes', 'Idle limit', 'Minutes without activity before a session ends.', '0.1.0')
-                    ->default(120)->min(5)->max(1440),
-                Setting::number('session_absolute_hours', 'Longest session', 'Hours after signing in when a session ends, however active it is.', '0.1.0')
-                    ->default(24)->min(1)->max(24),
-                Setting::number('session_remember_days', 'Remember me', 'Days a browser stays signed in when “Remember me” is ticked. 0 removes the option.', '0.1.0')
-                    ->default(14)->min(0)->max(30),
-                Setting::number('elevation_minutes', 'Confirmation window', 'Minutes a password confirmation lasts before a sensitive change asks for it again.', '0.1.0')
-                    ->default(15)->min(1)->max(60),
-                Setting::multiselect('two_factor_required_roles', 'Require two-factor sign-in for', 'Members of these roles must set up two-factor authentication before they can use the admin. None are required on a new site.', '0.1.0', Roles::LABELS),
+                Setting::number('login_attempts_per_account_ip', 'For one account, from one IP address', 'Failed sign-ins allowed for one account from one IP address in 15 minutes.', '0.1.0')
+                    ->default(5)->min(1)->max(100)->unit('in 15 minutes'),
+                Setting::number('login_attempts_per_ip', 'From one IP address, across all accounts', 'Failed sign-ins allowed from one IP address, across all accounts, in an hour.', '0.1.0')
+                    ->default(50)->min(1)->max(10000)->unit('an hour'),
+                Setting::number('login_untrusted_attempts_per_account', 'For one account, from browsers that never signed in to it', 'Browsers that have signed in before are not held back by this limit.', '0.1.0')
+                    ->default(10)->min(1)->max(1000)->unit('an hour'),
+                Setting::number('session_idle_minutes', 'End a session after', 'Minutes without activity before a session ends.', '0.1.0')
+                    ->default(120)->min(5)->max(1440)->unit('minutes without activity'),
+                Setting::number('session_absolute_hours', 'End every session after', 'Hours after signing in when a session ends, however active it is.', '0.1.0')
+                    ->default(24)->min(1)->max(24)->unit('hours'),
+                Setting::number('session_remember_days', 'Keep a browser signed in for', 'Days a browser stays signed in when “Remember me” is ticked. 0 removes the option.', '0.1.0')
+                    ->default(14)->min(0)->max(30)->unit('days with “Remember me”'),
+                Setting::number('elevation_minutes', 'A password confirmation lasts', 'Minutes a password confirmation lasts before a sensitive change asks for it again.', '0.1.0')
+                    ->default(15)->min(1)->max(60)->unit('minutes'),
+                Setting::multiselect('two_factor_required_roles', 'Roles that must use two-factor authentication', 'Members of these roles must set up two-factor authentication before they can use the admin. None are required on a new site.', '0.1.0', Roles::LABELS),
             ],
             since: '0.1.0',
             sensitive: true,

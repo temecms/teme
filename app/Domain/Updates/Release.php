@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One Teme release as the update check keeps it: its version, whether it is a pre-release, the two marks its notes carry, the notes and where to read them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
@@ -7,9 +15,6 @@ namespace App\Domain\Updates;
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 
-/**
- * One Teme release as the update check keeps it: its version, whether it is a pre-release, the two marks its notes carry, the notes and where to read them.
- */
 final readonly class Release
 {
     /** The hidden line scripts/release-notes.php writes at the end of the notes. */

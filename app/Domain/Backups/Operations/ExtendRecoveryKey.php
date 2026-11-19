@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Adds a recovery key someone holds to the places in use it doesn't open yet,
+ * as adding a place does with the key typed once (I-2402).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -18,10 +27,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Adds a recovery key someone holds to the places in use it doesn't open yet,
- * as adding a place does with the key typed once (I-2402).
- */
 final class ExtendRecoveryKey extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

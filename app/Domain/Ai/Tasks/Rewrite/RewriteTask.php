@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The rewrite task (I-1309): the text selected inside one paragraph or
+ * heading, rewritten as one of seven presets asks, with its paragraph and
+ * the article's title to read it by. Used through ApplyAiSuggestion, which
+ * writes it as the assistant's revision.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\Rewrite;
@@ -19,12 +30,6 @@ use App\Domain\Contents\Operations\SaveDraft;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
 
-/**
- * The rewrite task (I-1309): the text selected inside one paragraph or
- * heading, rewritten as one of seven presets asks, with its paragraph and
- * the article's title to read it by. Used through ApplyAiSuggestion, which
- * writes it as the assistant's revision.
- */
 final readonly class RewriteTask implements AiTask
 {
     /** Version 1 of the prompt (I-316): every preset is in it, and a request names one. */

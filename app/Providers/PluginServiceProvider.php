@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Wires plugins (I-3353): discovery, filled once a process; the seams to
+ * the hooks, the doors and the admin's lists; the plugin cache, which
+ * `optimize` builds and `optimize:clear` removes; the Status check; and
+ * the enabled plugins, started as it boots. Last among the providers, so
+ * every registry a plugin adds to is already there.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -31,13 +43,6 @@ use App\Domain\Status\Checks\PluginsRunning;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Wires plugins (I-3353): discovery, filled once a process; the seams to
- * the hooks, the doors and the admin's lists; the plugin cache, which
- * `optimize` builds and `optimize:clear` removes; the Status check; and
- * the enabled plugins, started as it boots. Last among the providers, so
- * every registry a plugin adds to is already there.
- */
 final class PluginServiceProvider extends ServiceProvider
 {
     public function register(): void

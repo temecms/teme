@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Seeds the built-in roles and the permissions each one holds.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Database\Seeders;
@@ -29,6 +37,7 @@ final class RoleSeeder extends Seeder
         'media.edit.any',
         'media.delete.own',
         'media.delete.any',
+        'settings.view',
         'settings.general.manage',
         'settings.security.manage',
         'settings.content.manage',

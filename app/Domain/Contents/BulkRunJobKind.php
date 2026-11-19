@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Select all matching as a kind of tracked job (I-104): retrying carries a run on from where it stopped, as the person who started it; cancelling leaves nothing to drop, since the next step's first report stops it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -13,9 +21,6 @@ use App\Domain\Jobs\Operations\Input\FailJobInput;
 use App\Domain\Support\Security\JobActor;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Select all matching as a kind of tracked job (I-104): retrying carries a run on from where it stopped, as the person who started it; cancelling leaves nothing to drop, since the next step's first report stops it.
- */
 final readonly class BulkRunJobKind implements JobKind
 {
     /** The kind's key. */

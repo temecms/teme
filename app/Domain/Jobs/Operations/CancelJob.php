@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Ends a waiting or running job as cancelled, tells whoever started it when
+ * someone else did, and, after commit, asks its kind to drop what it keeps
+ * queued (I-104). What the work did stays done.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations;
@@ -20,11 +30,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Ends a waiting or running job as cancelled, tells whoever started it when
- * someone else did, and, after commit, asks its kind to drop what it keeps
- * queued (I-104). What the work did stays done.
- */
 final class CancelJob extends BaseOperation
 {
     public function __construct(

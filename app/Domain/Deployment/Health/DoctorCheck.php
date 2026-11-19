@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * One of the doctor's checks (I-157): what it looks at, and what it found
+ * there. Registered in the Doctor by key; the container builds it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
 
-/**
- * One of the doctor's checks (I-157): what it looks at, and what it found
- * there. Registered in the Doctor by key; the container builds it.
- */
 interface DoctorCheck
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:types:import — adds and updates the content types, taxonomies and
+ * fields a teme-types.json file names; it never removes one (I-411, I-414).
+ * Acts as the operator.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -15,11 +25,6 @@ use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 use JsonException;
 
-/**
- * teme:types:import — adds and updates the content types, taxonomies and
- * fields a teme-types.json file names; it never removes one (I-411, I-414).
- * Acts as the operator.
- */
 final class ImportTypesFile extends Command
 {
     /** @var string */

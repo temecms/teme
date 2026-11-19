@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An article's history: its revisions listed, any two compared, and an
+ * older one restored. The domain queries decide who may see them, and the
+ * restore goes through its Operation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -16,11 +26,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * An article's history: its revisions listed, any two compared, and an
- * older one restored. The domain queries decide who may see them, and the
- * restore goes through its Operation.
- */
 final class RevisionController extends Controller
 {
     public function index(Request $request, string $content, AssistantRevisions $assistant): JsonResponse

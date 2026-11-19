@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The comment scenarios at the scale docs/studies/comments.md §3.11 sets:
+ * the long thread's pages and a link to its last comment; the Comments
+ * screen's Pending view, counts and badge; what Empty spam covers and one
+ * permanent deletion inside it; the trash purge's chunk; and the daily
+ * erasure of commenters' addresses. Each puts back what it changes, and
+ * none runs on a data set seeded without comments.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -29,13 +42,6 @@ use RuntimeException;
 use Teme\Contracts\Settings\SettingsReader;
 
 /**
- * The comment scenarios at the scale docs/studies/comments.md §3.11 sets:
- * the long thread's pages and a link to its last comment; the Comments
- * screen's Pending view, counts and badge; what Empty spam covers and one
- * permanent deletion inside it; the trash purge's chunk; and the daily
- * erasure of commenters' addresses. Each puts back what it changes, and
- * none runs on a data set seeded without comments.
- *
  * @phpstan-type Scenario array{name: string, group: string, indexOrder: bool, run: Closure(int): mixed, queriesLike?: string, items?: int, within?: list<array{items: int, seconds: int, what: string}>, planWrites?: bool, prepare?: Closure(): void, finish?: Closure(): void, before?: Closure(int): void}
  */
 final class CommentScenarios

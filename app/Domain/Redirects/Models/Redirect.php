@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One redirect: where it starts, what it answers, and where it sends readers
+ * (I-297). Only the redirect Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Models;
@@ -8,9 +17,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One redirect: where it starts, what it answers, and where it sends readers
- * (I-297). Only the redirect Operations write it.
- *
  * @property string $id
  * @property string $source
  * @property string $kind

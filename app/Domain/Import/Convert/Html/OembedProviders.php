@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert\Html;
-
 /**
  * The address patterns WordPress embeds without asking the address's site
  * (wp-includes/class-wp-oembed.php), kept as data, anchored: each starts at
  * the address's start, and a host part is one host, so an address that only
  * mentions a provider's host further on matches nothing. An address alone
  * on a line becomes an Embed card only when one matches (I-336).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert\Html;
+
 final class OembedProviders
 {
     private const array PATTERNS = [

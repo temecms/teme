@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * The comment form's forgery rule (1.8b's D7), since Laravel's compares
+ * tokens only in a session, and a guest who comments has none. A form another
+ * site sent is refused, by its Fetch Metadata or, without that, its Origin. A
+ * browser with no sign-in marker then posts as a guest, with no session read:
+ * it carries no identity to forge. A marked one has its session read for this
+ * request alone, and, signed in, must say the form is its own or send the
+ * session's token, as PreventRequestForgery::handle() asks. Its refusals
+ * answer core's script in JSON when it asks (1.8b′).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Middleware;
@@ -20,16 +35,6 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * The comment form's forgery rule (1.8b's D7), since Laravel's compares
- * tokens only in a session, and a guest who comments has none. A form another
- * site sent is refused, by its Fetch Metadata or, without that, its Origin. A
- * browser with no sign-in marker then posts as a guest, with no session read:
- * it carries no identity to forge. A marked one has its session read for this
- * request alone, and, signed in, must say the form is its own or send the
- * session's token, as PreventRequestForgery::handle() asks. Its refusals
- * answer core's script in JSON when it asks (1.8b′).
- */
 final readonly class GuardCommentPost
 {
     /** The reader group's session middleware, after its first (bootstrap/app.php). */

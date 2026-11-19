@@ -1,15 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins\Area;
-
 /**
  * A plugin's area as its manifest declares it, `contributes.area`, read once
  * the validator passed it (docs/plans/plugin-sockets-2.md, A2): its pages
  * and their blocks, and its records' forms, each field with its defaults
  * filled in.
  *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins\Area;
+
+/**
  * @phpstan-type Field array{key: string, type: string, label: string, description: string, required: bool, maxLength: int|null, min: int|null, max: int|null, options: array<string, string>, default: mixed, visibleWhen: array<string, mixed>, scripts: bool, taxonomy: string|null, fields: list<array<string, mixed>>, minItems: int, maxItems: int, itemLabel: string, itemTitle: string|null}
  * @phpstan-type Block array<string, mixed>
  * @phpstan-type Page array{id: string, label: string, blocks: list<array<string, mixed>>}

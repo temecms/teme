@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a contributor learns about the article so it can decide which
+ * insertions to give: identity, type, terms, language, authors, size, and its
+ * path.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

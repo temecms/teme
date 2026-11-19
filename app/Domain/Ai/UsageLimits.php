@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Settings › AI's section "Limits" (I-320): how many requests one person may
+ * make in an hour, and the month's budget in whole US dollars, 0 for
+ * none. The budget is soft: requests already running may pass it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
@@ -7,11 +17,6 @@ namespace App\Domain\Ai;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Settings › AI's section "Limits" (I-320): how many requests one person may
- * make in an hour, and the month's budget in whole US dollars, 0 for
- * none. The budget is soft: requests already running may pass it.
- */
 final class UsageLimits implements AiSettingsSection
 {
     public const string HOURLY = 'hourly_limit';
@@ -37,9 +42,9 @@ final class UsageLimits implements AiSettingsSection
     {
         return [
             Setting::number(self::HOURLY, 'Requests an hour, per person', 'How many times one person may ask AI for a suggestion in an hour.', '0.1.0')
-                ->default(60)->min(1)->max(1000),
+                ->default(60)->min(1)->max(1000)->unit('requests')->required(),
             Setting::number(self::BUDGET, 'Monthly budget, in US dollars', 'When this month’s recorded cost reaches it, AI is unavailable to everyone until the month ends. Requests already running may pass it a little. 0 means no budget.', '0.1.0')
-                ->default(0)->min(0)->max(1_000_000),
+                ->default(0)->min(0)->max(1_000_000)->unit('US dollars'),
         ];
     }
 

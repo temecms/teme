@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Fortify's hook for finishing a password reset. It hands the reset to the
+ * `ResetPassword` Operation, so a password is written in one place only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Actions\Fortify;
@@ -9,10 +18,6 @@ use App\Domain\Users\Operations\ResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
 
-/**
- * Fortify's hook for finishing a password reset. It hands the reset to the
- * `ResetPassword` Operation, so a password is written in one place only.
- */
 final class ResetUserPassword implements ResetsUserPasswords
 {
     public function __construct(private readonly ResetPassword $resetPassword) {}

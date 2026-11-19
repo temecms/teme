@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One activity on its way to one inbox: queued, sent, failed or skipped,
+ * with how often it was tried and what the inbox last answered.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Models;
@@ -9,9 +18,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One activity on its way to one inbox: queued, sent, failed or skipped,
- * with how often it was tried and what the inbox last answered.
- *
  * @property string $id
  * @property string $activity_id
  * @property string $inbox_url

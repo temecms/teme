@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * How much of an item's words on WordPress Teme's copy lost, counted word by
+ * word, and where the missing passages begin (I-337).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Finish;
 
 use Illuminate\Support\Str;
 
-/**
- * How much of an item's words on WordPress Teme's copy lost, counted word by
- * word, and where the missing passages begin (I-337).
- */
 final readonly class Fidelity
 {
     /** The share of WordPress's words lost, in percent, above which an item is flagged. */

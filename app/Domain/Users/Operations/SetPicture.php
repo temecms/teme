@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Sets your own picture to an image in Media (I-3410). Only you choose it:
+ * an administrator may remove another person's picture, never choose one.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -12,10 +21,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Sets your own picture to an image in Media (I-3410). Only you choose it:
- * an administrator may remove another person's picture, never choose one.
- */
 final class SetPicture extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

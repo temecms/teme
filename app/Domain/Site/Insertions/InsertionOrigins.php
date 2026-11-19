@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Origins and approved script hashes collected while an article's body was
+ * drawn with insertions, applied to the page's policy after it has been
+ * started for the response (I-064). PathResolver builds the article before
+ * PublicPage starts the policy, so they cannot be written there. Also says
+ * which hosts a plugin declared for the content it inserts, as agreed to.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -10,13 +22,6 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Site\Policy\PagePolicy;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Origins and approved script hashes collected while an article's body was
- * drawn with insertions, applied to the page's policy after it has been
- * started for the response (I-064). PathResolver builds the article before
- * PublicPage starts the policy, so they cannot be written there. Also says
- * which hosts a plugin declared for the content it inserts, as agreed to.
- */
 final class InsertionOrigins
 {
     /** @var array<string, array<string, true>> */

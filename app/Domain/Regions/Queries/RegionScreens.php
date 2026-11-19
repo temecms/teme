@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What Content › Regions, the editor's region mode and Site › Themes show
+ * (I-098): a theme's regions, each with its state and its content's ID once
+ * it has one; the rows kept from other themes, read-only; and, for one item,
+ * the region it fills, its theme and the cards it allows, or null for any
+ * other item. One query for the rows, however many regions there are.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Regions\Queries;
@@ -13,13 +25,6 @@ use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Types\CoreTypes;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What Content › Regions, the editor's region mode and Site › Themes show
- * (I-098): a theme's regions, each with its state and its content's ID once
- * it has one; the rows kept from other themes, read-only; and, for one item,
- * the region it fills, its theme and the cards it allows, or null for any
- * other item. One query for the rows, however many regions there are.
- */
 final readonly class RegionScreens
 {
     public function __construct(

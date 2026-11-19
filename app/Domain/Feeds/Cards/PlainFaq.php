@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The FAQ card in a feed and the API: each question a level-3 heading and
+ * its answer below it, nothing folded away.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -9,10 +18,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Cards\Types\FaqCard;
 use App\Domain\Feeds\FeedCardRenderer;
 
-/**
- * The FAQ card in a feed and the API: each question a level-3 heading and
- * its answer below it, nothing folded away.
- */
 final readonly class PlainFaq implements FeedCardRenderer
 {
     public function card(): string

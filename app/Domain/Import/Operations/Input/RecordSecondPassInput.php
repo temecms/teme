@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What RecordSecondPass needs: the run, the post, the import's record of it as
+ * the step read it, the finished document and fields or none, where the pass
+ * started and what it left open, its messages, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Operations\Input;
 use App\Domain\Import\Phases\ImportMessage;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What RecordSecondPass needs: the run, the post, the import's record of it as
- * the step read it, the finished document and fields or none, where the pass
- * started and what it left open, its messages, and who is asking.
- */
 final readonly class RecordSecondPassInput implements OperationInput
 {
     /**

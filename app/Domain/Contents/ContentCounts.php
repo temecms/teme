@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The exact status counts behind the list tabs (I-141). Maintained by every
+ * content Operation inside its own transaction, so they cannot drift from the
+ * rows; teme:counts:rebuild is the safety net.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -7,11 +17,6 @@ namespace App\Domain\Contents;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The exact status counts behind the list tabs (I-141). Maintained by every
- * content Operation inside its own transaction, so they cannot drift from the
- * rows; teme:counts:rebuild is the safety net.
- */
 final class ContentCounts
 {
     /** @var list<string> The status buckets, as ContentState names them. */

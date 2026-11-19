@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Plugins' page insertions in core's three placements (I-228), at the
+ * plugin's precedence: the head's cleaned by HeadCleaner, the body's start
+ * and end by InsertionCleaner, each from the markup the plugin gave, never
+ * read back from the page; and, at the end of the body, what plugins fix to
+ * the screen's edges, drawn by core.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -11,13 +23,6 @@ use App\Domain\Site\Document\PlacementContributor;
 use App\Domain\Site\Document\Precedence;
 use Teme\Contracts\Insertions\PagePosition;
 
-/**
- * Plugins' page insertions in core's three placements (I-228), at the
- * plugin's precedence: the head's cleaned by HeadCleaner, the body's start
- * and end by InsertionCleaner, each from the markup the plugin gave, never
- * read back from the page; and, at the end of the body, what plugins fix to
- * the screen's edges, drawn by core.
- */
 final readonly class PluginPlacements implements PlacementContributor
 {
     public function __construct(

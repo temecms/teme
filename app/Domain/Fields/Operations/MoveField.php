@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Puts one live field of a type at another place among its fields, and
+ * numbers them all again, so the editor and the site show the new order at
+ * once (I-3320).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Operations;
@@ -15,11 +25,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Puts one live field of a type at another place among its fields, and
- * numbers them all again, so the editor and the site show the new order at
- * once (I-3320).
- */
 final class MoveField extends BaseOperation
 {
     use ManagesFields;

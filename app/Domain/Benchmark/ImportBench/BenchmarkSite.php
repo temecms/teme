@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Benchmark\ImportBench;
-
 /**
  * The size and shape of the benchmark's synthetic WordPress site, every
  * value a function of its numbers, so every run imports the same site
  * (D4, D5; docs/benchmarks/). The companion that answers for it is
  * BenchmarkCompanion.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Benchmark\ImportBench;
+
 final readonly class BenchmarkSite
 {
     /** The old site's address: a private one, which the benchmark's command allows for itself. */

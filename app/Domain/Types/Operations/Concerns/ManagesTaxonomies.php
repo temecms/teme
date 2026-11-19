@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What every change to the site's own taxonomies shares beyond a type's
+ * (I-414): the checks only the stored rows and the terms can answer, made
+ * under the types' lock. Used beside ManagesTypes, which gives who may make
+ * a change and what follows its commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations\Concerns;
@@ -10,12 +21,6 @@ use App\Domain\Types\StoredTypes;
 use App\Domain\Types\TaxonomyDefinition;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What every change to the site's own taxonomies shares beyond a type's
- * (I-414): the checks only the stored rows and the terms can answer, made
- * under the types' lock. Used beside ManagesTypes, which gives who may make
- * a change and what follows its commit.
- */
 trait ManagesTaxonomies
 {
     /**

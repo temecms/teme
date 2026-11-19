@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Where one media item sits for counting: its kind, and whether it is live
+ * or in the trash. Operations take one before and one after a change.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
 
 use App\Domain\Media\Models\Media;
 
-/**
- * Where one media item sits for counting: its kind, and whether it is live
- * or in the trash. Operations take one before and one after a change.
- */
 final readonly class MediaState
 {
     public function __construct(

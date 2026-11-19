@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The keys that open the places backups are kept (I-359): the machine key,
+ * one for the site, made once and kept as the backups group's secret unless
+ * the server supplies it; and, at each place, restic's own keys, added
+ * through restic's standard input, removed by their IDs, and swept of the
+ * keys Teme added and gave up on.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -17,13 +29,6 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use SensitiveParameter;
 
-/**
- * The keys that open the places backups are kept (I-359): the machine key,
- * one for the site, made once and kept as the backups group's secret unless
- * the server supplies it; and, at each place, restic's own keys, added
- * through restic's standard input, removed by their IDs, and swept of the
- * keys Teme added and gave up on.
- */
 final readonly class BackupKeys
 {
     public const string MACHINE_LABEL = 'Machine key';

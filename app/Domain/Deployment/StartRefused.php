@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Why a production site won't start (I-375): every problem StartRules
+ * found, one per line, never a secret's value.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
 
 use RuntimeException;
 
-/**
- * Why a production site won't start (I-375): every problem StartRules
- * found, one per line, never a secret's value.
- */
 final class StartRefused extends RuntimeException
 {
     /**

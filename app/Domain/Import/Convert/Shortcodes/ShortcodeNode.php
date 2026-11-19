@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * An opening tag with what it holds, closed or not, in the parser's tree
+ * (I-336).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Shortcodes;
 
-/**
- * An opening tag with what it holds, closed or not, in the parser's tree
- * (I-336).
- */
 final readonly class ShortcodeNode
 {
     /**

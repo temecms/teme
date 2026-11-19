@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a reader asked: the query as typed, the page wanted, its size, and the
+ * language searched.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Search;

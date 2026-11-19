@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Each plugin's Hooks from core's dispatcher (I-3353): bound to the plugin,
+ * what it was granted, the hooks it declared and its stopped parts, so its
+ * listeners hear what Operations announce, and every one of them goes when
+ * it fails to start.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
@@ -8,12 +19,6 @@ use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Hooks\OwnedHooks;
 use Teme\Contracts\Hooks\Hooks;
 
-/**
- * Each plugin's Hooks from core's dispatcher (I-3353): bound to the plugin,
- * what it was granted, the hooks it declared and its stopped parts, so its
- * listeners hear what Operations announce, and every one of them goes when
- * it fails to start.
- */
 final readonly class DispatcherSubscriptions implements HookSubscriptions
 {
     public function __construct(private HookDispatcher $dispatcher) {}

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Re-derives the media-usage and content-link projections for a chunk of
+ * content from its revisions (spec §5.3: projections can always be rebuilt).
+ * The operator only, one chunk per transaction.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -13,11 +23,6 @@ use App\Domain\Support\Security\Operator;
 use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Re-derives the media-usage and content-link projections for a chunk of
- * content from its revisions (spec §5.3: projections can always be rebuilt).
- * The operator only, one chunk per transaction.
- */
 final class ReindexMediaUsages extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

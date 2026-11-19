@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The site's own fields: their table, and the copy of it the cache store
+ * keeps with a version, which every process reads instead of the table, and
+ * a change puts again after it commits, under the types' lock (I-3296).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Stored;
@@ -10,11 +20,6 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use stdClass;
 
-/**
- * The site's own fields: their table, and the copy of it the cache store
- * keeps with a version, which every process reads instead of the table, and
- * a change puts again after it commits, under the types' lock (I-3296).
- */
 final class StoredFields
 {
     public const string TABLE = 'field_definitions';

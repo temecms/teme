@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Reads and changes one image setting in a Dokploy Compose service's environment (I-3333). Dokploy keeps the
+ * whole environment as one text and replaces it whole, so only the value on the one line that sets the
+ * image is changed, and every other byte is kept.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -7,11 +17,6 @@ namespace App\Domain\Updates\Updater;
 use App\Domain\Updates\ImageName;
 use SensitiveParameter;
 
-/**
- * Reads and changes one image setting in a Dokploy Compose service's environment (I-3333). Dokploy keeps the
- * whole environment as one text and replaces it whole, so only the value on the one line that sets the
- * image is changed, and every other byte is kept.
- */
 final class DokployEnvironment
 {
     /**

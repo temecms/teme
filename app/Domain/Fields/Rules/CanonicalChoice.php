@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One canonical choice (I-292): nothing, for the item itself; another item,
+ * by its ID; or an address on another site. An address on this site is
+ * refused, since it must be stored as its item (rule 9), and an address is
+ * checked as the head's link will check it, so a page never fails to draw.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Rules;
@@ -8,12 +19,6 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\DB;
 
-/**
- * One canonical choice (I-292): nothing, for the item itself; another item,
- * by its ID; or an address on another site. An address on this site is
- * refused, since it must be stored as its item (rule 9), and an address is
- * checked as the head's link will check it, so a page never fails to draw.
- */
 final class CanonicalChoice implements ValidationRule
 {
     /** What an outside address may be: absolute, http or https, nothing that could end an attribute. */

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Settings;
-
 /**
  * Where core's Settings pages draw a group or a setting that isn't theirs by
  * name (docs/architecture/admin-design.md, the parity sweep's items 12, 15 and 16).
  * Groups never move: each keeps its key, its values, its ability and how
  * it saves; only the page that draws it changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Settings;
+
 final class SettingsPlacement
 {
     /**
@@ -20,7 +25,7 @@ final class SettingsPlacement
      */
     public const array RENAMED = [
         'writing' => ['group' => 'content', 'label' => 'Writing', 'description' => 'How long the trash keeps items and comments.', 'section' => null],
-        'people' => ['group' => 'security', 'label' => 'People', 'description' => 'How everyone with an account signs in.', 'section' => 'Sign-in rules'],
+        'people' => ['group' => 'security', 'label' => 'People', 'description' => 'How everyone with an account signs in: password rules, sign-in limits and how long sessions last; and where people’s pictures come from.', 'section' => null],
     ];
 
     /**

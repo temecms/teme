@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Records how a restore ended: its run finished or failed, with its figures and its sentence, and the end in the security log.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -14,9 +22,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Carbon\CarbonImmutable;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records how a restore ended: its run finished or failed, with its figures and its sentence, and the end in the security log.
- */
 final class EndRestore extends BaseOperation
 {
     use AuthorizesRestores;

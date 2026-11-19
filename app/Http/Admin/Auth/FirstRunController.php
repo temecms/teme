@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The first-run page (issue 246): shows the form while no account exists, and
+ * hands it to the `SetUpSite` Operation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Auth;
@@ -20,10 +29,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The first-run page (issue 246): shows the form while no account exists, and
- * hands it to the `SetUpSite` Operation.
- */
 final class FirstRunController extends Controller
 {
     private const int TRIES_PER_MINUTE = 5;

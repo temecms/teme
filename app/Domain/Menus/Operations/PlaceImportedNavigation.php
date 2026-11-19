@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Shows an imported menu in a theme's place (I-343), as the import's
+ * choices say, only where the place shows nothing yet: a place a person
+ * filled is never changed. Written as BindNavigationSlot writes it, a
+ * theme setting through SettingsWriter, its origin the import.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations;
@@ -17,12 +28,6 @@ use App\Domain\Themes\ThemeRegistry;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Shows an imported menu in a theme's place (I-343), as the import's
- * choices say, only where the place shows nothing yet: a place a person
- * filled is never changed. Written as BindNavigationSlot writes it, a
- * theme setting through SettingsWriter, its origin the import.
- */
 final class PlaceImportedNavigation extends BaseOperation
 {
     use AuthorizesImports;

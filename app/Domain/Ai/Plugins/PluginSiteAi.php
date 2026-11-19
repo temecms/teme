@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The door a plugin granted `ai` asks the site's AI connection through
+ * (I-3434): only for a task it declares, only for the person its work acts
+ * for, through the model chosen for the task in Settings › AI, its inputs
+ * fenced as core's own (I-316), and every request that was sent recorded under
+ * the plugin, its figures and never its words (I-318). A request refused
+ * before sending costs nothing and is not recorded.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Plugins;
@@ -24,14 +37,6 @@ use Teme\Contracts\Ai\AiStanding;
 use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\WriteRefused;
 
-/**
- * The door a plugin granted `ai` asks the site's AI connection through
- * (I-3434): only for a task it declares, only for the person its work acts
- * for, through the model chosen for the task in Settings › AI, its inputs
- * fenced as core's own (I-316), and every request that was sent recorded under
- * the plugin, its figures and never its words (I-318). A request refused
- * before sending costs nothing and is not recorded.
- */
 final readonly class PluginSiteAi implements SiteAi
 {
     /**

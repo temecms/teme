@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a stored comment may hold (I-267): paragraphs and quotes, line breaks,
+ * and text that may be bold, italic, inline code or a link. Everything else is
+ * refused, naming the part that failed. A link goes to an item by its ID or to
+ * an http, https or mailto address (rule 9), and carries its address alone.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -7,12 +18,6 @@ namespace App\Domain\Comments;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\Exceptions\InvalidDocumentException;
 
-/**
- * What a stored comment may hold (I-267): paragraphs and quotes, line breaks,
- * and text that may be bold, italic, inline code or a link. Everything else is
- * refused, naming the part that failed. A link goes to an item by its ID or to
- * an http, https or mailto address (rule 9), and carries its address alone.
- */
 final class CommentDocument
 {
     /** @var list<string> */

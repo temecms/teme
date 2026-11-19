@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A WordPress site Teme imports from, keyed by its own home address. Its
+ * application password is encrypted and never serialized, and is written
+ * only by the import Operations (I-1708).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Models;
@@ -10,10 +20,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A WordPress site Teme imports from, keyed by its own home address. Its
- * application password is encrypted and never serialized, and is written
- * only by the import Operations (I-1708).
- *
  * @property string $id
  * @property string $address
  * @property string $api_root

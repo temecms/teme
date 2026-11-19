@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * An item's draft was saved as a new revision: when it was created, and each
+ * time a person saved it, restored an older revision or checkpointed it.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

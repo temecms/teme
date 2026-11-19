@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The full-page cache: whether it is on, how long a page lives, and which
+ * store keeps pages.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 /*

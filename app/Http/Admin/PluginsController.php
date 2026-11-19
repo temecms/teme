@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Site › Plugins: every plugin, what it asks for and where it stands, and
+ * the enable, migrate and disable buttons, which call their Operations.
+ * It changes nothing itself and starts no plugin: the page reads files only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -32,11 +42,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Site › Plugins: every plugin, what it asks for and where it stands, and
- * the enable, migrate and disable buttons, which call their Operations.
- * It changes nothing itself and starts no plugin: the page reads files only.
- */
 final class PluginsController extends Controller
 {
     public function index(Request $request, PluginsScreen $screen, ExtensionsScreen $extensions, PluginRegistry $registry, SettingHosts $hosts): Response
@@ -103,6 +108,8 @@ final class PluginsController extends Controller
 
     /**
      * Runs waiting database changes for an enabled plugin.
+     *
+     * @since 0.8.0-alpha.1
      */
     public function migrate(Request $request, string $code, PluginList $list, MigratePlugin $migrate): RedirectResponse
     {
@@ -125,6 +132,8 @@ final class PluginsController extends Controller
 
     /**
      * Drops a disabled plugin's recorded tables.
+     *
+     * @since 0.8.0-alpha.1
      */
     public function removeData(Request $request, string $code, PluginList $list, RemovePluginData $remove): RedirectResponse
     {
@@ -145,6 +154,8 @@ final class PluginsController extends Controller
 
     /**
      * Forgets a disabled plugin whose package is gone, freeing its code.
+     *
+     * @since 1.0.0
      */
     public function forget(Request $request, string $code, PluginList $list, ForgetPlugin $forget): RedirectResponse
     {

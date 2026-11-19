@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Brings a comment an earlier import made up to date with WordPress (I-341):
+ * its status, words and writer, only while it is as the import left it, its
+ * status and updated_at what the import last wrote, checked under its row
+ * lock, so an import never undoes a moderator. Its place, date, kind and
+ * number never change. Only an importer may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -15,13 +27,6 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings a comment an earlier import made up to date with WordPress (I-341):
- * its status, words and writer, only while it is as the import left it, its
- * status and updated_at what the import last wrote, checked under its row
- * lock, so an import never undoes a moderator. Its place, date, kind and
- * number never change. Only an importer may.
- */
 final class UpdateImportedComment extends BaseOperation
 {
     use AuthorizesImports;

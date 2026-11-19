@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A restore's private folder, storage/app/restore/{ulid} (mode 0700), for
+ * the two files it writes: the dump, which pg_restore reads twice, and its
+ * use-list. Removed by their known names, never by listing the folder
+ * (tests/Architecture/NoStorageListingTest.php), when the restore ends or,
+ * if PHP stops first, at shutdown.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -7,13 +19,6 @@ namespace App\Domain\Backups\Restore;
 use Illuminate\Support\Str;
 use LogicException;
 
-/**
- * A restore's private folder, storage/app/restore/{ulid} (mode 0700), for
- * the two files it writes: the dump, which pg_restore reads twice, and its
- * use-list. Removed by their known names, never by listing the folder
- * (tests/Architecture/NoStorageListingTest.php), when the restore ends or,
- * if PHP stops first, at shutdown.
- */
 final class RestoreFiles
 {
     public const string DUMP = 'teme.dump';

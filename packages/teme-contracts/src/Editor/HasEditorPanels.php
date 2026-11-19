@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A plugin whose manifest declares editor panels: a pane in the content editor
+ * that core draws from the data each panel returns.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

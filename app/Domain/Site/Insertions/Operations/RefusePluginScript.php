@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Refuses a waiting script a plugin asked to keep: it stays refused, and
+ * the plugin asking again changes nothing, until someone revokes the
+ * decision (docs/plans/plugin-sockets-2.md, B4).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Operations;
@@ -14,11 +24,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Refuses a waiting script a plugin asked to keep: it stays refused, and
- * the plugin asking again changes nothing, until someone revokes the
- * decision (docs/plans/plugin-sockets-2.md, B4).
- */
 final class RefusePluginScript extends BaseOperation implements RequiresElevation
 {
     use DecidesPluginScripts;

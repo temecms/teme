@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Moves an item to the trash. Its status is kept, so restoring returns it
+ * exactly as it was, and its slug is freed for new content (I-142). Trashed
+ * items are deleted for good after the retention period.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -30,11 +40,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\ContentTrashed;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Moves an item to the trash. Its status is kept, so restoring returns it
- * exactly as it was, and its slug is freed for new content (I-142). Trashed
- * items are deleted for good after the retention period.
- */
 final class TrashContent extends BaseOperation
 {
     use FollowsTree;

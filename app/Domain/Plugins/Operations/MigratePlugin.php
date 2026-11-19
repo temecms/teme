@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Runs an enabled plugin's waiting migrations (I-3442): a person who holds
+ * plugins.manage, after their password, or the operator. Consent must still
+ * cover what it asks. Returns the migration names that ran.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -23,11 +33,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Runs an enabled plugin's waiting migrations (I-3442): a person who holds
- * plugins.manage, after their password, or the operator. Consent must still
- * cover what it asks. Returns the migration names that ran.
- */
 final class MigratePlugin extends BaseOperation implements RequiresElevation
 {
     use AuthorizesPluginChanges;

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What one inspected run of a scenario sent beyond its SELECTs: the
+ * statements that write, a failed one included, and the commands to the
+ * page store's Valkey (D6). Laravel's query log records a statement only
+ * once it has run, never a refused lock's INSERT, so writes are counted as
+ * they are sent.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -7,13 +19,6 @@ namespace App\Domain\Benchmark;
 use Closure;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What one inspected run of a scenario sent beyond its SELECTs: the
- * statements that write, a failed one included, and the commands to the
- * page store's Valkey (D6). Laravel's query log records a statement only
- * once it has run, never a refused lock's INSERT, so writes are counted as
- * they are sent.
- */
 final class Tally
 {
     private bool $counting = false;

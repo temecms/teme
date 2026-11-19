@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The editor's card views and its featured image ask here for the media they
+ * have just been given, in the shape the server's renderer uses, with each
+ * image's credit. It reads only; anyone who may
+ * write content may ask, which media.show does not allow a contributor.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -10,12 +21,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * The editor's card views and its featured image ask here for the media they
- * have just been given, in the shape the server's renderer uses, with each
- * image's credit. It reads only; anyone who may
- * write content may ask, which media.show does not allow a contributor.
- */
 final class CardMediaController extends Controller
 {
     public function __invoke(Request $request, CardMedia $media, MediaCredits $credits): JsonResponse

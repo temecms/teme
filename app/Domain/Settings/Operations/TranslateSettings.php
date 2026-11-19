@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Writes a settings group's words in one of the site's other languages
+ * (I-3360): the site title, tagline, title templates or a theme slot's menu
+ * that readers of that language see. The person must hold the group's own
+ * ability, a sensitive group asks for a fresh password confirmation, and a
+ * form opened on an older version is refused. The default language's
+ * values are left as they were.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Operations;
@@ -17,14 +30,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Writes a settings group's words in one of the site's other languages
- * (I-3360): the site title, tagline, title templates or a theme slot's menu
- * that readers of that language see. The person must hold the group's own
- * ability, a sensitive group asks for a fresh password confirmation, and a
- * form opened on an older version is refused. The default language's
- * values are left as they were.
- */
 final class TranslateSettings extends BaseOperation implements RequiresElevation
 {
     public function __construct(

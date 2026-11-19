@@ -113,7 +113,7 @@ it('draws the brand colour on General with both schemes, as the server works the
 
     $this->actingAs($this->admin)->get('/admin/settings/general')
         ->assertInertia(fn (Assert $page) => $page
-            ->where('heading.description', 'The site’s name, tagline, administration email, time zone, language and brand colour.')
+            ->where('heading.description', 'The site’s name, tagline, contact address, time zone, language and brand color.')
             ->where('brandColour.value', '#0b5394')
             ->where('brandColour.themeAccent', '#b3261e')
             ->where('brandColour.bases', ['light' => '#ffffff', 'dark' => '#141413'])

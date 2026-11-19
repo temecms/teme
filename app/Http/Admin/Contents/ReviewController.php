@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Review (decision 5A): submitting a revision for review through
+ * SubmitForReview, and deciding on it through ApproveReview or
+ * ReturnForChanges. The editor asks for JSON and gets the article's new
+ * state; a list's row goes back with a message.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -15,12 +26,6 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Review (decision 5A): submitting a revision for review through
- * SubmitForReview, and deciding on it through ApproveReview or
- * ReturnForChanges. The editor asks for JSON and gets the article's new
- * state; a list's row goes back with a message.
- */
 final class ReviewController extends Controller
 {
     public function store(Request $request, string $content, SubmitForReview $submit): Response

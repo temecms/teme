@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * The plain version of one card in a feed (I-861): HTML a feed reader can
+ * show with no script and no theme style. Kept in the feeds domain, beside
+ * the card rather than in it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
 
 use App\Domain\Cards\RenderContext;
 
-/**
- * The plain version of one card in a feed (I-861): HTML a feed reader can
- * show with no script and no theme style. Kept in the feeds domain, beside
- * the card rather than in it.
- */
 interface FeedCardRenderer
 {
     /**

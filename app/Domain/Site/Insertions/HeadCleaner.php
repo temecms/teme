@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Cleans what a plugin puts in a page's head, which holds less than the
+ * body: a script loaded from an https address, a meta name the page doesn't
+ * already own, a preconnect or dns-prefetch link to an https origin, and an
+ * inline script whose exact text was approved for the plugin. Everything
+ * else is dropped, whole (docs/plans/plugin-sockets-2.md, B2).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -9,13 +21,6 @@ use App\Domain\SiteCode\SiteCodePolicy;
 use Dom\Element;
 use Dom\HTMLDocument;
 
-/**
- * Cleans what a plugin puts in a page's head, which holds less than the
- * body: a script loaded from an https address, a meta name the page doesn't
- * already own, a preconnect or dns-prefetch link to an https origin, and an
- * inline script whose exact text was approved for the plugin. Everything
- * else is dropped, whole (docs/plans/plugin-sockets-2.md, B2).
- */
 final class HeadCleaner
 {
     /** Meta names core, the theme or the page's settings own. */

@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * What an inbox answers: a status and any headers, never a detail of why.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Inbox;
 
-/**
- * What an inbox answers: a status and any headers, never a detail of why.
- */
 final readonly class InboxAnswer
 {
     /**

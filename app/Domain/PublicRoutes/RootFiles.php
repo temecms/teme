@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The files enabled plugins answer at the site's root (docs/guides/developers/plugins/root-files.md):
+ * each plugin granted routes.public that may load now, by the one rule that
+ * decides whether it starts, its names and bodies filled from its settings
+ * as they are now. Nothing is kept between calls.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
@@ -16,12 +27,6 @@ use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * The files enabled plugins answer at the site's root (docs/guides/developers/plugins/root-files.md):
- * each plugin granted routes.public that may load now, by the one rule that
- * decides whether it starts, its names and bodies filled from its settings
- * as they are now. Nothing is kept between calls.
- */
 final readonly class RootFiles
 {
     public function __construct(

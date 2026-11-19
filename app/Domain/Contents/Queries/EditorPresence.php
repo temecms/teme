@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Who else is in an article: the other people with an autosave on it saved
+ * within the presence window. An autosave row is presence, because someone
+ * with unsaved work is exactly who the other person needs to know about
+ * (I-193).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Who else is in an article: the other people with an autosave on it saved
- * within the presence window. An autosave row is presence, because someone
- * with unsaved work is exactly who the other person needs to know about
- * (I-193).
- */
 final class EditorPresence
 {
     /**

@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The page insertions every contributor gives one public page: asked once,
+ * only for a page PublicController started with its facts, the started
+ * plugins granted pages.insert in plugin code order, each key's first kept.
+ * Each contributor has a time budget, and so has the page; one that throws
+ * or runs over is recorded as its plugin's fault and skipped (I-3353).
+ * What is drawn is cleaned here, and its origins, approved scripts and
+ * declared hosts join the page's policy.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -25,15 +39,6 @@ use Teme\Contracts\Insertions\PagePosition;
 use Teme\Contracts\Plugins\Capability;
 use Throwable;
 
-/**
- * The page insertions every contributor gives one public page: asked once,
- * only for a page PublicController started with its facts, the started
- * plugins granted pages.insert in plugin code order, each key's first kept.
- * Each contributor has a time budget, and so has the page; one that throws
- * or runs over is recorded as its plugin's fault and skipped (I-3353).
- * What is drawn is cleaned here, and its origins, approved scripts and
- * declared hosts join the page's policy.
- */
 final class PageInsertions
 {
     /** The longest one contributor may take, in milliseconds. */

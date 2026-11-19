@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The 404 log for its screen (I-298, I-871): a page of addresses at a time,
+ * the most asked for first, each marked with the redirect that now answers it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Queries;
@@ -9,10 +18,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The 404 log for its screen (I-298, I-871): a page of addresses at a time,
- * the most asked for first, each marked with the redirect that now answers it.
- */
 final readonly class NotFoundEntries
 {
     public function __construct(private RedirectLookup $redirects) {}

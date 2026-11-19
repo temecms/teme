@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site;
-
 /**
  * What went wrong in drawing one public page, for `X-Teme-Warnings` outside
  * production: an image context the theme doesn't declare, a missing image,
  * and how many images asked to load first, of which a page wants exactly
  * one. It is scoped to a request, and start() empties it for each page, as
  * one application may serve several (B-227).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site;
+
 final class PageWarnings
 {
     /** @var list<string> */

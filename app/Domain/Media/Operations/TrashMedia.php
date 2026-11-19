@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Moves an item to the trash. Its files stay, so restoring brings every use
+ * back unchanged (decision 5B); pages treat it as missing meanwhile. Anyone
+ * who may remove the item can do it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Moves an item to the trash. Its files stay, so restoring brings every use
- * back unchanged (decision 5B); pages treat it as missing meanwhile. Anyone
- * who may remove the item can do it.
- */
 final class TrashMedia extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

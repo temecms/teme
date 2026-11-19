@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Asking AI for a suggestion, collecting it, putting it aside and using it
+ * (I-317), as JSON for the page that asked: a standalone request, so the
+ * editor isn't re-rendered. It hands each request to its Operation, reads
+ * the hand-off through AiSuggestions, and touches no model.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Ai;
@@ -23,12 +34,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use InvalidArgumentException;
 
-/**
- * Asking AI for a suggestion, collecting it, putting it aside and using it
- * (I-317), as JSON for the page that asked: a standalone request, so the
- * editor isn't re-rendered. It hands each request to its Operation, reads
- * the hand-off through AiSuggestions, and touches no model.
- */
 final class AiRequestController extends Controller
 {
     public function store(Request $request, AskForSuggestion $ask): JsonResponse

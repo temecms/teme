@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Builds the card registry with core's cards, binds the lookup of their
+ * media, one per request or job, and binds the resolver that turns an
+ * internal link's content ID into an address at render time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -32,11 +42,6 @@ use App\Domain\Feeds\Cards\PlainVideo;
 use App\Domain\Feeds\FeedCards;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Builds the card registry with core's cards, binds the lookup of their
- * media, one per request or job, and binds the resolver that turns an
- * internal link's content ID into an address at render time.
- */
 final class CardServiceProvider extends ServiceProvider
 {
     public function register(): void

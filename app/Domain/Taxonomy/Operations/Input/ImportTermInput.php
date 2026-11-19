@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Taxonomy\Operations\Input;
-
-use Teme\Contracts\Operations\OperationInput;
-
 /**
  * What `ImportTerm` needs to bring one WordPress category or tag in: its
  * taxonomy, name, slug, description and parent, the Teme ID of the term an
  * earlier run made when updating it (null to create), who is importing
  * (null for the operator), and the language a new term is made in, as
  * `language` stores it (null for the default; I-3446).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Taxonomy\Operations\Input;
+
+use Teme\Contracts\Operations\OperationInput;
+
 final readonly class ImportTermInput implements OperationInput
 {
     public function __construct(

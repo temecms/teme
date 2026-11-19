@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The header the updater signs with the app key to ask /up which Teme answers (I-3326), and how the site checks it: a time within the last minute and its digest.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -7,9 +15,6 @@ namespace App\Domain\Updates\Updater;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
-/**
- * The header the updater signs with the app key to ask /up which Teme answers (I-3326), and how the site checks it: a time within the last minute and its digest.
- */
 final class ProbeSignature
 {
     public const string HEADER = 'X-Teme-Probe';

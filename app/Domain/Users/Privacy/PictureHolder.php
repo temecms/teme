@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An account's picture (I-3410): exported as its address and file name, and
+ * cleared on erasure, while the image itself stays in Media for the site's
+ * administrators to delete.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Privacy;
@@ -12,11 +22,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * An account's picture (I-3410): exported as its address and file name, and
- * cleared on erasure, while the image itself stays in Media for the site's
- * administrators to delete.
- */
 final class PictureHolder implements PersonalDataHolder
 {
     public function __construct(private readonly PersonPictures $pictures) {}

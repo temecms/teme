@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A place backups are kept, each its own restic repository (I-360): its
+ * kind and location, its credentials encrypted and hidden, restic's ID for
+ * its repository, and whether it is answering. A restore pauses it until a
+ * person says whether this server is now the site. Only the backup Operations
+ * write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Models;
@@ -14,12 +26,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use stdClass;
 
 /**
- * A place backups are kept, each its own restic repository (I-360): its
- * kind and location, its credentials encrypted and hidden, restic's ID for
- * its repository, and whether it is answering. A restore pauses it until a
- * person says whether this server is now the site. Only the backup Operations
- * write it.
- *
  * @property string $id
  * @property string $name
  * @property BackupDestinationKind $kind

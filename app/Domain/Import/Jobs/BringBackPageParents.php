@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * One step of bringing back a site's page parents (I-3363): the next 200 of
+ * its imported pages, parents first, each through PlaceImportedPage as the
+ * person who asked, then the job's progress, then the next step or the end.
+ * While a run of the site is running it waits, so the two never lock the
+ * same pages in different orders. It reads nothing from the old site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Jobs;
@@ -24,13 +36,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
-/**
- * One step of bringing back a site's page parents (I-3363): the next 200 of
- * its imported pages, parents first, each through PlaceImportedPage as the
- * person who asked, then the job's progress, then the next step or the end.
- * While a run of the site is running it waits, so the two never lock the
- * same pages in different orders. It reads nothing from the old site.
- */
 final class BringBackPageParents implements ShouldQueue
 {
     use Queueable;

@@ -61,7 +61,8 @@ it('draws Categories and Tags under Posts only inside Posts, marking the one you
 });
 
 it('marks Settings and Tools current on each of their pages', function (): void {
-    $settings = route('settings.show', ['group' => 'general'], false);
+    // The menu's Settings opens the Settings hub (the approved v10 design).
+    $settings = route('settings.index', [], false);
     $tools = route('tools.index', [], false);
 
     $page = cmSignIn($this->admin)->navigate(route('settings.show', ['group' => 'media'], false))
@@ -109,10 +110,12 @@ it('draws the Settings menu beside each Settings screen, the current one marked,
 
     $page = cmSignIn($this->admin)->navigate($media)
         ->assertScript(menuHeadingIs('Media'), true)
-        ->assertSeeIn('[data-test="settings-heading"]', 'Site')
         ->assertSeeIn('nav[aria-label="Settings"]', 'Search and social')
-        ->assertDontSeeIn('nav[aria-label="Settings"]', 'Plugin settings')
+        ->assertDontSeeIn('nav[aria-label="Settings"]', 'From plugins')
         ->assertAttribute('nav[aria-label="Settings"] a[aria-current="page"]', 'href', $media)
+        // The current page opens to its sections, under it.
+        ->assertSeeIn('[data-test="settings-sections"]', 'Uploads')
+        ->assertSeeIn('[data-test="settings-sections"]', 'Image widths')
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);
@@ -121,28 +124,29 @@ it('draws the Settings menu beside each Settings screen, the current one marked,
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('finds a setting as you type, and takes you to its field', function (): void {
+it('finds a setting as you type, in a list under the box, and takes you to its field', function (): void {
     $page = cmSignIn($this->admin)->navigate(route('settings.show', ['group' => 'media'], false))
         ->type('[data-test="find-setting"]', 'time zone')
-        ->assertSeeIn('#settings-found h2', 'results for “time zone”')
-        ->assertSeeIn('#settings-found', 'Settings page');
+        ->assertSeeIn('[data-test="find-setting-list"]', 'Time zone');
 
-    // The menu and the screen give way to what was found.
-    expect($page->script('() => document.querySelector(\'nav[aria-label="Settings"]\').closest("[hidden]") !== null'))->toBeTrue();
+    // The list opens under the box; the menu stays.
+    expect($page->script('() => document.querySelector(\'nav[aria-label="Settings"]\').closest("[hidden]") === null'))->toBeTrue()
+        ->and($page->script('() => document.querySelector(\'[data-test="find-setting-list"] mark\')?.textContent.toLowerCase()'))->toBe('time');
 
-    $page->click('#settings-found a[href$="#field-timezone"]')
+    $page->click('[data-test="find-setting-item"][data-key="general.timezone"]')
         ->assertPathIs(route('settings.show', ['group' => 'general'], false))
         ->assertScript(menuHeadingIs('General'), true)
         ->assertScript('document.activeElement !== null && document.activeElement.id === "field-timezone"', true)
         ->assertValue('[data-test="find-setting"]', '');
 });
 
-it('keeps what you typed on the screen while you search', function (): void {
+it('keeps what you typed on the screen while you search, and closes the list on Escape', function (): void {
     $page = cmSignIn($this->admin)->navigate(route('settings.show', ['group' => 'general'], false))
         ->type('#field-site_title', 'The Garden City Ledger')
         ->type('[data-test="find-setting"]', 'tagline')
-        ->assertSeeIn('#settings-found ul', 'Tagline')
-        ->click('#settings-found button')
+        ->assertSeeIn('[data-test="find-setting-list"]', 'Tagline')
+        ->keys('[data-test="find-setting"]', 'Escape')
+        ->assertScript('document.querySelector(\'[data-test="find-setting-list"]\') === null', true)
         ->assertValue('#field-site_title', 'The Garden City Ledger');
 
     expect($page->script('() => document.querySelector(\'nav[aria-label="Settings"]\').closest("[hidden]") === null'))->toBeTrue();
@@ -161,7 +165,8 @@ it('at a phone\'s width, opens the Settings menu from one button, never scrollin
     $sizes = $page->script(<<<'JS'
         () => {
             const menu = document.querySelector('nav[aria-label="Settings"]');
-            const [first, second] = [...menu.querySelectorAll('a')].map((link) => link.getBoundingClientRect());
+            // The pages, not the current page's section links, which sit indented under it.
+            const [first, second] = [...menu.querySelectorAll('a[data-test="settings-group"]')].map((link) => link.getBoundingClientRect());
 
             return {
                 expanded: document.querySelector('[data-test="settings-groups-button"]').getAttribute('aria-expanded'),
@@ -169,12 +174,11 @@ it('at a phone\'s width, opens the Settings menu from one button, never scrollin
                 stacked: Math.round(first.left) === Math.round(second.left) && second.top >= first.bottom,
                 // How far the page scrolls sideways: none. The kept scrollbar gutter (I-3130) makes the raw difference negative.
                 page: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
-                heading: getComputedStyle(menu.querySelector('[data-test="settings-heading"]')).display,
             };
         }
         JS);
 
-    expect($sizes)->toBe(['expanded' => 'true', 'shown' => true, 'stacked' => true, 'page' => 0, 'heading' => 'block']);
+    expect($sizes)->toBe(['expanded' => 'true', 'shown' => true, 'stacked' => true, 'page' => 0]);
 
     $page->assertNoAccessibilityIssues(3);
 });

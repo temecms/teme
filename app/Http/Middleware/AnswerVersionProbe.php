@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Tells the updater which Teme answers /up (I-3326), when it asks with a header signed by the app key
+ * within the last minute. Everyone else gets /up as it always was, so the version stays private.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -9,10 +18,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Tells the updater which Teme answers /up (I-3326), when it asks with a header signed by the app key
- * within the last minute. Everyone else gets /up as it always was, so the version stays private.
- */
 final class AnswerVersionProbe
 {
     /**

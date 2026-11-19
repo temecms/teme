@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers each usable theme's `theme.{code}` settings group (spec §5.9):
+ * the settings its manifest declares, in manifest order, then its navigation
+ * slots, as ThemeSlotSettings builds them. Site › Themes is its screen.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design;
@@ -12,11 +22,6 @@ use App\Domain\Themes\ThemeRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * Registers each usable theme's `theme.{code}` settings group (spec §5.9):
- * the settings its manifest declares, in manifest order, then its navigation
- * slots, as ThemeSlotSettings builds them. Site › Themes is its screen.
- */
 final readonly class ThemeSettings
 {
     public function __construct(private SettingsRegistry $registry) {}

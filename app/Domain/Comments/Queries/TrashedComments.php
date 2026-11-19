@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Finds trashed comments for the daily purge (1.8c′'s D8): those in the
+ * trash since the cut-off or before, deepest first, so a reply always goes
+ * before the comment it answers.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -9,11 +19,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Finds trashed comments for the daily purge (1.8c′'s D8): those in the
- * trash since the cut-off or before, deepest first, so a reply always goes
- * before the comment it answers.
- */
 final class TrashedComments
 {
     /**

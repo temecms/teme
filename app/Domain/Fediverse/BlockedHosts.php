@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The blocked servers (proposal, Settled 8): a host is blocked when it, or
+ * a domain it belongs to, is on the list.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse;
 
 use App\Domain\Fediverse\Models\BlockedHost;
 
-/**
- * The blocked servers (proposal, Settled 8): a host is blocked when it, or
- * a domain it belongs to, is on the list.
- */
 final class BlockedHosts
 {
     /**

@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Policy;
-
-use UnexpectedValueException;
-
 /**
  * A public page's content security policy as it is drawn (I-3375): core
  * notes the hash of each inline script it prints itself, site code adds
@@ -13,7 +7,18 @@ use UnexpectedValueException;
  * declared origins. header() writes the policy the page is stored with.
  * Nothing is ever read back from the drawn HTML, so a script someone
  * injected never gets a hash. Started afresh for each page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Policy;
+
+use UnexpectedValueException;
+
 final class PagePolicy
 {
     /** A theme's or a plugin's kind of origin, and the directive it joins. */

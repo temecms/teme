@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The choices an import needs (I-227): where each WordPress menu goes, what
+ * each page template becomes, the role for each custom role, who owns items
+ * whose author has gone, which outside sites' images come into the library,
+ * and the pause between requests. Offered from a site's analysis and Teme's
+ * own lists, and checked against them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Planning;
@@ -12,13 +24,6 @@ use App\Domain\Users\Queries\AuthorOptions;
 use App\Domain\Users\Queries\RoleOptions;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The choices an import needs (I-227): where each WordPress menu goes, what
- * each page template becomes, the role for each custom role, who owns items
- * whose author has gone, which outside sites' images come into the library,
- * and the pause between requests. Offered from a site's analysis and Teme's
- * own lists, and checked against them.
- */
 final readonly class ImportChoices
 {
     /** The pauses between requests to the old site, in milliseconds, with their words. */

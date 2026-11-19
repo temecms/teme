@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The only way out for a plugin granted http: https, to the hosts agreed to,
+ * no redirect followed, at most 10 seconds and 1 MB, or 300 seconds and 16 MB
+ * for an answer inside a long job.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Http;
@@ -12,6 +22,7 @@ use InvalidArgumentException;
  * 16 MB for an answer inside a long job.
  *
  * @since 0.5.0
+ * @since 1.0.0 Allows 300 seconds and 16 MB for an answer inside a long job.
  */
 interface OutboundHttp
 {

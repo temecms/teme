@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's Jobs door (I-3445): queues one of its declared jobs as a tracked
+ * plugin-job, with a JSON-ready payload of at most 64 KB, after a delay or
+ * once while one waits when asked (docs/proposals/plugin-sockets-1.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
@@ -19,11 +29,6 @@ use JsonException;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\QueueOptions;
 
-/**
- * A plugin's Jobs door (I-3445): queues one of its declared jobs as a tracked
- * plugin-job, with a JSON-ready payload of at most 64 KB, after a delay or
- * once while one waits when asked (docs/proposals/plugin-sockets-1.md).
- */
 final readonly class PluginJobs implements Jobs
 {
     /** The largest payload a plugin may queue, in bytes. */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The people an item may be credited to, as the management API lists them:
+ * the editor's author choices (AuthorOptions), with each person's slug.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Queries;
@@ -7,10 +16,6 @@ namespace App\Domain\ManageApi\Queries;
 use App\Domain\Users\Queries\AuthorOptions;
 use App\Models\User;
 
-/**
- * The people an item may be credited to, as the management API lists them:
- * the editor's author choices (AuthorOptions), with each person's slug.
- */
 final readonly class CreditablePeople
 {
     public function __construct(private AuthorOptions $authors) {}

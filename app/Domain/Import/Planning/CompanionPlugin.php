@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * The Teme Companion plugin as Tools › Import names it: the version Teme expects, and where it is published (I-1711).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Planning;
 
-/**
- * The Teme Companion plugin as Tools › Import names it: the version Teme expects, and where it is published (I-1711).
- */
 final class CompanionPlugin
 {
     /** The first version with the export API Teme reads. */

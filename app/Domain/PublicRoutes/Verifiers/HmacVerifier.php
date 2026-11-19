@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * Compares a named header to hash_hmac('sha256', rawBody, secret).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes\Verifiers;
 
 use Teme\Contracts\Routes\PublicRequest;
 
-/**
- * Compares a named header to hash_hmac('sha256', rawBody, secret).
- */
 final class HmacVerifier
 {
     /**

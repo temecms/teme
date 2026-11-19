@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:backup:destinations: lists, adds, changes, tests and removes the places
+ * backups are kept, as the operator (I-360). Adding and changing ask for a
+ * recovery key or a password, so a person must run them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -26,11 +36,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:backup:destinations: lists, adds, changes, tests and removes the places
- * backups are kept, as the operator (I-360). Adding and changing ask for a
- * recovery key or a password, so a person must run them.
- */
 final class ManageBackupDestinations extends Command
 {
     private const array ACTIONS = ['list', 'add', 'change', 'test', 'remove'];

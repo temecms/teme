@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records one teme:deploy that ran (I-?? draft): the release, how it ended,
+ * the backup it took and its whole report. The operator only. Returns the
+ * row's ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Operations;
@@ -15,11 +25,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records one teme:deploy that ran (I-?? draft): the release, how it ended,
- * the backup it took and its whole report. The operator only. Returns the
- * row's ID.
- */
 final class RecordDeployRun extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The administrators' email about the backups (I-2409): what failed, in
+ * the verdict's own words, the newest good backup, what to run at the
+ * server and when the next email comes; or that backups work again. Sent
+ * at once by SendBackupAlertEmails, which is itself the queued job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Notifications;
@@ -12,12 +23,6 @@ use App\Domain\Notices\SentAsNotice;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-/**
- * The administrators' email about the backups (I-2409): what failed, in
- * the verdict's own words, the newest good backup, what to run at the
- * server and when the next email comes; or that backups work again. Sent
- * at once by SendBackupAlertEmails, which is itself the queued job.
- */
 final class BackupAlertNotice extends Notification
 {
     use SentAsNotice;

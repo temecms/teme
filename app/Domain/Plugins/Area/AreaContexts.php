@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Builds what a plugin's area is told about the person it answers: who
+ * they are, the admin's language, the site's time zone, and which of the
+ * plugin's own permissions they hold.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -9,11 +19,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Admin\AreaContext;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Builds what a plugin's area is told about the person it answers: who
- * they are, the admin's language, the site's time zone, and which of the
- * plugin's own permissions they hold.
- */
 final class AreaContexts
 {
     /**

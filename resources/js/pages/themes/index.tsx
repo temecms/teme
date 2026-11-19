@@ -6,6 +6,7 @@ import { DesignDraftBar } from '@/components/themes/design-draft-bar';
 import { ThemeList } from '@/components/themes/theme-list';
 import { ThemePreviewPanel } from '@/components/themes/theme-preview-panel';
 import { ThemeRegions } from '@/components/themes/theme-regions';
+import { ThemeSettings } from '@/components/themes/theme-settings';
 import { useDesignDraft } from '@/components/themes/use-design-draft';
 import { Button } from '@/components/ui/button';
 import { __ } from '@/lib/i18n';
@@ -14,11 +15,12 @@ import { show as showSettings } from '@/routes/settings';
 import type { DesignPage } from '@/types';
 
 /**
- * Site › Themes: the installed themes as cards, a theme's preview, and the
- * regions each places. The chosen theme's settings and menu places have
- * their own page, which its card links to; the draft both pages make waits
- * here for Publish or Discard. Someone who may install also adds, updates
- * and removes themes here; their requests are listed on Plugins (I-211).
+ * Site › Themes: the installed themes as cards, a theme's preview, the
+ * regions each places, and under them the chosen theme's settings and menu
+ * places (v10), which its card's Theme settings leads down to; the draft
+ * they make waits here for Publish or Discard. Someone who may install also
+ * adds, updates and removes themes here; their requests are listed on
+ * Plugins (I-211).
  */
 export default function Design(page: DesignPage) {
     const { errors: pageErrors } = usePage().props;
@@ -39,8 +41,10 @@ export default function Design(page: DesignPage) {
 
     return (
         <ListPage
-            title="Themes"
-            description="How the public site looks. A theme draws the site; it adds no features of its own."
+            title={__('Themes')}
+            description={__(
+                'How the public site looks. A theme draws the site; it adds no features of its own.',
+            )}
             actions={
                 page.extensions !== null && (
                     <div className="flex flex-wrap gap-2">
@@ -66,27 +70,30 @@ export default function Design(page: DesignPage) {
                 )
             }
         >
-            <Head title="Themes" />
+            <Head title={__('Themes')} />
 
             <p
                 className="text-small text-ink-2"
                 role="status"
                 aria-live="polite"
             >
-                {design.saveState === 'saving' && 'Saving the draft…'}
-                {design.saveState === 'saved' && 'Saved as a draft.'}
+                {design.saveState === 'saving' && __('Saving the draft…')}
+                {design.saveState === 'saved' && __('Saved as a draft.')}
                 {design.saveState === 'failed' &&
-                    'The last change was not saved. Check the fields marked below.'}
+                    __(
+                        'The last change was not saved. Check the fields marked below.',
+                    )}
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
                 <p className="text-small text-ink-2">
-                    The site’s name, tagline and brand colour stay when you
-                    change theme.
+                    {__(
+                        'The site’s name, tagline and brand colour stay when you change theme.',
+                    )}
                 </p>
                 <Button variant="neutral" size="sm" asChild>
                     <Link href={showSettings({ group: 'general' })}>
-                        Open Settings › General
+                        {__('Open Settings › General')}
                     </Link>
                 </Button>
             </div>
@@ -95,7 +102,7 @@ export default function Design(page: DesignPage) {
                 <ThemePreviewPanel
                     preview={page.preview}
                     activeName={active?.name ?? null}
-                    unbound={[]}
+                    unbound={design.unbound}
                     onOpenSite={() => void design.preview('site')}
                     onStop={() =>
                         page.preview !== null &&
@@ -153,6 +160,10 @@ export default function Design(page: DesignPage) {
                 canEdit={page.canEditRegions}
                 idPrefix="theme-regions"
             />
+
+            {chosen !== undefined && chosen.usable && (
+                <ThemeSettings page={page} design={design} name={chosen.name} />
+            )}
 
             {design.draft !== null && page.preview === null && (
                 <DesignDraftBar

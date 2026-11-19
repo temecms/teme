@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The address a trashed or unpublished item last had, for the offer to add
+ * a redirect for it just after it is trashed (I-856).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Queries;
@@ -9,10 +18,6 @@ use App\Domain\Addresses\Paths;
 use App\Domain\Redirects\RedirectTarget;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The address a trashed or unpublished item last had, for the offer to add
- * a redirect for it just after it is trashed (I-856).
- */
 final readonly class TrashedAddress
 {
     /**

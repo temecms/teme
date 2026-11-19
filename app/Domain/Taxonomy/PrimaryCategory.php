@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The category that stands for an item (I-869): its chosen primary
+ * category while that is one of its terms in its type's first hierarchical
+ * taxonomy, else the first of those in its order. It puts the item in its
+ * address, its section label and its trail, so all three agree.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy;
 
 use App\Domain\Types\TaxonomyRegistry;
 
-/**
- * The category that stands for an item (I-869): its chosen primary
- * category while that is one of its terms in its type's first hierarchical
- * taxonomy, else the first of those in its order. It puts the item in its
- * address, its section label and its trail, so all three agree.
- */
 final class PrimaryCategory
 {
     /**

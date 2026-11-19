@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Moves an item one step up or down among its siblings (I-3363): the
+ * items of its type under the same parent, or at the top, not in the trash.
+ * The whole list is numbered 0, 1, 2 again in one statement; no address
+ * moves and no revision is written, since an order is not an edit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Moves an item one step up or down among its siblings (I-3363): the
- * items of its type under the same parent, or at the top, not in the trash.
- * The whole list is numbered 0, 1, 2 again in one statement; no address
- * moves and no revision is written, since an order is not an edit.
- */
 final class ReorderContent extends BaseOperation
 {
     /** The most siblings renumbered a step at a time. */

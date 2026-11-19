@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What SwitchRedirects needs: the redirects, whether to switch them on or
+ * off, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What SwitchRedirects needs: the redirects, whether to switch them on or
- * off, and who is asking.
- */
 final readonly class SwitchRedirectsInput implements OperationInput
 {
     /**

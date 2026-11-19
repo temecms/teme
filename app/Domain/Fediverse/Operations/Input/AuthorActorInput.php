@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What EnableAuthorActor and DisableAuthorActor need: the person whose
+ * account it is, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What EnableAuthorActor and DisableAuthorActor need: the person whose
- * account it is, and who is asking.
- */
 final readonly class AuthorActorInput implements OperationInput
 {
     public function __construct(

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups;
-
 /**
  * The tables a backup keeps as structure only (I-357): their rows are
  * disposable, or would do harm restored, as the queue's would run twice.
  * pg_dump leaves their rows out, so a restore makes them empty.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups;
+
 final class BackupTables
 {
     /** @var list<string> */

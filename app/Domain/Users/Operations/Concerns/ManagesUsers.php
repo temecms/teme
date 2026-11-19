@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The rules the user-management Operations share: who may manage users, that
+ * nobody acts on themselves, and that the last active administrator is never
+ * removed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations\Concerns;
@@ -10,11 +20,6 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The rules the user-management Operations share: who may manage users, that
- * nobody acts on themselves, and that the last active administrator is never
- * removed.
- */
 trait ManagesUsers
 {
     /**

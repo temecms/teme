@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Benchmark;
-
 /**
  * Reads a PostgreSQL EXPLAIN plan and names what breaks the scale rules: a
  * sequential scan on a large table, or — where an index should give the
  * order — a sort of more than one page of rows (I-148).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Benchmark;
+
 final class PlanInspector
 {
     private const int LARGE_TABLE = 10_000;

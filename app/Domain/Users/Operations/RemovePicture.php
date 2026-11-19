@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Clears a person's picture, so their initials show. You may clear your
+ * own; someone who manages users may clear anyone's
+ * (docs/proposals/people-and-account.md). The image stays in Media.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -10,11 +20,6 @@ use App\Domain\Users\Operations\Input\RemovePictureInput;
 use App\Models\User;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Clears a person's picture, so their initials show. You may clear your
- * own; someone who manages users may clear anyone's
- * (docs/proposals/people-and-account.md). The image stays in Media.
- */
 final class RemovePicture extends BaseOperation
 {
     use ManagesUsers;

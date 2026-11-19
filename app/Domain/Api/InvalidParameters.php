@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A request's query parameters the API refuses, each with why, all in one
+ * answer (invalid_parameter): a route's own checks add theirs to the same
+ * list before throwing, so a client hears every problem at once. A
+ * client's mistake, never reported.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
@@ -7,12 +18,6 @@ namespace App\Domain\Api;
 use Illuminate\Contracts\Debug\ShouldntReport;
 use RuntimeException;
 
-/**
- * A request's query parameters the API refuses, each with why, all in one
- * answer (invalid_parameter): a route's own checks add theirs to the same
- * list before throwing, so a client hears every problem at once. A
- * client's mistake, never reported.
- */
 final class InvalidParameters extends RuntimeException implements ShouldntReport
 {
     /**

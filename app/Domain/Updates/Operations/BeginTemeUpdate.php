@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Begins an update request the updater has taken up (I-3326): it runs, with its seven steps waiting, and
+ * every administrator is emailed. The operator only. Returns false when the request was cancelled first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Operations;
@@ -16,10 +25,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Begins an update request the updater has taken up (I-3326): it runs, with its seven steps waiting, and
- * every administrator is emailed. The operator only. Returns false when the request was cancelled first.
- */
 final class BeginTemeUpdate extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

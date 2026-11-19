@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Search and social's section "Feeds": how many items each feed holds and
+ * whether it carries the full text or the excerpt (I-874). Read through the
+ * settings, so a feed carries the group's tag and a change removes it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -9,11 +19,6 @@ use App\Domain\Seo\SearchAndSocialSection;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "Feeds": how many items each feed holds and
- * whether it carries the full text or the excerpt (I-874). Read through the
- * settings, so a feed carries the group's tag and a change removes it.
- */
 final class FeedsSection implements SearchAndSocialSection
 {
     public const string ITEMS = 'feed_items';
@@ -43,10 +48,10 @@ final class FeedsSection implements SearchAndSocialSection
     {
         return [
             Setting::number(self::ITEMS, 'Items in feeds', 'How many of the newest items each feed holds, from 1 to 100.', '0.1.0')
-                ->default(10)->min(1)->max(100),
+                ->default(10)->min(1)->max(100)->unit('items'),
             Setting::select(self::CONTENT, 'Feeds show', 'The full text can be read in a feed reader; the excerpt sends readers to the site to read on.', '0.1.0', [
                 self::FULL => 'The full text',
-                self::EXCERPT => 'The excerpt',
+                self::EXCERPT => 'The excerpt only',
             ]),
         ];
     }

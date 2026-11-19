@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Brings one downloaded file from an imported site into the media library
+ * (I-338): the item that already holds the same bytes, whoever made it, or
+ * a new item stored through UploadMedia with the old site's title, alt text,
+ * caption, uploader and date. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -16,12 +27,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings one downloaded file from an imported site into the media library
- * (I-338): the item that already holds the same bytes, whoever made it, or
- * a new item stored through UploadMedia with the old site's title, alt text,
- * caption, uploader and date. Only an import's actor may call it.
- */
 final class ImportMedia extends BaseOperation
 {
     use AuthorizesImports;

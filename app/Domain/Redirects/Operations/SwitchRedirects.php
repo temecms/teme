@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Switches redirects on or off, for whoever holds redirects.manage (I-850):
+ * a redirect switched off answers nothing, and its address answers "not
+ * found" until it is on again. Recorded and purged for each that changes;
+ * returns how many did.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Switches redirects on or off, for whoever holds redirects.manage (I-850):
- * a redirect switched off answers nothing, and its address answers "not
- * found" until it is on again. Recorded and purged for each that changes;
- * returns how many did.
- */
 final class SwitchRedirects extends BaseOperation
 {
     public function __construct(private readonly RedirectChanges $changes) {}

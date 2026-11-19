@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What happened to each enabled plugin as this process booted (I-3353): the
+ * ones running, and why each other one isn't. Filled once, at boot.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
 use Teme\Contracts\Plugins\Plugin;
 
-/**
- * What happened to each enabled plugin as this process booted (I-3353): the
- * ones running, and why each other one isn't. Filled once, at boot.
- */
 final class LoadedPlugins
 {
     /** @var array<string, Plugin> */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Tells plugins granted fediverse.read what the site sent, after it is
+ * stored and queued (docs/plans/fediverse-publishing.md, D5).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets;
@@ -8,10 +17,6 @@ use App\Domain\Fediverse\Models\Activity;
 use App\Domain\Hooks\HookDispatcher;
 use Teme\Contracts\Fediverse\ActivitySent;
 
-/**
- * Tells plugins granted fediverse.read what the site sent, after it is
- * stored and queued (docs/plans/fediverse-publishing.md, D5).
- */
 final readonly class SentActivities
 {
     public function __construct(private HookDispatcher $hooks) {}

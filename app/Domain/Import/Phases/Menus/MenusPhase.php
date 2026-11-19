@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The menus phase (I-343): each classic menu and each published navigation
+ * post of the old site becomes a Teme menu, its items leading by ID to what
+ * the import brought and to the old site's other addresses as paths here;
+ * a later run follows WordPress's changes while a menu is as the import
+ * left it, and never brings back one deleted here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Menus;
@@ -23,13 +35,6 @@ use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\Operations\ImportNavigation;
 use App\Domain\Menus\Operations\Input\ImportNavigationInput;
 
-/**
- * The menus phase (I-343): each classic menu and each published navigation
- * post of the old site becomes a Teme menu, its items leading by ID to what
- * the import brought and to the old site's other addresses as paths here;
- * a later run follows WordPress's changes while a menu is as the import
- * left it, and never brings back one deleted here.
- */
 final readonly class MenusPhase implements ListPhase
 {
     /** A navigation post's ID in the map, apart from classic menus' term IDs. */

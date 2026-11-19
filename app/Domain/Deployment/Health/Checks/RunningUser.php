@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Says whether Teme's commands run as root (I-378): files they write under
+ * storage/ then belong to a user the web server may not be.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -9,10 +18,6 @@ use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 use Closure;
 
-/**
- * Says whether Teme's commands run as root (I-378): files they write under
- * storage/ then belong to a user the web server may not be.
- */
 final readonly class RunningUser implements DoctorCheck
 {
     /**

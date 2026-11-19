@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The media phase (I-338): each WordPress attachment's original downloaded
+ * before its transaction through the safe downloader, stored once by its
+ * bytes with its details, and every address of its files recorded for the
+ * converter. A later run downloads again only a file WordPress changed, and
+ * never takes back a person's change here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Media;
@@ -38,13 +50,6 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The media phase (I-338): each WordPress attachment's original downloaded
- * before its transaction through the safe downloader, stored once by its
- * bytes with its details, and every address of its files recorded for the
- * converter. A later run downloads again only a file WordPress changed, and
- * never takes back a person's change here.
- */
 final readonly class MediaPhase implements ListPhase, PreparesObjects
 {
     /** Attachments a page: a page job starts none after ImportListPage::SECONDS and leaves the rest to the next (#254). */

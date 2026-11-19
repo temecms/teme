@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Checks a plugin's declared editor panels (docs/proposals/plugin-sockets-3.md,
+ * B1): their shape and bounds, the capabilities they need, the content
+ * types they name, and, as the plugin starts, the jobs their actions queue
+ * and the panels its class hands over. Every refusal is one plain sentence.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
@@ -11,12 +22,6 @@ use Teme\Contracts\Editor\HasEditorPanels;
 use Teme\Contracts\Plugins\Capability;
 use Throwable;
 
-/**
- * Checks a plugin's declared editor panels (docs/proposals/plugin-sockets-3.md,
- * B1): their shape and bounds, the capabilities they need, the content
- * types they name, and, as the plugin starts, the jobs their actions queue
- * and the panels its class hands over. Every refusal is one plain sentence.
- */
 final class PanelValidator
 {
     /** The most panels one plugin may declare. */

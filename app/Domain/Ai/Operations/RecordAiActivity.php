@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Records one AI request when it ends (I-318): its figures, never its words,
+ * and its cost added to its UTC month's total in the same
+ * transaction, so the budget never sums the record. It acts for the person
+ * who asked, never for nobody or the operator; ai.use isn't asked again,
+ * because the spend happened whatever changed since. A plugin's request is
+ * also added to the plugin's month, in the same transaction.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Operations;
@@ -20,14 +33,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records one AI request when it ends (I-318): its figures, never its words,
- * and its cost added to its UTC month's total in the same
- * transaction, so the budget never sums the record. It acts for the person
- * who asked, never for nobody or the operator; ai.use isn't asked again,
- * because the spend happened whatever changed since. A plugin's request is
- * also added to the plugin's month, in the same transaction.
- */
 final class RecordAiActivity extends BaseOperation
 {
     /** How a request may end when it is recorded; it is used or found out of date later. */

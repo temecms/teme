@@ -83,8 +83,10 @@ export type SettingsNavItem = {
     key: string;
     label: string;
     href: string;
-    /** "Site", or "Plugin settings" over a plugin's group. */
+    /** "Site", or "From plugins" over a plugin's group. */
     heading: string;
+    /** Whether a plugin added the page, so it sits under From plugins with the plug mark. */
+    plugin: boolean;
 };
 
 /** What Find a setting answers: Settings pages, then settings, in the menu's order. */
@@ -144,9 +146,13 @@ export type SettingsGroupPage = {
     themePerPage: { theme: string | null; number: number } | null;
     homePage: HomePageSection | null;
     brandColour: BrandColourSection | null;
-    /** Media's image widths, as information: not a setting. */
-    imageWidths: { label: string; value: string; hint: string } | null;
-    /** General's panels, each its title, its line and its settings' keys, or null for one panel. */
+    /** Media's image widths, as information: not a setting; and the server's own upload limit. */
+    imageWidths: {
+        rows: { term: string; value: string }[];
+        hint: string;
+        uploadLimit: string;
+    } | null;
+    /** The page's sections, each its title, its line and its settings' keys, or null for one panel. */
     panels: { title: string; description: string; keys: string[] }[] | null;
     /** A plugin's settings page: its declared actions (round 1, A5). */
     pluginActions?: PluginActionOffer[];
@@ -156,6 +162,10 @@ export type SettingsGroupPage = {
     words?: SettingsWordsSection | null;
     /** One sentence above the form when something needs the person, such as Updates' Dokploy key; null on most pages. */
     notice?: string | null;
+    /** A plugin's settings page: the plugin's name, for its mark; null on core's pages. */
+    plugin?: string | null;
+    /** View only: the permission that changes the group, in words, and the roles that hold it; null for someone who may change it. */
+    readOnly?: { permission: string; holders: string } | null;
 };
 
 /** A settings group's "In other languages" table. */

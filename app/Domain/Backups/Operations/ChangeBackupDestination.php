@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Changes a place's name, or the address and credentials it is reached at,
+ * never pointing it at other backups (I-360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -22,10 +31,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Changes a place's name, or the address and credentials it is reached at,
- * never pointing it at other backups (I-360).
- */
 final class ChangeBackupDestination extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

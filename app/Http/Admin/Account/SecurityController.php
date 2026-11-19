@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The Security page: changing your password, through the `ChangePassword`
+ * Operation. Two-factor sign-in has its own page (TwoFactorController).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Account;
@@ -13,10 +22,6 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The Security page: changing your password, through the `ChangePassword`
- * Operation. Two-factor sign-in has its own page (TwoFactorController).
- */
 final class SecurityController extends Controller
 {
     public function edit(): Response

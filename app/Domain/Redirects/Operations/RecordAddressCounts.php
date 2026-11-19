@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Writes what readers met since the last run, as the operator, every minute
+ * (I-297, I-298): the spool closed a run ago is added to the tables in
+ * batches, each redirect's hits and each address's row in the 404 log,
+ * which then keeps only the most recently seen up to its cap; then the open
+ * spool is closed for the next run. A reader's request never writes either.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations;
@@ -14,13 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Writes what readers met since the last run, as the operator, every minute
- * (I-297, I-298): the spool closed a run ago is added to the tables in
- * batches, each redirect's hits and each address's row in the 404 log,
- * which then keeps only the most recently seen up to its cap; then the open
- * spool is closed for the next run. A reader's request never writes either.
- */
 final class RecordAddressCounts extends BaseOperation
 {
     /** Rows one statement writes. */

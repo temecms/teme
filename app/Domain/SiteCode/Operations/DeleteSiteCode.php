@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Deletes an entry of site code; the security log keeps a copy of its code.
+ * Elevated (I-864), and every stored page purged when pages drew it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Operations;
@@ -13,10 +22,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Deletes an entry of site code; the security log keeps a copy of its code.
- * Elevated (I-864), and every stored page purged when pages drew it.
- */
 final class DeleteSiteCode extends BaseOperation implements RequiresElevation
 {
     use ChangesSiteCode;

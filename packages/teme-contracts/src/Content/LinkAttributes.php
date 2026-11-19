@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a plugin asks Teme to write on one link an article draws: rel values
+ * from a closed list, whether it opens in a new tab, and at most two class
+ * names the theme declares for links.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

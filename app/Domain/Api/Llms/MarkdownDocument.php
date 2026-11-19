@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * A stored document as Markdown, for the `.md` copy of a page (I-713):
+ * headings, paragraphs, lists, task lists, quotes, code, rules and tables,
+ * with bold, italic, strike, code and links. A link by ID is written at its
+ * address now and by its text alone when its target has none; an image card
+ * is an image at its widest size; any other card is its own words. Text that
+ * would read as Markdown is escaped, and no HTML is ever written.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Llms;
@@ -10,14 +23,6 @@ use App\Domain\Cards\CardMedia;
 use App\Domain\Cards\CardRegistry;
 use App\Domain\Cards\DocumentSchema;
 
-/**
- * A stored document as Markdown, for the `.md` copy of a page (I-713):
- * headings, paragraphs, lists, task lists, quotes, code, rules and tables,
- * with bold, italic, strike, code and links. A link by ID is written at its
- * address now and by its text alone when its target has none; an image card
- * is an image at its widest size; any other card is its own words. Text that
- * would read as Markdown is escaped, and no HTML is ever written.
- */
 final class MarkdownDocument
 {
     /** The nodes that open a list. */

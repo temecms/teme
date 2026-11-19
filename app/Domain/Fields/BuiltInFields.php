@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The fields every post and page has from the start: what search engines
+ * and social cards read and what they are told the item is (I-147, I-292,
+ * I-293, I-714), the category that stands for them (I-295), the image that
+ * stands for them, the theme template they are drawn with (I-443), and, for
+ * posts, whether they are pinned (I-156). Their keys never change.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields;
@@ -14,13 +26,6 @@ use App\Domain\Fields\Types\TextareaField;
 use App\Domain\Fields\Types\TextField;
 use App\Domain\StructuredData\TypeSchemas;
 
-/**
- * The fields every post and page has from the start: what search engines
- * and social cards read and what they are told the item is (I-147, I-292,
- * I-293, I-714), the category that stands for them (I-295), the image that
- * stands for them, the theme template they are drawn with (I-443), and, for
- * posts, whether they are pinned (I-156). Their keys never change.
- */
 final class BuiltInFields
 {
     public const string SEO_TITLE = '01K5Z0F1ED00000000000000S1';
@@ -57,6 +62,9 @@ final class BuiltInFields
 
     public const string ARTICLE_TYPE = '01K5Z0F1ED00000000000000AT';
 
+    /**
+     * @since 1.0.0
+     */
     public const string INSERTIONS_OFF = '01K5Z0F1ED00000000000000XF';
 
     /**

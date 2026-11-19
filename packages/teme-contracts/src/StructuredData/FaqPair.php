@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One question of an FAQ card and its answer: the answer's words as plain
+ * text, and as the HTML the page draws, its links made from the site's address
+ * now.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\StructuredData;

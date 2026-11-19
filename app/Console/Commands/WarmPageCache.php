@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * `teme:cache:warm`: draws the pages readers ask for most, so they are
+ * stored before anyone asks (docs/studies/page-cache.md §3.11): the home
+ * page, then every term's and every author's archive, then live items,
+ * newest first, from `paths`. One page at a time, never all at once, and
+ * never a list's later pages. Run it after teme:cache:clear, as a deploy
+ * does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,14 +26,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * `teme:cache:warm`: draws the pages readers ask for most, so they are
- * stored before anyone asks (docs/studies/page-cache.md §3.11): the home
- * page, then every term's and every author's archive, then live items,
- * newest first, from `paths`. One page at a time, never all at once, and
- * never a list's later pages. Run it after teme:cache:clear, as a deploy
- * does.
- */
 final class WarmPageCache extends Command
 {
     /** Rows read from `paths` per statement. */

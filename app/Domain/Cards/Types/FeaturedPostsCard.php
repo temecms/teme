@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A short list of posts in a theme's region: ones chosen by hand, in their
+ * order, or the latest of a type, optionally filed under one term. Stored as
+ * IDs and a count, and drawn when the page is (rule 7), by the theme's own
+ * view when it has one, else core's.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -17,12 +28,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\View;
 use Illuminate\Validation\ValidationException;
 
-/**
- * A short list of posts in a theme's region: ones chosen by hand, in their
- * order, or the latest of a type, optionally filed under one term. Stored as
- * IDs and a count, and drawn when the page is (rule 7), by the theme's own
- * view when it has one, else core's.
- */
 final class FeaturedPostsCard implements CardType, RegionCard
 {
     /** The most posts one list shows. */

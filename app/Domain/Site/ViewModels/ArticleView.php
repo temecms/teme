@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One article as its template sees it, as `$page`, from its published
+ * revision, or the revision a preview shows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The rules for an item's parent (I-3363), in one place: each Operation asks
+ * in validate() for the friendly answer and again under the tree lock in
+ * perform(), so two moves at once can't make a loop.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Tree;
@@ -9,11 +19,6 @@ use App\Domain\Feeds\FeedPath;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Types\ContentTypeRegistry;
 
-/**
- * The rules for an item's parent (I-3363), in one place: each Operation asks
- * in validate() for the friendly answer and again under the tree lock in
- * perform(), so two moves at once can't make a loop.
- */
 final class TreeRules
 {
     public function __construct(private readonly ContentTree $tree, private readonly ContentTypeRegistry $types) {}

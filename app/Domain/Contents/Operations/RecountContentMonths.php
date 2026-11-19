@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Counts the month rows of content_counts again from the items, in the
+ * site's zone (I-3131): after the time zone changes, by whoever changed it
+ * or the operator. It holds content_counts while it writes, so no
+ * Operation's count lands between its read and its write.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -14,12 +25,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Counts the month rows of content_counts again from the items, in the
- * site's zone (I-3131): after the time zone changes, by whoever changed it
- * or the operator. It holds content_counts while it writes, so no
- * Operation's count lands between its read and its write.
- */
 final class RecountContentMonths extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

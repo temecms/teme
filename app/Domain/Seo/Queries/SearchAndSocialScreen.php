@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › Search and social's data (I-874): the group's sections in their
+ * order, each with its fields and core's words for it; the title rows with
+ * the tokens each row's example is filled from; robots.txt as it is now; the
+ * files search engines fetch; and whether this copy is the live site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo\Queries;
@@ -25,12 +36,6 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Settings › Search and social's data (I-874): the group's sections in their
- * order, each with its fields and core's words for it; the title rows with
- * the tokens each row's example is filled from; robots.txt as it is now; the
- * files search engines fetch; and whether this copy is the live site.
- */
 final readonly class SearchAndSocialScreen
 {
     /** Core's words under a section's settings, by section key; a section has nowhere of its own to carry them. */

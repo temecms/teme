@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Fills the benchmark database with study I's data set using PostgreSQL's own
+ * generators, so a million items take minutes, not hours. Tooling, like a
+ * database seeder: it writes directly and is never pointed at a site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -17,11 +27,6 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-/**
- * Fills the benchmark database with study I's data set using PostgreSQL's own
- * generators, so a million items take minutes, not hours. Tooling, like a
- * database seeder: it writes directly and is never pointed at a site.
- */
 final class BenchmarkSeeder
 {
     private const array WORDS = [

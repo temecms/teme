@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Redirects;
-
-use App\Domain\Addresses\PublicRequestPath;
-
 /**
  * Where a reader's request notes a redirect it met or an address nothing
  * answered, without a write to the database (docs/studies/seo.md, §3.15):
@@ -13,7 +7,18 @@ use App\Domain\Addresses\PublicRequestPath;
  * share, which RecordAddressCounts writes to the tables a minute later. A
  * sink (docs/architecture/operations.md, Telemetry sinks): nothing decides
  * anything from it, and a line that can't be written is dropped.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Redirects;
+
+use App\Domain\Addresses\PublicRequestPath;
+
 final readonly class AddressCounts
 {
     /** The spool's folder, inside the page cache's, which the web server, the worker and the scheduler share. */

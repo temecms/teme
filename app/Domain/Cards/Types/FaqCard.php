@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Questions and their answers, each answer short rich text. On the page
+ * each question opens its answer, with no script; in feeds and the API they
+ * are headings and paragraphs. Its pairs go to plugins that add structured
+ * data (docs/guides/developers/plugins/seo.md); core adds none of its own.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -14,12 +25,6 @@ use App\Domain\Cards\OutlinedCard;
 use App\Domain\Cards\RenderContext;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Questions and their answers, each answer short rich text. On the page
- * each question opens its answer, with no script; in feeds and the API they
- * are headings and paragraphs. Its pairs go to plugins that add structured
- * data (docs/guides/developers/plugins/seo.md); core adds none of its own.
- */
 final class FaqCard implements CardType, OutlinedCard
 {
     /** The most questions one card holds. */

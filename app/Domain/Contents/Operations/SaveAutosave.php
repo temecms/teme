@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Keeps one person's draft of one article while they type (I-181, decision
+ * 1A): one row per person per article, updated in place, never a revision.
+ * There is no lock (decision 2A). If the article moved on since the draft's
+ * base, the save is refused, the person's own row is dropped so their work is
+ * never reapplied over someone else's, and they are told. A save one editor
+ * session numbered below the one it last kept is older words arriving late:
+ * it is answered as saved and writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -21,15 +35,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Keeps one person's draft of one article while they type (I-181, decision
- * 1A): one row per person per article, updated in place, never a revision.
- * There is no lock (decision 2A). If the article moved on since the draft's
- * base, the save is refused, the person's own row is dropped so their work is
- * never reapplied over someone else's, and they are told. A save one editor
- * session numbered below the one it last kept is older words arriving late:
- * it is answered as saved and writes nothing.
- */
 final class SaveAutosave extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

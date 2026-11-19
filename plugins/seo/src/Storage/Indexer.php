@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Reads an item's working revision for the person the work acts for, and
+ * keeps what Teme SEO needs of it in the index: its search fields, its
+ * words and its links.
+ *
+ * @package teme/seo
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Seo\Storage;
@@ -8,18 +18,16 @@ use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Content\ItemSnapshot;
 use Teme\Contracts\Content\ReadRefused;
+use Teme\Contracts\Settings\SettingsReader;
 use Teme\Seo\Document\Article;
+use Teme\Seo\TemeSeo;
 
-/**
- * Reads an item's working revision for the person the work acts for, and
- * keeps what Teme SEO needs of it in the index: its search fields, its
- * words and its links.
- */
 final readonly class Indexer
 {
     public function __construct(
         private ContentReader $content,
         private ItemIndex $index,
+        private ?SettingsReader $settings = null,
     ) {}
 
     /**
@@ -56,6 +64,7 @@ final readonly class Indexer
         $seoTitle = self::text($fields['seo_title'] ?? null);
         $description = self::text($fields['meta_description'] ?? null);
 
+        $thin = $this->settings === null ? 300 : max(1, $this->settings->int(TemeSeo::SETTINGS, 'thin_words'));
         $this->index->record($snapshot->item, [
             'seo_title' => $seoTitle,
             'meta_description' => $description,
@@ -63,7 +72,7 @@ final readonly class Indexer
             'has_featured_image' => ! in_array($fields['featured_image'] ?? null, [null, '', []], true),
             'words' => $article->words,
             'images_missing_alt' => $article->imagesMissingAlt,
-        ], $article->links);
+        ], $article->links, $thin);
 
         return $snapshot;
     }

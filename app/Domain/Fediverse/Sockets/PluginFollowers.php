@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A plugin's read-only door to who follows the site's accounts, given with
+ * fediverse.read.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets;
@@ -10,10 +19,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 
-/**
- * A plugin's read-only door to who follows the site's accounts, given with
- * fediverse.read.
- */
 final readonly class PluginFollowers implements FediverseFollowers
 {
     /**

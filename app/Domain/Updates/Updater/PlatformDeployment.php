@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * One deployment as the platform reports it: its ID, running, done, error or cancelled, and when it was made and ended.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
 
 use Carbon\CarbonImmutable;
 
-/**
- * One deployment as the platform reports it: its ID, running, done, error or cancelled, and when it was made and ended.
- */
 final readonly class PlatformDeployment
 {
     public const string RUNNING = 'running';

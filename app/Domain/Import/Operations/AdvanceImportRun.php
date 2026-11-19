@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Moves a running import on to its next phase (I-332): checks the attempt's token under the run's lock, so two callbacks can't both advance, and tallies the counts so far.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -14,9 +22,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Moves a running import on to its next phase (I-332): checks the attempt's token under the run's lock, so two callbacks can't both advance, and tallies the counts so far.
- */
 final class AdvanceImportRun extends BaseOperation
 {
     use AuthorizesImports;

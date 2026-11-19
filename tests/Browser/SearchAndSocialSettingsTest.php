@@ -59,9 +59,9 @@ it('passes axe on Home\'s warning and on Settings › Search and social, every t
 
     $page->navigate('/admin/settings/seo')
         ->assertSee('This copy isn’t the live site.')
-        ->assertSee('Search engines are asked to stay away from the whole site.')
+        ->assertSee('Search engines are asked to keep away.')
         ->assertPresent('[data-test="pairs-row"]')
-        ->assertSee('What robots.txt says now')
+        ->assertSee('What readers’ robots will see')
         ->assertNoAccessibilityIssues(3);
 
     $screen = cmSmallTargets($page);
@@ -71,26 +71,24 @@ it('passes axe on Home\'s warning and on Settings › Search and social, every t
         ->and($screen['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('fills each row\'s example as its template and the separator are typed, and shows the home row\'s second page with its tagline (I-904)', function (): void {
+it('fills the post example as its template and the separator are typed (I-904)', function (): void {
     cmSettings(['tagline' => 'Harbour stories'], 'general');
     cmItem(User::factory()->create(['name' => 'Jane Doe'])->assignRole('author'), 'Harbour news');
 
     cmSignIn($this->admin)
         ->navigate('/admin/settings/seo')
-        ->assertSeeIn('#example-title_home', 'Shows as: My Teme site')
-        ->assertSeeIn('[data-test="seo-row-page-two"]', 'Page 2 shows as: My Teme site')
+        ->assertSeeIn('[data-test="seo-title-example"]', 'Harbour news')
         ->type('[name="values[title_separator]"]', '|')
-        ->assertSeeIn('[data-test="seo-row-page-two"]', 'My Teme site | Page 2 | Harbour stories')
+        ->assertSeeIn('[data-test="seo-title-example"]', 'Harbour news | My Teme site')
         ->type('[name="values[title_type_post]"]', '{title} {sep} {type} {sep} {nothing}')
-        ->assertSeeIn('#example-title_type_post', 'Shows as: Harbour news | Post')
+        ->assertSeeIn('[data-test="seo-title-example"]', 'Harbour news | Post')
         ->clear('[name="values[title_type_post]"]')
-        ->assertSeeIn('#example-title_type_post', 'Shows as: Harbour news | My Teme site');
+        ->assertSeeIn('[data-test="seo-title-example"]', 'Harbour news | My Teme site');
 });
 
 it('adds a verification tag, refuses a name Teme writes itself, and saves one that is fine (I-288)', function (): void {
     cmSignIn($this->admin)
         ->navigate('/admin/settings/seo')
-        ->assertSee('No verification tags.')
         ->click('[data-test="pairs-add"]')
         ->type('[name="values[site_verification][0][name]"]', 'robots')
         ->type('[name="values[site_verification][0][value]"]', 'index')

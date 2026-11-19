@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Settings › Fediverse (docs/plans/fediverse-actors.md, T7): the switch, who
+ * can be followed, the accounts, and the blocked servers, each change made
+ * by its own Operation; it changes nothing itself.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -26,11 +36,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › Fediverse (docs/plans/fediverse-actors.md, T7): the switch, who
- * can be followed, the accounts, and the blocked servers, each change made
- * by its own Operation; it changes nothing itself.
- */
 final class FediverseSettingsController extends Controller
 {
     public function show(Request $request, FediverseScreen $screen): Response

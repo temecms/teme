@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What the running Operations announce to plugins (I-3353): a list for each
+ * Operation executing, nested as Operations nest, which BaseOperation opens
+ * before perform(), closes after it, and delivers after the outermost
+ * commit, never after a rollback (rule 6). Only what a plugin listens for
+ * is kept. Scoped to a request or a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks;
@@ -8,13 +20,6 @@ use Closure;
 use LogicException;
 use Teme\Contracts\Hooks\Notification;
 
-/**
- * What the running Operations announce to plugins (I-3353): a list for each
- * Operation executing, nested as Operations nest, which BaseOperation opens
- * before perform(), closes after it, and delivers after the outermost
- * commit, never after a rollback (rule 6). Only what a plugin listens for
- * is kept. Scoped to a request or a job.
- */
 final class PendingNotifications
 {
     /** @var array<int, list<array{0: class-string<Notification>, 1: Closure(): Notification}>> */

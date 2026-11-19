@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What approving, refusing and revoking a plugin's script share with site
+ * code's own changes (I-288): who may decide, the host's switch, the
+ * password asked again, the security log's before and after, and the pages
+ * that drew insertions purged after commit.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Operations\Concerns;
@@ -14,12 +25,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What approving, refusing and revoking a plugin's script share with site
- * code's own changes (I-288): who may decide, the host's switch, the
- * password asked again, the security log's before and after, and the pages
- * that drew insertions purged after commit.
- */
 trait DecidesPluginScripts
 {
     use ChangesSiteCode;

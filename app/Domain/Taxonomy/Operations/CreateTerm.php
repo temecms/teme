@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Creates a category or tag. Only someone who may manage terms can do it; the
+ * slug is made from the name unless one is given, and is unique within its
+ * taxonomy and language (I-3360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations;
@@ -14,11 +24,6 @@ use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
 use App\Domain\Taxonomy\TermWriter;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Creates a category or tag. Only someone who may manage terms can do it; the
- * slug is made from the name unless one is given, and is unique within its
- * taxonomy and language (I-3360).
- */
 final class CreateTerm extends BaseOperation
 {
     use ValidatesTerms;

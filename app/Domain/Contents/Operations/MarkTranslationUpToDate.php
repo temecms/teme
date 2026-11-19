@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Marks a translation up to date with its source (I-3360, D9): a new
+ * working revision, a copy of the current one, recording the source's
+ * published revision (or its working one, for an unpublished source the
+ * person may edit) as the one it was translated from. Revisions are never
+ * edited in place, and nothing public changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -16,13 +28,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Marks a translation up to date with its source (I-3360, D9): a new
- * working revision, a copy of the current one, recording the source's
- * published revision (or its working one, for an unpublished source the
- * person may edit) as the one it was translated from. Revisions are never
- * edited in place, and nothing public changes.
- */
 final class MarkTranslationUpToDate extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

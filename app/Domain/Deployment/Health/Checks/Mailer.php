@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Says whether a production site's email is really sent (I-378): the log
+ * and array mailers keep every password reset and alert to themselves.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -8,10 +17,6 @@ use App\Domain\Deployment\Health\DoctorCheck;
 use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 
-/**
- * Says whether a production site's email is really sent (I-378): the log
- * and array mailers keep every password reset and alert to themselves.
- */
 final readonly class Mailer implements DoctorCheck
 {
     public function title(): string

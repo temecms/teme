@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The Comments screen (1.8c): the list as one person may see it, its views
+ * and counts, the item it's narrowed to and the drawer its address opens, and
+ * what Empty spam and Empty trash would delete (1.8c′); and, instead, the page for comments switched off or for an item or comment
+ * the person doesn't look after.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Comments;
@@ -22,12 +33,6 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The Comments screen (1.8c): the list as one person may see it, its views
- * and counts, the item it's narrowed to and the drawer its address opens, and
- * what Empty spam and Empty trash would delete (1.8c′); and, instead, the page for comments switched off or for an item or comment
- * the person doesn't look after.
- */
 final class CommentScreenController extends Controller
 {
     public function index(Request $request, CommentList $list, CommentDetails $details, SettingsReader $settings, CommentStatusRegistry $statuses): Response|HttpResponse

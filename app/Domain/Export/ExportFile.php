@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One NDJSON file of an export, written line by line as its kind yields
+ * them (I-365): nothing is held but the line being written, and the bytes
+ * are counted and hashed as they go, so the manifest's SHA-256 is of
+ * exactly what reached the file.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
@@ -7,12 +18,6 @@ namespace App\Domain\Export;
 use HashContext;
 use LogicException;
 
-/**
- * One NDJSON file of an export, written line by line as its kind yields
- * them (I-365): nothing is held but the line being written, and the bytes
- * are counted and hashed as they go, so the manifest's SHA-256 is of
- * exactly what reached the file.
- */
 final class ExportFile
 {
     private HashContext $hash;

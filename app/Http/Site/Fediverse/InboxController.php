@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The site's inboxes, shared and each actor's, new and imported: hands the
+ * request to InboxGate and answers its status with no body.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Fediverse;
@@ -10,10 +19,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Teme\Contracts\Routes\PublicRequest;
 
-/**
- * The site's inboxes, shared and each actor's, new and imported: hands the
- * request to InboxGate and answers its status with no body.
- */
 final class InboxController extends Controller
 {
     public function __invoke(Request $request, InboxGate $gate): Response

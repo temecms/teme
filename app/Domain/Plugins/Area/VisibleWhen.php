@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins\Area;
-
 /**
  * The one show/hide rule of a plugin's forms and settings pages
  * (docs/plans/plugin-sockets-2.md, A2): every key must match, a list matches
  * any of its values, and a hidden field counts as empty for the fields after
  * it. `resources/js/lib/visible-when.ts` mirrors it line for line.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins\Area;
+
 final class VisibleWhen
 {
     /**

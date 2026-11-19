@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The `fediverse` settings group (I-058): who can be followed, the blog,
+ * its authors, or both. It has its own screen, Settings › Fediverse, so
+ * only ChangeFediverseSettings writes it; the switch is `modules.fediverse`.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse;
@@ -8,11 +18,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The `fediverse` settings group (I-058): who can be followed, the blog,
- * its authors, or both. It has its own screen, Settings › Fediverse, so
- * only ChangeFediverseSettings writes it; the switch is `modules.fediverse`.
- */
 final class FediverseSettingsGroup
 {
     public const string KEY = 'fediverse';

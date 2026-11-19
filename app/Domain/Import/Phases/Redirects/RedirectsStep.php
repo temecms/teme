@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The old site's redirect rules (I-297): each store the companion reads, in
+ * order, a rule at a time through ImportOldRedirect, with its own map row; a
+ * rule unchanged since it last came writes nothing. Fifty seconds a job,
+ * carried on from the last rule done.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Redirects;
@@ -18,12 +29,6 @@ use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Source\SourceReader;
 use Illuminate\Support\Str;
 
-/**
- * The old site's redirect rules (I-297): each store the companion reads, in
- * order, a rule at a time through ImportOldRedirect, with its own map row; a
- * rule unchanged since it last came writes nothing. Fifty seconds a job,
- * carried on from the last rule done.
- */
 final readonly class RedirectsStep implements StepPhase
 {
     /** Seconds a job reads for before it hands on to the next. */

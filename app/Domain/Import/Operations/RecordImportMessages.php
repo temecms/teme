@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Records a run's own messages (I-345), those that belong to no object: a step's notes. Does nothing for a stopped attempt's token.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -14,9 +22,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records a run's own messages (I-345), those that belong to no object: a step's notes. Does nothing for a stopped attempt's token.
- */
 final class RecordImportMessages extends BaseOperation
 {
     use AuthorizesImports;

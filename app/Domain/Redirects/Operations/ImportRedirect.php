@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Adds one redirect an import of another site needs (I-297), for the
+ * importer's phases: checked as one added by hand is, marked imported, and
+ * never written over a redirect already at its address, but the import's
+ * own: one to a file, moved on when asked, or any, when the old site's own
+ * rule outranks it. Never a person's. The run's start and end are logged,
+ * never each redirect.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations;
@@ -17,14 +30,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds one redirect an import of another site needs (I-297), for the
- * importer's phases: checked as one added by hand is, marked imported, and
- * never written over a redirect already at its address, but the import's
- * own: one to a file, moved on when asked, or any, when the old site's own
- * rule outranks it. Never a person's. The run's start and end are logged,
- * never each redirect.
- */
 final class ImportRedirect extends BaseOperation
 {
     use AuthorizesImports;

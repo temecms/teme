@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai\Tasks\Rewrite;
-
 /**
  * The seven ways a rewrite may change the selected text (I-1309), in the
  * order the Rewrite menu shows them. The value is the request's variant,
  * which the record keeps and History reads back as the label.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai\Tasks\Rewrite;
+
 enum RewritePreset: string
 {
     case Improve = 'improve';

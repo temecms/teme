@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What EndExtensionRequest needs: how the request ended, why, what the
+ * installer found, and the codes of the plugins and themes the change
+ * touched, so the page cache is purged only when the public sees it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Extensions\Operations\Input;
 use App\Domain\Extensions\RequestStatus;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What EndExtensionRequest needs: how the request ended, why, what the
- * installer found, and the codes of the plugins and themes the change
- * touched, so the page cache is purged only when the public sees it.
- */
 final readonly class EndExtensionRequestInput implements OperationInput
 {
     /**

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Keeps an autosave nobody has touched for `editor.autosave_ttl_days` as a
+ * revision in its article's history, dated when the work was done, and only
+ * then removes the row (I-424). It is someone's work, so it is never simply
+ * deleted. It does not move the working revision: this is history, not the
+ * article's current state.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -16,13 +28,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Date;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Keeps an autosave nobody has touched for `editor.autosave_ttl_days` as a
- * revision in its article's history, dated when the work was done, and only
- * then removes the row (I-424). It is someone's work, so it is never simply
- * deleted. It does not move the working revision: this is history, not the
- * article's current state.
- */
 final class ArchiveAutosave extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

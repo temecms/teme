@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Core's hook dispatcher (I-3353): it keeps every subscription, filled as
+ * plugins boot, and calls each listener inside its own try, so a listener
+ * that fails is recorded and harms no other. Plugins subscribe through the
+ * OwnedHooks it hands each of them; only core dispatches.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks;
@@ -21,12 +32,6 @@ use Teme\Contracts\Hooks\Transform;
 use Teme\Contracts\Hooks\Veto;
 use Throwable;
 
-/**
- * Core's hook dispatcher (I-3353): it keeps every subscription, filled as
- * plugins boot, and calls each listener inside its own try, so a listener
- * that fails is recorded and harms no other. Plugins subscribe through the
- * OwnedHooks it hands each of them; only core dispatches.
- */
 final class HookDispatcher
 {
     /** Dispatches nest at most this deep: a listener that causes the change it listens to. */
@@ -409,6 +414,8 @@ final class HookDispatcher
      * Returns a hook's name as a manifest lists it: a core hook's short
      * name, or `{code}:{name}` for a hook an enabled plugin declares
      * (docs/plans/plugin-sockets-3.md).
+     *
+     * @since 1.0.0
      */
     public function nameOf(string $hook): string
     {

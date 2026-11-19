@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Where one content item sits for counting: its type, its bucket — its
+ * status, or "trash" — and its author. Operations take one before and one
+ * after a change and hand both to ContentCounts.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -9,11 +19,6 @@ use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Where one content item sits for counting: its type, its bucket — its
- * status, or "trash" — and its author. Operations take one before and one
- * after a change and hand both to ContentCounts.
- */
 final readonly class ContentState
 {
     public function __construct(

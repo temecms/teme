@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The site's own taxonomies: their table. The copy every process reads is
+ * the stored types', which holds both tables under one version (I-3296).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * The site's own taxonomies: their table. The copy every process reads is
- * the stored types', which holds both tables under one version (I-3296).
- */
 final class StoredTaxonomies
 {
     public const string TABLE = 'taxonomy_definitions';

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Reads an SSH server's host key with ssh-keyscan, so a person can confirm
+ * its fingerprint before Teme trusts it (I-2403).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
@@ -11,10 +20,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
-/**
- * Reads an SSH server's host key with ssh-keyscan, so a person can confirm
- * its fingerprint before Teme trusts it (I-2403).
- */
 final readonly class SshKeyscan
 {
     /** How long the process may run, in seconds; ssh-keyscan itself gives up after 10 of silence. */

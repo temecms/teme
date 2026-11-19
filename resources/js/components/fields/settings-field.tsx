@@ -1,4 +1,4 @@
-import { OctagonAlertIcon } from 'lucide-react';
+import { LockIcon, OctagonAlertIcon } from 'lucide-react';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
 import { __ } from '@/lib/i18n';
@@ -16,6 +16,8 @@ type Props = {
     name?: string;
     /** Shown but not changeable, and sent with nothing (1.8d). */
     disabled?: boolean;
+    /** A change to it asks for the person's password, and the field says so. */
+    sensitive?: boolean;
 };
 
 /** A field, and the mark Find a setting puts on the one it lands on. */
@@ -35,6 +37,7 @@ export function SettingsField({
     error,
     name,
     disabled,
+    sensitive = false,
 }: Props) {
     const controlName =
         name ??
@@ -43,20 +46,32 @@ export function SettingsField({
             : `values[${field.key}]`);
 
     const hint = (
-        <p
-            id={`field-${field.key}-hint`}
-            className="text-caption text-ink-3 text-pretty"
-        >
-            {field.description}
-        </p>
+        <>
+            <p
+                id={`field-${field.key}-hint`}
+                className="text-caption text-ink-3 text-pretty"
+            >
+                {field.description}
+            </p>
+            {sensitive && (
+                <p
+                    data-test="field-asks-password"
+                    className="text-caption text-ink-2 flex items-start gap-1"
+                >
+                    <span className="flex h-lh shrink-0 items-center">
+                        <LockIcon aria-hidden="true" className="size-3.5" />
+                    </span>
+                    {__('Asks for your password to change')}
+                </p>
+            )}
+        </>
     );
-    const label = (
-        <Label
-            htmlFor={`field-${field.key}`}
-            className={
-                field.type === 'boolean' ? 'text-body text-ink gap-1' : 'gap-1'
-            }
-        >
+    // Ticked boxes are a group: their name is a line that labels the group, not a label for one control.
+    const group =
+        field.type === 'multiselect' ||
+        (field.type === 'term' && field.multiple === true);
+    const words = (
+        <>
             {field.label}
             {field.required && (
                 <>
@@ -66,6 +81,23 @@ export function SettingsField({
                     </span>
                 </>
             )}
+        </>
+    );
+    const label = group ? (
+        <p
+            id={`field-${field.key}-label`}
+            className="text-small text-ink-2 font-medium"
+        >
+            {words}
+        </p>
+    ) : (
+        <Label
+            htmlFor={`field-${field.key}`}
+            className={
+                field.type === 'boolean' ? 'text-body text-ink' : undefined
+            }
+        >
+            {words}
         </Label>
     );
     const problem = error !== undefined && error !== '' && (
@@ -92,7 +124,7 @@ export function SettingsField({
     );
 
     if (field.type === 'boolean') {
-        // The box beside its words, the hint under the words.
+        // The switch beside its words, the hint under the words.
         return (
             <div data-slot="settings-field" className={FIELD_CLASS}>
                 <div className="flex items-start gap-2">

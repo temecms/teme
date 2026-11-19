@@ -1,10 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-
 /**
  * When each comment's status last changed (1.8c′'s D2, the design pass's
  * C4, I-645), to the microsecond: Empty spam and Empty trash delete only what
@@ -15,7 +10,17 @@ use Illuminate\Support\Facades\DB;
  * Operation that writes a status writes this too, and an insert that forgets
  * it fails. Not built concurrently: no site holds enough comments yet for the
  * update's lock to matter.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     public function up(): void

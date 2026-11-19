@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Imported content card's list as a validation rule on its `markup`
+ * attribute, so DocumentValidator runs it on every save, an autosave's
+ * included (I-329).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Imported;
@@ -7,11 +17,6 @@ namespace App\Domain\Cards\Imported;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-/**
- * The Imported content card's list as a validation rule on its `markup`
- * attribute, so DocumentValidator runs it on every save, an autosave's
- * included (I-329).
- */
 final readonly class MarkupRule implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void

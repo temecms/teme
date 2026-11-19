@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Core's comment moderator (docs/studies/comments.md §3.4, step 4): the block
+ * list sends to spam; the hold list, links and "hold every comment" hold; then
+ * a returning writer is approved and a first comment held once, or, with that
+ * option off, whatever passed is approved. A plugin binds its own instead.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -8,12 +19,6 @@ use Teme\Contracts\Comments\CommentCandidate;
 use Teme\Contracts\Comments\CommentModerator;
 use Teme\Contracts\Comments\ModerationVerdict;
 
-/**
- * Core's comment moderator (docs/studies/comments.md §3.4, step 4): the block
- * list sends to spam; the hold list, links and "hold every comment" hold; then
- * a returning writer is approved and a first comment held once, or, with that
- * option off, whatever passed is approved. A plugin binds its own instead.
- */
 final class BuiltInModerator implements CommentModerator
 {
     /** The fields a list line is looked for in, in order, with their names in a reason. */

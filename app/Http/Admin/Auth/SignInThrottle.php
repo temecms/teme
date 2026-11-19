@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Three counters, keyed on what was submitted — never on whether an account
+ * exists. Study G, S4; SECURITY.md commitments 10 and 11.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Auth;
@@ -7,10 +16,6 @@ namespace App\Http\Admin\Auth;
 use Illuminate\Support\Str;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Three counters, keyed on what was submitted — never on whether an account
- * exists. Study G, S4; SECURITY.md commitments 10 and 11.
- */
 final class SignInThrottle
 {
     public function __construct(private readonly SettingsReader $settings) {}

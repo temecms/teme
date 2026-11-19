@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A person's account: exported with its details and preferences, never a
+ * secret, and kept on erasure, since deleting an account reassigns its
+ * content, a decision made under Users (I-3375).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Privacy;
@@ -15,11 +25,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * A person's account: exported with its details and preferences, never a
- * secret, and kept on erasure, since deleting an account reassigns its
- * content, a decision made under Users (I-3375).
- */
 final class AccountHolder implements PersonalDataHolder
 {
     public function __construct(private readonly PreferenceRegistry $preferences) {}

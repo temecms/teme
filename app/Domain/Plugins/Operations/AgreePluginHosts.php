@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Lets a plugin reach hosts a person entered in the settings its manifest
+ * takes hosts from (docs/plans/plugin-sockets-1.md, A2): only a person who
+ * holds plugins.manage, after their password, never the plugin itself. Adds
+ * the hosts to what its consent agrees in its settings, and records who
+ * agreed to which, and when. Returns the hosts agreed in its settings.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -19,13 +31,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Lets a plugin reach hosts a person entered in the settings its manifest
- * takes hosts from (docs/plans/plugin-sockets-1.md, A2): only a person who
- * holds plugins.manage, after their password, never the plugin itself. Adds
- * the hosts to what its consent agrees in its settings, and records who
- * agreed to which, and when. Returns the hosts agreed in its settings.
- */
 final class AgreePluginHosts extends BaseOperation implements RequiresElevation
 {
     public function __construct(private readonly PluginRecords $records) {}

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fediverse;
-
 /**
  * The fediverse's fixed names: the media types an ActivityPub request asks
  * for and an answer carries, the JSON-LD contexts, and the prefix of the
  * site's own new addresses (proposal, Settled 3).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fediverse;
+
 final class ActivityPub
 {
     public const string CONTENT_TYPE = 'application/activity+json';

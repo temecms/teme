@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One change the person may use, with a label and a short explanation.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

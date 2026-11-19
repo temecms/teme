@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:docs:contracts`: writes `docs/reference/contracts.md`, every
+ * interface, class and enum in teme/contracts with its methods, constants
+ * and `@since`, and what a plugin's constructor may ask for, computed from
+ * the doors Teme really hands out, so the page can't drift from the code.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -27,12 +38,6 @@ use Teme\Contracts\Hooks\Transform;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 
-/**
- * `teme:docs:contracts`: writes `docs/reference/contracts.md`, every
- * interface, class and enum in teme/contracts with its methods, constants
- * and `@since`, and what a plugin's constructor may ask for, computed from
- * the doors Teme really hands out, so the page can't drift from the code.
- */
 final class GenerateContractsReference extends Command
 {
     /** @var list<class-string> */

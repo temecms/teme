@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Whose business a tracked job is (I-1714): whoever started it, the
+ * operator, and those who hold jobs.manage. They may report on it, retry it
+ * and cancel it; nobody else may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs;
@@ -8,11 +18,6 @@ use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Support\Security\Operator;
 use App\Domain\Users\Actors;
 
-/**
- * Whose business a tracked job is (I-1714): whoever started it, the
- * operator, and those who hold jobs.manage. They may report on it, retry it
- * and cancel it; nobody else may.
- */
 final readonly class JobAccess
 {
     /** The permission that opens Tools › Jobs and lets its holder act on any job. */

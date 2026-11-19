@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Sends the calling plugin's own declared hooks to the plugins that listen:
+ * each a class in the plugin's own namespace, named in its manifest's
+ * `contributes.hooks`.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Puts queued deliveries on the queue, once the change that made them has
+ * committed: one job each, delayed to its row's next attempt. Outside
+ * production, unless allowed, they stay queued and no job is made.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
@@ -7,11 +17,6 @@ namespace App\Domain\Fediverse\Publishing;
 use App\Domain\Fediverse\Models\Delivery;
 use App\Domain\Fediverse\Publishing\Jobs\DeliverActivity;
 
-/**
- * Puts queued deliveries on the queue, once the change that made them has
- * committed: one job each, delayed to its row's next attempt. Outside
- * production, unless allowed, they stay queued and no job is made.
- */
 final class Deliveries
 {
     /**

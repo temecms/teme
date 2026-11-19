@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Records that a media move has started (I-3456): one running row, or a
+ * stopped or killed run of the same kind and direction set running again to
+ * be resumed from its cursor. A second run in a direction while one runs is
+ * refused.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -14,12 +25,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records that a media move has started (I-3456): one running row, or a
- * stopped or killed run of the same kind and direction set running again to
- * be resumed from its cursor. A second run in a direction while one runs is
- * refused.
- */
 final class StartMediaMove extends BaseOperation
 {
     /**

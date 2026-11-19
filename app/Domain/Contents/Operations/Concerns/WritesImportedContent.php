@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Writes a WordPress post or page as the import decided it (I-332), for
+ * ImportContent and UpdateImportedContent: the item's row, one revision of
+ * the import's, its schedule, review or trash, the projections every content
+ * Operation keeps, and WordPress's own and old addresses as history rows that
+ * answer with a 301. Used inside an Operation's perform() only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Concerns;
@@ -32,13 +44,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Writes a WordPress post or page as the import decided it (I-332), for
- * ImportContent and UpdateImportedContent: the item's row, one revision of
- * the import's, its schedule, review or trash, the projections every content
- * Operation keeps, and WordPress's own and old addresses as history rows that
- * answer with a 301. Used inside an Operation's perform() only.
- */
 trait WritesImportedContent
 {
     /**

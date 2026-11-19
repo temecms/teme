@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One Steps card in an article, for how-to content: its summary, how long it
+ * takes, what it needs, and its numbered steps.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\StructuredData;

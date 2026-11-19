@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:plugins`: every plugin with its version, where it stands and why,
+ * and the plugins it requires and is required by, for whoever runs the
+ * server (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,11 +20,6 @@ use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Plugins\Queries\PluginRow;
 use Illuminate\Console\Command;
 
-/**
- * `teme:plugins`: every plugin with its version, where it stands and why,
- * and the plugins it requires and is required by, for whoever runs the
- * server (I-3353).
- */
 final class ListPlugins extends Command
 {
     /** @var string */

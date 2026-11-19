@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Brings one WordPress comment, pingback or trackback into Teme for an
+ * import (I-341): on its item, under the comment it replied to at any depth,
+ * with WordPress's status, date, number and words, and its writer's IP
+ * address and browser only while keep_ip_days allows. No moderator judges
+ * it and no email is sent; the import rebuilds comment_stats once after its
+ * comments. Only an importer may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -24,14 +37,6 @@ use SensitiveParameter;
 use Symfony\Component\Uid\Ulid;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings one WordPress comment, pingback or trackback into Teme for an
- * import (I-341): on its item, under the comment it replied to at any depth,
- * with WordPress's status, date, number and words, and its writer's IP
- * address and browser only while keep_ip_days allows. No moderator judges
- * it and no email is sent; the import rebuilds comment_stats once after its
- * comments. Only an importer may.
- */
 final class ImportComment extends BaseOperation
 {
     use AuthorizesImports;

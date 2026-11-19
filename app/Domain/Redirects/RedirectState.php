@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Redirects;
-
 /**
  * What a redirect does now, computed when it is read, never stored (I-857,
  * I-858): it sends readers on, it is switched off, it waits for the page or
  * old address at its source to go, or for its item or file to come back, or
  * its item or file was deleted for good.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Redirects;
+
 enum RedirectState: string
 {
     case On = 'on';

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Builds a Feed from a subject (I-299): the channel from the site's settings and the subject, in the subject's language (I-3360), the items from their published revisions, and records for the page cache everything the feed shows. Reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -16,9 +24,6 @@ use App\Domain\Seo\WholeSite;
 use Carbon\CarbonImmutable;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Builds a Feed from a subject (I-299): the channel from the site's settings and the subject, in the subject's language (I-3360), the items from their published revisions, and records for the page cache everything the feed shows. Reads only.
- */
 final class FeedBuilder
 {
     public const string TAG = 'feed';

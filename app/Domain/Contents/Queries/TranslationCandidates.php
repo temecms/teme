@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The items the editor's "Link a different post…" offers as an item's
+ * version in one language (docs/proposals/multilingual-screens.md): live
+ * items of its type in that language, outside its group, that the person
+ * may change, found by title. It reads only; LinkTranslations links.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * The items the editor's "Link a different post…" offers as an item's
- * version in one language (docs/proposals/multilingual-screens.md): live
- * items of its type in that language, outside its group, that the person
- * may change, found by title. It reads only; LinkTranslations links.
- */
 final class TranslationCandidates
 {
     /**

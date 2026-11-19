@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Settings;
-
 /**
  * A check a part adds to one settings group's values, beyond what each
  * setting's type checks, such as robots.txt's extra lines against its
  * grammar (I-866). Registered under TAG from its part's own provider, and
  * asked by UpdateSettings before anything is read or written.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Settings;
+
 interface SettingsCheck
 {
     public const string TAG = 'teme.settings.checks';

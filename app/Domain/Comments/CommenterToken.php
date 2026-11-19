@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
 /**
  * A browser's own key (docs/studies/comments.md §3.4, I-276): made by core's
  * script at the browser's first comment and kept there, sent with each
  * comment and with the question for the browser's own; only its hash is
  * stored, on the comment, and only the hash is ever compared.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
 final class CommenterToken
 {
     /** What a key looks like: base64url, 22 to 128 characters; core's script makes 32. */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Which update of Teme may be asked for (I-3326): a listed release newer than the one running, on this
+ * site's channel, or the previous release for a roll back; never across a release that needs maintenance mode.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
@@ -9,10 +18,6 @@ use App\Domain\Updates\Queries\UpdateState;
 use App\Domain\Updates\Requests\UpdateKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Which update of Teme may be asked for (I-3326): a listed release newer than the one running, on this
- * site's channel, or the previous release for a roll back; never across a release that needs maintenance mode.
- */
 final readonly class UpdatePlan
 {
     public function __construct(private UpdateState $state, private TemeUpdates $updates) {}

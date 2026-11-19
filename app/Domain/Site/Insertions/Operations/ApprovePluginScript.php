@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Approves a waiting script a plugin asked to keep, by its exact text, so
+ * the plugin's inserted markup keeps it and its hash joins the page's
+ * policy (docs/plans/plugin-sockets-2.md, B4). Only a person who may change
+ * site code, with the password asked again; never a plugin.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Operations;
@@ -14,12 +25,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Approves a waiting script a plugin asked to keep, by its exact text, so
- * the plugin's inserted markup keeps it and its hash joins the page's
- * policy (docs/plans/plugin-sockets-2.md, B4). Only a person who may change
- * site code, with the password asked again; never a plugin.
- */
 final class ApprovePluginScript extends BaseOperation implements RequiresElevation
 {
     use DecidesPluginScripts;

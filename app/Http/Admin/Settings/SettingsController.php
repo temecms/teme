@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Settings pages. It shows a settings group from its declaration, on the
+ * page that draws it, and hands saves to the `SaveSettingsPage` Operation; it
+ * changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -12,6 +22,7 @@ use App\Domain\Languages\Queries\SettingsWords;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\Lists\PluginLists;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\Settings\Exceptions\StaleSettingsException;
 use App\Domain\Settings\Operations\Input\SaveSettingsPageInput;
@@ -25,20 +36,37 @@ use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Updates\Updater\PlatformCheck;
 use App\Domain\Updates\Updater\PlatformRefused;
 use App\Domain\Updates\UpdatesSettings;
+use App\Domain\Users\Roles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
-/**
- * The Settings pages. It shows a settings group from its declaration, on the
- * page that draws it, and hands saves to the `SaveSettingsPage` Operation; it
- * changes nothing itself.
- */
 final class SettingsController extends Controller
 {
+    /**
+     * Lets a person see every settings group, and change none they may not manage.
+     *
+     * @since next
+     */
+    public const string VIEW = 'settings.view';
+
+    /**
+     * The words for core's settings permissions, as the view-only line
+     * names them; any other reads "Manage {group} settings".
+     *
+     * @var array<string, string>
+     */
+    private const array PERMISSION_NAMES = [
+        'settings.security.manage' => 'Manage sign-in rules',
+        'settings.addresses.manage' => 'Manage addresses',
+    ];
+
     public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry): Response|RedirectResponse
     {
         // A group drawn under another page's name opens on that page, so its
@@ -55,9 +83,13 @@ final class SettingsController extends Controller
         $user = $request->user();
 
         // abort(), not abort_unless(): PHPStan then knows $user is set.
-        if ($user === null || ! $user->can($data['ability'])) {
+        // Someone who may see settings but not change this group sees it
+        // read-only, with a line naming the permission that changes it.
+        if ($user === null || (! $user->can($data['ability']) && ! $user->can(self::VIEW))) {
             abort(403);
         }
+
+        $readOnly = ! $user->can($data['ability']);
 
         // A group with its own screen is edited there, such as a theme's
         // menu places on Content › Navigation; its address typed by hand
@@ -66,6 +98,7 @@ final class SettingsController extends Controller
             return to_route($data['screen']);
         }
 
+        $ability = $data['ability'];
         unset($data['ability'], $data['screen']);
         $renamed = SettingsPlacement::RENAMED[$page] ?? null;
 
@@ -92,6 +125,10 @@ final class SettingsController extends Controller
             // One sentence above the form when something needs the person: on Updates, why the updater can't use the
             // Dokploy key it has, or that it has none. Null on every other page.
             'notice' => $page === UpdatesSettings::GROUP ? self::updatesNotice(app(PlatformCheck::class)->sentence()) : null,
+            // A plugin's page names its plugin, for the mark after the title; null on core's.
+            'plugin' => $this->pluginName($registry, SettingsPlacement::groupShownOn($page)),
+            // View only: who may change this group, for the banner; null for someone who may.
+            'readOnly' => $readOnly ? ['permission' => self::permissionName($ability), 'holders' => self::holders($ability)] : null,
             ...$sections->for($page, $user),
         ]);
     }
@@ -169,6 +206,50 @@ final class SettingsController extends Controller
     }
 
     /**
+     * A settings permission in words, such as "Manage general settings".
+     */
+    private static function permissionName(string $ability): string
+    {
+        if (isset(self::PERMISSION_NAMES[$ability])) {
+            return __(self::PERMISSION_NAMES[$ability]);
+        }
+
+        $group = preg_match('/^settings\.([a-z-]+)\.manage$/', $ability, $match) === 1 ? str_replace('-', ' ', $match[1]) : $ability;
+
+        return __('Manage :group settings', ['group' => $group]);
+    }
+
+    /**
+     * The roles that hold a permission, in words and in the core roles'
+     * order, such as "administrators" or "administrators and editors".
+     */
+    private static function holders(string $ability): string
+    {
+        $names = [];
+
+        foreach (Roles::LABELS as $role => $label) {
+            $found = Role::query()->where('name', $role)->first();
+
+            if ($found !== null && $found->hasPermissionTo($ability)) {
+                $names[] = mb_strtolower(__(Str::plural($label)));
+            }
+        }
+
+        return $names === [] ? __('no role') : Arr::join($names, ', ', ' '.__('and').' ');
+    }
+
+    /**
+     * The name of the plugin a group belongs to, from its manifest, or null
+     * for a core group.
+     */
+    private function pluginName(SettingsRegistry $registry, string $group): ?string
+    {
+        $owner = str_starts_with($group, 'plugin.') ? $registry->ownerOf($group) : null;
+
+        return $owner === null ? null : (app(PluginRegistry::class)->find($owner)?->manifest?->name() ?? null);
+    }
+
+    /**
      * A plugin's code settings' inline scripts that wait for approval, by the
      * field's path, with the plugin's code and whether this person may
      * approve them in place; null when the group isn't a plugin's.
@@ -198,6 +279,8 @@ final class SettingsController extends Controller
      * Saves a group's words in other languages through SaveSettingsWords,
      * every language or none; an empty word falls back to the default
      * language's.
+     *
+     * @since 1.0.0
      */
     public function words(Request $request, string $group, SaveSettingsWords $save): RedirectResponse
     {

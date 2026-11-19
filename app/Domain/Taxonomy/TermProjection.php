@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Keeps content_terms equal to what an item's revisions say (I-144): the
+ * working revision's terms while the item is live, and the published
+ * revision's terms while it is live, published and not private. Adjusts
+ * terms.published_count and terms.working_count by exactly the rows it adds
+ * or removes, so no count is ever recomputed on publish.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy;
@@ -11,13 +23,6 @@ use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Keeps content_terms equal to what an item's revisions say (I-144): the
- * working revision's terms while the item is live, and the published
- * revision's terms while it is live, published and not private. Adjusts
- * terms.published_count and terms.working_count by exactly the rows it adds
- * or removes, so no count is ever recomputed on publish.
- */
 final class TermProjection
 {
     /**

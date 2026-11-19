@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Removes the remote accounts the site no longer needs: unseen for 30
+ * days, following none of its actors and the author of no reply. For
+ * whoever holds settings.fediverse.manage, or the operator; returns how
+ * many it removed.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -12,12 +23,6 @@ use App\Domain\Fediverse\Operations\Input\PruneFediverseInput;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Removes the remote accounts the site no longer needs: unseen for 30
- * days, following none of its actors and the author of no reply. For
- * whoever holds settings.fediverse.manage, or the operator; returns how
- * many it removed.
- */
 final class PruneFediverse extends BaseOperation
 {
     use AuthorizesFediverseWork;

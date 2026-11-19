@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Records that one object could not be imported (I-332): its map row as failed, keeping the Teme ID and hash an earlier run gave it, and its one error. Does nothing for a stopped attempt's token.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -20,9 +28,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records that one object could not be imported (I-332): its map row as failed, keeping the Teme ID and hash an earlier run gave it, and its one error. Does nothing for a stopped attempt's token.
- */
 final class RecordImportFailure extends BaseOperation
 {
     use AuthorizesImports;

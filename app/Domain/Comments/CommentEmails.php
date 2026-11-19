@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The comment emails' switches and their dispatch (1.8d's D12, D16): each
+ * kind, whether the site sends an email at all, and its
+ * job, queued after the outermost commit, so a change rolled back emails no
+ * one. The job reads everything again when it runs.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -9,12 +20,6 @@ use App\Domain\Comments\Jobs\SendCommentWaitingEmails;
 use App\Domain\Comments\Models\Comment;
 use App\Domain\Settings\Modules;
 
-/**
- * The comment emails' switches and their dispatch (1.8d's D12, D16): each
- * kind, whether the site sends an email at all, and its
- * job, queued after the outermost commit, so a change rolled back emails no
- * one. The job reads everything again when it runs.
- */
 final class CommentEmails
 {
     /** The kind of the moderators' email (E7). */

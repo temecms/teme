@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What each type's items are as structured data says it (I-709): the
+ * type's own schema entry, or a web page with no main entity for a type
+ * that declares none, so its items still describe themselves.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -12,11 +22,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What each type's items are as structured data says it (I-709): the
- * type's own schema entry, or a web page with no main entity for a type
- * that declares none, so its items still describe themselves.
- */
 final readonly class TypeSchemas
 {
     /** The article type that describes no article (I-709). */

@@ -1,4 +1,3 @@
-R1	js/components/ai-settings/month-figures.tsx	grid-cols-[max-content_1fr]
 R1	js/components/comments/comment-details.tsx	grid-cols-[7rem_1fr]
 R1	js/components/comments/comment-details.tsx	sm:max-w-[480px]
 R1	js/components/comments/quick-edit.tsx	sm:max-w-[480px]
@@ -20,10 +19,6 @@ R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--side
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]
 R1	js/components/ui/sidebar.tsx	peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))]
-R1	js/pages/settings/search-and-social.tsx	md:grid-cols-[170px_minmax(0,1fr)]
-R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
-R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
-R1	js/pages/settings/site-code.tsx	sm:max-w-[560px]
 R10	js/components/app-content.tsx	outline-none
 R10	js/components/editor/use-teme-editor.ts	outline-none
 R10	js/components/list/filter-button.tsx	outline-none
@@ -35,7 +30,6 @@ R10	js/components/ui/dropdown-menu.tsx	outline-hidden
 R10	js/components/ui/input.tsx	outline-none
 R10	js/components/ui/popover.tsx	outline-none
 R10	js/components/ui/select.tsx	outline-hidden
-R14	js/components/fields/media-setting.tsx	animate-pulse
 R14	js/components/text-link.tsx	duration-300
 R14	js/components/text-link.tsx	ease-out
 R14	js/components/ui/sidebar.tsx	ease-linear
@@ -44,7 +38,6 @@ R15	js/components/editor/rail/document-panel.tsx	style: paddingLeft
 R15	js/components/list/bulk-edit-dialog.tsx	style: paddingLeft
 R15	js/components/list/filter-button.tsx	style: paddingLeft
 R15	js/components/term-tree-picker.tsx	style: paddingLeft
-R2	js/components/ai-settings/month-figures.tsx	text-base
 R2	js/components/alert-error.tsx	text-sm
 R2	js/components/comments/comment-details.tsx	text-[12px]
 R2	js/components/comments/comment-details.tsx	text-[12px]
@@ -64,10 +57,6 @@ R2	js/components/comments/quick-edit.tsx	text-[13px]
 R2	js/components/editor/cards/button-card.tsx	text-[14px]
 R2	js/components/editor/cards/embed-card.tsx	text-[14px]
 R2	js/components/editor/cards/imported-content-card.tsx	text-[14px]
-R2	js/components/fields/field-control.tsx	text-[13px]
-R2	js/components/fields/field-control.tsx	text-sm
-R2	js/components/fields/field-control.tsx	text-sm
-R2	js/components/fields/field-control.tsx	text-xs
 R2	js/components/fields/settings-save-bar.tsx	text-xs
 R2	js/components/heading.tsx	text-[22px]
 R2	js/components/heading.tsx	text-base
@@ -92,22 +81,6 @@ R2	js/components/personalise-menu-dialog.tsx	text-[11px]
 R2	js/components/personalise-menu-dialog.tsx	text-[13px]
 R2	js/components/personalise-menu-dialog.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/tools/jobs.tsx	text-[13px]
 R2	js/pages/tools/jobs.tsx	text-xs
 R3	js/components/comments/comment-details.tsx	mt-0.5
@@ -136,7 +109,6 @@ R3	js/components/ui/sidebar.tsx	top-1.5
 R3	js/components/ui/sidebar.tsx	top-3.5
 R3	js/components/ui/toggle.tsx	px-1.5
 R3	js/components/user-menu-content.tsx	py-1.5
-R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
 R5	js/components/comments/quick-edit.tsx	<textarea>
@@ -144,11 +116,9 @@ R5	js/components/editor/cards/callout-card.tsx	<textarea>
 R5	js/components/editor/fields/textarea-control.tsx	<textarea>
 R5	js/components/editor/rail/canonical-choice.tsx	<input type="radio">
 R5	js/components/fields/brand-colour-setting.tsx	<input type="color">
-R5	js/components/fields/field-control.tsx	<select>
 R5	js/components/fields/field-control.tsx	<textarea>
 R5	js/components/fields/field-control.tsx	<textarea>
 R5	js/components/fields/home-page-setting.tsx	<button type="button">
-R5	js/components/fields/media-setting.tsx	<button type="button">
 R5	js/components/list/bulk-edit-dialog.tsx	<button type="button">
 R5	js/components/list/data-table.tsx	<table>
 R5	js/components/list/row-actions.tsx	<button type="button">
@@ -157,14 +127,6 @@ R5	js/components/list/row-links.tsx	<button type="button">
 R5	js/components/list/row-links.tsx	<button type="submit">
 R5	js/components/palette/command-palette.tsx	<input>
 R5	js/components/seo/who-publishes.tsx	<select>
-R5	js/pages/settings/addresses.tsx	<input type="radio">
-R5	js/pages/settings/addresses.tsx	<input type="radio">
-R5	js/pages/settings/search-and-social.tsx	<details>
-R5	js/pages/settings/search-and-social.tsx	<textarea>
-R5	js/pages/settings/site-code.tsx	<details>
-R5	js/pages/settings/site-code.tsx	<select>
-R5	js/pages/settings/site-code.tsx	<textarea>
-R5	js/pages/settings/site-code.tsx	<textarea>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
@@ -179,8 +141,6 @@ R6	js/components/list/bulk-edit-dialog.tsx	rounded
 R6	js/components/list/confirm-items.tsx	rounded
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
-R7	js/pages/settings/site-code.tsx	frame:sm:max-w-[560px]
-R7	js/pages/settings/site-code.tsx	root:Sheet
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
 R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
@@ -192,8 +152,6 @@ R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/ui/popover.tsx	overflow-y-auto
 R8	js/components/ui/sidebar.tsx	overflow-auto
-R8	js/pages/settings/site-code.tsx	overflow-x-auto
-R8	js/pages/settings/site-code.tsx	overflow-y-auto
 R9	js/components/editor/editor-rail.tsx	classes: bg-warn-soft px-2 py-1.5
 R9	js/components/editor/fields/media-control.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/rail/search-previews.tsx	role="note"

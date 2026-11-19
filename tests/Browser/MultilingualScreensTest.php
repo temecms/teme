@@ -82,14 +82,6 @@ function mlsLanguages(mixed $test, int $width = 1280): mixed
     return cmWaitUntil($page, "document.querySelector('[data-test=\"languages-table\"] tr[data-language]') !== null");
 }
 
-/** A row's "⋯", opened, its menu settled. */
-function mlsRowMenu(mixed $page, string $tag): mixed
-{
-    $page->click("tr[data-language=\"{$tag}\"] [data-test=\"language-menu\"]");
-
-    return shellSettled($page, '[role="menu"]');
-}
-
 /** Opens an item's editor as the editor, and waits for the Translations section. */
 function mlsEditor(mixed $test, string $id, int $width = 1440): mixed
 {
@@ -119,18 +111,18 @@ function mlsVersionMenu(mixed $page, string $tag): mixed
     return shellSettled($page, '[role="menu"]');
 }
 
-it('draws the default language first with no actions, and every other row with Edit and "⋯"', function (): void {
+it('draws the default language as a definition list, and every other row with Change and Remove', function (): void {
     $page = mlsLanguages($this);
 
-    $page->assertScript(mlsRows()." === 'en-GB,fr,es'")
-        ->assertScript('document.querySelector(\'tr[data-language="en-GB"] [data-test="language-menu"]\') === null')
-        ->assertScript('document.querySelector(\'tr[data-language="en-GB"] [data-test="language-edit"]\') === null')
-        ->assertScript('document.querySelector(\'tr[data-language="en-GB"]\').innerText.includes("Default")')
-        ->assertScript('document.querySelectorAll(\'tr[data-language="fr"] [data-test="language-edit"], tr[data-language="fr"] [data-test="language-menu"]\').length === 2')
+    $page->assertScript(mlsRows()." === 'fr,es'")
+        ->assertScript('document.querySelector(\'tr[data-language="en-GB"]\') === null')
+        ->assertScript('document.querySelector(\'[data-test="language-default"]\').innerText.includes("Default")')
+        ->assertScript('document.querySelector(\'#default-language\').innerText.includes("Change it in General")')
+        ->assertScript('document.querySelectorAll(\'tr[data-language="fr"] [data-test="language-edit"], tr[data-language="fr"] [data-test="language-remove"]\').length === 2')
         ->assertScript('document.querySelector(\'tr[data-language="es"]\').innerText.includes("Hidden")')
         ->assertScript('document.querySelector(\'tr[data-language="fr"]\').innerText.includes("/fr/")')
-        // The "⋯" sits inside the table at 1280, not cut off by its edge.
-        ->assertScript('document.querySelector(\'tr[data-language="fr"] [data-test="language-menu"]\').getBoundingClientRect().right <= document.querySelector(\'[data-test="languages-table"]\').getBoundingClientRect().right');
+        // The actions sit inside the table at 1280, not cut off by its edge.
+        ->assertScript('document.querySelector(\'tr[data-language="fr"] [data-test="language-remove"]\').getBoundingClientRect().right <= document.querySelector(\'[data-test="languages-table"]\').getBoundingClientRect().right');
     cmNoJavaScriptErrors($page);
 });
 
@@ -153,7 +145,7 @@ it('adds a language with the keyboard alone', function (): void {
 
     mlsTabTo($page, '[data-test="language-save"]');
     mlsPress($page, 'Enter');
-    cmWaitUntil($page, mlsRows()." === 'en-GB,fr,es,de'");
+    cmWaitUntil($page, mlsRows()." === 'fr,es,de'");
 
     app()->forgetInstance(SiteLanguages::class);
     app()->forgetScopedInstances();
@@ -179,19 +171,15 @@ it('changes a language\'s prefix and hides it from readers in its sheet', functi
         ->and($languages->isShown('fr'))->toBeFalse();
 });
 
-it('moves a language up and down from its "⋯"', function (): void {
+it('moves a language up and down with its arrows', function (): void {
     $page = mlsLanguages($this);
 
-    mlsRowMenu($page, 'es');
-    $page->assertScript('document.querySelector(\'[data-test="language-move-down"]\').getAttribute("aria-disabled") === "true" || document.querySelector(\'[data-test="language-move-down"]\').hasAttribute("data-disabled")')
-        ->click('[data-test="language-move-up"]');
-    cmWaitUntil($page, mlsRows()." === 'en-GB,es,fr'");
-    // The first menu closes, and the list is drawn again, before the next one opens (#338).
-    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]') === null");
+    $page->assertScript('document.querySelector(\'tr[data-language="fr"] [data-test="language-move-up"]\').disabled === true')
+        ->click('tr[data-language="es"] [data-test="language-move-up"]');
+    cmWaitUntil($page, mlsRows()." === 'es,fr'");
 
-    mlsRowMenu($page, 'es');
-    $page->click('[data-test="language-move-down"]');
-    cmWaitUntil($page, mlsRows()." === 'en-GB,fr,es'");
+    $page->click('tr[data-language="es"] [data-test="language-move-down"]');
+    cmWaitUntil($page, mlsRows()." === 'fr,es'");
 
     app()->forgetInstance(SiteLanguages::class);
     app()->forgetScopedInstances();
@@ -204,19 +192,17 @@ it('removes an empty language after asking, and shows the refusal for one that h
     Languages::set(['fr', 'es', 'de'], hidden: ['es']);
     $page = mlsLanguages($this);
 
-    mlsRowMenu($page, 'de');
-    $page->click('[data-test="language-remove"]');
+    $page->click('tr[data-language="de"] [data-test="language-remove"]');
     shellSettled($page, '[data-test="language-remove-dialog"]');
     $page->click('[data-test="language-remove-confirm"]');
-    cmWaitUntil($page, mlsRows()." === 'en-GB,fr,es'");
+    cmWaitUntil($page, mlsRows()." === 'fr,es'");
 
-    mlsRowMenu($page, 'fr');
-    $page->click('[data-test="language-remove"]');
+    $page->click('tr[data-language="fr"] [data-test="language-remove"]');
     shellSettled($page, '[data-test="language-remove-dialog"]');
     $page->click('[data-test="language-remove-confirm"]');
     cmWaitUntil($page, "(document.querySelector('[data-test=\"languages-refusal\"]')?.innerText ?? '').includes('are in French. Move them to another language, or delete them, first.')");
 
-    $page->assertScript(mlsRows()." === 'en-GB,fr,es'");
+    $page->assertScript(mlsRows()." === 'fr,es'");
 });
 
 it('passes axe on Settings › Languages at 1280 and 375, in both schemes, with nothing scrolling sideways', function (string $scheme, int $width): void {

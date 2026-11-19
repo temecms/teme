@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Makes an account's person the first time a byline names it (I-3366):
+ * inside an Operation's perform(), after its own row locks, so a person
+ * never outlives the transaction that needed it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations\Concerns;
@@ -8,11 +18,6 @@ use App\Domain\People\Queries\People;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Makes an account's person the first time a byline names it (I-3366):
- * inside an Operation's perform(), after its own row locks, so a person
- * never outlives the transaction that needed it.
- */
 trait GivesAccountsPeople
 {
     /**

@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Redirects;
-
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\DB;
-
 /**
  * The checks a redirect passes against every other before it is saved
  * (I-297, I-859): its source is no other's, and no reader would go round
@@ -16,7 +9,19 @@ use Illuminate\Support\Facades\DB;
  * a redirect to itself or two pointing at each other. Placeholders are
  * checked with sample values, both ways between two patterns. Run inside
  * the lock every redirect change takes first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Redirects;
+
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
+
 final readonly class RedirectRules
 {
     /**

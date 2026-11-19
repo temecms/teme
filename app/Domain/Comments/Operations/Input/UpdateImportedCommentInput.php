@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What UpdateImportedComment needs: the comment, the status and updated_at the
+ * import last wrote, WordPress's status, writer and words now, and who is
+ * importing (null for the operator).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations\Input;
@@ -8,11 +18,6 @@ use Carbon\CarbonImmutable;
 use SensitiveParameter;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What UpdateImportedComment needs: the comment, the status and updated_at the
- * import last wrote, WordPress's status, writer and words now, and who is
- * importing (null for the operator).
- */
 final readonly class UpdateImportedCommentInput implements OperationInput
 {
     /**

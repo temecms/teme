@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Changes one live field of a type: its label, handle, help, settings and
+ * boxes, never its field type, and never the values items hold for it
+ * (docs/studies/content-and-fields.md §5.3).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Operations;
@@ -18,11 +28,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes one live field of a type: its label, handle, help, settings and
- * boxes, never its field type, and never the values items hold for it
- * (docs/studies/content-and-fields.md §5.3).
- */
 final class UpdateField extends BaseOperation
 {
     use ManagesFields;

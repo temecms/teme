@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Laravel's cache stores. Serialized classes stay off, as AGENTS.md rule 4
+ * requires.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Support\Str;

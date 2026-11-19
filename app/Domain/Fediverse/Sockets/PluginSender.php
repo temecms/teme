@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A plugin's door for sending to the site's followers, given with
+ * fediverse.send: it holds only the plugin's name, and SendPluginActivity
+ * stores what it sends for the person the plugin acts for; core signs and
+ * delivers it after commit.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets;
@@ -14,12 +25,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Fediverse\SendRefused;
 
-/**
- * A plugin's door for sending to the site's followers, given with
- * fediverse.send: it holds only the plugin's name, and SendPluginActivity
- * stores what it sends for the person the plugin acts for; core signs and
- * delivers it after commit.
- */
 final readonly class PluginSender implements FediverseSender
 {
     public function __construct(private string $plugin) {}

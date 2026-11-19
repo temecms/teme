@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The People screen. It lists everyone by view and hands each action to its
+ * Operation; it changes nothing itself, and answers on the view the page was
+ * on.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Users;
@@ -28,11 +38,6 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The People screen. It lists everyone by view and hands each action to its
- * Operation; it changes nothing itself, and answers on the view the page was
- * on.
- */
 final class UserController extends Controller
 {
     public function index(Request $request, UserList $users, RoleOptions $roles): Response
@@ -122,6 +127,9 @@ final class UserController extends Controller
         return $this->done(__('Deleted.'));
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function removePicture(Request $request, int $user, RemovePicture $removePicture): RedirectResponse
     {
         /** @var array{name: string, removed: bool} $removed */

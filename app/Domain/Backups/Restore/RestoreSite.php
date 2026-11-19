@@ -1,5 +1,25 @@
 <?php
 
+/**
+ * Restores the site from a backup (the spec's RestoreSite; I-363): the
+ * preflight first, refusing before anything is written; then, holding the
+ * deploy lock, and refused while a deploy holds it, the dump fetched while
+ * the site is open; then, behind maintenance mode, a safety backup of the
+ * site as it is (accepted when its only hole is media files this server
+ * already lacked, which the restore's notes and figures then count, and
+ * refused when every media file is missing, which is how an unmounted
+ * volume looks) and, under the backup lock as well, the database, the
+ * media, the caches and the records, with the places paused until a person
+ * says whether this server is now the site. The deploy lock is taken before
+ * the backup lock, as teme:deploy takes them. A stop always says how to
+ * finish, by running it again, or go back, by restoring the safety backup.
+ * teme:backup:restore calls it inline.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -42,21 +62,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
-/**
- * Restores the site from a backup (the spec's RestoreSite; I-363): the
- * preflight first, refusing before anything is written; then, holding the
- * deploy lock, and refused while a deploy holds it, the dump fetched while
- * the site is open; then, behind maintenance mode, a safety backup of the
- * site as it is (accepted when its only hole is media files this server
- * already lacked, which the restore's notes and figures then count, and
- * refused when every media file is missing, which is how an unmounted
- * volume looks) and, under the backup lock as well, the database, the
- * media, the caches and the records, with the places paused until a person
- * says whether this server is now the site. The deploy lock is taken before
- * the backup lock, as teme:deploy takes them. A stop always says how to
- * finish, by running it again, or go back, by restoring the safety backup.
- * teme:backup:restore calls it inline.
- */
 final readonly class RestoreSite
 {
     /** How long fetching the dump, pg_restore or one media folder may take, in seconds. */

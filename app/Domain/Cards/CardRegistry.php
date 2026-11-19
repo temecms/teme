@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Every card the site knows. It refuses a card without documentation or with
+ * a name already taken, so the generated reference is complete and a
+ * document's node type can never be ambiguous.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
 
 use InvalidArgumentException;
 
-/**
- * Every card the site knows. It refuses a card without documentation or with
- * a name already taken, so the generated reference is complete and a
- * document's node type can never be ambiguous.
- */
 final class CardRegistry
 {
     /** @var array<string, CardType> */

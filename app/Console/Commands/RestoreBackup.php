@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * teme:backup:restore — restores the site from a backup, inline, as the operator (docs/architecture/operations.md): it shows what it will do and asks, then says each step, and asks after whether this server is now the site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -17,9 +25,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:backup:restore — restores the site from a backup, inline, as the operator (docs/architecture/operations.md): it shows what it will do and asks, then says each step, and asks after whether this server is now the site.
- */
 final class RestoreBackup extends Command
 {
     use NamesRestorePlace;

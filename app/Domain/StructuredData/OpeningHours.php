@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * A week of opening hours as schema.org describes it (I-877): one
+ * specification for each distinct opening, naming every day it applies to.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
 
 use Teme\Contracts\Settings\Setting;
 
-/**
- * A week of opening hours as schema.org describes it (I-877): one
- * specification for each distinct opening, naming every day it applies to.
- */
 final class OpeningHours
 {
     /**

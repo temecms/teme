@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What `UpdateSettings` needs: the group, the values to change, the keys to
+ * reset, any secrets, the version the form was opened on, who is asking,
+ * and, for a plugin's settings, the hosts they agree to it reaching.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `UpdateSettings` needs: the group, the values to change, the keys to
- * reset, any secrets, the version the form was opened on, who is asking,
- * and, for a plugin's settings, the hosts they agree to it reaching.
- */
 final readonly class UpdateSettingsInput implements OperationInput
 {
     /**

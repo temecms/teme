@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The preview links made for one article, for the Share panel: when each was
+ * made and by whom, when it expires, whether it still works, and how often
+ * it has been opened.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -11,11 +21,6 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * The preview links made for one article, for the Share panel: when each was
- * made and by whom, when it expires, whether it still works, and how often
- * it has been opened.
- */
 final class PreviewLinkList
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What the editor's link box offers to link to by ID (rule 9, I-1702): the
+ * articles LinkTargets finds, then, once something is typed, the terms of
+ * each taxonomy with pages, the authors and the library's files. It reads
+ * only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -10,12 +21,6 @@ use App\Domain\Taxonomy\Queries\TermPicker;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What the editor's link box offers to link to by ID (rule 9, I-1702): the
- * articles LinkTargets finds, then, once something is typed, the terms of
- * each taxonomy with pages, the authors and the library's files. It reads
- * only.
- */
 final class LinkChoices
 {
     /** At most this many of each kind but articles, of which LinkTargets gives ten. */

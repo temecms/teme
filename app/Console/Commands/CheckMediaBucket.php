@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:media:bucket-check`: proves the media buckets' setup before any
+ * media moves there (I-3456). It
+ * changes no database state, so it acts as no one.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -7,11 +17,6 @@ namespace App\Console\Commands;
 use App\Domain\Media\Storage\BucketCheck;
 use Illuminate\Console\Command;
 
-/**
- * `teme:media:bucket-check`: proves the media buckets' setup before any
- * media moves there (I-3456). It
- * changes no database state, so it acts as no one.
- */
 final class CheckMediaBucket extends Command
 {
     /** @var string */

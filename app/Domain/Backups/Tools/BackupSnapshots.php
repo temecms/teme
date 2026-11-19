@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Teme's snapshots at one place, by run (I-362): a backup run is four restic
+ * snapshots, one for each part, tagged teme and teme-run:{run}, under one
+ * host name; a run is complete exactly when its manifest, written last, is
+ * there. Teme never touches a snapshot without its tag.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
 
 use Carbon\CarbonImmutable;
 
-/**
- * Teme's snapshots at one place, by run (I-362): a backup run is four restic
- * snapshots, one for each part, tagged teme and teme-run:{run}, under one
- * host name; a run is complete exactly when its manifest, written last, is
- * there. Teme never touches a snapshot without its tag.
- */
 final readonly class BackupSnapshots
 {
     /** One host for every snapshot: a container's own name changes with each deployment, and restic finds the last media snapshot by host. */

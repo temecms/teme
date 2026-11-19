@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * `/_teme/session`: who is reading a public page, for core's script (study
+ * R §3.3, I-163): whether they are signed in, the "Edit" link for the item
+ * the page shows when they may edit it, a CSRF token only for a browser that
+ * needs one, and the name a signed-in person comments under (1.8b′), and the Comments
+ * screen's address when they look after the item's comments (1.8c″). The
+ * page itself stays the same for every reader, and is stored; only this
+ * answer is personal, and nothing keeps it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -11,15 +25,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 
-/**
- * `/_teme/session`: who is reading a public page, for core's script (study
- * R §3.3, I-163): whether they are signed in, the "Edit" link for the item
- * the page shows when they may edit it, a CSRF token only for a browser that
- * needs one, and the name a signed-in person comments under (1.8b′), and the Comments
- * screen's address when they look after the item's comments (1.8c″). The
- * page itself stays the same for every reader, and is stored; only this
- * answer is personal, and nothing keeps it.
- */
 final class SessionController extends Controller
 {
     public function __invoke(Request $request, EditLinks $links): JsonResponse

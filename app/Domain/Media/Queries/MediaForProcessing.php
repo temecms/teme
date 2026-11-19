@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What the variant maker needs to know about one image.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * What the variant maker needs to know about one image.
- */
 final class MediaForProcessing
 {
     /**

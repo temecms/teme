@@ -16,7 +16,23 @@
         "ordered_imports": {
             "sort_algorithm": "alpha"
         },
-        "phpdoc_separation": true,
+        "phpdoc_no_package": false,
+        "phpdoc_separation": {
+            "groups": [
+                ["author", "copyright"],
+                [
+                    "category",
+                    "package",
+                    "subpackage",
+                    "since",
+                    "license",
+                    "deprecated",
+                    "link",
+                    "see"
+                ],
+                ["property", "property-read", "property-write"]
+            ]
+        },
         "void_return": true
     }
 }

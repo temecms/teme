@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Opens a design preview for one public request when its link is signed and
+ * unexpired, and refuses a bad link with a 403 rather than showing live
+ * values as if they were the preview. A preview's response is never cached
+ * or indexed. First in the public group.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Middleware;
@@ -13,12 +24,6 @@ use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-/**
- * Opens a design preview for one public request when its link is signed and
- * unexpired, and refuses a bad link with a 403 rather than showing live
- * values as if they were the preview. A preview's response is never cached
- * or indexed. First in the public group.
- */
 final class DesignPreviewLink
 {
     private const array PRIVATE_HEADERS = [

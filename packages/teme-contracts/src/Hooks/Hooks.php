@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * How a plugin listens: each plugin gets its own, bound to its name, what it
+ * was granted and the hooks it declared, open only while its register() runs.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

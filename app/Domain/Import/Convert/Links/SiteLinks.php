@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What a link's address becomes when an item converts (I-1702): an address
+ * on the old site becomes a link by ID to what the import made of it, or
+ * its path for the second pass when the import hasn't reached it yet
+ * (I-333); any other address is kept as Teme keeps one. Never the old
+ * site's own address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Links;
@@ -11,13 +23,6 @@ use App\Domain\Import\Convert\Media\ImageTrace;
 use App\Domain\Import\Convert\Media\MediaTargets;
 use App\Domain\Import\Convert\SourceTargets;
 
-/**
- * What a link's address becomes when an item converts (I-1702): an address
- * on the old site becomes a link by ID to what the import made of it, or
- * its path for the second pass when the import hasn't reached it yet
- * (I-333); any other address is kept as Teme keeps one. Never the old
- * site's own address.
- */
 final class SiteLinks
 {
     /** The longest address a link keeps (DocumentSchema::linkAttributes). */

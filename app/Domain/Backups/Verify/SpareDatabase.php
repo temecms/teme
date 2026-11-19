@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The weekly test restore's spare database (I-2406), and the only code that
+ * ever empties a database: named in the configuration, refused unless its
+ * name ends in _verify and it isn't the site's own, emptied before and after
+ * each test on a session of its own, and filled by pg_restore.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Verify;
@@ -16,12 +27,6 @@ use Illuminate\Support\Facades\Log;
 use PDOException;
 use Throwable;
 
-/**
- * The weekly test restore's spare database (I-2406), and the only code that
- * ever empties a database: named in the configuration, refused unless its
- * name ends in _verify and it isn't the site's own, emptied before and after
- * each test on a session of its own, and filled by pg_restore.
- */
 final class SpareDatabase
 {
     /** The connection config/database.php names. */

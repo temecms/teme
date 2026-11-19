@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One request for review (decision 5A): the revision a writer handed over,
+ * pinned, and what became of it — approved, returned with a note, published
+ * by hand while it waited, or withdrawn by the trash. Each submission is its
+ * own row, so the history of decisions is kept, not overwritten.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Models;
@@ -11,11 +22,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 
 /**
- * One request for review (decision 5A): the revision a writer handed over,
- * pinned, and what became of it — approved, returned with a note, published
- * by hand while it waited, or withdrawn by the trash. Each submission is its
- * own row, so the history of decisions is kept, not overwritten.
- *
  * @property Carbon $submitted_at
  * @property Carbon|null $decided_at
  */

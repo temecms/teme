@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An answer checked twice (I-316): the provider held it to the task's
+ * schema; here the task's own check runs, then Teme's for every task: each
+ * value present, of a sane length, free of the fence's markup, and one line
+ * of text for a target that takes one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking;
@@ -9,12 +20,6 @@ use App\Domain\Ai\AiResult;
 use App\Domain\Ai\AiSubject;
 use App\Domain\Ai\AiTask;
 
-/**
- * An answer checked twice (I-316): the provider held it to the task's
- * schema; here the task's own check runs, then Teme's for every task: each
- * value present, of a sane length, free of the fence's markup, and one line
- * of text for a target that takes one.
- */
 final readonly class SuggestionCheck
 {
     /** The longest value any task may suggest. */

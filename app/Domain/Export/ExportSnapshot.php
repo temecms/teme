@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Makes an export's transaction one moment of the database (I-365): every
+ * kind read from the same snapshot, so a comment's item and a reply's
+ * parent are always in the export with it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
 
 use Illuminate\Database\ConnectionInterface;
 
-/**
- * Makes an export's transaction one moment of the database (I-365): every
- * kind read from the same snapshot, so a comment's item and a reply's
- * parent are always in the export with it.
- */
 final class ExportSnapshot
 {
     /**

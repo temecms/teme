@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Extensions\Sources;
-
 /**
  * A vendor's own Composer source at an https address, such as a paid
  * plugin's, with the license key the vendor gives: a bearer token, or a
  * user name and key (I-433). The address is checked before Composer runs.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Extensions\Sources;
+
 final readonly class ComposerSource implements SourceKind
 {
     public const string KEY = 'composer';

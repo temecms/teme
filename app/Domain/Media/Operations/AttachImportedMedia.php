@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records the post or page a file was uploaded for, from an imported site's
+ * attachment parent (I-553), only while it records none, so the first parent
+ * stays. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -12,11 +22,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records the post or page a file was uploaded for, from an imported site's
- * attachment parent (I-553), only while it records none, so the first parent
- * stays. Only an import's actor may call it.
- */
 final class AttachImportedMedia extends BaseOperation
 {
     use AuthorizesImports;

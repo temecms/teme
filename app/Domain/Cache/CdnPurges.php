@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * The CDN in front of the site, when configuration names one
+ * (`page_cache.cdn.driver`), and the purges waiting for it (study R §3.10):
+ * once Teme's own pages are gone, a change's tags wait in
+ * `page_cache_cdn_purges`, and the addresses of the files the web server
+ * served and no longer has in `page_cache_cdn_addresses` (slice 1.7d″), each
+ * numbered by PostgreSQL, and one drain at a time sends them, oldest first,
+ * a batch a request: tags first, within the rate the CDN allows them, and
+ * addresses within a budget of their own. The CDN knows each tag by a short
+ * hash, never as written.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -12,17 +28,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use InvalidArgumentException;
 use Throwable;
 
-/**
- * The CDN in front of the site, when configuration names one
- * (`page_cache.cdn.driver`), and the purges waiting for it (study R §3.10):
- * once Teme's own pages are gone, a change's tags wait in
- * `page_cache_cdn_purges`, and the addresses of the files the web server
- * served and no longer has in `page_cache_cdn_addresses` (slice 1.7d″), each
- * numbered by PostgreSQL, and one drain at a time sends them, oldest first,
- * a batch a request: tags first, within the rate the CDN allows them, and
- * addresses within a budget of their own. The CDN knows each tag by a short
- * hash, never as written.
- */
 final readonly class CdnPurges
 {
     /** Where a refused purge is noted for a day, for the Status banner (PageCacheCdnPurges). */

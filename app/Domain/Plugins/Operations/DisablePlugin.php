@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Disables an enabled plugin (I-3353, I-3445): a person who holds
+ * plugins.manage, or the operator, with no password, since it takes access
+ * away. Refused while an enabled plugin requires it. Keeps the row and
+ * what was agreed to. After commit, cancels its
+ * waiting and running plugin jobs as the operator. Returns its name.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -32,13 +44,6 @@ use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Disables an enabled plugin (I-3353, I-3445): a person who holds
- * plugins.manage, or the operator, with no password, since it takes access
- * away. Refused while an enabled plugin requires it. Keeps the row and
- * what was agreed to. After commit, cancels its
- * waiting and running plugin jobs as the operator. Returns its name.
- */
 final class DisablePlugin extends BaseOperation
 {
     use AuthorizesPluginChanges;

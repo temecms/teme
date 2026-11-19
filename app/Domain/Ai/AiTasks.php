@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every registered AI task (I-316), read through the container each time,
+ * so it holds no state. A task whose prompt no longer matches its hash is
+ * stopped: has() is false and get() throws, and nothing else is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
@@ -8,11 +18,6 @@ use Illuminate\Contracts\Container\Container;
 use InvalidArgumentException;
 use UnexpectedValueException;
 
-/**
- * Every registered AI task (I-316), read through the container each time,
- * so it holds no state. A task whose prompt no longer matches its hash is
- * stopped: has() is false and get() throws, and nothing else is.
- */
 final readonly class AiTasks
 {
     /** The container tag a task is registered under, from its part's own provider's register(). */

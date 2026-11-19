@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One link an article draws, as ArticleLinks hands it to plugins: its absolute
+ * address, its host, whether it leads outside the site, and the words it is
+ * drawn on.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

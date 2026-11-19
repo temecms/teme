@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Reads a term's counts per content type, which TermProjection keeps beside
+ * the totals on terms (I-410). terms.published_count stays the total across
+ * types, so nothing that reads it changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Reads a term's counts per content type, which TermProjection keeps beside
- * the totals on terms (I-410). terms.published_count stays the total across
- * types, so nothing that reads it changes.
- */
 final class TermCounts
 {
     /**

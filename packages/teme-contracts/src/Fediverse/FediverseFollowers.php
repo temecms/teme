@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who follows the site's accounts, for a plugin granted fediverse.read: a
+ * plugin's constructor asks for it by this interface.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * An Operation that sometimes needs a fresh proof of identity before it runs.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Operations;

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The toasts the translation routes answer with (I-3360), read from the rows
+ * after each Operation, in *Every word*'s words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -10,10 +19,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Types\TaxonomyRegistry;
 
-/**
- * The toasts the translation routes answer with (I-3360), read from the rows
- * after each Operation, in *Every word*'s words.
- */
 final readonly class TranslationMessages
 {
     public function __construct(private SiteLanguages $languages, private TranslationStatus $status) {}

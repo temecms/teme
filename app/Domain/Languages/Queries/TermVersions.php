@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Which languages each term of a page of the terms list has a version in
+ * (docs/proposals/multilingual-screens.md, 4): its group's terms, or itself
+ * alone, in one statement for the page. It reads only.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Languages\Queries;
 use App\Domain\Languages\SiteLanguages;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Which languages each term of a page of the terms list has a version in
- * (docs/proposals/multilingual-screens.md, 4): its group's terms, or itself
- * alone, in one statement for the page. It reads only.
- */
 final class TermVersions
 {
     /**

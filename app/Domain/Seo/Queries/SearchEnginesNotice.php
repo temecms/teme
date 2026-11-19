@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Home's warning while the site asks search engines to stay away (I-873),
+ * as WordPress's "Search engines discouraged": for whoever may change Search
+ * and social, linking to the switch.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo\Queries;
@@ -8,11 +18,6 @@ use App\Domain\Seo\SearchAndSocial;
 use App\Domain\Seo\WholeSite;
 use App\Models\User;
 
-/**
- * Home's warning while the site asks search engines to stay away (I-873),
- * as WordPress's "Search engines discouraged": for whoever may change Search
- * and social, linking to the switch.
- */
 final readonly class SearchEnginesNotice
 {
     /**

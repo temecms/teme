@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Adds and updates the site's own content types from a teme-types.json file:
+ * the taxonomies before the types that name them, then the types' fields. It
+ * never removes a type, taxonomy or field that is only on this site (I-411).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations;
@@ -31,11 +41,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds and updates the site's own content types from a teme-types.json file:
- * the taxonomies before the types that name them, then the types' fields. It
- * never removes a type, taxonomy or field that is only on this site (I-411).
- */
 final class ImportTypes extends BaseOperation
 {
     use ManagesFields;

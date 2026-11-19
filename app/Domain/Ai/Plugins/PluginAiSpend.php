@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Each plugin's AI spend this UTC month, read from its own table and never
+ * summed from the record, as the site's month is.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Plugins;
@@ -9,10 +18,6 @@ use App\Domain\Ai\Queries\AiSpend;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Each plugin's AI spend this UTC month, read from its own table and never
- * summed from the record, as the site's month is.
- */
 final readonly class PluginAiSpend
 {
     /**

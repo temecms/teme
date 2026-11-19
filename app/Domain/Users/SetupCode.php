@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The code the first-run page asks for (issue 246): derived from the site's
+ * application key, so only someone who can read the deploy log or run a
+ * teme: command has it, and nothing is stored.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users;
@@ -7,11 +17,6 @@ namespace App\Domain\Users;
 use RuntimeException;
 use SensitiveParameter;
 
-/**
- * The code the first-run page asks for (issue 246): derived from the site's
- * application key, so only someone who can read the deploy log or run a
- * teme: command has it, and nothing is stored.
- */
 final readonly class SetupCode
 {
     /** Crockford's base 32: no I, L, O or U, so it reads aloud and types cleanly. */

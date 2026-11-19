@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * After the people, before anything else (I-2998): when this run made a
+ * person or first matched one, the posts credited to the fallback owner
+ * become work again, so the next full run gives each to its author. Every
+ * kind of run, since a catch-up's people need their posts marked for the
+ * full run after it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Users;
@@ -12,13 +24,6 @@ use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
 
-/**
- * After the people, before anything else (I-2998): when this run made a
- * person or first matched one, the posts credited to the fallback owner
- * become work again, so the next full run gives each to its author. Every
- * kind of run, since a catch-up's people need their posts marked for the
- * full run after it.
- */
 final readonly class AuthorsWaitingStep implements StepPhase
 {
     public function key(): string

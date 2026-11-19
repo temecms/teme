@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A plugin granted pages.head that adds `<meta>` tags to public pages' heads.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Head;

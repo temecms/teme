@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Chooses the menu a theme's slot shows, or none, to the default language's
+ * readers or, given a language, to that language's (I-3360), who see the
+ * default's where theirs has none. Someone who may manage navigation may
+ * place their own menu, as may someone who manages the site's design. The
+ * choice is a theme setting, written through SettingsWriter so the settings
+ * history records it, and every page drawn in the design is purged after
+ * commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations;
@@ -18,15 +32,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Chooses the menu a theme's slot shows, or none, to the default language's
- * readers or, given a language, to that language's (I-3360), who see the
- * default's where theirs has none. Someone who may manage navigation may
- * place their own menu, as may someone who manages the site's design. The
- * choice is a theme setting, written through SettingsWriter so the settings
- * history records it, and every page drawn in the design is purged after
- * commit.
- */
 final class BindNavigationSlot extends BaseOperation
 {
     public function __construct(

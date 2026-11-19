@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The words the Plugins page and its consent dialog use for what a plugin
+ * asks to do and what it listens for (I-3353): a person never reads a
+ * capability name or a hook's class name.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -8,11 +18,6 @@ use App\Domain\Ai\Plugins\DeclaredAiTask;
 use Closure;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * The words the Plugins page and its consent dialog use for what a plugin
- * asks to do and what it listens for (I-3353): a person never reads a
- * capability name or a hook's class name.
- */
 final readonly class PluginWords
 {
     /** What each hook means, by its short name, in the order the reference lists them. */
@@ -73,6 +78,8 @@ final readonly class PluginWords
      *
      * @param  list<string>  $hosts
      * @param  list<string>  $settings  the labels of the settings it takes hosts from
+     *
+     * @since 1.0.0
      */
     public static function httpWithSettings(array $hosts, array $settings): string
     {
@@ -87,6 +94,8 @@ final readonly class PluginWords
      * The line under it that lists the hosts those settings name now.
      *
      * @param  list<string>  $hosts
+     *
+     * @since 1.0.0
      */
     public static function settingHostsNow(array $hosts): string
     {
@@ -127,6 +136,8 @@ final readonly class PluginWords
     /**
      * The consent's line for a plugin this one requires, which must stay
      * enabled while this one is (docs/plans/plugin-sockets-3.md).
+     *
+     * @since 1.0.0
      */
     public static function needs(string $plugin): string
     {
@@ -138,6 +149,8 @@ final readonly class PluginWords
      * on and its label.
      *
      * @param  list<string>  $types  the types' names, as the admin shows them
+     *
+     * @since 1.0.0
      */
     public static function editorPanel(string $label, array $types): string
     {
@@ -150,6 +163,8 @@ final readonly class PluginWords
      *
      * @param  list<string>  $labels
      * @param  list<string>  $types  the types' names, as the admin shows them
+     *
+     * @since 1.1.0
      */
     public static function editorChecks(array $labels, array $types): string
     {
@@ -160,6 +175,8 @@ final readonly class PluginWords
      * The consent's line for a plugin's tab in Search and social.
      *
      * @param  list<string>  $types  the types' names, as the admin shows them
+     *
+     * @since 1.1.0
      */
     public static function searchSection(string $label, array $types): string
     {
@@ -170,6 +187,8 @@ final readonly class PluginWords
      * The consent's line naming the sitemaps a plugin adds.
      *
      * @param  list<string>  $labels
+     *
+     * @since 1.1.0
      */
     public static function sitemaps(array $labels): string
     {
@@ -181,6 +200,8 @@ final readonly class PluginWords
      * from (`contributes.csp`).
      *
      * @param  list<string>  $hosts
+     *
+     * @since 1.0.0
      */
     public static function insertionHosts(array $hosts): string
     {
@@ -189,6 +210,8 @@ final readonly class PluginWords
 
     /**
      * One declared AI task as the consent lists it: its label and what it sends.
+     *
+     * @since 1.0.0
      */
     public static function aiTask(DeclaredAiTask $task): string
     {
@@ -198,6 +221,8 @@ final readonly class PluginWords
     /**
      * What an AI task sends, in words: its own brief, an item's unpublished
      * text, or published text only.
+     *
+     * @since 1.0.0
      */
     public static function aiSends(string $sends): string
     {

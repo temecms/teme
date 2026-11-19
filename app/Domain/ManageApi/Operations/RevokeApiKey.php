@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Revokes a management API key: it stops signing in at once and stays in
+ * the list, marked revoked (docs/proposals/management-api.md). An
+ * administrator's change, after their password. Revoking a revoked key
+ * changes nothing.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Revokes a management API key: it stops signing in at once and stays in
- * the list, marked revoked (docs/proposals/management-api.md). An
- * administrator's change, after their password. Revoking a revoked key
- * changes nothing.
- */
 final class RevokeApiKey extends BaseOperation implements RequiresElevation
 {
     public function requiresElevation(OperationInput $input): bool

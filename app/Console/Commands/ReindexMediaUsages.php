@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * teme:content:reindex-references — re-derives where every media item is used
+ * and which articles link to which, from the content revisions, a chunk at a
+ * time, as the operator. Then run teme:counts:rebuild to square the media use
+ * counters; links have no counter, so the added and removed rows are the
+ * report. teme:media:reindex-usages still works, for one release.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -11,13 +23,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:content:reindex-references — re-derives where every media item is used
- * and which articles link to which, from the content revisions, a chunk at a
- * time, as the operator. Then run teme:counts:rebuild to square the media use
- * counters; links have no counter, so the added and removed rows are the
- * report. teme:media:reindex-usages still works, for one release.
- */
 final class ReindexMediaUsages extends Command
 {
     /** @var string */

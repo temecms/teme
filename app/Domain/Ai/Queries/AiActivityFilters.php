@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The options of Tools › AI activity's three selects (I-1307): the people who may ask AI, the tasks, and the months the record holds. None scans the record: the people come from the users, the tasks from the registry and the months from the monthly totals.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
@@ -10,9 +18,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The options of Tools › AI activity's three selects (I-1307): the people who may ask AI, the tasks, and the months the record holds. None scans the record: the people come from the users, the tasks from the registry and the months from the monthly totals.
- */
 final readonly class AiActivityFilters
 {
     public function __construct(private AiTasks $tasks, private PluginAiTasks $pluginTasks) {}
@@ -79,6 +84,8 @@ final readonly class AiActivityFilters
      * chosen if it holds none.
      *
      * @return list<array{value: string, label: string}>
+     *
+     * @since 1.0.0
      */
     public function plugins(?string $selected): array
     {

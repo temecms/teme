@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Writes a new working revision. Never touches published_revision_id, so a
+ * published page keeps serving its published revision until an explicit
+ * publish operation moves the pointer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -27,11 +37,6 @@ use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Content\ContentSaved;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Writes a new working revision. Never touches published_revision_id, so a
- * published page keeps serving its published revision until an explicit
- * publish operation moves the pointer.
- */
 final class SaveDraft extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

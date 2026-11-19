@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The import's phases (I-349): whatever is tagged teme.import.phases, read
+ * through the container each time, in order. A phase registered wrongly
+ * stops whoever asks, naming it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Phases;
 use App\Domain\Import\ImportRunKind;
 use LogicException;
 
-/**
- * The import's phases (I-349): whatever is tagged teme.import.phases, read
- * through the container each time, in order. A phase registered wrongly
- * stops whoever asks, naming it.
- */
 final readonly class ImportPhases
 {
     public const string TAG = 'teme.import.phases';

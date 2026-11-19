@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A ZIP someone uploaded: kept as data until the installer unpacks it into
+ * the extensions folder's packages/, where it stays unchanged, and Composer
+ * reads every package there as a path repository, copied, never linked (I-211).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Sources;
@@ -7,11 +17,6 @@ namespace App\Domain\Extensions\Sources;
 use App\Domain\Extensions\Models\ExtensionUploadRecord;
 use RuntimeException;
 
-/**
- * A ZIP someone uploaded: kept as data until the installer unpacks it into
- * the extensions folder's packages/, where it stays unchanged, and Composer
- * reads every package there as a path repository, copied, never linked (I-211).
- */
 final readonly class UploadSource implements SourceKind
 {
     public const string KEY = 'upload';

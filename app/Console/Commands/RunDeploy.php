@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * teme:deploy — brings this site to the release its code is, as the
+ * operator (I-377): it checks the server, backs up when migrations wait,
+ * migrates under a lock, and restarts what must restart. It never asks a
+ * question, and with --json prints one line a program reads.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -16,12 +27,6 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * teme:deploy — brings this site to the release its code is, as the
- * operator (I-377): it checks the server, backs up when migrations wait,
- * migrates under a lock, and restarts what must restart. It never asks a
- * question, and with --json prints one line a program reads.
- */
 final class RunDeploy extends Command
 {
     use PrintsSetupCode;

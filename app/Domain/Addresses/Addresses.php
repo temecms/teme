@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Which public address every item, term and author should have now, from the
+ * address settings (I-393): stored without slashes, lower-cased, and '' for
+ * the home page. No list of types or taxonomies lives here; the registries'
+ * `public` flags and the settings decide.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -18,12 +29,6 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Which public address every item, term and author should have now, from the
- * address settings (I-393): stored without slashes, lower-cased, and '' for
- * the home page. No list of types or taxonomies lives here; the registries'
- * `public` flags and the settings decide.
- */
 final class Addresses
 {
     /**

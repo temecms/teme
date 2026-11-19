@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Plugins that need other plugins (docs/plans/plugin-sockets-3.md):
+ * what a manifest's `requires.plugins` names, whether each is enabled at a
+ * version it accepts, which enabled plugins need a given one, and whether a
+ * plugin listens only to hooks of plugins it requires. It reads manifests
+ * and rows; it never runs a plugin's code.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -9,13 +21,6 @@ use App\Domain\Plugins\Models\PluginRecord;
 use Composer\Semver\Semver;
 use UnexpectedValueException;
 
-/**
- * Plugins that need other plugins (docs/plans/plugin-sockets-3.md):
- * what a manifest's `requires.plugins` names, whether each is enabled at a
- * version it accepts, which enabled plugins need a given one, and whether a
- * plugin listens only to hooks of plugins it requires. It reads manifests
- * and rows; it never runs a plugin's code.
- */
 final readonly class Dependencies
 {
     /** At most this many plugins a plugin requires. */

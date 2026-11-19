@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Reads the site into Teme SEO's index, as the person the run acts for.
+ * The hourly pass reads only the items a change marked and the drafts it
+ * hasn't read. Reading every item again walks every published item, and
+ * repairs what changed while Teme SEO was off.
+ *
+ * @package teme/seo
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Seo\Jobs;
@@ -10,15 +21,11 @@ use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Jobs\JobContext;
 use Teme\Contracts\Jobs\JobHandler;
+use Teme\Contracts\Settings\SettingsReader;
 use Teme\Seo\Storage\Indexer;
 use Teme\Seo\Storage\ItemIndex;
+use Teme\Seo\TemeSeo;
 
-/**
- * Reads the site into Teme SEO's index, as the person the run acts for.
- * The hourly pass reads only the items a change marked and the drafts it
- * hasn't read. Reading every item again walks every published item, and
- * repairs what changed while Teme SEO was off.
- */
 final readonly class IndexSite implements JobHandler
 {
     /** Items read in one run at most; the next pass reads the rest. */
@@ -28,6 +35,7 @@ final readonly class IndexSite implements JobHandler
         private ContentReader $content,
         private Indexer $indexer,
         private ItemIndex $index,
+        private SettingsReader $settings,
     ) {}
 
     public function handle(JobContext $context): void
@@ -75,6 +83,7 @@ final readonly class IndexSite implements JobHandler
             }
         }
 
+        $this->index->refreshProblems(max(1, $this->settings->int(TemeSeo::SETTINGS, 'thin_words')));
         $context->progress($total, $total, __('Items read: :count.', ['count' => $total]));
     }
 

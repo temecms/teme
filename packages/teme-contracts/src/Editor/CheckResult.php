@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What one of a plugin's checks found: its state, a short message, and where
+ * the editor should take the person to change it.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

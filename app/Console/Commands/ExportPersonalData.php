@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * teme:privacy:export — writes every piece of personal data the site holds
+ * for an address to one JSON file and emails it there, as the operator,
+ * who has checked who asked (I-3375). A run a killed process left is
+ * continued.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -18,12 +29,6 @@ use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * teme:privacy:export — writes every piece of personal data the site holds
- * for an address to one JSON file and emails it there, as the operator,
- * who has checked who asked (I-3375). A run a killed process left is
- * continued.
- */
 final class ExportPersonalData extends Command
 {
     /** @var string */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Builds the settings group a plugin declares in its manifest's
+ * `contributes.settings`, which Teme draws under From plugins for
+ * holders of plugins.manage (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
@@ -12,11 +22,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * Builds the settings group a plugin declares in its manifest's
- * `contributes.settings`, which Teme draws under Plugin settings for
- * holders of plugins.manage (I-3353).
- */
 final class DeclaredSettings
 {
     /**
@@ -74,6 +79,8 @@ final class DeclaredSettings
      * @param  T  $form
      *
      * @return T
+     *
+     * @since 1.0.0
      */
     public static function translated(array $form, string $locale): array
     {

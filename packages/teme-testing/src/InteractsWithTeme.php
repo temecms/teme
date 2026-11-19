@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Everything the kit gives a test, for an author whose test case is their
+ * own: people, plugins, themes, content, the outbound fake and single
+ * requests, each through the same Operations and doors the admin and a
+ * running site use. Laravel calls setUpInteractsWithTeme() before each test.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Testing;
@@ -38,12 +49,6 @@ use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Assert;
 use Teme\Contracts\Content\ItemRef;
 
-/**
- * Everything the kit gives a test, for an author whose test case is their
- * own: people, plugins, themes, content, the outbound fake and single
- * requests, each through the same Operations and doors the admin and a
- * running site use. Laravel calls setUpInteractsWithTeme() before each test.
- */
 trait InteractsWithTeme
 {
     /** The password every person the kit makes signs in with. */

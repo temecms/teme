@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Cloudflare in front of the site (I-514). A stored page's keys go in
+ * Cache-Tag and the life it has left in Cloudflare-CDN-Cache-Control, both
+ * of which Cloudflare reads and strips before the reader; a change is
+ * purged by tag, or by address for a page the web server served as a file,
+ * through Cloudflare's API, with a token whose one permission is to purge
+ * the zone's cache. Purging by tag is on every plan; Free takes five purge
+ * requests a minute, a hundred tags each; addresses have a budget of their
+ * own, 800 a second on Free.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -10,16 +25,6 @@ use RuntimeException;
 use SensitiveParameter;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Cloudflare in front of the site (I-514). A stored page's keys go in
- * Cache-Tag and the life it has left in Cloudflare-CDN-Cache-Control, both
- * of which Cloudflare reads and strips before the reader; a change is
- * purged by tag, or by address for a page the web server served as a file,
- * through Cloudflare's API, with a token whose one permission is to purge
- * the zone's cache. Purging by tag is on every plan; Free takes five purge
- * requests a minute, a hundred tags each; addresses have a budget of their
- * own, 800 a second on Free.
- */
 final readonly class CloudflareCdn implements CdnDriver
 {
     private const string API = 'https://api.cloudflare.com/client/v4/zones/';

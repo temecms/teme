@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Reads a plugin's area for its pages (docs/plans/plugin-sockets-2.md, A7):
+ * each call under 250 ms and all of one request's under a second, every
+ * answer cleaned to plain values. A call that throws, runs over or answers
+ * wrongly is recorded under the plugin, and its block shows one line
+ * instead; the rest of the page works.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -20,13 +32,6 @@ use Teme\Contracts\Admin\TableQuery;
 use Teme\Contracts\Lists\Cell;
 use Throwable;
 
-/**
- * Reads a plugin's area for its pages (docs/plans/plugin-sockets-2.md, A7):
- * each call under 250 ms and all of one request's under a second, every
- * answer cleaned to plain values. A call that throws, runs over or answers
- * wrongly is recorded under the plugin, and its block shows one line
- * instead; the rest of the page works.
- */
 final class AreaReads
 {
     public const int CALL_BUDGET_MS = 250;

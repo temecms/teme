@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Says how the public site's content security policy is set and whether
+ * browsers reported anything it blocked, or would block, in the last day
+ * (I-3375).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -12,11 +22,6 @@ use App\Domain\Site\Policy\Reports\PolicyReportSpool;
 use App\Domain\Site\Policy\Reports\Queries\PolicyReportList;
 use Carbon\CarbonImmutable;
 
-/**
- * Says how the public site's content security policy is set and whether
- * browsers reported anything it blocked, or would block, in the last day
- * (I-3375).
- */
 final readonly class PublicPolicy implements DoctorCheck
 {
     public function __construct(private PolicyReportList $reports, private PolicyReportSpool $spool) {}

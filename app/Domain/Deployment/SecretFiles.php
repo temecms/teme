@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Secrets a server hands Teme as files (I-375): for each name below, the
+ * same name with _FILE added names the file that holds the value. Read once
+ * the environment is loaded and before configuration, in every process, and
+ * never put where a program Teme starts would inherit it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -8,12 +19,6 @@ use Illuminate\Support\Env;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * Secrets a server hands Teme as files (I-375): for each name below, the
- * same name with _FILE added names the file that holds the value. Read once
- * the environment is loaded and before configuration, in every process, and
- * never put where a program Teme starts would inherit it.
- */
 final class SecretFiles
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Reads the terms of the public taxonomies for the API (D39): a page of
+ * them by name, or one by ID, each with its current address and the count
+ * of the published items of public types filed under it. Tags what it reads
+ * before reading it, so a change to a term purges the answer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Catalogue;
@@ -13,12 +24,6 @@ use App\Domain\Site\ListingViews;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Reads the terms of the public taxonomies for the API (D39): a page of
- * them by name, or one by ID, each with its current address and the count
- * of the published items of public types filed under it. Tags what it reads
- * before reading it, so a change to a term purges the answer.
- */
 final class TermsQuery
 {
     /** The columns a term is read with. */

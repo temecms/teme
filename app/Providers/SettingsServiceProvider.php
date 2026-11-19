@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers the settings registry and its readers, and declares the General
+ * settings group, the Reading group built from the content types, and the
+ * modules group of module switches.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -20,11 +30,6 @@ use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Registers the settings registry and its readers, and declares the General
- * settings group, the Reading group built from the content types, and the
- * modules group of module switches.
- */
 final class SettingsServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -46,7 +51,7 @@ final class SettingsServiceProvider extends ServiceProvider
         $this->app->make(SettingsRegistrar::class)->group(new SettingsGroup(
             key: 'general',
             label: 'General',
-            description: 'The site’s name, tagline, administration email, time zone, language and brand colour.',
+            description: 'The site’s name, tagline, contact address, time zone, language and brand color.',
             section: 'general',
             ability: 'settings.general.manage',
             settings: [
@@ -60,7 +65,7 @@ final class SettingsServiceProvider extends ServiceProvider
                 Setting::email('admin_email', 'Administration email', 'Where Teme sends notices meant for the site\'s administrators.', '0.1.0'),
                 Setting::timezone('timezone', 'Time zone', 'Used to show and schedule dates.', '0.1.0'),
                 // Last: SettingsPageTest reads the fourth field as the time zone.
-                Setting::select('language', 'Site language', 'The language your site is written in. It sets what search engines and screen readers are told, how dates read, and how search matches words. Changing it treats existing items as the new language and rebuilds search in the background.', '0.1.0', array_map(fn (array $language): string => $language['label'], (array) config('languages')))
+                Setting::select('language', 'Language', 'The language your site is written in. It sets what search engines and screen readers are told, how dates read, and how search matches words. Changing it treats existing items as the new language and rebuilds search in the background.', '0.1.0', array_map(fn (array $language): string => $language['label'], (array) config('languages')))
                     ->default(SiteLanguage::DEFAULT),
             ],
             since: '0.1.0',

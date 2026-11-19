@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The places backups are kept, on Tools › Backups (I-360): testing, adding,
+ * changing and removing one, and measuring what one holds, through 1.12c's
+ * Operations.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -28,11 +38,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-/**
- * The places backups are kept, on Tools › Backups (I-360): testing, adding,
- * changing and removing one, and measuring what one holds, through 1.12c's
- * Operations.
- */
 final class BackupPlacesController extends Controller
 {
     use WaitsForRestic;

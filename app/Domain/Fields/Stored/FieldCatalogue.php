@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The nine field types a site may give its own fields (I-3320, I-3323):
+ * each one's name in the builder, its line, its icon, the settings it takes,
+ * which boxes it offers, and how its field type is built from a definition.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Stored;
@@ -16,11 +26,6 @@ use App\Domain\Fields\Types\TextField;
 use App\Domain\Fields\Types\UrlField;
 use InvalidArgumentException;
 
-/**
- * The nine field types a site may give its own fields (I-3320, I-3323):
- * each one's name in the builder, its line, its icon, the settings it takes,
- * which boxes it offers, and how its field type is built from a definition.
- */
 final class FieldCatalogue
 {
     /**

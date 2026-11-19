@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Why a secret named by a _FILE variable can't be read (I-375). Its
+ * message names variables and the file's path, never a value.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
 
 use RuntimeException;
 
-/**
- * Why a secret named by a _FILE variable can't be read (I-375). Its
- * message names variables and the file's path, never a value.
- */
 final class SecretFileRefused extends RuntimeException
 {
     public static function bothSet(string $name): self

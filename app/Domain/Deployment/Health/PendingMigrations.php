@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * How many of the migrations this code ships the database hasn't run, in
+ * one query (I-378). Only the code's own names count, so an image rolled
+ * back to fewer migrations still passes, as expand-then-contract needs.
+ * It also names them, those flagged as breaking the release before, and the
+ * newest the code ships, for teme:deploy.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
@@ -8,13 +20,6 @@ use App\Domain\Deployment\BreaksPreviousRelease;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Facades\DB;
 
-/**
- * How many of the migrations this code ships the database hasn't run, in
- * one query (I-378). Only the code's own names count, so an image rolled
- * back to fewer migrations still passes, as expand-then-contract needs.
- * It also names them, those flagged as breaking the release before, and the
- * newest the code ships, for teme:deploy.
- */
 final readonly class PendingMigrations
 {
     public function __construct(private Migrator $migrator) {}

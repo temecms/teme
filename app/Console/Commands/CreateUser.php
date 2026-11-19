@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:user:create`: invites a person — the first administrator on a new site
+ * included — and prints their set-password link. It acts as the operator, so
+ * it works before any administrator exists and when email does not.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -14,11 +24,6 @@ use Illuminate\Validation\ValidationException;
 
 use function Laravel\Prompts\text;
 
-/**
- * `teme:user:create`: invites a person — the first administrator on a new site
- * included — and prints their set-password link. It acts as the operator, so
- * it works before any administrator exists and when email does not.
- */
 final class CreateUser extends Command
 {
     /** @var string */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Embed blocks, and the core-embed blocks of WordPress before 5.6, as Embed
+ * cards: the address, framed when a provider in
+ * config/embeds.php matches it, otherwise shown as a link.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -11,11 +21,6 @@ use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 use Illuminate\Support\Str;
 
-/**
- * Embed blocks, and the core-embed blocks of WordPress before 5.6, as Embed
- * cards: the address, framed when a provider in
- * config/embeds.php matches it, otherwise shown as a link.
- */
 final readonly class Embeds implements BlockMapping
 {
     /** The longest address an Embed card keeps (EmbedCard's rule). */

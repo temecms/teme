@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Brings an older revision back by writing a new one from it, through
+ * SaveDraft's own path, so history only ever grows: the older revision is
+ * read, never changed or removed. It publishes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -18,11 +28,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings an older revision back by writing a new one from it, through
- * SaveDraft's own path, so history only ever grows: the older revision is
- * read, never changed or removed. It publishes nothing.
- */
 final class RestoreRevision extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

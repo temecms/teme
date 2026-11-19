@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A place as the setup and place forms send it, made into 1.12c's NewPlace;
+ * NewPlace says in words what can't be used (I-2401).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -10,10 +19,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
-/**
- * A place as the setup and place forms send it, made into 1.12c's NewPlace;
- * NewPlace says in words what can't be used (I-2401).
- */
 final class PlaceForm
 {
     /**

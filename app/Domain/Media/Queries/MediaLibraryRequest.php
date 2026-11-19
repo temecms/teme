@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Which page of the media library to show: the tab, the direction, the
+ * cursor, and the filters, among them a kind and a month on the site's
+ * clock.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
 
 use Carbon\CarbonImmutable;
 
-/**
- * Which page of the media library to show: the tab, the direction, the
- * cursor, and the filters, among them a kind and a month on the site's
- * clock.
- */
 final readonly class MediaLibraryRequest
 {
     /** The kinds the Type filter may name. */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One Select all matching (I-143): the list it walks, its action, where it
+ * stopped and what it skipped. Only StartBulkRun and RecordBulkRunStep write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Models;
@@ -11,9 +20,6 @@ use Illuminate\Database\Eloquent\Model;
 use stdClass;
 
 /**
- * One Select all matching (I-143): the list it walks, its action, where it
- * stopped and what it skipped. Only StartBulkRun and RecordBulkRunStep write it.
- *
  * @property string $id
  * @property string $tracked_job_id
  * @property int $user_id

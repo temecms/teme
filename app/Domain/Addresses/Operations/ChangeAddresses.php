@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes the address settings: every public type's pattern, every public
+ * taxonomy's base, the author base, each type's archive page's address
+ * (Settings › Addresses), and the home page (Settings › Reading). It refuses a change that would put two things at one address, naming
+ * them, and moves every address in the background; old ones stay as history.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Operations;
@@ -20,12 +31,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes the address settings: every public type's pattern, every public
- * taxonomy's base, the author base, each type's archive page's address
- * (Settings › Addresses), and the home page (Settings › Reading). It refuses a change that would put two things at one address, naming
- * them, and moves every address in the background; old ones stay as history.
- */
 final class ChangeAddresses extends BaseOperation
 {
     use ChecksAddressSettings;

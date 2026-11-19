@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Takes a comment on a published item (docs/studies/comments.md §3.4,
+ * I-275): the cheapest checks first, then a moderator's judgement, then the
+ * comment and its item's counts in one transaction. Whoever looks after the
+ * item's comments is approved at once, past every list and check (I-483); a
+ * guest gives a name and an email address (I-268).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -43,13 +55,6 @@ use Teme\Contracts\Comments\ModerationVerdict;
 use Teme\Contracts\Operations\OperationInput;
 use UnexpectedValueException;
 
-/**
- * Takes a comment on a published item (docs/studies/comments.md §3.4,
- * I-275): the cheapest checks first, then a moderator's judgement, then the
- * comment and its item's counts in one transaction. Whoever looks after the
- * item's comments is approved at once, past every list and check (I-483); a
- * guest gives a name and an email address (I-268).
- */
 final class SubmitComment extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

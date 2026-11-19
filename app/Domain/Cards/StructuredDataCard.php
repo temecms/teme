@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A card that adds nodes to its page's structured data (I-704), from its
+ * own attributes, never from its HTML. Optional: a card that doesn't
+ * implement it adds nothing; core's Video card gives a VideoObject with its
+ * poster.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
 
 use App\Domain\Site\Document\JsonLdNode;
 
-/**
- * A card that adds nodes to its page's structured data (I-704), from its
- * own attributes, never from its HTML. Optional: a card that doesn't
- * implement it adds nothing; core's Video card gives a VideoObject with its
- * poster.
- */
 interface StructuredDataCard
 {
     /**

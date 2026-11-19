@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai;
-
 /**
  * One AI service Teme can ask: Anthropic, OpenAI and
  * the rest, each a class registered under AiProviders::TAG from its part's own
  * provider. Teme's own contract, with no library type in it (I-314); a library
  * stays inside the class that implements it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai;
+
 interface AiProvider
 {
     /**

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What a request asks the installer to do: change one package, go back to
+ * the release before, or rebuild the current one for a new Teme.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions;
 
-/**
- * What a request asks the installer to do: change one package, go back to
- * the release before, or rebuild the current one for a new Teme.
- */
 enum ExtensionAction: string
 {
     case Install = 'install';

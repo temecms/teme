@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Adds a person with no account, whom an item can credit (I-3366): a name,
+ * an address slug and a biography, and their author page. The operator's or
+ * an administrator's, as managing accounts is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Str;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds a person with no account, whom an item can credit (I-3366): a name,
- * an address slug and a biography, and their author page. The operator's or
- * an administrator's, as managing accounts is.
- */
 final class CreatePerson extends BaseOperation
 {
     use ManagesUsers;

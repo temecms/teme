@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Items' fields as templates draw them (I-3346): every field of the nine
+ * types an item's type has, built before the template runs, for one article
+ * or for a page of cards at once. Every item the values link to is read in
+ * one statement and every image in one call, never one a field or a card.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -17,12 +28,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\ViewModels\FieldView;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Items' fields as templates draw them (I-3346): every field of the nine
- * types an item's type has, built before the template runs, for one article
- * or for a page of cards at once. Every item the values link to is read in
- * one statement and every image in one call, never one a field or a card.
- */
 final readonly class FieldViews
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The regions a theme declares in its manifest (study B §3e): each one's
+ * label, the cards it allows, and the most top-level blocks it holds, 50
+ * when the manifest doesn't say, the most ManifestValidator allows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Regions;
@@ -7,11 +17,6 @@ namespace App\Domain\Regions;
 use App\Domain\Themes\ActiveTheme;
 use App\Domain\Themes\Theme;
 
-/**
- * The regions a theme declares in its manifest (study B §3e): each one's
- * label, the cards it allows, and the most top-level blocks it holds, 50
- * when the manifest doesn't say, the most ManifestValidator allows.
- */
 final readonly class RegionDeclarations
 {
     /** The most blocks a region may hold (ManifestValidator::regions()). */

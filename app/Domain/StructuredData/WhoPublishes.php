@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Search and social's section "Who publishes the site" (I-708, I-725):
+ * nobody in particular, an organization, a local business or a person, and
+ * what search engines are told of it. Each field shows only for the kinds
+ * it describes (I-874), and keeps its value while hidden. It checks its
+ * own values on save (I-708).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -11,13 +23,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "Who publishes the site" (I-708, I-725):
- * nobody in particular, an organization, a local business or a person, and
- * what search engines are told of it. Each field shows only for the kinds
- * it describes (I-874), and keeps its value while hidden. It checks its
- * own values on save (I-708).
- */
 final class WhoPublishes implements SearchAndSocialSection, SettingsCheck
 {
     public const string KIND = 'publisher_type';
@@ -66,7 +71,7 @@ final class WhoPublishes implements SearchAndSocialSection, SettingsCheck
 
     public function order(): int
     {
-        return 300;
+        return 850;
     }
 
     public function key(): string

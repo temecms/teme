@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Keeps a remote account as its own document describes it, adding it or
+ * bringing it up to date, and counting it back if it was gone. Run from
+ * the inbox's job for the verified sender's own document, or by the
+ * operator; returns the account.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -14,12 +25,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Keeps a remote account as its own document describes it, adding it or
- * bringing it up to date, and counting it back if it was gone. Run from
- * the inbox's job for the verified sender's own document, or by the
- * operator; returns the account.
- */
 final class RecordRemoteActor extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

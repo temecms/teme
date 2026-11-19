@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Back up now on Tools › Backups (I-361): puts a backup in line through
+ * RequestBackup and says when it starts.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -12,10 +21,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Back up now on Tools › Backups (I-361): puts a backup in line through
- * RequestBackup and says when it starts.
- */
 final class BackUpNowController extends Controller
 {
     public function __invoke(Request $request, RequestBackup $backup): RedirectResponse

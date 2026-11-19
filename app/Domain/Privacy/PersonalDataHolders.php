@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every holder of personal data a privacy request walks (I-3375): core's,
+ * in a fixed order, then the plugins' through CollectPersonalDataHolders.
+ * Each key is checked here, so two holders never answer for one entry.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy;
@@ -20,11 +30,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 
-/**
- * Every holder of personal data a privacy request walks (I-3375): core's,
- * in a fixed order, then the plugins' through CollectPersonalDataHolders.
- * Each key is checked here, so two holders never answer for one entry.
- */
 final class PersonalDataHolders
 {
     /**

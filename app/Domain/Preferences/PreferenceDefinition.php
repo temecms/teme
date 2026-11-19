@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Preferences;
-
-use Closure;
-
 /**
  * One per-person preference (I-110): its key, type, default and wording,
  * declared in the same spirit as a setting, with the settings' type names
  * where they overlap. A `select` offers value → label; a `number` has a
  * range; a `list` is an ordered list of strings, each one its callback
  * allows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Preferences;
+
+use Closure;
+
 final readonly class PreferenceDefinition
 {
     /** The types a preference may have. */

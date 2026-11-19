@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The fediverse's alternate in a public page's head (I-058): a federated
+ * item's page links its object, and an author's archive their account, so
+ * a fediverse app given the page's address finds what to follow or answer.
+ * None while the fediverse is off.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
@@ -18,12 +29,6 @@ use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\ListingView;
 use Illuminate\Database\Query\JoinClause;
 
-/**
- * The fediverse's alternate in a public page's head (I-058): a federated
- * item's page links its object, and an author's archive their account, so
- * a fediverse app given the page's address finds what to follow or answer.
- * None while the fediverse is off.
- */
 final readonly class AlternateLinks implements HeadContributor
 {
     public function __construct(private PublishingSettings $settings) {}

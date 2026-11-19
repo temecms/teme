@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Plugins' sitemaps in the site's sitemap index, after core's
+ * (docs/guides/developers/plugins/seo.md): each one an enabled plugin
+ * granted sitemaps declares, named `plugin-{code}-{id}` so it never meets
+ * one of core's names, cached and tagged as
+ * core's are and tagged with the plugin too. Each call has 2 seconds; a
+ * plugin that fails is recorded as a fault, and the sitemap answers with
+ * no entries, or no pages after its first.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -19,15 +33,6 @@ use Teme\Contracts\Sitemaps\HasSitemaps;
 use Teme\Contracts\Sitemaps\PluginSitemap;
 use Teme\Contracts\Sitemaps\SitemapEntry;
 
-/**
- * Plugins' sitemaps in the site's sitemap index, after core's
- * (docs/guides/developers/plugins/seo.md): each one an enabled plugin
- * granted sitemaps declares, named `plugin-{code}-{id}` so it never meets
- * one of core's names, cached and tagged as
- * core's are and tagged with the plugin too. Each call has 2 seconds; a
- * plugin that fails is recorded as a fault, and the sitemap answers with
- * no entries, or no pages after its first.
- */
 final readonly class PluginSitemaps implements SitemapProvider
 {
     public const int CALL_BUDGET_MS = 2_000;

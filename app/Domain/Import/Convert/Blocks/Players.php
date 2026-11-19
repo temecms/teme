@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Core's audio, video and playlist blocks as Audio and Video cards
+ * (I-1705): a file by its attachment ID, else its address; a playlist as
+ * one card for each of its tracks.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -11,11 +21,6 @@ use App\Domain\Import\Convert\Media\PlayerCards;
 use App\Domain\Import\Convert\ParsedBlock;
 use Dom\Element;
 
-/**
- * Core's audio, video and playlist blocks as Audio and Video cards
- * (I-1705): a file by its attachment ID, else its address; a playlist as
- * one card for each of its tracks.
- */
 final readonly class Players implements BlockMapping
 {
     public function blocks(): array

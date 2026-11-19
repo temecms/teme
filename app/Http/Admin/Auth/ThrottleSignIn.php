@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The first step of Fortify's sign-in pipeline: refuse before any password is
+ * hashed. Failures are counted by RecordFailedSignIn, from Laravel's Failed
+ * event — Fortify's pipeline renders exceptions where they happen, so a step
+ * cannot catch the failures of the steps after it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Auth;
@@ -12,15 +23,13 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Fortify;
 
-/**
- * The first step of Fortify's sign-in pipeline: refuse before any password is
- * hashed. Failures are counted by RecordFailedSignIn, from Laravel's Failed
- * event — Fortify's pipeline renders exceptions where they happen, so a step
- * cannot catch the failures of the steps after it.
- */
 final class ThrottleSignIn
 {
-    /** The session key holding when sign-in opens again, for the sign-in page's countdown. */
+    /**
+     * The session key holding when sign-in opens again, for the sign-in page's countdown.
+     *
+     * @since 0.8.0-alpha.1
+     */
     public const string RETRY_AT = 'teme.sign_in_retry_at';
 
     public function __construct(private readonly SignInThrottle $throttle) {}

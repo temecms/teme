@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Runs an action from a plugin's panel in the editor
+ * (docs/proposals/plugin-sockets-3.md): queues the job it names as the
+ * person who asked, for the item and the revision they see, once while one
+ * waits. Returns the tracked job's ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -21,12 +32,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Jobs\QueueOptions;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Runs an action from a plugin's panel in the editor
- * (docs/proposals/plugin-sockets-3.md): queues the job it names as the
- * person who asked, for the item and the revision they see, once while one
- * waits. Returns the tracked job's ID.
- */
 final class RunEditorPanelAction extends BaseOperation
 {
     /** The longest unique key a queued job may carry. */

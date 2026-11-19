@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Core's image and gallery blocks (I-338): Image and Gallery
+ * cards by media ID, each image traced to what Teme imported. A gallery
+ * keeps one caption, as Teme's Gallery card does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -9,11 +19,6 @@ use App\Domain\Import\Convert\BlockMapping;
 use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 
-/**
- * Core's image and gallery blocks (I-338): Image and Gallery
- * cards by media ID, each image traced to what Teme imported. A gallery
- * keeps one caption, as Teme's Gallery card does.
- */
 final readonly class Images implements BlockMapping
 {
     /** The most images a Gallery card holds (GalleryCard's rule). */

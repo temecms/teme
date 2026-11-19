@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Migration: adds account states and restrict authors.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;

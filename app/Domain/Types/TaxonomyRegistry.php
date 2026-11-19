@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Every taxonomy: code's, registered as the application boots, then the
+ * site's own, stored in the database and read with the stored types when
+ * first asked for (I-414). It refuses one whose key or segment would break
+ * storage or routing; a stored one it refuses is left out with its reason,
+ * never thrown. It answers which taxonomies a content type uses.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -8,13 +20,6 @@ use App\Domain\Types\Exceptions\InvalidTaxonomyDefinition;
 use App\Domain\Types\Exceptions\UnknownTaxonomy;
 use InvalidArgumentException;
 
-/**
- * Every taxonomy: code's, registered as the application boots, then the
- * site's own, stored in the database and read with the stored types when
- * first asked for (I-414). It refuses one whose key or segment would break
- * storage or routing; a stored one it refuses is left out with its reason,
- * never thrown. It answers which taxonomies a content type uses.
- */
 final class TaxonomyRegistry
 {
     private const string KEY = '/^[a-z][a-z0-9_]{0,31}$/';

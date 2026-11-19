@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Rebuilds the search index of up to 500 published items whose search was
+ * built with other rules than their own language's (I-435, I-3360), in one
+ * transaction, and says how many remain. ReindexSearchJob runs it until
+ * none do. An administrator's change of language asks for it, and a change
+ * to a type's searchable fields.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -20,13 +32,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Rebuilds the search index of up to 500 published items whose search was
- * built with other rules than their own language's (I-435, I-3360), in one
- * transaction, and says how many remain. ReindexSearchJob runs it until
- * none do. An administrator's change of language asks for it, and a change
- * to a type's searchable fields.
- */
 final class ReindexSearch extends BaseOperation
 {
     /** The most items one batch rebuilds. */

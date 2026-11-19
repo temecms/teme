@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The data behind a plugin's area, and its writes.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

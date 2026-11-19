@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records one chunk of a running media move (I-3456): its cursor moved
+ * forward, never back, its counts added, and its problems kept up to the
+ * first 1,000 of the run.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -12,11 +22,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records one chunk of a running media move (I-3456): its cursor moved
- * forward, never back, its counts added, and its problems kept up to the
- * first 1,000 of the run.
- */
 final class RecordMediaMoveProgress extends BaseOperation
 {
     /**

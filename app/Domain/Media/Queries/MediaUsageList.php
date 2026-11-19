@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where one media item is used: the content items whose working or published
+ * revision refers to it, one row each, paged by content ID on the
+ * (media_id, content_id, scope) index. A private item's title is shown only
+ * to whoever may edit it (I-1700).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Support\Queries\Cursor;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Where one media item is used: the content items whose working or published
- * revision refers to it, one row each, paged by content ID on the
- * (media_id, content_id, scope) index. A private item's title is shown only
- * to whoever may edit it (I-1700).
- */
 final class MediaUsageList
 {
     private const int PAGE = 20;

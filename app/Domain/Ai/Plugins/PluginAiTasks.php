@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The AI tasks plugins declare in `contributes.aiTasks` (I-3434): the rule
+ * a declaration must meet, what the consent record keeps of them and what an
+ * update adds to it, and the enabled plugins granted `ai` with their tasks,
+ * for Settings › AI and the door.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Plugins;
@@ -13,12 +24,6 @@ use App\Domain\Plugins\PluginRegistry;
 use Teme\Contracts\Plugins\Capability;
 use Throwable;
 
-/**
- * The AI tasks plugins declare in `contributes.aiTasks` (I-3434): the rule
- * a declaration must meet, what the consent record keeps of them and what an
- * update adds to it, and the enabled plugins granted `ai` with their tasks,
- * for Settings › AI and the door.
- */
 final readonly class PluginAiTasks
 {
     /** At most this many tasks a plugin. */

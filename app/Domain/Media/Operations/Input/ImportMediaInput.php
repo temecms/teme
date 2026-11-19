@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What ImportMedia needs: the downloaded file on local disk, its name, where it
+ * came from, the title, alt text and caption the old site gave it, who
+ * uploaded it and when, and who is importing it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Media\Operations\Input;
 use Carbon\CarbonImmutable;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ImportMedia needs: the downloaded file on local disk, its name, where it
- * came from, the title, alt text and caption the old site gave it, who
- * uploaded it and when, and who is importing it.
- */
 final readonly class ImportMediaInput implements OperationInput
 {
     public function __construct(

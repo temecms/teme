@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The list screen of every listed content type, such as Posts and Pages: one
+ * list per type, read through ContentList, and "new draft from a title"
+ * through CreateDraft. The type comes from the URL's segment. A type with
+ * one item only opens that item in the editor (I-415).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -31,12 +42,6 @@ use Inertia\Response;
 use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The list screen of every listed content type, such as Posts and Pages: one
- * list per type, read through ContentList, and "new draft from a title"
- * through CreateDraft. The type comes from the URL's segment. A type with
- * one item only opens that item in the editor (I-415).
- */
 final class ContentListController extends Controller
 {
     public function index(Request $request, string $type, ContentList $list, AuthorOptions $authors, TaxonomyRegistry $taxonomies, SettingsReader $settings, TermPicker $termPicker, PluginColumns $pluginColumns, SiteLanguages $languages): Response|RedirectResponse

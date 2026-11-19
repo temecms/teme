@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A plugin whose manifest declares an area: its own admin pages, which core
+ * draws from the data it returns.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Withdraws a pending invitation: its link stops working, and the account
+ * that waited for it goes, with its author address. Only someone who may
+ * manage users, or the operator, can do it; only while the invitation waits,
+ * and never once anything is attributed to the person. It grants nothing,
+ * so, like sending again, it asks for no fresh password. Someone a byline
+ * names stays as a person with no account, with their page (issue 396).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -21,14 +34,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Withdraws a pending invitation: its link stops working, and the account
- * that waited for it goes, with its author address. Only someone who may
- * manage users, or the operator, can do it; only while the invitation waits,
- * and never once anything is attributed to the person. It grants nothing,
- * so, like sending again, it asks for no fresh password. Someone a byline
- * names stays as a person with no account, with their page (issue 396).
- */
 final class RevokeInvitation extends BaseOperation
 {
     use KeepsDepartedWriters;

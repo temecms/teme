@@ -1,9 +1,14 @@
-import { Lock, OctagonAlertIcon } from 'lucide-react';
+import {
+    CheckIcon,
+    Lock,
+    OctagonAlertIcon,
+    TriangleAlertIcon,
+} from 'lucide-react';
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { accentProblems, darkVariant, onColor, ratio } from '@/lib/contrast';
+import { __ } from '@/lib/i18n';
 import type { AccentSchemes, BrandColourSection } from '@/types';
 import { SettingsPanel } from './settings-panel';
 
@@ -25,17 +30,6 @@ function longHex(hex: string | null): string | null {
     return short === null
         ? null
         : `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`.toLowerCase();
-}
-
-/** A small square of a colour, beside the words that name it. */
-function Swatch({ colour }: { colour: string }) {
-    return (
-        <span
-            aria-hidden="true"
-            className="border-line inline-block size-3 rounded-sm border bg-(--swatch)"
-            style={{ '--swatch': colour } as CSSProperties}
-        />
-    );
 }
 
 /**
@@ -94,103 +88,109 @@ export function BrandColourSetting({
                               })(),
                 };
 
+    // The text drawn on the colour, and how well it reads (v10: "White text on it: 5.5 to 1, readable").
+    const onAccent = schemes?.light.onAccent ?? null;
+    const onRatio =
+        schemes === null || onAccent === null
+            ? null
+            : ratio(schemes.light.accent, onAccent);
+    // The lighter of the two text colours is the one that reads worse on the light page.
+    const lighter =
+        ratio(onColors[0], bases.light) < ratio(onColors[1], bases.light)
+            ? onColors[0]
+            : onColors[1];
+    const onName =
+        onAccent === lighter ? __('White text on it') : __('Dark text on it');
+
     return (
-        <div data-test="brand-colour">
+        <div data-test="brand-colour" className="contents">
             <SettingsPanel
                 as="section"
-                title="Brand colour"
-                description="The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme."
+                title={__('Brand color')}
+                description={__(
+                    'One color for the public site’s links and buttons.',
+                )}
             >
-                <div className="grid gap-3">
+                <div data-slot="settings-field" className="grid gap-1">
                     <input
                         type="hidden"
                         name="accent_version"
                         value={brand.version}
                         disabled={locked}
                     />
-                    <div className="flex flex-wrap items-center gap-2">
+                    <Label htmlFor="field-accent">{__('Brand color')}</Label>
+                    <div className="flex flex-wrap items-center gap-3">
                         <input
                             type="color"
-                            aria-label="Pick the brand colour"
+                            aria-label={__('Brand color, color picker')}
                             value={colour ?? onColors[1]}
                             disabled={locked}
                             onChange={(event) => setText(event.target.value)}
-                            className="border-edge h-(--ctl-h) w-12 rounded-md border"
+                            className="border-edge bg-surface h-(--ctl-h) w-(--ctl-h) rounded-md border p-1"
                         />
-                        <label htmlFor="field-accent" className="sr-only">
-                            Brand colour
-                        </label>
                         <Input
                             id="field-accent"
                             name="accent"
-                            aria-describedby="brand-colour-readout field-accent-error"
+                            aria-describedby="field-accent-hint brand-colour-readout field-accent-error"
                             aria-invalid={error !== undefined}
-                            className="w-32 font-mono"
+                            className="w-32"
                             value={text}
-                            placeholder="Theme’s own"
                             spellCheck={false}
+                            autoComplete="off"
                             disabled={locked}
                             onChange={(event) =>
                                 setText(event.target.value.trim())
                             }
                         />
-                        {text !== '' && !locked && (
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setText('')}
-                            >
-                                Use the theme’s own colour
-                            </Button>
-                        )}
-                        {colour !== null && (
-                            <span
-                                className="text-small inline-flex h-(--ctl-h) items-center rounded-md bg-(--sample) px-3 font-medium text-(--sample-ink)"
-                                style={
-                                    {
-                                        '--sample': colour,
-                                        '--sample-ink': onColor(
-                                            colour,
-                                            onColors,
-                                        ),
-                                    } as CSSProperties
-                                }
-                            >
-                                Sample button
-                            </span>
-                        )}
+                        <span
+                            id="brand-colour-readout"
+                            role="status"
+                            className="text-small text-ink-2 flex items-center gap-2"
+                        >
+                            {text !== '' && typed === null ? (
+                                <>
+                                    <TriangleAlertIcon
+                                        aria-hidden="true"
+                                        className="size-3.5"
+                                    />
+                                    {__('Not a color yet')}
+                                </>
+                            ) : onRatio !== null ? (
+                                <>
+                                    {onRatio >= 4.5 ? (
+                                        <CheckIcon
+                                            aria-hidden="true"
+                                            className="size-3.5"
+                                        />
+                                    ) : (
+                                        <TriangleAlertIcon
+                                            aria-hidden="true"
+                                            className="size-3.5"
+                                        />
+                                    )}
+                                    {onRatio >= 4.5
+                                        ? __(':who: :ratio to 1, readable', {
+                                              who: onName,
+                                              ratio: onRatio.toFixed(1),
+                                          })
+                                        : __(':who: :ratio to 1, too faint', {
+                                              who: onName,
+                                              ratio: onRatio.toFixed(1),
+                                          })}
+                                </>
+                            ) : null}
+                        </span>
                     </div>
                     <p
-                        id="brand-colour-readout"
-                        className="text-small text-ink-2 flex flex-wrap items-center gap-x-2 gap-y-1"
+                        id="field-accent-hint"
+                        className="text-caption text-ink-3 text-pretty"
                     >
-                        {text !== '' && typed === null ? (
-                            'Write the colour as # and six digits, such as the value the picker gives.'
-                        ) : schemes === null ? (
-                            colour === null ? (
-                                'The theme sets no colour of its own.'
-                            ) : (
-                                'The theme’s own colour is used in each of its colour schemes.'
-                            )
-                        ) : (
-                            <>
-                                <span className="inline-flex items-center gap-1">
-                                    <Swatch colour={schemes.light.accent} />
-                                    {`${schemes.light.ratio}:1 on light ${schemes.light.ratio >= 4.5 ? '✓' : '✗'}`}
-                                </span>
-                                {schemes.dark !== null && (
-                                    <span className="inline-flex items-center gap-1">
-                                        ·{' '}
-                                        <Swatch colour={schemes.dark.accent} />
-                                        {`dark uses ${schemes.dark.accent}, ${schemes.dark.ratio}:1 ${schemes.dark.ratio >= 4.5 ? '✓' : '✗'}`}
-                                    </span>
-                                )}
-                            </>
+                        {__(
+                            'The color of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme. Empty uses the theme’s own.',
                         )}
                     </p>
                     {problems.length > 0 && (
-                        <ul className="text-small text-danger-ink list-disc pl-5">
+                        <ul className="text-small text-danger-ink list-disc ps-5">
                             {problems.map((problem) => (
                                 <li key={problem}>{problem}</li>
                             ))}
@@ -211,10 +211,13 @@ export function BrandColourSetting({
                         </p>
                     )}
                     {locked && (
-                        <p className="text-caption text-ink-3 flex items-center gap-2">
-                            <Lock aria-hidden="true" className="size-4" />
-                            Only someone who may change the site’s design can
-                            change the brand colour.
+                        <p className="text-caption text-ink-2 flex items-start gap-1">
+                            <span className="flex h-lh shrink-0 items-center">
+                                <Lock aria-hidden="true" className="size-3.5" />
+                            </span>
+                            {__(
+                                'Only someone who may change the site’s design can change the brand color.',
+                            )}
                         </p>
                     )}
                 </div>

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A public page's `<title>` (I-247, I-290): what PageHead resolves for the
+ * page, so the title the head's other entries and the structured data read
+ * is the one the browser shows. Search and social's templates decide it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -9,11 +19,6 @@ use App\Domain\Site\Head\PageHead;
 use App\Domain\Themes\ComposerRegistry;
 use App\Domain\Themes\ViewIntent;
 
-/**
- * A public page's `<title>` (I-247, I-290): what PageHead resolves for the
- * page, so the title the head's other entries and the structured data read
- * is the one the browser shows. Search and social's templates decide it.
- */
 final readonly class DocumentTitle
 {
     public function __construct(

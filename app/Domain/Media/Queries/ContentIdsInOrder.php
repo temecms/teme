@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Every content item's ID in order, for commands that walk all content a
+ * chunk at a time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every content item's ID in order, for commands that walk all content a
- * chunk at a time.
- */
 final class ContentIdsInOrder
 {
     /**

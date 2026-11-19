@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What `DeleteUser` needs: who is deleted, who their content goes to, and who
+ * is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `DeleteUser` needs: who is deleted, who their content goes to, and who
- * is asking.
- */
 final readonly class DeleteUserInput implements OperationInput
 {
     /**

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Imports one object of the old site (I-332): its phase's import() and its
+ * map row and messages, in one transaction, so a failure leaves neither.
+ * The run's row is read FOR SHARE and its token checked, so a stop waits
+ * for objects in flight and a stopped attempt's leftovers write nothing;
+ * the object is locked before its row is read again, so two jobs that
+ * reach it import it once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -18,14 +31,6 @@ use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Imports one object of the old site (I-332): its phase's import() and its
- * map row and messages, in one transaction, so a failure leaves neither.
- * The run's row is read FOR SHARE and its token checked, so a stop waits
- * for objects in flight and a stopped attempt's leftovers write nothing;
- * the object is locked before its row is read again, so two jobs that
- * reach it import it once.
- */
 final class ImportObject extends BaseOperation
 {
     use AuthorizesImports;

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Which object of the old site something is: its type and the site's own
+ * ID for it, the import map's key (I-332).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
 
 use InvalidArgumentException;
 
-/**
- * Which object of the old site something is: its type and the site's own
- * ID for it, the import map's key (I-332).
- */
 final readonly class SourceRef
 {
     public function __construct(public string $type, public string $id)

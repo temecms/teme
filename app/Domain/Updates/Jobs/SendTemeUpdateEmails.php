@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Emails one stage of an update of Teme to every administrator (I-3326): everyone who holds updates.manage,
+ * verified and not suspended, read when it runs. No one can turn it off: an update changes the whole site. It
+ * carries only the request's ID and the stage, calls no Operation and asks no elevation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Jobs;
@@ -13,11 +23,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Emails one stage of an update of Teme to every administrator (I-3326): everyone who holds updates.manage,
- * verified and not suspended, read when it runs. No one can turn it off: an update changes the whole site. It
- * carries only the request's ID and the stage, calls no Operation and asks no elevation.
- */
 final class SendTemeUpdateEmails implements ShouldQueue
 {
     use Queueable;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Internal links panel: how many items link to the one being edited
+ * and how many it links to, whether it is cornerstone content, and the
+ * links Teme SEO and the site's AI suggest, read from what the jobs found.
+ *
+ * @package teme/seo
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Seo\Panels;
@@ -12,11 +22,6 @@ use Teme\Contracts\Editor\Suggestion;
 use Teme\Seo\Storage\ItemIndex;
 use Teme\Seo\Storage\SuggestionStore;
 
-/**
- * The Internal links panel: how many items link to the one being edited
- * and how many it links to, whether it is cornerstone content, and the
- * links Teme SEO and the site's AI suggest, read from what the jobs found.
- */
 final readonly class LinksPanel implements EditorPanel
 {
     public const string ID = 'links';
@@ -52,14 +57,11 @@ final readonly class LinksPanel implements EditorPanel
             return new PanelView(__('Teme SEO hasn’t read this item yet. Save it, or press Find links.'), 'neutral', $shown);
         }
 
-        $status = __('Links in: :in. Links out: :out.', [
+        $status = __('Links in: :in. Links out: :out. Cornerstone content: :mark', [
             'in' => $this->index->linksIn([$context->itemId])[$context->itemId] ?? 0,
             'out' => (int) $row->links_out,
+            'mark' => (bool) $row->cornerstone ? __('Yes') : __('No'),
         ]);
-
-        if ((bool) $row->cornerstone) {
-            $status .= ' '.__('Cornerstone content.');
-        }
 
         return new PanelView($status, $shown === [] ? 'neutral' : 'info', $shown);
     }

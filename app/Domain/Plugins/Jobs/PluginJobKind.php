@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's declared job as a kind of tracked work (I-3445): retry queues a
+ * fresh RunPluginJob with the saved payload; cancel drops nothing queued
+ * beyond the Laravel job, and a running one stops at its next report.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
@@ -11,11 +21,6 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Security\JobActor;
 
-/**
- * A plugin's declared job as a kind of tracked work (I-3445): retry queues a
- * fresh RunPluginJob with the saved payload; cancel drops nothing queued
- * beyond the Laravel job, and a running one stops at its next report.
- */
 final readonly class PluginJobKind implements JobKind
 {
     public const string KEY = 'plugin-job';

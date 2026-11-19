@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Throws away one person's own unsaved work in an article. Never anyone
+ * else's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -13,10 +22,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Throws away one person's own unsaved work in an article. Never anyone
- * else's.
- */
 final class DiscardAutosave extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

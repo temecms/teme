@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Does a piece of HTML's shortcodes as I-336 says, before it is read: a
+ * row's cards held in place, what an active plugin drew kept (I-1704), a
+ * dead wrapper's content kept and a dead tag removed, each said by name; a
+ * bracket that isn't a shortcode stays text. One per conversion.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Shortcodes;
@@ -9,12 +20,6 @@ use App\Domain\Import\Convert\Html\HtmlBlocks;
 use App\Domain\Import\Convert\Html\HtmlFragment;
 use Dom\Element;
 
-/**
- * Does a piece of HTML's shortcodes as I-336 says, before it is read: a
- * row's cards held in place, what an active plugin drew kept (I-1704), a
- * dead wrapper's content kept and a dead tag removed, each said by name; a
- * bracket that isn't a shortcode stays text. One per conversion.
- */
 final class ShortcodePass
 {
     /** Page builders' and themes' families: a bracket of one of these is a shortcode (I-336). */

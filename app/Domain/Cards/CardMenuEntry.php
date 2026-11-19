@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * How a card offers itself in the editor's insert and slash menus. Declared
  * on the card so one registry feeds every way of inserting it (Ghost's
  * design, study L §2.8).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 final readonly class CardMenuEntry
 {
     /**

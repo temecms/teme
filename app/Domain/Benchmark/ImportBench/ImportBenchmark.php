@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Imports the benchmark's synthetic site through the real engine and the
+ * real database queue, worked in this process one job at a time, stops the
+ * run partway, carries it on, and times every step (D4 to D6). It measures
+ * what Teme does, never the old site's own speed or its downloads, which
+ * the live copy's run does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark\ImportBench;
@@ -28,13 +40,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use RuntimeException;
 
-/**
- * Imports the benchmark's synthetic site through the real engine and the
- * real database queue, worked in this process one job at a time, stops the
- * run partway, carries it on, and times every step (D4 to D6). It measures
- * what Teme does, never the old site's own speed or its downloads, which
- * the live copy's run does.
- */
 final class ImportBenchmark
 {
     /** Whether a statement is counted now: only while a job runs. */

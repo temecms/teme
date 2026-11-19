@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Runs a backup as a tracked job (I-104), only where the operator is present:
+ * the scheduler. The backup runs as whoever started the job, a person by
+ * their ID or the schedule as the operator; the job's own reports are the
+ * operator's, whose process this is. Each step is reported as it starts, a
+ * cancel stops it before the next, and the job ends in the backup's own words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tracking;
@@ -31,13 +43,6 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Throwable;
 
-/**
- * Runs a backup as a tracked job (I-104), only where the operator is present:
- * the scheduler. The backup runs as whoever started the job, a person by
- * their ID or the schedule as the operator; the job's own reports are the
- * operator's, whose process this is. Each step is reported as it starts, a
- * cancel stops it before the next, and the job ends in the backup's own words.
- */
 final readonly class TrackedBackup
 {
     public const string BACK_UP_NOW = 'Back up now';

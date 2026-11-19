@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins;
-
 /**
  * Keys made from a plugin's code for places whose keys must start with a
  * letter and hold no hyphen, such as the `ai` settings group's keys, a
  * setting's or a notice kind's key: a code may start with a digit or hold
  * hyphens, so each begins with the same stem. Nothing core declares starts
  * with `plugin_`.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins;
+
 final class PluginKeys
 {
     /** A plugin code as a lower-case word that starts with a letter: "plugin_" and the code with hyphens as underscores. */

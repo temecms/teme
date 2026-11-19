@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The image work behind every variant: copies an original to a temporary
+ * file, has the ImageEngine make the registered set, and writes the results
+ * to the public disk. It writes no database state; its caller records the
+ * result through RecordMediaVariants.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
@@ -11,12 +22,6 @@ use App\Domain\Media\Queries\ShareImageUse;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-/**
- * The image work behind every variant: copies an original to a temporary
- * file, has the ImageEngine make the registered set, and writes the results
- * to the public disk. It writes no database state; its caller records the
- * result through RecordMediaVariants.
- */
 final class VariantMaker
 {
     public function __construct(private readonly ImageEngine $engine) {}

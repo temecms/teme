@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Every row Tools › Backups draws (I-364): where setup stands, the places,
+ * the newest backup, what runs now, the latest checks and the recovery keys,
+ * read from backup_destinations, backup_runs and backup_keys, never from
+ * restic and never a credential.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -25,12 +36,6 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Every row Tools › Backups draws (I-364): where setup stands, the places,
- * the newest backup, what runs now, the latest checks and the recovery keys,
- * read from backup_destinations, backup_runs and backup_keys, never from
- * restic and never a credential.
- */
 final readonly class BackupsScreen
 {
     /** The kinds of run that check a backup. */

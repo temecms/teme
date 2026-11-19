@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The FAQ and Steps cards in the revision a page shows, as the contracts
+ * hand them to plugins that add structured data
+ * (docs/guides/developers/plugins/seo.md): words as plain text, rich text
+ * as HTML with every address absolute.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
@@ -15,12 +26,6 @@ use Teme\Contracts\StructuredData\NodeIds;
 use Teme\Contracts\StructuredData\Step;
 use Teme\Contracts\StructuredData\StepsCard as StepsFacts;
 
-/**
- * The FAQ and Steps cards in the revision a page shows, as the contracts
- * hand them to plugins that add structured data
- * (docs/guides/developers/plugins/seo.md): words as plain text, rich text
- * as HTML with every address absolute.
- */
 final readonly class ArticleCards
 {
     public function __construct(

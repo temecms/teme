@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Tells Teme that a plugin's insertion rules changed, so pages that drew
+ * insertions are purged after the Operation commits.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

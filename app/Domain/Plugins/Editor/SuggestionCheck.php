@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Checks one of a plugin's suggestions against the item before the person
+ * sees it (docs/proposals/plugin-sockets-3.md), and returns what the editor
+ * needs to show and apply it: a field the type has, with a value of its
+ * kind; a taxonomy the type uses, with the terms that exist and those the
+ * person would add; a link to another published, public item, by its ID;
+ * a document the editor's own validator accepts.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
@@ -16,14 +29,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Editor\SuggestedChange;
 use Teme\Contracts\Editor\Suggestion;
 
-/**
- * Checks one of a plugin's suggestions against the item before the person
- * sees it (docs/proposals/plugin-sockets-3.md), and returns what the editor
- * needs to show and apply it: a field the type has, with a value of its
- * kind; a taxonomy the type uses, with the terms that exist and those the
- * person would add; a link to another published, public item, by its ID;
- * a document the editor's own validator accepts.
- */
 final class SuggestionCheck
 {
     /** The field kinds a suggestion may set, and what each holds. */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Brings one WordPress category or tag into Teme for an import: creates it
+ * at the address it had, or brings the one an earlier run made up to date,
+ * its old address kept as a redirect (I-061). The slug is the caller's,
+ * never changed here; only an importer may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations;
@@ -20,12 +31,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings one WordPress category or tag into Teme for an import: creates it
- * at the address it had, or brings the one an earlier run made up to date,
- * its old address kept as a redirect (I-061). The slug is the caller's,
- * never changed here; only an importer may.
- */
 final class ImportTerm extends BaseOperation
 {
     use AuthorizesImports;

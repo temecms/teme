@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Teme's own settings: its version, where themes are found, and the host's
+ * switches for site code and AI.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Domain\Deployment\SecureTransport;

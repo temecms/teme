@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Checks what a plugin's manifest says it adds to the admin, `contributes`,
+ * before anything of it is registered: its settings as Teme would register
+ * them, and its Tools links (I-3353). The schema states the same lists and
+ * patterns (ContributionsSchemaTest).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
@@ -15,12 +26,6 @@ use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Checks what a plugin's manifest says it adds to the admin, `contributes`,
- * before anything of it is registered: its settings as Teme would register
- * them, and its Tools links (I-3353). The schema states the same lists and
- * patterns (ContributionsSchemaTest).
- */
 final class ContributionsValidator implements ContributionsCheck
 {
     /** The setting types a plugin may declare. */
@@ -41,43 +46,95 @@ final class ContributionsValidator implements ContributionsCheck
     /** Where a link leads: the plugin's settings, or an https address. */
     public const string TO = '#^(settings|https://.+)$#D';
 
-    /** The kinds a list column may take. */
+    /**
+     * The kinds a list column may take.
+     *
+     * @since 1.0.0
+     */
     public const array COLUMN_KINDS = ['text', 'number', 'badge'];
 
-    /** The widths a list column may take, in pixels. */
+    /**
+     * The widths a list column may take, in pixels.
+     *
+     * @since 1.0.0
+     */
     public const array COLUMN_WIDTHS = ['narrow' => 100, 'medium' => 128, 'wide' => 168];
 
-    /** A list column's id. */
+    /**
+     * A list column's id.
+     *
+     * @since 1.0.0
+     */
     public const string COLUMN_ID = '/^[a-z][a-z0-9-]{1,39}$/D';
 
-    /** A content type key a column may name. */
+    /**
+     * A content type key a column may name.
+     *
+     * @since 1.0.0
+     */
     public const string TYPE_KEY = '/^[a-z][a-z0-9_]{0,31}$/D';
 
-    /** At most this many columns per plugin. */
+    /**
+     * At most this many columns per plugin.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_COLUMNS = 3;
 
-    /** The relations a feed link may take: hub alone in this round (docs/plans/plugin-sockets-1.md, A3). */
+    /**
+     * The relations a feed link may take: hub alone in this round (docs/plans/plugin-sockets-1.md, A3).
+     *
+     * @since 1.0.0
+     */
     public const array FEED_LINK_RELS = ['hub'];
 
-    /** A feed link's href: an https address, or {key} naming one of the plugin's own settings. */
+    /**
+     * A feed link's href: an https address, or {key} naming one of the plugin's own settings.
+     *
+     * @since 1.0.0
+     */
     public const string FEED_LINK_HREF = '#^(https://.+|\{[a-z][a-z0-9_]{1,40}\})$#D';
 
-    /** At most this many feed links per plugin. */
+    /**
+     * At most this many feed links per plugin.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_FEED_LINKS = 2;
 
-    /** At most this many actions per plugin. */
+    /**
+     * At most this many actions per plugin.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_ACTIONS = 3;
 
-    /** At most this many lists per plugin. */
+    /**
+     * At most this many lists per plugin.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_LISTS = 2;
 
-    /** At most this many columns in one list. */
+    /**
+     * At most this many columns in one list.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_LIST_COLUMNS = 6;
 
-    /** The most rows a list may ask for. */
+    /**
+     * The most rows a list may ask for.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_LIST_ROWS = 50;
 
-    /** The rows a list shows when it doesn't say. */
+    /**
+     * The rows a list shows when it doesn't say.
+     *
+     * @since 1.0.0
+     */
     public const int DEFAULT_LIST_ROWS = 20;
 
     /** The code the settings are checked under; the real group takes the plugin's. */

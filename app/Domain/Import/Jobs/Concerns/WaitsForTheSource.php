@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * How a job of a run waits out the old site not answering (#255): it goes
+ * back on the queue for a longer wait each time, about an hour in all, and
+ * fails with the refusal once that is used up. A job using it sets $tries to
+ * one more than its waits, and $maxExceptions to 3, so any other error still
+ * fails it after three.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Jobs\Concerns;
@@ -7,13 +19,6 @@ namespace App\Domain\Import\Jobs\Concerns;
 use App\Domain\Import\Source\SourceRefused;
 use Illuminate\Queue\Jobs\SyncJob;
 
-/**
- * How a job of a run waits out the old site not answering (#255): it goes
- * back on the queue for a longer wait each time, about an hour in all, and
- * fails with the refusal once that is used up. A job using it sets $tries to
- * one more than its waits, and $maxExceptions to 3, so any other error still
- * fails it after three.
- */
 trait WaitsForTheSource
 {
     /** The seconds the job waits after each try the old site didn't answer, by try: 3,810 in all. */

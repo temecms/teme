@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The fediverse in core (I-058): how remote keys are found, the site's
+ * public addresses for actors, discovery and inboxes, and its settings.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -20,10 +29,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * The fediverse in core (I-058): how remote keys are found, the site's
- * public addresses for actors, discovery and inboxes, and its settings.
- */
 final class FediverseServiceProvider extends ServiceProvider
 {
     public function register(): void

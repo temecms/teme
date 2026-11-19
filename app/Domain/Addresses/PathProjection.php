@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Keeps the path table in step with the addresses things should have, as
+ * ContentCounts and TermProjection keep theirs: called inside the
+ * Operation's transaction, after its own changes are saved. It never checks
+ * for clashes; the Operation has already validated.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -11,12 +22,6 @@ use App\Domain\Taxonomy\Queries\TermTree;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Keeps the path table in step with the addresses things should have, as
- * ContentCounts and TermProjection keep theirs: called inside the
- * Operation's transaction, after its own changes are saved. It never checks
- * for clashes; the Operation has already validated.
- */
 final readonly class PathProjection
 {
     public function __construct(private TermTree $tree) {}

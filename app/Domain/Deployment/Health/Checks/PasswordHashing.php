@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Times one password hash at the configured cost (I-382): 250 to 500 ms
+ * makes a stolen hash dear to crack without holding a PHP worker for long.
+ * Too quick or too slow is a warning, never an error.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -10,11 +20,6 @@ use App\Domain\Deployment\Health\Severity;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-/**
- * Times one password hash at the configured cost (I-382): 250 to 500 ms
- * makes a stolen hash dear to crack without holding a PHP worker for long.
- * Too quick or too slow is a warning, never an error.
- */
 final readonly class PasswordHashing implements DoctorCheck
 {
     /** Milliseconds a hash should take at least. */

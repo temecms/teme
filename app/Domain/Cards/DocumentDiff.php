@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Compares two documents block by block, for the revision comparison. Blocks
+ * are paired by their `id` where they have one, then by identical content,
+ * then by position; paired prose is compared word by word, and a card is
+ * described in words rather than diffed (CardType::describeChange()). It
+ * computes a view and stores nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
@@ -7,13 +19,6 @@ namespace App\Domain\Cards;
 use SebastianBergmann\Diff\Differ;
 use SebastianBergmann\Diff\Output\DiffOnlyOutputBuilder;
 
-/**
- * Compares two documents block by block, for the revision comparison. Blocks
- * are paired by their `id` where they have one, then by identical content,
- * then by position; paired prose is compared word by word, and a card is
- * described in words rather than diffed (CardType::describeChange()). It
- * computes a view and stores nothing.
- */
 final readonly class DocumentDiff
 {
     public function __construct(private CardRegistry $cards) {}

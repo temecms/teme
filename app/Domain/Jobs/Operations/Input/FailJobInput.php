@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What FailJob needs: the job, what went wrong and who is reporting.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What FailJob needs: the job, what went wrong and who is reporting.
- */
 final readonly class FailJobInput implements OperationInput
 {
     public function __construct(

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Registers the importer: the import mode, the resolver the address check
+ * asks, and the phases, by tag (I-349).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -49,10 +58,6 @@ use App\Domain\Support\Network\DnsHostResolver;
 use App\Domain\Support\Network\HostResolver;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Registers the importer: the import mode, the resolver the address check
- * asks, and the phases, by tag (I-349).
- */
 final class ImportServiceProvider extends ServiceProvider
 {
     public function register(): void

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The users phase (I-340): each WordPress account becomes a Teme person
+ * with their role and their WordPress hash, or the Teme person who already
+ * has their email address; subscribers without published posts and unplaced roles stay behind (I-2998).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Users;
@@ -27,11 +37,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
-/**
- * The users phase (I-340): each WordPress account becomes a Teme person
- * with their role and their WordPress hash, or the Teme person who already
- * has their email address; subscribers without published posts and unplaced roles stay behind (I-2998).
- */
 final readonly class UsersPhase implements ListPhase
 {
     /** @var array<string, string> */

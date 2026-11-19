@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The breadcrumb trail as a theme draws it (I-295): home, then the page's
+ * parents or its place among the site's categories, then the page. Built only for a theme
+ * that says it draws one, so a page on any other reads nothing for it; the
+ * BreadcrumbList is made from the same steps.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -13,12 +24,6 @@ use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Themes\ActiveTheme;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The breadcrumb trail as a theme draws it (I-295): home, then the page's
- * parents or its place among the site's categories, then the page. Built only for a theme
- * that says it draws one, so a page on any other reads nothing for it; the
- * BreadcrumbList is made from the same steps.
- */
 final readonly class Breadcrumbs
 {
     public function __construct(private ActiveTheme $active) {}

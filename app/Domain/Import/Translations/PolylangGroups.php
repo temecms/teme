@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Translations;
-
 /**
  * Polylang's translation maps joined into groups by union, never pairwise
  * (I-351): a map that lost a member joins its group rather than splitting
  * it. Posts and terms are grouped apart, a post by its WordPress ID, a term
  * by its term ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Translations;
+
 final class PolylangGroups
 {
     /**

@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The media a document's cards show, in one query: the lookup the server's
+ * renderer and the browser's editor share, so both halves draw a card from
+ * the same facts, a sound or video file's own address among them. URLs are
+ * worked out here and never stored (rule 9).
+ * Scoped to a request or a job (CardServiceProvider): what it has read, and
+ * what it found missing, it keeps until then, so a listing reads its cards'
+ * images once and each card draws its own from memory (issue 30).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
@@ -10,15 +24,6 @@ use App\Domain\Media\MediaDisks;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The media a document's cards show, in one query: the lookup the server's
- * renderer and the browser's editor share, so both halves draw a card from
- * the same facts, a sound or video file's own address among them. URLs are
- * worked out here and never stored (rule 9).
- * Scoped to a request or a job (CardServiceProvider): what it has read, and
- * what it found missing, it keeps until then, so a listing reads its cards'
- * images once and each card draws its own from memory (issue 30).
- */
 final class CardMedia
 {
     /**

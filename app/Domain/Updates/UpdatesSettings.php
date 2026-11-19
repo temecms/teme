@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The `updates` settings group, Settings › Updates: the Dokploy API key the updater uses to change and deploy
+ * this site's service. Kept encrypted and read by the updater alone; a key set on the server as TEME_DOKPLOY_TOKEN
+ * wins. Saving it needs the updates permission and the password given again.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
@@ -7,11 +17,6 @@ namespace App\Domain\Updates;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * The `updates` settings group, Settings › Updates: the Dokploy API key the updater uses to change and deploy
- * this site's service. Kept encrypted and read by the updater alone; a key set on the server as TEME_DOKPLOY_TOKEN
- * wins. Saving it needs the updates permission and the password given again.
- */
 final class UpdatesSettings
 {
     public const string GROUP = 'updates';

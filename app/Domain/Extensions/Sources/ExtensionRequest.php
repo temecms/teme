@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One extension request as the extension_requests row holds it: what it
+ * asks for, where it comes from, where it stands and what it found. A
+ * value, never a model, so the source contract carries no Eloquent type.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Sources;
@@ -10,11 +20,6 @@ use App\Domain\Extensions\RequestStatus;
 use App\Domain\Extensions\RequestStep;
 use Carbon\CarbonImmutable;
 
-/**
- * One extension request as the extension_requests row holds it: what it
- * asks for, where it comes from, where it stands and what it found. A
- * value, never a model, so the source contract carries no Eloquent type.
- */
 final readonly class ExtensionRequest
 {
     /**

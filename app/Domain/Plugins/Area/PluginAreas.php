@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Finds the enabled plugins that declare an area (docs/plans/plugin-sockets-2.md,
+ * A2), read from their records and manifests each time, and the data
+ * behind each while it runs in this process. Holds nothing itself.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -12,11 +22,6 @@ use Teme\Contracts\Admin\HasPluginArea;
 use Teme\Contracts\Admin\PluginArea;
 use Throwable;
 
-/**
- * Finds the enabled plugins that declare an area (docs/plans/plugin-sockets-2.md,
- * A2), read from their records and manifests each time, and the data
- * behind each while it runs in this process. Holds nothing itself.
- */
 final readonly class PluginAreas
 {
     public function __construct(

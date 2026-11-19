@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
 /**
  * The comment rate limit (docs/studies/comments.md §3.4, Emdash's figure):
  * five comments in ten minutes from one IP address, and five from one email
  * address, counted by Laravel's rate limiter in the cache store, as
  * sign-in's are.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
 final class CommentThrottle
 {
     /** Comments one IP address, or one email address, may send in DECAY seconds. */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:theme:resolve {url}`: explains which template a public address
+ * would use, and why: its kind, whether it is the home page, and every
+ * candidate with whether it exists, without rendering the page. A URL that
+ * redirects says where it goes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,12 +20,6 @@ use App\Domain\Themes\TemplateResolver;
 use App\Domain\Themes\ViewIntent;
 use Illuminate\Console\Command;
 
-/**
- * `teme:theme:resolve {url}`: explains which template a public address
- * would use, and why: its kind, whether it is the home page, and every
- * candidate with whether it exists, without rendering the page. A URL that
- * redirects says where it goes.
- */
 final class ResolveTemplate extends Command
 {
     /** @var string */

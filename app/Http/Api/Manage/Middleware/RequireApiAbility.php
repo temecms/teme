@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Refuses a key that wasn't given every ability a route names, before the
+ * route reads or writes anything; the person's own permission is then the
+ * Operation's to decide.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\Manage\Middleware;
@@ -11,11 +21,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Refuses a key that wasn't given every ability a route names, before the
- * route reads or writes anything; the person's own permission is then the
- * Operation's to decide.
- */
 final class RequireApiAbility
 {
     public function handle(Request $request, Closure $next, string ...$abilities): Response

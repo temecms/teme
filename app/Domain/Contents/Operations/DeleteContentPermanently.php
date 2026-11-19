@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Deletes a trashed item and all its revisions. Only items already in the
+ * trash can be deleted, by someone who may remove them or by the operator's
+ * scheduled purge. The pages under it move up to its own parent (I-3363).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -25,11 +35,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\ContentDeleted;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes a trashed item and all its revisions. Only items already in the
- * trash can be deleted, by someone who may remove them or by the operator's
- * scheduled purge. The pages under it move up to its own parent (I-3363).
- */
 final class DeleteContentPermanently extends BaseOperation
 {
     use FollowsTree;

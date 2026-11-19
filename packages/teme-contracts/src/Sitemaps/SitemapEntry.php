@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One address a plugin's sitemap lists: a path on the site, or an item by its
+ * ID.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Sitemaps;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The lock on a translation group's rows (I-3360): an Operation that changes
+ * a group's members, or a member's language, takes it as its first row
+ * lock, after the languages lock and a hierarchical type's tree lock.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -9,11 +19,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The lock on a translation group's rows (I-3360): an Operation that changes
- * a group's members, or a member's language, takes it as its first row
- * lock, after the languages lock and a hierarchical type's tree lock.
- */
 final class GroupLock
 {
     /**

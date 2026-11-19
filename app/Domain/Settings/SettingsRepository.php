@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Per-request memo, then the cache store, then one primary-key lookup — per
+ * group a request touches. Never every group: that would be autoload again.
+ * While a design preview is active, the design groups read their drafts
+ * over their live values, and a page in another language reads that
+ * language's words over the default's (I-3360). A page that reads a group
+ * records the group's declared page-cache tags.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -14,14 +27,6 @@ use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingType;
 use UnexpectedValueException;
 
-/**
- * Per-request memo, then the cache store, then one primary-key lookup — per
- * group a request touches. Never every group: that would be autoload again.
- * While a design preview is active, the design groups read their drafts
- * over their live values, and a page in another language reads that
- * language's words over the default's (I-3360). A page that reads a group
- * records the group's declared page-cache tags.
- */
 final class SettingsRepository implements SettingsReader
 {
     public function __construct(private readonly SettingsRegistry $registry) {}

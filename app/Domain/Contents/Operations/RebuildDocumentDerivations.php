@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Fills in, for a chunk of content, the values 1.5b derives from a document
+ * but never wrote for revisions made before it (I-422): a revision's plain
+ * text and word count, and a published item's search text. It writes only
+ * those derived columns, never a revision's document, title or fields, and
+ * running it again changes nothing. The operator only, one chunk per
+ * transaction.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -17,14 +30,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Fills in, for a chunk of content, the values 1.5b derives from a document
- * but never wrote for revisions made before it (I-422): a revision's plain
- * text and word count, and a published item's search text. It writes only
- * those derived columns, never a revision's document, title or fields, and
- * running it again changes nothing. The operator only, one chunk per
- * transaction.
- */
 final class RebuildDocumentDerivations extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

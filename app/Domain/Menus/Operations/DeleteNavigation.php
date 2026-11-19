@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Deletes a menu and its items, and clears every theme slot that showed it,
+ * in every installed theme's settings, so no slot points at nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations;
@@ -15,10 +24,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes a menu and its items, and clears every theme slot that showed it,
- * in every installed theme's settings, so no slot points at nothing.
- */
 final class DeleteNavigation extends BaseOperation
 {
     use ManagesNavigation;

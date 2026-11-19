@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Cancels an article's pending schedule. The row is kept, marked cancelled —
+ * a cancellation is not a failure, and the history reads who scheduled what —
+ * and a scheduled draft becomes a draft again. A live article stays live.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Cancels an article's pending schedule. The row is kept, marked cancelled —
- * a cancellation is not a failure, and the history reads who scheduled what —
- * and a scheduled draft becomes a draft again. A live article stays live.
- */
 final class CancelScheduledPublication extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

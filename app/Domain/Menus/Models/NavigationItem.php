@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * One entry in a menu: the home page, a content item or a term by its ID
+ * (rule 9), an outside address as typed, a heading, which opens the
+ * items under it, or a language switcher with its options; with its label
+ * (a heading's is required) and its place in the tree. Only
+ * SaveNavigationItems writes it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Models;
@@ -8,12 +20,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One entry in a menu: the home page, a content item or a term by its ID
- * (rule 9), an outside address as typed, a heading, which opens the
- * items under it, or a language switcher with its options; with its label
- * (a heading's is required) and its place in the tree. Only
- * SaveNavigationItems writes it.
- *
  * @property string $id
  * @property string $navigation_id
  * @property string|null $parent_id

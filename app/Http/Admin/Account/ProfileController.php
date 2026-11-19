@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Profile page. It shows the signed-in person's name, email and bio,
+ * and hands changes to the `UpdateProfile` Operation; it changes nothing
+ * itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Account;
@@ -13,11 +23,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The Profile page. It shows the signed-in person's name, email and bio,
- * and hands changes to the `UpdateProfile` Operation; it changes nothing
- * itself.
- */
 final class ProfileController extends Controller
 {
     public function edit(Request $request, AccountSecurityStatus $status): Response

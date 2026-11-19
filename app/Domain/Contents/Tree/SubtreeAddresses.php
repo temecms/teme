@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Moves the pages under a page when what their addresses are made of
+ * changes (I-3363): its slug, its place, or whether it has an address at
+ * all. Called inside the Operation's transaction, after the page's own
+ * change and its own address; each moved page keeps its old address as
+ * history, answering 301.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Tree;
@@ -21,13 +33,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * Moves the pages under a page when what their addresses are made of
- * changes (I-3363): its slug, its place, or whether it has an address at
- * all. Called inside the Operation's transaction, after the page's own
- * change and its own address; each moved page keeps its old address as
- * history, answering 301.
- */
 final readonly class SubtreeAddresses
 {
     /** The most pages moved in the save itself; above it, a queued job moves them all. */

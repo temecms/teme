@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What PluginColumns kept of one page's shown columns: the cells by column
+ * key and row id, and the plugin labels whose columns ended empty.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Columns;
 
-/**
- * What PluginColumns kept of one page's shown columns: the cells by column
- * key and row id, and the plugin labels whose columns ended empty.
- */
 final readonly class ColumnCells
 {
     /**

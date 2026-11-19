@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The second pass for one imported post or page (I-333): its finished
+ * words written through the content domain, and its map row's record of
+ * them, in one transaction under the object's lock, or only what it says
+ * when there's nothing to write. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -20,12 +31,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * The second pass for one imported post or page (I-333): its finished
- * words written through the content domain, and its map row's record of
- * them, in one transaction under the object's lock, or only what it says
- * when there's nothing to write. Only an import's actor may call it.
- */
 final class RecordSecondPass extends BaseOperation
 {
     use AuthorizesImports;

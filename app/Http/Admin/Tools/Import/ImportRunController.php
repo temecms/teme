@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Starting, stopping, carrying on and catching up a site's import. A start asks for the person's password first (I-1707), and keeps their choices across the confirmation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Import;
@@ -24,9 +32,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Starting, stopping, carrying on and catching up a site's import. A start asks for the person's password first (I-1707), and keeps their choices across the confirmation.
- */
 final class ImportRunController extends Controller
 {
     /** The session key the choices are kept under across the password's confirmation, followed by the site's ID. */

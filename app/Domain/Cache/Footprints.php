@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The page-cache tags of the pages that show one thing or list it, as the
+ * thing stands (docs/architecture/page-cache.md): an Operation reads a
+ * thing's under its lock before its change and again after, and both are
+ * purged after the outermost commit (I-263). While the page cache is off
+ * nothing is stored, so nothing is read and every footprint is empty,
+ * unless a plugin listens for the feeds a change touched, which are read
+ * from these tags (docs/plans/plugin-sockets-1.md, A4).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -15,15 +29,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Feeds\FeedsChanged;
 
-/**
- * The page-cache tags of the pages that show one thing or list it, as the
- * thing stands (docs/architecture/page-cache.md): an Operation reads a
- * thing's under its lock before its change and again after, and both are
- * purged after the outermost commit (I-263). While the page cache is off
- * nothing is stored, so nothing is read and every footprint is empty,
- * unless a plugin listens for the feeds a change touched, which are read
- * from these tags (docs/plans/plugin-sockets-1.md, A4).
- */
 final class Footprints
 {
     /**

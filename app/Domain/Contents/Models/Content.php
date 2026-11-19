@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One content item — a post or a page — pointing at its published and working
+ * revisions. Only the content Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Models;
@@ -16,9 +25,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * One content item — a post or a page — pointing at its published and working
- * revisions. Only the content Operations write it.
- *
  * @property array<string, mixed> $fields
  * @property Discussion $comment_status
  * @property Visibility $visibility

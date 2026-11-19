@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The latest posts, at the site's address or the posts page's, as `$page`: on
+ * page 1 the lead, the newest pinned post or else the newest post, and up to
+ * three more pinned posts; then the feed of the rest.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

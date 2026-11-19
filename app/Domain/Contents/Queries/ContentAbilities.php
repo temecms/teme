@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What one person may do with one content type's items, read once per
+ * request from the abilities the type names (1.5·0), so a list of fifty rows
+ * asks no policy per row. The rules restate ContentPolicy's `update` and
+ * `publish` exactly: if either changes there, it changes here too, and
+ * OthersWorkTest compares the two.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -7,13 +19,6 @@ namespace App\Domain\Contents\Queries;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Models\User;
 
-/**
- * What one person may do with one content type's items, read once per
- * request from the abilities the type names (1.5·0), so a list of fifty rows
- * asks no policy per row. The rules restate ContentPolicy's `update` and
- * `publish` exactly: if either changes there, it changes here too, and
- * OthersWorkTest compares the two.
- */
 final readonly class ContentAbilities
 {
     public function __construct(

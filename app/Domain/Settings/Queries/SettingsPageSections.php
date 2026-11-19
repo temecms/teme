@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a Settings page draws besides its own group's form (I-440): the
+ * theme's own number of items a page and the home page on Reading, the
+ * brand colour on General, the image widths on Media. Each is null on a
+ * page that draws none. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
@@ -17,12 +28,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What a Settings page draws besides its own group's form (I-440): the
- * theme's own number of items a page and the home page on Reading, the
- * brand colour on General, the image widths on Media. Each is null on a
- * page that draws none. It reads only.
- */
 final readonly class SettingsPageSections
 {
     public function __construct(private ActiveTheme $active, private ContentTypeRegistry $types, private SettingsReader $settings) {}
@@ -31,7 +36,7 @@ final readonly class SettingsPageSections
      * The sections this page draws, as this person sees them, each null
      * where the page has none.
      *
-     * @return array{imageWidths: array{label: string, value: string, hint: string}|null, brandColour: array{value: string, themeAccent: string|null, bases: array<string, string>, onColors: list<string>, schemes: array{light: array{accent: string, onAccent: string, ratio: float}, dark: array{accent: string, onAccent: string, ratio: float}|null}|null, version: int, canChange: bool}|null, themePerPage: array{theme: string|null, number: int}|null, homePage: array{frontShows: string, frontPageId: string, postsPageId: string, frontModes: array{latest: string, page: string}, chosenPages: array<string, string>, latestWords: string, pageTypes: list<string>, canChange: bool}|null}
+     * @return array{imageWidths: array{rows: list<array{term: string, value: string}>, hint: string, uploadLimit: string}|null, brandColour: array{value: string, themeAccent: string|null, bases: array<string, string>, onColors: list<string>, schemes: array{light: array{accent: string, onAccent: string, ratio: float}, dark: array{accent: string, onAccent: string, ratio: float}|null}|null, version: int, canChange: bool}|null, themePerPage: array{theme: string|null, number: int}|null, homePage: array{frontShows: string, frontPageId: string, postsPageId: string, frontModes: array{latest: string, page: string}, chosenPages: array<string, string>, latestWords: string, pageTypes: list<string>, canChange: bool}|null}
      */
     public function for(string $page, User $viewer): array
     {
@@ -121,11 +126,12 @@ final readonly class SettingsPageSections
 
     /**
      * Media's image widths, as information: the widths and the thumbnail
-     * every image gets, and the social card an image used as a featured or
-     * social image gets, each read from MediaVariants, so the words can't
-     * drift from what is made.
+     * every image gets, the social card an image used as a featured or
+     * social image gets, and the format, each read from MediaVariants, so
+     * the words can't drift from what is made; and the server's own upload
+     * limit, which Largest upload names.
      *
-     * @return array{label: string, value: string, hint: string}
+     * @return array{rows: list<array{term: string, value: string}>, hint: string, uploadLimit: string}
      */
     private function imageWidths(): array
     {
@@ -135,10 +141,35 @@ final readonly class SettingsPageSections
         [$cardWidth, $cardHeight] = MediaVariants::SHARE['social'];
 
         return [
-            'label' => 'Image widths',
-            'value' => implode(', ', $widths)." and {$widest} pixels wide, and a {$thumbnail} × {$thumbnail} thumbnail.",
-            'hint' => 'Fixed in Teme, not a setting. A width is made only when the original is wider, plus one at the original’s own width, so nothing is enlarged. All are saved as WebP. '
-                ."An image used as a featured or social image also gets a {$cardWidth} × {$cardHeight} social card and the crops search engines may show.",
+            'rows' => [
+                ['term' => __('Widths made'), 'value' => __(':widths and :widest pixels wide', ['widths' => implode(', ', $widths), 'widest' => $widest])],
+                ['term' => __('Thumbnail'), 'value' => __(':size × :size pixels', ['size' => $thumbnail])],
+                ['term' => __('Social card'), 'value' => __(':width × :height pixels, plus the 16:9, 4:3 and square crops search engines may show', ['width' => $cardWidth, 'height' => $cardHeight])],
+                ['term' => __('Saved as'), 'value' => 'WebP'],
+            ],
+            'hint' => __('A width is made only when the original is wider, plus one at the original’s own width, so nothing is enlarged.'),
+            'uploadLimit' => __(':size MB', ['size' => self::serverUploadMegabytes()]),
         ];
+    }
+
+    /** The smaller of PHP's upload and post limits, in whole megabytes. */
+    private static function serverUploadMegabytes(): int
+    {
+        $bytes = array_filter([self::bytes((string) ini_get('upload_max_filesize')), self::bytes((string) ini_get('post_max_size'))], fn (int $limit): bool => $limit > 0);
+
+        return $bytes === [] ? 0 : intdiv(min($bytes), 1024 * 1024);
+    }
+
+    /** A php.ini size, such as "128M", in bytes. */
+    private static function bytes(string $size): int
+    {
+        $number = (int) $size;
+
+        return match (strtolower(substr(trim($size), -1))) {
+            'g' => $number * 1024 ** 3,
+            'm' => $number * 1024 ** 2,
+            'k' => $number * 1024,
+            default => $number,
+        };
     }
 }

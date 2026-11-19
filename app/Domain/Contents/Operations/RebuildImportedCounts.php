@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The counts checked once at an import's end and fixed where they drifted
+ * (I-141), as teme:counts:rebuild does, by the import's actor. Only an
+ * import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -9,11 +19,6 @@ use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * The counts checked once at an import's end and fixed where they drifted
- * (I-141), as teme:counts:rebuild does, by the import's actor. Only an
- * import's actor may call it.
- */
 final class RebuildImportedCounts extends BaseOperation
 {
     use AuthorizesImports;

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Runs one job of a step phase, in import mode, from its cursor, and queues the next when the step names one (I-332). It carries IDs and the cursor only, and does nothing once its run has stopped or moved on.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Jobs;
@@ -27,9 +35,6 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/**
- * Runs one job of a step phase, in import mode, from its cursor, and queues the next when the step names one (I-332). It carries IDs and the cursor only, and does nothing once its run has stopped or moved on.
- */
 final class RunImportStep implements ShouldQueue
 {
     use Batchable;

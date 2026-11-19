@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Teme's database role has what it needs and no more (I-379): not a
+ * superuser, unable to create roles or databases, and with its schema's
+ * owner's rights over the schema and everything in it, so a migration can
+ * change what an earlier one made.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -9,12 +20,6 @@ use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Teme's database role has what it needs and no more (I-379): not a
- * superuser, unable to create roles or databases, and with its schema's
- * owner's rights over the schema and everything in it, so a migration can
- * change what an earlier one made.
- */
 final readonly class DatabaseRole implements DoctorCheck
 {
     public function title(): string

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Api;
-
 /**
  * The API's own addresses as it writes them in `links`: a route's absolute
  * address made now (rule 9) with its query sorted by name and encoded by
  * RFC 3986, so the same call always has the same address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Api;
+
 final class Envelope
 {
     /**

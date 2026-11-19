@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The active theme's navigation slots for one page, each with its label and
+ * the tree of the menu shown there, or null when none is: built once, on
+ * first use, for the navigation component and the `$navigation` composer
+ * both. It is scoped to a request, and start() empties it for each page, as
+ * one application may serve several (B-227).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus;
@@ -7,13 +19,6 @@ namespace App\Domain\Menus;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Themes\ActiveTheme;
 
-/**
- * The active theme's navigation slots for one page, each with its label and
- * the tree of the menu shown there, or null when none is: built once, on
- * first use, for the navigation component and the `$navigation` composer
- * both. It is scoped to a request, and start() empties it for each page, as
- * one application may serve several (B-227).
- */
 final class SlotMenus
 {
     private string $path = '';

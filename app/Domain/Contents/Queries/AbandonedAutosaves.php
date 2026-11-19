@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Autosaves nobody has come back to, for the sweep that keeps them as
+ * revisions.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -7,10 +16,6 @@ namespace App\Domain\Contents\Queries;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Autosaves nobody has come back to, for the sweep that keeps them as
- * revisions.
- */
 final class AbandonedAutosaves
 {
     /**

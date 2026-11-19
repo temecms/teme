@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a person asks to restore: from which place (one of this site's, or
+ * one named on a new server's command line with the key that opens it),
+ * which backup, and whether a site with data may be replaced without a
+ * safety backup. Its key is never shown, stored or queued.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -10,12 +21,6 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use SensitiveParameter;
 
-/**
- * What a person asks to restore: from which place (one of this site's, or
- * one named on a new server's command line with the key that opens it),
- * which backup, and whether a site with data may be replaced without a
- * safety backup. Its key is never shown, stored or queued.
- */
 final class RestoreRequest
 {
     public function __construct(

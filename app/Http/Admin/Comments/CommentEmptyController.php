@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Empty spam and Empty trash on the Comments screen (1.8c′'s D4 to D7): what
+ * the list showed as it was opened, deleted permanently, the first part at
+ * once and the rest on the queue. Nothing to undo; the confirmation came
+ * first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Comments;
@@ -19,12 +30,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
-/**
- * Empty spam and Empty trash on the Comments screen (1.8c′'s D4 to D7): what
- * the list showed as it was opened, deleted permanently, the first part at
- * once and the rest on the queue. Nothing to undo; the confirmation came
- * first.
- */
 final class CommentEmptyController extends Controller
 {
     /** Comments deleted in the request before the rest go to the queue (D5). */

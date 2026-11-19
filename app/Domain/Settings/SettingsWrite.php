@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * One change to a settings group, as SettingsWriter applies it: the values to
+ * set, the keys to reset, any secrets, and who asked and from where.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
 
-/**
- * One change to a settings group, as SettingsWriter applies it: the values to
- * set, the keys to reset, any secrets, and who asked and from where.
- */
 final readonly class SettingsWrite
 {
     /**

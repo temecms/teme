@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Makes a draft of an item in another site language, in the item's
+ * translation group (I-3360, D8): from its published revision when it has
+ * one and is public, else from its working one, which only someone who may
+ * edit it may copy. Its links point at the language's versions, its terms
+ * at their siblings, the missing ones made; a page goes under its parent's
+ * version in the language, or to the top. It credits whoever the item
+ * credits (I-3366); the translator owns it. Nothing public changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -31,15 +45,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Makes a draft of an item in another site language, in the item's
- * translation group (I-3360, D8): from its published revision when it has
- * one and is public, else from its working one, which only someone who may
- * edit it may copy. Its links point at the language's versions, its terms
- * at their siblings, the missing ones made; a page goes under its parent's
- * version in the language, or to the top. It credits whoever the item
- * credits (I-3366); the translator owns it. Nothing public changes.
- */
 final class TranslateContent extends BaseOperation
 {
     use GivesAccountsPeople;

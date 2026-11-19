@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What a comment arriving in its item's thread, or leaving it, tells the page
+ * cache (docs/studies/comments.md §3.6, I-276; 1.8b's D5). An arrival sets the
+ * thread's pages aside, served while one request draws each afresh; a
+ * departure removes the pages that show the comment, never served stale, and
+ * sets the thread's others aside, since the conversations after it move up.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -7,13 +19,6 @@ namespace App\Domain\Comments;
 use App\Domain\Cache\PageTags;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * What a comment arriving in its item's thread, or leaving it, tells the page
- * cache (docs/studies/comments.md §3.6, I-276; 1.8b's D5). An arrival sets the
- * thread's pages aside, served while one request draws each afresh; a
- * departure removes the pages that show the comment, never served stale, and
- * sets the thread's others aside, since the conversations after it move up.
- */
 final class CommentPurges
 {
     /**

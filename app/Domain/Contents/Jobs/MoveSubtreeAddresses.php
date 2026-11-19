@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One step of moving the pages under a page in the background (I-3363,
+ * I-104): the next 500 of them that have an address, by ID, through
+ * RebuildPaths' subtree mode as the person who made the change, then the
+ * job's progress, then the next step or the end. Every step is idempotent.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Jobs;
@@ -23,12 +34,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-/**
- * One step of moving the pages under a page in the background (I-3363,
- * I-104): the next 500 of them that have an address, by ID, through
- * RebuildPaths' subtree mode as the person who made the change, then the
- * job's progress, then the next step or the end. Every step is idempotent.
- */
 final class MoveSubtreeAddresses implements ShouldQueue
 {
     use Queueable;

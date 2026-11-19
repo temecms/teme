@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * An activity one of the site's actors sent, kept as it was sent: the
+ * outbox shows the latest, and each delivery points at one.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Models;
@@ -9,9 +18,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * An activity one of the site's actors sent, kept as it was sent: the
- * outbox shows the latest, and each delivery points at one.
- *
  * @property string $id
  * @property string $local_actor_id
  * @property string $type

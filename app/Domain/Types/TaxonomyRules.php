@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a person's or a file's taxonomy must meet before it is stored
+ * (I-414): keys, labels, admin address, the types that use it, and a public
+ * taxonomy's address base.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -10,11 +20,6 @@ use App\Domain\Addresses\Paths;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-/**
- * What a person's or a file's taxonomy must meet before it is stored
- * (I-414): keys, labels, admin address, the types that use it, and a public
- * taxonomy's address base.
- */
 final class TaxonomyRules
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Runs a declared route's handler: builds it with its plugin's doors, builds
+ * the plain request, enforces the body cap and POST verifier, records a throw against its owner and answers
+ * with the site's error page, and maps the plain response to Symfony's.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
@@ -24,11 +34,6 @@ use Teme\Contracts\Routes\PublicResponse;
 use Teme\Contracts\Routes\PublicRoute;
 use Throwable;
 
-/**
- * Runs a declared route's handler: builds it with its plugin's doors, builds
- * the plain request, enforces the body cap and POST verifier, records a throw against its owner and answers
- * with the site's error page, and maps the plain response to Symfony's.
- */
 final class RouteDispatcher
 {
     public const int HANDLER_SECONDS = 30;

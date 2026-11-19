@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Where an extension request stands: open while it waits, runs or waits for
+ * the administrator's agreement, then how it ended.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions;
 
-/**
- * Where an extension request stands: open while it waits, runs or waits for
- * the administrator's agreement, then how it ended.
- */
 enum RequestStatus: string
 {
     case Requested = 'requested';

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A reference to another content item, stored as its ID — never its URL or
+ * slug, so the link survives a move or a rename (rule 9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -11,10 +20,6 @@ use App\Domain\Fields\FieldType;
 use App\Domain\StructuredData\GraphAddresses;
 use Illuminate\Validation\Rule;
 
-/**
- * A reference to another content item, stored as its ID — never its URL or
- * slug, so the link survives a move or a rename (rule 9).
- */
 final class EntryField implements FieldType
 {
     public function name(): string

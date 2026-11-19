@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The benchmark's synthetic WordPress site, answered in this process as
+ * the Teme Companion plugin would (D4): Http::fake() hands it each request
+ * the importer's own client makes, so the client runs unchanged and nothing
+ * reaches a network. A page is built from the IDs asked for, never from a
+ * sorted list, so it costs the same at item 49,950 as at item 1
+ * (docs/benchmarks/).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark\ImportBench;
@@ -8,14 +21,6 @@ use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
-/**
- * The benchmark's synthetic WordPress site, answered in this process as
- * the Teme Companion plugin would (D4): Http::fake() hands it each request
- * the importer's own client makes, so the client runs unchanged and nothing
- * reaches a network. A page is built from the IDs asked for, never from a
- * sorted list, so it costs the same at item 49,950 as at item 1
- * (docs/benchmarks/).
- */
 final class BenchmarkCompanion
 {
     /** The only user the companion signs in, with any password. */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A taxonomy's terms as the management API lists them, so an outside tool
+ * can name an item's terms by ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Queries;
@@ -9,10 +18,6 @@ use App\Domain\ManageApi\ManageApiWords;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Types\TaxonomyRegistry;
 
-/**
- * A taxonomy's terms as the management API lists them, so an outside tool
- * can name an item's terms by ID.
- */
 final readonly class TermChoices
 {
     public function __construct(private TaxonomyRegistry $taxonomies) {}
