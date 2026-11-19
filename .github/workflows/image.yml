@@ -323,7 +323,7 @@ jobs:
             --volume teme-aio-data:/var/teme \
             "$TEME_IMAGE"
           status=""
-          for attempt in $(seq 1 120); do
+          for _ in $(seq 1 120); do
             status="$(docker inspect --format '{{if .State.Running}}{{.State.Health.Status}}{{else}}stopped{{end}}' teme-aio)"
             if [ "$status" = healthy ] || [ "$status" = stopped ]; then
               break
