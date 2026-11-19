@@ -349,7 +349,7 @@ function AddressSections({
     const others = page.types.filter(
         (type) => !type.main && !type.hierarchical,
     );
-    const values = { ...SAMPLE, ...(page.example ?? {}) };
+    const values = { ...SAMPLE, ...page.example };
     const [patterns, setPatterns] = useState<Record<string, string>>(
         Object.fromEntries(page.types.map((type) => [type.key, type.pattern])),
     );

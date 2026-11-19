@@ -110,9 +110,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-(--settings-cols) lg:gap-8"
                     style={COLUMNS}
                 >
-                    <aside
-                        className="grid min-w-0 content-start gap-4 lg:sticky lg:top-4 lg:self-start"
-                    >
+                    <aside className="grid min-w-0 content-start gap-4 lg:sticky lg:top-4 lg:self-start">
                         <FindSetting />
                         {/* Under 1024px the list opens from one button, in place. */}
                         <Button
