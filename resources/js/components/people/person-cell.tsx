@@ -2,58 +2,48 @@ import { Link } from '@inertiajs/react';
 import { Lock } from 'lucide-react';
 import { RowLinks } from '@/components/list/row-links';
 import type { RowAction } from '@/components/list/row-actions';
-import { Button } from '@/components/ui/button';
 import { PersonPicture } from '@/components/ui/person-picture';
 import { StatusPill } from '@/components/ui/status-pill';
+import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
 import { edit as editProfile } from '@/routes/profile';
 import type { UserRow } from '@/types';
 
 /**
  * Your own row: nothing on it can change you, so the action people look for
- * is drawn locked, with the reason beside it and the way to your account.
- * It stays focusable, so a screen reader reaches the reason.
+ * is drawn locked on the row's line, beside the way to your account, with
+ * the reason under them. The lock stays focusable, so a screen reader
+ * reaches the reason.
  */
-export function OwnRowLock({ align = 'end' }: { align?: 'start' | 'end' }) {
+export function OwnRowLock() {
     return (
-        <div
-            className={
-                align === 'end'
-                    ? 'grid justify-items-end gap-1'
-                    : 'grid justify-items-start gap-1'
-            }
-        >
-            <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-disabled="true"
-                aria-describedby="own-role-reason"
-                data-test="own-row-lock"
-                className="text-ink-2 -my-1 cursor-not-allowed"
-                onClick={(event) => event.preventDefault()}
+        <div className="grid justify-items-start gap-1">
+            <div
+                role="group"
+                aria-label={__('Actions for you')}
+                className="text-small flex flex-wrap items-center gap-x-3"
             >
-                <Lock aria-hidden="true" />
-                {__('Change role…')}
-            </Button>
-            <p
-                id="own-role-reason"
-                className={
-                    align === 'end'
-                        ? 'text-caption text-ink-3 w-56 text-right'
-                        : 'text-caption text-ink-3'
-                }
-            >
+                <TextButton
+                    aria-disabled="true"
+                    aria-describedby="own-role-reason"
+                    data-test="own-row-lock"
+                    className="text-ink-2 cursor-not-allowed font-normal hover:decoration-transparent"
+                    onClick={(event) => event.preventDefault()}
+                >
+                    <Lock aria-hidden="true" className="size-4" />
+                    {__('Change role…')}
+                </TextButton>
+                <TextButton asChild className="font-normal">
+                    <Link href={editProfile()}>
+                        {__('Manage yourself in Account')}
+                    </Link>
+                </TextButton>
+            </div>
+            <p id="own-role-reason" className="text-caption text-ink-3">
                 {__(
-                    'You cannot change your own role. Ask another administrator.',
+                    'You can’t change your own role. Ask another administrator.',
                 )}
             </p>
-            <Link
-                href={editProfile()}
-                className="text-small inline-flex min-h-6 items-center underline-offset-2 hover:underline"
-            >
-                {__('Manage yourself in Account')}
-            </Link>
         </div>
     );
 }

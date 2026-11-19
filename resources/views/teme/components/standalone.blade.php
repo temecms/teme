@@ -84,6 +84,17 @@
         [data-foot] {
             color: var(--ink-3);
             font-size: var(--text-small);
+            text-align: center;
+        }
+
+        .sa-brand-text {
+            display: grid;
+            min-width: 0;
+        }
+
+        .sa-sub {
+            color: var(--ink-3);
+            font-size: var(--text-caption);
         }
 
         .sa-pill {
@@ -95,6 +106,22 @@
             border-radius: var(--radius-full);
             font-size: var(--text-small);
             font-weight: 500;
+        }
+
+        .sa-pill svg {
+            flex: none;
+            width: 14px;
+            height: 14px;
+            margin-inline-end: 6px;
+        }
+
+        .sa-dot {
+            flex: none;
+            width: 8px;
+            height: 8px;
+            margin-inline-end: 8px;
+            border-radius: var(--radius-full);
+            background: currentColor;
         }
 
         .sa-pill-warn { background: var(--warn-soft); color: var(--warn-ink); }
@@ -134,6 +161,59 @@
         .sa-button:focus-visible {
             outline: 2px solid var(--ring);
             outline-offset: 2px;
+        }
+
+        .sa-actions {
+            display: grid;
+            gap: 8px;
+        }
+
+        .sa-actions .sa-button { justify-self: stretch; }
+
+        .sa-button-neutral {
+            background: var(--surface-3);
+            color: var(--ink);
+        }
+
+        .sa-button-neutral:hover { background: var(--surface-4); }
+
+        .sa-ref {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            margin: 0;
+            font-size: var(--text-small);
+        }
+
+        .sa-ref dt { color: var(--ink-2); }
+
+        .sa-ref dd { margin: 0; }
+
+        .sa-ref code {
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            background: var(--surface-3);
+            font-family: var(--font-mono);
+        }
+
+        .sa-bar {
+            height: 8px;
+            overflow: hidden;
+            border-radius: var(--radius-full);
+            background: var(--surface-3);
+        }
+
+        .sa-bar > i {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--accent);
+        }
+
+        .sa-bar-note {
+            margin-top: 8px;
+            color: var(--ink-3);
+            font-size: var(--text-caption);
         }
 
         hr {
@@ -189,7 +269,12 @@
     <div class="sa-brand">
 @if ($brand['name'] !== null && $brand['mark'] !== null)
         <span class="sa-mark" aria-hidden="true">{{ $brand['mark'] }}</span>
-        <span class="sa-name">{{ $brand['name'] }}</span>
+        <span class="sa-brand-text">
+            <span class="sa-name">{{ $brand['name'] }}</span>
+@if (request()->is('admin', 'admin/*'))
+            <span class="sa-sub">{{ __('Admin') }}</span>
+@endif
+        </span>
 @else
         {!! app(\App\Http\Standalone\StandalonePage::class)->temeMark() !!}
         <span class="sa-product">Teme</span>

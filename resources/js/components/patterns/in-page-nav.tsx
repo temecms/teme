@@ -21,7 +21,7 @@ type InPageNavItem = {
     soon?: boolean;
 };
 
-/** How many items show before the rest go under More. */
+/** How many items show before the rest go under More, unless a place says. */
 const SHOWN = 5;
 
 const ITEM =
@@ -37,19 +37,22 @@ function Count({ count }: { count?: number }) {
 /**
  * Views of one place that change the address
  * (docs/architecture/design-system.md, section 4.27): links in a labelled
- * nav, the current one marked; the first five show, the rest are under
- * More, which shows the current item's name when it is one of them. One
- * row, never wrapping.
+ * nav, the current one marked; the first five show (or as many as the
+ * place asks), the rest are under More, which shows the current item's
+ * name when it is one of them. One row, never wrapping.
  */
 export function InPageNav({
     label,
     items,
+    shown: showing = SHOWN,
 }: {
     label: string;
     items: InPageNavItem[];
+    /** How many show before More: People shows all seven of its views. */
+    shown?: number;
 }) {
-    const shown = items.slice(0, SHOWN);
-    const more = items.slice(SHOWN);
+    const shown = items.slice(0, showing);
+    const more = items.slice(showing);
     const currentInMore = more.find((item) => item.current);
 
     return (

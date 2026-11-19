@@ -22,6 +22,7 @@ use App\Http\Admin\Account\PreferencesController;
 use App\Http\Admin\Account\ProfileController;
 use App\Http\Admin\Account\SecurityController;
 use App\Http\Admin\Account\TwoFactorController;
+use App\Http\Admin\AdminErrorPage;
 use App\Http\Admin\AdminScreenController;
 use App\Http\Admin\Ai\AiRequestController;
 use App\Http\Admin\Auth\FirstRunController;
@@ -691,4 +692,13 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::delete('{type}/{content}', [ContentActionController::class, 'destroy'])->name('content.destroy');
             });
     });
+});
+
+// Any other admin address, last of all routes: a 404, drawn inside the admin
+// for someone signed in and on the card for anyone else.
+Route::prefix('admin')->middleware('admin')->group(function (): void {
+    Route::get('{missing}', [AdminErrorPage::class, 'notFound'])
+        ->where('missing', '.*')
+        ->name('admin.not-found')
+        ->fallback();
 });

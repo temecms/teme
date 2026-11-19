@@ -63,7 +63,7 @@ it('fits a 320 pixel screen: no sideways scroll, the card at the top, 16 pixel i
     expect(spNoSidewaysScroll($page))->toBeTrue()
         ->and($page->script('() => document.querySelector(\'[data-slot="auth-card"]\').getBoundingClientRect().top'))->toBeLessThan(24)
         ->and($page->script('() => getComputedStyle(document.querySelector("#email")).fontSize'))->toBe('16px')
-        ->and($page->script('() => [...document.querySelectorAll("a")].find((link) => link.textContent.trim() === "Forgot your password?").getBoundingClientRect().height'))->toBeGreaterThanOrEqual(44);
+        ->and($page->script('() => [...document.querySelectorAll("a")].find((link) => link.textContent.trim() === "Forgotten your password?").getBoundingClientRect().height'))->toBeGreaterThanOrEqual(44);
 });
 
 it('names the password\'s show and hide button, reaches it by Tab, and shows what is typed', function (): void {
@@ -178,7 +178,7 @@ it('draws every sign-in page on the one card, with no sideways scroll at 320 pix
     }
 })->with(['forgot password', 'reset password', 'accept an invitation', 'two-factor', 'verify email', 'confirm password']);
 
-it('draws the admin\'s 404 and 403 on the card, passing axe in both schemes with nothing small', function (string $scheme): void {
+it('draws the admin\'s 404 and 403 inside the admin, passing axe in both schemes with nothing small', function (string $scheme): void {
     // People is for administrators only, so an editor is refused it.
     foreach (['/admin/no-such-screen' => '404', route('users.index', [], false) => '403'] as $url => $code) {
         $page = spVisit('/admin/login', $scheme)
@@ -188,7 +188,7 @@ it('draws the admin\'s 404 and 403 on the card, passing axe in both schemes with
             ->assertPathIs('/admin');
 
         cmNavigate($page, $url);
-        cmWaitUntil($page, "document.querySelector('main[data-error=\"{$code}\"]') !== null");
+        cmWaitUntil($page, "document.querySelector('[data-test=\"error-{$code}-in-admin\"]') !== null");
 
         $targets = cmSmallTargets($page);
 

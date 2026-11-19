@@ -58,13 +58,10 @@ beforeEach(function (): void {
 it('shows every view with its count, and the invitations in a table of their own', function (): void {
     $page = cmSignIn($this->admin)
         ->navigate('/admin/users')
-        // Five views show; the rest are under More.
-        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Views\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Administrators1|Editors1|Authors1|Contributors0')
+        // All seven views show, none under More.
+        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Views\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Administrators1|Editors1|Authors1|Contributors0|Suspended0|Invited1')
+        ->assertScript("document.querySelector('nav[aria-label=\"Views\"] button') === null", true)
         ->assertScript("document.querySelector('table').innerText.includes('Ivy Invited')", false)
-        ->click('nav[aria-label="Views"] button >> text="More"');
-    shellSettled($page, '[role="menu"]');
-
-    $page->assertScript("[...document.querySelectorAll('[role=\"menu\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'Suspended0|Invited1')
         ->navigate('/admin/users?view=invited')
         ->assertScript("document.querySelector('table caption').textContent", 'Pending invitations')
         ->assertScript("[...document.querySelectorAll('table thead th')].map((cell) => cell.textContent.trim()).join('|')", 'Name|Role|Invited|Link|More actions')
@@ -164,7 +161,7 @@ it('locks your own row\'s Change role…, saying why, and offers no menu there',
     cmWaitUntil($page, "document.querySelector('[data-test=\"own-row-lock\"]') !== null && document.querySelector('[aria-label=\"Actions for Ada Admin\"]') === null")
         ->assertAttribute('[data-test="own-row-lock"]', 'aria-disabled', 'true')
         ->assertAttribute('[data-test="own-row-lock"]', 'aria-describedby', 'own-role-reason')
-        ->assertScript("document.getElementById('own-role-reason').textContent", 'You cannot change your own role. Ask another administrator.')
+        ->assertScript("document.getElementById('own-role-reason').textContent", 'You can’t change your own role. Ask another administrator.')
         // Pressed from the keyboard's focus, through the page itself: a locked
         // button is one a browser driver refuses to click, by design.
         ->assertScript("(() => { const lock = document.querySelector('[data-test=\"own-row-lock\"]'); lock.focus(); lock.click(); return document.activeElement === lock && document.querySelector('[role=\"dialog\"]') === null; })()", true)
@@ -175,7 +172,9 @@ it('locks your own row\'s Change role…, saying why, and offers no menu there',
 it('revokes an invitation after a confirmation that names it, without asking for the password', function (): void {
     $page = cmSignIn($this->admin)
         ->navigate('/admin/users?view=invited')
-        ->click('[aria-label="Actions for Ivy Invited"] >> text="Revoke invitation"');
+        ->click('[aria-label="More actions for Ivy Invited"]');
+    shellSettled($page, '[role="menu"]');
+    $page->click('[role="menu"] >> text="Revoke invitation"');
 
     ($this->seen)($page, 'Revoke the invitation to ivy@example.com?')
         // The menu stays open behind the confirmation; click inside the dialog once its own parts have settled.

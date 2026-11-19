@@ -177,13 +177,14 @@ it('opens the menu as a drawer under 768 pixels from a button named Open menu, p
         ->and($targets['checked'])->toBeGreaterThan(0);
 });
 
-it('frames Account with one h1 and an Appearance select, passing axe and the target size, in both schemes', function (string $scheme): void {
+it('frames Account with one h1 and the segmented Colors control, passing axe and the target size, in both schemes', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)
         ->navigate('/admin/account/preferences')
-        ->assertSee('Each choice is saved as you make it.')
-        ->assertSee('Appearance')
+        ->assertSee('How the admin looks and behaves for you. Each choice saves as you make it.')
+        ->assertSeeIn('#appearance-mode-label', 'Colors')
+        ->assertVisible('[data-test="appearance-mode"] >> text="Match my computer"')
         ->assertNoAccessibilityIssues(3);
 
     $page->assertScript('document.querySelectorAll("h1").length === 1');

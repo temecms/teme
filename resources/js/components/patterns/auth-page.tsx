@@ -1,18 +1,22 @@
 import { Head } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { SignInBrand } from '@/components/brand';
+import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 
 type AuthPageProps = {
     /** The h1, and the tab's title unless `tabTitle` is given. */
     title: string;
     lead?: ReactNode;
     tabTitle?: string;
+    /** A tile over the title, such as the mail icon on "Check your email". */
+    icon?: ReactNode;
     /** 'teme' on the setup page, where the site has no name yet. */
     brand?: 'site' | 'teme';
     /** Above the form: a sent link, a changed password, a paused sign-in. */
     notices?: ReactNode;
-    /** Under the form: the other ways on, each a TextButton link 44px tall on touch. */
+    /** Under the form: the other ways on, each an AuthLink, centered. */
     links?: ReactNode;
     children: ReactNode;
 };
@@ -29,6 +33,7 @@ export function AuthPage({
     lead,
     tabTitle,
     brand = 'site',
+    icon,
     notices,
     links,
     children,
@@ -42,7 +47,8 @@ export function AuthPage({
                     className="bg-surface shadow-float grid w-full max-w-105 gap-5 rounded-xl p-5 sm:p-8"
                 >
                     <SignInBrand teme={brand === 'teme'} />
-                    <div className="grid gap-1">
+                    <div className="grid justify-items-start gap-1">
+                        {icon && <div className="mb-3">{icon}</div>}
                         <h1 className="text-title text-ink font-semibold">
                             {title}
                         </h1>
@@ -51,7 +57,9 @@ export function AuthPage({
                     {notices}
                     {children}
                     {links && (
-                        <div className="grid justify-items-start">{links}</div>
+                        <div className="grid justify-items-center gap-1">
+                            {links}
+                        </div>
                     )}
                 </div>
                 <p
@@ -69,5 +77,24 @@ export function AuthPage({
                 </p>
             </main>
         </>
+    );
+}
+
+/**
+ * One of the card's other ways on: small, underlined words, 32px tall to
+ * tap. `asChild` for a link.
+ */
+export function AuthLink({
+    className,
+    ...props
+}: ComponentProps<typeof TextButton>) {
+    return (
+        <TextButton
+            {...props}
+            className={cn(
+                'text-small min-h-(--ctl-h) font-normal decoration-current',
+                className,
+            )}
+        />
     );
 }

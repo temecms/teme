@@ -35,7 +35,7 @@ final class BuiltInPreferences
         $registry->register(new PreferenceDefinition('editor.focus_mode_default', 'boolean', false, 'Open in focus mode', 'Open the editor with everything but the writing hidden.'));
         // Pinned to the editor's bar (DS 4.39), with the plugins' panels the signed-in person may see on some item.
         $registry->register(new PreferenceDefinition('editor.pinned_tools', 'list', ['assistant', 'share'], 'Pinned editor tools', allowed: fn (): array => ['assistant', 'share', ...app(EditorPanels::class)->toolIdsFor(Auth::id() === null ? null : (string) Auth::id())], maxItems: 3));
-        $registry->register(new PreferenceDefinition('lists.per_page', 'select', 50, 'Rows per page', 'How many items the Posts, Pages and other lists show at a time.', options: [25 => '25', 50 => '50', 100 => '100']));
+        $registry->register(new PreferenceDefinition('lists.per_page', 'select', 50, 'Rows per page', 'How many posts, pages, media items or comments a list shows before it starts a new page.', options: [25 => '25', 50 => '50', 100 => '100']));
         $registry->register(new PreferenceDefinition('appearance.mode', 'select', 'system', 'Light or dark', 'Light, dark, or whatever your system is set to.', options: ['light' => 'Light', 'dark' => 'Dark', 'system' => 'Match the system']));
         $registry->register(new PreferenceDefinition('dashboard.getting_started_hidden', 'boolean', false, 'Hide Getting started', 'The checklist a new site shows on Home. Turn this off to see it again.'));
 

@@ -66,3 +66,46 @@ export function formatDateTime(at: Moment, inZone: string = zone): string {
         minute: '2-digit',
     }).format(new Date(at));
 }
+
+/** The day a moment falls on, on the site's clock, as "2026-11-13". */
+function dayOf(at: Moment, inZone: string): string {
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: inZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(new Date(at));
+}
+
+/**
+ * A recent moment as people say it, on the site's clock: "Today, 08:52"
+ * and "Yesterday, 17:20", and an earlier one as its day, "12 Nov 2026".
+ * `words` puts the time into the admin's own sentence for each of the two
+ * days, and `now` is the moment to count from.
+ */
+export function formatRecent(
+    at: Moment,
+    words: {
+        today: (time: string) => string;
+        yesterday: (time: string) => string;
+    },
+    now: Moment = Date.now(),
+    inZone: string = zone,
+): string {
+    const day = dayOf(at, inZone);
+    const time = new Intl.DateTimeFormat(language, {
+        timeZone: inZone,
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(new Date(at));
+
+    if (day === dayOf(now, inZone)) {
+        return words.today(time);
+    }
+
+    if (day === dayOf(new Date(now).getTime() - 86_400_000, inZone)) {
+        return words.yesterday(time);
+    }
+
+    return formatDate(at, inZone);
+}

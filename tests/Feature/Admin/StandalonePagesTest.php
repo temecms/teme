@@ -88,7 +88,7 @@ it('keeps an empty stylesheet, not an error, when the markers are gone', functio
         ->and(app(StandaloneStyle::class)->build($source))->toBe('');
 });
 
-it('draws each error on the card with the site\'s mark and its own words', function (int $code, string $heading): void {
+it('draws each error on the card with the site\'s mark and its own words', function (int $code, string $heading, string $action): void {
     $response = $this->get("/admin/_sa-error/{$code}")->assertStatus($code);
     $html = (string) $response->getContent();
     $page = saPage($html);
@@ -98,20 +98,37 @@ it('draws each error on the card with the site\'s mark and its own words', funct
         ->and(trim((string) $page->query('//h1')->item(0)?->textContent))->toBe($heading)
         ->and(trim((string) $page->query("//*[@class='sa-name']")->item(0)?->textContent))->toBe('The Garden City Ledger')
         ->and(trim((string) $page->query("//*[@class='sa-mark']")->item(0)?->textContent))->toBe('T')
-        ->and($page->query("//a[@class='sa-button']")->item(0)?->getAttribute('href'))->toBe(route('dashboard'))
-        ->and(trim((string) $page->query("//a[@class='sa-button']")->item(0)?->textContent))->toBe('Back to Home')
+        ->and(trim((string) $page->query("//a[@class='sa-button']")->item(0)?->textContent))->toBe($action)
         ->and($html)->not->toContain('<script')
         ->and($page->query('//link[not(@data-fonts)]')->length)->toBe(0)
         ->and($html)->not->toContain('<img')
         ->and($html)->not->toContain('Powered by Teme');
 })->with([
-    [403, 'You can’t open this page'],
-    [404, 'We can’t find that page'],
-    [419, 'This page has expired'],
-    [429, 'Too many tries'],
-    [500, 'Something went wrong on our side'],
-    [503, 'Down for maintenance'],
+    [403, 'You can’t open this page', 'Back to Home'],
+    [404, 'We can’t find that page', 'Back to Home'],
+    [419, 'This page has expired', 'Reload the page'],
+    [429, 'Too many tries', 'Back to Home'],
+    [500, 'Something went wrong on our side', 'Try again'],
+    [503, 'Down for maintenance', 'Check now'],
 ]);
+
+it('offers a way back beside Home, and the 500 page a reference to give', function (): void {
+    $notFound = saPage((string) $this->get('/admin/_sa-error/404', ['referer' => url('/admin/posts')])->assertNotFound()->getContent());
+    $failed = (string) $this->get('/admin/_sa-error/500')->assertStatus(500)->getContent();
+
+    expect(trim((string) $notFound->query("//a[contains(@class,'sa-button-neutral')]")->item(0)?->textContent))->toBe('Go back')
+        ->and($notFound->query("//a[contains(@class,'sa-button-neutral')]")->item(0)?->getAttribute('href'))->toBe(url('/admin/posts'))
+        ->and($failed)->toMatch('/[0-9A-F]{4}-[0-9A-F]{4}/')
+        ->and($failed)->toContain('Try again');
+});
+
+it('marks the maintenance page as updating, with a way to check now', function (): void {
+    $page = saPage((string) $this->get('/admin/_sa-maintenance')->assertStatus(503)->getContent());
+
+    expect(trim((string) $page->query("//a[@class='sa-button']")->item(0)?->textContent))->toBe('Check now')
+        ->and($page->query("//a[@class='sa-button']")->item(0)?->getAttribute('href'))->toBe(url('/admin/_sa-maintenance'))
+        ->and(trim((string) $page->query("//*[contains(@class,'sa-pill')]")->item(0)?->textContent))->toBe('Updating');
+});
 
 it('says a refusal\'s own reason on the 403 page', function (): void {
     $page = saPage((string) $this->get('/admin/_sa-refused?'.http_build_query(['reason' => 'You can’t edit this item.']))->assertForbidden()->getContent());

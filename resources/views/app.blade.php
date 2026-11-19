@@ -42,6 +42,13 @@
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">
+        {{-- An admin error page says what happened even where no script runs. --}}
+        @isset($fallback)
+            <noscript>
+                <h1>{{ $fallback['title'] }}</h1>
+                <p>{{ $fallback['text'] }}</p>
+            </noscript>
+        @endisset
         <x-inertia::app />
     </body>
 </html>
