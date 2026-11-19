@@ -62,7 +62,7 @@ export default function Profile({
         <>
             <Head title={title} />
 
-            <SettingsPage title={title} description={description}>
+            <SettingsPage title={title} description={description} titleAs="div">
                 {unverified && (
                     <Notice
                         tone="warn"

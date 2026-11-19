@@ -43,7 +43,7 @@ export default function Security({
         <>
             <Head title={title} />
 
-            <SettingsPage title={title} description={description}>
+            <SettingsPage title={title} description={description} titleAs="div">
                 <Form
                     {...SecurityController.update.form()}
                     options={{ preserveScroll: true }}

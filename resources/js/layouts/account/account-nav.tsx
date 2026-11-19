@@ -24,7 +24,7 @@ import { edit as editTwoFactor } from '@/routes/two-factor';
 type AccountPage = {
     title: string;
     href: NonNullable<InertiaLinkProps['href']>;
-    /** Planned and not built: drawn with its Soon tag, opening nothing (I-3408). */
+    /** Planned and not built: drawn with its Soon tag, opening nothing. */
     soon?: false;
 };
 

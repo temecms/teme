@@ -95,7 +95,7 @@ export default function Preferences({ fields, values }: Props) {
         <>
             <Head title={__('Preferences')} />
 
-            <SettingsPage title={title} description={description}>
+            <SettingsPage title={title} description={description} titleAs="div">
                 <FormPanel title={__('Appearance')}>
                     <div className="grid gap-1">
                         <span

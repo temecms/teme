@@ -30,7 +30,7 @@ export function RecoveryCodeList({ codes }: { codes: string[] }) {
  * Two-factor sign-in once it is set: a panel saying whether it is on, with
  * "Show recovery codes" and "Turn off…" while it is, or the way to set it
  * up while it isn't. Security shows it under the password, and Two-factor
- * sign-in shows it once the steps are done. Fortify does the work (I-100).
+ * sign-in shows it once the steps are done. Fortify does the work.
  */
 export function TwoFactorStatus({
     available,

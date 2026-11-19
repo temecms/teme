@@ -44,9 +44,9 @@ function downloadCodes(codes: string[]): void {
 }
 
 /**
- * Your account › Two-factor sign-in (I-115): three steps in the page, under
+ * Your account › Two-factor sign-in: three steps in the page, under
  * a step bar: scan the code, type a code, keep the recovery codes; then the
- * panel that says it is on. Fortify does the work (I-100): its secret is
+ * panel that says it is on. Fortify does the work: its secret is
  * made as the page opens, and the code typed in step 2 turns it on.
  */
 export default function TwoFactor({
@@ -68,7 +68,7 @@ export default function TwoFactor({
         <>
             <Head title={title} />
 
-            <SettingsPage title={title} description={description}>
+            <SettingsPage title={title} description={description} titleAs="div">
                 {!canManageTwoFactor ? (
                     <Notice tone="info">
                         {__('Two-factor sign-in is turned off for this site.')}

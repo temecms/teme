@@ -8,7 +8,7 @@ import { PersonPicture } from '@/components/ui/person-picture';
 import { __ } from '@/lib/i18n';
 
 /**
- * Your picture, the first field of Profile's "Your details" (I-3410): an
+ * Your picture, the first field of Profile's "Your details": an
  * image chosen from Media, or your initials. Choosing needs the Media
  * picker, which only those who may write open, and a confirmed email
  * address. It saves as it is chosen, apart from the form around it.

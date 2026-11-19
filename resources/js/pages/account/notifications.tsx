@@ -98,7 +98,7 @@ export default function Notifications({
         <>
             <Head title={__('Notifications')} />
 
-            <SettingsPage title={title} description={description}>
+            <SettingsPage title={title} description={description} titleAs="div">
                 <FormPanel>
                     <div className="flex flex-wrap items-center gap-4">
                         <div className="grid min-w-0 flex-1 basis-60 gap-1">
