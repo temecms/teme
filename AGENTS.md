@@ -71,7 +71,7 @@ docker compose up -d    # PostgreSQL, and Valkey for the Redis page store's test
 - Commit after every task, Conventional Commits format.
 - If the plan and the code disagree, stop and say so. Do not quietly implement something different.
 - When you start sub-agents, name the model every time, because leaving it out inherits yours. Use Sonnet (or Haiku) for routine work: research, reading the references, docs, drawing designs, mechanical edits, applying a review's fixes. Use Opus only for delicate plans and code (permissions, migrations, the updater, security) and for reviews before merging.
-- Every class in `app/` opens with a one-to-three-sentence docblock saying what it is for, and every public query method says what it returns. There are no file headers, and `@since` appears only in `packages/teme-contracts`. See `docs/architecture/coding-standards.md`.
+- Every class in `app/` opens with a one-to-three-sentence docblock saying what it is for, and every public query method says what it returns. Every PHP file opens with the short file header (what it is for, `@package`, `@since`, `@license`), before `declare(strict_types=1)`; a new file or public member says `@since next`, which the release step replaces with the version. See `docs/architecture/coding-standards.md`.
 
 ## Naming
 
