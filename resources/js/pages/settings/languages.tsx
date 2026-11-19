@@ -460,9 +460,10 @@ export default function LanguagesSettings({
             owner: 'core',
             header: <span className="sr-only">{__('Actions')}</span>,
             label: __('Actions'),
-            width: 240,
+            width: 176,
+            // The buttons wrap rather than run past the section's edge.
             cell: (row) => (
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex flex-wrap items-center justify-end gap-1">
                     <Button
                         type="button"
                         variant="ghost"
