@@ -27,14 +27,20 @@ final class TypesFile
     /**
      * The site's own types, taxonomies and fields as a version 1 file, read from the
      * tables. A row that doesn't parse is left out; Status already names it.
+     * So is one a plugin brought, which comes with the plugin.
      *
      * @return array{format: string, version: int, types: list<array<string, mixed>>, fields: list<array<string, mixed>>, taxonomies: list<mixed>, grants: list<array{type: string, role: string, abilities: list<string>}>}
      */
     public static function export(): array
     {
         $types = [];
+        $owned = TypeOwners::of('types');
 
         foreach (app(StoredTypes::class)->definitions() as $raw) {
+            if (isset($owned[$raw['key']])) {
+                continue;
+            }
+
             try {
                 $types[] = TypeDefinition::fromArray($raw)->toArray();
             } catch (InvalidTypeDefinition) {
@@ -43,8 +49,13 @@ final class TypesFile
         }
 
         $taxonomies = [];
+        $owned = TypeOwners::of('taxonomies');
 
         foreach (app(StoredTaxonomies::class)->definitions() as $raw) {
+            if (isset($owned[$raw['key'] ?? null])) {
+                continue;
+            }
+
             try {
                 $taxonomies[] = TaxonomyDefinition::fromArray($raw)->toArray();
             } catch (InvalidTaxonomyDefinition) {

@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Fields\Stored;
 
 use App\Domain\Types\StoredTypes;
+use App\Domain\Types\TypeOwners;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -73,16 +74,19 @@ final class StoredFields
     /**
      * Every row, live and removed, by type, then position, then key,
      * straight from the table, each as its columns with the definition decoded.
+     * With $markDormant, a disabled plugin's say `dormant`.
      *
      * @return list<array<string, mixed>>
      */
-    public function definitions(): array
+    public function definitions(bool $markDormant = false): array
     {
         return DB::table(self::TABLE)
+            ->select(['key', 'content_type', 'handle', 'position', 'definition', 'removed_at', 'removed_by'])
+            ->when($markDormant, fn ($query) => $query->selectRaw(TypeOwners::dormantCondition(self::TABLE).' AS dormant'))
             ->orderBy('content_type')
             ->orderBy('position')
             ->orderBy('key')
-            ->get(['key', 'content_type', 'handle', 'position', 'definition', 'removed_at', 'removed_by'])
+            ->get()
             ->map(fn (object $row): array => [
                 'key' => (string) $row->key,
                 'content_type' => (string) $row->content_type,
@@ -91,6 +95,7 @@ final class StoredFields
                 'definition' => json_decode((string) $row->definition, true, flags: JSON_THROW_ON_ERROR),
                 'removed_at' => $row->removed_at === null ? null : (string) $row->removed_at,
                 'removed_by' => $row->removed_by === null ? null : (int) $row->removed_by,
+                ...(($row->dormant ?? false) === true ? ['dormant' => true] : []),
             ])
             ->values()
             ->all();
@@ -243,7 +248,8 @@ final class StoredFields
      */
     private function fresh(): array
     {
-        $definitions = $this->definitions();
+        // A plugin's fields only while it is enabled; their values travel untouched meanwhile (docs/architecture/plugins.md, *Content types from a plugin*).
+        $definitions = $this->definitions(markDormant: true);
 
         return ['version' => hash('xxh128', json_encode($definitions, JSON_THROW_ON_ERROR)), 'definitions' => $definitions];
     }

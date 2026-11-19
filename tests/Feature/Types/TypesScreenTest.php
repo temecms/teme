@@ -46,10 +46,10 @@ it('lists every type, code’s first, then the site’s own oldest first, a refu
             ->where('types.2.public', false)
             ->where('types.2.pattern', null)
             ->where('types.2.listUrl', null)
-            ->where('types.3', ['key' => 'film', 'singular' => 'Film', 'plural' => 'Films', 'segment' => 'films', 'icon' => 'film', 'source' => 'stored', 'public' => true, 'pattern' => '/films/{slug}/', 'items' => 3, 'trashed' => 1, 'reason' => null, 'listUrl' => '/admin/films'])
+            ->where('types.3', ['key' => 'film', 'singular' => 'Film', 'plural' => 'Films', 'segment' => 'films', 'icon' => 'film', 'source' => 'stored', 'public' => true, 'pattern' => '/films/{slug}/', 'items' => 3, 'trashed' => 1, 'reason' => null, 'listUrl' => '/admin/films', 'plugin' => null, 'pluginEnabled' => false, 'nameClash' => null])
             ->where('types.4.key', 'recipe')
             ->where('types.4.items', 0)
-            ->where('types.5', ['key' => 'event', 'singular' => 'Event', 'plural' => 'Events', 'segment' => 'events', 'icon' => 'calendar', 'source' => 'refused', 'public' => true, 'pattern' => '/events/{slug}/', 'items' => 0, 'trashed' => 0, 'reason' => 'Content type [event] uses taxonomy [venue], which is not registered.', 'listUrl' => null]));
+            ->where('types.5', ['key' => 'event', 'singular' => 'Event', 'plural' => 'Events', 'segment' => 'events', 'icon' => 'calendar', 'source' => 'refused', 'public' => true, 'pattern' => '/events/{slug}/', 'items' => 0, 'trashed' => 0, 'reason' => 'Content type [event] uses taxonomy [venue], which is not registered.', 'listUrl' => null, 'plugin' => null, 'pluginEnabled' => false, 'nameClash' => null]));
 });
 
 it('shows a public type’s address as Settings › Addresses has it, not as the type was made', function (): void {

@@ -418,6 +418,11 @@
                     "maxLength": 24,
                     "description": "The label core draws on the plugin's fixed insertions; Advertisement when absent."
                 },
+                "types": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*/)*[A-Za-z0-9_][A-Za-z0-9_.-]*\\.json$",
+                    "description": "The path, inside the plugin, of a teme-types file, version 1, as Settings › Types exports: the content types, taxonomies and fields the plugin brings. They work while the plugin is enabled."
+                },
                 "settings": {
                     "type": "array",
                     "description": "Settings the plugin declares.",

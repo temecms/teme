@@ -71,6 +71,13 @@ final class TaxonomyRules
 
         if (mb_strlen(trim($taxonomy->plural)) < 1 || mb_strlen(trim($taxonomy->plural)) > 60) {
             $problems['plural'] = __('Give the taxonomy a plural name of 60 characters at most.');
+        } elseif ($replacing === null || ! AdminScreenNames::same($replacing->plural, $taxonomy->plural)) {
+            // As a type's: its list would sit in the menu under a screen's own name.
+            $screen = AdminScreenNames::clash($taxonomy->plural, taxonomyKey: $taxonomy->key);
+
+            if ($screen !== null) {
+                $problems['plural'] = AdminScreenNames::sentence($screen, $taxonomy->singular, __('taxonomy'));
+            }
         }
 
         $segment = self::segmentProblem($taxonomy);

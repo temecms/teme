@@ -21,6 +21,7 @@ use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\Plugins\Types\PluginTypesFile;
 use App\Domain\PublicRoutes\RootFile;
 use Composer\Autoload\ClassLoader;
 use ReflectionClass;
@@ -95,7 +96,7 @@ final readonly class PluginLoader
      * Why this enabled plugin may not load now, or null when it may: the
      * server's switch (one name or `*`), its code gone, a live error in its
      * manifest or code, an update that asks for more than was agreed, or
-     * migrations waiting. Starting it and answering its public routes follow
+     * migrations or a types file waiting. Starting it and answering its public routes follow
      * this one rule.
      *
      * @param  true|list<string>|null  $disabledOnServer  the server's switch, read afresh when null
@@ -113,6 +114,7 @@ final readonly class PluginLoader
             $this->dependencies->problems($plugin->manifest) !== [] || $this->dependencies->unmet($plugin->manifest) !== null => PluginState::CantBeUsed,
             ! Consent::covers($record->consent, $plugin->manifest) => PluginState::Waiting,
             $this->migrations->waiting($plugin, $record->migrations) !== [] => PluginState::Waiting,
+            PluginTypesFile::waiting($plugin, $record->types) => PluginState::Waiting,
             default => null,
         };
     }

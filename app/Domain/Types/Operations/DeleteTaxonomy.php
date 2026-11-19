@@ -41,6 +41,8 @@ final class DeleteTaxonomy extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var DeleteTaxonomyInput $input */
+        $this->refuseIfPlugins('taxonomies', $input->key);
+
         if ($this->taxonomies->exists($input->key)) {
             return;
         }
@@ -67,6 +69,7 @@ final class DeleteTaxonomy extends BaseOperation
     {
         /** @var DeleteTaxonomyInput $input */
         StoredTypes::lock();
+        $this->refuseIfPlugins('taxonomies', $input->key);
 
         $plural = $this->taxonomies->rawPlural($input->key);
 

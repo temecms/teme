@@ -3,7 +3,8 @@
 /**
  * Runs an enabled plugin's waiting migrations (I-3442): a person who holds
  * plugins.manage, after their password, or the operator. Consent must still
- * cover what it asks. Returns the migration names that ran.
+ * cover what it asks; a types file an update changed is applied with them.
+ * Returns the migration names that ran, and the types file's path when it was applied.
  *
  * @package Teme
  * @since   0.8.0-alpha.1
@@ -17,11 +18,13 @@ namespace App\Domain\Plugins\Operations;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
+use App\Domain\Plugins\Operations\Input\ApplyPluginTypesInput;
 use App\Domain\Plugins\Operations\Input\MigratePluginInput;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
+use App\Domain\Plugins\Types\PluginTypesFile;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
@@ -44,6 +47,7 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
         private readonly SecurityLog $log,
         private readonly PublicRouteRegistry $publicRoutes,
         private readonly RouteCollisions $routeCollisions,
+        private readonly ApplyPluginTypes $types,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -108,6 +112,12 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
 
         $ran = array_values(array_diff(array_keys($migrations), $before));
         $record->fill(['migrations' => $migrations])->save();
+
+        // An update's types file, as its migrations (docs/architecture/plugins.md, *Content types from a plugin*).
+        if (PluginTypesFile::waiting($this->registry->fresh($found), $record->types)) {
+            $this->types->execute(new ApplyPluginTypesInput($input->name, $input->actorId()));
+            $ran[] = $found->manifest === null ? 'types' : (PluginTypesFile::declared($found->manifest) ?? 'types');
+        }
 
         if ($ran !== []) {
             $this->log->record(SecurityEventType::PluginMigrated, $input->actorId(), context: [

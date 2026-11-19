@@ -1,5 +1,6 @@
+import { __ } from '@/lib/i18n';
 import { Head, Link } from '@inertiajs/react';
-import { Download, XCircle } from 'lucide-react';
+import { Download, TriangleAlert, XCircle } from 'lucide-react';
 import TypesController from '@/actions/App/Http/Admin/TypesController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/list/data-table';
@@ -9,6 +10,7 @@ import { ListPage } from '@/components/patterns/list-page';
 import type { RowAction } from '@/components/list/row-actions';
 import { Button } from '@/components/ui/button';
 import { Notice } from '@/components/ui/notice';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { StatusPill } from '@/components/ui/status-pill';
 import { navIcon } from '@/lib/nav-icons';
 import { index as typesIndex, show } from '@/routes/types';
@@ -151,6 +153,29 @@ function TypeCell({ row, locked }: { row: TypeRow; locked: boolean }) {
                         <SourceBadge source={row.source} />
                     </span>
                 </div>
+                {row.plugin !== null && (
+                    <p className="text-ink-2 text-caption mt-1 flex flex-wrap items-center gap-1">
+                        <PluginMark name={row.plugin} />
+                        <span>
+                            {row.pluginEnabled
+                                ? __('Comes from :plugin', {
+                                      plugin: row.plugin,
+                                  })
+                                : __(
+                                      'Comes from :plugin, which isn’t enabled: hidden, with its items kept',
+                                      { plugin: row.plugin },
+                                  )}
+                        </span>
+                    </p>
+                )}
+                {row.nameClash !== null && (
+                    <p className="text-warn-ink text-caption mt-1 flex items-start gap-1 text-pretty">
+                        <span className="flex h-lh shrink-0 items-center">
+                            <TriangleAlert aria-hidden className="size-3.5" />
+                        </span>
+                        {row.nameClash}
+                    </p>
+                )}
                 {row.source === 'refused' && row.reason !== null && (
                     <p className="text-danger-ink text-caption mt-1 flex items-start gap-1 text-pretty">
                         <span className="flex h-lh shrink-0 items-center">
@@ -202,6 +227,10 @@ function ItemsCell({ row }: { row: TypeRow }) {
 }
 
 function SourceBadge({ source }: { source: TypeRow['source'] }) {
+    if (source === 'plugin') {
+        return <StatusPill tone="neutral">{__('Plugin')}</StatusPill>;
+    }
+
     const pill = sources[source];
 
     return <StatusPill tone={pill.tone}>{pill.label}</StatusPill>;
@@ -210,7 +239,7 @@ function SourceBadge({ source }: { source: TypeRow['source'] }) {
 function actions(row: TypeRow, locked: boolean): RowAction[] {
     const href = show.url(row.key);
     const items: RowAction[] = [
-        row.source === 'code' || locked
+        row.source === 'code' || row.plugin !== null || locked
             ? { id: 'view', owner: 'core', label: 'View', href }
             : {
                   id: 'edit',
@@ -220,7 +249,12 @@ function actions(row: TypeRow, locked: boolean): RowAction[] {
               },
     ];
 
-    if (!locked && row.source !== 'code' && row.items === 0) {
+    if (
+        !locked &&
+        row.source !== 'code' &&
+        row.plugin === null &&
+        row.items === 0
+    ) {
         items.push({
             id: 'delete',
             owner: 'core',

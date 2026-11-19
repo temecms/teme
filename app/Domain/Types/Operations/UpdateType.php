@@ -39,6 +39,8 @@ final class UpdateType extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var UpdateTypeInput $input */
+        $this->refuseIfPlugins('types', $input->type->key);
+
         // A row nobody can read opens on the types screen to be fixed (I-3302):
         // it is judged as far as it can be read, and the change replaces it.
         try {
@@ -77,6 +79,7 @@ final class UpdateType extends BaseOperation
     {
         /** @var UpdateTypeInput $input */
         StoredTypes::lock();
+        $this->refuseIfPlugins('types', $input->type->key);
 
         try {
             $current = $this->stored->find($input->type->key, forUpdate: true);

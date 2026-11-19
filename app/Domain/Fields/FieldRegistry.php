@@ -260,6 +260,13 @@ final class FieldRegistry
         $unreadable = [];
 
         foreach ($snapshot['definitions'] as $row) {
+            // A disabled plugin's field: drawn nowhere, its values kept as a removed field's are.
+            if (($row['dormant'] ?? false) === true) {
+                $keys[(string) $row['content_type']][] = (string) $row['key'];
+
+                continue;
+            }
+
             try {
                 $definition = FieldDefinition::fromRow($row);
                 $field = $definition->removedAt === null ? $definition->toField() : null;

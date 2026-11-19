@@ -22,6 +22,7 @@ use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seo\SeoValidator;
+use App\Domain\Plugins\Types\PluginTypesFile;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
 use Teme\Contracts\Plugins\Capability;
@@ -169,6 +170,13 @@ final class ContributionsValidator implements ContributionsCheck
                 array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
             } elseif ($surface === 'hooks') {
                 array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
+            } elseif ($surface === 'types') {
+                // Its content types, from a teme-types file inside it (docs/architecture/plugins.md, *Content types from a plugin*).
+                $problem = PluginTypesFile::pathProblem($contributes['types']);
+
+                if ($problem !== null) {
+                    $errors[] = $problem;
+                }
             } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }

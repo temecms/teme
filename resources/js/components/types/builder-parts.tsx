@@ -1,3 +1,4 @@
+import { __ } from '@/lib/i18n';
 import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -116,6 +117,10 @@ export function SourceBadge({
 
     if (source === 'refused') {
         return <StatusPill tone="danger">Can’t be used</StatusPill>;
+    }
+
+    if (mode === 'plugin' || source === 'plugin') {
+        return <StatusPill tone="neutral">{__('Plugin')}</StatusPill>;
     }
 
     return <StatusPill tone="info">Made here</StatusPill>;

@@ -45,6 +45,8 @@ final class UpdateTaxonomy extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var UpdateTaxonomyInput $input */
+        $this->refuseIfPlugins('taxonomies', $input->taxonomy->key);
+
         // A row nobody can read opens on the taxonomies screen to be fixed:
         // it is judged as far as it can be read, and the change replaces it.
         try {
@@ -93,6 +95,7 @@ final class UpdateTaxonomy extends BaseOperation
     {
         /** @var UpdateTaxonomyInput $input */
         StoredTypes::lock();
+        $this->refuseIfPlugins('taxonomies', $input->taxonomy->key);
 
         try {
             $current = $this->taxonomies->find($input->taxonomy->key, forUpdate: true);

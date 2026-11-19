@@ -1,4 +1,4 @@
-export type TypeSource = 'code' | 'stored' | 'refused';
+export type TypeSource = 'code' | 'stored' | 'plugin' | 'refused';
 
 export type TypeRow = {
     key: string;
@@ -13,6 +13,11 @@ export type TypeRow = {
     trashed: number;
     reason: string | null;
     listUrl: string | null;
+    /** The plugin it came from, by its label; null for the site's own and code's. */
+    plugin: string | null;
+    pluginEnabled: boolean;
+    /** Why it should be renamed: an admin screen has its plural. */
+    nameClash: string | null;
 };
 
 export type TypesIndexPage = {
@@ -58,7 +63,7 @@ export type TypeOptions = {
 };
 
 export type TypePage = {
-    mode: 'new' | 'edit' | 'view' | 'locked';
+    mode: 'new' | 'edit' | 'view' | 'locked' | 'plugin';
     source: TypeSource | null;
     reason: string | null;
     type: TypeValues;
@@ -70,6 +75,9 @@ export type TypePage = {
     options: TypeOptions;
     permissions: TypePermissions;
     fields: TypeFieldsSummary;
+    plugin: string | null;
+    pluginEnabled: boolean;
+    nameClash: string | null;
 };
 
 export type TypeFieldsSummary = {
@@ -101,6 +109,8 @@ export type FieldRow = {
     summary: string;
     holding: number;
     position: number;
+    /** The plugin it came from, by its label: its updates change it, not this page. */
+    plugin: string | null;
 };
 
 export type FieldFromTeme = {

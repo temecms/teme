@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "name": "tests/recipes",
+    "code": "recipes",
+    "label": "Recipe box",
+    "description": "A plugin the tests enable, which brings a content type with a taxonomy and two fields.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Recipes\\Recipes",
+    "capabilities": [],
+    "contributes": { "types": "types/teme-types.json" }
+}

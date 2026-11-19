@@ -98,12 +98,14 @@ final class StoredTypes
 
     /**
      * Every stored definition, its key first, oldest first, straight from the table.
+     * With $enabledOnly, a disabled plugin's are left out.
      *
      * @return list<array<string, mixed>>
      */
-    public function definitions(): array
+    public function definitions(bool $enabledOnly = false): array
     {
         return DB::table(self::TABLE)
+            ->when($enabledOnly, fn ($query) => $query->whereRaw('NOT '.TypeOwners::dormantCondition(self::TABLE)))
             ->orderBy('created_at')
             ->orderBy('key')
             ->get(['key', 'definition'])
@@ -229,8 +231,9 @@ final class StoredTypes
      */
     private function fresh(bool $withTaxonomies): array
     {
-        $definitions = $this->definitions();
-        $taxonomies = $withTaxonomies ? app(StoredTaxonomies::class)->definitions() : [];
+        // A plugin's types and taxonomies only while it is enabled (docs/architecture/plugins.md, *Content types from a plugin*).
+        $definitions = $this->definitions(enabledOnly: true);
+        $taxonomies = $withTaxonomies ? app(StoredTaxonomies::class)->definitions(enabledOnly: true) : [];
 
         return [
             'version' => hash('xxh128', json_encode([$definitions, $taxonomies], JSON_THROW_ON_ERROR)),

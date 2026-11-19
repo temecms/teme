@@ -19,6 +19,7 @@ use App\Domain\Plugins\Operations\Input\MigratePluginInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\Plugins\Types\PluginTypesFile;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
@@ -88,7 +89,7 @@ final class MigratePluginsCommand extends Command
                 continue;
             }
 
-            if ($migrations->waiting($plugin, $record->migrations) !== []) {
+            if ($migrations->waiting($plugin, $record->migrations) !== [] || PluginTypesFile::waiting($plugin, $record->types)) {
                 $names[] = $record->name;
             }
         }

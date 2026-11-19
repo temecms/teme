@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Notice } from '@/components/ui/notice';
 import { Panel } from '@/components/ui/panel';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { StatusPill } from '@/components/ui/status-pill';
 import { cn } from '@/lib/utils';
 import { index as typesIndex } from '@/routes/types';
@@ -152,7 +153,7 @@ export default function TypeFields(page: FieldsPage) {
                                 <tr
                                     key={row.key}
                                     data-test={`field-row-${row.handle}`}
-                                    draggable={!locked}
+                                    draggable={!locked && row.plugin === null}
                                     onDragStart={(event) => {
                                         setDragging(row.key);
                                         event.dataTransfer.effectAllowed =
@@ -188,7 +189,7 @@ export default function TypeFields(page: FieldsPage) {
                                     )}
                                 >
                                     <td className="w-8 py-3 pl-3">
-                                        {!locked && (
+                                        {!locked && row.plugin === null && (
                                             <span
                                                 title="Drag to reorder"
                                                 className="text-ink-2 inline-flex cursor-grab"
@@ -220,7 +221,10 @@ export default function TypeFields(page: FieldsPage) {
                                             {row.summary !== '' &&
                                                 ` · ${row.summary}`}
                                         </div>
-                                        {!locked && (
+                                        {row.plugin !== null && (
+                                            <PluginMark name={row.plugin} />
+                                        )}
+                                        {!locked && row.plugin === null && (
                                             <RowActions label={row.label}>
                                                 <Button
                                                     type="button"

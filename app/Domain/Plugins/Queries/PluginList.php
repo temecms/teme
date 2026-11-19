@@ -28,6 +28,8 @@ use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\Plugins\Types\PluginTypesFile;
+use App\Domain\Plugins\Types\PluginTypesReport;
 use App\Domain\Site\SiteDates;
 use App\Models\User;
 use Composer\Semver\Semver;
@@ -64,6 +66,19 @@ final readonly class PluginList
         $disabledOnServer = $this->loader->disabledOnServer();
 
         return array_map(fn (string $name): PluginRow => $this->row($name, $found[$name] ?? null, $records[$name] ?? null, $people, $disabledOnServer), $names);
+    }
+
+    /**
+     * Returns what applying the plugin's types file last changed, in words;
+     * empty when it changed nothing a person needs told, or it has none.
+     *
+     * @since next
+     */
+    public function typesReport(string $name): string
+    {
+        $report = PluginRecord::query()->where('name', $name)->first()?->types['report'] ?? null;
+
+        return is_array($report) ? PluginTypesReport::sentence($report) : '';
     }
 
     /**
@@ -147,7 +162,7 @@ final readonly class PluginList
             return [PluginState::Waiting, __('Update :version is blocked: it asks for more access than you agreed to.', ['version' => $manifest->version()])];
         }
 
-        if ($this->migrations->waiting($plugin, $record->migrations) !== []) {
+        if ($this->migrations->waiting($plugin, $record->migrations) !== [] || PluginTypesFile::waiting($plugin, $record->types)) {
             return [PluginState::Waiting, __('Version :version has database changes to run.', ['version' => $manifest->version()])];
         }
 

@@ -65,6 +65,13 @@ final class TypeRules
 
         if (mb_strlen(trim($type->plural)) < 1 || mb_strlen(trim($type->plural)) > 60) {
             $problems['plural'] = __('Give the type a plural name of 60 characters at most.');
+        } elseif ($replacing === null || ! AdminScreenNames::same($replacing->plural, $type->plural)) {
+            // Its list would sit in the menu under a screen's own name; one stored so before keeps it, with a warning.
+            $screen = AdminScreenNames::clash($type->plural, $type->key);
+
+            if ($screen !== null) {
+                $problems['plural'] = AdminScreenNames::sentence($screen, $type->singular, __('type'));
+            }
         }
 
         if (preg_match(self::SEGMENT, $type->segment) !== 1) {
