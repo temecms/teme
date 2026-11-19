@@ -380,7 +380,7 @@ function DragRow({
             )}
             onKeyDown={onKeyDown}
         >
-            <div className="flex min-w-0 items-center gap-2 max-sm:basis-full sm:flex-1">
+            <div className="flex items-center gap-2 max-sm:min-w-0 max-sm:basis-full sm:flex-1">
                 {lead}
                 <span
                     ref={grip}
@@ -634,7 +634,7 @@ export function TreeEditor({
                                                   })
                                         }
                                         maxLength={200}
-                                        className="h-(--ctl-h) min-w-0 flex-1"
+                                        className="h-(--ctl-h) min-w-0 flex-1 sm:min-w-40"
                                         onChange={(event) =>
                                             update(path, {
                                                 label: event.target.value,

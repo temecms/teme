@@ -493,7 +493,11 @@ export default function MediaIndex(page: MediaIndexPage) {
                         {tab === 'trash' ? (
                             <Button asChild variant="neutral">
                                 <Link
-                                    href={mediaIndex().url}
+                                    href={
+                                        mediaIndex({
+                                            query: { view: filters.view },
+                                        }).url
+                                    }
                                     data-test="media-back"
                                 >
                                     {__('Back to media')}
@@ -504,7 +508,10 @@ export default function MediaIndex(page: MediaIndexPage) {
                                 <Link
                                     href={
                                         mediaIndex({
-                                            query: { tab: 'trash' },
+                                            query: {
+                                                tab: 'trash',
+                                                view: filters.view,
+                                            },
                                         }).url
                                     }
                                     data-test="media-trash-view"

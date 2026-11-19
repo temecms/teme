@@ -146,7 +146,7 @@ it('uploads files dropped anywhere on the screen, and nothing dropped while the 
     expect($page->script('window.__uploads'))->toBe(['quay.png']);
 });
 
-it('narrows the library by type, date, the boxes and a search, clears them, and switches layout and tabs (I-1316)', function (): void {
+it('narrows the library by type, date, the boxes and a search, clears them, and switches layout and opens the trash (I-1316)', function (): void {
     $gone = mediaUpload($this->editor, mediaJpeg(700, 500), 'gone.jpg');
     app(TrashMedia::class)->execute(new MediaActionInput($gone->id, (string) $this->editor->id));
     app(UpdateMediaDetails::class)->execute(new UpdateMediaDetailsInput($this->harbour->id, (string) $this->editor->id, 'harbour', 'Boats at dawn', null, 'Photo: Kemi Adeyemi', 50, 50, 'Staff photo'));
@@ -154,7 +154,8 @@ it('narrows the library by type, date, the boxes and a search, clears them, and 
     $month = now()->utc();
 
     $page = cmSignIn($this->editor)->navigate('/admin/media')
-        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Views\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All2|Trash1')
+        // No tabs: Trash is a button in the header.
+        ->assertPresent('[data-test="media-trash-view"]')
         ->click('[aria-label="Type"]')
         ->click('[data-slot="select-item"] >> text="Documents"')
         ->assertQueryStringHas('type', 'document')
@@ -185,7 +186,7 @@ it('narrows the library by type, date, the boxes and a search, clears them, and 
         ->assertScript("document.querySelector('table')?.innerText.includes('Boats at dawn') === true")
         ->assertScript("document.querySelector('table')?.innerText.includes('Staff photo') === true")
         ->assertScript("document.querySelector('table')?.innerText.includes('Document') === true")
-        ->click('nav[aria-label="Views"] a:has-text("Trash")')
+        ->click('[data-test="media-trash-view"]')
         ->assertQueryStringHas('tab', 'trash')
         ->assertScript("document.querySelector('table')?.innerText.includes('gone.jpg') === true")
         ->assertScript("document.querySelector('table')?.innerText.includes('harbour') === false");

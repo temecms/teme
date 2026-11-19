@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Preferences\PreferenceRegistry;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -178,6 +179,8 @@ it('keeps the tick box and title pinned and brings the date fully into view besi
 });
 
 it('shows two term chips or one, then +N opening the rest', function (): void {
+    // Tags are offered under Columns, not shown at first.
+    lscrPrefer($this->editor, ['lists.post.columns' => [...app(PreferenceRegistry::class)->get('lists.post.columns')->default, 'taxonomy-tag']]);
     $page = ($this->drawn)(cmSignIn($this->editor)->resize(1280, 900)->navigate('/admin/posts'));
 
     $chips = cmScriptArray($page, "(() => { const cell = [...document.querySelector('[aria-label=\"Actions for Post 30\"]').closest('tr').querySelectorAll('[data-slot=\"term-chips\"]')].find((chips) => chips.querySelector('[data-test=\"term-chips-more\"]')); const more = cell.querySelector('[data-test=\"term-chips-more\"]'); return { shown: [...cell.children].filter((child) => child.dataset.slot === 'term-chip').length, label: more.getAttribute('aria-label'), text: more.textContent.trim() }; })()", 'ContentListPatternTest');
@@ -225,14 +228,14 @@ it('reorders and hides columns in the chooser and keeps the order after a reload
         $page->click('[aria-label="Move Date earlier"]');
     }
 
-    $page->click('[data-test="column-chooser"] label:has-text("Tags")');
+    $page->click('[data-test="column-chooser"] label:has-text("Categories")');
     $page->click('[data-test="column-chooser"] button:has-text("Apply")');
-    cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') === null && [...document.querySelectorAll('thead th')].every((cell) => cell.textContent.trim() !== 'Tags')");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') === null && [...document.querySelectorAll('thead th')].every((cell) => cell.textContent.trim() !== 'Categories')");
 
     $shown = $headings();
 
     expect(array_search('Date', $shown, true))->toBeLessThan(array_search('Author', $shown, true))
-        ->and($shown)->not->toContain('Tags');
+        ->and($shown)->not->toContain('Categories');
 
     $page->navigate('/admin/posts');
     ($this->drawn)($page);

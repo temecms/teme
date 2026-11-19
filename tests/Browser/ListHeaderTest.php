@@ -184,7 +184,7 @@ it('opens Columns as a popover under its button, not a modal, its first field ta
         ->assertAttribute('[data-test="columns"]', 'aria-expanded', 'true')
         ->assertAttribute('[data-test="columns"]', 'data-state', 'open')
         ->assertScript("(() => { const panel = document.querySelector('[data-test=\"column-chooser\"]').getBoundingClientRect(); return panel.top >= document.querySelector('[data-test=\"columns\"]').getBoundingClientRect().bottom && panel.right <= window.innerWidth; })()")
-        ->assertScript("[...document.querySelectorAll('[data-test=\"column-chooser\"] [role=\"checkbox\"][id^=\"column-\"]')].map((box) => box.id).join('|')", 'column-title|column-author|column-taxonomy-category|column-taxonomy-tag|column-comments|column-date|column-thumbnails')
+        ->assertScript("[...document.querySelectorAll('[data-test=\"column-chooser\"] [role=\"checkbox\"][id^=\"column-\"]')].map((box) => box.id).join('|')", 'column-title|column-author|column-taxonomy-category|column-date|column-taxonomy-tag|column-template|column-comments|column-thumbnails')
         ->assertScript('document.documentElement.clientWidth', $width)
         ->keys('#column-author', 'Escape');
 

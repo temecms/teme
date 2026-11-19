@@ -85,7 +85,7 @@ it('draws tiles at three sizes, keeps the size after a reload, and is two across
     cmWaitUntil($page, "(() => { const tiles = document.querySelectorAll('[role=\"listbox\"] [role=\"option\"]'); return tiles.length >= 3 && tiles[0].offsetTop === tiles[1].offsetTop && tiles[2].offsetTop > tiles[1].offsetTop; })()");
 });
 
-it('shows each tile’s facts: Used 2×, Unused, No alt, and PDF over a document', function (): void {
+it('shows each tile’s facts: its file name, Used 2×, Unused and No alt', function (): void {
     app(UpdateMediaDetails::class)->execute(new UpdateMediaDetailsInput($this->harbour->id, (string) $this->editor->id, 'harbour', 'Boats at dawn', null, null, 50, 50, null));
     refsDraft($this->editor, refsFeatured($this->harbour));
     refsDraft($this->editor, refsFeatured($this->harbour));
@@ -98,7 +98,7 @@ it('shows each tile’s facts: Used 2×, Unused, No alt, and PDF over a document
         ->assertDontSeeIn($tile($this->harbour), 'No alt')
         ->assertSeeIn($tile($this->quay), 'Unused')
         ->assertSeeIn($tile($this->quay), 'No alt')
-        ->assertSeeIn($tile($this->fares), 'PDF')
+        ->assertSeeIn($tile($this->fares), 'fares.pdf')
         ->assertSeeIn($tile($this->fares), 'Unused')
         ->assertDontSeeIn($tile($this->fares), 'No alt');
 });
@@ -147,7 +147,8 @@ it('opens a file’s details beside the library with Enter, says 2 of 3, steps w
     $page = cmSignIn($this->editor)->resize(1280, 900);
     cmNavigate($page, '/admin/media');
     cmWaitUntil($page, "document.querySelectorAll('[role=\"listbox\"] [role=\"option\"]').length === 3")
-        ->assertSeeIn('[aria-label="File details"]', 'Select a file to see its details.')
+        // The details panel shows only once a file is chosen.
+        ->assertNotPresent('[aria-label="File details"]')
         ->script("document.querySelector('[role=\"option\"][tabindex=\"0\"]').focus()");
     $page->keys('[role="option"][tabindex="0"]', 'ArrowRight');
     $page->keys('[role="option"][tabindex="0"]', 'Enter');
@@ -264,14 +265,15 @@ it('lists files in the list view, and Used in opens the details', function (): v
     cmWaitUntil($page, mlPanelHolds('harbour.jpg')." && document.querySelectorAll('[data-test=\"media-used-in\"] li').length === 2");
 });
 
-it('passes axe with the panel open and empty, the list, and the sheet, every target 24 pixels or more, at 1280 and 375 pixels in both schemes', function (string $scheme): void {
+it('passes axe with no file chosen, the panel open, the list, and the sheet, every target 24 pixels or more, at 1280 and 375 pixels in both schemes', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
     $small = [];
 
     $page = cmSignIn($this->editor)->resize(1280, 900);
     cmNavigate($page, '/admin/media');
     cmWaitUntil($page, "document.querySelector('[role=\"listbox\"] [role=\"option\"]') !== null")
-        ->assertSeeIn('[aria-label="File details"]', 'Select a file to see its details.')
+        // The details panel shows only once a file is chosen.
+        ->assertNotPresent('[aria-label="File details"]')
         ->assertNoAccessibilityIssues(3);
     $small['empty'] = cmSmallTargets($page);
 

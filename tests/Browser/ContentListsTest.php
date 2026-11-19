@@ -50,12 +50,8 @@ it('writes each row\'s state on a pill in its Status column, and shows every tab
     $page = cmSignIn($this->editor)
         ->navigate('/admin/posts')
         ->assertScript("[...document.querySelectorAll('tbody [data-slot=\"status-pill\"]')].map((element) => element.textContent.trim()).sort().join('|')", 'Draft|In review|Published')
-        // The first five tabs show; the rest are under More.
-        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Status\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Mine3|Published1|Private0|Drafts1')
-        ->click('nav[aria-label="Status"] button:has-text("More")');
-
-    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0")
-        ->assertScript("[...document.querySelectorAll('[role=\"menu\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'In review1|Scheduled0|Trash2');
+        // Every tab shows, each with its count.
+        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Status\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Published1|Drafts1|Scheduled0|In review1|Trash2');
 });
 
 it('opens the latest saved version from a row\'s Preview, in a new tab', function (): void {
@@ -124,6 +120,9 @@ it('keeps a dozen titles inside the confirmation, its list scrolling within the 
     foreach (range(1, 12) as $n) {
         lifecycleTrashedDaysAgo($this->editor, "Notice {$n}", 3);
     }
+
+    // Ten rows show a page at first: 25 puts all fourteen on one page.
+    lscrPrefer($this->editor, ['lists.per_page' => 25]);
 
     $page = cmSignIn($this->editor)
         ->navigate('/admin/posts?tab=trash')
