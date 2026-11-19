@@ -63,6 +63,16 @@ export type RedirectsPage = {
     newer: string | null;
     older: string | null;
     search: string;
+    /** The filters in force, each null when none is chosen. */
+    filters: {
+        on: 'on' | 'off' | null;
+        status: number | null;
+        origin: 'manual' | 'import' | null;
+    };
+    /** The statuses a redirect can answer with, for the filter. */
+    statuses: { value: number; label: string }[];
+    /** How many redirects the search and filters find. */
+    shown: number;
     counts: RedirectCounts;
     siteTimezone: string;
     canManageAddresses: boolean;
