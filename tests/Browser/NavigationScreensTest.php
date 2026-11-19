@@ -69,9 +69,10 @@ it('passes axe on Navigation and on a menu\'s editor, every target 24 pixels or 
         ->and($editor['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('creates a menu with Create menu, and opens its editor under the Navigation trail', function (): void {
+it('creates a menu from New menu\'s dialog, and opens its editor under the Navigation trail', function (): void {
     cmSignIn($this->editor)
         ->navigate('/admin/navigation')
+        ->press('New menu')
         ->type('#new-menu', 'Footer links')
         ->press('Create menu')
         ->assertSee('Menu created. Add its items, then choose where it shows.')
@@ -116,20 +117,19 @@ it('adds the home page from the Add an item panel, labelled Home until renamed',
     expect(NavigationItem::query()->where('navigation_id', $empty->id)->sole()->kind)->toBe('home');
 });
 
-it('shows the menu in a place chosen under Show in, naming the theme, and says what the place now shows', function (): void {
+it('shows the menu in a place ticked under Show in, naming the theme, and says what the place now shows', function (): void {
     cmSignIn($this->editor)
         ->navigate("/admin/navigation/{$this->menu->id}")
-        ->assertSee('Where Fixture Good shows a menu. Each place shows one menu.')
+        ->assertSee('Places come from the active theme, Fixture Good. A place shows one menu; choosing it here replaces the menu it shows now.')
         ->click('#slot-primary')
-        ->click('[role="option"] >> text="Main (this menu)"')
-        ->assertNotPresent('[role="listbox"]')
         ->assertSee('Saved. Header shows “Main”.');
 });
 
-it('deletes a menu from its row\'s Actions menu, after a confirmation that names it', function (): void {
+it('deletes a menu from its row\'s "…" menu, after a confirmation that names it', function (): void {
     cmSignIn($this->editor)
         ->navigate('/admin/navigation')
-        ->click('[aria-label="Actions for Main"] >> text="Delete…"')
+        ->click('[aria-label="More actions for Main"]')
+        ->click('[role="menuitem"] >> text="Delete menu…"')
         ->assertSee('Delete the menu “Main”?')
         // The menu stays open behind the confirmation; click inside the dialog once its own parts have settled.
         ->assertScript("(() => { const parts = [...document.querySelectorAll('[data-slot=\"dialog-content\"], [data-slot=\"dialog-overlay\"]')]; return parts.length === 0 ? -1 : parts.flatMap((element) => element.getAnimations()).filter((animation) => animation.playState === 'running').length; })()", 0)
@@ -181,7 +181,7 @@ it('adds a heading from the Add an item panel, puts an item under it, and saves 
 it('refuses to indent a heading to the third level, saying why', function (): void {
     $page = cmSignIn($this->editor)
         ->navigate("/admin/navigation/{$this->menu->id}")
-        ->press('Add item');
+        ->press('Add an item');
 
     cmWaitUntil($page, "(() => { const sheet = document.querySelector('[data-slot=\"sheet-content\"]'); return sheet !== null && sheet.getAnimations().every((animation) => animation.playState !== 'running'); })()");
 
@@ -263,7 +263,7 @@ it('moves an item down from its menu on a phone, focus back on its menu button',
 it('says in the menu why a move can\'t be made', function (): void {
     $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), "/admin/navigation/{$this->menu->id}");
 
-    $page->press('Add item');
+    $page->press('Add an item');
 
     cmWaitUntil($page, "(() => { const sheet = document.querySelector('[data-slot=\"sheet-content\"]'); return sheet !== null && sheet.getAnimations().every((animation) => animation.playState !== 'running'); })()");
 
@@ -326,9 +326,8 @@ it('shows a French menu in a place for French readers, and adds the language swi
     $page = cmNavigate(cmSignIn($this->editor), "/admin/navigation/{$principal->id}");
     cmWaitUntil($page, "document.getElementById('menu-readers-of') !== null");
     $page->assertScript("document.getElementById('menu-readers-of').textContent.includes('French')")
-        ->click('#slot-primary')
-        ->click('[role="option"] >> text="Principal (this menu)"');
-    cmWaitUntil($page, "document.querySelector('[role=\"listbox\"]') === null && document.body.innerText.includes('Saved. Header shows “Principal”.')");
+        ->click('#slot-primary');
+    cmWaitUntil($page, "document.body.innerText.includes('Saved. Header shows “Principal”.')");
 
     expect(SettingsGroupRecord::query()->find('theme.good')->translations)->toEqual(['fr' => ['nav_primary' => $principal->id]])
         ->and(app(SettingsReader::class)->string('theme.good', 'nav_primary'))->not->toBe($principal->id);
@@ -344,7 +343,7 @@ it('shows a French menu in a place for French readers, and adds the language swi
     expect(NavigationItem::query()->where('navigation_id', $principal->id)->pluck('kind')->all())->toBe(['languages']);
 
     cmNavigate($page, "/admin/navigation/{$principal->id}");
-    cmWaitUntil($page, "document.getElementById('slot-primary')?.textContent.includes('Principal') === true");
+    cmWaitUntil($page, "document.getElementById('slot-primary')?.getAttribute('aria-checked') === 'true'");
     $page->assertScript("document.getElementById('menu-readers-of').textContent.includes('French')");
     cmNoJavaScriptErrors($page);
 });

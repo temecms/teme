@@ -7,7 +7,9 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -129,4 +131,50 @@ it('answers a damaged image with the reason beside the file, never a server erro
         ->assertJsonValidationErrors(['file' => 'This file looks like an image but can’t be read. It may be damaged. Open it in an image editor, save it again and upload it.']);
 
     expect(Media::query()->count())->toBe(0);
+});
+
+it('answers Show more with the next files after the last one shown, in the same order, under the same filters', function (): void {
+    $first = mediaUpload($this->author, mediaJpeg(), 'harbour.jpg');
+    $row = (array) DB::table('media')->where('id', $first->id)->first();
+
+    foreach (range(1, 64) as $n) {
+        DB::table('media')->insert([...$row, 'id' => (string) Str::ulid(), 'title' => "copy {$n}", 'sha256' => hash('sha256', "copy {$n}"), 'created_at' => now()->subMinutes($n)]);
+    }
+
+    $older = $this->actingAs($this->author)->get(route('media.index'))->inertiaProps('older');
+
+    $this->actingAs($this->author)->getJson(route('media.more', ['after' => $older]))
+        ->assertOk()
+        ->assertJsonCount(5, 'rows')
+        ->assertJsonPath('rows.0.title', 'copy 60')
+        ->assertJsonPath('older', null);
+
+    $this->actingAs($this->author)->getJson(route('media.more', ['after' => $older, 'search' => 'nothing like it']))
+        ->assertOk()
+        ->assertJsonCount(0, 'rows');
+
+    $this->actingAs(User::factory()->create()->assignRole('contributor'))->getJson(route('media.more', ['after' => $older]))->assertForbidden();
+});
+
+it('opens a picture in Edit image with its place among the library’s images, and nothing that isn’t a live image', function (): void {
+    $this->travelTo(now()->subMinutes(3));
+    $older = mediaUpload($this->author, mediaJpeg(500, 300), 'older.jpg');
+    $this->travelBack();
+    $this->travelTo(now()->subMinutes(2));
+    $document = mediaUpload($this->author, mediaPdf(), 'fares.pdf');
+    $this->travelBack();
+    $this->travelTo(now()->subMinute());
+    $middle = mediaUpload($this->author, mediaJpeg(600, 300), 'middle.jpg');
+    $this->travelBack();
+    $newest = mediaUpload($this->author, mediaJpeg(700, 300), 'newest.jpg');
+
+    $this->actingAs($this->author)->get(route('media.edit-image', ['media' => $middle->id]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('media/image')
+            ->where('item.id', $middle->id)
+            ->where('place', ['number' => 2, 'total' => 3, 'previous' => $newest->id, 'next' => $older->id]));
+
+    $this->actingAs($this->author)->get(route('media.edit-image', ['media' => $document->id]))->assertNotFound();
+    $this->actingAs(User::factory()->create()->assignRole('contributor'))->get(route('media.edit-image', ['media' => $middle->id]))->assertForbidden();
 });

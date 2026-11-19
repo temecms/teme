@@ -41,6 +41,7 @@ use App\Http\Admin\Contents\ContentActionController;
 use App\Http\Admin\Contents\ContentEditorController;
 use App\Http\Admin\Contents\ContentListController;
 use App\Http\Admin\Contents\ContentPreviewController;
+use App\Http\Admin\Contents\ContentTreeController;
 use App\Http\Admin\Contents\EditorPanelController;
 use App\Http\Admin\Contents\LinkChoicesController;
 use App\Http\Admin\Contents\LinkedContentController;
@@ -57,6 +58,7 @@ use App\Http\Admin\Dev\CatalogueController;
 use App\Http\Admin\ExtensionsController;
 use App\Http\Admin\InboxController;
 use App\Http\Admin\Media\ImportImageController;
+use App\Http\Admin\Media\MediaImageController;
 use App\Http\Admin\Media\MediaItemController;
 use App\Http\Admin\Media\MediaLibraryController;
 use App\Http\Admin\Media\MediaPickerController;
@@ -487,8 +489,10 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->where(['media' => '[0-9A-HJKMNP-TV-Z]{26}'])
             ->group(function (): void {
                 Route::get('/', [MediaLibraryController::class, 'index'])->name('index');
+                Route::get('more', [MediaLibraryController::class, 'more'])->name('more');
                 Route::post('/', [MediaLibraryController::class, 'store'])->middleware('throttle:120,1')->name('store');
                 Route::get('{media}', [MediaItemController::class, 'show'])->name('show');
+                Route::get('{media}/image', MediaImageController::class)->name('edit-image');
                 Route::patch('{media}', [MediaItemController::class, 'update'])->name('update');
                 Route::post('{media}/file', [MediaItemController::class, 'replace'])->name('replace');
                 Route::get('{media}/original', [MediaItemController::class, 'original'])->name('original');
@@ -682,6 +686,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->where(['type' => ContentTypeRegistry::segmentPattern()])
             ->group(function (): void {
                 Route::get('{type}', [ContentListController::class, 'index'])->name('content.index');
+                Route::get('{type}/tree', ContentTreeController::class)->name('content.tree');
                 Route::post('{type}', [ContentListController::class, 'store'])->name('content.store');
                 Route::post('{type}/bulk', BulkContentController::class)->name('content.bulk');
                 Route::post('{type}/bulk/matching', BulkMatchingController::class)->name('content.bulk-matching');

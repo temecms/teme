@@ -31,7 +31,7 @@ final readonly class ContentListRequest
         public ?int $authorId = null,
         public array $terms = [],
         public int $viewerId = 0,
-        /** Rows per page: the person's `lists.per_page`, 25, 50 or 100. */
+        /** Rows per page: the person's `lists.per_page`, 10, 25, 50 or 100. */
         public int $perPage = 50,
         /**
          * Items with an undecided review, whatever their status: `pending`

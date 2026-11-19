@@ -17,7 +17,7 @@ import type { Preferences } from '@/types';
 import { TABLE_FRAME_ID } from './data-table';
 
 /** The page sizes lists.per_page offers. */
-const PAGE_SIZES = [25, 50, 100];
+const PAGE_SIZES = [10, 25, 50, 100];
 
 /** The tick box, the title's minimum and the "…" column, which every list has (docs/architecture/design-system.md, section 4.26). */
 const FIXED_WIDTH = 48 + 320 + 56;

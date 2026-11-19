@@ -6,9 +6,14 @@ import { cn } from "@/lib/utils"
 /**
  * The quiet tag on something planned and not built
  * (docs/architecture/design-system.md, section 4.46): never a state's
- * colour, 8px after its label.
+ * colour, 8px after its label. `later` says Later instead, for a tool drawn
+ * beside a working one and built after it (Edit image's Crop, Rotate, Flip).
  */
-function SoonTag({ className, ...props }: Omit<React.ComponentProps<"span">, "children">) {
+function SoonTag({
+  className,
+  later = false,
+  ...props
+}: Omit<React.ComponentProps<"span">, "children"> & { later?: boolean }) {
   return (
     <span
       data-slot="soon-tag"
@@ -18,7 +23,7 @@ function SoonTag({ className, ...props }: Omit<React.ComponentProps<"span">, "ch
       )}
       {...props}
     >
-      {__("Soon")}
+      {later ? __("Later") : __("Soon")}
     </span>
   )
 }

@@ -1,11 +1,17 @@
-import { Head, router, usePoll } from '@inertiajs/react';
-import { Grid2x2, List, TriangleAlert, Upload } from 'lucide-react';
+import {
+    Head,
+    Link,
+    router,
+    setLayoutProps,
+    useHttp,
+    usePoll,
+} from '@inertiajs/react';
+import { Grid2x2, List, Trash2, TriangleAlert, Upload } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { showToast } from '@/components/flash-toast';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { Pager } from '@/components/list/pager';
 import { mediaKind } from '@/components/media/attachment-fields';
 import { MediaFilters } from '@/components/media/media-filters';
 import type { MediaFilterValues } from '@/components/media/media-filters';
@@ -25,16 +31,14 @@ import type { UploadedBatch } from '@/components/media/use-media-uploads';
 import { useWide } from '@/components/media/use-wide';
 import { MediaDetailPanel } from '@/components/media-drawer';
 import { DetailPage } from '@/components/patterns/detail-page';
-import { InPageNav } from '@/components/patterns/in-page-nav';
 import { Button } from '@/components/ui/button';
-import { Panel } from '@/components/ui/panel';
 import { Segmented, SegmentedItem } from '@/components/ui/segmented';
-import { SelectField } from '@/components/ui/select-field';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { TextButton } from '@/components/ui/text-button';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { __, __n } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
-import { index as mediaIndex } from '@/routes/media';
+import { index as mediaIndex, more as mediaMore } from '@/routes/media';
 import type { MediaIndexPage, MediaRow } from '@/types';
 /** The address's filter keys; Clear filters drops them and keeps the tab, the order and the layout. */
 const FILTER_KEYS = [
@@ -44,6 +48,7 @@ const FILTER_KEYS = [
     'mine',
     'unused',
     'missing_alt',
+    'imported',
     'uploaded_for',
 ] as const;
 
@@ -105,6 +110,59 @@ export default function MediaIndex(page: MediaIndexPage) {
     const tab = filters.tab === 'trash' ? 'trash' : 'all';
     const view = filters.view === 'list' ? 'list' : 'grid';
     const anyFilter = FILTER_KEYS.some((key) => filters[key] !== undefined);
+    const contentCrumb = useSectionCrumb('content');
+    const { submit } = useHttp();
+
+    setLayoutProps({
+        breadcrumbs:
+            tab === 'trash'
+                ? [
+                      contentCrumb,
+                      { title: __('Media'), href: mediaIndex() },
+                      {
+                          title: __('Trash'),
+                          href: mediaIndex({ query: { tab: 'trash' } }),
+                      },
+                  ]
+                : [contentCrumb, { title: __('Media'), href: mediaIndex() }],
+    });
+
+    // Show more: the files after the first page, kept while the filters stay the same.
+    const listKey = JSON.stringify(filters);
+    const [more, setMore] = useState<{
+        key: string;
+        rows: MediaRow[];
+        older: string | null;
+    }>({ key: listKey, rows: [], older: null });
+    const [fetching, setFetching] = useState(false);
+    const extra = more.key === listKey ? more.rows : [];
+    const firstIds = new Set(page.rows.map((row) => row.id));
+    const rows = [
+        ...page.rows,
+        ...extra.filter((row) => !firstIds.has(row.id)),
+    ];
+    const older = extra.length > 0 ? more.older : page.older;
+
+    const showMore = async () => {
+        if (older === null || fetching) {
+            return;
+        }
+
+        setFetching(true);
+
+        try {
+            const next = (await submit(
+                mediaMore({ query: { ...filters, after: older } }),
+            )) as { rows: MediaRow[]; older: string | null };
+            setMore({
+                key: listKey,
+                rows: [...extra, ...next.rows],
+                older: next.older,
+            });
+        } finally {
+            setFetching(false);
+        }
+    };
 
     // Every change starts the list again from its first page.
     const visit = (changes: Record<string, string | undefined>) =>
@@ -134,7 +192,7 @@ export default function MediaIndex(page: MediaIndexPage) {
         { only: ['rows'] },
         { autoStart: false },
     );
-    const pending = page.rows.some((row) => row.processing === 'pending');
+    const pending = rows.some((row) => row.processing === 'pending');
 
     useEffect(() => {
         if (pending) {
@@ -151,6 +209,7 @@ export default function MediaIndex(page: MediaIndexPage) {
         mine: filters.mine === '1',
         unused: filters.unused === '1',
         missingAlt: filters.missing_alt === '1',
+        imported: filters.imported === '1',
         uploadedFor: filters.uploaded_for ?? '',
     };
 
@@ -164,6 +223,7 @@ export default function MediaIndex(page: MediaIndexPage) {
             ['mine', 'mine'],
             ['unused', 'unused'],
             ['missingAlt', 'missing_alt'],
+            ['imported', 'imported'],
             ['uploadedFor', 'uploaded_for'],
         ];
 
@@ -209,11 +269,9 @@ export default function MediaIndex(page: MediaIndexPage) {
     };
 
     const index =
-        selected === null
-            ? -1
-            : page.rows.findIndex((row) => row.id === selected);
+        selected === null ? -1 : rows.findIndex((row) => row.id === selected);
     const step = (by: number) => {
-        const next = page.rows[index + by];
+        const next = rows[index + by];
 
         return index === -1 || next === undefined
             ? null
@@ -227,7 +285,7 @@ export default function MediaIndex(page: MediaIndexPage) {
                 id={selected}
                 position={{
                     current: index + 1,
-                    total: page.rows.length,
+                    total: rows.length,
                 }}
                 onPrevious={step(-1)}
                 onNext={step(1)}
@@ -353,22 +411,124 @@ export default function MediaIndex(page: MediaIndexPage) {
         },
     ];
 
+    const liveCount =
+        page.tabs.find((entry) => entry.key === 'all')?.count ?? 0;
+    const trashCount =
+        page.tabs.find((entry) => entry.key === 'trash')?.count ?? 0;
+    const title = tab === 'trash' ? __('Media trash') : __('Media');
+
+    const viewControls = (
+        <>
+            {anyFilter && (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    data-test="media-clear-filters"
+                    onClick={clear}
+                >
+                    {__('Clear filters')}
+                </Button>
+            )}
+            {view === 'grid' && (
+                <Segmented
+                    aria-label={__('Tile size')}
+                    value={tileSize}
+                    onValueChange={(next) => {
+                        const size = next as TileSizeKey;
+                        setTileSize(size);
+                        storeTileSize(size);
+                    }}
+                >
+                    <SegmentedItem value="s" aria-label={__('Small tiles')}>
+                        {__('S')}
+                    </SegmentedItem>
+                    <SegmentedItem value="m" aria-label={__('Medium tiles')}>
+                        {__('M')}
+                    </SegmentedItem>
+                    <SegmentedItem value="l" aria-label={__('Large tiles')}>
+                        {__('L')}
+                    </SegmentedItem>
+                </Segmented>
+            )}
+            <Segmented
+                aria-label={__('View')}
+                value={view}
+                onValueChange={(next) =>
+                    visit({
+                        view: next === 'list' ? 'list' : undefined,
+                    })
+                }
+            >
+                <SegmentedItem value="grid" data-test="media-layout-grid">
+                    <Grid2x2 aria-hidden="true" />
+                    {__('Grid')}
+                </SegmentedItem>
+                <SegmentedItem value="list" data-test="media-layout-list">
+                    <List aria-hidden="true" />
+                    {__('List')}
+                </SegmentedItem>
+            </Segmented>
+        </>
+    );
+
     return (
         <>
-            <Head title={__('Media')} />
+            <Head title={title} />
             <DetailPage
-                title={__('Media')}
-                description={__('Every file the site uses.')}
+                title={title}
+                description={
+                    tab === 'trash'
+                        ? __n(
+                              ':count file in the trash. Restore one and every item that used it shows it again.|:count files in the trash. Restore one and every item that used it shows it again.',
+                              trashCount,
+                          )
+                        : __n(
+                              ':count file: pictures, video and documents used across the site.|:count files: pictures, video and documents used across the site.',
+                              liveCount,
+                          )
+                }
                 panelLabel={__('File details')}
                 actions={
                     <>
+                        {tab === 'trash' ? (
+                            <Button asChild variant="neutral">
+                                <Link
+                                    href={
+                                        mediaIndex({
+                                            query: { view: filters.view },
+                                        }).url
+                                    }
+                                    data-test="media-back"
+                                >
+                                    {__('Back to media')}
+                                </Link>
+                            </Button>
+                        ) : (
+                            <Button asChild variant="ghost">
+                                <Link
+                                    href={
+                                        mediaIndex({
+                                            query: {
+                                                tab: 'trash',
+                                                view: filters.view,
+                                            },
+                                        }).url
+                                    }
+                                    data-test="media-trash-view"
+                                >
+                                    <Trash2 aria-hidden="true" />
+                                    {__('Trash')}
+                                </Link>
+                            </Button>
+                        )}
                         <Button
                             type="button"
+                            variant="primary"
                             data-test="media-upload"
                             onClick={chooseFiles}
                         >
                             <Upload aria-hidden="true" />
-                            {__('Upload files')}
+                            {__('Upload')}
                         </Button>
                         <input
                             ref={input}
@@ -384,143 +544,26 @@ export default function MediaIndex(page: MediaIndexPage) {
                         />
                     </>
                 }
-                panel={
-                    wide
-                        ? (details ?? (
-                              <Panel className="px-5 py-4">
-                                  <p className="text-small text-ink-3">
-                                      {__('Select a file to see its details.')}
-                                  </p>
-                              </Panel>
-                          ))
-                        : null
+                lead={
+                    <div className="grid gap-4">
+                        <UploadList uploads={uploads} />
+                        <MediaFilters
+                            idPrefix="media-filters"
+                            values={values}
+                            onChange={filter}
+                            months={page.months}
+                            chosenItem={page.uploadedFor}
+                            showMine={false}
+                            showImported={tab === 'all'}
+                            counts={tab === 'all' ? page.chips : undefined}
+                            end={viewControls}
+                        />
+                    </div>
                 }
+                panel={wide ? details : null}
             >
                 <div className="grid gap-4">
-                    <UploadList uploads={uploads} />
-
-                    <InPageNav
-                        label={__('Views')}
-                        items={page.tabs.map((entry) => ({
-                            label: entry.label,
-                            count: entry.count,
-                            current: entry.key === tab,
-                            href: mediaIndex({
-                                query: {
-                                    ...filters,
-                                    after: undefined,
-                                    before: undefined,
-                                    tab:
-                                        entry.key === 'all'
-                                            ? undefined
-                                            : entry.key,
-                                },
-                            }).url,
-                        }))}
-                    />
-
-                    <MediaFilters
-                        idPrefix="media-filters"
-                        values={values}
-                        onChange={filter}
-                        months={page.months}
-                        chosenItem={page.uploadedFor}
-                    />
-
-                    <div className="flex flex-wrap items-center gap-2">
-                        {anyFilter && (
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                data-test="media-clear-filters"
-                                onClick={clear}
-                            >
-                                {__('Clear filters')}
-                            </Button>
-                        )}
-                        <span className="flex-1" />
-                        {/* The trash is always newest first, by when each file went there. */}
-                        {tab === 'all' && (
-                            <SelectField
-                                aria-label={__('Order')}
-                                value={
-                                    filters.direction === 'asc' ? 'asc' : 'desc'
-                                }
-                                onValueChange={(direction) =>
-                                    visit({
-                                        direction:
-                                            direction === 'asc'
-                                                ? 'asc'
-                                                : undefined,
-                                    })
-                                }
-                                options={[
-                                    {
-                                        value: 'desc',
-                                        label: __('Newest first'),
-                                    },
-                                    { value: 'asc', label: __('Oldest first') },
-                                ]}
-                            />
-                        )}
-                        {view === 'grid' && (
-                            <Segmented
-                                aria-label={__('Tile size')}
-                                value={tileSize}
-                                onValueChange={(next) => {
-                                    const size = next as TileSizeKey;
-                                    setTileSize(size);
-                                    storeTileSize(size);
-                                }}
-                            >
-                                <SegmentedItem
-                                    value="s"
-                                    aria-label={__('Small tiles')}
-                                >
-                                    {__('S')}
-                                </SegmentedItem>
-                                <SegmentedItem
-                                    value="m"
-                                    aria-label={__('Medium tiles')}
-                                >
-                                    {__('M')}
-                                </SegmentedItem>
-                                <SegmentedItem
-                                    value="l"
-                                    aria-label={__('Large tiles')}
-                                >
-                                    {__('L')}
-                                </SegmentedItem>
-                            </Segmented>
-                        )}
-                        <Segmented
-                            aria-label={__('Layout')}
-                            value={view}
-                            onValueChange={(next) =>
-                                visit({
-                                    view: next === 'list' ? 'list' : undefined,
-                                })
-                            }
-                        >
-                            <SegmentedItem
-                                value="grid"
-                                data-test="media-layout-grid"
-                            >
-                                <Grid2x2 aria-hidden="true" />
-                                {__('Grid')}
-                            </SegmentedItem>
-                            <SegmentedItem
-                                value="list"
-                                data-test="media-layout-list"
-                            >
-                                <List aria-hidden="true" />
-                                {__('List')}
-                            </SegmentedItem>
-                        </Segmented>
-                    </div>
-
-                    {page.rows.length === 0 ? (
+                    {rows.length === 0 ? (
                         page.filtered ? (
                             <EmptyState
                                 kind="nothing-matches"
@@ -551,15 +594,20 @@ export default function MediaIndex(page: MediaIndexPage) {
                                     'Upload images, video, audio and documents, or drop them anywhere on this page.',
                                 )}
                                 action={
-                                    <Button type="button" onClick={chooseFiles}>
-                                        {__('Upload files')}
+                                    <Button
+                                        type="button"
+                                        variant="primary"
+                                        onClick={chooseFiles}
+                                    >
+                                        <Upload aria-hidden="true" />
+                                        {__('Upload')}
                                     </Button>
                                 }
                             />
                         )
                     ) : view === 'grid' ? (
                         <MediaGrid
-                            rows={page.rows}
+                            rows={rows}
                             size={TILE_SIZES[tileSize]}
                             openId={selected}
                             onAction={(id, action) =>
@@ -573,27 +621,22 @@ export default function MediaIndex(page: MediaIndexPage) {
                             caption={__('Media')}
                             rowKey={(row) => row.id}
                             columns={columns}
-                            rows={page.rows}
+                            rows={rows}
                         />
                     )}
 
-                    <Pager
-                        preserveState
-                        newer={
-                            page.newer
-                                ? mediaIndex({
-                                      query: { ...filters, before: page.newer },
-                                  }).url
-                                : null
-                        }
-                        older={
-                            page.older
-                                ? mediaIndex({
-                                      query: { ...filters, after: page.older },
-                                  }).url
-                                : null
-                        }
-                    />
+                    {older !== null && (
+                        <Button
+                            type="button"
+                            variant="neutral"
+                            className="justify-self-center"
+                            data-test="media-show-more"
+                            disabled={fetching}
+                            onClick={() => void showMore()}
+                        >
+                            {__('Show more')}
+                        </Button>
+                    )}
                 </div>
 
                 {/* Below 1024px the details are a sheet (docs/architecture/design-system.md, section 4.20). */}

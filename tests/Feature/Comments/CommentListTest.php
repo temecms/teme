@@ -162,7 +162,7 @@ it('gives each row what the screen draws, the item it\'s on and the comment it a
             'ip' => null,
             'text' => 'Lovely piece.',
             'parent' => ['authorName' => 'Bola Ade', 'removed' => false],
-            'item' => ['id' => $this->his->id, 'title' => 'Market day', 'editable' => true],
+            'item' => ['id' => $this->his->id, 'title' => 'Market day', 'editable' => true, 'comments' => 2],
             'createdAt' => now()->utc()->toIso8601String(),
             'replies' => 0,
         ])

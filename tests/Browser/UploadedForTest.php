@@ -154,17 +154,17 @@ it('narrows the editor’s media modal to the files uploaded for the item, recor
     $page->attach('[data-test="media-modal-upload-input"]', mediaJpeg(640, 480));
     cmWaitUntil($page, "document.querySelector('[data-test=\"media-modal-status\"]').innerText.includes('Uploaded 1 file. Add its alt text.')");
     cmWaitUntil($page, "{$options}.length === 1 && {$options}[0].innerText.includes('ferry')");
-    // The box stays on after the batch: every file uploaded here was uploaded for this post.
-    cmWaitUntil($page, "{$box}.getAttribute('aria-checked') === 'true'");
+    // The chip stays pressed after the batch: every file uploaded here was uploaded for this post.
+    cmWaitUntil($page, "{$box}.getAttribute('aria-pressed') === 'true'");
 
     expect($page->script('window.__uploadedFor'))->toBe([$this->other->id]);
 
-    // The featured image's window stays mounted between openings: opened again, it starts with the box clear.
+    // The featured image's window stays mounted between openings: opened again, it starts with the chip up.
     $page->click('[data-test="media-modal-cancel"]');
     cmWaitUntil($page, "document.querySelector('[data-slot=\"dialog-content\"]') === null");
     $page->click('#editor-featured-choose');
     ufSettled($page, '[data-slot="dialog-content"]');
-    cmWaitUntil($page, "{$box}.getAttribute('aria-checked') === 'false' && {$options}.length === 3");
+    cmWaitUntil($page, "{$box}.getAttribute('aria-pressed') === 'false' && {$options}.length === 3");
 });
 
 it('records the item on a pasted image brought into the library by Import images (I-453)', function (): void {

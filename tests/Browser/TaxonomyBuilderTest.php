@@ -100,7 +100,7 @@ it('passes axe on the list, on Genres, on a new taxonomy and on Categories', fun
 
     foreach ([
         '/admin/taxonomies' => ['list', 'The ways this site groups its content, such as categories and tags.'],
-        '/admin/taxonomies/genre' => ['genre', 'Changes reach the menu, the editor and the site as soon as they’re saved.'],
+        '/admin/taxonomies/genre' => ['genre', '2 terms.'],
         '/admin/taxonomies/new-taxonomy' => ['new', 'Its term screen appears in the menu as soon as it’s added.'],
         '/admin/taxonomies/category' => ['category', 'Categories are declared by code, so they can’t be changed or deleted here.'],
     ] as $path => [$name, $words]) {
@@ -131,14 +131,14 @@ it('draws the list and Genres at 375 pixels with nothing scrolling sideways or c
         ->and(cmAxeViolations($page))->toBe([]);
 });
 
-it('deletes Studios after asking, and the menu loses them; Genres’ Delete is off, saying why', function (): void {
+it('deletes Studios after asking, and the menu loses them; Genres offer no Delete, saying why', function (): void {
     ($this->site)();
     txCreate($this->admin, ['key' => 'studio', 'singular' => 'Studio', 'plural' => 'Studios', 'segment' => 'studios', 'base' => 'studio', 'hierarchical' => false], ['film']);
 
     $page = cmSignIn($this->admin)->navigate('/admin/taxonomies/genre');
     ($this->seen)($page, 'Genres have 2 terms, so the taxonomy can’t be deleted. Delete them first.');
 
-    expect($page->script('() => document.querySelector("[data-test=\"taxonomy-delete\"]").disabled'))->toBeTrue();
+    expect($page->script('() => document.querySelector("[data-test=\"taxonomy-delete\"]")'))->toBeNull();
 
     $page->navigate('/admin/taxonomies/studio');
     ($this->seen)($page, 'Delete this taxonomy');
@@ -190,35 +190,13 @@ it('shows an editor no Set up on the term screen', function (): void {
     expect($page->script('() => document.querySelector("[data-test=\"term-setup\"]")'))->toBeNull();
 });
 
-it('moves between Genres\' sections from the row of tabs without leaving the page', function (): void {
+it('heads Genres’ page with its crumbs and the way back, with no row of tabs', function (): void {
     ($this->site)();
 
-    // A view shorter than the form, so the page can scroll On the site, near its foot, to the top.
-    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 700), '/admin/taxonomies/genre');
-    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this taxonomy"]\') !== null');
+    $page = cmSignIn($this->admin)->navigate('/admin/taxonomies/genre');
+    ($this->seen)($page, 'All taxonomies');
 
-    $page->append('#taxonomy-plural', ' (new)');
-    $page->click('nav[aria-label="Sections of this taxonomy"] a[href="#taxonomy-section-site"]');
-
-    // The view: the nearest box that scrolls the section, else the window.
-    cmWaitUntil($page, <<<'JS'
-        (() => {
-            const section = document.querySelector("#taxonomy-section-site");
-            let view = section.parentElement;
-
-            while (view !== null && !(['auto', 'scroll'].includes(getComputedStyle(view).overflowY) && view.scrollHeight > view.clientHeight)) {
-                view = view.parentElement;
-            }
-
-            const top = view === null ? 0 : Math.max(0, view.getBoundingClientRect().top);
-
-            return Math.abs(section.getBoundingClientRect().top - top) <= 80;
-        })()
-        JS);
-
-    expect($page->script('() => document.querySelector(\'nav[aria-label="Sections of this taxonomy"] a[href="#taxonomy-section-site"]\').getAttribute("aria-current")'))->toBe('location')
-        ->and($page->script('() => location.pathname'))->toBe('/admin/taxonomies/genre')
-        ->and($page->script('() => document.querySelector(\'[data-test="leave-guard"]\') === null'))->toBeTrue()
-        ->and($page->script('() => document.querySelector("#taxonomy-plural").value.endsWith(" (new)")'))->toBeTrue()
-        ->and($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeFalse();
+    expect($page->script('() => document.querySelector(\'nav[aria-label="Sections of this taxonomy"]\')'))->toBeNull()
+        ->and($page->script('() => [...document.querySelectorAll(\'[data-slot="breadcrumb-item"]\')].map((item) => item.innerText.trim())'))->toBe(['Site', 'Taxonomies', 'Genres'])
+        ->and($page->script('() => document.querySelector(\'main a[href="/admin/taxonomies"]\').innerText.trim()'))->toBe('All taxonomies');
 });

@@ -197,12 +197,16 @@ export function MediaTile({
                     </span>
                 )}
             </span>
-            <span className="text-small truncate font-medium">{row.title}</span>
+            <span className="text-small truncate font-medium">
+                {row.filename || row.title}
+            </span>
             <span className="text-caption text-ink-3 flex flex-wrap items-center gap-x-2">
                 <span>
-                    {row.uses > 0
-                        ? __n('Used :count×|Used :count×', row.uses)
-                        : __('Unused')}
+                    {row.importedFrom
+                        ? __('Imported · :site', { site: row.importedFrom })
+                        : row.uses > 0
+                          ? __n('Used :count×|Used :count×', row.uses)
+                          : __('Unused')}
                 </span>
                 {missingAlt && (
                     <span className="text-warn-ink inline-flex items-center gap-1">

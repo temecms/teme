@@ -1,5 +1,5 @@
-import { Form, Head, Link } from '@inertiajs/react';
-import { Check } from 'lucide-react';
+import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { lazy, Suspense, useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import TypesController from '@/actions/App/Http/Admin/TypesController';
@@ -7,8 +7,6 @@ import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { SaveBar } from '@/components/patterns/save-bar';
-import { SectionTabs } from '@/components/patterns/section-tabs';
-import type { FormSection } from '@/components/patterns/section-tabs';
 import {
     Fact,
     Facts,
@@ -16,7 +14,6 @@ import {
     Flag,
     Hint,
     IconName,
-    SourceBadge,
     toggle,
 } from '@/components/types/builder-parts';
 import { Button } from '@/components/ui/button';
@@ -26,30 +23,16 @@ import { Notice } from '@/components/ui/notice';
 import { PluginMark } from '@/components/ui/plugin-mark';
 import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { __ } from '@/lib/i18n';
+import { useSectionCrumb } from '@/lib/crumbs';
+import { __, __n } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
 import { show as addresses } from '@/routes/settings/addresses';
-import { index as typesIndex } from '@/routes/types';
+import { index as typesIndex, show } from '@/routes/types';
 import type { TypeComments, TypePage } from '@/types';
 
 const IconPicker = lazy(() => import('@/components/types/icon-picker'));
 
-/** The form's sections, as the row of tabs names them; Delete only for a type made here. */
-function typeSections(withDelete: boolean): FormSection[] {
-    return [
-        { id: 'type-section-names', label: __('Names') },
-        { id: 'type-section-admin', label: __('In the admin') },
-        { id: 'type-section-site', label: __('On the site') },
-        { id: 'type-section-editor', label: __('In the editor') },
-        { id: 'type-section-fields', label: __('Fields') },
-        { id: 'type-section-permissions', label: __('Permissions') },
-        ...(withDelete
-            ? [{ id: 'type-section-delete', label: __('Delete this type') }]
-            : []),
-    ];
-}
-
-/** A section's wrapper: the tabs' target, focused when its tab is chosen. */
+/** A section's wrapper: a place an address can point to. */
 function Section({ id, children }: { id: string; children: ReactNode }) {
     return (
         <div id={id} tabIndex={-1} className="scroll-mt-16">
@@ -63,26 +46,43 @@ function Section({ id, children }: { id: string; children: ReactNode }) {
  * new. A locked site shows the same pages with nothing to change.
  */
 export default function TypesShow(page: TypePage) {
-    const title = page.mode === 'new' ? 'New type' : page.type.plural;
+    const title = page.mode === 'new' ? __('New type') : page.type.plural;
     const items = itemsPhrase(page.items, page.trashed);
+    const siteCrumb = useSectionCrumb('site');
+
+    setLayoutProps({
+        breadcrumbs: [
+            siteCrumb,
+            { title: __('Types'), href: typesIndex() },
+            {
+                title,
+                href: page.mode === 'new' ? typesIndex() : show(page.type.key),
+            },
+        ],
+    });
     // Discard starts the form again from the saved type.
     const [discards, setDiscards] = useState(0);
 
     return (
         <FormPage
             title={title}
-            description={
-                <>
-                    <SourceBadge mode={page.mode} source={page.source} />{' '}
-                    {headerLine(page, items)}
-                </>
-            }
+            description={headerLine(page)}
             actions={
-                page.listUrl !== null && (
-                    <Button variant="neutral" asChild>
-                        <Link href={page.listUrl}>Open {page.type.plural}</Link>
+                <>
+                    <Button variant="ghost" asChild>
+                        <Link href={typesIndex().url}>
+                            <ArrowLeft aria-hidden="true" />
+                            {__('All types')}
+                        </Link>
                     </Button>
-                )
+                    {page.fields.url !== null && (
+                        <Button variant="neutral" asChild>
+                            <Link href={page.fields.url}>
+                                {__('Manage fields')}
+                            </Link>
+                        </Button>
+                    )}
+                </>
             }
         >
             <Head title={title} />
@@ -115,13 +115,6 @@ export default function TypesShow(page: TypePage) {
         </FormPage>
     );
 }
-
-TypesShow.layout = {
-    breadcrumbs: [
-        { title: 'Types', href: typesIndex() },
-        { title: 'Type', href: typesIndex() },
-    ],
-};
 
 /** What the form holds, beyond what is typed into it. */
 type TypeFormState = {
@@ -222,10 +215,6 @@ function TypeForm({
 
     return (
         <>
-            <SectionTabs
-                label={__('Sections of this type')}
-                sections={typeSections(page.mode === 'edit')}
-            />
             <div className="grid gap-4">
                 <Form
                     {...(creating
@@ -353,6 +342,7 @@ function TypeForm({
                                     </div>
                                     <Flag
                                         id="type-single"
+                                        control="switch"
                                         name="single"
                                         label="One item only"
                                         checked={single}
@@ -378,6 +368,7 @@ function TypeForm({
                                 >
                                     <Flag
                                         id="type-public"
+                                        control="switch"
                                         name="public"
                                         label="Items have public addresses"
                                         checked={isPublic}
@@ -423,6 +414,7 @@ function TypeForm({
                                         ))}
                                     <Flag
                                         id="type-archive"
+                                        control="switch"
                                         name="archive"
                                         label="Has an archive page"
                                         checked={archive}
@@ -435,6 +427,7 @@ function TypeForm({
                                     />
                                     <Flag
                                         id="type-searchable"
+                                        control="switch"
                                         name="searchable"
                                         label="Shown in site search"
                                         checked={searchable}
@@ -620,10 +613,6 @@ function ViewPanels({ page, items }: { page: TypePage; items: string }) {
 
     return (
         <>
-            <SectionTabs
-                label={__('Sections of this type')}
-                sections={typeSections(false)}
-            />
             <div className="grid gap-4">
                 <Section id="type-section-names">
                     <FormPanel
@@ -772,22 +761,18 @@ function DeletePanel({ page }: { page: TypePage }) {
                 <p id="type-delete-reason">{reason}</p>
             )}
             {page.listUrl !== null && page.items > 0 && (
-                <p className="flex flex-wrap gap-3">
-                    <Link
-                        href={page.listUrl}
-                        className="text-accent-ink hover:underline"
-                    >
-                        Open {plural}
-                    </Link>
+                <div className="flex flex-wrap gap-2">
+                    <Button variant="neutral" asChild>
+                        <Link href={page.listUrl}>{__('Open the list')}</Link>
+                    </Button>
                     {page.trashed > 0 && (
-                        <Link
-                            href={`${page.listUrl}?tab=trash`}
-                            className="text-accent-ink hover:underline"
-                        >
-                            Open the trash
-                        </Link>
+                        <Button variant="ghost" asChild>
+                            <Link href={`${page.listUrl}?tab=trash`}>
+                                {__('Open the trash')}
+                            </Link>
+                        </Button>
                     )}
-                </p>
+                </div>
             )}
             {reason === null ? (
                 <Form {...TypesController.destroy.form(page.type.key)}>
@@ -808,18 +793,7 @@ function DeletePanel({ page }: { page: TypePage }) {
                         </ConfirmAction>
                     )}
                 </Form>
-            ) : (
-                <Button
-                    type="button"
-                    variant="danger-quiet"
-                    size="sm"
-                    disabled
-                    data-test="type-delete"
-                    aria-describedby="type-delete-reason"
-                >
-                    Delete {plural}
-                </Button>
-            )}
+            ) : null}
         </FormPanel>
     );
 }
@@ -1199,28 +1173,34 @@ function commentsWords(comments: TypeComments): string {
 }
 
 /** The line under the title, for the mode the page is in. */
-function headerLine(page: TypePage, items: string): string {
+function headerLine(page: TypePage): string {
     if (page.mode === 'new') {
-        return 'A kind of content of your own, such as films or recipes. It appears in the menu as soon as it’s added.';
+        return __(
+            'A kind of content of your own, such as films or recipes. It appears in the menu as soon as it’s added.',
+        );
     }
 
     if (page.mode === 'view') {
-        return 'Declared by code, and shown here so you can see how it’s set up.';
+        return __(
+            'Declared by code, and shown here so you can see how it’s set up.',
+        );
     }
 
     const made =
-        page.made === null ? 'Made here.' : `Made here on ${page.made}.`;
-    const base = `${made} Items: ${items}.`;
+        page.made === null
+            ? __('Made here.')
+            : __('Made here on :date.', { date: page.made });
 
-    if (page.mode === 'locked') {
-        return base;
-    }
+    const count =
+        page.items === 0
+            ? __('No items yet.')
+            : __n(':count item.|:count items.', page.items);
 
     if (page.mode === 'plugin') {
-        return __('Items: :items.', { items });
+        return count;
     }
 
-    return `${base} Changes reach the menu, the editor and the site as soon as they’re saved.`;
+    return `${made} ${count}`;
 }
 
 /** None, the count, or how many of them are in the trash. */

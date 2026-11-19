@@ -19,7 +19,7 @@ sources:
 ## To upload
 
 1. Open **Media**.
-2. Choose **Upload files**, or drop files anywhere on the page.
+2. Choose **Upload**, or drop files anywhere on the page.
 3. Watch the upload list. Each file shows **Preparing…** while it is made ready, and **Failed** if it didn't work. Choose **Retry** on a failed one.
 
 If a file is already in the library, the upload list says so: "Already in the library as" and the name. Choose **Use the existing one** to keep a single copy, or **Upload anyway** to add it again.

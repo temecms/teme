@@ -78,6 +78,8 @@ it('makes the same number of queries on every page', function (): void {
         return count(DB::getQueryLog());
     };
 
+    // The active theme's templates are read once and kept, so a first list warms that up.
+    listsPage([]);
     $firstQueries = $count([]);
     $older = listsPage([])['older'];
 

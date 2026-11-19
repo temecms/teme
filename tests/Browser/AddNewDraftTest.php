@@ -34,7 +34,7 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get('/admin/pages')->assertOk();
 });
 
-it('opens a new empty draft in the editor with one press of Add new, the cursor in its title, and lists it as (no title)', function (string $list, string $words, string $type): void {
+it('opens a new empty draft in the editor with one press of New, the cursor in its title, and lists it as (no title)', function (string $list, string $words, string $type): void {
     $page = cmSignIn($this->editor)->navigate($list);
     cmWaitUntil($page, "document.querySelector('[data-test=\"add-new\"]')?.tagName === 'BUTTON' && document.querySelector('[data-test=\"add-new\"]').textContent.trim() === ".json_encode($words, JSON_THROW_ON_ERROR));
 
@@ -52,6 +52,6 @@ it('opens a new empty draft in the editor with one press of Add new, the cursor 
     $page->navigate($list);
     cmWaitUntil($page, "[...document.querySelectorAll('a')].some((link) => link.getAttribute('href') === '/admin/content/{$draft->id}/edit' && link.textContent.trim() === '(no title)')");
 })->with([
-    'Posts' => ['/admin/posts', 'Add new post', 'post'],
-    'Pages' => ['/admin/pages', 'Add new page', 'page'],
+    'Posts' => ['/admin/posts', 'New post', 'post'],
+    'Pages' => ['/admin/pages', 'New page', 'page'],
 ]);

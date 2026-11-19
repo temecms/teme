@@ -37,10 +37,6 @@ components/comments/comment-details.tsx	Status
 components/comments/comment-details.tsx	Submitted
 components/comments/comment-details.tsx	Unapprove
 components/comments/comment-details.tsx	Website
-components/comments/commenter.tsx	Find every comment from this IP address
-components/comments/commenter.tsx	Pingback
-components/comments/commenter.tsx	Signed in
-components/comments/commenter.tsx	Trackback
 components/comments/comments-cell.tsx	Waiting for approval
 components/comments/comments-cell.tsx	waiting for approval
 components/comments/delete-comments.tsx	Cancel
@@ -137,8 +133,6 @@ components/list/bulk-edit-dialog.tsx	— No change —
 components/list/confirm-items.tsx	Cancel
 components/list/empty-state.tsx	Clear filters
 components/list/pager.tsx	Pages
-components/list/row-actions.tsx	, opens in a new tab
-components/list/row-actions.tsx	More
 components/list/row-links.tsx	, opens in a new tab
 components/nav-main.tsx	Main
 components/navigation/add-item-panel.tsx	A link to the front page of the site. The label starts as “Home”.
@@ -169,8 +163,6 @@ components/navigation/tree-editor.tsx	Move down
 components/navigation/tree-editor.tsx	Move out a level
 components/navigation/tree-editor.tsx	Move under the item above
 components/navigation/tree-editor.tsx	Move up
-components/navigation/tree-editor.tsx	Open in new tab
-components/navigation/tree-editor.tsx	Remove
 components/navigation/tree-editor.tsx	Remove {}
 components/palette/command-palette.tsx	AI
 components/palette/command-palette.tsx	Command palette
@@ -242,9 +234,6 @@ components/themes/theme-regions.tsx	Theme no longer installed
 components/themes/theme-regions.tsx	declares no regions.
 components/themes/theme-regions.tsx	puts the site’s own content, such as a box after each article.
 components/themes/theme-regions.tsx	{} regions
-components/types/builder-parts.tsx	Can’t be used
-components/types/builder-parts.tsx	Code
-components/types/builder-parts.tsx	Made here
 components/types/field-sheet.tsx	. Made from the label.
 components/types/field-sheet.tsx	Add a choice
 components/types/field-sheet.tsx	Add a field to {}
@@ -300,53 +289,16 @@ pages/inbox/index.tsx	Mark all as read
 pages/inbox/index.tsx	Results of background work you started, such as imports. Each is kept for 90 days.
 pages/inbox/index.tsx	unread
 pages/navigation/edit.tsx	Add an item
-pages/navigation/edit.tsx	Add item
 pages/navigation/edit.tsx	Add the home page, pages, posts, categories, tags or any address.
-pages/navigation/edit.tsx	Arrange the items, then save. An item that points at a page, post, category or tag takes its title unless you give it a label.
 pages/navigation/edit.tsx	Cancel
-pages/navigation/edit.tsx	Delete menu
-pages/navigation/edit.tsx	Delete the menu “{}”?
-pages/navigation/edit.tsx	Delete…
-pages/navigation/edit.tsx	It isn’t shown anywhere. This cannot be undone.
-pages/navigation/edit.tsx	Items
-pages/navigation/edit.tsx	Menu
-pages/navigation/edit.tsx	Move an item with its buttons, or with Alt and the arrow keys: up and down to reorder, right to put it under the item above, left to bring it out. Menus go three levels deep.
 pages/navigation/edit.tsx	Name
-pages/navigation/edit.tsx	Navigation
-pages/navigation/edit.tsx	None
 pages/navigation/edit.tsx	Only the name changes. Themes that show this menu keep showing it.
-pages/navigation/edit.tsx	Rename
 pages/navigation/edit.tsx	Rename menu
 pages/navigation/edit.tsx	Rename the menu
-pages/navigation/edit.tsx	Show in
 pages/navigation/edit.tsx	This menu has no items yet
-pages/navigation/edit.tsx	Where {} shows a menu. Each place shows one menu.
-pages/navigation/edit.tsx	{} (this menu)
-pages/navigation/edit.tsx	{} will show no menu until you choose another. This cannot be undone.
-pages/navigation/index.tsx	A menu is a list of links to pages, posts, categories, the home page or any address.
-pages/navigation/index.tsx	Actions for {}
-pages/navigation/index.tsx	Create a menu
-pages/navigation/index.tsx	Create menu
-pages/navigation/index.tsx	Delete menu
-pages/navigation/index.tsx	Delete the menu “{}”?
-pages/navigation/index.tsx	Delete…
-pages/navigation/index.tsx	Edit
-pages/navigation/index.tsx	It isn’t shown anywhere. This cannot be undone.
-pages/navigation/index.tsx	Main menu
-pages/navigation/index.tsx	Navigation
-pages/navigation/index.tsx	Navigation
-pages/navigation/index.tsx	New menu
-pages/navigation/index.tsx	No menus yet
-pages/navigation/index.tsx	The menus visitors use to find their way around the site. Build a menu, then choose where the theme shows it.
-pages/navigation/index.tsx	{} will show no menu until you choose another. This cannot be undone.
-pages/regions/index.tsx	Actions
-pages/regions/index.tsx	Create
-pages/regions/index.tsx	Edit
 pages/regions/index.tsx	From other themes
 pages/regions/index.tsx	Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.
 pages/regions/index.tsx	No theme is in use
-pages/regions/index.tsx	Regions
-pages/regions/index.tsx	Regions
 pages/regions/index.tsx	Text only
 pages/regions/index.tsx	Theme no longer installed
 pages/regions/index.tsx	There’s nothing to fill here while {} is the active theme.
@@ -354,39 +306,14 @@ pages/regions/index.tsx	Your own content in the spots the active theme sets asid
 pages/regions/index.tsx	Your own content in the spots the active theme, {}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.
 pages/regions/index.tsx	{} has no regions
 pages/settings/group.tsx	{} settings
-pages/taxonomies/index.tsx	Actions for {}
-pages/taxonomies/index.tsx	Add new taxonomy
-pages/taxonomies/index.tsx	Can’t be used
-pages/taxonomies/index.tsx	Can’t be used:
-pages/taxonomies/index.tsx	Code
-pages/taxonomies/index.tsx	Delete
-pages/taxonomies/index.tsx	Delete {}
-pages/taxonomies/index.tsx	Delete {}?
-pages/taxonomies/index.tsx	Download teme-types.json
-pages/taxonomies/index.tsx	Edit
-pages/taxonomies/index.tsx	Edit to fix
-pages/taxonomies/index.tsx	It has no terms, so only the taxonomy goes.
-pages/taxonomies/index.tsx	Made here
-pages/taxonomies/index.tsx	Open {}
-pages/taxonomies/index.tsx	Taxonomies
-pages/taxonomies/index.tsx	Taxonomies
-pages/taxonomies/index.tsx	Taxonomies
-pages/taxonomies/index.tsx	Taxonomies are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
-pages/taxonomies/index.tsx	The ways this site groups its content, such as categories and tags. Taxonomies declared by code are shown, but can’t be changed here.
-pages/taxonomies/index.tsx	View
-pages/taxonomies/index.tsx	You can still look at each taxonomy, and download teme-types.json.
-pages/taxonomies/index.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	, which keeps every old address working as a redirect.
 pages/taxonomies/show.tsx	/admin/
 pages/taxonomies/show.tsx	Address base
 pages/taxonomies/show.tsx	Admin address
 pages/taxonomies/show.tsx	Arranged
-pages/taxonomies/show.tsx	Beside the name on Site › Taxonomies.
 pages/taxonomies/show.tsx	Can’t be used:
-pages/taxonomies/show.tsx	Change icon
 pages/taxonomies/show.tsx	Change in Settings › Addresses
 pages/taxonomies/show.tsx	Change in Settings › Addresses
-pages/taxonomies/show.tsx	Delete
 pages/taxonomies/show.tsx	Delete
 pages/taxonomies/show.tsx	Delete this taxonomy
 pages/taxonomies/show.tsx	Delete {}
@@ -394,7 +321,6 @@ pages/taxonomies/show.tsx	Delete {}?
 pages/taxonomies/show.tsx	Flat, as tags
 pages/taxonomies/show.tsx	For example
 pages/taxonomies/show.tsx	How terms are arranged
-pages/taxonomies/show.tsx	Icon
 pages/taxonomies/show.tsx	In the admin
 pages/taxonomies/show.tsx	In the editor, flat terms are typed, as tags are; nested ones are ticked in a list, as categories are.
 pages/taxonomies/show.tsx	It has no terms, so only the taxonomy goes.
@@ -409,8 +335,6 @@ pages/taxonomies/show.tsx	None
 pages/taxonomies/show.tsx	On the site
 pages/taxonomies/show.tsx	On the site
 pages/taxonomies/show.tsx	Open
-pages/taxonomies/show.tsx	Open
-pages/taxonomies/show.tsx	Open
 pages/taxonomies/show.tsx	Plural name
 pages/taxonomies/show.tsx	Plural name
 pages/taxonomies/show.tsx	Public address
@@ -420,9 +344,7 @@ pages/taxonomies/show.tsx	Settings › Addresses
 pages/taxonomies/show.tsx	Singular name
 pages/taxonomies/show.tsx	Singular name
 pages/taxonomies/show.tsx	Stored on every term, so it never changes.
-pages/taxonomies/show.tsx	Taxonomies
 pages/taxonomies/show.tsx	Taxonomies are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
-pages/taxonomies/show.tsx	Taxonomy
 pages/taxonomies/show.tsx	Terms
 pages/taxonomies/show.tsx	Terms
 pages/taxonomies/show.tsx	Terms
@@ -447,24 +369,15 @@ pages/taxonomies/show.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	picker, and a
 pages/taxonomies/show.tsx	’s page lists their items. The same choice as each type’s Taxonomies, on Site › Types.
 pages/types/fields.tsx	Actions for {}
-pages/types/fields.tsx	Add field
 pages/types/fields.tsx	Cancel
-pages/types/fields.tsx	Code
-pages/types/fields.tsx	Comes with
 pages/types/fields.tsx	Drag to reorder
 pages/types/fields.tsx	Edit
 pages/types/fields.tsx	Field
 pages/types/fields.tsx	Field
-pages/types/fields.tsx	Field
 pages/types/fields.tsx	Field type
-pages/types/fields.tsx	Field type
-pages/types/fields.tsx	Fields
 pages/types/fields.tsx	Filterable
-pages/types/fields.tsx	From Teme
-pages/types/fields.tsx	In the editor
 pages/types/fields.tsx	It leaves
 pages/types/fields.tsx	It leaves {}’ editor and the site at once. No {} holds a value.
-pages/types/fields.tsx	Locked
 pages/types/fields.tsx	Move down
 pages/types/fields.tsx	Move up
 pages/types/fields.tsx	No
@@ -482,46 +395,18 @@ pages/types/fields.tsx	Restore
 pages/types/fields.tsx	Restore
 pages/types/fields.tsx	Site search
 pages/types/fields.tsx	The types are locked on this site, so fields can’t be added or changed here.
-pages/types/fields.tsx	They come with the features ticked under
-pages/types/fields.tsx	Types
 pages/types/fields.tsx	Values kept
 pages/types/fields.tsx	What the editor asks for on each {}, in this order. A saved change works at once.
-pages/types/fields.tsx	Why it’s here
 pages/types/fields.tsx	Yes
 pages/types/fields.tsx	Yes
 pages/types/fields.tsx	brings it back with them. Nothing is deleted.
 pages/types/fields.tsx	hold stay stored, so
-pages/types/fields.tsx	on
 pages/types/fields.tsx	{} fields
 pages/types/fields.tsx	{} fields
 pages/types/fields.tsx	{}, by {}
 pages/types/fields.tsx	· removed
 pages/types/fields.tsx	’ editor and the site at once, and templates that show it show nothing. The values
-pages/types/fields.tsx	’ page, and keep their own places in the editor. They can’t be changed here. A plugin’s fields will show the same way, named after the plugin.
 pages/types/index.tsx	/admin/{}
-pages/types/index.tsx	Actions for {}
-pages/types/index.tsx	Add new type
-pages/types/index.tsx	Can’t be used
-pages/types/index.tsx	Can’t be used:
-pages/types/index.tsx	Code
-pages/types/index.tsx	Delete
-pages/types/index.tsx	Delete {}
-pages/types/index.tsx	Delete {}?
-pages/types/index.tsx	Download teme-types.json
-pages/types/index.tsx	Edit
-pages/types/index.tsx	Edit to fix
-pages/types/index.tsx	It has no items, so only the type goes.
-pages/types/index.tsx	Made here
-pages/types/index.tsx	The kinds of content this site keeps. Types declared by code are shown, but can’t be changed here.
-pages/types/index.tsx	Types
-pages/types/index.tsx	Types
-pages/types/index.tsx	Types
-pages/types/index.tsx	Types are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
-pages/types/index.tsx	View
-pages/types/index.tsx	You can still look at each type, and download teme-types.json.
-pages/types/index.tsx	in the trash
-pages/types/index.tsx	in the trash
-pages/types/index.tsx	php artisan teme:types:import
 pages/types/show.tsx	, which keeps every old address working as a redirect.
 pages/types/show.tsx	/admin/
 pages/types/show.tsx	/admin/{}
@@ -539,7 +424,6 @@ pages/types/show.tsx	Change in Settings › Addresses
 pages/types/show.tsx	Change in Settings › Addresses
 pages/types/show.tsx	Comments
 pages/types/show.tsx	Comments
-pages/types/show.tsx	Delete
 pages/types/show.tsx	Delete
 pages/types/show.tsx	Delete this type
 pages/types/show.tsx	Delete {}
@@ -580,9 +464,6 @@ pages/types/show.tsx	On the site
 pages/types/show.tsx	One item only
 pages/types/show.tsx	One item only
 pages/types/show.tsx	Open
-pages/types/show.tsx	Open
-pages/types/show.tsx	Open
-pages/types/show.tsx	Open the trash
 pages/types/show.tsx	Permission
 pages/types/show.tsx	Permissions
 pages/types/show.tsx	Permissions
@@ -603,8 +484,6 @@ pages/types/show.tsx	Taxonomies
 pages/types/show.tsx	Taxonomies
 pages/types/show.tsx	Their pickers sit in the editor’s side panel. One can’t be taken away while items still have its terms.
 pages/types/show.tsx	Their public address can still change:
-pages/types/show.tsx	Type
-pages/types/show.tsx	Types
 pages/types/show.tsx	Types are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
 pages/types/show.tsx	What the editor asks for on each item.
 pages/types/show.tsx	What the editor asks for on each item.

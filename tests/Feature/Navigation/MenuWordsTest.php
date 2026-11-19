@@ -62,23 +62,26 @@ it('says which menu a place now shows, or that it shows none', function (string 
         ->assertInertiaFlash('toast.message', $choice === 'a menu' ? 'Saved. Header shows “Main”.' : 'Saved. Header shows no menu.');
 })->with(['a menu', 'none']);
 
-it('offers Create menu, keeps each menu\'s actions in its row\'s links, and confirms a delete with Delete menu', function (): void {
+it('offers New menu, keeps Edit under each name and Delete in its "…" menu, and confirms a delete with Delete menu', function (): void {
     expect(uiComponent('pages/navigation/index.tsx'))
-        ->toContain('Create menu')
-        ->toContain('<RowLinks')
-        ->toContain("label: 'Delete…'")
-        ->toContain('confirmLabel="Delete menu"')
+        ->toContain("__('New menu')")
+        ->toContain("__('Create menu')")
+        ->toContain('<RowLine')
+        ->toContain('<RowMenu')
+        ->toContain("label: __('Delete menu…')")
+        ->toContain("confirmLabel={__('Delete menu')}")
         ->not->toMatch('/>\s*Create\s*<\//');
 });
 
-it('puts a menu\'s editor under the Navigation trail, with Save menu, Rename menu and Delete…', function (): void {
+it('puts a menu\'s editor under the Navigation trail, with All menus, Rename…, Save menu and Delete this menu', function (): void {
     expect(uiComponent('pages/navigation/edit.tsx'))
-        ->toContain('NavigationEdit.layout')
-        ->toContain("title: 'Navigation'")
+        ->toContain("title: __('Navigation')")
+        ->toContain("__('All menus')")
+        ->toContain("__('Rename…')")
         ->toContain('Save menu')
         ->toContain('Rename menu')
-        ->toContain('Delete…')
-        ->toContain('confirmLabel="Delete menu"')
+        ->toContain("__('Delete this menu')")
+        ->toContain("confirmLabel={__('Delete menu')}")
         ->toContain('themeName')
         ->not->toContain('← Navigation');
 });
