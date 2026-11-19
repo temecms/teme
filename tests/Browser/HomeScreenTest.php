@@ -105,7 +105,7 @@ it('shows one row of five figures, each with its status dot, and the date ending
             return figures.length === 5 && top.size === 1 && dots.join() === 'ok,neutral-dot,info,warn,accent';
         }
         JS)
-        ->assertScript("() => /[A-Za-z]+, [A-Za-z]+ \\d+\\. Your work first/.test(document.body.innerText)");
+        ->assertScript('() => /[A-Za-z]+, [A-Za-z]+ \\d+\\. Your work first/.test(document.body.innerText)');
 });
 
 it('draws Your work and leaves out From plugins when no plugin has a panel', function (): void {
