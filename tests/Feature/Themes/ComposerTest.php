@@ -21,6 +21,16 @@ it('gives every theme view the site, from core', function (): void {
     expect($html)->toContain('data-site-name="'.e(app(SettingsReader::class)->string('general', 'site_title')).'"');
 });
 
+it('gives every theme view the version of Teme the site runs, and its release', function (): void {
+    config(['teme.version' => '1.2.0']);
+
+    expect(View::make('theme::partials.teme-version')->render())->toContain('data-teme-version="1.2.0"')->toContain('data-teme-release="1.2"');
+
+    config(['teme.version' => '1.2.0-rc.1']);
+
+    expect(View::make('theme::partials.teme-version')->render())->toContain('data-teme-version="1.2.0-rc.1"')->toContain('data-teme-release="1.2"');
+});
+
 it('runs the theme\'s own composers for the views they name', function (): void {
     // The archive, not the single: since 1.6c the single draws $page's lead, and this view has no page.
     expect(View::make('theme::templates.archive')->render())->toContain('data-template="archive">hello</main>');

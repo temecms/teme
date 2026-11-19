@@ -65,6 +65,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 |---|---|---|
 | `$page` | `LatestView\|ArticleView\|ListingView\|NotFoundView\|ErrorView\|CommentsPageView\|RespondView\|ProtectedView` | The page being drawn: its model is the one its kind of page names. |
 | `$site` | `SiteView` | The site: its name, tagline, home address, language and the current year. |
+| `$teme` | `array{version: string, release: string}` | The version of Teme the site runs, such as 1.2.0, and its release, such as 1.2: a pre-release such as 1.2.0-rc.1 is release 1.2. An untagged build gives both as UNTAGGED. |
 | `$navigation` | `array<string, list<array{label: string, url: string\|null, current: bool, opensNewTab: bool, heading: bool, children: list<mixed>}>\|null>` | Each of the theme's navigation slots with its menu's tree, or null when it has none. |
 | `$themeSettings` | `array<string, mixed>` | The active theme's own settings, key to value, without its menu places. |
 | `$isFront` | `bool` | True only on the site's home page and its numbered pages. |

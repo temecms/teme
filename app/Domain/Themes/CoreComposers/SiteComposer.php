@@ -3,7 +3,8 @@
 /**
  * Core's composer, run before any theme's on every theme view: `site`, the
  * site's name, tagline, home address, language and year, and `isFront`, true
- * only on the home page and its numbered pages (I-442). The language is the
+ * only on the home page and its numbered pages (I-442), and `teme`, the
+ * version of Teme the site runs and its release. The language is the
  * site language setting's (I-435), the default, whatever the page's own
  * (I-3360), which `$language` gives.
  *
@@ -19,6 +20,7 @@ namespace App\Domain\Themes\CoreComposers;
 use App\Domain\Site\SiteDates;
 use App\Domain\Site\SiteLanguage;
 use App\Domain\Site\ViewModels\SiteView;
+use App\Domain\Updates\TemeVersion;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Themes\ViewComposer;
 use Teme\Contracts\Themes\ViewContext;
@@ -35,6 +37,7 @@ final readonly class SiteComposer implements ViewComposer
     public function with(ViewContext $context): array
     {
         $language = $this->site->tag();
+        $version = TemeVersion::current();
 
         return [
             'site' => new SiteView(
@@ -46,6 +49,17 @@ final readonly class SiteComposer implements ViewComposer
                 year: SiteDates::inSite('now')->year,
             ),
             'isFront' => $context->isFront(),
+            'teme' => ['version' => $version, 'release' => $this->release($version)],
         ];
+    }
+
+    /**
+     * The release a version belongs to: its major and minor, so 1.2.0 and
+     * 1.2.0-rc.1 are both 1.2. A version with no such shape, an untagged
+     * build, is its own release.
+     */
+    private function release(string $version): string
+    {
+        return preg_match('/^(\d+\.\d+)\./', $version, $found) === 1 ? $found[1] : $version;
     }
 }
