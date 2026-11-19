@@ -40,6 +40,7 @@ use stdClass;
  * @property array<string, array<string, mixed>> $quarantine
  * @property array<string, array{version?: string, ran_at?: string, tables?: list<string>}> $migrations
  * @property array<string, string> $schedule_runs
+ * @property array{version?: string, applied_at?: string, report?: array<string, mixed>} $types
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
@@ -118,6 +119,19 @@ final class PluginRecord extends Model
      * @return Attribute<array<string, mixed>, array<string, mixed>>
      */
     protected function scheduleRuns(): Attribute
+    {
+        return $this->jsonObject();
+    }
+
+    /**
+     * The types file it last applied (docs/architecture/plugins.md, *Content
+     * types from a plugin*): its version, when, and what that changed.
+     *
+     * @return Attribute<array<string, mixed>, array<string, mixed>>
+     *
+     * @since next
+     */
+    protected function types(): Attribute
     {
         return $this->jsonObject();
     }

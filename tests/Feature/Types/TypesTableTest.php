@@ -19,6 +19,7 @@ it('holds one row per type, its definition in one JSONB column (rule 2)', functi
         'definition' => 'jsonb',
         'created_at' => 'timestamp with time zone',
         'updated_at' => 'timestamp with time zone',
+        'plugin' => 'character varying',
     ]);
 });
 

@@ -21,12 +21,14 @@ final class StoredTaxonomies
 
     /**
      * Every stored definition, its key first, oldest first, straight from the table.
+     * With $enabledOnly, a disabled plugin's are left out.
      *
      * @return list<array<string, mixed>>
      */
-    public function definitions(): array
+    public function definitions(bool $enabledOnly = false): array
     {
         return DB::table(self::TABLE)
+            ->when($enabledOnly, fn ($query) => $query->whereRaw('NOT '.TypeOwners::dormantCondition()))
             ->orderBy('created_at')
             ->orderBy('key')
             ->get(['key', 'definition'])

@@ -33,6 +33,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [A plugin's own area](plugins/admin-area.md): How a plugin declares screens of its own in the admin, an overview of figures and charts, tables of its records and each record's form, what core draws and checks, the permission that opens them, and the PluginArea contract that hands core the data.
 - [A panel in the editor](plugins/editor-panels.md): How a plugin that works on the article being edited adds a panel to the editor, what the panel shows, how its actions start the plugin's work as the person, and how each suggestion is checked, used and undone.
 - [Search engine plugins](plugins/seo.md): How an SEO plugin adds checks beside the editor's own, a tab of its own values in Search and social, tags and structured data in the head of public pages, and sitemaps to the sitemap index, and how it reads the FAQ and Steps cards to describe them.
+- [Content types from your plugin](plugins/content-types.md): How a plugin brings its own content types, taxonomies and fields in a teme-types file, what happens on enable, update, disable and removal, and how it takes over types a site already has.
 - [Languages in a theme](themes/languages.md): What a multilingual site gives a theme, from the page's language and direction, its other language versions, the language switcher, and the theme's own words.
 - [The management API](outside/management-api.md): For a service outside the site, not a plugin, with keys and abilities, the endpoints, the problems it answers, and its limits.
 

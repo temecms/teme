@@ -136,6 +136,10 @@ export function SourceBadge({
         return <StatusPill tone="danger">{__('Can’t be used')}</StatusPill>;
     }
 
+    if (mode === 'plugin' || source === 'plugin') {
+        return <StatusPill tone="neutral">{__('Plugin')}</StatusPill>;
+    }
+
     return <StatusPill tone="info">{__('Made here')}</StatusPill>;
 }
 

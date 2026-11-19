@@ -50,6 +50,14 @@ final class TaxonomyRegistry
         $typeSegments = array_map(fn (ContentType $type): string => $type->segment, array_filter(app(ContentTypeRegistry::class)->fromCode(), fn (ContentType $type): bool => $type->listed));
         $problem = $this->problem($taxonomy, $typeSegments);
 
+        // Nor an admin screen's name: the fixed screens, code's listed types and code's other taxonomies.
+        $others = [
+            ...array_map(fn (ContentType $type): string => $type->plural, array_values(array_filter(app(ContentTypeRegistry::class)->fromCode(), fn (ContentType $type): bool => $type->listed))),
+            ...array_map(fn (Taxonomy $other): string => $other->plural, array_values(array_filter($this->declared, fn (Taxonomy $other): bool => $other->key !== $taxonomy->key))),
+        ];
+        $screen = AdminScreenNames::clash($taxonomy->plural, taxonomyKey: $taxonomy->key, typePlurals: $others);
+        $problem ??= $screen === null ? null : "Taxonomy [{$taxonomy->key}] can't be called [{$taxonomy->plural}]: ".AdminScreenNames::sentence($screen, $taxonomy->singular, 'taxonomy');
+
         if ($problem !== null) {
             throw new InvalidArgumentException($problem);
         }

@@ -8,7 +8,8 @@
  * that answers already. Runs its waiting migrations inside the same
  * transaction, records that consent, for this exact version and by whom,
  * and clears its faults and stopped parts. Refused while a plugin it
- * requires isn't enabled at a version it accepts. Returns its name.
+ * requires isn't enabled at a version it accepts. Brings its content types
+ * through ApplyPluginTypes. Returns its name.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -29,12 +30,14 @@ use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
+use App\Domain\Plugins\Operations\Input\ApplyPluginTypesInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
+use App\Domain\Plugins\Types\PluginTypesFile;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
@@ -42,6 +45,7 @@ use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Sitemaps\Sitemaps;
 use App\Domain\Support\Operations\BaseOperation;
+use App\Domain\Types\TypeOwners;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -66,6 +70,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly SettingHosts $settingHosts,
         private readonly ScheduleRunner $schedules,
         private readonly Dependencies $dependencies,
+        private readonly ApplyPluginTypes $types,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -201,6 +206,11 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'quarantine' => [],
             'migrations' => $migrations,
         ])->save();
+
+        // Its content types, taxonomies and fields, and back again those it brought before (docs/architecture/plugins.md, *Content types from a plugin*).
+        if (PluginTypesFile::declared($manifest) !== null || TypeOwners::ownedBy($input->name) !== ['types' => [], 'taxonomies' => [], 'fields' => []]) {
+            $this->types->execute(new ApplyPluginTypesInput($input->name, $input->actorId()));
+        }
 
         // Its permissions, made once and given to administrators and the roles it names (docs/plans/plugin-sockets-2.md, A1).
         PluginPermissions::ensure($code, PluginPermissions::declared($manifest), $agreedBefore);

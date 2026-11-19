@@ -29,9 +29,11 @@ use App\Domain\Extensions\Sources\SourceKinds;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Themes\ActiveTheme;
+use App\Domain\Types\TypeOwners;
 use App\Domain\Updates\Queries\TemeUpdates;
 use Carbon\CarbonImmutable;
 use Composer\Semver\VersionParser;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -173,7 +175,8 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
     }
 
     /**
-     * Why $package can't be removed now: an enabled plugin is disabled first, and the theme the site is
+     * Why $package can't be removed now: an enabled plugin is disabled first, a plugin whose types hold
+     * items keeps them until they are deleted, and the theme the site is
      * drawn with, or the one the design's draft switches to, is switched away from first.
      */
     private function removeRefusal(RequestExtensionChangeInput $input, string $package): ?string
@@ -181,7 +184,20 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
         if ($input->kind === ExtensionKind::Plugin) {
             $enabled = PluginRecord::query()->where('name', $package)->where('state', PluginRecord::ENABLED)->exists();
 
-            return $enabled ? __('Disable :name first; its data stays until you remove it.', ['name' => $package]) : null;
+            if ($enabled) {
+                return __('Disable :name first; its data stays until you remove it.', ['name' => $package]);
+            }
+
+            // Its types' items would have no type left to be read by (docs/architecture/plugins.md, *Content types from a plugin*).
+            $items = TypeOwners::items($package);
+
+            if ($items !== []) {
+                $held = Arr::join(array_map(fn (array $type): string => trans_choice(':plural have :n item at /admin/:segment|:plural have :n items at /admin/:segment', $type['items'], ['plural' => $type['plural'], 'n' => (string) $type['items'], 'segment' => $type['segment']]), array_values($items)), ', ', ' '.__('and').' ');
+
+                return __(':name can’t be removed while its content types hold items: :held, trashed ones included. Enable it, delete them and empty the trash, then disable it again.', ['name' => $package, 'held' => $held]);
+            }
+
+            return null;
         }
 
         $code = $this->extensions->folderPackages()[$package]['code'] ?? null;

@@ -20,6 +20,7 @@ final readonly class FoundPlugin
     /**
      * @param  list<string>  $problems
      * @param  list<string>  $migrations  migration file names without .php, in name order
+     * @param  string|null  $typesVersion  the version of the types file it declares, as found; null when it declares none or it can’t be read
      */
     public function __construct(
         public string $name,
@@ -28,6 +29,7 @@ final readonly class FoundPlugin
         public ?Manifest $manifest,
         public array $problems,
         public array $migrations = [],
+        public ?string $typesVersion = null,
     ) {}
 
     /**

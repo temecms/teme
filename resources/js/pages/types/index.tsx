@@ -1,5 +1,5 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/react';
-import { Download, Plus, XCircle } from 'lucide-react';
+import { Download, Plus, TriangleAlert, XCircle } from 'lucide-react';
 import TypesController from '@/actions/App/Http/Admin/TypesController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/list/data-table';
@@ -11,6 +11,7 @@ import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
 import { IconTile } from '@/components/ui/icon-tile';
 import { Notice } from '@/components/ui/notice';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { StatusPill } from '@/components/ui/status-pill';
 import { useSectionCrumb } from '@/lib/crumbs';
 import { __, __n } from '@/lib/i18n';
@@ -163,6 +164,29 @@ function TypeCell({ row, locked }: { row: TypeRow; locked: boolean }) {
                         <SourceBadge source={row.source} />
                     </span>
                 </div>
+                {row.plugin !== null && (
+                    <p className="text-ink-2 text-caption mt-1 flex flex-wrap items-center gap-1">
+                        <PluginMark name={row.plugin} />
+                        <span>
+                            {row.pluginEnabled
+                                ? __('Comes from :plugin', {
+                                      plugin: row.plugin,
+                                  })
+                                : __(
+                                      'Comes from :plugin, which isn’t enabled: hidden, with its items kept',
+                                      { plugin: row.plugin },
+                                  )}
+                        </span>
+                    </p>
+                )}
+                {row.nameClash !== null && (
+                    <p className="text-warn-ink text-caption mt-1 flex items-start gap-1 text-pretty">
+                        <span className="flex h-lh shrink-0 items-center">
+                            <TriangleAlert aria-hidden className="size-3.5" />
+                        </span>
+                        {row.nameClash}
+                    </p>
+                )}
                 {row.source === 'refused' && row.reason !== null && (
                     <p className="text-danger-ink text-caption flex items-start gap-1 text-pretty">
                         <span className="flex h-lh shrink-0 items-center">
@@ -212,6 +236,10 @@ function ItemsCell({ row }: { row: TypeRow }) {
 }
 
 function SourceBadge({ source }: { source: TypeRow['source'] }) {
+    if (source === 'plugin') {
+        return <StatusPill tone="neutral">{__('Plugin')}</StatusPill>;
+    }
+
     if (source === 'code') {
         return <StatusPill tone="neutral">{__('Code')}</StatusPill>;
     }
@@ -225,14 +253,19 @@ function SourceBadge({ source }: { source: TypeRow['source'] }) {
 
 /** A type made here with no items: the only kind that can go. */
 function deletable(row: TypeRow, locked: boolean): boolean {
-    return !locked && row.source !== 'code' && row.items === 0;
+    return (
+        !locked &&
+        row.source !== 'code' &&
+        row.plugin === null &&
+        row.items === 0
+    );
 }
 
 /** Under the name, always shown: View or Edit, Fields, and Open the list. */
 function lineActions(row: TypeRow, locked: boolean): RowAction[] {
     const href = show.url(row.key);
     const items: RowAction[] = [
-        row.source === 'code' || locked
+        row.source === 'code' || row.plugin !== null || locked
             ? { id: 'view', owner: 'core', label: __('View'), href }
             : {
                   id: 'edit',
@@ -243,7 +276,7 @@ function lineActions(row: TypeRow, locked: boolean): RowAction[] {
               },
     ];
 
-    if (row.source === 'stored' && !locked) {
+    if (row.source === 'stored' && row.plugin === null && !locked) {
         items.push({
             id: 'fields',
             owner: 'core',

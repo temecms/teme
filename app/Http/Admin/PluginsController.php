@@ -84,7 +84,7 @@ final class PluginsController extends Controller
             return to_route('plugins.index');
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __(':name enabled. Its contributions appear where they belong.', ['name' => $row->label])]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => trim(__(':name enabled. Its contributions appear where they belong.', ['name' => $row->label]).' '.$list->typesReport($row->name))]);
 
         return to_route('plugins.index');
     }
@@ -125,7 +125,7 @@ final class PluginsController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => $ran === []
             ? __(':name had no database changes waiting.', ['name' => $row->label])
-            : __(':name’s database changes ran.', ['name' => $row->label])]);
+            : trim(__(':name’s database changes ran.', ['name' => $row->label]).' '.(array_filter($ran, fn (string $ran): bool => $ran === 'types' || str_ends_with($ran, '.json')) === [] ? '' : $list->typesReport($row->name)))]);
 
         return to_route('plugins.index');
     }

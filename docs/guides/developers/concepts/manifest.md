@@ -55,6 +55,10 @@ Your plugin class implements `PluginHasJobs` and answers a `JobHandler` for each
 
 Public addresses your plugin answers are declared under `routes`, each with an `id`, a `method`, a `path` and a `handler`; see [Public routes](../plugins/public-routes.md). Tables your plugin creates are listed under `owns`, each name starting with your code as a prefix; see [Your plugin's own tables](../plugins/tables.md).
 
+## Content types
+
+`contributes.types` names a file in your package, in the format Settings › Types exports, with the content types, taxonomies and fields your plugin brings. They work while it is enabled. See [Content types from your plugin](../plugins/content-types.md).
+
 ## The key tables
 
 The full key table is generated: [Plugin manifest reference](../../../reference/plugin-manifest.md). Regenerate it with:

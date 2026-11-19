@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins;
 
 use App\Domain\Extensions\ActiveRelease;
+use App\Domain\Plugins\Types\PluginTypesFile;
 use Composer\InstalledVersions;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Context;
@@ -33,7 +34,7 @@ use ValueError;
 
 /**
  * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}
- * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>, migrations: list<string>}
+ * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>, migrations: list<string>, types: array{version: string|null, problems: list<string>}}
  */
 final class PluginRegistry
 {
@@ -44,7 +45,7 @@ final class PluginRegistry
      * hooks are checked on every read anyway. A deployment that changes Teme
      * runs `teme:plugins:cache` again, as `optimize` does.
      */
-    private const int FORMAT = 5;
+    private const int FORMAT = 6;
 
     /** @var array<string, array<string, FoundPlugin>> each discovery, by the settings it was made from */
     private array $memo = [];
@@ -257,12 +258,13 @@ final class PluginRegistry
                 'reading' => $raw === null ? null : $this->validator->classReading($raw, $path, $composer),
                 'code' => $problem === null ? $this->scan->problems($path, $composer) : [$problem],
                 'migrations' => $this->migrationNames($path),
+                'types' => $raw === null ? ['version' => null, 'problems' => []] : PluginTypesFile::inspect($path, $raw),
             ];
         } catch (Throwable $failure) {
             // A folder or file that can't be read stops this plugin, never the others, and is read again next time.
             Context::scope(fn () => report($failure), ['plugin' => $package ?? $path]);
 
-            return ['path' => $path, 'package' => $package, 'identity' => '', 'manifest' => null, 'composer' => null, 'reading' => null, 'code' => [$this->unreadable($failure)], 'migrations' => []];
+            return ['path' => $path, 'package' => $package, 'identity' => '', 'manifest' => null, 'composer' => null, 'reading' => null, 'code' => [$this->unreadable($failure)], 'migrations' => [], 'types' => ['version' => null, 'problems' => []]];
         }
     }
 
@@ -335,7 +337,7 @@ final class PluginRegistry
         }
 
         $problems = $taken === null ? $plugin->problems : [...$plugin->problems, "The plugin code \"{$plugin->code}\" is already used by {$taken->name}."];
-        $plugins[$plugin->path] = new FoundPlugin($plugin->name, $plugin->code, $plugin->path, $plugin->manifest, $problems, $plugin->migrations);
+        $plugins[$plugin->path] = new FoundPlugin($plugin->name, $plugin->code, $plugin->path, $plugin->manifest, $problems, $plugin->migrations, $plugin->typesVersion);
     }
 
     /**
@@ -370,7 +372,8 @@ final class PluginRegistry
                 || ! array_key_exists('composer', $entry) || ! (is_array($entry['composer']) || $entry['composer'] === null)
                 || ! array_key_exists('reading', $entry) || ! (is_array($entry['reading']) || $entry['reading'] === null)
                 || ! is_array($entry['code'] ?? null) || ! array_is_list($entry['code'])
-                || ! is_array($entry['migrations'] ?? null) || ! array_is_list($entry['migrations'])) {
+                || ! is_array($entry['migrations'] ?? null) || ! array_is_list($entry['migrations'])
+                || ! is_array($entry['types'] ?? null) || ! is_array($entry['types']['problems'] ?? null) || ! array_key_exists('version', $entry['types'])) {
                 return null;
             }
 
@@ -447,7 +450,7 @@ final class PluginRegistry
         $raw = $entry['manifest'];
 
         if ($raw === null) {
-            return new FoundPlugin($fallback, basename($path), $path, null, $entry['code'], $entry['migrations']);
+            return new FoundPlugin($fallback, basename($path), $path, null, $entry['code'], $entry['migrations'], $entry['types']['version']);
         }
 
         $manifest = new Manifest($raw);
@@ -457,8 +460,9 @@ final class PluginRegistry
             $manifest->code() !== '' ? $manifest->code() : basename($path),
             $path,
             $manifest,
-            [...$this->validator->errorsGiven($raw, $composer, $entry['reading']), ...$entry['code']],
+            [...$this->validator->errorsGiven($raw, $composer, $entry['reading']), ...$entry['types']['problems'], ...$entry['code']],
             $entry['migrations'],
+            $entry['types']['version'],
         );
     }
 

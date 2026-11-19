@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Models\Content;
 use App\Domain\Extensions\ExtensionAction;
 use App\Domain\Extensions\ExtensionKind;
 use App\Domain\Extensions\Operations\Input\RequestExtensionChangeInput;
@@ -197,6 +198,22 @@ it('refuses to remove an enabled plugin, and records the removal once it is disa
 
     expect(DB::table('extension_requests')->count())->toBe(1)
         ->and(PluginRecord::query()->where('name', 'acme/hello')->exists())->toBeTrue();
+});
+
+it('refuses to remove a plugin while its content types hold items, trashed ones included, saying how many and where', function (): void {
+    extFolder(['acme/hello' => ['type' => 'teme-plugin']]);
+    PluginRecord::query()->forceCreate(['name' => 'acme/hello', 'code' => 'hello', 'version' => '1.0.0', 'state' => PluginRecord::DISABLED, 'consent' => [], 'consented_at' => now()]);
+    DB::table('content_type_definitions')->insert(['key' => 'recipe', 'plugin' => 'acme/hello', 'definition' => json_encode(['key' => 'recipe', 'singular' => 'Recipe', 'plural' => 'Recipes', 'segment' => 'recipes']), 'created_at' => now(), 'updated_at' => now()]);
+    $item = Content::factory()->create(['type' => 'recipe']);
+    $item->delete();
+
+    expect(($this->ask)(ExtensionAction::Remove))->toThrow(ValidationException::class, 'acme/hello can’t be removed while its content types hold items: Recipes have 1 item at /admin/recipes, trashed ones included. Enable it, delete them and empty the trash, then disable it again.');
+    expect(DB::table('extension_requests')->count())->toBe(0);
+
+    $item->forceDelete();
+    (($this->ask)(ExtensionAction::Remove))();
+
+    expect(DB::table('extension_requests')->count())->toBe(1);
 });
 
 it('refuses to remove the theme the site is drawn with', function (): void {

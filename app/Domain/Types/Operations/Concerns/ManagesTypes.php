@@ -23,6 +23,7 @@ use App\Domain\Types\StoredTypes;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Domain\Types\TypeAccess;
 use App\Domain\Types\TypeDefinition;
+use App\Domain\Types\TypeOwners;
 use App\Domain\Types\TypePermissions;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -187,6 +188,24 @@ trait ManagesTypes
             TypePermissions::make($next->key, $grants);
         } elseif ($had && ! $has) {
             TypePermissions::remove($next->key);
+        }
+    }
+
+    /**
+     * Under the types' lock: refuses a change to a type, taxonomy or field a
+     * plugin brought, which only that plugin's updates change
+     * (docs/architecture/plugins.md, *Content types from a plugin*).
+     *
+     * @param  'types'|'taxonomies'|'fields'  $kind
+     *
+     * @throws ValidationException
+     */
+    private function refuseIfPlugins(string $kind, string $key): void
+    {
+        $plugin = TypeOwners::owner($kind, $key);
+
+        if ($plugin !== null) {
+            throw ValidationException::withMessages(['key' => __('This comes from the plugin :plugin, so only its updates change it.', ['plugin' => TypeOwners::label($plugin)])]);
         }
     }
 

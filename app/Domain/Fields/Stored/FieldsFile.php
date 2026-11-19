@@ -16,6 +16,7 @@ namespace App\Domain\Fields\Stored;
 
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\StoredTypes;
+use App\Domain\Types\TypeOwners;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -26,15 +27,21 @@ final class FieldsFile
 
     /**
      * The site's live stored fields as file entries, in type order then
-     * position. A row that doesn't read is left out; it was reported when read.
+     * position. A row that doesn't read is left out; it was reported when
+     * read. So is a field a plugin brought, which comes with the plugin.
      *
      * @return list<array<string, mixed>>
      */
     public static function export(): array
     {
         $entries = [];
+        $owned = TypeOwners::of('fields');
 
         foreach (app(StoredFields::class)->definitions() as $row) {
+            if (isset($owned[$row['key']])) {
+                continue;
+            }
+
             try {
                 $definition = FieldDefinition::fromRow($row);
             } catch (InvalidArgumentException) {

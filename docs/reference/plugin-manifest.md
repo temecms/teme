@@ -63,6 +63,7 @@
 | `hooks` | array | no | The hooks the plugin listens to, by name: a Teme hook's, or another plugin's as code:Name. |  |
 | `contributes` | object | no | What the plugin adds to the admin. |  |
 | `contributes.fixedLabel` | string | no | The label core draws on the plugin's fixed insertions; Advertisement when absent. |  |
+| `contributes.types` | string | no | The path, inside the plugin, of a teme-types file, version 1, as Settings › Types exports: the content types, taxonomies and fields the plugin brings. They work while the plugin is enabled. | ^(?:[A-Za-z0-9_][A-Za-z0-9_.-]*/)*[A-Za-z0-9_][A-Za-z0-9_.-]*\.json$ |
 | `contributes.settings` | array | no | Settings the plugin declares. |  |
 | `contributes.settings[].key` | string | yes | The setting's key. | ^[a-z][a-z0-9_]{1,40}$ |
 | `contributes.settings[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "secret", "color", "person", "term", "type", "code", "repeater" |

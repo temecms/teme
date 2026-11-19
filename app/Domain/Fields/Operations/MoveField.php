@@ -40,6 +40,8 @@ final class MoveField extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var MoveFieldInput $input */
+        $this->refuseIfPlugins('fields', $input->key);
+
         if (! app(ContentTypeRegistry::class)->has($input->type)) {
             throw ValidationException::withMessages(['type' => __('There is no type :type on this site.', ['type' => $input->type])]);
         }
@@ -54,6 +56,7 @@ final class MoveField extends BaseOperation
     {
         /** @var MoveFieldInput $input */
         StoredTypes::lock();
+        $this->refuseIfPlugins('fields', $input->key);
 
         $this->storedField($input->type, $input->key, removed: false);
 

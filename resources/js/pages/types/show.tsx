@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSectionCrumb } from '@/lib/crumbs';
@@ -89,6 +90,12 @@ export default function TypesShow(page: TypePage) {
             <div className="grid gap-4">
                 {page.mode === 'view' && <CodeNote page={page} />}
                 {page.mode === 'locked' && <LockNote />}
+                {page.mode === 'plugin' && <PluginNote page={page} />}
+                {page.nameClash !== null && (
+                    <Notice tone="warn">
+                        <p>{page.nameClash}</p>
+                    </Notice>
+                )}
                 {page.source === 'refused' && page.reason !== null && (
                     <Notice tone="danger">
                         <p>Can’t be used: {page.reason}</p>
@@ -1108,6 +1115,32 @@ function CodeNote({ page }: { page: TypePage }) {
     );
 }
 
+function PluginNote({ page }: { page: TypePage }) {
+    const plugin = page.plugin ?? '';
+
+    return (
+        <Notice tone="info">
+            <p className="flex flex-wrap items-center gap-1">
+                <PluginMark name={plugin} />
+                <span>
+                    {__(
+                        'Comes from :plugin. Its key, names, addresses and fields change with the plugin’s updates, not here.',
+                        { plugin },
+                    )}
+                </span>
+            </p>
+            {!page.pluginEnabled && (
+                <p>
+                    {__(
+                        ':plugin isn’t enabled, so :plural are hidden from the menu, the editor and the site. Their items are kept, and come back when it’s enabled again.',
+                        { plugin, plural: page.type.plural },
+                    )}
+                </p>
+            )}
+        </Notice>
+    );
+}
+
 function LockNote() {
     return (
         <Notice tone="info">
@@ -1162,6 +1195,10 @@ function headerLine(page: TypePage): string {
         page.items === 0
             ? __('No items yet.')
             : __n(':count item.|:count items.', page.items);
+
+    if (page.mode === 'plugin') {
+        return count;
+    }
 
     return `${made} ${count}`;
 }

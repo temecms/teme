@@ -42,6 +42,7 @@ use App\Domain\Site\ViewModels\ProtectedView;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Themes\ViewIntent;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
 final class PathResolver
@@ -330,6 +331,16 @@ final class PathResolver
         // Its type, and the language it is in, read together (I-3360).
         $item = $row->target_type === 'content' ? DB::table('contents')->where('id', $row->target_id)->first(['type', 'language', 'translation_group']) : null;
         $type = $item === null ? null : (string) $item->type;
+
+        // A type or taxonomy no longer registered, as a disabled plugin's, has no page (docs/architecture/plugins.md).
+        if ($type !== null && ! app(ContentTypeRegistry::class)->has($type)) {
+            return self::notFound($prefixLanguage);
+        }
+
+        if ($row->target_type === 'term' && ! app(TaxonomyRegistry::class)->has((string) DB::table('terms')->where('id', $row->target_id)->value('taxonomy'))) {
+            return self::notFound($prefixLanguage);
+        }
+
         $canonical = Pagination::urlFor(Addresses::toUrl($row->path, $type), $page);
 
         if (rawurldecode($rawPath) !== $canonical || preg_match('/%(?:3[0-9]|4[1-9a-f]|5[0-9a]|6[1-9a-f]|7[0-9a]|2d)/i', $rawPath) === 1) {

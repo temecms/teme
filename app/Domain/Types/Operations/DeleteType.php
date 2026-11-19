@@ -41,6 +41,8 @@ final class DeleteType extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var DeleteTypeInput $input */
+        $this->refuseIfPlugins('types', $input->key);
+
         $singular = $this->stored->rawSingular($input->key);
 
         if ($singular !== null) {
@@ -69,6 +71,7 @@ final class DeleteType extends BaseOperation
     {
         /** @var DeleteTypeInput $input */
         StoredTypes::lock();
+        $this->refuseIfPlugins('types', $input->key);
 
         $singular = $this->stored->rawSingular($input->key);
 

@@ -41,6 +41,8 @@ final class RemoveField extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var RemoveFieldInput $input */
+        $this->refuseIfPlugins('fields', $input->key);
+
         if (! app(ContentTypeRegistry::class)->has($input->type)) {
             throw ValidationException::withMessages(['type' => __('There is no type :type on this site.', ['type' => $input->type])]);
         }
@@ -50,6 +52,7 @@ final class RemoveField extends BaseOperation
     {
         /** @var RemoveFieldInput $input */
         StoredTypes::lock();
+        $this->refuseIfPlugins('fields', $input->key);
 
         $current = $this->storedField($input->type, $input->key, removed: false);
         $actorId = $input->actorId();

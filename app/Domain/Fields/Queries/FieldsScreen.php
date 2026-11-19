@@ -24,6 +24,7 @@ use App\Domain\Fields\Stored\StoredFields;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Queries\TypesScreen;
 use App\Domain\Types\TypeAccess;
+use App\Domain\Types\TypeOwners;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
@@ -69,6 +70,7 @@ final readonly class FieldsScreen
             ...array_map(fn (FieldDefinition $field): string => $field->key, $removed),
         ]);
         $positions = DB::table(StoredFields::TABLE)->where('content_type', $type)->pluck('position', 'key')->all();
+        $owners = TypeOwners::of('fields');
 
         return [
             'type' => [
@@ -79,7 +81,7 @@ final readonly class FieldsScreen
                 'typeUrl' => route('types.show', ['key' => $contentType->key], false),
             ],
             'locked' => TypeAccess::locked(),
-            'fields' => array_map(fn (Field $field): array => $this->row($field, $holding[$field->key] ?? 0, (int) ($positions[$field->key] ?? 0)), $live),
+            'fields' => array_map(fn (Field $field): array => $this->row($field, $holding[$field->key] ?? 0, (int) ($positions[$field->key] ?? 0), $owners[$field->key] ?? null), $live),
             'fromTeme' => $this->fromTeme($type),
             'removed' => array_map(fn (FieldDefinition $field): array => $this->removedRow($field, $holding[$field->key] ?? 0), $removed),
             'unreadable' => array_map(fn (array $row): array => [
@@ -140,7 +142,7 @@ final readonly class FieldsScreen
     /**
      * @return array<string, mixed>
      */
-    private function row(Field $field, int $holding, int $position): array
+    private function row(Field $field, int $holding, int $position, ?string $plugin): array
     {
         $definition = $this->definition($field);
 
@@ -158,6 +160,8 @@ final readonly class FieldsScreen
             'summary' => $this->summary($field->type->name(), $definition['settings']),
             'holding' => $holding,
             'position' => $position,
+            // A plugin's field changes with its updates, not here (docs/architecture/plugins.md, *Content types from a plugin*).
+            'plugin' => $plugin === null ? null : TypeOwners::label($plugin),
         ];
     }
 

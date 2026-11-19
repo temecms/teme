@@ -4,7 +4,7 @@
  * Disables an enabled plugin (I-3353, I-3445): a person who holds
  * plugins.manage, or the operator, with no password, since it takes access
  * away. Refused while an enabled plugin requires it. Keeps the row and
- * what was agreed to. After commit, cancels its
+ * what was agreed to, and the items of the types it brought. After commit, cancels its
  * waiting and running plugin jobs as the operator. Returns its name.
  *
  * @package Teme
@@ -35,6 +35,7 @@ use App\Domain\Sitemaps\Sitemaps;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Domain\Types\TypeOwners;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -111,9 +112,20 @@ final class DisablePlugin extends BaseOperation
             app(InsertionsChanged::class)->notify();
         }
 
+        // Its content types leave the menu, the editor and the site; their items stay (docs/architecture/plugins.md, *Content types from a plugin*).
+        $ownsTypes = TypeOwners::ownedBy($input->name) !== ['types' => [], 'taxonomies' => [], 'fields' => []];
+
+        if ($ownsTypes) {
+            $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, PageTags::EVERYTHING, [PageTags::EVERYTHING]));
+        }
+
         $code = $record->code;
 
-        DB::afterCommit(function () use ($code): void {
+        DB::afterCommit(function () use ($code, $ownsTypes): void {
+            if ($ownsTypes) {
+                TypeOwners::changed();
+            }
+
             $this->records->changed();
             $this->cancelPluginJobs($code);
         });

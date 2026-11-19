@@ -81,7 +81,7 @@ final class ContentTypeRegistry
 
     public function register(ContentType $type): void
     {
-        $problem = $this->problem($type);
+        $problem = $this->problem($type) ?? $this->screenNameProblem($type);
 
         if ($problem !== null) {
             throw new InvalidArgumentException($problem);
@@ -333,6 +333,22 @@ final class ContentTypeRegistry
 
             throw $failure;
         }
+    }
+
+    /**
+     * Code's listed type taking an admin screen's name as its plural: the
+     * fixed screens and code's other types, since boot reads no database.
+     */
+    private function screenNameProblem(ContentType $type): ?string
+    {
+        if (! $type->listed) {
+            return null;
+        }
+
+        $others = array_values(array_map(fn (ContentType $other): string => $other->plural, array_filter($this->declared, fn (ContentType $other): bool => $other->listed && $other->key !== $type->key)));
+        $screen = AdminScreenNames::clash($type->plural, $type->key, typePlurals: $others);
+
+        return $screen === null ? null : "Content type [{$type->key}] can't be called [{$type->plural}]: ".AdminScreenNames::sentence($screen, $type->singular, 'type');
     }
 
     /**

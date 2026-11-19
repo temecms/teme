@@ -19,6 +19,7 @@ use App\Domain\Addresses\AddressSettings;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Fields\Queries\FieldsScreen;
+use App\Domain\Types\AdminScreenNames;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Exceptions\InvalidTypeDefinition;
@@ -27,6 +28,7 @@ use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Domain\Types\TypeAccess;
 use App\Domain\Types\TypeDefinition;
+use App\Domain\Types\TypeOwners;
 use App\Domain\Types\TypePermissions;
 use App\Domain\Users\Roles;
 use Carbon\CarbonImmutable;
@@ -89,7 +91,7 @@ final readonly class TypesScreen
      * The list: code's types in registration order, then the table's rows
      * oldest first, each with its items and the address Settings keeps.
      *
-     * @return array{locked: bool, types: list<array{key: string, singular: string, plural: string, segment: string, icon: string, source: string, public: bool, pattern: ?string, items: int, trashed: int, reason: ?string, listUrl: ?string}>}
+     * @return array{locked: bool, types: list<array{key: string, singular: string, plural: string, segment: string, icon: string, source: string, public: bool, pattern: ?string, items: int, trashed: int, reason: ?string, listUrl: ?string, plugin: ?string, pluginEnabled: bool, nameClash: ?string}>}
      */
     public function list(): array
     {
@@ -101,6 +103,8 @@ final readonly class TypesScreen
             ...array_map(fn (object $row): string => (string) $row->key, $rows),
         ]);
         $refused = $types->refused();
+        $owners = TypeOwners::of('types');
+        $dormant = array_flip(TypeOwners::dormant('types'));
         $listed = [];
 
         foreach ($types->fromCode() as $type) {
@@ -108,7 +112,7 @@ final readonly class TypesScreen
         }
 
         foreach ($rows as $row) {
-            $listed[] = $this->storedRow($row, $counts[(string) $row->key] ?? ['items' => 0, 'trashed' => 0], $refused, $addresses);
+            $listed[] = $this->storedRow($row, $counts[(string) $row->key] ?? ['items' => 0, 'trashed' => 0], $refused, $addresses, $owners[(string) $row->key] ?? null, ! isset($dormant[(string) $row->key]));
         }
 
         return ['locked' => TypeAccess::locked(), 'types' => $listed];
@@ -118,7 +122,7 @@ final readonly class TypesScreen
      * One type's page, a stored row ahead of a type code declares, or null
      * when neither exists.
      *
-     * @return array{mode: string, source: ?string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: ?string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}}|null
+     * @return array{mode: string, source: ?string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: ?string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}|null
      */
     public function type(string $key): ?array
     {
@@ -140,7 +144,7 @@ final readonly class TypesScreen
     /**
      * The page for making a type, with the field's own empty values.
      *
-     * @return array{mode: string, source: null, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: null, pattern: null, permissions: string}, made: null, items: int, trashed: int, example: null, listUrl: null, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}}
+     * @return array{mode: string, source: null, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: null, pattern: null, permissions: string}, made: null, items: int, trashed: int, example: null, listUrl: null, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
     public function blank(): array
     {
@@ -172,6 +176,9 @@ final readonly class TypesScreen
             'options' => $this->options(),
             'permissions' => $this->permissions(ContentType::ACTIONS),
             'fields' => ['own' => [], 'fromTeme' => [], 'url' => null],
+            'plugin' => null,
+            'pluginEnabled' => false,
+            'nameClash' => null,
         ];
     }
 
@@ -234,7 +241,7 @@ final readonly class TypesScreen
     /**
      * @param  array{items: int, trashed: int}  $count
      *
-     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, source: string, public: bool, pattern: ?string, items: int, trashed: int, reason: ?string, listUrl: ?string}
+     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, source: string, public: bool, pattern: ?string, items: int, trashed: int, reason: ?string, listUrl: ?string, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
     private function codeRow(ContentType $type, array $count, AddressSettings $addresses): array
     {
@@ -251,6 +258,9 @@ final readonly class TypesScreen
             'trashed' => $count['trashed'],
             'reason' => null,
             'listUrl' => $type->listed ? route('content.index', ['type' => $type->segment], false) : null,
+            'plugin' => null,
+            'pluginEnabled' => false,
+            'nameClash' => null,
         ];
     }
 
@@ -258,12 +268,13 @@ final readonly class TypesScreen
      * @param  array{items: int, trashed: int}  $count
      * @param  array<string, string>  $refused
      *
-     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, source: string, public: bool, pattern: ?string, items: int, trashed: int, reason: ?string, listUrl: ?string}
+     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, source: string, public: bool, pattern: ?string, items: int, trashed: int, reason: ?string, listUrl: ?string, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
-    private function storedRow(object $row, array $count, array $refused, AddressSettings $addresses): array
+    private function storedRow(object $row, array $count, array $refused, AddressSettings $addresses, ?string $plugin, bool $pluginEnabled): array
     {
         $definition = $this->lenient($row);
         $reason = $refused[$definition->key] ?? null;
+        $source = $reason === null ? ($plugin === null ? 'stored' : 'plugin') : 'refused';
 
         return [
             'key' => $definition->key,
@@ -271,7 +282,7 @@ final readonly class TypesScreen
             'plural' => $definition->plural,
             'segment' => $definition->segment,
             'icon' => $definition->icon,
-            'source' => $reason === null ? 'stored' : 'refused',
+            'source' => $source,
             'public' => $definition->public,
             'pattern' => $reason === null
                 ? $this->livePattern($definition->key, $definition->public, $addresses)
@@ -280,11 +291,14 @@ final readonly class TypesScreen
             'trashed' => $count['trashed'],
             'reason' => $reason,
             'listUrl' => $this->registeredListUrl($definition->key, $definition->segment),
+            'plugin' => $plugin === null ? null : TypeOwners::label($plugin),
+            'pluginEnabled' => $plugin !== null && $pluginEnabled,
+            'nameClash' => $this->nameClash($definition),
         ];
     }
 
     /**
-     * @return array{mode: string, source: string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}}
+     * @return array{mode: string, source: string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
     private function storedPage(object $row): array
     {
@@ -307,13 +321,20 @@ final readonly class TypesScreen
             $reason = $refused;
         }
 
+        // A plugin's type is changed by the plugin's updates, never here (docs/architecture/plugins.md, *Content types from a plugin*).
+        $plugin = TypeOwners::owner('types', $lenient->key);
+
+        if ($plugin !== null && $source === 'stored') {
+            $source = 'plugin';
+        }
+
         $pattern = $source === 'refused'
             ? $lenient->settled()->pattern
             : $this->livePattern($lenient->key, $lenient->public, AddressSettings::current());
         $count = $this->counts([$lenient->key])[$lenient->key] ?? ['items' => 0, 'trashed' => 0];
 
         return [
-            'mode' => TypeAccess::locked() ? 'locked' : 'edit',
+            'mode' => $plugin !== null ? 'plugin' : (TypeAccess::locked() ? 'locked' : 'edit'),
             'source' => $source,
             'reason' => $reason,
             'type' => $this->values($lenient, $pattern),
@@ -327,11 +348,14 @@ final readonly class TypesScreen
                 ? TypePermissions::names($lenient->key)
                 : ContentType::ACTIONS),
             'fields' => $this->fields($lenient->key),
+            'plugin' => $plugin === null ? null : TypeOwners::label($plugin),
+            'pluginEnabled' => $plugin !== null && ! in_array($lenient->key, TypeOwners::dormant('types'), true),
+            'nameClash' => $this->nameClash($lenient),
         ];
     }
 
     /**
-     * @return array{mode: string, source: string, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: null, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}}
+     * @return array{mode: string, source: string, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: null, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
     private function codePage(ContentType $type): array
     {
@@ -370,6 +394,9 @@ final readonly class TypesScreen
             'options' => $this->options(),
             'permissions' => $this->permissions($abilities),
             'fields' => $this->fields($type->key),
+            'plugin' => null,
+            'pluginEnabled' => false,
+            'nameClash' => null,
         ];
     }
 
@@ -444,6 +471,17 @@ final readonly class TypesScreen
         }
 
         return ['roles' => $roles, 'actions' => $actions, 'holds' => $holds];
+    }
+
+    /**
+     * The warning a stored type gets whose plural an admin screen has: it
+     * keeps working, and is asked to take another.
+     */
+    private function nameClash(TypeDefinition $definition): ?string
+    {
+        $screen = AdminScreenNames::clash($definition->plural, $definition->key);
+
+        return $screen === null ? null : AdminScreenNames::sentence($screen, $definition->singular, __('type'));
     }
 
     private function lenient(object $row): TypeDefinition
