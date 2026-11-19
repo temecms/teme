@@ -53,7 +53,7 @@ it('finds nothing in a group the person may not change, and finds a group\'s set
     // The comments switch is the modules group's, changed on Discussion's screen.
     $this->actingAs($this->admin)->getJson('/admin/search/settings?q='.urlencode('comments leaves the menu'))
         ->assertOk()
-        ->assertJsonFragment(['key' => 'modules.comments', 'label' => 'Comments', 'screen' => 'Discussion', 'href' => route('settings.show', ['group' => 'discussion'], false).'#field-comments']);
+        ->assertJsonFragment(['key' => 'modules.comments', 'label' => 'Comments on this site', 'screen' => 'Discussion', 'href' => route('settings.show', ['group' => 'discussion'], false).'#field-comments']);
 
     // Discussion's screen is theirs, the modules group isn't.
     $moderator = User::factory()->create();

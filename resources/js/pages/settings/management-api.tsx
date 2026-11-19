@@ -1,5 +1,4 @@
-import { Form, Head, router, setLayoutProps } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import ManagementApiController from '@/actions/App/Http/Admin/Settings/ManagementApiController';
@@ -29,11 +28,13 @@ import { Notice } from '@/components/ui/notice';
 import { SelectField } from '@/components/ui/select-field';
 import { StatusPill } from '@/components/ui/status-pill';
 import { Switch } from '@/components/ui/switch';
+import SearchAndSocialController from '@/actions/App/Http/Admin/Settings/SearchAndSocialController';
 import { __ } from '@/lib/i18n';
+import { index as settingsIndex } from '@/routes/settings';
 import type { FieldDefinition } from '@/types';
 import { formatDate } from '@/lib/dates';
 
-/** One key as the list shows it: never its secret, only its start. */
+/** One token as the list shows it: never its secret, only its start. */
 type ApiKeyRow = {
     id: string;
     name: string;
@@ -71,7 +72,7 @@ function firstError(
     return errors?.[key]?.[0];
 }
 
-/** A key's state in a word: live, revoked or expired. */
+/** A token's state in a word: live, revoked or expired. */
 function KeyState({ row }: { row: ApiKeyRow }) {
     if (row.revokedAt !== null) {
         return <StatusPill tone="neutral">{__('Revoked')}</StatusPill>;
@@ -84,7 +85,7 @@ function KeyState({ row }: { row: ApiKeyRow }) {
     return <StatusPill tone="ok">{__('Active')}</StatusPill>;
 }
 
-/** One key in the list, with Revoke while it still signs in. */
+/** One token in the list, with Revoke while it still signs in. */
 function KeyRow({ row, abilities }: { row: ApiKeyRow; abilities: Option[] }) {
     const named = row.abilities.map(
         (value) =>
@@ -115,9 +116,9 @@ function KeyRow({ row, abilities }: { row: ApiKeyRow; abilities: Option[] }) {
                                     name: row.name,
                                 })}
                                 description={__(
-                                    'Tools using this key are refused from now on. This can’t be undone; make a new key instead.',
+                                    'Tools using this token are refused from now on. This can’t be undone; make a new token instead.',
                                 )}
-                                confirmLabel={__('Revoke key')}
+                                confirmLabel={__('Revoke token')}
                             >
                                 <Button
                                     type="submit"
@@ -180,7 +181,7 @@ function KeyRow({ row, abilities }: { row: ApiKeyRow; abilities: Option[] }) {
 }
 
 /**
- * Create a key: name, person, abilities and an optional expiry, then the
+ * Create a token: name, person, abilities and an optional expiry, then the
  * secret shown once with Copy. The secret comes back as JSON and is never
  * kept in the page's props or the session; a lapsed password is asked for
  * in the dialog, so what was typed stays.
@@ -264,7 +265,7 @@ function CreateKeyDialog({
                 );
             } else {
                 setErrors({
-                    name: __('The key could not be made. Try again.'),
+                    name: __('The token could not be made. Try again.'),
                 });
             }
         } finally {
@@ -283,13 +284,13 @@ function CreateKeyDialog({
                 <DialogHeader>
                     <DialogTitle>
                         {secret === null
-                            ? __('Create a key')
-                            : __('Your new key')}
+                            ? __('Create a token')
+                            : __('Your new token')}
                     </DialogTitle>
                     <DialogDescription>
                         {secret === null
                             ? __(
-                                  'A key acts as one person, with only the abilities you tick. What that person may do still decides what the key may do.',
+                                  'A token acts as one person, with only the abilities you tick. What that person may do still decides what the token may do.',
                               )
                             : __(
                                   'Copy it now and keep it somewhere safe. You won’t see this again.',
@@ -303,7 +304,7 @@ function CreateKeyDialog({
                             <Input
                                 readOnly
                                 value={secret}
-                                aria-label={__('The new key')}
+                                aria-label={__('The new token')}
                                 data-test="api-key-secret"
                                 onFocus={(event) => event.target.select()}
                             />
@@ -402,7 +403,7 @@ function CreateKeyDialog({
                             htmlFor="api-key-expires"
                             label={__('Expires on')}
                             help={__(
-                                'Leave empty for a key that never expires.',
+                                'Leave empty for a token that never expires.',
                             )}
                             error={errors.expires_at}
                         >
@@ -436,7 +437,7 @@ function CreateKeyDialog({
                                     loading={busy}
                                     data-test="api-key-create"
                                 >
-                                    {__('Create key')}
+                                    {__('Create token')}
                                 </Button>
                             </DialogFooter>
                         )}
@@ -449,9 +450,9 @@ function CreateKeyDialog({
 
 /**
  * Settings › Management API (docs/proposals/management-api.md): the switch
- * at the top, acting at once (I-485); the limit per key, saved by the save
- * bar; then the keys, each made in a dialog that shows its secret once, and
- * revoked after asking.
+ * at the top, acting at once (I-485); the tokens, each made in a dialog
+ * that shows its secret once, and revoked after asking; how a program uses
+ * one; and the limit per token, saved by the save bar.
  */
 export default function ManagementApiSettings(props: ManagementApiPageProps) {
     const [switching, setSwitching] = useState(false);
@@ -461,6 +462,7 @@ export default function ManagementApiSettings(props: ManagementApiPageProps) {
 
     setLayoutProps({
         breadcrumbs: [
+            { title: __('Settings'), href: settingsIndex() },
             {
                 title: __('Management API'),
                 href: ManagementApiController.show.url(),
@@ -493,77 +495,66 @@ export default function ManagementApiSettings(props: ManagementApiPageProps) {
                 title={__('Management API')}
                 description={props.description}
             >
-                <SettingsPanel
-                    as="section"
-                    id="management-api-switch"
-                    title={__('Management API on this site')}
-                    description={__(
-                        'Tools sign in at :address with a key from the list below.',
-                        { address: props.endpoint },
-                    )}
-                    className="mb-4"
-                >
-                    <div className="grid gap-1">
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                id="field-management-api"
-                                checked={on}
-                                disabled={switching}
-                                onCheckedChange={flip}
-                                aria-describedby="field-management-api-hint field-management-api-error"
-                                data-test="management-api-switch"
-                            />
-                            <Label
-                                htmlFor="field-management-api"
-                                className="text-body text-ink"
-                            >
-                                {props.switch.label}
-                            </Label>
-                        </div>
-                        <p
-                            id="field-management-api-hint"
-                            className="text-caption text-ink-3"
-                        >
-                            {props.switch.description}
-                        </p>
-                        <InputError
-                            id="field-management-api-error"
-                            className="text-small"
-                            message={switchError}
-                        />
-                    </div>
-                </SettingsPanel>
-
-                {!on && (
-                    <Notice tone="info" className="mb-4">
-                        {__(
-                            'The management API is off, so every key is refused. Keys you make now work once it’s on.',
-                        )}
-                    </Notice>
-                )}
-
                 <div className="grid gap-4">
                     <SettingsPanel
                         as="section"
-                        id="management-api-keys"
-                        title={__('Keys')}
+                        id="management-api-switch"
+                        title={__('Management API on this site')}
                         description={__(
-                            'Each key is shown once, when it’s made. Revoke a key that’s lost or no longer used.',
+                            'Tools sign in at :address with a token from the list below.',
+                            { address: props.endpoint },
                         )}
                     >
-                        <div>
-                            <Button
-                                type="button"
-                                data-test="api-key-add"
-                                onClick={() => setCreating(true)}
+                        <div className="grid gap-1">
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id="field-management-api"
+                                    checked={on}
+                                    disabled={switching}
+                                    onCheckedChange={flip}
+                                    aria-describedby="field-management-api-hint field-management-api-error"
+                                    data-test="management-api-switch"
+                                />
+                                <Label
+                                    htmlFor="field-management-api"
+                                    className="text-body text-ink"
+                                >
+                                    {props.switch.label}
+                                </Label>
+                            </div>
+                            <p
+                                id="field-management-api-hint"
+                                className="text-caption text-ink-3"
                             >
-                                <Plus aria-hidden="true" />
-                                {__('Create a key')}
-                            </Button>
+                                {props.switch.description}
+                            </p>
+                            <InputError
+                                id="field-management-api-error"
+                                className="text-small"
+                                message={switchError}
+                            />
                         </div>
+                    </SettingsPanel>
+
+                    {!on && (
+                        <Notice tone="info">
+                            {__(
+                                'The management API is off, so every token is refused. Tokens you make now work once it’s on.',
+                            )}
+                        </Notice>
+                    )}
+
+                    <SettingsPanel
+                        as="section"
+                        id="management-api-keys"
+                        title={__('Tokens')}
+                        description={__(
+                            'A token lets a program act on the site without signing in as a person. Each is shown once, when you make it.',
+                        )}
+                    >
                         {props.keys.length === 0 ? (
                             <p className="text-body text-ink-2">
-                                {__('No keys yet.')}
+                                {__('No tokens yet.')}
                             </p>
                         ) : (
                             <ul data-test="api-keys">
@@ -576,11 +567,46 @@ export default function ManagementApiSettings(props: ManagementApiPageProps) {
                                 ))}
                             </ul>
                         )}
+                        <div>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                data-test="api-key-add"
+                                onClick={() => setCreating(true)}
+                            >
+                                {__('Create a token')}
+                            </Button>
+                        </div>
+                    </SettingsPanel>
+
+                    <SettingsPanel
+                        as="section"
+                        title={__('Using a token')}
+                        description={__('Programs send it with every request.')}
+                    >
+                        <pre
+                            tabIndex={0}
+                            aria-label={__('Example header')}
+                            className="bg-surface-3 text-small text-ink rounded-md p-3 font-mono break-words whitespace-pre-wrap"
+                        >
+                            {__('Authorization: Bearer tm_…your token…')}
+                        </pre>
+                        <p className="text-caption text-ink-3">
+                            {__(
+                                'The public read API, which needs no token, is switched on in',
+                            )}{' '}
+                            <Link
+                                href={SearchAndSocialController.show.url()}
+                                className="text-accent-ink underline"
+                            >
+                                {__('Search and social')}
+                            </Link>
+                            .
+                        </p>
                     </SettingsPanel>
 
                     <SettingsForm
                         action={ManagementApiController.update.form()}
-                        saveLabel={__('Save the limit')}
                         saveTestId="management-api-save"
                         what={__(':page settings', {
                             page: __('Management API'),

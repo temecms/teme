@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
 import { Switch } from '@/components/ui/switch';
 import { __ } from '@/lib/i18n';
+import { index as settingsIndex } from '@/routes/settings';
 import type { DiscussionSettingsPage } from '@/types';
 
 /**
@@ -33,6 +34,7 @@ export default function DiscussionSettings({
 
     setLayoutProps({
         breadcrumbs: [
+            { title: __('Settings'), href: settingsIndex() },
             {
                 title: __('Discussion'),
                 href: DiscussionSettingsController.show.url(),
@@ -59,15 +61,16 @@ export default function DiscussionSettings({
 
     return (
         <>
-            <Head title="Discussion settings" />
+            <Head title={__('Discussion settings')} />
 
-            <SettingsPage title="Discussion" description={description}>
+            <SettingsPage title={__('Discussion')} description={description}>
                 <SettingsPanel
                     as="section"
                     id="comments-switch"
-                    title="Comments on this site"
-                    description="Comments are an optional part of Teme, switched on or off for the whole site."
-                    className="mb-4"
+                    title={__('Comments on this site')}
+                    description={__(
+                        'The page stays when comments are off, because it holds the switch.',
+                    )}
                 >
                     <div className="grid gap-1">
                         <div className="flex items-center gap-2">
@@ -97,8 +100,9 @@ export default function DiscussionSettings({
                                         aria-hidden="true"
                                         className="size-4"
                                     />
-                                    Only administrators can switch comments on
-                                    or off.
+                                    {__(
+                                        'Only administrators can switch comments on or off.',
+                                    )}
                                 </>
                             ) : unsaved ? (
                                 __('Save or discard the changes below first.')
@@ -116,16 +120,15 @@ export default function DiscussionSettings({
 
                 {comments.value === 'off' && (
                     <Notice tone="info">
-                        Comments are off, so the settings for them are hidden.
-                        They’re kept, unchanged, for when comments are switched
-                        back on.
+                        {__(
+                            'Comments are off, so the settings for them are hidden. They’re kept, unchanged, for when comments are switched back on.',
+                        )}
                     </Notice>
                 )}
 
                 {fieldsets.length > 0 && (
                     <SettingsForm
                         action={DiscussionSettingsController.update.form()}
-                        saveLabel={__('Save discussion settings')}
                         what={__(':page settings', {
                             page: __('Discussion'),
                         })}
@@ -151,7 +154,11 @@ export default function DiscussionSettings({
                                     <SettingsPanel
                                         key={fieldset.legend}
                                         title={fieldset.legend}
-                                        description={fieldset.description}
+                                        description={
+                                            fieldset.description !== ''
+                                                ? fieldset.description
+                                                : undefined
+                                        }
                                     >
                                         {fieldset.info !== null && (
                                             <div className="grid gap-1">

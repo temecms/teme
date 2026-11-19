@@ -41,11 +41,11 @@ beforeEach(function (): void {
 
 afterEach(fn () => cacheOff($this->folder));
 
-it('registers The 404 log at 800, its size and its ignore list starting from the log\'s own defaults (I-874)', function (): void {
+it('registers Addresses with nothing at them at 800, its size and its ignore list starting from the log\'s own defaults (I-874)', function (): void {
     $sections = array_map(fn (SearchAndSocialSection $section): array => [$section->order(), $section->key(), $section->label()], SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS)));
     $group = app(SettingsRegistry::class)->find('seo');
 
-    expect($sections)->toContain([800, 'not-found-log', 'The 404 log'])
+    expect($sections)->toContain([800, 'not-found-log', 'Addresses with nothing at them'])
         ->and($group?->setting(NotFoundLogSection::SIZE)?->label)->toBe('Addresses the 404 log keeps')
         ->and($group?->setting(NotFoundLogSection::SIZE)?->description)->toBe('When the log is full, the address seen least recently makes room. From 1,000 to 100,000.')
         ->and([$group?->setting(NotFoundLogSection::SIZE)?->min, $group?->setting(NotFoundLogSection::SIZE)?->max])->toBe([1000, 100000])

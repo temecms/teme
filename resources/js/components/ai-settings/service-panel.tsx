@@ -1,20 +1,25 @@
-import { KeyRound } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import CheckAiKeyController from '@/actions/App/Http/Admin/Settings/CheckAiKeyController';
 import { post } from '@/components/editor/editor-http';
 import { SettingsField } from '@/components/fields/settings-field';
 import InputError from '@/components/input-error';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { StatusPill } from '@/components/ui/status-pill';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { __ } from '@/lib/i18n';
 import type { CardMedia, SecretStatus } from '@/types';
-import type { AiServiceBlock } from '@/types/ai-settings';
+import type { AiKeyState, AiServiceBlock } from '@/types/ai-settings';
 
 /** What the key waits for: nothing, a new key typed in, or removal on save. */
 type KeyMode = 'idle' | 'replacing' | 'removing';
-
-const CHECK_FAILED = 'Check key couldn’t run just now. Try again in a minute.';
 
 type Props = {
     service: AiServiceBlock;
@@ -24,19 +29,37 @@ type Props = {
     errors: Record<string, string>;
 };
 
+/** A key's state as a pill: saved here, set by the server, or not set. */
+function KeyStatePill({
+    state,
+    serviceKey,
+}: {
+    state: AiKeyState;
+    serviceKey: string;
+}) {
+    const tone =
+        state === 'set' ? 'ok' : state === 'set-by-server' ? 'info' : 'warn';
+    const words =
+        state === 'set'
+            ? __('Saved')
+            : state === 'set-by-server'
+              ? __('Set by the server')
+              : __('Not set');
+
+    return (
+        <StatusPill tone={tone} data-test={`ai-key-state-${serviceKey}`}>
+            {words}
+        </StatusPill>
+    );
+}
+
 /**
- * One AI service on Settings › AI (I-1308): where its text goes, its key's
- * state and never its key, the key's controls, Check key, and the model an
- * administrator adds. A new key is a password field inside the page's form,
- * sent only with Save; removal is a hidden field, until Keep key.
+ * One AI service's panel on Settings › AI (I-1308): its key's row (the
+ * state and never the key, Check key, and Add or Replace key), and the
+ * model an administrator adds. A new key is a password field inside the
+ * page's form, sent only with Save; removal is a hidden field, until Keep key.
  */
-export function ServicePanel({
-    service,
-    values,
-    secrets,
-    media,
-    errors,
-}: Props) {
+function ServicePanel({ service, values, secrets, media, errors }: Props) {
     const { key, label, keyField, state } = service;
     const [mode, setMode] = useState<KeyMode>('idle');
     const [checking, setChecking] = useState(false);
@@ -50,6 +73,10 @@ export function ServicePanel({
     }, [mode]);
 
     const runCheck = async () => {
+        const failed = __(
+            'Check key couldn’t run just now. Try again in a minute.',
+        );
+
         setChecking(true);
         setCheck('');
 
@@ -62,10 +89,10 @@ export function ServicePanel({
             setCheck(
                 answer.status < 400 && typeof sentence === 'string'
                     ? sentence
-                    : CHECK_FAILED,
+                    : failed,
             );
         } catch {
-            setCheck(CHECK_FAILED);
+            setCheck(failed);
         } finally {
             setChecking(false);
         }
@@ -79,24 +106,7 @@ export function ServicePanel({
     );
 
     return (
-        <section
-            aria-labelledby={`ai-service-${key}-heading`}
-            data-test={`ai-service-${key}`}
-            className="border-line grid gap-3 border-t pt-4"
-        >
-            <div className="grid gap-1">
-                <h3
-                    id={`ai-service-${key}-heading`}
-                    className="text-body font-medium"
-                >
-                    {label}
-                </h3>
-                <p className="text-small text-ink-2">
-                    Text you ask AI about is sent to {label} when a task uses
-                    one of its models.
-                </p>
-            </div>
-
+        <div className="grid gap-4" data-test={`ai-service-${key}`}>
             <div
                 role="group"
                 aria-labelledby={`ai-key-label-${key}`}
@@ -107,79 +117,80 @@ export function ServicePanel({
                         id={`ai-key-label-${key}`}
                         className="text-small font-medium"
                     >
-                        API key
+                        {__(':service key', { service: label })}
                     </span>
-                    <Badge variant="outline" data-test={`ai-key-state-${key}`}>
-                        <KeyRound aria-hidden="true" />
-                        {service.stateLabel}
-                    </Badge>
+                    <KeyStatePill state={state} serviceKey={key} />
+                    <span className="grow" />
+                    {mode === 'idle' && state !== 'not-set' && (
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            aria-label={
+                                checking
+                                    ? __('Checking key for :service', {
+                                          service: label,
+                                      })
+                                    : __('Check key for :service', {
+                                          service: label,
+                                      })
+                            }
+                            data-test={`ai-key-check-${key}`}
+                            disabled={checking}
+                            onClick={() => void runCheck()}
+                        >
+                            {checking ? __('Checking…') : __('Check key')}
+                        </Button>
+                    )}
                     {mode === 'idle' && state === 'not-set' && (
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
-                            aria-label={`Set key for ${label}`}
+                            aria-label={__('Add key for :service', {
+                                service: label,
+                            })}
                             data-test={`ai-key-set-${key}`}
                             onClick={() => setMode('replacing')}
                         >
-                            Set key
+                            {__('Add key')}
                         </Button>
                     )}
                     {mode === 'idle' && state === 'set' && (
                         <>
                             <Button
                                 type="button"
-                                variant="outline"
+                                variant="secondary"
                                 size="sm"
-                                aria-label={`Replace key for ${label}`}
+                                aria-label={__('Replace key for :service', {
+                                    service: label,
+                                })}
                                 data-test={`ai-key-replace-${key}`}
                                 onClick={() => setMode('replacing')}
                             >
-                                Replace key
+                                {__('Replace key')}
                             </Button>
                             <Button
                                 type="button"
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                aria-label={`Remove key for ${label}`}
+                                aria-label={__('Remove key for :service', {
+                                    service: label,
+                                })}
                                 data-test={`ai-key-remove-${key}`}
                                 onClick={() => setMode('removing')}
                             >
-                                Remove key
+                                {__('Remove key')}
                             </Button>
                         </>
                     )}
-                    {mode === 'idle' && state !== 'not-set' && (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            aria-label={
-                                checking
-                                    ? `Checking key for ${label}`
-                                    : `Check key for ${label}`
-                            }
-                            data-test={`ai-key-check-${key}`}
-                            disabled={checking}
-                            onClick={() => void runCheck()}
-                        >
-                            {checking ? 'Checking…' : 'Check key'}
-                        </Button>
-                    )}
                 </div>
-
-                {state === 'set-by-server' && (
-                    <p className="text-small">
-                        Your host set this key on the server, so it can’t be
-                        changed or removed here.
-                    </p>
-                )}
 
                 {mode === 'replacing' && (
                     <div className="flex flex-wrap items-end gap-2">
                         <div className="grid min-w-64 flex-1 gap-1">
                             <Label htmlFor={`ai-key-${key}`}>
-                                New {label} API key
+                                {__('New :service key', { service: label })}
                             </Label>
                             <Input
                                 ref={field}
@@ -196,11 +207,13 @@ export function ServicePanel({
                             type="button"
                             variant="ghost"
                             size="sm"
-                            aria-label={`Cancel new ${label} key`}
+                            aria-label={__('Cancel new :service key', {
+                                service: label,
+                            })}
                             data-test={`ai-key-cancel-${key}`}
                             onClick={() => setMode('idle')}
                         >
-                            Cancel
+                            {__('Cancel')}
                         </Button>
                     </div>
                 )}
@@ -213,26 +226,43 @@ export function ServicePanel({
                             value={keyField}
                         />
                         <p className="text-small">
-                            The key will be removed when you save. {label}’s
-                            models stop working until it has a key again.
+                            {__(
+                                'The key will be removed when you save. :service’s models stop working until it has a key again.',
+                                { service: label },
+                            )}
                         </p>
                         <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            aria-label={`Keep key for ${label}`}
+                            aria-label={__('Keep key for :service', {
+                                service: label,
+                            })}
                             data-test={`ai-key-keep-${key}`}
                             onClick={() => setMode('idle')}
                         >
-                            Keep key
+                            {__('Keep key')}
                         </Button>
                     </div>
                 )}
 
-                <p id={`ai-key-hint-${key}`} className="text-small text-ink-2">
-                    Teme keeps keys encrypted and never shows them again, here
-                    or anywhere else.
+                <p
+                    id={`ai-key-hint-${key}`}
+                    className="text-caption text-ink-3"
+                >
+                    {__(
+                        'Text you ask AI about is sent to :service. The key is kept encrypted and never shown again.',
+                        { service: label },
+                    )}
                 </p>
+                {state === 'set-by-server' && (
+                    <p className="text-caption text-ink-3">
+                        {__(
+                            'Locked by the server’s configuration: the key is supplied as :variable, so it can’t be changed here.',
+                            { variable: service.variable },
+                        )}
+                    </p>
+                )}
                 <InputError
                     id={`ai-key-error-${key}`}
                     message={errors[`secrets.${keyField}`]}
@@ -247,27 +277,82 @@ export function ServicePanel({
                 </p>
             </div>
 
-            <details
-                open={named}
+            <Collapsible
+                defaultOpen={named}
                 data-test={`ai-other-model-${key}`}
-                className="grid gap-3"
+                className="border-line rounded-md border"
             >
-                <summary className="text-small cursor-pointer py-1 font-medium">
-                    Another {label} model
-                </summary>
-                <div className="mt-3 grid gap-4">
-                    {service.fields.map((item) => (
-                        <SettingsField
-                            key={item.key}
-                            field={item}
-                            value={values[item.key]}
-                            secret={secrets[item.key]}
-                            media={media[item.key] ?? null}
-                            error={errors[`values.${item.key}`]}
-                        />
-                    ))}
-                </div>
-            </details>
-        </section>
+                <CollapsibleTrigger className="text-small group focus-visible:outline-ring flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-start font-medium outline-none focus-visible:outline-2 focus-visible:outline-offset-2">
+                    <ChevronDown
+                        aria-hidden="true"
+                        className="size-4 shrink-0 transition-transform group-data-[state=open]:rotate-180"
+                    />
+                    {__('A model Teme’s list doesn’t have yet')}
+                </CollapsibleTrigger>
+                {/* Kept mounted, so what is typed in a closed section still goes with Save. */}
+                <CollapsibleContent forceMount>
+                    <div className="border-line grid gap-4 border-t p-3 in-data-[state=closed]:hidden">
+                        {service.fields.map((item) => (
+                            <SettingsField
+                                key={item.key}
+                                field={item}
+                                value={values[item.key]}
+                                secret={secrets[item.key]}
+                                media={media[item.key] ?? null}
+                                error={errors[`values.${item.key}`]}
+                            />
+                        ))}
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
+        </div>
+    );
+}
+
+/**
+ * The AI services as tabs, one key row at a time (I-1308). Every panel stays
+ * mounted, so a key typed under one tab is still sent when another is open.
+ */
+export function ServiceTabs({
+    services,
+    values,
+    secrets,
+    media,
+    errors,
+}: {
+    services: AiServiceBlock[];
+    values: Record<string, unknown>;
+    secrets: Record<string, SecretStatus>;
+    media: Record<string, CardMedia | null>;
+    errors: Record<string, string>;
+}) {
+    const first = services[0]?.key ?? '';
+
+    return (
+        <Tabs defaultValue={first} data-test="ai-services">
+            <TabsList aria-label={__('AI services')} className="flex-wrap">
+                {services.map((service) => (
+                    <TabsTrigger key={service.key} value={service.key}>
+                        {service.label}
+                    </TabsTrigger>
+                ))}
+            </TabsList>
+            {services.map((service) => (
+                <TabsContent
+                    key={service.key}
+                    value={service.key}
+                    forceMount
+                    className="data-[state=inactive]:hidden"
+                >
+                    <ServicePanel
+                        service={service}
+                        values={values}
+                        secrets={secrets}
+                        media={media}
+                        errors={errors}
+                    />
+                </TabsContent>
+            ))}
+        </Tabs>
     );
 }

@@ -74,14 +74,14 @@ it('makes a group with a secret sensitive, so changing it asks for the password'
     $this->assertDatabaseMissing('settings', ['group_key' => 'plugin.example-sync']);
 });
 
-it('files the group under Plugin settings and draws it with the settings form', function (): void {
+it('files the group under From plugins and draws it with the settings form', function (): void {
     app(SettingsRegistry::class)->group(DeclaredSettings::group('example-sync', 'Example sync', 'Tells your keyword workspace what you publish.', '1.2.0', exampleSettings()), 'acme/x');
     $admin = User::factory()->create()->assignRole('administrator');
     $editor = User::factory()->create()->assignRole('editor');
 
     $listed = collect(app(SettingsNavigation::class)->forUser($admin->id))->firstWhere('key', 'plugin.example-sync');
 
-    expect($listed)->toBe(['key' => 'plugin.example-sync', 'label' => 'Example sync', 'href' => '/admin/settings/plugin.example-sync', 'heading' => 'Plugin settings'])
+    expect($listed)->toBe(['key' => 'plugin.example-sync', 'label' => 'Example sync', 'href' => '/admin/settings/plugin.example-sync', 'heading' => 'From plugins', 'plugin' => true])
         ->and(array_column(app(SettingsNavigation::class)->forUser($editor->id), 'key'))->not->toContain('plugin.example-sync');
 
     $this->actingAs($admin)->get('/admin/settings/plugin.example-sync')->assertOk()

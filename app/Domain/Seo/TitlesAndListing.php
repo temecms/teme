@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Search and social's section "Titles, and what search engines may list"
+ * Search and social's section "Titles in search results", which holds the hide settings too, drawn under "What search engines may list"
  * (docs/studies/seo.md §3.14): the title separator, and a title template and
  * hide box for each public content type and taxonomy, each type's archive
  * page, and each kind of archive, made from the registries, so a type registered later gets its own
@@ -51,13 +51,12 @@ final class TitlesAndListing implements SearchAndSocialSection, SettingsCheck
 
     public function label(): string
     {
-        return 'Titles, and what search engines may list';
+        return 'Titles in search results';
     }
 
     public function settings(): array
     {
         $since = '0.1.0';
-        $template = 'The title search results and browser tabs show for each one, made from tokens such as {title}, {sep} and {site}. An item’s own SEO title takes its place, word for word.';
         $settings = [Setting::text('title_separator', 'Separator', 'Goes between the parts of every title. Empty uses the one the active theme suggests.', $since)->maxLength(5)];
 
         foreach (app(ContentTypeRegistry::class)->all() as $type) {
@@ -66,8 +65,10 @@ final class TitlesAndListing implements SearchAndSocialSection, SettingsCheck
             }
 
             $plural = mb_strtolower($type->plural);
+            $singular = mb_strtolower($type->singular);
+            $template = "The title search results and browser tabs show for each {$singular}, made from tokens such as {title}, {sep} and {site}. A {$singular}’s own SEO title takes its place, word for word.";
             $settings[] = Setting::text("title_type_{$type->key}", "Title template for {$plural}", $template, $since)->default(self::ITEM)->maxLength(200);
-            $settings[] = Setting::boolean("hide_type_{$type->key}", "Hide {$plural} from search engines", 'Marks every one noindex, so search engines leave them out. One item can also be hidden on its own, in the editor.', $since);
+            $settings[] = Setting::boolean("hide_type_{$type->key}", "Hide {$plural} from search engines", "Marks every {$singular} noindex, so search engines leave them out. One {$singular} can also be hidden on its own, in the editor.", $since);
         }
 
         $settings[] = Setting::text('title_home', 'Title template for the home page', 'The title of the site’s address. {page} gives “Page 2 of 7” from the second page on, and empty tokens and doubled separators are dropped.', $since)->default(self::HOME)->maxLength(200);

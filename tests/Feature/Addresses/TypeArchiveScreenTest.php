@@ -56,3 +56,8 @@ it('names the archive page that had an address first when two types’ archive p
             ->where('archives.0.key', 'photo')->where('archives.0.base', 'media')->where('archives.0.holder', null)
             ->where('archives.1.key', 'video')->where('archives.1.base', 'media')->where('archives.1.holder', 'the archive page "Photos"'));
 });
+
+it('gives the site’s own address for the previews, with no trailing slash', function (): void {
+    $this->actingAs($this->admin)->get('/admin/settings/addresses')
+        ->assertInertia(fn (Assert $page) => $page->where('site', rtrim(url('/'), '/')));
+});

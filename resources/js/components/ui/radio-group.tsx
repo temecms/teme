@@ -79,4 +79,54 @@ function RadioGroupChoice({
   )
 }
 
-export { RadioGroup, RadioGroupChoice, RadioGroupItem }
+/**
+ * A choice drawn as a card (the approved design's option cards: Home page
+ * shows, Address shape): the radio, the label, and a line under it, the
+ * whole card clickable and the chosen one tinted. `mono` sets the line in
+ * the code face, as for an address pattern.
+ */
+function RadioGroupCard({
+  id,
+  label,
+  description,
+  mono = false,
+  className,
+  ...props
+}: React.ComponentProps<typeof RadioGroupPrimitive.Item> & {
+  id: string
+  label: React.ReactNode
+  description?: React.ReactNode
+  mono?: boolean
+}) {
+  return (
+    <label
+      htmlFor={id}
+      data-slot="radio-group-card"
+      className={cn(
+        "flex cursor-pointer items-start gap-3 rounded-md p-3 inset-ring inset-ring-edge transition-[background-color] duration-(--dur-1) ease-(--ease) has-data-[state=checked]:bg-accent-soft has-data-[state=checked]:inset-ring-accent has-disabled:cursor-not-allowed has-disabled:opacity-55",
+        className
+      )}
+    >
+      <span className="flex h-lh items-center text-body">
+        <RadioGroupItem
+          id={id}
+          aria-describedby={description ? `${id}-description` : undefined}
+          {...props}
+        />
+      </span>
+      <span className="grid min-w-0">
+        <span className="text-body font-medium text-ink">{label}</span>
+        {description ? (
+          <span
+            id={`${id}-description`}
+            className={cn("text-small text-ink-3", mono && "font-mono")}
+          >
+            {description}
+          </span>
+        ) : null}
+      </span>
+    </label>
+  )
+}
+
+export { RadioGroup, RadioGroupCard, RadioGroupChoice, RadioGroupItem }

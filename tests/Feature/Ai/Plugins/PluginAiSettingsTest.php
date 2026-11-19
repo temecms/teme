@@ -54,6 +54,7 @@ it('gives the Plugins section each plugin’s tasks, models, switch, budget, lim
             'on' => true,
             'budgetMicrounits' => null,
             'hourly' => 120,
+            'requestsThisHour' => 1,
             'month' => ['costMicrounits' => 1_100, 'requests' => 1, 'unpricedRequests' => 0],
         ])
         ->and(array_map(fn (array $task): array => [$task['key'], $task['modelField'], $task['sends'], $task['on'], $task['status']], $plugin['tasks']))->toBe([

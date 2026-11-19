@@ -73,7 +73,7 @@ it('previews a theme from its row, focusing the panel, with no foot bar, and sto
         ->assertScript("document.querySelector('[aria-label=\"Unpublished design changes\"]') === null")
         ->click('[data-test="theme-default"] [data-test="theme-settings-link"]');
 
-    cmWaitUntil($page, "location.pathname === '/admin/themes/default/settings' && document.querySelector('#design-show_author_box') !== null");
+    cmWaitUntil($page, "location.hash === '#theme-settings' && document.querySelector('#theme-settings #design-show_author_box') !== null");
 
     // A change to the previewed theme's settings, waiting for its save, then Stop at once.
     $page->click('#design-show_author_box')
@@ -142,7 +142,7 @@ it('activates a previewed theme with a change made a moment before, saying it is
 
     $page->click('[data-test="theme-default"] [data-test="theme-settings-link"]');
 
-    cmWaitUntil($page, "location.pathname === '/admin/themes/default/settings' && document.querySelector('[data-test=\"theme-activate\"]') !== null && document.querySelector('#design-show_author_box') !== null");
+    cmWaitUntil($page, "location.hash === '#theme-settings' && document.querySelector('[data-test=\"theme-activate\"]') !== null && document.querySelector('#theme-settings #design-show_author_box') !== null");
 
     // Teme Default shows the author's box by default; the change is still waiting for its save when Activate is pressed.
     $page->click('#design-show_author_box')
@@ -162,7 +162,7 @@ it('activates a previewed theme with a change made a moment before, saying it is
         ->and(DB::table('settings')->whereNotNull('draft_values')->exists())->toBeFalse();
 });
 
-it('takes the active theme\'s row to its settings, headed by its name, with the brand colour left to General', function (): void {
+it('takes the active theme\'s row down to its settings on Themes, headed by its name, with the brand colour left to General', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/themes');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"theme-good\"] [data-test=\"theme-settings-link\"]') !== null");
@@ -171,11 +171,11 @@ it('takes the active theme\'s row to its settings, headed by its name, with the 
     $page->assertScript("document.body.innerText.includes('The site’s name, tagline and brand colour stay when you change theme.')")
         ->click('[data-test="theme-good"] [data-test="theme-settings-link"]');
 
-    cmWaitUntil($page, "location.pathname === '/admin/themes/good/settings' && document.querySelector('main h1') !== null");
+    cmWaitUntil($page, "location.pathname === '/admin/themes' && location.hash === '#theme-settings'");
 
-    $page->assertScript("document.querySelector('main h1')?.textContent === 'Fixture Good settings'")
+    $page->assertScript("document.querySelector('#theme-settings-heading')?.textContent === 'Fixture Good settings'")
         ->assertSeeIn('[data-test="design-menus"]', 'A menu you choose here shows once you publish')
-        ->assertScript("document.querySelector('main')?.innerText.includes('brand colour stay when you change theme') === false");
+        ->assertSeeIn('[data-test="theme-settings"]', 'Colors, fonts and spacing, with a live preview, come with the Appearance screen.');
 });
 
 it('keeps Themes inside the page at 375 pixels: one column of cards, nothing scrolling sideways, every target 24 pixels or more', function (): void {

@@ -176,9 +176,10 @@ it('says no theme is in use when the chosen one can\'t be used, every region unp
         ->where('regions.others.0.slug', 'good--after-content'));
 });
 
-it('draws the theme in use\'s settings at its own address, and refuses it to anyone who may not change the design', function (): void {
-    $this->actingAs($this->admin)->get('/admin/themes/good/settings')->assertInertia(fn (Assert $page) => $page
-        ->component('themes/settings')
+it('sends the theme in use\'s old settings address to its settings on Themes, and refuses it to anyone who may not change the design', function (): void {
+    $this->actingAs($this->admin)->get('/admin/themes/good/settings')->assertRedirect('/admin/themes#theme-settings');
+    $this->actingAs($this->admin)->get('/admin/themes')->assertInertia(fn (Assert $page) => $page
+        ->component('themes/index')
         ->where('themeGroup', 'theme.good')
         ->has('slots', 2));
 
@@ -193,11 +194,11 @@ it('sends another theme\'s settings address back to the list, and an unknown the
     $this->actingAs($this->admin)->get('/admin/themes/nosuch/settings')->assertNotFound();
 });
 
-it('draws the previewed theme\'s settings once it is previewed', function (): void {
+it('sends the previewed theme\'s settings address to its settings on Themes once it is previewed', function (): void {
     app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['theme' => 'default']], (string) $this->admin->id));
 
-    $this->actingAs($this->admin)->get('/admin/themes/default/settings')->assertInertia(fn (Assert $page) => $page
-        ->component('themes/settings')
+    $this->actingAs($this->admin)->get('/admin/themes/default/settings')->assertRedirect('/admin/themes#theme-settings');
+    $this->actingAs($this->admin)->get('/admin/themes')->assertInertia(fn (Assert $page) => $page
         ->where('preview.code', 'default'));
 
     $this->actingAs($this->admin)->get('/admin/themes/good/settings')->assertRedirect('/admin/themes');

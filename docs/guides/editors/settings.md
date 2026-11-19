@@ -28,38 +28,41 @@ sources:
 
 # The site's settings
 
-**Settings** is for the things that apply to the whole site. Changing most of them takes the administrator role; the [roles table](README.md#what-you-can-do) says who can. Every setting and its default is listed in the [settings reference](../../reference/settings.md), which this page does not copy.
+**Settings** is for the things that apply to the whole site. It opens on a page of cards, one for each Settings page you may open, under **The site**, **Writing and discussion** and **People and services**; pages a plugin adds sit under **From plugins**, each naming its plugin. Changing most settings takes the administrator role; the [roles table](README.md#what-you-can-do) says who can. Every setting and its default is listed in the [settings reference](../../reference/settings.md), which this page does not copy.
+
+On each Settings page, the column at the side lists the Settings pages, and the page you are on opens to its sections: choose one to jump to it.
 
 ## To change the site's name, tagline, time zone and language
 
 1. Open **Settings › General**.
-2. Under **The site**, change the **Site title**, the **Tagline** and the administration email.
-3. Under **Time and language**, choose the **Time zone** and the **Site language**.
-4. Choose **Save general settings**.
+2. Under **Site**, change the **Site title** and the **Tagline**.
+3. Under **Contact**, change the **Administration email**.
+4. Under **Time and language**, choose the **Time zone** and the **Language**.
+5. Choose **Save** in the bar that appears.
 
 The time zone decides how dates are shown and when scheduled items go live. Changing the language rebuilds search in the background, and a banner at the top of the admin says so until it is done; see [status banners](status-banners.md).
 
-## To choose the site's colour
+## To choose the site's color
 
-The brand colour is on **Settings › General** too, in its own panel, and **Save general settings** saves it with the rest of the page. It is used by the theme, so it can look different from theme to theme. The site's name, tagline and brand colour stay when you change theme.
+The **Brand color** is on **Settings › General** too, in its own section, and **Save** saves it with the rest of the page. Beside it, a line says how well text reads on it. It is used by the theme, so it can look different from theme to theme. The site's name, tagline and brand color stay when you change theme.
 
 ## To choose the home page and how many items a list shows
 
-Open **Settings › Reading**. Choose what the home page shows: your latest posts, or a page you choose. Then set how many items each page of a list shows. Leaving it at 0 uses the theme's own number. Under **Types on the home page and in the main feed**, tick the kinds of item the latest list and the site's feed carry: only Posts are ticked until you change it, and a new kind of item is never added on its own. A category's or a tag's page always lists everything filed under it. Choose **Save reading settings**. That saves the home page too.
+Open **Settings › Reading**. Choose what the home page shows: your latest posts, or a page you choose. Then set how many items each page of a list shows. Leaving it at 0 uses the theme's own number. Under **Types on the home page and in the main feed**, tick the kinds of item the latest list and the site's feed carry: only Posts are ticked until you change it, and a new kind of item is never added on its own. A category's or a tag's page always lists everything filed under it. Choose **Save**. That saves the home page too.
 
 ## To change how items are addressed
 
 Open **Settings › Addresses**. It shows the shape of the addresses of every public kind of item, category, tag and author, with examples of how a real one will read. Each kind of item with an archive page, other than posts, also has the address of that page here, one word: it lists every published one, newest first, and its feed is that address followed by `feed/`.
 
-1. Choose a form for items, such as **Post name** or **Day and name**, or **Custom**.
-2. Check the sentence under it: "Old addresses keep working: visitors and search engines are sent to the new one."
-3. Choose **Save address settings**.
+1. Choose a shape for posts, such as **Post name** or **Day and name**, or **Custom** and write your own **Pattern**. **Add a token** puts a part such as {slug} at its end.
+2. Check the box under it, which shows where a post would be, and the **Valid** mark beside it.
+3. Choose **Save**.
 
-The page then shows progress while the addresses are updated: "Every address is up to date." means it has finished. If two kinds would share one address, the page says so and does not save.
+The page then shows progress while the addresses are updated: "Every address is up to date." means it has finished. Old addresses keep working: visitors and search engines are sent to the new one. If two kinds would share one address, the page says so and does not save.
 
 ## To control what search engines and social sites see
 
-Open **Settings › Search and social**. It sets the titles search engines show, what they may list, the cards social sites show, the feeds, the sitemap and what robots.txt says. Choose **Save search and social settings**.
+Open **Settings › Search and social**. It sets the titles search engines show, what they may list, the cards social sites show, the feeds, the sitemap and what robots.txt says. Choose **Save**.
 
 A copy of the site that isn't the live one asks search engines to stay away, whatever these settings say.
 
@@ -69,17 +72,17 @@ To change these for one item, see [writing](writing.md).
 
 Open **Settings › Site code**. Use it for code that belongs on every public page, such as analytics. Code here runs in every reader's browser, so add only code you trust.
 
-1. Choose **Add code** and name it, so everyone can tell what it is.
+1. Choose **Add code to every page** and name it, so everyone can tell what it is.
 2. Choose where it goes, then paste the code.
-3. Leave **Switched on** ticked to add it to every page, and choose **Save code**.
+3. Leave **Switched on** on to add it to every page, and choose **Save code**.
 
-Saving may ask for your password. Every change is logged, with what it was before. If the host has switched site code off, the page says so; nothing is added to any page and nothing here can be changed.
+Each piece of code is a card saying where it goes and whether it is on; **Switch off** keeps it without adding it to any page. Saving asks for your password. A plugin's script waits under **Scripts from plugins** until someone who may change site code approves it. Every change is logged, with what it was before. If the host has switched site code off, the page says so; nothing is added to any page and nothing here can be changed.
 
 ## To choose the theme
 
 Open **Themes**. A theme draws the site; it adds no features of its own.
 
-1. Pick a theme to see its settings, and **Preview** it.
+1. Pick a theme and **Preview** it. The active theme's settings are on the same page, under its regions; **Theme settings** takes you there.
 2. Choose where each menu shows under **Menus**.
 3. When you are ready, choose **Publish**. **Discard** drops the changes you haven't published.
 
@@ -87,7 +90,7 @@ Open **Themes**. A theme draws the site; it adds no features of its own.
 
 ### General
 
-The site's name, tagline, administration email, time zone, language and brand colour. Administrators change it.
+The site's name, tagline, contact address, time zone, language and brand color. Administrators change it.
 
 ### Writing
 
@@ -115,7 +118,7 @@ Limits on the files people can upload, and the image widths Teme makes. Administ
 
 ### People
 
-How everyone with an account signs in: password rules, sign-in limits and session lengths. Changing any of these asks you to confirm your password. Administrators change it.
+How everyone with an account signs in: password rules, sign-in limits and how long sessions last; and where people's pictures come from. Changing a sign-in rule asks you to confirm your password. Administrators change it.
 
 ### Site code
 
@@ -127,11 +130,11 @@ The AI services Teme may use, the model each task uses, and how much people may 
 
 ### Languages
 
-The language your site is written in, and the other languages it publishes in, in one table: each language's address prefix, whether readers see it, and how much is written in it. The default language comes first; change it on **General**. **Add a language** adds another, and **Edit** changes its prefix or hides it from readers while it is translated. The menu at the end of a row moves it up or down, which is the order the language switcher lists, or removes it once nothing is written in it. Under the table, **Translated content** says which content types and taxonomies have versions in other languages. Administrators change it.
+The language your site is written in, and the other languages it publishes in. **Default language** names the language every item is in unless it says otherwise; change it on **General**. **Other languages** lists each one with its address prefix, whether readers see it, and how much is written in it: **Add a language** adds another, **Change** changes its prefix or hides it from readers while it is translated, and **Remove** removes it once nothing is written in it. **Translated content** says which content types and taxonomies have versions in other languages. Administrators change it.
 
 ### Management API
 
-Whether outside tools, such as an importer or a script, may write to the site, and the keys they sign in with. Each key acts as one person, with only the abilities chosen for it. Making a key asks you to confirm your password. Administrators change it.
+Whether outside tools, such as an importer or a script, may write to the site, and the tokens they sign in with. Each token acts as one person, with only the abilities chosen for it. Making a token asks you to confirm your password. Administrators change it.
 
 ### Fediverse
 
@@ -143,10 +146,10 @@ The Dokploy API key Teme uses to update the site from Tools › Updates, on a si
 
 ## To find a setting
 
-Type in **Find a setting** at the top of **Settings**, for example "time zone". It lists the settings that match and takes you to their page.
+Type in **Find a setting**, at the top of the side column on every Settings page, for example "time zone". Press / anywhere on the page to start typing there. The settings that match open in a list under the box, the words you typed marked; choose one, or move with the arrow keys and press Enter, to go to it.
 
 ## To save your changes
 
-Each page is a set of titled panels. Once you change something, a bar appears that says what it saves. Its button is named after the page: **Save general settings**, **Save reading settings** and so on. Pages with their own forms say **Save address settings**, **Save AI settings**, **Save discussion settings** and **Save search and social settings**. On **Discussion**, the switch at the top acts at once, with no button; while the rules below have unsaved changes it waits until you save or discard them.
+Each page is a set of titled sections. Once you change something, a bar appears that says how many changes wait, with **Save** and **Discard**. On/off settings are switches, and they wait for **Save** like the rest of the page. If a setting can't be saved, the bar says how many need attention. After a save, the title says "Saved just now". On **Discussion**, the switch at the top acts at once, with no button; while the rules below have unsaved changes it waits until you save or discard them.
 
-If you leave a page with changes unsaved, the admin asks first.
+If you leave a page with changes unsaved, the admin asks first. If you may see a Settings page but not change it, the page says so, and names the permission that changes it.

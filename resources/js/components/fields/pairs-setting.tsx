@@ -1,9 +1,10 @@
 import type { CSSProperties } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
 import type { FieldDefinition } from '@/types';
 
 /** A row's three columns from 640px: the name, the value at twice its width, then Remove. */
@@ -50,11 +51,12 @@ export function PairsSetting({
     name,
     value,
     disabled,
-    addLabel = 'Add a row',
-    rowLabel = (n) => `${field.label}, row ${n}`,
-    emptyLabel = 'Nothing yet.',
+    addLabel = __('Add a row'),
+    rowLabel = (n) =>
+        __(':label, row :number', { label: field.label, number: n }),
+    emptyLabel = __('Nothing yet.'),
     namePlaceholder,
-    removeLabel = (n) => `row ${n}`,
+    removeLabel = (n) => __('row :number', { number: n }),
 }: Props) {
     const id = `field-${field.key}`;
     const nextKey = useRef(0);
@@ -78,7 +80,9 @@ export function PairsSetting({
                         value=""
                         disabled={disabled}
                     />
-                    <p className="text-small text-ink-2">{emptyLabel}</p>
+                    {emptyLabel !== '' && (
+                        <p className="text-small text-ink-2">{emptyLabel}</p>
+                    )}
                 </>
             )}
             {rows.map((row, index) => (
@@ -132,7 +136,7 @@ export function PairsSetting({
                     <Button
                         type="button"
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
                         data-test="pairs-remove"
                         disabled={disabled}
                         onClick={() => {
@@ -146,7 +150,8 @@ export function PairsSetting({
                             );
                         }}
                     >
-                        Remove
+                        <X />
+                        {__('Remove')}
                         <span className="sr-only">
                             {' '}
                             {removeLabel(index + 1)}

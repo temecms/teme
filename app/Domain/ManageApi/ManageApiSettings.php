@@ -39,13 +39,13 @@ final class ManageApiSettings
         return new SettingsGroup(
             key: self::KEY,
             label: 'Management API',
-            description: 'Lets outside tools create drafts, upload media and publish, each with a key you make here.',
+            description: 'Keys for programs that manage the site: create a token, see what each one may do, and revoke it when it is no longer needed.',
             section: 'site',
             ability: ManageApiAccess::ABILITY,
             settings: [
-                Setting::boolean(self::ENABLED, 'Turn on the management API', 'Lets outside tools sign in with a key at /api/manage/v1. While it is off, every key is refused.', '1.0.0')
+                Setting::boolean(self::ENABLED, 'Turn on the management API', 'Lets outside tools sign in with a token at /api/manage/v1. While it is off, every token is refused.', '1.0.0')
                     ->default(false),
-                Setting::number(self::PER_MINUTE, 'Requests a minute per key', 'How many requests one key may make in a minute before it is asked to wait.', '1.0.0')
+                Setting::number(self::PER_MINUTE, 'Requests a minute per token', 'How many requests one token may make in a minute before it is asked to wait.', '1.0.0')
                     ->default(60)->min(1)->max(1000),
             ],
             since: '1.0.0',

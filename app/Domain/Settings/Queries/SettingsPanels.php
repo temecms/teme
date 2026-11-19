@@ -2,7 +2,8 @@
 
 /**
  * The panels a Settings page splits its group into, where it splits it at
- * all (I-3128): General's two, and a plugin's declared sections
+ * all (I-3128): core's pages as the approved design draws them, and a
+ * plugin's declared sections
  * (docs/plans/plugin-sockets-2.md, A4). Every other group page is one
  * panel. Every setting of a split group is in exactly one
  * (SettingsPanelsDataTest).
@@ -22,10 +23,36 @@ use Teme\Contracts\Settings\Setting;
 
 final class SettingsPanels
 {
-    /** @var list<array{title: string, description: string, keys: list<string>}> */
-    public const array GENERAL = [
-        ['title' => 'The site', 'description' => 'Its name and tagline, and where Teme sends notices.', 'keys' => ['site_title', 'tagline', 'admin_email']],
-        ['title' => 'Time and language', 'description' => 'How dates are shown and scheduled, and the language the site is written in.', 'keys' => ['timezone', 'language']],
+    /**
+     * Core's pages split into sections, by the page's key, as the approved
+     * design draws them. General's brand colour, Reading's home page and
+     * Media's image widths are sections the page draws itself.
+     *
+     * @var array<string, list<array{title: string, description: string, keys: list<string>}>>
+     *
+     * @since next
+     */
+    public const array CORE = [
+        'general' => [
+            ['title' => 'Site', 'description' => 'How the site introduces itself.', 'keys' => ['site_title', 'tagline']],
+            ['title' => 'Contact', 'description' => 'Who hears from Teme.', 'keys' => ['admin_email']],
+            ['title' => 'Time and language', 'description' => '', 'keys' => ['timezone', 'language']],
+        ],
+        'writing' => [
+            ['title' => 'Trash', 'description' => 'Posts, pages and comments moved to the trash wait here before they are deleted for good.', 'keys' => ['trash_days']],
+        ],
+        'reading' => [
+            ['title' => 'Listings', 'description' => 'The lists readers page through: the latest posts, an archive, search results.', 'keys' => ['posts_per_page', 'home_types']],
+        ],
+        'media' => [
+            ['title' => 'Uploads', 'description' => 'What people may add to the library.', 'keys' => ['max_upload_mb', 'max_megapixels']],
+        ],
+        'people' => [
+            ['title' => 'Passwords', 'description' => 'What a new password must be.', 'keys' => ['password_min_length', 'password_check_breached']],
+            ['title' => 'Sign-in limits', 'description' => 'How many wrong passwords are allowed before Teme makes someone wait.', 'keys' => ['login_attempts_per_account_ip', 'login_attempts_per_ip', 'login_untrusted_attempts_per_account']],
+            ['title' => 'Sessions', 'description' => 'How long someone stays signed in.', 'keys' => ['session_idle_minutes', 'session_absolute_hours', 'session_remember_days', 'elevation_minutes']],
+            ['title' => 'Two-factor authentication', 'description' => '', 'keys' => ['two_factor_required_roles']],
+        ],
     ];
 
     /**
@@ -40,7 +67,7 @@ final class SettingsPanels
             return self::plugin($page);
         }
 
-        return $page === 'general' ? self::GENERAL : null;
+        return self::CORE[$page] ?? null;
     }
 
     /**
