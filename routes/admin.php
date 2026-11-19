@@ -252,7 +252,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             });
 
         // Plugins and themes installed from the admin (I-211): requests the installer carries out, the
-        // sources and uploads it reads, and Packagist's search. Each change asks for the password again.
+        // sources and uploads it reads, Packagist's search and the directory's. Each change asks for the password again.
         Route::middleware('can:'.ExtensionsAccess::INSTALL)
             ->prefix('extensions')
             ->name('extensions.')
@@ -263,6 +263,8 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::post('requests/{id}/agree', [ExtensionsController::class, 'agree'])->name('requests.agree');
                 Route::get('requests/{id}', [ExtensionsController::class, 'show'])->name('requests.show');
                 Route::get('search', [ExtensionsController::class, 'search'])->middleware('throttle:60,1')->name('search');
+                Route::get('directory', [ExtensionsController::class, 'directory'])->middleware('throttle:60,1')->name('directory');
+                Route::get('directory/package', [ExtensionsController::class, 'directoryPackage'])->middleware('throttle:60,1')->name('directory.package');
                 Route::post('sources', [ExtensionsController::class, 'storeSource'])->name('sources.store');
                 Route::delete('sources/{id}', [ExtensionsController::class, 'destroySource'])->name('sources.destroy');
                 Route::post('uploads', [ExtensionsController::class, 'upload'])->middleware('throttle:6,1')->name('uploads.store');

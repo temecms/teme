@@ -42,3 +42,4 @@ Schedule::command('teme:plugins:run-due-schedules')->everyMinute()->withoutOverl
 Schedule::command('teme:fediverse:prune')->daily();
 
 Schedule::command('teme:updates:check')->hourly()->withoutOverlapping(10)->onOneServer();
+Schedule::command('teme:directory:refresh')->hourly()->withoutOverlapping(10)->onOneServer();

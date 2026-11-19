@@ -170,6 +170,8 @@ The `installer` service carries out what an administrator asks for from the admi
 | `TEME_EXTENSION_UPLOAD_MAX` | `33554432` | The largest package an administrator may upload, in bytes. |
 | `TEME_EXTENSIONS_PACKAGIST` | `true` | `false` stops installs by name from Packagist; packages then come only from the sources an administrator adds. |
 | `TEME_EXTENSIONS_ALLOW_PRIVATE_HOSTS` | `false` | `true` lets a Git or vendor source's address point inside the server's own network. |
+| `TEME_DIRECTORY_URL` | `https://temecms.github.io/directory/` | Where Teme's plugin and theme directory publishes its signed list. |
+| `TEME_DIRECTORY_PUBLIC_KEYS` | the key written into Teme | The directory's Ed25519 public keys, base64, separated by commas. A list is read only when its signature is one of these keys'. Set it only to try a directory of your own. |
 
 ## Passwords
 

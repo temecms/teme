@@ -49,6 +49,18 @@ To check the installed plugins and themes against this version of Teme without c
 
 To ask for a change from the server's shell instead of the admin, run `php artisan teme:extensions:request install acme/link-suggestions --constraint=^1.2` (or `update`, `remove`, `rollback`; for a theme, `php artisan teme:extensions:request install acme/quiet --kind=theme`). It is recorded as the admin's requests are, from Packagist, and the installer carries it out. `php artisan teme:extensions:cancel` cancels the request that waits for the installer or for agreement.
 
+## The plugin and theme directory
+
+Add plugin and Add theme also list the packages in Teme's own directory. Teme reads the directory's list, `index.json`, about once an hour (`php artisan teme:directory:refresh` asks now), and keeps it only when:
+
+- its signature is one of the directory keys written into Teme;
+- its number is not lower than the last list Teme kept, so an old list can't be sent again;
+- it hasn't run out: each list is good for fourteen days.
+
+Every other file it names, each package's page and the Composer list the installer reads, must match the hash the signed list gives for it. The installer writes the Composer list it checked into the extensions folder's `directory/` and Composer reads it from there; each archive in it carries the checksum Composer checks in turn. When a list is refused, Teme says why on the Add sheet and keeps the last good one until it runs out.
+
+An administrator switches the directory off in Settings › Plugin and theme directory. Off, Teme asks nothing of the directory and installs nothing from it.
+
 ## When Teme is updated
 
 Plugins and themes in the extensions folder are not part of the image, so updating Teme never removes them. Each copy is marked with the version of Teme it was checked against, and a site loads a copy only when it was checked against the image it runs. The check and, if need be, the rebuild happen when the installer starts after the update.
