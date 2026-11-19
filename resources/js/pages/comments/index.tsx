@@ -1,7 +1,8 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, setLayoutProps, usePage } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { CommentDetailsDrawer } from '@/components/comments/comment-details';
+import { CommentStatusPill } from '@/components/comments/comment-status-pill';
 import { Commenter } from '@/components/comments/commenter';
 import { DeleteComments } from '@/components/comments/delete-comments';
 import { EmptyComments } from '@/components/comments/empty-comments';
@@ -28,9 +29,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import { StatusPill } from '@/components/ui/status-pill';
-import { __ } from '@/lib/i18n';
+import { TextButton } from '@/components/ui/text-button';
+import { useSectionCrumb } from '@/lib/crumbs';
+import { formatDate, formatTime } from '@/lib/dates';
+import { __, __n } from '@/lib/i18n';
 import { shownTitle } from '@/lib/titles';
-import { formatInZone } from '@/lib/zoned-time';
 import { index, moderate } from '@/routes/comments';
 import { edit } from '@/routes/content';
 import type { CommentRow, CommentsIndexPage, CommentView } from '@/types';
@@ -121,6 +124,11 @@ export default function CommentsIndex(page: CommentsIndexPage) {
     };
     const visit = (query: Record<string, string>) =>
         router.get(index({ query }).url);
+    const contentCrumb = useSectionCrumb('content');
+
+    setLayoutProps({
+        breadcrumbs: [contentCrumb, { title: __('Comments'), href: index() }],
+    });
     const description = own
         ? __(
               'Readers’ comments on your posts and pages, newest first. Approving, marking as spam and moving to the trash can each be undone.',
@@ -304,11 +312,9 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                                   })}
                         </p>
                     )}
-                    {view === 'all' && row.status === 'pending' && (
-                        <span>
-                            <StatusPill tone="info">{__('Pending')}</StatusPill>
-                        </span>
-                    )}
+                    <span>
+                        <CommentStatusPill status={row.status} />
+                    </span>
                     <p className="whitespace-pre-line">{row.text}</p>
                     <RowLine title={named(row)} items={lineActions(row)} />
                     {replying === row.id && (
@@ -332,24 +338,45 @@ export default function CommentsIndex(page: CommentsIndexPage) {
             id: 'item',
             owner: 'core',
             header: __('In response to'),
-            cell: (row) =>
-                row.item.editable ? (
-                    <Link
-                        href={edit(row.item.id)}
-                        className="focus-visible:outline-ring rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
-                    >
-                        {shownTitle(row.item.title)}
-                    </Link>
-                ) : (
-                    shownTitle(row.item.title)
-                ),
+            cell: (row) => (
+                <div className="grid justify-items-start gap-0.5">
+                    {row.item.editable ? (
+                        <Link
+                            href={edit(row.item.id)}
+                            className="focus-visible:outline-ring rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                        >
+                            {shownTitle(row.item.title)}
+                        </Link>
+                    ) : (
+                        shownTitle(row.item.title)
+                    )}
+                    {item === null && (
+                        <TextButton
+                            className="text-small"
+                            onClick={() => visit({ view, item: row.item.id })}
+                        >
+                            {__n(
+                                ':count comment on it|:count comments on it',
+                                row.item.comments,
+                            )}
+                        </TextButton>
+                    )}
+                </div>
+            ),
         },
         {
             id: 'submitted',
             owner: 'core',
             header: __('Submitted'),
             className: 'whitespace-nowrap',
-            cell: (row) => formatInZone(row.createdAt, siteTimezone),
+            cell: (row) => (
+                <span className="grid">
+                    <span>{formatDate(row.createdAt, siteTimezone)}</span>
+                    <span className="text-small text-ink-3 tabular-nums">
+                        {formatTime(row.createdAt, siteTimezone)}
+                    </span>
+                </span>
+            ),
         },
         {
             id: 'menu',
@@ -615,7 +642,6 @@ export default function CommentsIndex(page: CommentsIndexPage) {
             />
 
             <p id="cm-keys" className="text-small text-ink-3">
-                {__('Keyboard:')}{' '}
                 {keyHints.map(([key, words]) => (
                     <span key={key}>
                         <Kbd>{key}</Kbd> {words}{' '}

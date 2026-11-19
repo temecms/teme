@@ -33,10 +33,10 @@ final class CommentList
     public const string ALL = 'all';
 
     /** Rows per page when the request asks for a size the lists don't offer. */
-    private const int PAGE = 50;
+    private const int PAGE = 10;
 
     /** @var list<int> The page sizes a person may choose (lists.per_page). */
-    private const array PAGE_SIZES = [25, 50, 100];
+    private const array PAGE_SIZES = [10, 25, 50, 100];
 
     /**
      * The words readers see in a comment (D7): the text of its text nodes,
@@ -121,11 +121,12 @@ final class CommentList
 
         // Every row's, in one statement, so every page costs the same.
         $replies = $this->repliesTo($rows->map(fn (object $row): string => (string) $row->id)->values()->all());
+        $onItems = $this->commentsOn($rows->map(fn (object $row): string => (string) $row->content_id)->unique()->values()->all());
         $first = $rows->first();
         $last = $rows->last();
 
         return [
-            'rows' => $rows->map(fn (object $row): array => $this->row($row, $viewer, $replies))->values()->all(),
+            'rows' => $rows->map(fn (object $row): array => $this->row($row, $viewer, $replies, $onItems))->values()->all(),
             'paging' => ListPages::describe(
                 $pageNumber,
                 $perPage,
@@ -390,10 +391,11 @@ final class CommentList
      * One row as the screen draws it, keys in CommentRow's order.
      *
      * @param  array<string, int>  $replies  each comment's reply count, by ID
+     * @param  array<string, int>  $onItems  each item's approved and waiting comments, by ID
      *
      * @return array<string, mixed>
      */
-    private function row(object $row, User $viewer, array $replies): array
+    private function row(object $row, User $viewer, array $replies, array $onItems): array
     {
         $body = json_decode((string) $row->body, true);
         $parentId = $row->parent_id === null ? null : (string) $row->parent_id;
@@ -418,11 +420,31 @@ final class CommentList
                 'id' => (string) $row->content_id,
                 'title' => (string) $row->title,
                 'editable' => $this->editable($viewer, (string) $row->type, $row->author_id === null ? null : (int) $row->author_id),
+                'comments' => $onItems[(string) $row->content_id] ?? 0,
             ],
             'createdAt' => CarbonImmutable::parse((string) $row->created_at)->utc()->toIso8601String(),
             'replies' => $replies[(string) $row->id] ?? 0,
             'plain' => is_array($body) && CommentText::isPlain($body),
         ];
+    }
+
+    /**
+     * How many approved and waiting comments each of these items has, from
+     * comment_stats in one statement; none for an empty page.
+     *
+     * @param  list<string>  $ids
+     *
+     * @return array<string, int>
+     */
+    private function commentsOn(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('comment_stats')->whereIn('content_id', $ids)->get(['content_id', 'approved_count', 'pending_count'])
+            ->mapWithKeys(fn (object $row): array => [(string) $row->content_id => (int) $row->approved_count + (int) $row->pending_count])
+            ->all();
     }
 
     /**

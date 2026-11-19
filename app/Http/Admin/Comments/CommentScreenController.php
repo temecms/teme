@@ -22,6 +22,7 @@ use App\Domain\Comments\Queries\CommentDetails;
 use App\Domain\Comments\Queries\CommentList;
 use App\Domain\Comments\Queries\CommentListRequest;
 use App\Domain\Comments\Queries\EmptyingRequest;
+use App\Domain\Comments\Queries\WhoLooksAfter;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
 use App\Domain\Support\Queries\ListPages;
@@ -59,7 +60,7 @@ final class CommentScreenController extends Controller
             $found = $details->find($viewer, $commentId) ?? abort(404);
 
             if (! $found['mine']) {
-                return $this->refused($request, $found['item'], $addressed);
+                return $this->refused($request, $found['item'], $addressed, oneComment: true);
             }
 
             $open = $found['details'];
@@ -133,20 +134,39 @@ final class CommentScreenController extends Controller
 
     /**
      * The page for an item, or a comment on one, the person doesn't look
-     * after (C1, C7), in v9's words, answered 403 (D15).
+     * after (C1, C7), naming who does, answered 403 (D15).
      *
-     * @param  array{title: string, singular: string, owner: string|null}  $item
+     * @param  array{id: string, title: string, singular: string, owner: string|null}  $item
      */
-    private function refused(Request $request, array $item, ?string $view): HttpResponse
+    private function refused(Request $request, array $item, ?string $view, bool $oneComment = false): HttpResponse
     {
-        $message = __('You don’t look after the comments on “:title”. Editors and administrators look after every item’s comments, and authors those on their own posts.', [
-            'title' => $item['title'],
-        ]);
+        $who = app(WhoLooksAfter::class)->of($item['id']);
+        $owner = $who['owner'];
+
+        if ($oneComment) {
+            $message = $owner === null
+                ? __('You don’t look after this comment. It is on “:title”.', ['title' => $item['title']])
+                : __('You don’t look after this comment. It is on “:title”, which :owner looks after.', ['title' => $item['title'], 'owner' => $owner]);
+            $heading = __('This comment belongs to someone else');
+            $line = $owner === null
+                ? __('You can’t open it, edit it or move it. Ask an editor if it needs attention.')
+                : __('You can’t open it, edit it or move it. Ask :owner, or an editor, if it needs attention.', ['owner' => $owner]);
+        } else {
+            $message = $owner === null
+                ? __('You don’t look after the comments on “:title”. Anyone who may edit other people’s :plural does.', ['title' => $item['title'], 'plural' => $who['plural']])
+                : __('You don’t look after the comments on “:title”. :owner, its author, does, and so does anyone who may edit other people’s :plural.', ['title' => $item['title'], 'owner' => $owner, 'plural' => $who['plural']]);
+            $heading = __('These comments belong to someone else');
+            $line = $owner === null
+                ? __('You moderate comments on your own posts and pages. Ask an editor if one needs attention.')
+                : __('You moderate comments on your own posts and pages. Ask :owner, or an editor, if one needs attention.', ['owner' => $owner]);
+        }
 
         return Inertia::render('comments/refused', [
             'message' => $message,
+            'heading' => $heading,
+            'line' => $line,
             'back' => [
-                'label' => __('Show the comments you look after'),
+                'label' => __('Back to the comments you look after'),
                 'href' => route('comments.index', $view !== null ? ['view' => $view] : [], false),
             ],
         ])->toResponse($request)->setStatusCode(403);

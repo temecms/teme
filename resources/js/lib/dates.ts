@@ -55,6 +55,15 @@ export function formatDate(at: Moment, inZone: string = zone): string {
     }).format(new Date(at));
 }
 
+/** A time of day on the site's clock: "11:20". */
+export function formatTime(at: Moment, inZone: string = zone): string {
+    return new Intl.DateTimeFormat(language, {
+        timeZone: inZone,
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(new Date(at));
+}
+
 /** A moment on the site's clock: "13 Nov 2026, 11:20". */
 export function formatDateTime(at: Moment, inZone: string = zone): string {
     return new Intl.DateTimeFormat(language, {
