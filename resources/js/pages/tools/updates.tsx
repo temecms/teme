@@ -1,8 +1,14 @@
 import { Head, Link, router, setLayoutProps, usePoll } from '@inertiajs/react';
-import { ChevronDown, CircleCheck, TriangleAlert } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronRight,
+    CircleCheck,
+    RefreshCw,
+    TriangleAlert,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { FormPage } from '@/components/patterns/form-page';
+import { DashboardPage } from '@/components/patterns/dashboard-page';
 import {
     Code,
     duration,
@@ -16,7 +22,9 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Notice } from '@/components/ui/notice';
+import { Button } from '@/components/ui/button';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { SoonTag } from '@/components/ui/soon-tag';
 import { StatusPill } from '@/components/ui/status-pill';
 import { TextButton } from '@/components/ui/text-button';
 import { __, __n } from '@/lib/i18n';
@@ -66,6 +74,105 @@ function outcome(name: string): {
     };
 
     return outcomes[name] ?? { label: name, tone: 'warn' };
+}
+
+/** What an update does, step by step, with each step's service: what the updater's record names. */
+function updateSteps(): { code: string; title: string; line: string }[] {
+    return [
+        {
+            code: 'deploy',
+            title: __('Back up and migrate'),
+            line: __(
+                'Takes a backup when the database must change, then migrates it. Teme stays on the old release until this works.',
+            ),
+        },
+        {
+            code: 'web',
+            title: __('Start the web service'),
+            line: __(
+                'Starts the new web service and waits until it answers with the new version.',
+            ),
+        },
+        {
+            code: 'worker',
+            title: __('Start the worker'),
+            line: __(
+                'Starts the worker that does background jobs on the new release.',
+            ),
+        },
+        {
+            code: 'worker-long',
+            title: __('Start the long-jobs worker'),
+            line: __('The worker for imports and other long tasks.'),
+        },
+        {
+            code: 'scheduler',
+            title: __('Start the scheduler'),
+            line: __(
+                'The part that publishes scheduled posts and runs the nightly work.',
+            ),
+        },
+        {
+            code: 'check',
+            title: __('Check everything'),
+            line: __(
+                'A last look that every part is healthy and the site answers.',
+            ),
+        },
+        {
+            code: 'updater',
+            title: __('Update the updater'),
+            line: __(
+                'The updater switches itself to the new release, so the next update starts from it.',
+            ),
+        },
+    ];
+}
+
+/**
+ * The settings updating needs. Whether each is set is said only for those
+ * this server reads; the images and the platform are the updater's, set on
+ * the platform, so the site can't see them (null).
+ */
+function neededSettings(
+    checkOn: boolean,
+    channelSet: boolean,
+): { name: string; line: string; set: boolean | null }[] {
+    return [
+        {
+            name: 'TEME_UPDATES_CHECK',
+            line: __(
+                'Asks GitHub once an hour which releases exist. Sends nothing about this site.',
+            ),
+            set: checkOn,
+        },
+        {
+            name: 'TEME_UPDATES_CHANNEL',
+            line: __(
+                'Which releases this site gets: releases only, or pre-releases too.',
+            ),
+            set: channelSet,
+        },
+        {
+            name: 'TEME_IMAGE',
+            line: __('The Teme image this site runs, as an exact tag.'),
+            set: null,
+        },
+        {
+            name: 'TEME_UPDATER_IMAGE',
+            line: __(
+                'The updater service that carries out an update asked for on this page.',
+            ),
+            set: null,
+        },
+        {
+            name: 'TEME_UPDATER_PLATFORM',
+            line: __(
+                'Where the site runs, so the updater knows how to restart it (Dokploy).',
+            ),
+            set: null,
+        },
+    ];
 }
 
 /** One of the page's sections: a panel under its heading. */
@@ -256,19 +363,31 @@ export default function Updates({
         <>
             <Head title={__('Updates')} />
 
-            <FormPage
+            <DashboardPage
                 title={__('Updates')}
                 description={__(
                     'Which Teme this site runs, and the releases after it.',
                 )}
                 actions={
-                    top !== null && (
-                        <UpdateButton
-                            version={top.version}
-                            canUpdate={canUpdate}
-                            open={open}
-                        />
-                    )
+                    <>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled
+                            data-test="updates-check-now"
+                        >
+                            <RefreshCw aria-hidden="true" />
+                            {__('Check for updates')}
+                            <SoonTag />
+                        </Button>
+                        {top !== null && (
+                            <UpdateButton
+                                version={top.version}
+                                canUpdate={canUpdate}
+                                open={open}
+                            />
+                        )}
+                    </>
                 }
             >
                 <div className="grid gap-4">
@@ -282,69 +401,149 @@ export default function Updates({
                         />
                     )}
 
-                    <Section id="updates-site" title={__('This site')}>
-                        <dl
-                            className="grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
-                            style={FACTS}
-                        >
-                            <dt className="text-small text-ink-2">
-                                {__('Version')}
-                            </dt>
-                            <dd>
-                                <strong className="font-medium">
-                                    {__('Teme :version', {
-                                        version: running.version,
-                                    })}
-                                </strong>
-                                {running.revision !== null && (
-                                    <>
-                                        {` · ${__('Build')} `}
-                                        <Code>{running.revision}</Code>
-                                    </>
-                                )}
-                                {!running.tagged && (
-                                    <span className="text-ink-2 block">
-                                        {notRelease}
-                                    </span>
-                                )}
-                            </dd>
+                    <div className="grid items-start gap-4 lg:grid-cols-2">
+                        <Section id="updates-site" title={__('This site')}>
+                            <dl
+                                className="grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                                style={FACTS}
+                            >
+                                <dt className="text-small text-ink-2">
+                                    {__('Version')}
+                                </dt>
+                                <dd>
+                                    <strong className="font-semibold">
+                                        {__('Teme :version', {
+                                            version: running.version,
+                                        })}
+                                    </strong>
+                                    {running.tagged && (
+                                        <>
+                                            {' '}
+                                            <StatusPill tone="ok">
+                                                {__('A release')}
+                                            </StatusPill>
+                                        </>
+                                    )}
+                                    {running.revision !== null && (
+                                        <>
+                                            {` · ${__('Build')} `}
+                                            <Code>{running.revision}</Code>
+                                        </>
+                                    )}
+                                    {!running.tagged && (
+                                        <span className="text-ink-2 block">
+                                            {notRelease}
+                                        </span>
+                                    )}
+                                </dd>
 
-                            <dt className="text-small text-ink-2">
-                                {__('Channel')}
-                            </dt>
-                            <dd>
-                                {running.channel === 'prerelease'
-                                    ? __(
-                                          'Gets: every release, pre-releases too',
-                                      )
-                                    : __('Gets: releases only')}
-                                <span className="text-ink-2 block">
+                                <dt className="text-small text-ink-2">
+                                    {__('Gets')}
+                                </dt>
+                                <dd>
+                                    {running.channel === 'prerelease'
+                                        ? __('Every release, pre-releases too')
+                                        : __('Releases only')}
+                                    <span className="text-small text-ink-3 block">
+                                        <WithCode
+                                            words={
+                                                running.channelSet
+                                                    ? __('Set by :channel.')
+                                                    : __(
+                                                          'Follows the version this site runs. To choose, set :channel.',
+                                                      )
+                                            }
+                                            codes={CODES}
+                                        />
+                                    </span>
+                                </dd>
+
+                                <dt className="text-small text-ink-2">
+                                    {__('Last deploy')}
+                                </dt>
+                                <dd>
+                                    {lastDeployed === undefined
+                                        ? noDeploy
+                                        : __(
+                                              'Deployed Teme :version on :date.',
+                                              {
+                                                  version: lastDeployed.version,
+                                                  date: when(
+                                                      lastDeployed.finishedAt,
+                                                  ),
+                                              },
+                                          )}
+                                </dd>
+                            </dl>
+                        </Section>
+                        <Section
+                            id="updates-check"
+                            title={__('Checking for releases')}
+                        >
+                            {!check.enabled ? (
+                                <p>
                                     <WithCode
-                                        words={
-                                            running.channelSet
-                                                ? __('Set by :channel.')
-                                                : __(
-                                                      'Follows the version this site runs. To choose, set :channel.',
-                                                  )
-                                        }
+                                        words={__(
+                                            'Update checks are off on this server (:check).',
+                                        )}
                                         codes={CODES}
                                     />
-                                </span>
-                            </dd>
-
-                            <dt className="text-small text-ink-2">
-                                {__('Last deploy')}
-                            </dt>
-                            <dd>
-                                {lastDeployed === undefined
-                                    ? noDeploy
-                                    : __('Deployed Teme :version on :date.', {
-                                          version: lastDeployed.version,
-                                          date: when(lastDeployed.finishedAt),
-                                      })}
-                            </dd>
-                        </dl>
-                    </Section>
+                                </p>
+                            ) : (
+                                <>
+                                    <p>
+                                        {__(
+                                            'Once an hour Teme asks GitHub for its list of releases. It sends nothing about this site.',
+                                        )}
+                                    </p>
+                                    {check.checkedAt === null ? (
+                                        <p className="text-ink-2">
+                                            <WithCode
+                                                words={__(
+                                                    'Not checked yet. It runs within the hour, or now with :checkNow.',
+                                                )}
+                                                codes={CODES}
+                                            />
+                                        </p>
+                                    ) : (
+                                        <>
+                                            {check.error !== null && (
+                                                <Notice tone="warn">
+                                                    <span className="sr-only">
+                                                        {__('Problem:')}{' '}
+                                                    </span>
+                                                    {check.error}
+                                                </Notice>
+                                            )}
+                                            <dl
+                                                className="grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                                                style={FACTS}
+                                            >
+                                                <dt className="text-small text-ink-2">
+                                                    {__('Last checked')}
+                                                </dt>
+                                                <dd>{when(check.checkedAt)}</dd>
+                                                {check.succeededAt !== null && (
+                                                    <>
+                                                        <dt className="text-small text-ink-2">
+                                                            {__(
+                                                                'Last read the list',
+                                                            )}
+                                                        </dt>
+                                                        <dd>
+                                                            {when(
+                                                                check.succeededAt,
+                                                            )}
+                                                        </dd>
+                                                    </>
+                                                )}
+                                            </dl>
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </Section>
+                    </div>
 
                     <Section id="updates-available" title={__('Available')}>
                         {!running.tagged ? (
@@ -508,106 +707,100 @@ export default function Updates({
                         )}
                     </Section>
 
-                    <Section
-                        id="updates-check"
-                        title={__('Checking for releases')}
-                    >
-                        {!check.enabled ? (
-                            <p>
-                                <WithCode
-                                    words={__(
-                                        'Update checks are off on this server (:check).',
-                                    )}
-                                    codes={CODES}
-                                />
-                            </p>
-                        ) : (
-                            <>
-                                <p>
-                                    {__(
-                                        'Once an hour Teme asks GitHub for its list of releases. It sends nothing about this site.',
-                                    )}
-                                </p>
-                                {check.checkedAt === null ? (
-                                    <p className="text-ink-2">
-                                        <WithCode
-                                            words={__(
-                                                'Not checked yet. It runs within the hour, or now with :checkNow.',
-                                            )}
-                                            codes={CODES}
-                                        />
-                                    </p>
-                                ) : (
-                                    <>
-                                        {check.error !== null && (
-                                            <Notice tone="warn">
-                                                <span className="sr-only">
-                                                    {__('Problem:')}{' '}
-                                                </span>
-                                                {check.error}
-                                            </Notice>
-                                        )}
-                                        <dl
-                                            className="grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
-                                            style={FACTS}
-                                        >
-                                            <dt className="text-small text-ink-2">
-                                                {__('Last checked')}
-                                            </dt>
-                                            <dd>{when(check.checkedAt)}</dd>
-                                            {check.succeededAt !== null && (
-                                                <>
-                                                    <dt className="text-small text-ink-2">
-                                                        {__(
-                                                            'Last read the list',
-                                                        )}
-                                                    </dt>
-                                                    <dd>
-                                                        {when(
-                                                            check.succeededAt,
-                                                        )}
-                                                    </dd>
-                                                </>
-                                            )}
-                                        </dl>
-                                    </>
+                    <div className="grid items-start gap-4 lg:grid-cols-2">
+                        <Section
+                            id="updates-does"
+                            title={__('What Update does')}
+                        >
+                            <p className="text-small text-ink-2">
+                                {__(
+                                    'An update is a new image. Teme never changes code on a running server. These are the steps, in order:',
                                 )}
-                            </>
-                        )}
-                    </Section>
+                            </p>
+                            <ol
+                                aria-label={__('Steps of the update')}
+                                className="grid gap-3"
+                            >
+                                {updateSteps().map((step, at) => (
+                                    <li
+                                        key={step.code}
+                                        className="flex items-start gap-3"
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className="bg-surface-3 text-caption text-ink-2 grid size-6 shrink-0 place-items-center rounded-full font-semibold"
+                                        >
+                                            {at + 1}
+                                        </span>
+                                        <span className="grid min-w-0 gap-1">
+                                            <span className="font-semibold">
+                                                {step.title}{' '}
+                                                <Code>{step.code}</Code>
+                                            </span>
+                                            <span className="text-small text-ink-2">
+                                                {step.line}
+                                            </span>
+                                        </span>
+                                    </li>
+                                ))}
+                            </ol>
+                        </Section>
+                        <Section
+                            id="updates-settings"
+                            title={__('Settings this needs')}
+                        >
+                            <ul className="grid gap-3">
+                                {neededSettings(
+                                    check.enabled,
+                                    running.channelSet,
+                                ).map((setting) => (
+                                    <li
+                                        key={setting.name}
+                                        className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1"
+                                    >
+                                        <span className="grid min-w-0 flex-1 basis-60 gap-1">
+                                            <Code>{setting.name}</Code>
+                                            <span className="text-small text-ink-2">
+                                                {setting.line}
+                                            </span>
+                                        </span>
+                                        {setting.set !== null && (
+                                            <StatusPill
+                                                tone={
+                                                    setting.set ? 'ok' : 'warn'
+                                                }
+                                            >
+                                                {setting.set
+                                                    ? __('Set')
+                                                    : __('Not set')}
+                                            </StatusPill>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className="text-small text-ink-2">
+                                {__(
+                                    'The host sets these in the environment. Teme shows only whether each is set, never its value.',
+                                )}
+                            </p>
+                        </Section>
+                    </div>
 
-                    <Section id="updates-how" title={__('How to update')}>
-                        <p>{__('To update by hand instead:')}</p>
-                        <ul className="grid list-disc gap-1 ps-5">
-                            <li>
-                                <strong className="font-medium">
-                                    {__('On Dokploy:')}
-                                </strong>{' '}
-                                <WithCode
-                                    words={__(
-                                        'set :image and :updaterImage to the new tag and Deploy.',
-                                    )}
-                                    codes={CODES}
-                                />
-                            </li>
-                            <li>
-                                <strong className="font-medium">
-                                    {__('With Docker Compose:')}
-                                </strong>{' '}
-                                <WithCode
-                                    words={__(
-                                        'change :image in :env to the new tag, then run :pull and :up.',
-                                    )}
-                                    codes={CODES}
-                                />
-                            </li>
-                        </ul>
-                    </Section>
-
-                    <Section id="updates-deploys" title={__('Deploys')}>
-                        <p className="text-ink-2">
-                            {__('The last ten, newest first.')}
-                        </p>
+                    <section
+                        aria-labelledby="updates-deploys"
+                        className="text-body grid gap-3"
+                    >
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <h2
+                                id="updates-deploys"
+                                className="text-lead font-semibold"
+                            >
+                                {__('Deploys')}
+                            </h2>
+                            <span className="text-small text-ink-2">
+                                {__('The last ten, newest first.')}
+                            </span>
+                        </div>
                         {deploys.length === 0 ? (
                             <p className="text-ink-2">{noDeploy}</p>
                         ) : (
@@ -680,9 +873,49 @@ export default function Updates({
                                 })}
                             </ul>
                         )}
-                    </Section>
+                    </section>
+
+                    <Collapsible
+                        className="bg-surface shadow-raised rounded-lg"
+                        data-test="updates-how"
+                    >
+                        <CollapsibleTrigger className="text-body focus-visible:outline-ring group flex w-full items-center gap-2 rounded-lg px-5 py-4 text-start font-semibold focus-visible:outline-2">
+                            <ChevronRight
+                                aria-hidden="true"
+                                className="size-4 shrink-0 transition-transform group-data-[state=open]:rotate-90"
+                            />
+                            {__('How to update by hand')}
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="text-body grid gap-3 px-5 pb-5">
+                            <p>{__('To update by hand instead:')}</p>
+                            <ul className="grid list-disc gap-1 ps-5">
+                                <li>
+                                    <strong className="font-medium">
+                                        {__('On Dokploy:')}
+                                    </strong>{' '}
+                                    <WithCode
+                                        words={__(
+                                            'set :image and :updaterImage to the new tag and Deploy.',
+                                        )}
+                                        codes={CODES}
+                                    />
+                                </li>
+                                <li>
+                                    <strong className="font-medium">
+                                        {__('With Docker Compose:')}
+                                    </strong>{' '}
+                                    <WithCode
+                                        words={__(
+                                            'change :image in :env to the new tag, then run :pull and :up.',
+                                        )}
+                                        codes={CODES}
+                                    />
+                                </li>
+                            </ul>
+                        </CollapsibleContent>
+                    </Collapsible>
                 </div>
-            </FormPage>
+            </DashboardPage>
         </>
     );
 }
