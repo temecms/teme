@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Site\Insertions\Queries;
+namespace App\Domain\SiteCode\Queries;
 
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Site\Insertions\Scripts\PluginScript;
