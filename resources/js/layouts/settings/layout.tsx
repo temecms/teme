@@ -5,6 +5,7 @@ import type { CSSProperties, PropsWithChildren } from 'react';
 import { Page } from '@/components/patterns/page';
 import { SettingsFrameContext } from '@/components/patterns/settings-frame';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { __ } from '@/lib/i18n';
 import { FindSetting } from './find-setting';
@@ -13,6 +14,11 @@ import { SectionLinks } from './section-links';
 /** The side column beside the page from 1024px: 200 wide, the page taking the rest. */
 const COLUMNS = {
     '--settings-cols': '200px minmax(0, 1fr)',
+} as CSSProperties;
+
+/** The side list's tallest, from 1024px: the window less room for Find a setting and the page's top. */
+const SIDE_LIST = {
+    '--side-list-max': 'calc(100vh - 192px)',
 } as CSSProperties;
 
 const LINK =
@@ -138,25 +144,31 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         <nav
                             id="settings-groups"
                             aria-label={__('Settings')}
-                            className={`max-lg:bg-surface max-lg:shadow-raised grid min-w-0 content-start gap-0.5 max-lg:rounded-lg max-lg:p-2 ${groupsOpen ? '' : 'max-lg:hidden'}`}
+                            className={`max-lg:bg-surface max-lg:shadow-raised min-w-0 max-lg:rounded-lg max-lg:p-2 ${groupsOpen ? '' : 'max-lg:hidden'}`}
                         >
-                            {core.map(entry)}
-                            {plugins.length > 0 && (
-                                <div
-                                    role="group"
-                                    aria-labelledby="settings-from-plugins"
-                                    className="grid gap-0.5"
-                                >
-                                    <p
-                                        id="settings-from-plugins"
-                                        data-test="settings-heading"
-                                        className="text-caption text-ink-3 px-3 pt-3 pb-1 font-semibold uppercase"
+                            {/* From 1024px the list scrolls on its own when it is taller than the window, so the column stays in view (v10's set-side). */}
+                            <ScrollArea
+                                className="grid content-start gap-0.5 lg:max-h-(--side-list-max)"
+                                style={SIDE_LIST}
+                            >
+                                {core.map(entry)}
+                                {plugins.length > 0 && (
+                                    <div
+                                        role="group"
+                                        aria-labelledby="settings-from-plugins"
+                                        className="grid gap-0.5"
                                     >
-                                        {__('From plugins')}
-                                    </p>
-                                    {plugins.map(entry)}
-                                </div>
-                            )}
+                                        <p
+                                            id="settings-from-plugins"
+                                            data-test="settings-heading"
+                                            className="text-caption text-ink-3 px-3 pt-3 pb-1 font-semibold uppercase"
+                                        >
+                                            {__('From plugins')}
+                                        </p>
+                                        {plugins.map(entry)}
+                                    </div>
+                                )}
+                            </ScrollArea>
                         </nav>
                     </aside>
 
