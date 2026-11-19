@@ -78,7 +78,7 @@ export function PeopleCards({
                             </div>
                         </div>
                         {isYou ? (
-                            <OwnRowLock align="start" />
+                            <OwnRowLock />
                         ) : (
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                 <RowLinks

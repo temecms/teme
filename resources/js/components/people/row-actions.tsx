@@ -81,8 +81,11 @@ export function accountMoreActions(
     ];
 }
 
-/** An invitation's line: a new link, or withdrawing it. */
-export function invitationActions(user: UserRow): RowAction[] {
+/** An invitation's line: a new link, or the role it gives. */
+export function invitationActions(
+    user: UserRow,
+    manage: (managing: Managing) => void,
+): RowAction[] {
     return [
         {
             id: 'resend',
@@ -90,6 +93,18 @@ export function invitationActions(user: UserRow): RowAction[] {
             label: __('Send again'),
             form: UserController.resendInvitation.form({ user: user.id }),
         },
+        {
+            id: 'role',
+            owner: 'core',
+            label: __('Change role…'),
+            onSelect: () => manage({ user, task: 'role' }),
+        },
+    ];
+}
+
+/** An invitation's More menu: withdrawing it. */
+export function invitationMoreActions(user: UserRow): RowAction[] {
+    return [
         {
             id: 'revoke',
             owner: 'core',
@@ -109,21 +124,6 @@ export function invitationActions(user: UserRow): RowAction[] {
                     {button}
                 </ConfirmAction>
             ),
-        },
-    ];
-}
-
-/** An invitation's More menu: the role it gives. */
-export function invitationMoreActions(
-    user: UserRow,
-    manage: (managing: Managing) => void,
-): RowAction[] {
-    return [
-        {
-            id: 'role',
-            owner: 'core',
-            label: __('Change role…'),
-            onSelect: () => manage({ user, task: 'role' }),
         },
     ];
 }
