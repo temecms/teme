@@ -37,6 +37,8 @@ final class DirectoryRefused extends RuntimeException
 
     public const string NOT_LISTED = 'not-listed';
 
+    public const string NOT_YET = 'not-yet';
+
     private function __construct(public readonly string $reason, string $sentence)
     {
         parent::__construct($sentence);
@@ -94,6 +96,12 @@ final class DirectoryRefused extends RuntimeException
     public static function tampered(string $file): self
     {
         return new self(self::TAMPERED, __('The directory’s :file doesn’t match its signed list, so it was refused. It may have been changed on the way.', ['file' => $file]));
+    }
+
+    /** No index was verified and kept yet. */
+    public static function notYet(): self
+    {
+        return new self(self::NOT_YET, __('Teme hasn’t read the directory’s list yet. It reads it about once an hour.'));
     }
 
     /** The package isn't in the directory's list, or not as this kind. */

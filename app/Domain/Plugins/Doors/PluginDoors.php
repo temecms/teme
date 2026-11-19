@@ -49,6 +49,7 @@ use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\HtmlToDocument;
+use Teme\Contracts\Directory\VerifiedDirectory;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Hooks\HookSender;
@@ -147,6 +148,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
             $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued);
+        }
+
+        if (in_array(Capability::DirectoryRead->value, $capabilities, true)) {
+            $offered[VerifiedDirectory::class] = app(PluginDirectory::class);
         }
 
         if (in_array(Capability::PeopleRead->value, $capabilities, true)) {

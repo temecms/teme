@@ -35,6 +35,9 @@ namespace Teme\Contracts\Plugins;
  * links an article draws. PagesHead lets the plugin add `<meta>` tags and
  * structured data to public pages' heads, and Sitemaps its own sitemaps to
  * the site's sitemap index, those its manifest declares (1.1.0).
+ * DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as
+ * Teme verified it, and ContentSubmissions the Submissions door, which keeps
+ * what a visitor sends from a public form as an item waiting for review (next).
  *
  * @since 0.5.0
  */
@@ -96,4 +99,10 @@ enum Capability: string
 
     /** @since 1.1.0 */
     case Sitemaps = 'sitemaps';
+
+    /** @since next */
+    case DirectoryRead = 'directory.read';
+
+    /** @since next */
+    case ContentSubmissions = 'content.submissions';
 }

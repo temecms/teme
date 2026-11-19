@@ -70,6 +70,18 @@ final readonly class DirectoryPackages
      */
     public function kept(): ?DirectoryIndex
     {
+        $document = $this->keptDocument();
+
+        return $document === null ? null : DirectoryIndex::read($document);
+    }
+
+    /**
+     * Returns the kept index.json as decoded, or null when none was ever kept. It may have run out.
+     *
+     * @return array<mixed>|null
+     */
+    public function keptDocument(): ?array
+    {
         $json = DB::table('directory_index')->where('id', 1)->value('index');
 
         if (! is_string($json)) {
@@ -82,7 +94,21 @@ final readonly class DirectoryPackages
             return null;
         }
 
-        return is_array($decoded) ? DirectoryIndex::read($decoded) : null;
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Returns a listed package's detail file, decoded, once it matches the usable index's hash for it.
+     *
+     * @return array<mixed>
+     *
+     * @throws DirectoryRefused
+     */
+    public function detailOf(string $name, ?ExtensionKind $kind = null): array
+    {
+        $listed = $this->usable()->package($name, $kind) ?? throw DirectoryRefused::notListed($name);
+
+        return $this->detailFile($listed);
     }
 
     /**
@@ -100,7 +126,7 @@ final readonly class DirectoryPackages
             throw DirectoryRefused::noKey();
         }
 
-        $index = $this->kept() ?? throw DirectoryRefused::unreachable('index.json');
+        $index = $this->kept() ?? throw DirectoryRefused::notYet();
 
         if ($index->hasExpired()) {
             throw DirectoryRefused::expired($index->expires->toDateString());
