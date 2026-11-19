@@ -37,6 +37,8 @@ The package name is `teme-examples/first-plugin`. Its manifest asks for `content
 }
 ```
 
+A manifest may also name an `icon`, a square picture inside the plugin that the Plugins screen draws beside its name, and up to eight `screenshots`, each a `path` and a `caption`, which Teme's directory shows. The [manifest reference](../../../reference/plugin-manifest.md) lists every key.
+
 ## 2. Read the plugin class
 
 Teme builds the class named under `plugin` with only the contracts it offers plugins. This example asks for the settings reader and subscribes in `register()`:

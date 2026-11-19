@@ -28,6 +28,8 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Hooks\HookSender` | its manifest declares `contributes.hooks` | 1.0.0 |
 | `Teme\Contracts\Notices\Notices` | granted `notices.send` | 0.5.0 |
 | `Teme\Contracts\Content\HtmlToDocument` | always | next |
+| `Teme\Contracts\Directory\VerifiedDirectory` | granted `directory.read` | next |
+| `Teme\Contracts\Content\Submissions` | granted `content.submissions` | next |
 
 ## Teme\Contracts\Admin
 
@@ -308,6 +310,7 @@ How a plugin granted content.write creates and changes items, publishes and sche
 - `create(NewItem $item, string $actingPersonId): ItemRef` — Creates a draft and returns it. Since 1.0.0.
 - `change(ItemRef $item, ItemChanges $changes, string $actingPersonId): ItemRef` — Saves a new revision of the item's draft with these changes. Since 1.0.0.
 - `publish(ItemRef $item, string $actingPersonId): ItemRef` — Publishes the item's latest revision now. Since 1.0.0.
+- `unpublish(ItemRef $item, string $actingPersonId): ItemRef` — Takes a published item back to a draft: it leaves the public site and its address answers no more, and its revisions stay. Since next.
 - `schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef` — Schedules the item's latest revision. Since 1.0.0.
 - `linkTranslations(array $itemIds, string $actingPersonId): void` — Links existing items as language versions of one another: every version each already has joins one group. Since 1.0.0.
 
@@ -349,7 +352,7 @@ Which published items ContentReader::published() lists, and from where.
 
 A content item as a hook tells of it: plain values read after the change was saved, never the item itself. Each language version of an article is its own item, with its own ID and address; a hook tells of one version.
 
-- `__construct(string $id, string $type, string $title, string $status, ?string $url, string $language, bool $indexable = true)`. Since 1.0.0.
+- `__construct(string $id, string $type, string $title, string $status, ?string $url, string $language, bool $indexable = true, bool $submission = false)`. Since 1.0.0.
 
 ### ItemSnapshot
 
@@ -415,11 +418,47 @@ One unpublished item in ContentReader::queue(): the item, whose status says wher
 
 Thrown when a plugin's read of a draft is refused. Its message is one plain sentence; nothing was read.
 
+### Submission
+
+`Teme\Contracts\Content\Submission`, class. Since next.
+
+What a visitor sent from a plugin's public form, as the plugin hands it to Submissions::submit(): a title, a body and, when given, fields, terms and who sent it. Teme keeps it as an item waiting for review; it is never published by that path.
+
+- `__construct(string $type, string $title, array $body, array $fields = [], array $terms = [], ?string $from = null)`. Since next.
+
+### Submissions
+
+`Teme\Contracts\Content\Submissions`, interface. Since next.
+
+A plugin's door for what visitors send from its public forms, offered when it was granted content.submissions. Each submission is kept as an item waiting for review, in the In review list: written as the site itself, not as a person, so it has no author; marked as a submission; and never published by this door. A person reviews it and publishes, returns or trashes it as any other item. Teme limits how many it takes in an hour, from one visitor address and through one plugin.
+
+- `submit(Submission $submission): ItemRef` — Keeps what the visitor sent, and returns the item, its status review and $submission true. Since next.
+
 ### WriteRefused
 
 `Teme\Contracts\Content\WriteRefused`, class. Since 1.0.0.
 
 Thrown when a plugin's content or media write is refused. Its message is one plain sentence; nothing was written.
+
+## Teme\Contracts\Directory
+
+### DirectoryAnswer
+
+`Teme\Contracts\Directory\DirectoryAnswer`, class. Since next.
+
+What a read of Teme's plugin and theme directory answers: the data Teme verified, decoded from its JSON, or, when there is none, the reason in a sentence people read, such as the directory being switched off on this site, its list having run out, or a file not matching its signed list. Exactly one of the two is null.
+
+- `__construct(?array $data, ?string $reason = null)`. Since next.
+- `found(): bool` — Whether the answer holds data. Since next.
+
+### VerifiedDirectory
+
+`Teme\Contracts\Directory\VerifiedDirectory`, interface. Since next.
+
+Reads Teme's plugin and theme directory as Teme verified it, for a plugin granted directory.read: the last index whose signature Teme checked and kept, and a listed package's detail file, checked against the hash that index gives for it. Nothing here asks a person; nothing is written.
+
+- `index(): DirectoryAnswer` — The kept index.json, decoded: its `sequence`, `generated`, `expires` and `packages`. Since next.
+- `package(string $name): DirectoryAnswer` — A listed package's packages/<vendor>/<name>.json, decoded: its README, changelog, screenshots, capabilities, links and releases. Since next.
 
 ## Teme\Contracts\Editor
 
@@ -1205,7 +1244,7 @@ One person as a plugin may know them: their account ID and display name.
 
 `Teme\Contracts\Plugins\Capability`, enum. Since 1.0.0`)..
 
-What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0).
+What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0). DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as Teme verified it, and ContentSubmissions the Submissions door, which keeps what a visitor sends from a public form as an item waiting for review (next).
 
 - case `ContentRead`. Since 0.5.0.
 - case `ContentWrite`. Since 1.0.0.
@@ -1226,6 +1265,8 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `ContentLinks`. Since 1.0.0.
 - case `PagesHead`. Since 1.1.0.
 - case `Sitemaps`. Since 1.1.0.
+- case `DirectoryRead`. Since next.
+- case `ContentSubmissions`. Since next.
 
 ### Plugin
 
