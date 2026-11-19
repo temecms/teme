@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
+## [Unreleased]
+
+### Added
+
+- A plugin can bring its own content types, taxonomies and fields: `contributes.types` in `teme-plugin.json` names a file in the format Settings › Types exports. While the plugin is enabled they work like any other type, in the menu, the lists, the editor, the site, search, sitemaps, feeds and the REST API.
+- Settings › Types shows a plugin's types, taxonomies and fields with its mark and "Comes from" its name, and keeps them read-only: the plugin's updates change them.
+- Enabling a plugin takes over a type, taxonomy or field already on the site under the same key, keeping its items and values, and says what it took over and changed. A field made here under another key is matched by its type and handle. Enabling is refused, in words, when a field would change kind while items hold values in it.
+- An update's changed types file waits, like a migration, until someone runs **Run database changes**; a type its new file no longer has stays on the site as the site's own, with its items.
+- Disabling a plugin hides its types from the menu, the editor and the site, whose addresses answer 404, and keeps every item; enabling it again brings them back as they were.
+- Removing a plugin is refused while its types hold items, trashed ones included, saying how many and where.
+
+### Changed
+
+- A type or taxonomy can't take an admin screen's name as its plural, such as Plugins, Media or Settings, or another type's or taxonomy's, in any case: the words name the screen and suggest a name to use instead, such as "Plugin directory". This holds for types made in Settings › Types, imported, declared by code or brought by a plugin. A type already stored with such a name keeps working, and Settings › Types asks to rename it.
+
 ## [1.1.1] — 2026-11-18
 
 ### Fixed
