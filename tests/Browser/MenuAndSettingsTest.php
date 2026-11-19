@@ -61,7 +61,8 @@ it('draws Categories and Tags under Posts only inside Posts, marking the one you
 });
 
 it('marks Settings and Tools current on each of their pages', function (): void {
-    $settings = route('settings.show', ['group' => 'general'], false);
+    // The menu's Settings opens the Settings hub (the approved v10 design).
+    $settings = route('settings.index', [], false);
     $tools = route('tools.index', [], false);
 
     $page = cmSignIn($this->admin)->navigate(route('settings.show', ['group' => 'media'], false))
@@ -164,7 +165,8 @@ it('at a phone\'s width, opens the Settings menu from one button, never scrollin
     $sizes = $page->script(<<<'JS'
         () => {
             const menu = document.querySelector('nav[aria-label="Settings"]');
-            const [first, second] = [...menu.querySelectorAll('a')].map((link) => link.getBoundingClientRect());
+            // The pages, not the current page's section links, which sit indented under it.
+            const [first, second] = [...menu.querySelectorAll('a[data-test="settings-group"]')].map((link) => link.getBoundingClientRect());
 
             return {
                 expanded: document.querySelector('[data-test="settings-groups-button"]').getAttribute('aria-expanded'),
