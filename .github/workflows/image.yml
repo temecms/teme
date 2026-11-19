@@ -17,6 +17,15 @@ on:
         description: Push the image to ghcr.io once every check passes
         type: boolean
         default: false
+  # The nightly run builds and runs it from main, so a change that breaks a
+  # fresh install is caught within a day, not at the next release. It never
+  # publishes.
+  workflow_call:
+    inputs:
+      publish:
+        description: Push the image to ghcr.io once every check passes
+        type: boolean
+        default: false
   push:
     tags:
       - "v*"
@@ -190,7 +199,7 @@ jobs:
           docker compose config --quiet
           docker compose up --detach
           status=""
-          for attempt in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             web_id="$(docker compose ps --quiet web)"
             if [ -n "$web_id" ]; then
               status="$(docker inspect --format '{{.State.Health.Status}}' "$web_id")"
@@ -301,7 +310,7 @@ jobs:
           postgres="$(sed -n 's/^ *image: \(postgres:.*\)$/\1/p' docker/compose.yml)"
           docker run --detach --name teme-aio-db --network teme-aio \
             --env POSTGRES_PASSWORD="$password" --env POSTGRES_DB=teme "$postgres"
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             docker exec teme-aio-db pg_isready --host 127.0.0.1 --username postgres > /dev/null 2>&1 && break
             sleep 2
           done
@@ -314,7 +323,7 @@ jobs:
             --volume teme-aio-data:/var/teme \
             "$TEME_IMAGE"
           status=""
-          for attempt in $(seq 1 120); do
+          for _ in $(seq 1 120); do
             status="$(docker inspect --format '{{if .State.Running}}{{.State.Health.Status}}{{else}}stopped{{end}}' teme-aio)"
             if [ "$status" = healthy ] || [ "$status" = stopped ]; then
               break
