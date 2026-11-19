@@ -68,7 +68,7 @@ it('passes axe on Tools › Import and a site’s first steps, every target 24 p
 
     $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
     tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
-    $page->assertSee('Install and activate the Teme Companion plugin, version 0.2.0 or later.')
+    $page->assertSee('Install and activate the Teme Companion plugin')
         ->assertNoAccessibilityIssues(3);
     $connect = cmSmallTargets($page);
 

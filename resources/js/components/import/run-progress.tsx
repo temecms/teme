@@ -1,60 +1,15 @@
 import { Form } from '@inertiajs/react';
-import { CheckIcon } from 'lucide-react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
-import { JobProgress } from '@/components/jobs/job-progress';
+import { FigureTiles } from '@/components/tools/figure-tiles';
+import type { FigureTile } from '@/components/tools/figure-tiles';
+import { PhaseList } from '@/components/tools/phase-list';
 import { Button } from '@/components/ui/button';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
-import { StepBar } from '@/components/ui/step-bar';
+import { Progress } from '@/components/ui/progress';
+import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
 import type { JobRow } from '@/types/jobs';
 import type { ImportRunView } from '@/types/import';
-
-/**
- * Where the run's steps stand on the step bar: the step under way, else the
- * first not yet done, else past the last when every one is done.
- */
-function currentStep(steps: ImportRunView['steps']): number {
-    const now = steps.findIndex((step) => step.state === 'now');
-
-    if (now !== -1) {
-        return now;
-    }
-
-    const next = steps.findIndex((step) => step.state !== 'done');
-
-    return next === -1 ? steps.length : next;
-}
-
-/**
- * A stopped run's steps: those it finished marked done, and none current,
- * since nothing is under way. The step bar always marks one current.
- */
-function StoppedSteps({ steps }: { steps: ImportRunView['steps'] }) {
-    return (
-        <ol aria-label={__('Steps of this import')} className="grid gap-1">
-            {steps.map((step) => (
-                <li
-                    key={step.key}
-                    data-state={step.state === 'done' ? 'done' : 'upcoming'}
-                    className="text-small text-ink-2 flex items-center gap-2"
-                >
-                    {step.state === 'done' ? (
-                        <>
-                            <CheckIcon
-                                aria-hidden="true"
-                                className="text-ok-ink size-4 shrink-0"
-                            />
-                            <span className="sr-only">{__('Done')}</span>
-                        </>
-                    ) : (
-                        <span aria-hidden="true" className="size-4 shrink-0" />
-                    )}
-                    {step.label}
-                </li>
-            ))}
-        </ol>
-    );
-}
 
 /**
  * An import under way or stopped (I-227): its tracked job's progress, its
@@ -69,46 +24,139 @@ export function RunProgress({
 }) {
     const running = run.state === 'running';
     const { counts } = run;
+    const waiting = running && job !== null && job.state === 'waiting';
+    const at = run.steps.findIndex((step) => step.state === 'now');
+    const percent = job?.percent ?? null;
+    const left =
+        job !== null && job.total !== null
+            ? Math.max(0, job.total - job.done)
+            : null;
+    const figures: FigureTile[] = [
+        {
+            key: 'imported',
+            label: __('Imported'),
+            value: counts.created + counts.updated,
+            tone: 'ok',
+        },
+        {
+            key: 'warnings',
+            label: __('With warnings'),
+            value: counts.warnings,
+            tone: 'warn',
+        },
+        {
+            key: 'failed',
+            label: __('Failed'),
+            value: counts.failed,
+            tone: 'danger',
+        },
+        ...(left === null
+            ? []
+            : [
+                  {
+                      key: 'left',
+                      label: __('Still to do'),
+                      value: left,
+                      tone: 'neutral' as const,
+                  },
+              ]),
+    ];
+    const where = waiting
+        ? __('Waiting for a free worker')
+        : !running
+          ? percent === null
+              ? __('Stopped')
+              : __('Stopped at :percent%', { percent })
+          : at === -1
+            ? __('Importing')
+            : __('Phase :number of :count: :phase', {
+                  number: at + 1,
+                  count: run.steps.length,
+                  phase: run.steps[at].label,
+              });
 
     return (
         <Panel aria-labelledby="import-progress-heading">
-            <PanelHeader>
+            <PanelHeader className="flex items-center justify-between gap-3">
                 <h2
                     id="import-progress-heading"
                     className="text-lead font-semibold"
                 >
-                    {running ? __('Importing') : __('Stopped')}
+                    {running ? __('Importing') : __('Import stopped')}
                 </h2>
+                <StatusPill
+                    tone={waiting ? 'neutral' : running ? 'info' : 'warn'}
+                >
+                    {waiting
+                        ? __('Waiting')
+                        : running
+                          ? __('Running')
+                          : __('Stopped')}
+                </StatusPill>
             </PanelHeader>
-            <PanelBody className="text-body gap-4">
-                {job !== null && <JobProgress job={job} />}
+            <PanelBody className="text-body gap-5">
+                <div className="grid gap-2" data-test="import-progress">
+                    <div className="text-small text-ink-2 flex justify-between gap-3 tabular-nums">
+                        <span>{where}</span>
+                        {percent !== null && !waiting && (
+                            <span>{__(':percent%', { percent })}</span>
+                        )}
+                    </div>
+                    {percent !== null && (
+                        <Progress
+                            value={percent}
+                            tone={running ? 'accent' : 'quiet'}
+                            label={__('Progress of the import')}
+                        />
+                    )}
+                </div>
 
                 {!running && run.stopMessage !== null && (
                     <p>{run.stopMessage}</p>
                 )}
 
-                {running ? (
-                    <StepBar
-                        steps={run.steps.map((step) => step.label)}
-                        current={currentStep(run.steps)}
-                        aria-label={__('Steps of this import')}
-                    />
-                ) : (
-                    <StoppedSteps steps={run.steps} />
-                )}
+                <FigureTiles
+                    figures={figures}
+                    label={__('Counts so far')}
+                    testId="import-counts"
+                />
 
-                <p className="tabular-nums">
-                    {__(
-                        ':created created · :updated updated · :skipped skipped · :failed failed · :warnings with warnings',
-                        {
-                            created: counts.created.toLocaleString(),
-                            updated: counts.updated.toLocaleString(),
-                            skipped: counts.skipped.toLocaleString(),
-                            failed: counts.failed.toLocaleString(),
-                            warnings: counts.warnings.toLocaleString(),
-                        },
-                    )}
-                </p>
+                <section
+                    aria-labelledby="import-phases-heading"
+                    className="grid gap-3"
+                >
+                    <h3
+                        id="import-phases-heading"
+                        className="text-lead font-semibold"
+                    >
+                        {__('Steps of this import')}
+                    </h3>
+                    <PhaseList
+                        label={__('Steps of this import')}
+                        phases={run.steps.map((step) => ({
+                            key: step.key,
+                            label: step.label,
+                            state:
+                                step.state === 'done'
+                                    ? 'done'
+                                    : step.state === 'now'
+                                      ? running && !waiting
+                                          ? 'now'
+                                          : running
+                                            ? 'next'
+                                            : 'stopped'
+                                      : 'next',
+                            word:
+                                step.state === 'done'
+                                    ? __('Done')
+                                    : step.state === 'now' && !waiting
+                                      ? running
+                                          ? __('Under way')
+                                          : __('Stopped')
+                                      : __('Waiting'),
+                        }))}
+                    />
+                </section>
 
                 {running ? (
                     <div className="grid justify-items-start gap-2">

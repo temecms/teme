@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class ImportScreen
 {
     /** A site's state, with the words people read. */
-    public const array STATES = ['none' => 'Not imported yet', 'running' => 'Importing', 'stopped' => 'Stopped', 'finished' => 'Imported'];
+    public const array STATES = ['none' => 'Connected', 'running' => 'Importing', 'stopped' => 'Stopped', 'finished' => 'Imported'];
 
     /**
      * The kinds of object a report names, in its order, with their labels
@@ -56,9 +56,9 @@ final readonly class ImportScreen
     public function __construct(private ImportRuns $runs, private ImportPhases $phases, private ImportRunJobs $tracking) {}
 
     /**
-     * Returns the sites Teme knows, newest first: each with where it stands, whether its password is forgotten, its latest import's start and the address of its page.
+     * Returns the sites Teme knows, newest first: each with where it stands, the Teme Companion version it last reported, whether its password is forgotten, its latest import's start and the address of its page.
      *
-     * @return list<array{id: string, address: string, host: string, state: string, stateLabel: string, forgotten: bool, lastImportAt: string|null, href: string}>
+     * @return list<array{id: string, address: string, host: string, state: string, stateLabel: string, pluginVersion: string, forgotten: bool, lastImportAt: string|null, href: string}>
      */
     public function sites(): array
     {
@@ -73,7 +73,8 @@ final readonly class ImportScreen
                 'address' => $source->address,
                 'host' => self::host($source->address),
                 'state' => $state,
-                'stateLabel' => self::STATES[$state],
+                'stateLabel' => __(self::STATES[$state]),
+                'pluginVersion' => $source->plugin_version,
                 'forgotten' => $source->forgotten_at !== null,
                 'lastImportAt' => $latest?->started_at->utc()->toIso8601String(),
                 'href' => route('tools.importer.show', ['source' => (string) $source->id], false),
@@ -225,7 +226,7 @@ final readonly class ImportScreen
     /**
      * Returns an import's report: its objects by kind and outcome, its messages grouped by code (errors first), whether more codes exist than are listed, how many errors need attention, and whether it is ready to switch (null until it has finished and the address check exists). Null when Teme has no such import.
      *
-     * @return array{types: list<array{type: string, label: string, created: int, updated: int, skipped: int, failed: int}>, messages: list<array{code: string, level: string, levelLabel: string, words: string, count: int}>, more: bool, problems: int, ready: bool|null}|null
+     * @return array{types: list<array{type: string, label: string, created: int, updated: int, skipped: int, failed: int, warnings: int|null}>, messages: list<array{code: string, level: string, levelLabel: string, words: string, count: int}>, more: bool, levels: array{error: int, warning: int}, problems: int, ready: bool|null}|null
      */
     public function report(string $runId): ?array
     {
@@ -244,6 +245,7 @@ final readonly class ImportScreen
         // Each plugin's records get a row of their own (docs/proposals/plugin-import-socket.md).
         $plugins = isset($counted[PluginDataLists::TYPE]) ? app(PluginDataReport::class)->rows($runId) : [];
         unset($counted[PluginDataLists::TYPE]);
+        $warned = self::warnedByType($runId);
         $types = [];
         $known = [];
 
@@ -251,7 +253,7 @@ final readonly class ImportScreen
             $known[] = $type;
 
             if (isset($counted[$type])) {
-                $types[] = self::typeRow($type, $label, $counted[$type]);
+                $types[] = self::typeRow($type, __($label), $counted[$type], $warned[$type] ?? 0);
             }
         }
 
@@ -259,10 +261,15 @@ final readonly class ImportScreen
         sort($others);
 
         foreach ($others as $type) {
-            $types[] = self::typeRow((string) $type, (string) $type, $counted[$type]);
+            $types[] = self::typeRow((string) $type, (string) $type, $counted[$type], $warned[$type] ?? 0);
         }
 
-        array_push($types, ...$plugins);
+        // A plugin's records are counted under one type for every plugin, so their warnings can't be told apart.
+        foreach ($plugins as $plugin) {
+            $types[] = [...$plugin, 'warnings' => null];
+        }
+
+        $levels = DB::table('import_messages')->where('run_id', $runId)->selectRaw('level, count(*) AS total')->groupBy('level')->pluck('total', 'level');
 
         $codes = DB::table('import_messages')
             ->where('run_id', $runId)
@@ -291,6 +298,7 @@ final readonly class ImportScreen
             'types' => $types,
             'messages' => $messages,
             'more' => $codes->count() > self::CODES,
+            'levels' => ['error' => (int) ($levels[ImportMessageLevel::Error->value] ?? 0), 'warning' => (int) ($levels[ImportMessageLevel::Warning->value] ?? 0)],
             'problems' => $problems,
             'ready' => $run->state === ImportRunState::Finished && $check !== null && $check->runsIn($run->kind) ? $problems === 0 : null,
         ];
@@ -366,9 +374,9 @@ final readonly class ImportScreen
      *
      * @param  array<string, int>  $outcomes
      *
-     * @return array{type: string, label: string, created: int, updated: int, skipped: int, failed: int}
+     * @return array{type: string, label: string, created: int, updated: int, skipped: int, failed: int, warnings: int}
      */
-    private static function typeRow(string $type, string $label, array $outcomes): array
+    private static function typeRow(string $type, string $label, array $outcomes, int $warnings): array
     {
         return [
             'type' => $type,
@@ -377,7 +385,26 @@ final readonly class ImportScreen
             'updated' => $outcomes[ImportOutcome::Updated->value] ?? 0,
             'skipped' => $outcomes[ImportOutcome::Skipped->value] ?? 0,
             'failed' => $outcomes[ImportOutcome::Failed->value] ?? 0,
+            'warnings' => $warnings,
         ];
+    }
+
+    /**
+     * How many objects of each type have at least one warning in this run.
+     *
+     * @return array<string, int>
+     */
+    private static function warnedByType(string $runId): array
+    {
+        return DB::table('import_messages as x')
+            ->join('import_map as m', 'm.id', '=', 'x.map_id')
+            ->where('x.run_id', $runId)
+            ->where('x.level', ImportMessageLevel::Warning->value)
+            ->selectRaw('m.object_type, count(DISTINCT x.map_id) AS total')
+            ->groupBy('m.object_type')
+            ->pluck('total', 'object_type')
+            ->map(fn (mixed $total): int => (int) $total)
+            ->all();
     }
 
     /**

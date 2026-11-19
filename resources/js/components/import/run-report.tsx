@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Notice } from '@/components/ui/notice';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { StatusPill } from '@/components/ui/status-pill';
+import { Toggle } from '@/components/ui/toggle';
+import { useState } from 'react';
+import { FigureTiles } from '@/components/tools/figure-tiles';
+import type { FigureTile } from '@/components/tools/figure-tiles';
 import { __, __n } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import { show } from '@/routes/tools/importer';
@@ -19,16 +23,6 @@ import type {
 
 type TypeRow = RunReportView['types'][number];
 type MessageRow = RunReportView['messages'][number];
-
-/** The four counts' headings, looked up as they are drawn. */
-function countHeading(key: 'created' | 'updated' | 'skipped' | 'failed') {
-    return {
-        created: __('Created'),
-        updated: __('Updated'),
-        skipped: __('Skipped'),
-        failed: __('Failed'),
-    }[key];
-}
 
 /**
  * An import's report (I-345): what came across by kind, the warnings and
@@ -54,6 +48,11 @@ export function RunReport({
     const number = (value: number) => value.toLocaleString();
     const counts = run.counts;
 
+    const [level, setLevel] = useState<'all' | 'error' | 'warning'>('all');
+    const shownMessages = report.messages.filter(
+        (row) => level === 'all' || row.level === level,
+    );
+
     const typeColumns: Column<TypeRow>[] = [
         {
             id: 'kind',
@@ -61,15 +60,57 @@ export function RunReport({
             header: __('Kind'),
             cell: (row) => row.label,
         },
-        ...(['created', 'updated', 'skipped', 'failed'] as const).map(
-            (key): Column<TypeRow> => ({
-                id: key,
-                owner: 'core',
-                header: countHeading(key),
-                className: 'text-right tabular-nums',
-                cell: (row) => number(row[key]),
-            }),
-        ),
+        {
+            id: 'across',
+            owner: 'core',
+            header: __('Came across'),
+            className: 'text-right tabular-nums',
+            cell: (row) => number(row.created + row.updated),
+        },
+        {
+            id: 'warnings',
+            owner: 'core',
+            header: __('With warnings'),
+            className: 'text-right tabular-nums',
+            cell: (row) => (row.warnings === null ? '' : number(row.warnings)),
+        },
+        {
+            id: 'failed',
+            owner: 'core',
+            header: __('Failed'),
+            className: 'text-right tabular-nums',
+            cell: (row) => number(row.failed),
+        },
+    ];
+    const figures: FigureTile[] = [
+        {
+            key: 'across',
+            label: __('Came across'),
+            value: counts.created + counts.updated,
+            tone: 'ok',
+        },
+        {
+            key: 'warnings',
+            label: __('With warnings'),
+            value: counts.warnings,
+            tone: 'warn',
+        },
+        {
+            key: 'failed',
+            label: __('Failed'),
+            value: counts.failed,
+            tone: 'danger',
+        },
+        ...(finished
+            ? [
+                  {
+                      key: 'left',
+                      label: __('Still to do'),
+                      value: 0,
+                      tone: 'neutral' as const,
+                  },
+              ]
+            : []),
     ];
 
     const messageColumns: Column<MessageRow>[] = [
@@ -112,41 +153,27 @@ export function RunReport({
                 </h2>
             </PanelHeader>
             <PanelBody className="text-body gap-6">
-                {finished && latest && (
-                    <p>
-                        {__(
-                            'Finished :date. :created created, :updated updated, :skipped skipped, :failed failed, :warnings with warnings.',
-                            {
-                                date:
-                                    run.endedAt === null
-                                        ? ''
-                                        : formatInZone(
-                                              run.endedAt,
-                                              siteTimezone,
-                                          ),
-                                created: number(counts.created),
-                                updated: number(counts.updated),
-                                skipped: number(counts.skipped),
-                                failed: number(counts.failed),
-                                warnings: number(counts.warnings),
-                            },
-                        )}
-                    </p>
-                )}
-                {finished && !latest && (
+                <div className="grid gap-3">
                     <div className="flex flex-wrap items-center gap-3">
-                        <p>
+                        <p className="text-small text-ink-2">
                             {__('Report of the import started :date.', {
                                 date: formatInZone(run.startedAt, siteTimezone),
                             })}
                         </p>
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href={show({ source: site.id })}>
-                                {__('Show the latest import')}
-                            </Link>
-                        </Button>
+                        {finished && !latest && (
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href={show({ source: site.id })}>
+                                    {__('Show the latest import')}
+                                </Link>
+                            </Button>
+                        )}
                     </div>
-                )}
+                    <FigureTiles
+                        figures={figures}
+                        label={__('The import’s counts')}
+                        testId="import-report-counts"
+                    />
+                </div>
 
                 {report.ready !== null && (
                     <Notice tone={report.ready ? 'ok' : 'warn'}>
@@ -193,12 +220,54 @@ export function RunReport({
                     {report.messages.length === 0 ? (
                         <p>{__('No warnings or errors.')}</p>
                     ) : (
-                        <DataTable
-                            caption={__('Warnings and errors')}
-                            columns={messageColumns}
-                            rows={report.messages}
-                            rowKey={(row) => row.code}
-                        />
+                        <>
+                            <div
+                                role="group"
+                                aria-label={__('Show')}
+                                data-test="import-message-levels"
+                                className="flex flex-wrap gap-2"
+                            >
+                                {(
+                                    [
+                                        [
+                                            'all',
+                                            __('All'),
+                                            report.levels.error +
+                                                report.levels.warning,
+                                        ],
+                                        [
+                                            'error',
+                                            __('Errors'),
+                                            report.levels.error,
+                                        ],
+                                        [
+                                            'warning',
+                                            __('Warnings'),
+                                            report.levels.warning,
+                                        ],
+                                    ] as const
+                                ).map(([key, label, count]) => (
+                                    <Toggle
+                                        key={key}
+                                        variant="outline"
+                                        size="sm"
+                                        pressed={level === key}
+                                        onPressedChange={() => setLevel(key)}
+                                    >
+                                        {label}
+                                        <span className="text-ink-3 tabular-nums">
+                                            {number(count)}
+                                        </span>
+                                    </Toggle>
+                                ))}
+                            </div>
+                            <DataTable
+                                caption={__('Warnings and errors')}
+                                columns={messageColumns}
+                                rows={shownMessages}
+                                rowKey={(row) => row.code}
+                            />
+                        </>
                     )}
                     {report.more && (
                         <p className="text-small text-ink-2">

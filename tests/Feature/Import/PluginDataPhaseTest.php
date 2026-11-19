@@ -288,6 +288,6 @@ it('gives each plugin a row in the run’s report with what it brought, skipped 
     $run = pdRun($this->source);
     $types = app(ImportScreen::class)->report($run->id)['types'];
 
-    expect($types)->toContain(['type' => 'plugin:importer', 'label' => 'Importer (plugin)', 'created' => 2, 'updated' => 0, 'skipped' => 1, 'failed' => 1])
+    expect($types)->toContain(['type' => 'plugin:importer', 'label' => 'Importer (plugin)', 'created' => 2, 'updated' => 0, 'skipped' => 1, 'failed' => 1, 'warnings' => null])
         ->and(array_column($types, 'type'))->not->toContain('plugin');
 });
