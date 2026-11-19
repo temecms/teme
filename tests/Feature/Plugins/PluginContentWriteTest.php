@@ -163,6 +163,29 @@ it('publishes and schedules for an editor, and refuses both for a contributor', 
         ->and(Content::query()->findOrFail($theirs->id)->status)->toBe('draft');
 });
 
+it('takes a published item back to a draft for an editor, and refuses an author who may not, writing nothing', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $contributor = User::factory()->create()->assignRole('contributor');
+    $writer = ($this->door)();
+    $this->actingAs($editor);
+    $item = $writer->publish($writer->create(new NewItem('post', 'Live', ['type' => 'doc', 'content' => []]), (string) $editor->id), (string) $editor->id);
+
+    $this->actingAs($contributor);
+    $before = ($this->counts)();
+
+    expect(fn () => $writer->unpublish($item, (string) $contributor->id))->toThrow(WriteRefused::class)
+        ->and(($this->counts)())->toBe($before)
+        ->and(Content::query()->findOrFail($item->id)->status)->toBe('published');
+
+    $this->actingAs($editor);
+    $draft = $writer->unpublish($item, (string) $editor->id);
+
+    expect($draft->status)->toBe('draft')
+        ->and($draft->url)->toBeNull()
+        ->and(Content::query()->findOrFail($item->id)->status)->toBe('draft')
+        ->and(fn () => $writer->unpublish($draft, (string) $editor->id))->toThrow(WriteRefused::class, 'Only a published item can be reverted to a draft.');
+});
+
 it('uses an existing term by name', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
     $this->actingAs($editor);

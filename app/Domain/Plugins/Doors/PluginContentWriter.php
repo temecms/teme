@@ -1,7 +1,7 @@
 <?php
 
 /**
- * A plugin's content.write door: creates, changes, publishes and schedules
+ * A plugin's content.write door: creates, changes, publishes, unpublishes and schedules
  * items, sets their slugs and credits and links language versions, through
  * Teme's Operations, always on behalf of a named person
  * (docs/proposals/plugin-content-write.md).
@@ -18,6 +18,7 @@ namespace App\Domain\Plugins\Doors;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Contents\Operations\CreateDraft;
+use App\Domain\Contents\Operations\Input\ContentActionInput;
 use App\Domain\Contents\Operations\Input\CreateDraftInput;
 use App\Domain\Contents\Operations\Input\LinkTranslationsInput;
 use App\Domain\Contents\Operations\Input\PublishRevisionInput;
@@ -28,6 +29,7 @@ use App\Domain\Contents\Operations\LinkTranslations;
 use App\Domain\Contents\Operations\PublishRevision;
 use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Contents\Operations\SchedulePublication;
+use App\Domain\Contents\Operations\UnpublishContent;
 use App\Domain\Contents\Operations\UpdateContentDetails;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
@@ -174,6 +176,23 @@ final readonly class PluginContentWriter implements ContentWriter
         }
 
         return Payloads::item($content);
+    }
+
+    public function unpublish(ItemRef $item, string $actingPersonId): ItemRef
+    {
+        $this->person($actingPersonId);
+
+        if (! Content::query()->whereKey($item->id)->exists()) {
+            throw new WriteRefused(__('That item does not exist.'));
+        }
+
+        try {
+            app(UnpublishContent::class)->execute(new ContentActionInput($item->id, $actingPersonId));
+        } catch (Throwable $failure) {
+            $this->refuse($failure);
+        }
+
+        return Payloads::item(Content::query()->findOrFail($item->id));
     }
 
     public function schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef
