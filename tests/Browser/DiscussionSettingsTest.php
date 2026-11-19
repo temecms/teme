@@ -36,7 +36,7 @@ it('passes axe on Settings › Discussion, every target 24 pixels or more, in th
     $page = cmSignIn($this->admin)
         ->navigate('/admin/settings/discussion')
         ->assertSee('Comments on this site')
-        ->assertSee('Commenters’ details')
+        ->assertSee('Privacy')
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);
@@ -51,10 +51,10 @@ it('switches comments off, leaving the switch alone on the page, and on again (E
         ->click('#field-comments')
         ->assertSee('Comments switched off.')
         ->assertSee('Comments are off, so the settings for them are hidden.')
-        ->assertDontSee('Where readers can comment')
+        ->assertDontSee('Where comments are open')
         ->click('#field-comments')
         ->assertSee('Comments switched on.')
-        ->assertSee('Where readers can comment');
+        ->assertSee('Where comments are open');
 
     expect(Modules::on(Modules::COMMENTS))->toBeTrue();
 });

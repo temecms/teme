@@ -49,14 +49,13 @@ it('passes axe on Settings › AI, every target 24 pixels or more, in the light 
     $page = cmSignIn($this->admin)
         ->navigate('/admin/settings/ai')
         ->assertSee('AI services')
-        ->assertSee('Text you ask AI about is sent to Anthropic when a task uses one of its models.')
+        ->assertSee('Text you ask AI about is sent to Anthropic. The key is kept encrypted and never shown again.')
         ->assertSeeIn('[data-test="ai-key-state-anthropic"]', 'Not set')
         ->assertSee('No AI task is on yet.')
-        ->assertSeeIn('[data-test="ai-task-status-fixture"]', 'Off: no model is chosen.')
+        ->assertSee('Fixture: model')
         ->assertSee('Chosen model (no longer offered)')
         ->assertSee('$0.0014')
-        ->assertSee('$50.00 a month')
-        ->assertSee('See every request in Tools › AI activity')
+        ->assertSee('Spent this month')
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);
@@ -83,8 +82,7 @@ it('sets a key and a model once the password is confirmed, checks the key, and t
     $page->type('[data-test="fresh-password-input"]', 'password')
         ->click('[data-test="fresh-password-confirm"]')
         ->assertSee('AI settings saved. Check key tells you whether the new key works.')
-        ->assertSeeIn('[data-test="ai-key-state-anthropic"]', 'Set')
-        ->assertSeeIn('[data-test="ai-task-status-fixture"]', 'On')
+        ->assertSeeIn('[data-test="ai-key-state-anthropic"]', 'Saved')
         ->click('[data-test="ai-key-check-anthropic"]')
         ->assertSeeIn('[data-test="ai-key-check-result-anthropic"]', 'The key works.');
 

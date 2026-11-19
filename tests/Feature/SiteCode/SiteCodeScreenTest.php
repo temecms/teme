@@ -185,12 +185,12 @@ it('gives Site code a tab for whoever holds site-code.manage, even alone, openin
     $tabs = fn (User $user): array => app(SettingsNavigation::class)->forUser($user->id);
     $adminTabs = $tabs($this->admin);
 
-    $siteCode = ['key' => 'site-code', 'label' => 'Site code', 'href' => '/admin/settings/site-code', 'heading' => 'Site'];
+    $siteCode = ['key' => 'site-code', 'label' => 'Site code', 'href' => '/admin/settings/site-code', 'heading' => 'Site', 'plugin' => false];
 
     expect($adminTabs)->toContain($siteCode)
         ->and($tabs($keeper))->toBe([$siteCode])
         ->and(array_column($tabs($editor), 'key'))->not->toContain('site-code')
-        ->and(app(SettingsHub::class)->firstHrefFor($keeper))->toBe('/admin/settings/site-code');
+        ->and(app(SettingsHub::class)->firstHrefFor($keeper))->toBe('/admin/settings');
 
     $this->actingAs($keeper)->get('/admin/settings/site-code')
         ->assertOk()

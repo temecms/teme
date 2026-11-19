@@ -15,31 +15,23 @@ beforeEach(function (): void {
     $this->props = fn (string $path): array => $this->actingAs($this->admin)->get($path)->assertOk()->inertiaProps();
 });
 
-it('splits General into The site and Time and language, every General setting in exactly one (I-3128)', function (): void {
-    $props = ($this->props)('/admin/settings/general');
+it('splits General, Writing, Reading, Media and People into the approved design\'s sections, every setting in exactly one', function (string $page, array $titles): void {
+    $props = ($this->props)("/admin/settings/{$page}");
 
-    expect(array_column($props['panels'], 'title'))->toBe(['The site', 'Time and language'])
-        ->and(array_column($props['panels'], 'description'))->toBe([
-            'Its name and tagline, and where Teme sends notices.',
-            'How dates are shown and scheduled, and the language the site is written in.',
-        ])
-        ->and(array_column($props['panels'], 'keys'))->toBe([['site_title', 'tagline', 'admin_email'], ['timezone', 'language']])
+    expect(array_column($props['panels'], 'title'))->toBe($titles)
         ->and(array_merge(...array_column($props['panels'], 'keys')))->toEqualCanonicalizing(array_column($props['fields'], 'key'));
-});
+})->with([
+    'general' => ['general', ['Site', 'Contact', 'Time and language']],
+    'writing' => ['writing', ['Trash']],
+    'reading' => ['reading', ['Listings']],
+    'media' => ['media', ['Uploads']],
+    'people' => ['people', ['Passwords', 'Sign-in limits', 'Sessions', 'Two-factor authentication']],
+]);
 
-it('draws every other group page as one panel', function (string $page): void {
-    expect(($this->props)("/admin/settings/{$page}")['panels'])->toBeNull();
-})->with(['writing', 'reading', 'media', 'people']);
-
-it('gives each of Discussion\'s five sections its line (I-3128)', function (): void {
+it('names Discussion\'s five sections as the approved design does, Moderation with its line', function (): void {
     $fieldsets = ($this->props)(route('settings.discussion', [], false))['fieldsets'];
 
-    expect(array_column($fieldsets, 'description'))->toBe([
-        'Which new items take comments, and who may write them.',
-        'How deep replies go, and how many threads each page shows.',
-        'Which comments wait for approval, and which go straight to spam.',
-        'Who is told about new comments.',
-        'What Teme keeps about the people who comment, and for how long.',
-    ])
+    expect(array_column($fieldsets, 'legend'))->toBe(['Where comments are open', 'Threads and pages', 'Moderation', 'Emails', 'Privacy'])
+        ->and(array_column($fieldsets, 'description'))->toBe(['', '', 'Which comments wait for someone to approve them.', '', ''])
         ->and(array_keys(DiscussionScreen::DESCRIPTIONS))->toBe(array_keys(DiscussionScreen::FIELDSETS));
 });

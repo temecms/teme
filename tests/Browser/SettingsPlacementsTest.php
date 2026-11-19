@@ -51,7 +51,7 @@ it('opens Writing and People from the Settings menu, each under its own heading,
     $page->assertPathIs('/admin/settings/people')
         ->assertScript('document.querySelector("main h1")?.textContent === "People"', true)
         // Each panel names its heading with an id of its own, so the heading is found by its words.
-        ->assertScript('[...document.querySelectorAll("main h2")].some((heading) => heading.textContent === "Sign-in rules")', true)
+        ->assertScript('[...document.querySelectorAll("main h2")].some((heading) => heading.textContent === "Passwords")', true)
         ->assertNoAccessibilityIssues(3);
 })->with(['light', 'dark']);
 
@@ -59,9 +59,9 @@ it('finds Keep trash for, and lands on its field on Writing', function (): void 
     $page = cmSignIn($this->admin)->navigate('/admin/settings/general')
         ->type('[data-test="find-setting"]', 'keep trash');
 
-    cmWaitUntil($page, 'document.querySelector("#settings-found ul")?.textContent.includes("Keep trash for")');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="find-setting-list"]\')?.textContent.includes("Keep trash for")');
 
-    $page->click('#settings-found a[href$="#field-trash_days"]');
+    $page->click('[data-test="find-setting-item"][data-key="content.trash_days"]');
 
     cmWaitUntil($page, 'document.activeElement !== null && document.activeElement.id === "field-trash_days"');
 
@@ -126,7 +126,7 @@ it('draws Reading\'s default-number note straight after Items per page, before t
     })()', true);
 });
 
-it('reads the brand colour\'s contrast as it is typed, and saves it on General', function (): void {
+it('reads the brand color\'s contrast as it is typed, and saves it on General', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/settings/general');
 
     cmWaitUntil($page, 'document.querySelector("#field-accent") !== null');
@@ -137,7 +137,7 @@ it('reads the brand colour\'s contrast as it is typed, and saves it on General',
 
     $page->type('#field-accent', '#0b5394');
 
-    cmWaitUntil($page, 'document.querySelector("#brand-colour-readout")?.textContent.includes("on light ✓")');
+    cmWaitUntil($page, 'document.querySelector("#brand-colour-readout")?.textContent.includes("to 1, readable")');
 
     $page->click('[data-test="settings-save"]');
 
@@ -149,12 +149,12 @@ it('reads the brand colour\'s contrast as it is typed, and saves it on General',
     cmWaitUntil($page, 'document.querySelector("#field-accent")?.value === "#0b5394"');
 });
 
-it('draws General with its Brand colour, passing axe and the target size, in both schemes', function (string $scheme): void {
+it('draws General with its Brand color, passing axe and the target size, in both schemes', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)->navigate('/admin/settings/general');
 
-    cmWaitUntil($page, '[...document.querySelectorAll("main h2")].some((heading) => heading.textContent === "Brand colour")');
+    cmWaitUntil($page, '[...document.querySelectorAll("main h2")].some((heading) => heading.textContent === "Brand color")');
 
     $page->assertNoAccessibilityIssues(3);
 

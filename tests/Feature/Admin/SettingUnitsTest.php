@@ -16,7 +16,7 @@ it('lets a number setting name the unit it counts in, and no other kind (I-3128)
         ->toThrow(InvalidArgumentException::class, 'Only number settings may count in a unit; [title] is text.');
 });
 
-it('says the unit beside each of Discussion\'s day and level counts, and none for a plain number', function (): void {
+it('says the unit beside each of Discussion\'s counts, as the approved design does', function (): void {
     $this->seed(RoleSeeder::class);
     $admin = User::factory()->create()->assignRole('administrator');
 
@@ -29,7 +29,7 @@ it('says the unit beside each of Discussion\'s day and level counts, and none fo
         'close_after_days' => 'days',
         'thread_depth' => 'levels',
         'keep_ip_days' => 'days',
-        'per_page' => null,
-        'hold_links' => null,
+        'per_page' => 'comments',
+        'hold_links' => 'links',
     ]);
 });

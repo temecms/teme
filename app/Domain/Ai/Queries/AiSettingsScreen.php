@@ -36,6 +36,8 @@ use App\Domain\Ai\UsageLimits;
 use App\Domain\Plugins\PluginWords;
 use App\Domain\Settings\Queries\SettingsForm;
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final readonly class AiSettingsScreen
@@ -68,7 +70,7 @@ final readonly class AiSettingsScreen
      * when it is, the group's description, whether any task can run, the
      * sections in their order (each service, the models, the plugins' tasks
      * and limits, the limits, and any other part's section on the generic
-     * controls), this month's figures,
+     * controls), this month's figures and its most-used task,
      * Tools › AI activity's address for whoever may see it, the group's
      * values without its secrets, each secret's state, each media setting's
      * image, and the version to save against.
@@ -122,12 +124,39 @@ final readonly class AiSettingsScreen
             'anyTaskOn' => array_any($this->tasks->all(), fn (AiTask $task): bool => $this->availability->taskReady($task->key())),
             'sections' => $sections,
             'month' => $this->month->of(null),
+            'mostUsedTask' => $this->mostUsedTask(),
             'activityUrl' => $viewer->can('ai-activity.view') ? route('tools.ai-activity.index') : null,
             'values' => $form['values'],
             'secrets' => $form['secrets'],
             'media' => $form['media'],
             'version' => $form['version'],
         ];
+    }
+
+    /**
+     * The label of the task asked most this month (UTC), or null when nothing
+     * was asked; a task no longer installed is named by its key.
+     */
+    private function mostUsedTask(): ?string
+    {
+        $key = DB::table('ai_activity')
+            ->where('created_at', '>=', CarbonImmutable::now('UTC')->startOfMonth())
+            ->groupBy('task')
+            ->orderByRaw('count(*) desc')
+            ->orderBy('task')
+            ->value('task');
+
+        if (! is_string($key)) {
+            return null;
+        }
+
+        foreach ($this->tasks->all() as $task) {
+            if ($task->key() === $key) {
+                return $task->label();
+            }
+        }
+
+        return $key;
     }
 
     /**
@@ -165,7 +194,7 @@ final readonly class AiSettingsScreen
     /**
      * Settings › AI's Plugins section: its settings on the generic controls,
      * and each enabled plugin granted `ai` with its switch's, budget's and
-     * limit's settings, its month so far, and its tasks' rows, each with what
+     * limit's settings, its month so far, its requests in the last hour, and its tasks' rows, each with what
      * it sends, its two settings, every model able to do it, and whether it
      * can be asked now and, when it can't, why.
      *
@@ -189,6 +218,7 @@ final readonly class AiSettingsScreen
                 'on' => $section->on($code),
                 'budgetMicrounits' => $section->budgetMicrounits($code),
                 'hourly' => $section->hourly($code),
+                'requestsThisHour' => $this->pluginStanding->lastHour($code),
                 'month' => ['costMicrounits' => $month->costMicrounits, 'requests' => $month->requests, 'unpricedRequests' => $month->unpricedRequests],
                 'tasks' => array_map(function (DeclaredAiTask $task) use ($code, $catalogue): array {
                     $standing = $this->pluginStanding->of($code, $task);

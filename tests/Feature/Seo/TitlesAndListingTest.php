@@ -33,7 +33,7 @@ it('registers its section first in Search and social, with the separator and a r
     $group = array_map(fn (Setting $setting): string => $setting->key, app(SettingsRegistry::class)->find('seo')?->settings ?? []);
     $first = SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS))[0];
 
-    expect([$first->order(), $first->key(), $first->label()])->toBe([100, 'titles-and-listing', 'Titles, and what search engines may list'])
+    expect([$first->order(), $first->key(), $first->label()])->toBe([100, 'titles-and-listing', 'Titles in search results'])
         ->and(array_keys($settings))->toBe([
             'title_separator',
             'title_type_post', 'hide_type_post', 'title_type_page', 'hide_type_page',

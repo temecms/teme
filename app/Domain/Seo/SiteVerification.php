@@ -35,7 +35,7 @@ final class SiteVerification implements SearchAndSocialSection, SettingsCheck
 
     public function order(): int
     {
-        return 500;
+        return 300;
     }
 
     public function key(): string
@@ -51,7 +51,7 @@ final class SiteVerification implements SearchAndSocialSection, SettingsCheck
     public function settings(): array
     {
         return [
-            Setting::pairs(self::TAGS, 'Site verification', 'One name and content pair per service.', '0.1.0', 'Name', 'Content')
+            Setting::pairs(self::TAGS, 'Site verification', 'Google’s name is google-site-verification, Bing’s msvalidate.01, Yandex’s yandex-verification, Pinterest’s p:domain_verify and Facebook’s facebook-domain-verification.', '0.1.0', 'Name', 'Value')
                 ->max(self::MOST)->maxLength(self::LONGEST),
         ];
     }

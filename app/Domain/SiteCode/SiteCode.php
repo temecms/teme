@@ -31,16 +31,17 @@ final class SiteCode
 
     /**
      * Each placement, keyed as the document shell's (App\Domain\Site\Document\Placement),
-     * then the place a card puts code: its panel's heading, where it is, and
-     * how a toast says where.
+     * then the place a card puts code: its short name, where it is, how a
+     * toast says where, the chip an entry carries, and the line under its
+     * choice in the form.
      *
-     * @var array<string, array{label: string, where: string, at: string}>
+     * @var array<string, array{label: string, where: string, at: string, chip: string, hint: string}>
      */
     public const array PLACES = [
-        'head' => ['label' => 'Head', 'where' => 'Inside <head>, on every public page.', 'at' => 'in the head'],
-        'body-start' => ['label' => 'Start of the body', 'where' => 'At the start of <body>, on every public page.', 'at' => 'at the start of the body'],
-        'body-end' => ['label' => 'End of the body', 'where' => 'At the end of <body>, on every public page.', 'at' => 'at the end of the body'],
-        self::PLACED => ['label' => 'Placed with a card', 'where' => 'Nowhere by itself. Editors place it in a theme region with the Custom HTML card.', 'at' => 'for placing with a card'],
+        'head' => ['label' => 'Head', 'where' => 'Inside <head>, on every public page.', 'at' => 'in the head', 'chip' => 'In the head of every page', 'hint' => 'Loads first. Suits analytics and verification tags.'],
+        'body-start' => ['label' => 'Start of the body', 'where' => 'At the start of <body>, on every public page.', 'at' => 'at the start of the body', 'chip' => 'At the start of every page', 'hint' => 'Right after the page’s body opens. Suits the part of a tag manager that works without JavaScript.'],
+        'body-end' => ['label' => 'End of the body', 'where' => 'At the end of <body>, on every public page.', 'at' => 'at the end of the body', 'chip' => 'At the foot of every page', 'hint' => 'Loads last, so the page shows first. Suits chat and pop-ups.'],
+        self::PLACED => ['label' => 'Placed with a card', 'where' => 'Nowhere by itself. Editors place it in a theme region with the Custom HTML card.', 'at' => 'for placing with a card', 'chip' => 'Placed with a card', 'hint' => 'Nowhere by itself. Editors place it in a theme region with the Custom HTML card.'],
     ];
 
     /**

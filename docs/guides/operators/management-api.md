@@ -15,7 +15,7 @@ The API is off until you turn it on, and nothing changes on a site that never tu
 
 Open **Settings › Management API** as an administrator and switch on **Turn on the management API**. With the switch off, every request answers `404` with the problem `api_off`, whatever key it carries.
 
-The same page sets **Requests a minute per key**, 60 unless you change it, between 1 and 1000. A key that goes over it is answered `429` with the problem `rate_limited` and a `Retry-After` header. An address that fails to sign in 30 times in a minute waits until the minute ends.
+The same page sets **Requests a minute per token**, 60 unless you change it, between 1 and 1000. A key that goes over it is answered `429` with the problem `rate_limited` and a `Retry-After` header. An address that fails to sign in 30 times in a minute waits until the minute ends.
 
 ## Making a key
 

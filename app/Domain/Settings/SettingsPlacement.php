@@ -25,7 +25,7 @@ final class SettingsPlacement
      */
     public const array RENAMED = [
         'writing' => ['group' => 'content', 'label' => 'Writing', 'description' => 'How long the trash keeps items and comments.', 'section' => null],
-        'people' => ['group' => 'security', 'label' => 'People', 'description' => 'How everyone with an account signs in.', 'section' => 'Sign-in rules'],
+        'people' => ['group' => 'security', 'label' => 'People', 'description' => 'How everyone with an account signs in: password rules, sign-in limits and how long sessions last; and where people’s pictures come from.', 'section' => null],
     ];
 
     /**

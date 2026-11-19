@@ -59,7 +59,7 @@ it('labels every select and every input', function (string $file): void {
     // aria-labelledby, or an id that a <Label htmlFor> in the same file names.
     $source = uiComponent($file);
 
-    preg_match_all('/<(?:Input|PasswordInput|InputOTP|Checkbox|SelectField|select|textarea)\b((?:=>|[^>])*)>/s', $source, $controls);
+    preg_match_all('/<(?:Input|PasswordInput|InputOTP|Checkbox|SelectField|Textarea|select|textarea)\b((?:=>|[^>])*)>/s', $source, $controls);
 
     expect($controls[0])->not->toBeEmpty();
 

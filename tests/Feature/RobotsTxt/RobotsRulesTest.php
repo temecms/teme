@@ -43,10 +43,10 @@ it('registers robots.txt as Search and social\'s section at 700, its extra rules
 
     expect($sections)->toContain([700, 'robots-txt', 'robots.txt'])
         ->and($group?->setting('robots_extra_rules')?->label)->toBe('Extra rules')
-        ->and($group?->setting('robots_extra_rules')?->description)->toBe('Added to the robots.txt Teme writes, after its own rules. Each line is checked: User-agent, Allow, Disallow or Sitemap, or # for a note.')
+        ->and($group?->setting('robots_extra_rules')?->description)->toBe('Each line is checked: User-agent, Allow, Disallow or Sitemap, or # for a note.')
         ->and($group?->setting('robots_extra_rules')?->maxLength)->toBe(20000)
         ->and($group?->setting('discourage_ai_training')?->label)->toBe('Ask AI training crawlers not to use this site')
-        ->and($group?->setting('discourage_ai_training')?->description)->toBe('Asks each AI training crawler on Teme’s list not to use the site, while still letting search engines in. It’s a request, not a lock: well-behaved crawlers follow it. It also keeps the site out of answers in Google’s Gemini apps, but not out of Google’s AI Overviews, which are part of Search, or pages a reader asks an assistant to fetch.')
+        ->and($group?->setting('discourage_ai_training')?->description)->toBe('It’s a request, not a lock: well-behaved crawlers follow it. Search engines are still let in.')
         ->and(app(SettingsReader::class)->string('seo', 'robots_extra_rules'))->toBe('')
         ->and(app(SettingsReader::class)->bool('seo', 'discourage_ai_training'))->toBeFalse();
 });

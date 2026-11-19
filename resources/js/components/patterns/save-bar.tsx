@@ -1,3 +1,4 @@
+import { OctagonAlertIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -14,7 +15,9 @@ import { __ } from '@/lib/i18n';
  * The one save bar (docs/architecture/design-system.md, section 4.12):
  * hidden until something changes, then a bar at the foot of the form with
  * Discard and Save, and a question before the page is left with the changes
- * unsaved. It is the last child of its form, so Save submits it.
+ * unsaved. Given a count, it says how many changes wait ("2 unsaved
+ * changes"), and after a refused save how many settings need attention. It
+ * is the last child of its form, so Save submits it.
  */
 export function SaveBar({
     dirty,
@@ -23,6 +26,8 @@ export function SaveBar({
     saveLabel,
     what,
     testId,
+    changes,
+    problems = 0,
     'aria-describedby': describedBy,
 }: {
     dirty: boolean;
@@ -33,6 +38,10 @@ export function SaveBar({
     what: string;
     /** The Save button's `data-test`, for a page whose tests already name it. */
     testId?: string;
+    /** How many settings changed; without it the bar says only that something did. */
+    changes?: number;
+    /** How many settings the last save was refused for. */
+    problems?: number;
     /** What Save is described by, such as the form's own error line. */
     'aria-describedby'?: string;
 }) {
@@ -47,8 +56,33 @@ export function SaveBar({
                 hidden={!dirty}
                 className="bg-ink text-page shadow-float motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 sticky bottom-4 z-(--z-sticky) flex flex-wrap items-center gap-3 rounded-lg py-3 pr-3 pl-5 duration-(--dur-2) ease-(--ease) max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-none"
             >
-                <p className="text-body min-w-0 flex-1 font-medium">
-                    {__('You have unsaved changes')}
+                <p
+                    role="status"
+                    data-test="save-bar-message"
+                    className="text-body flex min-w-0 flex-1 items-center gap-2 font-medium"
+                >
+                    {problems > 0 ? (
+                        <>
+                            <OctagonAlertIcon
+                                aria-hidden="true"
+                                className="size-4 shrink-0"
+                            />
+                            {problems === 1
+                                ? __(
+                                      '1 setting needs attention before you can save',
+                                  )
+                                : __(
+                                      ':count settings need attention before you can save',
+                                      { count: problems },
+                                  )}
+                        </>
+                    ) : changes === undefined ? (
+                        __('You have unsaved changes')
+                    ) : changes === 1 ? (
+                        __('1 unsaved change')
+                    ) : (
+                        __(':count unsaved changes', { count: changes })
+                    )}
                 </p>
                 <Button
                     type="button"

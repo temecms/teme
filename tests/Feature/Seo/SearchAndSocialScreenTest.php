@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('gives core\'s sections in their order, each with its own fields and its words (I-874)', function (): void {
     $data = ($this->data)();
-    $order = ['titles-and-listing', 'whole-site', 'social-cards', 'site-verification', 'feeds', 'robots-txt', 'not-found-log'];
+    $order = ['titles-and-listing', 'whole-site', 'site-verification', 'social-cards', 'feeds', 'robots-txt', 'not-found-log'];
 
     expect(array_values(array_intersect(array_column($data['sections'], 'key'), $order)))->toBe($order)
         ->and(array_column(($this->section)($data, 'social-cards')['fields'], 'key'))->toBe(['default_social_image'])
@@ -70,7 +70,7 @@ it('gives a section another part registers its place by its order, with its fiel
     $keys = array_column($data['sections'], 'key');
 
     expect(array_search('test-publisher', $keys, true))->toBe(array_search('whole-site', $keys, true) + 1)
-        ->and(array_search('who-publishes', $keys, true))->toBe(array_search('test-publisher', $keys, true) + 1)
+        ->and(array_search('site-verification', $keys, true))->toBe(array_search('test-publisher', $keys, true) + 1)
         ->and(($this->section)($data, 'test-publisher'))->toMatchArray(['label' => 'A plugin’s section', 'note' => null])
         ->and(($this->section)($data, 'test-publisher')['fields'][0]['key'])->toBe('test_publisher_name')
         ->and($data['values'])->toHaveKey('test_publisher_name');

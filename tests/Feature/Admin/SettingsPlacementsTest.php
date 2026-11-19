@@ -27,12 +27,12 @@ it('draws the content group as Settings › Writing, at its own address', functi
             ->where('values.trash_days', 30));
 });
 
-it('draws the security group as Settings › People, its form under Sign-in rules', function (): void {
+it('draws the security group as Settings › People, in its sections', function (): void {
     $this->actingAs($this->admin)->get('/admin/settings/people')
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/group')
-            ->where('heading', ['key' => 'people', 'label' => 'People', 'description' => 'How everyone with an account signs in.'])
-            ->where('section', 'Sign-in rules')
+            ->where('heading', ['key' => 'people', 'label' => 'People', 'description' => 'How everyone with an account signs in: password rules, sign-in limits and how long sessions last; and where people’s pictures come from.'])
+            ->where('section', null)
             ->where('group.key', 'security')
             ->where('group.description', 'Password rules, sign-in limits and session lengths. Changing any of these asks you to confirm your password.')
             ->where('fields.0.key', 'password_min_length'));
@@ -74,19 +74,21 @@ it('finds each setting on the page that draws it, and Writing by its own line', 
 
     expect($found['settings'])->toContain(['key' => 'content.trash_days', 'label' => 'Keep trash for', 'screen' => 'Writing', 'href' => '/admin/settings/writing#field-trash_days'])
         ->and(array_column($found['screens'], 'key'))->toContain('writing')
-        ->and(app(FindSettings::class)->run('minimum password', $this->admin)['settings'])
-        ->toContain(['key' => 'security.password_min_length', 'label' => 'Minimum password length', 'screen' => 'People', 'href' => '/admin/settings/people#field-password_min_length']);
+        ->and(app(FindSettings::class)->run('shortest password', $this->admin)['settings'])
+        ->toContain(['key' => 'security.password_min_length', 'label' => 'Shortest password', 'screen' => 'People', 'href' => '/admin/settings/people#field-password_min_length']);
 });
 
 it('says on Media which image widths Teme makes, in words read from what it makes', function (): void {
     $this->actingAs($this->admin)->get('/admin/settings/media')
         ->assertInertia(fn (Assert $page) => $page
             ->where('heading.description', 'Limits on the files people can upload, and the image widths Teme makes.')
-            ->where('imageWidths', [
-                'label' => 'Image widths',
-                'value' => '320, 640, 960, 1280, 1920 and 2560 pixels wide, and a 300 × 300 thumbnail.',
-                'hint' => 'Fixed in Teme, not a setting. A width is made only when the original is wider, plus one at the original’s own width, so nothing is enlarged. All are saved as WebP. An image used as a featured or social image also gets a 1200 × 630 social card and the crops search engines may show.',
-            ]));
+            ->where('imageWidths.rows', [
+                ['term' => 'Widths made', 'value' => '320, 640, 960, 1280, 1920 and 2560 pixels wide'],
+                ['term' => 'Thumbnail', 'value' => '300 × 300 pixels'],
+                ['term' => 'Social card', 'value' => '1200 × 630 pixels, plus the 16:9, 4:3 and square crops search engines may show'],
+                ['term' => 'Saved as', 'value' => 'WebP'],
+            ])
+            ->where('imageWidths.hint', 'A width is made only when the original is wider, plus one at the original’s own width, so nothing is enlarged.'));
 
     // Only Media draws them, and Find a setting finds Media by them.
     $this->actingAs($this->admin)->get('/admin/settings/general')->assertInertia(fn (Assert $page) => $page->where('imageWidths', null));
