@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Field, FieldInline } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Notice } from '@/components/ui/notice';
+import { SoonTag } from '@/components/ui/soon-tag';
 import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
 import { store } from '@/routes/login';
@@ -70,15 +71,6 @@ export default function Login({
                     )}
                 </>
             }
-            links={
-                canResetPassword && (
-                    <TextButton asChild className="min-h-(--ctl-h)">
-                        <Link href={request()}>
-                            {__('Forgot your password?')}
-                        </Link>
-                    </TextButton>
-                )
-            }
         >
             <Form
                 {...store.form()}
@@ -101,6 +93,7 @@ export default function Login({
                                 required
                                 autoFocus
                                 autoComplete="email"
+                                placeholder={__('email@example.com')}
                             />
                         </Field>
 
@@ -108,6 +101,21 @@ export default function Login({
                             htmlFor="password"
                             label={__('Password')}
                             error={errors.password}
+                            labelEnd={
+                                canResetPassword && (
+                                    <TextButton
+                                        asChild
+                                        className="-my-2 min-h-(--ctl-h) font-normal"
+                                    >
+                                        <Link
+                                            href={request()}
+                                            data-test="forgot-password-link"
+                                        >
+                                            {__('Forgotten your password?')}
+                                        </Link>
+                                    </TextButton>
+                                )
+                            }
                         >
                             <PasswordInput
                                 id="password"
@@ -139,6 +147,23 @@ export default function Login({
                     </>
                 )}
             </Form>
+            <div
+                aria-hidden="true"
+                className="text-small text-ink-3 before:bg-line after:bg-line flex items-center gap-3 before:h-px before:flex-1 after:h-px after:flex-1"
+            >
+                {__('or')}
+            </div>
+            <Button
+                type="button"
+                variant="neutral"
+                className="w-full"
+                aria-disabled="true"
+                data-test="passkey-soon"
+                onClick={(event) => event.preventDefault()}
+            >
+                {__('Use a passkey')}
+                <SoonTag className="ms-0" />
+            </Button>
         </AuthPage>
     );
 }

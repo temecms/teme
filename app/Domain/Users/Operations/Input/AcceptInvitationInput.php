@@ -1,8 +1,9 @@
 <?php
 
 /**
- * What `AcceptInvitation` needs: the address, the invitation token and the new
- * password twice. Nobody is signed in, so the token is the authority.
+ * What `AcceptInvitation` needs: the address, the invitation token, the new
+ * password twice, and the name the person chose. Nobody is signed in, so the
+ * token is the authority.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -22,6 +23,13 @@ final readonly class AcceptInvitationInput implements OperationInput
         public string $token,
         public string $password,
         public string $passwordConfirmation,
+        /**
+         * The name the person wants on what they write; null or blank keeps
+         * the one they were invited by.
+         *
+         * @since next
+         */
+        public ?string $name = null,
     ) {}
 
     /**
