@@ -218,6 +218,17 @@ final readonly class Manifest
     }
 
     /**
+     * The path of the plugin's icon inside its folder, as declared, or ''.
+     * PackagePictures::find() says whether it is there.
+     *
+     * @since next
+     */
+    public function icon(): string
+    {
+        return $this->string('icon');
+    }
+
+    /**
      * The file as it was read.
      *
      * @return array<string, mixed>

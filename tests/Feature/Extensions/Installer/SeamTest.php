@@ -166,8 +166,8 @@ it('resolves Packagist and a tagged kind by key', function (): void {
 });
 
 it('refuses a kind it does not know, and a key registered twice', function (): void {
-    expect(fn () => app(SourceKinds::class)->get('directory'))->toThrow(InvalidArgumentException::class, 'directory')
-        ->and(app(SourceKinds::class)->find('directory'))->toBeNull();
+    expect(fn () => app(SourceKinds::class)->get('nowhere'))->toThrow(InvalidArgumentException::class, 'nowhere')
+        ->and(app(SourceKinds::class)->find('nowhere'))->toBeNull();
 
     app()->bind('test.second-packagist', fn (): PackagistSource => new PackagistSource);
     app()->tag('test.second-packagist', SourceKinds::TAG);

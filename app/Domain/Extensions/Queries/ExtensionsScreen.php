@@ -41,7 +41,7 @@ final readonly class ExtensionsScreen
     /**
      * The screens' props: the newest requests, the open one with its steps and the commands that carry
      * it out, whether the installer is running, the folder, the held banner, the saved sources without
-     * their keys, and what may be asked for.
+     * their keys, and what may be asked for, Teme's directory among it.
      *
      * @return array{
      *     requests: list<array<string, mixed>>,
@@ -53,6 +53,7 @@ final readonly class ExtensionsScreen
      *     sources: list<array{id: string, kind: string, label: string, url: ?string, username: ?string, hasKey: bool, createdAt: string}>,
      *     sourceKinds: list<string>,
      *     packagist: bool,
+     *     directory: bool,
      *     canRollBack: bool,
      *     uploadMax: int,
      * }
@@ -74,6 +75,7 @@ final readonly class ExtensionsScreen
             'sources' => $this->sources(),
             'sourceKinds' => $this->kinds->keys(),
             'packagist' => (bool) config('teme.extensions.packagist'),
+            'directory' => app(DirectoryPackages::class)->enabled(),
             'canRollBack' => $this->earlierReleases() !== [],
             'uploadMax' => (int) config('teme.extensions.upload_max'),
         ];

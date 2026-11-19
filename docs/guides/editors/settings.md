@@ -144,6 +144,10 @@ Whether people on Mastodon and other fediverse servers can follow the site, and 
 
 The Dokploy API key Teme uses to update the site from Tools › Updates, on a site that runs on Dokploy. It is kept encrypted and never shown again, and saving it asks you to confirm your password. When Teme can't use the key, or has none, the page says why in one sentence. Those who may update Teme change it.
 
+### Plugin and theme directory
+
+Whether Add plugin and Add theme list the packages in Teme's plugin and theme directory and can install them. Teme checks each list it reads against the directory's signature first. Switched off, Teme asks nothing of the directory and installs nothing from it; plugins and themes already installed stay. Those who may install plugins and themes change it.
+
 ## To find a setting
 
 Type in **Find a setting**, at the top of the side column on every Settings page, for example "time zone". Press / anywhere on the page to start typing there. The settings that match open in a list under the box, the words you typed marked; choose one, or move with the arrow keys and press Enter, to go to it.

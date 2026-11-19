@@ -15,7 +15,7 @@
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `requires.plugins` | object | no | Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -210,5 +210,9 @@
 | `author` | string | no | Who wrote the plugin. |  |
 | `author_url` | string | no | The author’s website. |  |
 | `homepage` | string | no | Where to read about it. |  |
+| `icon` | string | no | The plugin’s icon: a path inside the plugin, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP]\|[sS][vV][gG])$ |
+| `screenshots` | array | no | Up to 8 pictures of the plugin at work, in the order Teme’s directory shows them. |  |
+| `screenshots[].path` | string | yes | A path inside the plugin, with no .., to a .png, .jpg, .jpeg or .webp picture, in any case. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP])$ |
+| `screenshots[].caption` | string | no | What the picture shows, in at most 140 characters. |  |
 | `license` | string | no | The license it is released under. |  |
 

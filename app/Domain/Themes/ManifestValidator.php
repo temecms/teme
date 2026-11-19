@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Themes;
 
 use App\Domain\Cards\CardRegistry;
+use App\Domain\Extensions\PackagePictures;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Site\Policy\PagePolicy;
@@ -82,7 +83,7 @@ final class ManifestValidator
     public const array KEYS = [
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
-        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp',
+        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
     ];
 
     public function __construct(private readonly CardRegistry $cards) {}
@@ -141,6 +142,8 @@ final class ManifestValidator
         if (array_key_exists('screenshot', $manifest) && (! is_string($manifest['screenshot']) || preg_match(self::SCREENSHOT, $manifest['screenshot']) !== 1)) {
             $errors[] = 'screenshot must be a path inside the theme, with no .., to a .png, .jpg or .webp image.';
         }
+
+        array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
         array_push($errors, ...$this->cards($manifest));
 
         $composers = $manifest['composers'] ?? [];

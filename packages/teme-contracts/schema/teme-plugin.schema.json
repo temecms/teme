@@ -104,7 +104,9 @@
                     "notices.send",
                     "content.links",
                     "pages.head",
-                    "sitemaps"
+                    "sitemaps",
+                    "directory.read",
+                    "content.submissions"
                 ]
             }
         },
@@ -1404,6 +1406,35 @@
         "homepage": {
             "type": "string",
             "description": "Where to read about it."
+        },
+        "icon": {
+            "type": "string",
+            "pattern": "^(?!/)(?!(?:.*/)?\\.\\.(?:/|$))[^\\\\\\s:]+\\.(?:[pP][nN][gG]|[jJ][pP][eE]?[gG]|[wW][eE][bB][pP]|[sS][vV][gG])$",
+            "$comment": "@since next",
+            "description": "The plugin’s icon: a path inside the plugin, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error."
+        },
+        "screenshots": {
+            "type": "array",
+            "maxItems": 8,
+            "$comment": "@since next",
+            "description": "Up to 8 pictures of the plugin at work, in the order Teme’s directory shows them.",
+            "items": {
+                "type": "object",
+                "required": ["path"],
+                "additionalProperties": false,
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "pattern": "^(?!/)(?!(?:.*/)?\\.\\.(?:/|$))[^\\\\\\s:]+\\.(?:[pP][nN][gG]|[jJ][pP][eE]?[gG]|[wW][eE][bB][pP])$",
+                        "description": "A path inside the plugin, with no .., to a .png, .jpg, .jpeg or .webp picture, in any case."
+                    },
+                    "caption": {
+                        "type": "string",
+                        "maxLength": 140,
+                        "description": "What the picture shows, in at most 140 characters."
+                    }
+                }
+            }
         },
         "license": {
             "type": "string",

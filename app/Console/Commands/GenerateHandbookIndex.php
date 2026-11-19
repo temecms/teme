@@ -42,6 +42,8 @@ final class GenerateHandbookIndex extends Command
         'for-agents.md',
         'plugins/content-write.md',
         'plugins/content-read.md',
+        'plugins/submissions.md',
+        'plugins/directory.md',
         'plugins/jobs.md',
         'plugins/public-routes.md',
         'plugins/root-files.md',

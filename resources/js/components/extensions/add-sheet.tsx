@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import ExtensionsController from '@/actions/App/Http/Admin/ExtensionsController';
 import { send } from '@/components/editor/editor-http';
+import { DirectoryTab } from '@/components/extensions/directory-tab';
 import { useAsk } from '@/components/extensions/use-ask';
 import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ import type {
     ExtensionUpload,
 } from '@/types';
 
-type Tab = 'packagist' | 'git' | 'composer' | 'upload';
+type Tab = 'directory' | 'packagist' | 'git' | 'composer' | 'upload';
 
 /** One Packagist result, as the search answers it. */
 type Found = {
@@ -577,7 +578,7 @@ function UploadTab({
 
 /**
  * The Add plugin or Add theme sheet (I-211): Packagist, a Git address, a
- * vendor's source or an uploaded ZIP. Asking records a request; the
+ * vendor's source or an uploaded ZIP, or Teme's own directory. Asking records a request; the
  * request's own sheet then follows the installer.
  */
 export function AddSheet({
@@ -597,7 +598,7 @@ export function AddSheet({
 }) {
     const { ask, busy, password } = useAsk();
     const [tab, setTab] = useState<Tab>(
-        data.packagist ? 'packagist' : 'upload',
+        data.directory ? 'directory' : data.packagist ? 'packagist' : 'upload',
     );
     const [chosen, setChosen] = useState<string | null>(null);
     const [pkg, setPkg] = useState('');
@@ -615,6 +616,16 @@ export function AddSheet({
 
     const payload = (): RequestPayload | null => {
         switch (tab) {
+            case 'directory':
+                return chosen === null
+                    ? null
+                    : {
+                          action: 'install',
+                          kind,
+                          package: chosen,
+                          constraint: constraint === '' ? null : constraint,
+                          sourceKind: 'directory',
+                      };
             case 'packagist':
                 return chosen === null
                     ? null
@@ -703,6 +714,14 @@ export function AddSheet({
                             aria-label={__('Where it comes from')}
                             className="flex-wrap"
                         >
+                            {data.directory && (
+                                <TabsTrigger
+                                    value="directory"
+                                    data-test="extension-tab-directory"
+                                >
+                                    {__('Directory')}
+                                </TabsTrigger>
+                            )}
                             <TabsTrigger
                                 value="packagist"
                                 data-test="extension-tab-packagist"
@@ -728,6 +747,20 @@ export function AddSheet({
                                 {__('Upload ZIP')}
                             </TabsTrigger>
                         </TabsList>
+                        {data.directory && (
+                            <TabsContent value="directory">
+                                <DirectoryTab
+                                    kind={kind}
+                                    installed={installed.map(
+                                        (one) => one.package,
+                                    )}
+                                    chosen={chosen}
+                                    onChoose={setChosen}
+                                    constraint={constraint}
+                                    onConstraint={setConstraint}
+                                />
+                            </TabsContent>
+                        )}
                         <TabsContent value="packagist">
                             <PackagistTab
                                 kind={kind}

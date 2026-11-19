@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Extensions\PackagePictures;
 use App\Domain\Hooks\Reference\HookCatalogue;
 use App\Domain\Import\PluginData\WordPressNames;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
@@ -174,6 +175,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->imports($manifest, $read));
         array_push($errors, ...$this->httpsAddress($manifest, 'author_url'));
         array_push($errors, ...$this->httpsAddress($manifest, 'homepage'));
+        array_push($errors, ...PackagePictures::errors($manifest, 'plugin'));
 
         return $errors;
     }

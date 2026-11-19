@@ -7,7 +7,8 @@
  * http, InsertionsChanged and the InlineScripts door when it was granted
  * content.insert or pages.insert (I-064), and the other doors its capabilities open
  * (I-3353), the writer of its own settings when it declares any, the
- * content reader when it was granted content.read, the people reader
+ * content reader when it was granted content.read, Submissions when it was
+ * granted content.submissions, the people reader
  * when it was granted people.read, SiteAi when it was granted ai and
  * declares AI tasks, HookSender when it declares hooks of its own, and
  * Notices for its declared kinds when it was granted notices.send.
@@ -48,6 +49,9 @@ use App\Domain\Users\Queries\AuthorOptions;
 use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Content\HtmlToDocument;
+use Teme\Contracts\Content\Submissions;
+use Teme\Contracts\Directory\VerifiedDirectory;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Hooks\HookSender;
@@ -81,6 +85,7 @@ final readonly class PluginDoors implements PluginServices
         private AuthorOptions $authors,
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
+        private HtmlToDocument $html,
     ) {}
 
     /**
@@ -104,6 +109,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::ContentWrite->value, $capabilities, true)) {
             $offered[ContentWriter::class] = new PluginContentWriter($code);
+        }
+
+        if (in_array(Capability::ContentSubmissions->value, $capabilities, true)) {
+            $offered[Submissions::class] = new PluginSubmissions($code);
         }
 
         if (in_array(Capability::MediaWrite->value, $capabilities, true)) {
@@ -133,6 +142,8 @@ final readonly class PluginDoors implements PluginServices
         }
 
         $offered[SiteInfo::class] = $this->site;
+        // Reads nothing and writes nothing, so every plugin is given it.
+        $offered[HtmlToDocument::class] = $this->html;
 
         // Its own settings group only, for the person its work runs for (docs/proposals/plugin-sockets-1.md).
         $settings = $this->registry->find($name)?->manifest?->contributes()['settings'] ?? null;
@@ -143,6 +154,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
             $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued);
+        }
+
+        if (in_array(Capability::DirectoryRead->value, $capabilities, true)) {
+            $offered[VerifiedDirectory::class] = app(PluginDirectory::class);
         }
 
         if (in_array(Capability::PeopleRead->value, $capabilities, true)) {

@@ -53,6 +53,17 @@ interface ContentWriter
     public function publish(ItemRef $item, string $actingPersonId): ItemRef;
 
     /**
+     * Takes a published item back to a draft: it leaves the public site and
+     * its address answers no more, and its revisions stay. Refused unless
+     * the person may publish it, and for an item that isn't published.
+     *
+     * @throws WriteRefused
+     *
+     * @since next
+     */
+    public function unpublish(ItemRef $item, string $actingPersonId): ItemRef;
+
+    /**
      * Schedules the item's latest revision.
      *
      * @throws WriteRefused

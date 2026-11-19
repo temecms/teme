@@ -50,12 +50,14 @@ it('says a draft, which has no address, is not indexable', function (): void {
         ->and($item->indexable)->toBeFalse();
 });
 
-it('adds indexable last, true by default, so code that builds an ItemRef keeps working', function (): void {
+it('adds indexable after the six it had, true by default, so code that builds an ItemRef keeps working', function (): void {
     $parameters = (new ReflectionMethod(ItemRef::class, '__construct'))->getParameters();
-    $last = $parameters[array_key_last($parameters)];
+    $indexable = $parameters[6];
 
-    expect($last->getName())->toBe('indexable')
-        ->and($last->getDefaultValue())->toBeTrue()
+    expect($indexable->getName())->toBe('indexable')
+        ->and($indexable->getDefaultValue())->toBeTrue()
+        ->and($parameters[7]->getName())->toBe('submission')
+        ->and($parameters[7]->getDefaultValue())->toBeFalse()
         ->and((string) (new ReflectionMethod(ItemRef::class, '__construct'))->getDocComment())->toContain('@since 1.0.0')
         ->and((new ItemRef('01', 'post', 'A title', 'published', 'https://example.test/a/', 'en'))->indexable)->toBeTrue();
 });

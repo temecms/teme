@@ -13,6 +13,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Teme\Contracts\Content\HtmlToDocument;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -105,6 +106,6 @@ it('hands a plugin nothing that writes, registers or changes a setting', functio
         $reader->group($group->key);
     }
 
-    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class, OutboundHttp::class, SiteInfo::class])
+    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class, OutboundHttp::class, SiteInfo::class, HtmlToDocument::class])
         ->and(DB::table('settings')->orderBy('group_key')->get()->toJson())->toBe($before);
 });

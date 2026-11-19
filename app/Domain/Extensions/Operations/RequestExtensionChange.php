@@ -16,14 +16,17 @@ declare(strict_types=1);
 namespace App\Domain\Extensions\Operations;
 
 use App\Domain\Design\Queries\DesignScreen;
+use App\Domain\Extensions\Directory\DirectoryRefused;
 use App\Domain\Extensions\ExtensionAction;
 use App\Domain\Extensions\ExtensionKind;
 use App\Domain\Extensions\Models\ExtensionSourceRecord;
 use App\Domain\Extensions\Models\ExtensionUploadRecord;
 use App\Domain\Extensions\Operations\Concerns\AuthorizesExtensionChanges;
 use App\Domain\Extensions\Operations\Input\RequestExtensionChangeInput;
+use App\Domain\Extensions\Queries\DirectoryPackages;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Extensions\RequestStatus;
+use App\Domain\Extensions\Sources\DirectorySource;
 use App\Domain\Extensions\Sources\PackagistSource;
 use App\Domain\Extensions\Sources\SourceKinds;
 use App\Domain\Plugins\Models\PluginRecord;
@@ -61,6 +64,7 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
         private readonly ExtensionsScreen $extensions,
         private readonly TemeUpdates $updates,
         private readonly SourceKinds $kinds,
+        private readonly DirectoryPackages $directory,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -246,9 +250,28 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
             };
         }
 
+        if ($kind === DirectorySource::KEY) {
+            return $this->directoryRefusal($input, $package);
+        }
+
         $source = $input->sourceId === null ? null : ExtensionSourceRecord::query()->find($input->sourceId);
 
         return $source === null || $source->kind !== $kind ? __('Choose a saved source, or add one.') : null;
+    }
+
+    /**
+     * Why $package can't be installed from the directory: it is off, its index can't be used, or the
+     * package isn't listed there as the kind the request names.
+     */
+    private function directoryRefusal(RequestExtensionChangeInput $input, string $package): ?string
+    {
+        try {
+            $index = $this->directory->usable();
+        } catch (DirectoryRefused $refused) {
+            return $refused->getMessage();
+        }
+
+        return $index->package($package, $input->kind) === null ? DirectoryRefused::notListed($package)->getMessage() : null;
     }
 
     /**

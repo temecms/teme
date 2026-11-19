@@ -34,7 +34,11 @@ export function DetailsDialog({
                 >
                     <DialogHeader>
                         <div className="flex items-center gap-4">
-                            <PluginIcon size={56} name={plugin.label} />
+                            <PluginIcon
+                                size={56}
+                                name={plugin.label}
+                                src={plugin.icon}
+                            />
                             <div className="grid min-w-0 gap-1">
                                 <DialogTitle>
                                     {plugin.label} {plugin.version}

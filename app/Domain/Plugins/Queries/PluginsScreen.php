@@ -99,6 +99,7 @@ final readonly class PluginsScreen
                 'author' => $row->author,
                 'authorUrl' => $row->authorUrl,
                 'homepage' => $row->homepage,
+                'icon' => $row->icon,
                 'state' => $row->state->value,
                 'badge' => $row->state->label(),
                 'reason' => $row->reason,

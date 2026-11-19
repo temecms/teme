@@ -259,7 +259,7 @@ export function PluginRow({
             className="border-line flex flex-wrap items-start gap-x-4 gap-y-3 rounded-md border-b px-3 py-3 last:border-b-0 md:flex-nowrap"
         >
             {/* Later (I-3405): the picture, once the manifest can declare one. */}
-            <PluginIcon size={32} name={plugin.label} />
+            <PluginIcon size={32} name={plugin.label} src={plugin.icon} />
             <div className="grid min-w-0 flex-1 basis-0 gap-1">
                 <p className="flex flex-wrap items-baseline gap-x-2">
                     <span className="text-body text-ink font-semibold">

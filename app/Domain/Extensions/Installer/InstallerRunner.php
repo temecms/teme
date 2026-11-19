@@ -27,6 +27,7 @@ use App\Domain\Extensions\Operations\Input\RecordExtensionStepInput;
 use App\Domain\Extensions\Operations\RecordExtensionStep;
 use App\Domain\Extensions\RequestStatus;
 use App\Domain\Extensions\RequestStep;
+use App\Domain\Extensions\Sources\DirectorySource;
 use App\Domain\Extensions\Sources\ExtensionRequest;
 use App\Domain\Extensions\Sources\ExtensionSource;
 use App\Domain\Extensions\Sources\SafeAddress;
@@ -329,6 +330,11 @@ final class InstallerRunner
             $url = is_array($repository) ? ($repository['url'] ?? null) : null;
 
             if (! is_string($url) || ! in_array($repository['type'] ?? null, self::FETCHED_TYPES, true)) {
+                continue;
+            }
+
+            // The directory's package list, written here by its source after its hash was checked: Composer reads a file, fetches nothing.
+            if ($url === DirectorySource::repositoryUrl($this->store->root())) {
                 continue;
             }
 

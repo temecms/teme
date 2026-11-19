@@ -2,8 +2,8 @@
 title: Plugins writing content
 type: how-to
 audience: plugin
-summary: How a plugin granted content.write creates, changes, publishes and schedules items, with their slugs, credits and language versions, always on behalf of a named person.
-rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentWriter.php, app/Domain/Plugins/Doors/ActingPerson.php, docs/architecture/plugins.md, docs/architecture/operations.md]
+summary: How a plugin granted content.write creates, changes, publishes, unpublishes and schedules items, with their slugs, credits and language versions, always on behalf of a named person.
+rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentWriter.php, app/Domain/Import/Convert/HtmlDocuments.php, app/Domain/Plugins/Doors/ActingPerson.php, docs/architecture/plugins.md, docs/architecture/operations.md]
 ---
 
 # Plugins writing content
@@ -16,7 +16,7 @@ Ask for the `content.write` capability in `teme-plugin.json`, and for `ContentWr
 
 ## Who a plugin writes for
 
-Each method takes the acting person's ID last. It must be the person behind the work in hand: the person signed in for the request, or, inside a job, the person the job runs as, which for a scheduled job is the administrator who enabled the plugin. Any other ID is refused, and so is a write with no person behind it, such as one for a public visitor or one the operator started from the console. Read the person's ID from what started the work, such as a hook's actor, never from a setting.
+Each method takes the acting person's ID last. It must be the person behind the work in hand: the person signed in for the request, or, inside a job, the person the job runs as, which for a scheduled job is the administrator who enabled the plugin. Any other ID is refused, and so is a write with no person behind it, such as one for a public visitor or one the operator started from the console. What a visitor sends from a public form goes through [Submissions](submissions.md) instead. Read the person's ID from what started the work, such as a hook's actor, never from a setting.
 
 The person's own permissions then apply as in the editor: an author can publish only their own items, a contributor can't publish at all, and so on.
 
@@ -25,6 +25,7 @@ The person's own permissions then apply as in the editor: an author can publish 
 - `create(new NewItem(...), $personId)` makes a draft of a type, with a title, a body, fields, terms, a featured image and a language, and answers its `ItemRef`. The body is a Tiptap document, the same JSON the editor stores; fields are keyed by their handle; terms are listed by taxonomy, as slugs or names.
 - `change($item, new ItemChanges(...), $personId)` saves a new revision of the item's draft; each part left null stays as it is.
 - `publish($item, $personId)` publishes the item's latest revision now.
+- `unpublish($item, $personId)` takes a published item off the site, back to a draft, with its revisions kept. Only a published item can be; anything else is refused. From the next release.
 - `schedule($item, $moment, $personId)` schedules it to publish at that moment.
 
 Each answers the item as hooks carry it. Each write is recorded in the item's history, announced to hooks after it commits, and clears the cached pages that show it, exactly as an editor's would.
@@ -42,6 +43,15 @@ To link items that already exist, call `linkTranslations()` with their IDs, betw
 ## When a write is refused
 
 Every refusal is a `WriteRefused` exception, with a message that says why: no person, the wrong person, a permission the person lacks, an item that doesn't exist, a field the type doesn't have, or a value that fails the type's checks. Nothing is written when one is thrown. Catch it where you can tell the person, and let it fail a job otherwise, so the run is marked failed with that message.
+
+## Bodies written as HTML
+
+A body is a Tiptap document, never HTML. When what you bring in is HTML, such as a page from another service or a README turned from Markdown into HTML, ask for `Teme\Contracts\Content\HtmlToDocument` in your constructor. Every plugin is given it, with no capability, because it reads and writes nothing. `convert($html)` answers the document Teme's own importer makes of that HTML: headings, paragraphs, lists, quotes, code, rules, tables and images as the editor holds them, with script, style and unknown markup left out. Links and images stay at the addresses given; hand the document to `create()` or `change()` as the body.
+
+```php
+$body = $this->html->convert($html);
+$this->content->create(new NewItem(type: 'post', title: $title, body: $body), $personId);
+```
 
 ## Test it
 

@@ -49,6 +49,7 @@ final class Payloads
             $url,
             app(SiteLanguage::class)->forContent($content),
             indexable: $url !== null && self::indexable($content),
+            submission: $content->submitted_via !== null,
         );
     }
 

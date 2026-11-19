@@ -2,7 +2,7 @@
 
 /**
  * Plugins and themes installed from the admin (I-211): asks the installer for a change, cancels or
- * agrees to one, keeps the sources and uploads it reads, searches Packagist, and answers the request
+ * agrees to one, keeps the sources and uploads it reads, searches Packagist and Teme's directory, and answers the request
  * sheet's polls. Every change goes through its Operation, which asks for the password; this records a
  * request and never writes code.
  *
@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Extensions\Directory\DirectorySettings;
+use App\Domain\Extensions\Directory\RefreshDirectory;
 use App\Domain\Extensions\ExtensionAction;
 use App\Domain\Extensions\ExtensionKind;
 use App\Domain\Extensions\Operations\AddExtensionSource;
@@ -29,6 +31,7 @@ use App\Domain\Extensions\Operations\Input\UploadExtensionInput;
 use App\Domain\Extensions\Operations\RemoveExtensionSource;
 use App\Domain\Extensions\Operations\RequestExtensionChange;
 use App\Domain\Extensions\Operations\UploadExtension;
+use App\Domain\Extensions\Queries\DirectoryPackages;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Extensions\Queries\PackagistSearch;
 use App\Http\Controllers\Controller;
@@ -128,6 +131,41 @@ final class ExtensionsController extends Controller
         }
 
         return response()->json($packagist->search((string) ($body['q'] ?? ''), ExtensionKind::from($body['kind'] ?? ExtensionKind::Plugin->value)));
+    }
+
+    /**
+     * The directory's plugins or themes for the words given, asking the directory again first when its
+     * list was last read more than an hour ago.
+     */
+    public function directory(Request $request, DirectoryPackages $directory, RefreshDirectory $refresh): JsonResponse
+    {
+        $body = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'kind' => ['nullable', Rule::enum(ExtensionKind::class)],
+        ]);
+
+        if (! DirectorySettings::enabled()) {
+            return response()->json(['enabled' => false, 'results' => [], 'error' => null]);
+        }
+
+        $refresh->ifStale($this->actor($request));
+
+        return response()->json(['enabled' => true, ...$directory->search((string) ($body['q'] ?? ''), ExtensionKind::from($body['kind'] ?? ExtensionKind::Plugin->value))]);
+    }
+
+    /**
+     * One listed package's detail: its README, screenshots, the permissions it asks for, and its releases.
+     */
+    public function directoryPackage(Request $request, DirectoryPackages $directory): JsonResponse
+    {
+        $body = $request->validate([
+            'package' => ['required', 'string', 'max:214'],
+            'kind' => ['nullable', Rule::enum(ExtensionKind::class)],
+        ]);
+
+        abort_unless(DirectorySettings::enabled(), 404);
+
+        return response()->json($directory->detail($body['package'], ExtensionKind::from($body['kind'] ?? ExtensionKind::Plugin->value)));
     }
 
     public function storeSource(Request $request, AddExtensionSource $add): RedirectResponse

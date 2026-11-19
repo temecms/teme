@@ -55,6 +55,10 @@
 | `speculation` | boolean | no | A theme may only opt out: false leaves the prerendering rules out. |  |
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |  |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][gG]\|[wW][eE][bB][pP])$ |
+| `icon` | string | no | The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP]\|[sS][vV][gG])$ |
+| `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |  |
+| `screenshots[].path` | string | yes | A path inside the theme, with no .., to a .png, .jpg, .jpeg or .webp picture, in any case. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP])$ |
+| `screenshots[].caption` | string | no | What the picture shows, in at most 140 characters. |  |
 | `cards` | object | no | Cards the theme styles itself. |  |
 | `cards.replaces` | array | no | Registered card names whose core stylesheets the theme replaces with its own. |  |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |  |

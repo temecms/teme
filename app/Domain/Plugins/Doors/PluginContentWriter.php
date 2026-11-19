@@ -1,7 +1,7 @@
 <?php
 
 /**
- * A plugin's content.write door: creates, changes, publishes and schedules
+ * A plugin's content.write door: creates, changes, publishes, unpublishes and schedules
  * items, sets their slugs and credits and links language versions, through
  * Teme's Operations, always on behalf of a named person
  * (docs/proposals/plugin-content-write.md).
@@ -18,6 +18,7 @@ namespace App\Domain\Plugins\Doors;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Contents\Operations\CreateDraft;
+use App\Domain\Contents\Operations\Input\ContentActionInput;
 use App\Domain\Contents\Operations\Input\CreateDraftInput;
 use App\Domain\Contents\Operations\Input\LinkTranslationsInput;
 use App\Domain\Contents\Operations\Input\PublishRevisionInput;
@@ -28,6 +29,7 @@ use App\Domain\Contents\Operations\LinkTranslations;
 use App\Domain\Contents\Operations\PublishRevision;
 use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Contents\Operations\SchedulePublication;
+use App\Domain\Contents\Operations\UnpublishContent;
 use App\Domain\Contents\Operations\UpdateContentDetails;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
@@ -176,6 +178,23 @@ final readonly class PluginContentWriter implements ContentWriter
         return Payloads::item($content);
     }
 
+    public function unpublish(ItemRef $item, string $actingPersonId): ItemRef
+    {
+        $this->person($actingPersonId);
+
+        if (! Content::query()->whereKey($item->id)->exists()) {
+            throw new WriteRefused(__('That item does not exist.'));
+        }
+
+        try {
+            app(UnpublishContent::class)->execute(new ContentActionInput($item->id, $actingPersonId));
+        } catch (Throwable $failure) {
+            $this->refuse($failure);
+        }
+
+        return Payloads::item(Content::query()->findOrFail($item->id));
+    }
+
     public function schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef
     {
         $this->person($actingPersonId);
@@ -280,7 +299,7 @@ final readonly class PluginContentWriter implements ContentWriter
      */
     private function fields(string $type, array $byHandle, ?MediaRef $featuredImage, array $current = []): array
     {
-        $fields = $current === [] ? $this->keysFor($type, $byHandle) : [...$current, ...$this->keysFor($type, $byHandle)];
+        $fields = $current === [] ? self::keysFor($type, $byHandle) : [...$current, ...self::keysFor($type, $byHandle)];
 
         if ($featuredImage !== null) {
             $fields[BuiltInFields::FEATURED_IMAGE] = [
@@ -315,11 +334,16 @@ final readonly class PluginContentWriter implements ContentWriter
     }
 
     /**
+     * Field values by handle, keyed as a revision stores them; refused when
+     * the type has no such field. The Submissions door uses it too.
+     *
      * @param  array<string, mixed>  $byHandle
      *
      * @return array<string, mixed>
+     *
+     * @throws WriteRefused
      */
-    private function keysFor(string $type, array $byHandle): array
+    public static function keysFor(string $type, array $byHandle): array
     {
         if ($byHandle === []) {
             return [];

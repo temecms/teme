@@ -15,7 +15,9 @@ declare(strict_types=1);
 namespace App\Http\Admin;
 
 use App\Domain\Extensions\ExtensionsAccess;
+use App\Domain\Extensions\PackagePictures;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
+use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\ForgetPlugin;
@@ -40,6 +42,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Teme\Contracts\Plugins\Capability;
 
 final class PluginsController extends Controller
@@ -53,6 +56,27 @@ final class PluginsController extends Controller
             // Installing from the admin (I-211), for whoever may.
             'extensions' => $request->user()?->can(ExtensionsAccess::INSTALL) === true ? $extensions->data() : null,
         ]));
+    }
+
+    /**
+     * The icon a plugin declares; the request names only the plugin. An SVG
+     * is sent so that, opened on its own, it can run and fetch nothing.
+     */
+    public function icon(string $code, PluginRegistry $registry): BinaryFileResponse
+    {
+        $plugin = collect($registry->all())->first(fn (FoundPlugin $found): bool => $found->code === $code);
+        $icon = $plugin?->manifest === null ? null : PackagePictures::find($plugin->path, $plugin->manifest->icon());
+
+        if ($icon === null) {
+            abort(404);
+        }
+
+        return response()->file($icon['path'], [
+            'Content-Type' => $icon['type'],
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
     }
 
     /**

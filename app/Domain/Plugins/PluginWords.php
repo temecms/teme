@@ -67,6 +67,8 @@ final readonly class PluginWords
             Capability::NoticesSend->value => __('Send notices to people on this site, by email or in their inbox: :kinds', ['kinds' => implode('; ', $notices)]),
             Capability::PagesHead->value => __('Add tags that search engines and social sites read, and structured data, to the head of your site’s public pages'),
             Capability::Sitemaps->value => __('Add its own sitemaps to your site’s sitemap index'),
+            Capability::DirectoryRead->value => __('Read the plugins and themes listed in Teme’s directory, as Teme verified them'),
+            Capability::ContentSubmissions->value => __('Keep what visitors send from its public forms, as items waiting for someone to review them'),
             default => $capability,
         });
     }

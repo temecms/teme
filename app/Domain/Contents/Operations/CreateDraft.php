@@ -221,9 +221,10 @@ final class CreateDraft extends BaseOperation
      * @param  string|null  $language  as a row stores it: null for the default language
      * @param  string|null  $group  its translation group, for a translation (I-3360)
      * @param  string|null  $sourceRevisionId  the revision a translation was copied from, kept on its first revision
+     * @param  string|null  $actorId  the person it is written for, or null when the site itself writes it, as for a visitor's submission
      * @param  string|null  $via  the plugin code that wrote this revision, or null for a person
      */
-    public static function start(string $type, string $slug, string $title, array $document, array $fields, array $terms, string $actorId, ?string $language = null, ?string $group = null, ?string $sourceRevisionId = null, ?string $via = null): Content
+    public static function start(string $type, string $slug, string $title, array $document, array $fields, array $terms, ?string $actorId, ?string $language = null, ?string $group = null, ?string $sourceRevisionId = null, ?string $via = null): Content
     {
         $content = Content::create([
             'type' => $type,
@@ -234,7 +235,7 @@ final class CreateDraft extends BaseOperation
             'comment_status' => DiscussionSettings::current()->forNewItem($type),
             'title' => $title,
             'author_id' => $actorId,
-            'author_sort' => AuthorSort::of(User::query()->whereKey($actorId)->value('name')),
+            'author_sort' => AuthorSort::of($actorId === null ? null : User::query()->whereKey($actorId)->value('name')),
             'fields' => $fields,
         ]);
 

@@ -304,6 +304,28 @@ it('shows each plugin’s icon, its initials at 32 pixels, beside its name', fun
     ]);
 });
 
+it('draws the plugin’s own icon in place of its initials when its manifest names one, with no accessibility issue', function (): void {
+    $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+    PluginFixtures::use(PluginFixtures::copy('hello', ['icon' => 'art/icon.png'], files: ['art/icon.png' => $png]), 'widened');
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Installed, not enabled yet.');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="plugin-hello"] [data-slot="plugin-icon"] img\')?.complete === true');
+
+    $icon = $page->script(<<<'JS'
+        () => {
+            const icon = document.querySelector('[data-test="plugin-hello"] [data-slot="plugin-icon"]');
+            const img = icon?.querySelector('img');
+
+            return { loaded: (img?.naturalWidth ?? 0) > 0, alt: img?.getAttribute('alt') ?? null, initials: icon?.textContent ?? null };
+        }
+        JS);
+
+    expect($icon)->toBe(['loaded' => true, 'alt' => '', 'initials' => ''])
+        ->and(cmAxeViolations($page))->toBe([]);
+});
+
 it('gives each state its pill and tone', function (): void {
     ($this->site)();
 
