@@ -35,13 +35,14 @@ final class ImageFiles
     /** Variables libpq, under pdo_pgsql, reads as a connection's defaults. */
     public const array LIBPQ_VARIABLES = ['PGCONNECT_TIMEOUT'];
 
-    /** serversideup/php v4.5.1's own variables that the image or the recipe sets. */
+    /** serversideup/php v5.2.0's own variables that the image or the recipe sets. */
     public const array IMAGE_VARIABLES = [
         'AUTORUN_ENABLED',
         'AUTORUN_LARAVEL_MIGRATION',
         'HEALTHCHECK_PATH',
         'PORT',
         'SHOW_WELCOME_MESSAGE',
+        'TRUSTED_PROXY',
         'PHP_OPCACHE_ENABLE',
         'PHP_OPCACHE_VALIDATE_TIMESTAMPS',
         'NGINX_CLIENT_MAX_BODY_SIZE',

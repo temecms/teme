@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Changed
+
+- The image builds on serversideup/php v5.2.0 (was v4.5.1), for PHP's and nginx's newer security fixes. Its nginx now redirects `/index.php/...` addresses to the address without it, and answers 404 for a PHP script that doesn't exist instead of running a parent file. Nothing to change on a running site: update Teme as usual.
+
 ### Fixed
 
 - Teme reads its plugin and theme directory: it shipped without the directory's public key, so it refused every list ("This Teme has no key to check the directory's signature with"). A server that set `TEME_DIRECTORY_PUBLIC_KEYS` itself is unaffected.

@@ -1,9 +1,9 @@
 # Teme's image: one image for every role, on serversideup/php's
-# fpm-nginx variant at v4.5.1. Built in CI from a checkout of tracked files
+# fpm-nginx variant at v5.2.0. Built in CI from a checkout of tracked files
 # (.dockerignore); a build on a person's machine uses git archive HEAD as
 # its context. amd64 only: restic is pinned for it.
 
-ARG SERVERSIDEUP_IMAGE=serversideup/php:8.4-fpm-nginx-trixie-v4.5.1@sha256:8e0864511c48a943b59c59c2845eb8de1dc402b6d549a3b2e0e45018f1b99567
+ARG SERVERSIDEUP_IMAGE=serversideup/php:8.4-fpm-nginx-trixie-v5.2.0@sha256:a9152816e2a652b75bd68c3ed3621d2b6188d82d4d7ecae93660a3057136ba24
 ARG NODE_IMAGE=node:24.21.0-trixie-slim@sha256:173f125896c3b47ddf056734c7ea789d04595a6a08769a8f78e0df642781fb66
 ARG RESTIC_VERSION=0.19.1
 
@@ -74,6 +74,7 @@ ENV APP_NAME=Teme \
     AUTORUN_LARAVEL_MIGRATION=false \
     HEALTHCHECK_PATH=/up \
     SHOW_WELCOME_MESSAGE=false \
+    TRUSTED_PROXY=off \
     PHP_OPCACHE_ENABLE=1 \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS=0 \
     NGINX_CLIENT_MAX_BODY_SIZE=100M \

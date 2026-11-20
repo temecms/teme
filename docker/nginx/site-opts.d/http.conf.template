@@ -1,4 +1,4 @@
-# serversideup/php 4.5.1's own site-opts.d/http.conf.template, with its
+# serversideup/php 5.2.0's own site-opts.d/http.conf.template, with its
 # "location /" replaced for Teme's static-file page cache:
 # copy it over the image's /etc/nginx/site-opts.d/http.conf.template,
 # which the image turns into http.conf when the container starts. Every
@@ -6,7 +6,8 @@
 # https.conf.template instead, which this leaves alone: behind Traefik,
 # SSL_MODE stays off. Needs conf.d/teme-static.conf beside it, and nginx
 # 1.29.3 or later for add_header_inherit (the image's Debian trixie build
-# carries 1.30.4).
+# carries 1.30.5). The image's trusted-proxy file is included as the image
+# does; Teme sets TRUSTED_PROXY=off, so it adds nothing (remoteip.conf).
 # Held in step with the code by tests/Feature/Cache/StaticSettingsTest.php.
 
 listen ${NGINX_HTTP_PORT} default_server;
@@ -76,12 +77,20 @@ location @teme_extension_themes {
 
 # Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
 # Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
-location ~* ^/storage/.*\.php$ {
+location ~* ^/storage/.*\.php(?:/|$) {
     deny all;
+}
+
+# Redirect /index.php/... to /... to prevent SEO duplicate content
+location ~ ^/index\.php(/.+)$ {
+    return 301 $1$is_args$args;
 }
 
 # Pass "*.php" files to PHP-FPM
 location ~ \.php$ {
+    # Return 404 for a script that does not exist, so PHP-FPM never falls back to a parent file
+    # through cgi.fix_pathinfo (/uploads/file.phar/x.php would otherwise run file.phar)
+    try_files $uri =404;
     fastcgi_pass   127.0.0.1:9000;
     fastcgi_index  index.php;
     fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
@@ -90,6 +99,9 @@ location ~ \.php$ {
     fastcgi_buffer_size $NGINX_FASTCGI_BUFFER_SIZE;
     fastcgi_read_timeout $PHP_MAX_EXECUTION_TIME;
 }
+
+# trusted proxy configuration
+include /etc/nginx/trusted-proxy/${TRUSTED_PROXY}.conf;
 
 # additional config
 include /etc/nginx/server-opts.d/*.conf;

@@ -119,7 +119,8 @@ done
 
 # Web starts only once the site is deployed and the installed plugins and themes fit this image.
 for name in nginx php-fpm; do
-    printf '\n%s\n' teme-installer-prepare >> "$tree/$name/dependencies"
+    mkdir -p "$tree/$name/dependencies.d"
+    : > "$tree/$name/dependencies.d/teme-installer-prepare"
 done
 
 exec docker-php-serversideup-entrypoint "$@"
