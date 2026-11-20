@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.3.2] — 2026-11-20
+
 ### Changed
 
 - The image builds on serversideup/php v5.2.0 (was v4.5.1), for PHP's and nginx's newer security fixes. Its nginx now redirects `/index.php/...` addresses to the address without it, and answers 404 for a PHP script that doesn't exist instead of running a parent file. Nothing to change on a running site: update Teme as usual.
