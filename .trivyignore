@@ -1,6 +1,5 @@
 # Vulnerabilities the image can't fix while the project keeps serversideup/php
-# v4.5.1 (I-3104): nginx held at 1.30.4, and PHP frozen at 8.4.23. Only
-# those. Each entry is one CVE on a line of its own, with a comment above it
+# at its pinned release (v5.2.0, nginx 1.30.5): only those. Each entry is one CVE on a line of its own, with a comment above it
 # naming issue #147 and why, and an expiry (exp:YYYY-MM-DD) after which
 # Trivy reports it again. Anything else is fixed, never ignored. The
 # maintainers add an entry.

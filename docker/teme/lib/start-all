@@ -8,6 +8,8 @@ set -eu
 private=/run/teme
 services=/usr/local/share/teme/s6-rc.d
 tree=/etc/s6-overlay/s6-rc.d
+# s6-overlay 3.2.3 keeps the bundle of services that start in user-bundles.d.
+bundle=/etc/s6-overlay/user-bundles.d/user/contents.d
 
 mkdir -p "$private"
 chmod 0711 "$private"
@@ -113,13 +115,14 @@ for service in "$services"/*; do
     cp -R "$service" "$tree/$name"
     case "$name" in
         teme-deploy | teme-installer-prepare) ;;
-        *) : > "$tree/user/contents.d/$name" ;;
+        *) : > "$bundle/$name" ;;
     esac
 done
 
 # Web starts only once the site is deployed and the installed plugins and themes fit this image.
 for name in nginx php-fpm; do
-    printf '\n%s\n' teme-installer-prepare >> "$tree/$name/dependencies"
+    mkdir -p "$tree/$name/dependencies.d"
+    : > "$tree/$name/dependencies.d/teme-installer-prepare"
 done
 
 exec docker-php-serversideup-entrypoint "$@"

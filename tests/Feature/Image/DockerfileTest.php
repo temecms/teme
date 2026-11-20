@@ -10,8 +10,8 @@ use Tests\Fixtures\Deployment\ImageFiles;
  * image workflow builds it and its build checks run there.
  */
 
-it('builds on serversideup/php v4.5.1\'s fpm-nginx image for trixie, pinned by digest (I-3104)', function (): void {
-    expect(ImageFiles::instructions()[0])->toBe('ARG SERVERSIDEUP_IMAGE=serversideup/php:8.4-fpm-nginx-trixie-v4.5.1@sha256:8e0864511c48a943b59c59c2845eb8de1dc402b6d549a3b2e0e45018f1b99567')
+it('builds on serversideup/php v5.2.0\'s fpm-nginx image for trixie, pinned by digest (I-3104)', function (): void {
+    expect(ImageFiles::instructions()[0])->toBe('ARG SERVERSIDEUP_IMAGE=serversideup/php:8.4-fpm-nginx-trixie-v5.2.0@sha256:a9152816e2a652b75bd68c3ed3621d2b6188d82d4d7ecae93660a3057136ba24')
         ->and(ImageFiles::stage('php')[0])->toBe('FROM ${SERVERSIDEUP_IMAGE} AS php')
         ->and(ImageFiles::stage('runtime')[0])->toBe('FROM php AS runtime');
 });
