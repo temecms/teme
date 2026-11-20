@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use App\Domain\Backups\BackupDestinationKind;
+use App\Domain\Backups\BackupKeyRole;
+use App\Domain\Backups\BackupRunKind;
+use App\Domain\Backups\BackupRunState;
+use App\Domain\Backups\BackupTrigger;
+use App\Domain\Backups\Queries\BackupStatus;
+use App\Domain\Backups\Queries\DueBackupWork;
+use App\Domain\Backups\Verify\SpareDatabase;
 use App\Domain\Comments\Operations\Input\ModerateCommentInput;
 use App\Domain\Comments\Operations\Input\SubmitCommentInput;
 use App\Domain\Comments\Operations\ModerateComment;
@@ -13,6 +21,7 @@ use App\Domain\Contents\Operations\CreateDraft;
 use App\Domain\Contents\Operations\Input\CreateDraftInput;
 use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\PublishRevision;
+use App\Domain\Deployment\Health\Heartbeats;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Media\Models\Media;
 use App\Domain\Media\Operations\Input\UpdateMediaDetailsInput;
@@ -46,6 +55,8 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
+use Teme\Testing\ContractsVersion;
+use Tests\Fixtures\Backups\BackupRecords;
 
 /**
  * The demo publication, Northwind Journal, made only through Teme's
@@ -60,6 +71,92 @@ final class DemoSite
 
     /** The pictures, in tests/Fixtures/demo/images; CREDITS.md there names each one's source. */
     public const string IMAGES = 'tests/Fixtures/demo/images';
+
+    /**
+     * Presents the demo as a released, live site for a run: it reports the
+     * newest released version and the production environment, which is what
+     * a site that is set up properly says, with its scheduler running. Only the values the admin reads
+     * are set; nothing about how they are read changes.
+     */
+    public static function asReleased(): void
+    {
+        config(['teme.version' => ContractsVersion::highest()]);
+        app()['env'] = 'production';
+
+        // The scheduler runs, as it does on a site set up properly.
+        app(Heartbeats::class)->beat(Heartbeats::SCHEDULER);
+    }
+
+    /**
+     * Gives the demo backups set up as they should be: an off-server place
+     * and a folder, a night's backup at each that finished a few hours before
+     * $now with its read-back and test restore passed, and the spare database
+     * named, so no backup notice shows and Tools › Backups tells the truth.
+     */
+    public static function backedUp(CarbonImmutable $now): void
+    {
+        config(['database.connections.'.SpareDatabase::CONNECTION.'.database' => 'northwind_verify']);
+
+        // The nightly backup's own slot, the latest one more than its grace ago, so the site isn't overdue.
+        $night = app(DueBackupWork::class)->slot($now->subHours(BackupStatus::GRACE_HOURS))->setTimezone('UTC')->format('Y-m-d H:i');
+        $setUp = $now->subDays(14)->startOfDay();
+        $places = [];
+
+        foreach ([
+            'Off-site storage' => ['kind' => BackupDestinationKind::S3, 'location' => ['endpoint' => 'https://s3.eu-central-003.backblazeb2.com', 'bucket' => 'northwind-journal-backups', 'path' => 'teme']],
+            'This server' => ['kind' => BackupDestinationKind::Folder, 'location' => ['path' => '/var/www/teme/storage/app/backups']],
+        ] as $name => $place) {
+            $slug = strtolower(str_replace(' ', '-', $name));
+            $places[$name] = BackupRecords::destination([
+                ...$place,
+                'name' => $name,
+                'repository_id' => hash('sha256', "northwind-{$slug}"),
+                'created_at' => $setUp,
+            ]);
+            BackupRecords::key($places[$name], ['restic_key_id' => hash('sha256', "{$slug}-machine"), 'added_at' => $setUp]);
+            BackupRecords::key($places[$name], ['restic_key_id' => hash('sha256', "{$slug}-recovery"), 'role' => BackupKeyRole::Recovery, 'label' => 'Recovery key', 'added_at' => $setUp]);
+
+            // Fixed ids, so a run's id on screen is the same each time the demo is made.
+            $number = count($places);
+            $started = CarbonImmutable::parse($night, 'UTC');
+            $backup = BackupRecords::run([
+                'id' => sprintf('01KDEMX%019d', $number * 10 + 1),
+                'kind' => BackupRunKind::Backup,
+                'state' => BackupRunState::Finished,
+                'started_by' => BackupTrigger::Schedule,
+                'destination_id' => $places[$name]->id,
+                'figures' => ['seconds' => 212, 'database_bytes' => 4_800_000, 'media_files' => 24, 'media_bytes' => 36_000_000, 'bytes_added' => 2_100_000],
+                'started_at' => $started,
+                'ended_at' => $started->addMinutes(5),
+            ]);
+            BackupRecords::run([
+                'id' => sprintf('01KDEMX%019d', $number * 10 + 2),
+                'kind' => BackupRunKind::Check,
+                'state' => BackupRunState::Finished,
+                'started_by' => BackupTrigger::Schedule,
+                'destination_id' => $places[$name]->id,
+                'parent_id' => $backup->id,
+                'figures' => ['seconds' => 30],
+                'started_at' => $started->addMinutes(6),
+                'ended_at' => $started->addMinutes(7),
+            ]);
+        }
+
+        foreach ([
+            [3, BackupRunKind::ReadBack, CarbonImmutable::parse($night, 'UTC')->addMinutes(8)],
+            [4, BackupRunKind::TestRestore, $now->subDays(2)->startOfHour()],
+        ] as [$number, $kind, $started]) {
+            BackupRecords::run([
+                'id' => sprintf('01KDEMX%019d', 90 + $number),
+                'kind' => $kind,
+                'state' => BackupRunState::Finished,
+                'started_by' => BackupTrigger::Schedule,
+                'figures' => ['seconds' => 30],
+                'started_at' => $started,
+                'ended_at' => $started->addMinute(),
+            ]);
+        }
+    }
 
     /**
      * Builds the site on an empty database, with the clock set to each item's

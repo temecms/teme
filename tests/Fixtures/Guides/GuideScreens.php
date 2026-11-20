@@ -18,7 +18,20 @@ final class GuideScreens
     public const array SKIPPED = [
         'invitation.show' => 'Reached only through the link in an invitation email, which carries a one-time token that is used up when the page is opened.',
         'my-jobs.index' => 'Not a page: it hands the admin\'s jobs tray its list of running and finished jobs as data.',
+        'tools.backups.keys.index' => 'Not a page: it sends the reader on to Tools › Backups, where the recovery keys are managed.',
         'content.revisions.index' => 'Not a page: it hands the editor\'s History pane its list of versions as data. The pane itself is in the picture of content.edit.',
+    ];
+
+    /**
+     * The caption of a screen whose own heading holds a greeting or the name of
+     * a demo item, by route name. Every other screen is captioned with its own
+     * heading, which names the screen and never the demo's data.
+     */
+    public const array LABELS = [
+        'content.compare' => 'Compare versions',
+        'content.edit' => 'The editor',
+        'dashboard' => 'Home',
+        'navigation.edit' => 'A menu',
     ];
 
     /** The folder the pictures and their index are kept in, from the repository's root. */

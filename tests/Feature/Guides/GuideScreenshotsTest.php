@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Tests\Fixtures\Guides\GuideFile;
 use Tests\Fixtures\Guides\GuideScreens;
+use Tests\Support\DemoSite;
 
 /*
  * Every screen a guide points at is a page of the admin, and has its pictures
@@ -68,4 +69,34 @@ it('lists no screen that no guide points at, in route order, with plain line end
 
 it('never skips a screen no guide names', function (): void {
     expect(array_diff(array_keys(GuideScreens::SKIPPED), GuideScreens::named()))->toBe([]);
+});
+
+it('captions every screen by its name, never by the demo\'s data', function (): void {
+    $demo = ['Rowan', 'Hale', 'Clara', 'Benning', 'Theo', 'Marsh', 'Northwind'];
+    $articles = (new ReflectionClass(DemoSite::class))->getReflectionConstant('ARTICLES')?->getValue() ?? [];
+
+    foreach ($articles as $article) {
+        $demo[] = $article['title'];
+    }
+
+    $problems = [];
+
+    foreach (GuideScreens::index() as $name => $entry) {
+        if (isset(GuideScreens::LABELS[$name])) {
+            if ($entry['label'] !== GuideScreens::LABELS[$name]) {
+                $problems[] = "{$name} is captioned '{$entry['label']}', not '".GuideScreens::LABELS[$name]."'.";
+            }
+
+            continue;
+        }
+
+        foreach ($demo as $word) {
+            if (str_contains($entry['label'], $word)) {
+                $problems[] = "{$name}'s caption '{$entry['label']}' holds the demo's {$word}; give it a caption in GuideScreens::LABELS.";
+            }
+        }
+    }
+
+    expect($problems)->toBe([])
+        ->and(array_diff(array_keys(GuideScreens::LABELS), array_keys(GuideScreens::index())))->toBe([]);
 });

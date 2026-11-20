@@ -27,7 +27,11 @@ Every screen the editors' and operators' guides point at has two pictures in `do
 }
 ```
 
-It is sorted by route name, and `label` is the screen's own heading as the admin shows it. A screen that can't be pictured, such as the page an invitation email links to, is left out of the index and named, with its reason, in `tests/Fixtures/Guides/GuideScreens.php`. `tests/Feature/Guides/GuideScreenshotsTest.php` fails when a guide's screen is in neither place.
+It is sorted by route name, and `label` is the screen's own heading as the admin shows it. The demo is shown as a site that is set up properly: a released version, a live site, a scheduler that runs, and backups that are set up and recent. So the pictures show no banner at the top, with one exception: Tools › Set up backups is pictured first, before the demo's backups are made, because that page only exists while nothing is set up, and its picture carries the notice that nothing is backed up yet. The status banners guide names the Home and Types screens, but ties no banner to them, so they are pictured without one.
+
+A caption names the screen, never the demo's data. Where a screen's own heading is a name, such as Media or Comments, that is the caption. Where it holds a greeting or an item's name, a fixed caption from `GuideScreens::LABELS` is used instead: Home, The editor, Compare versions and A menu.
+
+A screen that can't be pictured, such as the page an invitation email links to, is left out of the index and named, with its reason, in `tests/Fixtures/Guides/GuideScreens.php`. `tests/Feature/Guides/GuideScreenshotsTest.php` fails when a guide's screen is in neither place.
 
 ## How they are made
 

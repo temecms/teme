@@ -13,9 +13,11 @@ use App\Domain\Plugins\PluginLoader;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -131,6 +133,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    Date::setTestNow();
     PlacardArea::reset();
     PluginFixtures::forget();
     File::deleteDirectory($this->mediaRoot);
@@ -231,6 +234,11 @@ it('pictures every screen the guides point at', function (): void {
     $article = $this->site['articles']['village'];
     $navigation = Navigation::query()->where('name', 'Primary')->firstOrFail();
 
+    // A released, live site whose backups are set up, on a day of its own so what the screens say about time is the same on every run.
+    $today = CarbonImmutable::parse('2026-11-20 09:30', 'UTC');
+    Date::setTestNow($today);
+    DemoSite::asReleased();
+
     // The screens that need an item or a name open the demo's own.
     $addresses = [
         'content.edit' => route('content.edit', ['content' => $article->id], false),
@@ -259,11 +267,11 @@ it('pictures every screen the guides point at', function (): void {
         cmWaitUntil($page, "document.querySelector('main h1, h1') !== null && document.querySelector('main h1, h1').innerText.trim() !== ''");
         ($this->settle)($page);
 
-        // What differs from run to run is set to what a real site would show: this run's own address and folder, and the hour's greeting.
+        // What differs from run to run is set to what a real site would show: this run's own address and folder, the hour's greeting, and the environment word after the version.
         $steady = <<<'JS'
             () => {
                 const origin = location.origin;
-                const fix = (text) => text.split(origin).join('https://northwind.example').split(__BASE__).join('/var/www/teme').replace(/^Good (afternoon|evening), /, 'Good morning, ');
+                const fix = (text) => text.split(origin).join('https://northwind.example').split(__BASE__).join('/var/www/teme').replace(/ · production\b/, '').replace(/^Good (afternoon|evening), /, 'Good morning, ');
                 const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
                 for (let node = walker.nextNode(); node; node = walker.nextNode()) { node.nodeValue = fix(node.nodeValue); }
                 document.querySelectorAll('input, textarea').forEach((field) => { field.value = fix(field.value); });
@@ -314,28 +322,36 @@ it('pictures every screen the guides point at', function (): void {
         return trim((string) cmAnswer($page, "() => (document.querySelector('main h1') ?? document.querySelector('h1')).innerText.replace(/\\s+/g, ' ')", 'cmAnswer'));
     };
 
-    foreach (['light' => '', 'dark' => '-dark'] as $scheme => $suffix) {
-        // The sign-in page is pictured signed out; every other screen as the administrator.
-        if (in_array('login', $routes, true)) {
-            $page = ($this->public)($scheme, route('login', [], false));
-            $heading = trim((string) cmAnswer($page, "() => (document.querySelector('main h1') ?? document.querySelector('h1')).innerText.replace(/\\s+/g, ' ')", 'cmAnswer'));
-            ($this->shoot)($page, "guides/login{$suffix}");
-            $index['login'] = ['label' => $heading, 'light' => 'login.png', 'dark' => 'login-dark.png'];
-        }
-
-        $page = ($this->signIn)($scheme, $admin);
-
-        foreach (array_diff($routes, ['login']) as $name) {
-            $heading = $open($page, $name);
-
-            if ($name === 'content.edit') {
-                cmEditorSettled($page);
+    // Pictures the named screens in both schemes: the sign-in page signed out, every other as the administrator.
+    $picture = function (array $names) use ($admin, $open, &$index): void {
+        foreach (['light' => '', 'dark' => '-dark'] as $scheme => $suffix) {
+            if (in_array('login', $names, true)) {
+                $page = ($this->public)($scheme, route('login', [], false));
+                $heading = trim((string) cmAnswer($page, "() => (document.querySelector('main h1') ?? document.querySelector('h1')).innerText.replace(/\\s+/g, ' ')", 'cmAnswer'));
+                ($this->shoot)($page, "guides/login{$suffix}");
+                $index['login'] = ['label' => $heading, 'light' => 'login.png', 'dark' => 'login-dark.png'];
             }
 
-            ($this->shoot)($page, "guides/{$name}{$suffix}");
-            $index[$name] = ['label' => $heading, 'light' => "{$name}.png", 'dark' => "{$name}-dark.png"];
+            $page = ($this->signIn)($scheme, $admin);
+
+            foreach (array_diff($names, ['login']) as $name) {
+                $heading = $open($page, $name);
+
+                if ($name === 'content.edit') {
+                    cmEditorSettled($page);
+                }
+
+                ($this->shoot)($page, "guides/{$name}{$suffix}");
+                $index[$name] = ['label' => GuideScreens::LABELS[$name] ?? $heading, 'light' => "{$name}.png", 'dark' => "{$name}-dark.png"];
+            }
         }
-    }
+    };
+
+    // Backups' setup page is only there while nothing is set up: it is pictured first, then the demo's backups are made and the rest follow.
+    $first = array_values(array_intersect($routes, ['tools.backups.setup']));
+    $picture($first);
+    DemoSite::backedUp($today);
+    $picture(array_values(array_diff($routes, $first)));
 
     ksort($index);
     File::put("{$this->out}/guides/index.json", json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n");
