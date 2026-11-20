@@ -6,7 +6,7 @@
  * runs it for an HTML body. Links and images stay at the addresses given.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

@@ -4,7 +4,7 @@
  * Migration: creates the directory index table.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

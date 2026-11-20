@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-11-19
+
+### Added
+
+- Install plugins and themes from Teme's directory. Plugins › Add plugin and Themes › Add theme have a **Directory** tab: search the reviewed listings, see each one's screenshots, the permissions it asks for and the Teme versions it works with, and install it through the usual request and installer. Teme checks the directory's signature, refuses an older or expired list, and checks every file it reads against the signed list. **Use the directory** in Settings switches it off.
+- A plugin's and a theme's manifest can give an `icon` and up to eight `screenshots` with captions; the Plugins screen shows a plugin's icon.
+- New doors for plugins in `teme/contracts`: `HtmlToDocument` turns HTML into Teme's own document; `VerifiedDirectory` reads the checked directory (with the `directory.read` permission); `ContentWriter::unpublish()` takes a published item back to a draft; `Submissions` stores what a visitor sends from a public form as an item waiting for review (with the `content.submissions` permission, rate-limited).
+
 ## [1.2.0] — 2026-11-19
 
 ### Added

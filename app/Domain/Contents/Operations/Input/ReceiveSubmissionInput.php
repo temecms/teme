@@ -5,7 +5,7 @@
  * through, the item's type, title, document, fields and terms, and who sent it.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

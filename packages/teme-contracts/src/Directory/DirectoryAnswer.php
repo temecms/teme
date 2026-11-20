@@ -5,7 +5,7 @@
  * verified, or the reason there is none.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 
@@ -22,7 +22,7 @@ use InvalidArgumentException;
  * site, its list having run out, or a file not matching its signed list.
  * Exactly one of the two is null.
  *
- * @since next
+ * @since 1.3.0
  */
 final readonly class DirectoryAnswer
 {
@@ -32,7 +32,7 @@ final readonly class DirectoryAnswer
      *
      * @throws InvalidArgumentException when both or neither are given
      *
-     * @since next
+     * @since 1.3.0
      */
     public function __construct(
         public ?array $data,
@@ -46,7 +46,7 @@ final readonly class DirectoryAnswer
     /**
      * Whether the answer holds data.
      *
-     * @since next
+     * @since 1.3.0
      */
     public function found(): bool
     {

@@ -5,7 +5,7 @@
  * as an item waiting for review, written as the site itself.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 
@@ -22,7 +22,7 @@ namespace Teme\Contracts\Content;
  * trashes it as any other item. Teme limits how many it takes in an hour,
  * from one visitor address and through one plugin.
  *
- * @since next
+ * @since 1.3.0
  */
 interface Submissions
 {
@@ -34,7 +34,7 @@ interface Submissions
      *                      a type or term the site doesn't have, or a body or field
      *                      that isn't valid; nothing was written
      *
-     * @since next
+     * @since 1.3.0
      */
     public function submit(Submission $submission): ItemRef;
 }

@@ -6,7 +6,7 @@
  * who sent it.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 
@@ -20,7 +20,7 @@ namespace Teme\Contracts\Content;
  * who sent it. Teme keeps it as an item waiting for review; it is never
  * published by that path.
  *
- * @since next
+ * @since 1.3.0
  */
 final readonly class Submission
 {
@@ -32,7 +32,7 @@ final readonly class Submission
      * @param  array<string, list<string>>  $terms  slugs or names of terms the site already has, by taxonomy; a submission never makes a term
      * @param  string|null  $from  who sent it, as the visitor gave it, such as a name and an email address; at most 255 characters, shown to the person who reviews it
      *
-     * @since next
+     * @since 1.3.0
      */
     public function __construct(
         public string $type,

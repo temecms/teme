@@ -7,7 +7,7 @@
  * the directory is switched off.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

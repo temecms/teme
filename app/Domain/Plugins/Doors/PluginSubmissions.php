@@ -6,7 +6,7 @@
  * within an hour's limit per visitor address and per plugin.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

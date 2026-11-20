@@ -5,7 +5,7 @@
  * words people read; its message is its sentence and its reason a key.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

@@ -6,7 +6,7 @@
  * with a pending review no person submitted. It never publishes.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

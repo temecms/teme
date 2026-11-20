@@ -5,7 +5,7 @@
  * Teme's importer uses, offered to every plugin with no capability.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 
@@ -20,7 +20,7 @@ namespace Teme\Contracts\Content;
  * elsewhere, such as a README turned from Markdown into HTML, converts it
  * here and hands the document to ContentWriter.
  *
- * @since next
+ * @since 1.3.0
  */
 interface HtmlToDocument
 {
@@ -32,7 +32,7 @@ interface HtmlToDocument
      *
      * @return array<string, mixed>
      *
-     * @since next
+     * @since 1.3.0
      */
     public function convert(string $html): array;
 }
