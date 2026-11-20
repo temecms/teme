@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Menus\Models\Navigation;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -12,12 +13,15 @@ use App\Domain\Plugins\PluginLoader;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Tests\Fixtures\Guides\GuideScreens;
 use Tests\Fixtures\Plugins\Placard\PlacardArea;
 use Tests\Fixtures\Plugins\PluginFixtures;
 use Tests\Support\DemoSite;
@@ -109,10 +113,12 @@ beforeEach(function (): void {
     // same input changes no file.
     $this->shoot = function (mixed $page, string $name): void {
         ($this->settle)($page);
-        $page->screenshot(false, "demo-{$name}");
+        $file = 'demo-'.str_replace(['/', '.'], '-', $name);
+        $page->screenshot(false, $file);
 
-        $taken = base_path("tests/Browser/Screenshots/demo-{$name}.png");
+        $taken = base_path("tests/Browser/Screenshots/{$file}.png");
         $kept = "{$this->out}/{$name}.png";
+        File::ensureDirectoryExists(dirname($kept));
         ($this->differ)($taken, $kept) ? File::move($taken, $kept) : File::delete($taken);
     };
 
@@ -127,6 +133,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    Date::setTestNow();
     PlacardArea::reset();
     PluginFixtures::forget();
     File::deleteDirectory($this->mediaRoot);
@@ -214,4 +221,138 @@ it('pictures the admin and the public site from the demo content', function (): 
         cmWaitUntil($page, 'document.body.innerText.includes("Woodshop open day")');
         ($this->shoot)($page, "plugin-area{$suffix}");
     }
+})->group('screenshots');
+
+/*
+ * Every screen the editors' and operators' guides point at, in both schemes,
+ * as an administrator of the demo site, with docs/screenshots/guides/index.json
+ * naming each one's heading and files. The screens that can't be pictured are
+ * GuideScreens::SKIPPED, with their reasons.
+ */
+it('pictures every screen the guides point at', function (): void {
+    $admin = User::query()->findOrFail($this->site['admin']->id);
+    $article = $this->site['articles']['village'];
+    $navigation = Navigation::query()->where('name', 'Primary')->firstOrFail();
+
+    // A released, live site whose backups are set up, on a day of its own so what the screens say about time is the same on every run.
+    $today = CarbonImmutable::parse('2026-11-20 09:30', 'UTC');
+    Date::setTestNow($today);
+    DemoSite::asReleased();
+
+    // The screens that need an item or a name open the demo's own.
+    $addresses = [
+        'content.edit' => route('content.edit', ['content' => $article->id], false),
+        'content.compare' => route('content.compare', ['content' => $article->id], false),
+        'content.revisions.index' => route('content.revisions.index', ['content' => $article->id], false),
+        'content.index' => route('content.index', ['type' => 'posts'], false),
+        'terms.index' => route('terms.index', ['taxonomy' => 'categories'], false),
+        'navigation.edit' => route('navigation.edit', ['id' => $navigation->id], false),
+        'settings.show' => route('settings.show', ['group' => 'general'], false),
+    ];
+
+    $routes = array_values(array_diff(GuideScreens::named(), array_keys(GuideScreens::SKIPPED)));
+    $index = [];
+
+    // Opens a screen, giving the password where it asks for one, and returns its own heading.
+    $open = function (mixed $page, string $name) use ($addresses): string {
+        $address = $addresses[$name] ?? route($name, [], false);
+
+        cmNavigate($page, $address);
+
+        if (cmAnswer($page, "() => document.querySelector('[data-test=\"confirm-password-button\"]') !== null", 'cmAnswer') === true) {
+            $page->type('#password', DemoSite::PASSWORD)->click('[data-test="confirm-password-button"]');
+            cmWaitUntil($page, 'document.querySelector(\'[data-test="confirm-password-button"]\') === null');
+        }
+
+        cmWaitUntil($page, "document.querySelector('main h1, h1') !== null && document.querySelector('main h1, h1').innerText.trim() !== ''");
+        ($this->settle)($page);
+
+        // What differs from run to run is set to what a real site would show: this run's own address and folder, the hour's greeting, and the environment word after the version.
+        $steady = <<<'JS'
+            () => {
+                const origin = location.origin;
+                const fix = (text) => text.split(origin).join('https://northwind.example').split(__BASE__).join('/var/www/teme').replace(/ · production\b/, '').replace(/^Good (afternoon|evening), /, 'Good morning, ');
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                for (let node = walker.nextNode(); node; node = walker.nextNode()) { node.nodeValue = fix(node.nodeValue); }
+                document.querySelectorAll('input, textarea').forEach((field) => { field.value = fix(field.value); });
+                document.querySelectorAll('a[href]').forEach((link) => { link.setAttribute('href', fix(link.getAttribute('href'))); });
+                return true;
+            }
+            JS;
+        cmAnswer($page, str_replace('__BASE__', json_encode(base_path(), JSON_THROW_ON_ERROR), $steady), 'cmAnswer');
+
+        // A new setup key and code are made on every visit; the picture shows fixed ones, the code a pattern that is not a real one, kept as the page redraws.
+        if ($name === 'two-factor.edit') {
+            cmWaitUntil($page, '/[A-Z2-7]{16,}/.test(document.body.innerText)');
+            cmAnswer($page, <<<'JS'
+                () => {
+                    const patch = () => {
+                        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                            const fixed = node.nodeValue.replace(/^(\s*)[A-Z2-7]{16,}(\s*)$/, '$1NORTHWIND7DEMOKEY$2');
+                            if (fixed !== node.nodeValue) { node.nodeValue = fixed; }
+                        }
+                        const code = [...document.querySelectorAll('main svg')].find((svg) => svg.getBoundingClientRect().width >= 140 && svg.dataset.demo !== 'yes');
+                        if (code) {
+                            const size = 25;
+                            const finder = (x, y) => [[0, 0], [size - 7, 0], [0, size - 7]].some(([a, b]) => x >= a && x < a + 7 && y >= b && y < b + 7);
+                            const ring = (x, y) => { const dx = x % (size - 7), dy = y % (size - 7); return dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4); };
+                            let cells = '';
+                            for (let y = 0; y < size; y++) {
+                                for (let x = 0; x < size; x++) {
+                                    const on = finder(x, y) ? ring(x, y) : ((x * 7 + y * 13 + x * y) % 5 < 2);
+                                    if (on) { cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`; }
+                                }
+                            }
+                            code.dataset.demo = 'yes';
+                            code.setAttribute('viewBox', `0 0 ${size} ${size}`);
+                            code.innerHTML = cells;
+                        }
+                    };
+                    patch();
+                    new MutationObserver(patch).observe(document.body, { childList: true, subtree: true, characterData: true });
+                    return true;
+                }
+                JS, 'cmAnswer');
+            ($this->settle)($page);
+        }
+
+        cmWaitUntil($page, "document.querySelector('main h1, h1') !== null && document.querySelector('main h1, h1').innerText.trim() !== ''");
+
+        return trim((string) cmAnswer($page, "() => (document.querySelector('main h1') ?? document.querySelector('h1')).innerText.replace(/\\s+/g, ' ')", 'cmAnswer'));
+    };
+
+    // Pictures the named screens in both schemes: the sign-in page signed out, every other as the administrator.
+    $picture = function (array $names) use ($admin, $open, &$index): void {
+        foreach (['light' => '', 'dark' => '-dark'] as $scheme => $suffix) {
+            if (in_array('login', $names, true)) {
+                $page = ($this->public)($scheme, route('login', [], false));
+                $heading = trim((string) cmAnswer($page, "() => (document.querySelector('main h1') ?? document.querySelector('h1')).innerText.replace(/\\s+/g, ' ')", 'cmAnswer'));
+                ($this->shoot)($page, "guides/login{$suffix}");
+                $index['login'] = ['label' => $heading, 'light' => 'login.png', 'dark' => 'login-dark.png'];
+            }
+
+            $page = ($this->signIn)($scheme, $admin);
+
+            foreach (array_diff($names, ['login']) as $name) {
+                $heading = $open($page, $name);
+
+                if ($name === 'content.edit') {
+                    cmEditorSettled($page);
+                }
+
+                ($this->shoot)($page, "guides/{$name}{$suffix}");
+                $index[$name] = ['label' => GuideScreens::LABELS[$name] ?? $heading, 'light' => "{$name}.png", 'dark' => "{$name}-dark.png"];
+            }
+        }
+    };
+
+    // Backups' setup page is only there while nothing is set up: it is pictured first, then the demo's backups are made and the rest follow.
+    $first = array_values(array_intersect($routes, ['tools.backups.setup']));
+    $picture($first);
+    DemoSite::backedUp($today);
+    $picture(array_values(array_diff($routes, $first)));
+
+    ksort($index);
+    File::put("{$this->out}/guides/index.json", json_encode($index, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n");
 })->group('screenshots');

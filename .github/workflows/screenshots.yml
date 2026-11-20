@@ -1,7 +1,7 @@
 name: Screenshots
 
-# The pictures in docs/screenshots and the README, made in a real browser from
-# the demo site (tests/Support/DemoSite.php), never by hand. On a release, or
+# The pictures in docs/screenshots (and docs/screenshots/guides, with its
+# index.json) and the README, made in a real browser from the demo site (tests/Support/DemoSite.php), never by hand. On a release, or
 # when run from main, changed pictures go to a new branch and a pull request
 # to main. Run from any other branch, they are committed to that branch.
 on:
@@ -67,27 +67,35 @@ jobs:
           php artisan teme:themes:link
           vendor/bin/pest --group=screenshots tests/Browser/ScreenshotsTest.php
 
-      # Only the pictures that changed: the test keeps a picture whose pixels
-      # are the same, so an unchanged screen changes no file.
+      # Only the files that changed: the test keeps a picture whose pixels are
+      # the same and writes the guides' index only as it is, so an unchanged
+      # screen changes no file.
       - name: Optimise the changed pictures
         id: changes
         run: |
-          changed=$(git status --porcelain --untracked-files=all -- docs/screenshots | awk '{ print $2 }' | grep '\.png$' || true)
+          files=$(git status --porcelain --untracked-files=all -- docs/screenshots | awk '{ print $2 }')
+          changed=$(echo "$files" | grep '\.png$' || true)
 
-          if [ -z "$changed" ]; then
+          if [ -z "$files" ]; then
             echo "Nothing changed."
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "$changed" | xargs optipng -quiet -o2 -strip all
+          if [ -n "$changed" ]; then
+            echo "$changed" | xargs optipng -quiet -o2 -strip all
+          fi
+
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: steps.changes.outputs.changed == 'true'
         with:
           name: screenshots
-          path: docs/screenshots/*.png
+          path: |
+            docs/screenshots/*.png
+            docs/screenshots/guides/*.png
+            docs/screenshots/guides/index.json
 
       - name: Commit the pictures
         if: steps.changes.outputs.changed == 'true'
@@ -122,4 +130,4 @@ jobs:
             --base main \
             --head "$branch" \
             --title "docs: screenshots for ${version}" \
-            --body "The pictures in docs/screenshots, taken again by the Screenshots workflow from the demo content. Only the pictures whose pixels changed are included."
+            --body "The pictures in docs/screenshots, taken again by the Screenshots workflow from the demo content. Only the pictures whose pixels changed, and the guides' index when it changed, are included."
