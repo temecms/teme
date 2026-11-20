@@ -178,14 +178,13 @@ return [
      * published. public_keys are the Ed25519 public keys an index may be
      * signed with, each base64 of the raw 32-byte key, more than one while a
      * key is being replaced: the directory's maintainers make the key pair and
-     * print the public key, which is written here in place of the placeholder,
-     * or given to a server as a comma-separated TEME_DIRECTORY_PUBLIC_KEYS.
-     * A value that isn't a key, such as the placeholder, is never used, so
-     * until a key is written here nothing is read from the directory.
+     * print the public key, which is written here. A server may give its own
+     * as a comma-separated TEME_DIRECTORY_PUBLIC_KEYS, to try a directory of
+     * its own. A value that isn't a key is never used.
      */
     'directory' => [
         'address' => env('TEME_DIRECTORY_URL', 'https://temecms.github.io/directory/'),
-        'public_keys' => array_values(array_filter(array_map('trim', explode(',', (string) env('TEME_DIRECTORY_PUBLIC_KEYS', 'DIRECTORY_PUBLIC_KEY_GOES_HERE'))))),
+        'public_keys' => array_values(array_filter(array_map('trim', explode(',', (string) env('TEME_DIRECTORY_PUBLIC_KEYS', 'SsVHEBeYLdCwY05kBgkC6jR6svaAohbzvtHzo+JQG/4='))))),
     ],
 
     /*
