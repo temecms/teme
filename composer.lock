@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2a64f7c443c4075a9d66fcade2355782",
+    "content-hash": "4165b4b4da814641bcf7558d5e39cb28",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -8476,11 +8476,11 @@
         },
         {
             "name": "teme/contracts",
-            "version": "dev-main",
+            "version": "1.3.0",
             "dist": {
                 "type": "path",
                 "url": "packages/teme-contracts",
-                "reference": "bf5c2b71c87201e3c53bb1340475fb86dcbb10c2"
+                "reference": "50e8231c879048078822ac0610e15abcb048110e"
             },
             "require": {
                 "php": "^8.4"
@@ -14855,5 +14855,5 @@
         "ext-intl": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

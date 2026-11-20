@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-11-20
+
+### Fixed
+
+- Plugins that require `teme/contracts` install again: Teme recorded its own contracts as `dev-main`, so Composer refused any plugin asking for contracts 1.x. They are recorded at their release version, 1.3.0.
+
 ## [1.3.0] — 2026-11-19
 
 ### Added
