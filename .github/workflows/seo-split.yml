@@ -1,0 +1,56 @@
+# Copies plugins/seo to the read-only repository temecms/teme-seo, which
+# Teme's directory lists as teme/seo. Every push to main that changes the
+# plugin copies it; a tag named seo-v<version> tags the copy v<version>,
+# since Teme SEO's version is its own, apart from Teme's.
+name: seo split
+
+on:
+  push:
+    branches: [main]
+    paths: ['plugins/seo/**']
+    tags: ['seo-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-split
+  cancel-in-progress: false
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.CONTRACTS_SPLIT_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy the plugin
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: danharrin/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893 # v2.4.5
+        with:
+          package_directory: plugins/seo
+          repository_organization: temecms
+          repository_name: teme-seo
+          branch: main
+          user_name: TemeCMS
+          user_email: 4592796+iamkingsleyf@users.noreply.github.com
+
+      - name: The plugin's own version
+        if: startsWith(github.ref, 'refs/tags/')
+        id: version
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: echo "tag=v${REF_NAME#seo-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Copy and tag the plugin
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: danharrin/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893 # v2.4.5
+        with:
+          tag: ${{ steps.version.outputs.tag }}
+          package_directory: plugins/seo
+          repository_organization: temecms
+          repository_name: teme-seo
+          branch: main
+          user_name: TemeCMS
+          user_email: 4592796+iamkingsleyf@users.noreply.github.com
