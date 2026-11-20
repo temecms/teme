@@ -5,12 +5,12 @@
         "dark": "comments.index-dark.png"
     },
     "content.compare": {
-        "label": "Compare versions of “Three days in a mountain village”",
+        "label": "Compare versions",
         "light": "content.compare.png",
         "dark": "content.compare-dark.png"
     },
     "content.edit": {
-        "label": "Edit: Three days in a mountain village",
+        "label": "The editor",
         "light": "content.edit.png",
         "dark": "content.edit-dark.png"
     },
@@ -20,7 +20,7 @@
         "dark": "content.index-dark.png"
     },
     "dashboard": {
-        "label": "Good morning, Rowan",
+        "label": "Home",
         "light": "dashboard.png",
         "dark": "dashboard-dark.png"
     },
@@ -40,7 +40,7 @@
         "dark": "media.index-dark.png"
     },
     "navigation.edit": {
-        "label": "Primary",
+        "label": "A menu",
         "light": "navigation.edit.png",
         "dark": "navigation.edit-dark.png"
     },
@@ -123,11 +123,6 @@
         "label": "Backups",
         "light": "tools.backups.index.png",
         "dark": "tools.backups.index-dark.png"
-    },
-    "tools.backups.keys.index": {
-        "label": "Backups",
-        "light": "tools.backups.keys.index.png",
-        "dark": "tools.backups.keys.index-dark.png"
     },
     "tools.backups.setup": {
         "label": "Set up backups",
