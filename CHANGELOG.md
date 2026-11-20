@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Fixed
+
+- Teme reads its plugin and theme directory: it shipped without the directory's public key, so it refused every list ("This Teme has no key to check the directory's signature with"). A server that set `TEME_DIRECTORY_PUBLIC_KEYS` itself is unaffected.
+
 ## [1.3.1] — 2026-11-20
 
 ### Fixed

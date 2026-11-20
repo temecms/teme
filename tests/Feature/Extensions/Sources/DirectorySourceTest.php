@@ -89,6 +89,13 @@ it('reads nothing while it holds no key but the placeholder', function (): void 
     Http::assertNothingSent();
 });
 
+it('ships with the public key the directory signs its list with', function (): void {
+    $shipped = (require base_path('config/teme.php'))['directory']['public_keys'];
+
+    expect($shipped)->toBe(['SsVHEBeYLdCwY05kBgkC6jR6svaAohbzvtHzo+JQG/4='])
+        ->and(strlen((string) base64_decode($shipped[0], true)))->toBe(SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES);
+});
+
 it('refuses an older index than one already kept, and keeps the newer one', function (): void {
     dirServe(dirFiles($this->keys['secret'], [dirPackage('acme/links')], ['sequence' => 9]));
     ($this->refresh)();
