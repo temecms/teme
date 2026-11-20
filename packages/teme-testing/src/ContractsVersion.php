@@ -1,9 +1,10 @@
 <?php
 
 /**
- * The newest version the checkout's teme/contracts offers: its highest
- * `@since`. A checkout that offers a contract since 1.0.0 is at least 1.0.0,
- * so a test sets the site to it when TEME_VERSION names no release.
+ * The newest version the checkout is at least: its teme/contracts' highest
+ * `@since`, or Teme's newest release in CHANGELOG.md when that is newer (a
+ * release that adds no contract). A test sets the site to it when
+ * TEME_VERSION names no release.
  *
  * @package Teme
  * @since   1.0.0
@@ -21,7 +22,8 @@ use RecursiveIteratorIterator;
 final readonly class ContractsVersion
 {
     /**
-     * Returns the highest `@since` in packages/teme-contracts/src.
+     * Returns the highest `@since` in packages/teme-contracts/src, or the
+     * newest released version in the checkout's CHANGELOG.md if higher.
      */
     public static function highest(): string
     {
@@ -36,6 +38,13 @@ final readonly class ContractsVersion
                     $highest = $version;
                 }
             }
+        }
+
+        $changelog = dirname(__DIR__, 3).'/CHANGELOG.md';
+
+        if (is_file($changelog) && preg_match('/^## \[(\d+\.\d+\.\d+)\]/m', (string) file_get_contents($changelog), $released) === 1
+            && version_compare($released[1], $highest, '>')) {
+            $highest = $released[1];
         }
 
         return $highest;
