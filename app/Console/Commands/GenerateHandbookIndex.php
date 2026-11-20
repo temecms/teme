@@ -39,6 +39,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/tables.md',
         'themes/regions.md',
         'rules/plugins-and-themes.md',
+        'start/publishing.md',
         'for-agents.md',
         'plugins/content-write.md',
         'plugins/content-read.md',

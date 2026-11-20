@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Directory, app/Domain/Plugins/Doors/Plugi
 
 Teme reads the plugin and theme directory about once an hour, checks its list's signature against the directory's key, and keeps the last good list. A plugin granted `directory.read` can read what Teme kept, such as a site that shows the directory to its visitors. It never fetches the directory itself, and never sees a list Teme refused.
 
-The contracts are in `teme/contracts` from the next release.
+The contracts are in `teme/contracts` from 1.3.0.
 
 ## Ask for the door
 
