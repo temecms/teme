@@ -78,3 +78,12 @@ it('writes the pins to a file the bootstrap reads back', function (): void {
         ->and($pins['replace'])->not->toHaveKey('pestphp/pest')
         ->and($pins['hash'])->toMatch('/^[0-9a-f]{16}$/');
 });
+
+it('locks Teme\'s own contracts at a release version, the one its reference names, so a plugin\'s teme/contracts constraint resolves', function (): void {
+    $lock = json_decode((string) file_get_contents(base_path('composer.lock')), true, flags: JSON_THROW_ON_ERROR);
+    $contracts = collect($lock['packages'])->firstWhere('name', 'teme/contracts');
+    preg_match('/contracts up to \*\*([0-9.]+)\*\*/', (string) file_get_contents(base_path('docs/reference/contracts.md')), $reference);
+
+    expect($contracts['version'] ?? null)->toMatch('/^\d+\.\d+\.\d+$/')
+        ->and($contracts['version'])->toBe($reference[1] ?? null);
+});
