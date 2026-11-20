@@ -1,0 +1,167 @@
+{
+    "comments.index": {
+        "label": "Comments",
+        "light": "comments.index.png",
+        "dark": "comments.index-dark.png"
+    },
+    "content.compare": {
+        "label": "Compare versions of “Three days in a mountain village”",
+        "light": "content.compare.png",
+        "dark": "content.compare-dark.png"
+    },
+    "content.edit": {
+        "label": "Edit: Three days in a mountain village",
+        "light": "content.edit.png",
+        "dark": "content.edit-dark.png"
+    },
+    "content.index": {
+        "label": "Posts",
+        "light": "content.index.png",
+        "dark": "content.index-dark.png"
+    },
+    "dashboard": {
+        "label": "Good morning, Rowan",
+        "light": "dashboard.png",
+        "dark": "dashboard-dark.png"
+    },
+    "inbox.index": {
+        "label": "Inbox",
+        "light": "inbox.index.png",
+        "dark": "inbox.index-dark.png"
+    },
+    "login": {
+        "label": "Sign in",
+        "light": "login.png",
+        "dark": "login-dark.png"
+    },
+    "media.index": {
+        "label": "Media",
+        "light": "media.index.png",
+        "dark": "media.index-dark.png"
+    },
+    "navigation.edit": {
+        "label": "Primary",
+        "light": "navigation.edit.png",
+        "dark": "navigation.edit-dark.png"
+    },
+    "navigation.index": {
+        "label": "Navigation",
+        "light": "navigation.index.png",
+        "dark": "navigation.index-dark.png"
+    },
+    "notifications.edit": {
+        "label": "Notifications",
+        "light": "notifications.edit.png",
+        "dark": "notifications.edit-dark.png"
+    },
+    "preferences.edit": {
+        "label": "Preferences",
+        "light": "preferences.edit.png",
+        "dark": "preferences.edit-dark.png"
+    },
+    "profile.edit": {
+        "label": "Profile",
+        "light": "profile.edit.png",
+        "dark": "profile.edit-dark.png"
+    },
+    "regions.index": {
+        "label": "Regions",
+        "light": "regions.index.png",
+        "dark": "regions.index-dark.png"
+    },
+    "security.edit": {
+        "label": "Security",
+        "light": "security.edit.png",
+        "dark": "security.edit-dark.png"
+    },
+    "settings.addresses.show": {
+        "label": "Addresses",
+        "light": "settings.addresses.show.png",
+        "dark": "settings.addresses.show-dark.png"
+    },
+    "settings.ai": {
+        "label": "AI",
+        "light": "settings.ai.png",
+        "dark": "settings.ai-dark.png"
+    },
+    "settings.discussion": {
+        "label": "Discussion",
+        "light": "settings.discussion.png",
+        "dark": "settings.discussion-dark.png"
+    },
+    "settings.fediverse": {
+        "label": "Fediverse",
+        "light": "settings.fediverse.png",
+        "dark": "settings.fediverse-dark.png"
+    },
+    "settings.seo": {
+        "label": "Search and social",
+        "light": "settings.seo.png",
+        "dark": "settings.seo-dark.png"
+    },
+    "settings.show": {
+        "label": "General",
+        "light": "settings.show.png",
+        "dark": "settings.show-dark.png"
+    },
+    "settings.site-code": {
+        "label": "Site code",
+        "light": "settings.site-code.png",
+        "dark": "settings.site-code-dark.png"
+    },
+    "terms.index": {
+        "label": "Categories",
+        "light": "terms.index.png",
+        "dark": "terms.index-dark.png"
+    },
+    "themes.index": {
+        "label": "Themes",
+        "light": "themes.index.png",
+        "dark": "themes.index-dark.png"
+    },
+    "tools.backups.index": {
+        "label": "Backups",
+        "light": "tools.backups.index.png",
+        "dark": "tools.backups.index-dark.png"
+    },
+    "tools.backups.keys.index": {
+        "label": "Backups",
+        "light": "tools.backups.keys.index.png",
+        "dark": "tools.backups.keys.index-dark.png"
+    },
+    "tools.backups.setup": {
+        "label": "Set up backups",
+        "light": "tools.backups.setup.png",
+        "dark": "tools.backups.setup-dark.png"
+    },
+    "tools.index": {
+        "label": "Tools",
+        "light": "tools.index.png",
+        "dark": "tools.index-dark.png"
+    },
+    "tools.page-cache.show": {
+        "label": "Page cache",
+        "light": "tools.page-cache.show.png",
+        "dark": "tools.page-cache.show-dark.png"
+    },
+    "tools.redirects.index": {
+        "label": "Redirects",
+        "light": "tools.redirects.index.png",
+        "dark": "tools.redirects.index-dark.png"
+    },
+    "tools.redirects.not-found": {
+        "label": "Redirects",
+        "light": "tools.redirects.not-found.png",
+        "dark": "tools.redirects.not-found-dark.png"
+    },
+    "two-factor.edit": {
+        "label": "Two-factor sign-in",
+        "light": "two-factor.edit.png",
+        "dark": "two-factor.edit-dark.png"
+    },
+    "types.index": {
+        "label": "Types",
+        "light": "types.index.png",
+        "dark": "types.index-dark.png"
+    }
+}
