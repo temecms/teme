@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Content/Submissions.php, packages/teme-co
 
 A contact form, a tip line or a "suggest a story" page gets things from people who aren't signed in. `ContentWriter` can't keep those, because every write it makes is for a named person. The `Submissions` door can: it keeps each one as an item waiting for review, which a person then reads in the In review list and publishes, returns or trashes as any other item.
 
-The contracts are in `teme/contracts` from the next release.
+The contracts are in `teme/contracts` from 1.3.0.
 
 ## Ask for the door
 
