@@ -276,4 +276,37 @@ final readonly class PluginAiTasks
 
         return null;
     }
+
+    /**
+     * The task an enabled plugin granted `ai` declares and an update added or widened, which waits for
+     * someone to agree to it again; null when it isn't one.
+     */
+    public function waiting(string $code, string $task): ?DeclaredAiTask
+    {
+        try {
+            foreach ($this->records->enabled() as $record) {
+                if (! in_array(Capability::Ai->value, $record->consent['capabilities'] ?? [], true)) {
+                    continue;
+                }
+
+                $manifest = $this->registry->find($record->name)?->manifest;
+
+                if ($manifest === null || $manifest->code() !== $code) {
+                    continue;
+                }
+
+                $waiting = self::added(is_array($record->consent['aiTasks'] ?? null) ? $record->consent['aiTasks'] : [], $manifest);
+
+                foreach (self::of($manifest) as $declared) {
+                    if ($declared->id === $task && in_array($task, $waiting, true)) {
+                        return $declared;
+                    }
+                }
+            }
+        } catch (Throwable $failure) {
+            report($failure);
+        }
+
+        return null;
+    }
 }

@@ -49,7 +49,11 @@ final readonly class PluginSiteAi implements SiteAi
         $declared = app(PluginAiTasks::class)->declared($this->code, $task);
 
         if ($declared === null) {
-            return new AiStanding(false, 'no-task', $this->noTask($task), 0, 0, null);
+            $waiting = $this->waiting($task);
+
+            return $waiting === null
+                ? new AiStanding(false, 'no-task', $this->noTask($task), 0, 0, null)
+                : new AiStanding(false, 'task-waiting', $this->taskWaiting($waiting), 0, 0, null);
         }
 
         return app(PluginAiStanding::class)->of($this->code, $declared);
@@ -74,7 +78,7 @@ final readonly class PluginSiteAi implements SiteAi
         }
 
         $task = app(PluginAiTasks::class)->declared($this->code, $ask->task)
-            ?? throw new AiRefused('no-task', $this->noTask($ask->task));
+            ?? throw $this->undeclared($ask->task);
         $this->checkBounds($ask, $task);                            // tokens, schema, too-long
 
         $standing = app(PluginAiStanding::class)->of($this->code, $task);
@@ -141,6 +145,29 @@ final readonly class PluginSiteAi implements SiteAi
         if ($ask->timeoutSeconds > AiRequest::MAX_TIMEOUT && ! $this->long) {
             throw new AiRefused('too-long', __('A request longer than 55 seconds runs only inside a long job.'));
         }
+    }
+
+    /**
+     * The refusal for a task the plugin can't ask for: one an update added or widened waits for
+     * someone to agree to it, and any other isn't declared at all.
+     */
+    private function undeclared(string $task): AiRefused
+    {
+        $waiting = $this->waiting($task);
+
+        return $waiting === null
+            ? new AiRefused('no-task', $this->noTask($task))
+            : new AiRefused('task-waiting', $this->taskWaiting($waiting));
+    }
+
+    private function waiting(string $task): ?DeclaredAiTask
+    {
+        return app(PluginAiTasks::class)->waiting($this->code, $task);
+    }
+
+    private function taskWaiting(DeclaredAiTask $task): string
+    {
+        return __(':task is waiting for an administrator to agree to it again in Plugins.', ['task' => $task->label]);
     }
 
     private function noTask(string $task): string

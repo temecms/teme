@@ -218,12 +218,12 @@ it('leaves out a task an update added or widened until someone agrees again', fu
     scribeSettings();
     $this->fake->answer(aiText('Never sent.'));
 
-    foreach (['poems' => 'This plugin doesn’t declare the AI task poems.', 'article' => 'This plugin doesn’t declare the AI task article.'] as $task => $sentence) {
+    foreach (['poems' => 'Write a poem is waiting for an administrator to agree to it again in Plugins.', 'article' => 'Write an article is waiting for an administrator to agree to it again in Plugins.'] as $task => $sentence) {
         try {
             scribeDoor()->ask(($this->ask)(['task' => $task, 'maxOutputTokens' => 100]), (string) $this->admin->id);
             $this->fail("The door didn’t refuse {$task}.");
         } catch (AiRefused $refused) {
-            expect([$refused->reason, $refused->getMessage()])->toBe(['no-task', $sentence]);
+            expect([$refused->reason, $refused->getMessage()])->toBe(['task-waiting', $sentence]);
         }
     }
 
