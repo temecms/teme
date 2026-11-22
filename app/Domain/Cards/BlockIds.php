@@ -75,6 +75,44 @@ final class BlockIds
     }
 
     /**
+     * Returns the new nodes, each one that holds what a stored node holds,
+     * IDs aside, replaced by that stored node, so its IDs, cards' included,
+     * stay; matched in order, each stored node once. Every other node is as
+     * it came.
+     *
+     * @param  list<mixed>  $nodes
+     * @param  list<mixed>  $stored
+     *
+     * @return list<mixed>
+     *
+     * @since next
+     */
+    public static function kept(array $nodes, array $stored): array
+    {
+        $bare = array_map(fn (mixed $node): mixed => is_array($node) ? self::without($node) : $node, $stored);
+        $next = 0;
+
+        foreach ($nodes as $i => $node) {
+            if (! is_array($node)) {
+                continue;
+            }
+
+            $wanted = self::without($node);
+
+            for ($j = $next; $j < count($stored); $j++) {
+                if ($bare[$j] == $wanted) {
+                    $nodes[$i] = $stored[$j];
+                    $next = $j + 1;
+
+                    break;
+                }
+            }
+        }
+
+        return $nodes;
+    }
+
+    /**
      * @param  array<mixed>  $node
      * @param  list<string>  $types
      * @param  Closure(): string  $newId

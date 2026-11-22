@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\SecondPass;
 
+use App\Domain\Cards\BlockIds;
 use App\Domain\Contents\ImportedContents;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
@@ -210,7 +211,10 @@ final readonly class SecondPassStep implements StepPhase
             }
 
             $open = $inlined['missing'] !== [] || $unresolved !== [] || $canonicalOpen;
-            $document = ['type' => 'doc', 'content' => SecondPassDocument::relink($inlined['content'], $hrefs)];
+            // A block the last pass put in, the same words again, keeps its IDs.
+            $last = (is_string($passed['to'] ?? null) ? ContentRevision::query()->find($passed['to']) : null) ?? ContentRevision::query()->find($working);
+            $kept = BlockIds::kept(SecondPassDocument::relink($inlined['content'], $hrefs), array_values((array) ($last?->document['content'] ?? [])));
+            $document = ['type' => 'doc', 'content' => $kept];
 
             $this->record($context, $objectId, $written, $document, $fields, ['from' => (string) $base->id, 'open' => $open, 'blocks' => $inlined['inlined']], $messages);
         } catch (ValidationException $refused) {

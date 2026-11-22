@@ -45,6 +45,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Import: "Teme couldn't reach the site" says why when it can tell (the site didn't answer in time, its server refused the connection, its name doesn't lead to any server, or its HTTPS certificate couldn't be checked), and the log keeps it too.
 - Import report: a table-of-contents block left out no longer claims Teme's theme draws its own table of contents (none does); it says a table-of-contents plugin can.
 - Importing a types file: a type refused for its own reason (say `public: "yes"`) no longer adds a second, misleading error for each of its grants ("Grant 1: the file has no type film."); the type's own error is the one to fix.
+- Import: bringing a post or page again keeps the block IDs of every block whose words didn't change (one changed word no longer gives every block a new ID), and a reusable block brought in again with the same words changes nothing in the posts that use it.
 
 ## [1.3.2] — 2026-11-20
 
