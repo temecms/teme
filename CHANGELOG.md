@@ -12,6 +12,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - A page chosen as the home page shares under the home page's title (as its browser tab shows), not the page's own name such as "Home". A social or SEO title of its own still wins.
 - A content type, category or tag can no longer be given an address under `/themes/` or `/teme/`, where the web server serves theme and icon files: such pages were linked but answered "not found".
 - A command or a page no longer waits half a minute when the database can't be reached: Teme gives up after 5 seconds (`DB_CONNECT_TIMEOUT`) and says so.
+- Home greets you with your whole name, not only the first word.
 
 ## [1.3.2] — 2026-11-20
 
