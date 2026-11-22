@@ -109,3 +109,12 @@ it('leaves a version search engines are told not to list out of the other versio
     expect(hlLinks('/hello/'))->toBe(['en-GB' => '/hello/', 'es' => '/es/hola/', 'x-default' => '/hello/'])
         ->and(hlLinks('/es/hola/'))->toBe(['en-GB' => '/hello/', 'es' => '/es/hola/', 'x-default' => '/hello/']);
 });
+
+it('writes no hreflang on a language’s home with nothing published in it, as the other homes never list it', function (): void {
+    Languages::set(['fr', 'es']);
+    DB::table('contents')->where('id', $this->site->postFr)->update(['visibility' => 'private']);
+
+    expect(hlLinks('/fr/'))->toBe([])
+        ->and(hlLinks('/'))->toBe(['en-GB' => '/', 'es' => '/es/', 'x-default' => '/'])
+        ->and(hlLinks('/es/'))->toBe(['en-GB' => '/', 'es' => '/es/', 'x-default' => '/']);
+});

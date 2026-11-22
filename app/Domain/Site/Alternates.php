@@ -76,13 +76,22 @@ final class Alternates
     /**
      * The page's versions for search engines, in its head's hreflang: as
      * for(), less the versions search engines are told not to list, which
-     * the switcher still offers readers; [] when only one is left.
+     * the switcher still offers readers; [] when only one is left, or when
+     * the page itself is one of those, such as a home or archive in a
+     * language with nothing published.
      *
      * @return list<Alternate>
      */
     public function listed(DocumentPage $page): array
     {
-        $listed = array_values(array_filter($this->for($page), fn (Alternate $alternate): bool => ! in_array($alternate->tag, $this->unlisted, true)));
+        $versions = $this->for($page);
+
+        // A page left out of its own set would list pages that never list it back.
+        if (in_array($this->page->tag(), $this->unlisted, true)) {
+            return [];
+        }
+
+        $listed = array_values(array_filter($versions, fn (Alternate $alternate): bool => ! in_array($alternate->tag, $this->unlisted, true)));
 
         return count($listed) < 2 ? [] : $listed;
     }
@@ -221,7 +230,7 @@ final class Alternates
      * The shown languages, in the site's order, that have a live, public
      * item a reader can open (of this type, when one is named, else of any
      * public type): one indexed probe a language, the page's own language
-     * always among them.
+     * always among them, kept from search engines when it has none.
      *
      * @return list<string>
      */
@@ -241,8 +250,12 @@ final class Alternates
 
             $query = $stored === null ? $query->whereNull('language') : $query->where('language', $stored);
 
-            if ($tag === $current || $query->exists()) {
+            if ($query->exists()) {
                 $found[] = $tag;
+            } elseif ($tag === $current) {
+                // The switcher still offers its home; search engines aren't told of it, as the others never list it.
+                $found[] = $tag;
+                $this->unlisted[] = $tag;
             }
         }
 
