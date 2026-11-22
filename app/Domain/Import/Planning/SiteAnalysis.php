@@ -244,6 +244,23 @@ final readonly class SiteAnalysis
     }
 
     /**
+     * Returns how many languages the site report says Polylang has, or null
+     * when it doesn't say Polylang is on.
+     *
+     * @since next
+     */
+    public function polylangCount(): ?int
+    {
+        foreach ($this->comes as $row) {
+            if ($row['key'] === 'languages') {
+                return $row['count'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the WordPress menu locations that hold a menu.
      *
      * @return list<string>

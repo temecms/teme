@@ -89,6 +89,11 @@ final readonly class PolylangLanguages
      */
     public static function fromAnswer(array $answer): self
     {
+        // Only toArray() writes it: a kept answer from a companion with no languages route.
+        if (($answer['answered'] ?? true) === false) {
+            return self::unanswered();
+        }
+
         $others = [];
 
         foreach (self::map($answer['others'] ?? null) as $plugin => $other) {
@@ -311,6 +316,7 @@ final readonly class PolylangLanguages
             'menus' => $this->menus,
             'strings' => $this->strings,
             'others' => $this->others,
+            'answered' => $this->answered,
         ];
     }
 

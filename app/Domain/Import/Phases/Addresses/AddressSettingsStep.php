@@ -69,6 +69,8 @@ final readonly class AddressSettingsStep implements StepPhase
         $options = is_array($answer['options'] ?? null) ? $answer['options'] : [];
         // With Polylang, the default language is Polylang's own, not WordPress's locale (I-3446).
         $polylang = app(ImportedLanguages::class)->refresh($context->sourceId, $reader);
+        // Before any setting is written: a catch-up doesn't analyze the site again.
+        app(ImportedLanguages::class)->refuseUnanswered($context->sourceId, $polylang);
 
         // Its addresses don't say their language, so nothing is written, settings included.
         if ($polylang->active && $polylang->mode() === PolylangLanguages::FROM_CONTENT) {
