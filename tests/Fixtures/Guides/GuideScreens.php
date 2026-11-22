@@ -19,6 +19,7 @@ final class GuideScreens
         'invitation.show' => 'Reached only through the link in an invitation email, which carries a one-time token that is used up when the page is opened.',
         'my-jobs.index' => 'Not a page: it hands the admin\'s jobs tray its list of running and finished jobs as data.',
         'tools.backups.keys.index' => 'Not a page: it sends the reader on to Tools › Backups, where the recovery keys are managed.',
+        'tools.importer.show' => 'A site\'s import page, which the demo site doesn\'t have: it imports no site. Its steps are told in words on the page that points at it.',
         'content.revisions.index' => 'Not a page: it hands the editor\'s History pane its list of versions as data. The pane itself is in the picture of content.edit.',
     ];
 

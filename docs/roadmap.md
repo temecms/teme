@@ -337,5 +337,5 @@ Moves relative to `CMS-INTERFACE-DESIGN.md` §16, which defined the original ini
 | Outline pane | Interface doc §6 | Parked | Earns its place only in very long structured documents |
 | Reusable patterns | Interface doc | Parked | |
 | AI scope | Draft operations, activity history, provider configuration | Three operations in 1.10; wider operations in 3.4 | Phase 1 AI exists to prove the Operation layer, not to ship an agent |
-| Import approach | WXR or direct database read | Companion WordPress plugin; direct database read as fallback | Code inside WordPress can call `get_permalink()` and hand us the true URL (spec §5.10) |
+| Import approach | WXR or direct database read | Companion plugin, and an uploaded export file (1.4.0); direct database read as fallback | Code inside WordPress can call `get_permalink()` and hand us the true URL (spec §5.10) |
 | Plugin upload through the admin | Interface doc §11 | Withdrawn | Contradicts read-only code at runtime (spec §3) |

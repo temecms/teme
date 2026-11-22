@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Added
+
+- Import a WordPress site from its export file. On Tools › Import, Add a site offers Upload an export file beside Connect the live site: upload the .xml file from WordPress's Tools › Export, and nothing needs installing on the old site. The upload goes up in pieces and carries on after a dropped connection.
+- The file's plan says what an export file can't bring (passwords and roles, where menus sit, redirects made by plugins, custom types Teme doesn't have, site settings and widgets, spam comments) and asks for it: each author is matched by email to a person here, added with a role you choose, or credited to someone; media files are downloaded from the old site while it answers, or kept there as links; each menu is placed in the theme; and the category and tag addresses are filled from the file's links. Every item keeps its address.
+- Bring what changed by uploading a newer file of the same site: what's new or edited comes across, what you changed here is left alone, and anything missing from the newer file is listed on the report, never deleted.
+- Delete the uploaded file from the report. Teme deletes it by itself 30 days after the last import from it ended (teme:import:prune-files, run daily). What was imported stays.
+- The editors' guide's Import from an export file, and the migration runbook's way through with a file.
+
 ## [1.3.3] — 2026-11-22
 
 ### Fixed
