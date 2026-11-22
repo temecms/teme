@@ -15,16 +15,9 @@ declare(strict_types=1);
 namespace App\Domain\Import\File;
 
 use Closure;
-use LogicException;
 
 final readonly class ContentBlocks
 {
-    /** The block markup parser, named so the reader builds before the parser's part joins it (docs/architecture/import.md). */
-    private const string PARSER = 'App\\Domain\\Import\\File\\BlockMarkup';
-
-    /** The classic paragraphs maker, likewise. */
-    private const string PARAGRAPHS = 'App\\Domain\\Import\\File\\Paragraphs';
-
     /**
      * @param  Closure(string): list<array<string, mixed>>  $parse
      * @param  Closure(string): string  $paragraphs
@@ -36,20 +29,7 @@ final readonly class ContentBlocks
      */
     public static function wordPress(): self
     {
-        $parse = [self::PARSER, 'parse'];
-        $make = [self::PARAGRAPHS, 'make'];
-
-        if (! is_callable($parse) || ! is_callable($make)) {
-            throw new LogicException('The block markup parser isn’t part of this build.');
-        }
-
-        return new self(
-            static function (string $html) use ($parse): array {
-                /** @var list<array<string, mixed>> */
-                return $parse($html);
-            },
-            static fn (string $html): string => (string) $make($html),
-        );
+        return new self(BlockMarkup::parse(...), Paragraphs::make(...));
     }
 
     /**

@@ -37,11 +37,7 @@
 		<dc:creator><![CDATA[harbour]]></dc:creator>
 		<guid isPermaLink="false">https://old.example/?p=12</guid>
 		<description></description>
-		<content:encoded><![CDATA[<!-- wp:paragraph -->
-<p>See <a href="https://old.example/ferries/">the ferries</a> and <a href="https://old.example/later-story/">a later story</a>.</p>
-<!-- /wp:paragraph -->
-
-<!-- wp:block {"ref":88} /-->]]></content:encoded>
+		<content:encoded><![CDATA[<!-- wp:paragraph --><p>See <a href="https://old.example/ferries/">the ferries</a> and <a href="https://old.example/later-story/">a later story</a>.</p><!-- /wp:paragraph --><!-- wp:block {"ref":88} /-->]]></content:encoded>
 		<excerpt:encoded><![CDATA[The ferries ran late.]]></excerpt:encoded>
 		<wp:post_id>12</wp:post_id>
 		<wp:post_date><![CDATA[2019-05-03 22:30:00]]></wp:post_date>
@@ -162,9 +158,7 @@
 		<dc:creator><![CDATA[harbour]]></dc:creator>
 		<guid isPermaLink="false">https://old.example/?p=13</guid>
 		<description></description>
-		<content:encoded><![CDATA[<!-- wp:paragraph -->
-<p>We write about the harbour.</p>
-<!-- /wp:paragraph -->]]></content:encoded>
+		<content:encoded><![CDATA[<!-- wp:paragraph --><p>We write about the harbour.</p><!-- /wp:paragraph -->]]></content:encoded>
 		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
 		<wp:post_id>13</wp:post_id>
 		<wp:post_date><![CDATA[2019-01-02 10:00:00]]></wp:post_date>
@@ -192,9 +186,7 @@
 		<dc:creator><![CDATA[harbour]]></dc:creator>
 		<guid isPermaLink="false">https://old.example/?p=14</guid>
 		<description></description>
-		<content:encoded><![CDATA[<!-- wp:paragraph -->
-<p>Ada and Grace.</p>
-<!-- /wp:paragraph -->]]></content:encoded>
+		<content:encoded><![CDATA[<!-- wp:paragraph --><p>Ada and Grace.</p><!-- /wp:paragraph -->]]></content:encoded>
 		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
 		<wp:post_id>14</wp:post_id>
 		<wp:post_date><![CDATA[2019-01-03 10:00:00]]></wp:post_date>
@@ -222,9 +214,7 @@
 		<dc:creator><![CDATA[harbour]]></dc:creator>
 		<guid isPermaLink="false">https://old.example/?p=88</guid>
 		<description></description>
-		<content:encoded><![CDATA[<!-- wp:paragraph -->
-<p>Get the harbour news every week.</p>
-<!-- /wp:paragraph -->]]></content:encoded>
+		<content:encoded><![CDATA[<!-- wp:paragraph --><p>Get the harbour news every week.</p><!-- /wp:paragraph -->]]></content:encoded>
 		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
 		<wp:post_id>88</wp:post_id>
 		<wp:post_date><![CDATA[2019-01-01 10:00:00]]></wp:post_date>

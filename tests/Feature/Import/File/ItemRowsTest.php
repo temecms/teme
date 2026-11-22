@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Import\File\ChannelRows;
+use App\Domain\Import\File\ContentBlocks;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\File\MenuRows;
 use App\Domain\Import\File\WxrStream;
@@ -14,11 +15,11 @@ use Tests\Fixtures\Import\ExportFiles;
  *
  * @return array{rows: array<string, array<int, array<string, mixed>>>, facts: list<array<string, mixed>>}
  */
-function wxrRead(string $name): array
+function wxrRead(string $name, ?ContentBlocks $blocks = null): array
 {
     $stream = WxrStream::open(ExportFiles::path($name));
     $channel = ChannelRows::read($stream->channel());
-    $reader = new ItemRows($channel['lookups'], ExportFiles::blocks(), 'old.example');
+    $reader = new ItemRows($channel['lookups'], $blocks ?? ExportFiles::blocks(), 'old.example');
     $rows = [];
     $facts = [];
 
@@ -215,7 +216,7 @@ it('reads every list of the site’s export as the companion answered it, field 
         expect(wxrWithout($file['terms'][$term['term_id']], ['id', 'link', 'count', 'seo']))->toBe(wxrWithout($term, ['id', 'link', 'count', 'seo']));
     }
 
-    // The fixture's content is blank and its terms name another site's IDs; the blocks wait for the parser's own part.
+    // The fixture's content is blank and its terms name another site's IDs; the blocks are compared with the real parser below.
     foreach (wxrCompanion('content') as $id => $item) {
         expect(wxrWithout($file['content'][$id], ['content', 'blocks', 'terms', 'status_before_trash', 'trashed_at']))
             ->toBe(wxrWithout($item, ['content', 'blocks', 'terms']));
@@ -240,4 +241,12 @@ it('reads every list of the site’s export as the companion answered it, field 
         ->and(array_keys($file['content']))->toBe([12, 13, 14, 88, 20, 21, 22, 23])
         ->and(array_keys($file['media']))->toBe([12, 13])
         ->and(array_keys($file['menus']))->toBe([3, 4]);
+});
+
+it('reads each item’s blocks with WordPress’s block grammar as the companion sends them', function (): void {
+    $file = wxrRead('companion-site.xml', ContentBlocks::wordPress())['rows']['content'];
+
+    foreach (wxrCompanion('content') as $id => $item) {
+        expect($file[$id]['blocks'])->toBe($item['blocks']);
+    }
 });
