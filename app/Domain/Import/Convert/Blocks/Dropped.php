@@ -40,7 +40,7 @@ final readonly class Dropped implements BlockMapping
         'core/term-description', 'core/term-name', 'core/term-template', 'core/terms-query', 'core/widget-group',
     ];
 
-    /** Tables of contents: Teme's theme draws its own. */
+    /** Tables of contents: neither Teme nor its theme draws one; a plugin can. */
     public const array CONTENTS_LISTS = ['simpletoc/toc', 'yoast-seo/table-of-contents', 'rank-math/toc-block'];
 
     /** Layout and markers, left out without a word. */

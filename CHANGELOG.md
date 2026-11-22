@@ -43,6 +43,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Addresses made from titles and names in Hindi, Bengali, Thai and other scripts whose vowel signs are combining marks keep those signs (`/द-वेर्बेलिया-के-बारे-में/`, not `/द-व-र-ब-ल-य-क-ब-र-म/` or a Latin spelling without its vowels), for posts, pages, terms and people, and an imported WordPress address with them stays as it was. Addresses already made keep working as they are.
 - hreflang: a language's home page (or a type's archive) with nothing published in that language no longer lists the other languages' homes, which never list it back; search tools reported these as missing return links. The language switcher still offers it.
 - Import: "Teme couldn't reach the site" says why when it can tell (the site didn't answer in time, its server refused the connection, its name doesn't lead to any server, or its HTTPS certificate couldn't be checked), and the log keeps it too.
+- Import report: a table-of-contents block left out no longer claims Teme's theme draws its own table of contents (none does); it says a table-of-contents plugin can.
 
 ## [1.3.2] — 2026-11-20
 

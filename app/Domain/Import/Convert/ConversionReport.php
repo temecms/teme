@@ -74,8 +74,8 @@ final class ConversionReport
                 ? "Left out 1 {$name} block: WordPress drew it when the page loaded, and on Teme the theme does that job."
                 : "Left out {$count} {$name} blocks: WordPress drew them when the page loaded, and on Teme the theme does that job.",
             'block.contents-list' => $one
-                ? "Left out 1 table of contents ({$name}): Teme’s theme draws its own."
-                : "Left out {$count} tables of contents ({$name}): Teme’s theme draws its own.",
+                ? "Left out 1 table of contents ({$name}): Teme and its theme don’t draw one; a table-of-contents plugin can."
+                : "Left out {$count} tables of contents ({$name}): Teme and its theme don’t draw them; a table-of-contents plugin can.",
             'block.page-break' => "Joined the article’s {$pages} pages into one: Teme shows each article on a single page.",
             'block.flattened' => $one
                 ? "Kept what 1 {$name} block held, in order, without its layout."
