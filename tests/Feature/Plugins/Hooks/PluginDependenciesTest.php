@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
@@ -9,6 +10,7 @@ use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Support\Security\Elevation;
@@ -136,4 +138,13 @@ it('shows the refusal on the Plugins page when disabling a plugin another one ne
         ->assertInertiaFlash('toast.message', 'Relay Pro needs it. Disable Relay Pro first.');
 
     expect(($this->state)('tests/relay'))->toBe('enabled');
+});
+
+it('refuses plugins that require each other, naming the circle', function (): void {
+    $relay = PluginFixtures::copy('relay', ['requires' => ['teme' => '^0.5', 'plugins' => ['tests/relay-pro' => '^1.0']]]);
+    PluginFixtures::use($relay, 'relay-pro');
+    $found = app(PluginRegistry::class)->find('tests/relay');
+
+    expect(app(Dependencies::class)->problems($found->manifest))
+        ->toContain('Its requires.plugins go in a circle: tests/relay → tests/relay-pro → tests/relay. Neither could be enabled or disabled first.');
 });
