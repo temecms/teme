@@ -113,7 +113,8 @@ final class CompanionClient implements SourceReader
 
         Log::warning($why === null ? 'Import: Teme couldn’t reach the site.' : "Import: Teme couldn’t reach the site: {$why}.", ['error' => $error]);
 
-        return SourceRefused::unreachable($why);
+        // The log stays in English; the person reads it in the site's language.
+        return SourceRefused::unreachable($why === null ? null : __($why));
     }
 
     /**

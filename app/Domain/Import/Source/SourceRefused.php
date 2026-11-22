@@ -57,9 +57,11 @@ final class SourceRefused extends RuntimeException
      */
     public static function unreachable(?string $why = null): self
     {
-        $reached = $why === null ? 'Teme couldn’t reach the site.' : "Teme couldn’t reach the site: {$why}.";
+        $words = $why === null
+            ? __('Teme couldn’t reach the site. Check the address, and that the site is up.')
+            : __('Teme couldn’t reach the site: :why. Check the address, and that the site is up.', ['why' => $why]);
 
-        return new self(self::UNREACHABLE, 'address', true, $reached.' Check the address, and that the site is up.');
+        return new self(self::UNREACHABLE, 'address', true, $words);
     }
 
     public static function busy(int $status): self
@@ -101,9 +103,11 @@ final class SourceRefused extends RuntimeException
      */
     public static function languagesTooOld(int $languages, string $version): self
     {
-        $many = $languages === 1 ? '1 language' : "{$languages} languages";
+        $words = $languages === 1
+            ? __('The site report says Polylang is on, with 1 language, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to :version or later, then choose Analyze again.', ['version' => $version])
+            : __('The site report says Polylang is on, with :count languages, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to :version or later, then choose Analyze again.', ['count' => $languages, 'version' => $version]);
 
-        return new self(self::TOO_OLD, 'address', false, "The site report says Polylang is on, with {$many}, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to {$version} or later, then choose Analyze again.");
+        return new self(self::TOO_OLD, 'address', false, $words);
     }
 
     public static function noApplicationPasswords(): self

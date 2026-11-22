@@ -109,7 +109,7 @@ final readonly class SiteAnalysis
         $languages = self::polylangLanguages($report);
 
         if ($languages !== null) {
-            $comes[] = ['key' => 'languages', 'label' => 'Languages', 'count' => $languages];
+            $comes[] = ['key' => 'languages', 'label' => __('Languages'), 'count' => $languages];
         }
 
         $stays = [];
