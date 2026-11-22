@@ -166,6 +166,21 @@ final readonly class SiteAnalysis
     }
 
     /**
+     * Returns how many languages the report says Polylang has, or null when
+     * it says Polylang isn't on, or says nothing of it.
+     *
+     * @param  array<mixed>  $report
+     *
+     * @since next
+     */
+    public static function polylangLanguages(array $report): ?int
+    {
+        $polylang = self::map(self::map(self::map($report['sections'] ?? null)['multilingual'] ?? null)['polylang'] ?? null);
+
+        return $polylang === [] ? null : self::count($polylang['languages'] ?? null);
+    }
+
+    /**
      * The analysis as toArray() stored it.
      *
      * @param  array<string, mixed>  $stored

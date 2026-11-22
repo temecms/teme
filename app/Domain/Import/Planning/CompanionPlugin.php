@@ -17,6 +17,13 @@ final class CompanionPlugin
     /** The first version with the export API Teme reads. */
     public const string VERSION = '0.2.0';
 
+    /**
+     * The first version with the languages route, which brings a Polylang site's languages.
+     *
+     * @since next
+     */
+    public const string LANGUAGES_VERSION = '0.3.0';
+
     // Later (I-1711): the public repository's releases address, once the maintainers publish it.
     public const ?string RELEASES = null;
 }

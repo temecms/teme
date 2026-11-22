@@ -57,7 +57,7 @@ final readonly class ImportedLanguages
                 throw $refused;
             }
 
-            $languages = PolylangLanguages::none();
+            $languages = PolylangLanguages::unanswered();
         }
 
         $this->cache->put(self::key($sourceId), $languages->toArray(), self::KEEP_SECONDS);

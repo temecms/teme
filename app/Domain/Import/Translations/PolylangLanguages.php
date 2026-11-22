@@ -43,6 +43,7 @@ final readonly class PolylangLanguages
      * @param  array<string, array<string, array<string, int>>>  $menus
      * @param  array<string, list<array{name: string, translation: string}>>  $strings
      * @param  array<string, array{name: string, languages: int}>  $others  plugin slug => its name and its languages
+     * @param  bool  $answered  false when the companion has no languages route to ask
      */
     private function __construct(
         public bool $active,
@@ -54,6 +55,7 @@ final readonly class PolylangLanguages
         public array $menus,
         public array $strings,
         public array $others = [],
+        public bool $answered = true,
     ) {}
 
     /**
@@ -65,6 +67,17 @@ final readonly class PolylangLanguages
     public static function none(array $others = []): self
     {
         return new self(false, '', [], [], [], [], [], [], $others);
+    }
+
+    /**
+     * What a companion too old to have the languages route says: nothing,
+     * read as a site without Polylang, marked as not answered.
+     *
+     * @since next
+     */
+    public static function unanswered(): self
+    {
+        return new self(false, '', [], [], [], [], [], [], [], false);
     }
 
     /**

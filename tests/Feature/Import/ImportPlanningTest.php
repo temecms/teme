@@ -210,3 +210,35 @@ it('refuses a choice that doesn’t fit, under its field, in words', function (s
     'a place the theme lacks', 'a template the theme lacks', 'a role Teme lacks', 'someone who can’t write',
     'a site not listed', 'a pause not offered', 'a location the report doesn’t list', 'a template the report doesn’t list',
 ]);
+
+/**
+ * The fixture's site report, saying Polylang is on with five languages.
+ *
+ * @return array<string, mixed>
+ */
+function plPolylangReport(): array
+{
+    $answer = json_decode((string) file_get_contents(base_path('tests/Fixtures/Import/Companion/analyze.json')), true, flags: JSON_THROW_ON_ERROR);
+    $answer['report']['sections']['multilingual'] = ['wpml' => null, 'polylang' => ['version' => '3.7.4', 'languages' => 5], 'translatepress' => null, 'weglot' => null];
+
+    return $answer;
+}
+
+it('refuses to analyze a Polylang site through a companion too old to bring its languages, naming the version that can', function (): void {
+    $this->fake->items('analyze', plPolylangReport());
+    $this->fake->answer('languages', 404, ['code' => 'rest_no_route', 'message' => 'No route was found matching the URL and request method.', 'data' => ['status' => 404]]);
+
+    expect($this->analysis)->toThrow(function (SourceRefused $refusal): void {
+        expect($refusal->reason)->toBe(SourceRefused::TOO_OLD)
+            ->and($refusal->retryable)->toBeFalse()
+            ->and($refusal->sentence())->toBe('The site report says Polylang is on, with 5 languages, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to 0.3.0 or later, then choose Analyze again.');
+    });
+
+    expect(app(ImportAnalysis::class)->kept($this->source->id))->toBeNull();
+});
+
+it('analyzes a Polylang site whose companion brings its languages', function (): void {
+    $this->fake->items('analyze', plPolylangReport());
+
+    expect(($this->analysis)()->reported)->toBeTrue();
+});

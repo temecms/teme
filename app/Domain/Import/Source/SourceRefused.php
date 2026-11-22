@@ -88,6 +88,19 @@ final class SourceRefused extends RuntimeException
         return new self(self::TOO_OLD, 'address', false, 'This site’s Teme Companion plugin is too old for Teme. Update it, then try again.');
     }
 
+    /**
+     * The site reports Polylang, and its companion has no languages route
+     * to bring the languages: imported, everything would land in one.
+     *
+     * @since next
+     */
+    public static function languagesTooOld(int $languages, string $version): self
+    {
+        $many = $languages === 1 ? '1 language' : "{$languages} languages";
+
+        return new self(self::TOO_OLD, 'address', false, "The site report says Polylang is on, with {$many}, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to {$version} or later, then choose Analyze again.");
+    }
+
     public static function noApplicationPasswords(): self
     {
         return new self(self::NO_APPLICATION_PASSWORDS, 'address', false, 'Application passwords are switched off on this site, so Teme can’t sign in. WordPress offers them only over HTTPS.');
