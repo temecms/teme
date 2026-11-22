@@ -28,6 +28,15 @@ it('keeps feed, sitemap.xml and robots.txt for the site\'s own routes: no item\'
         ->toThrow(ValidationException::class, 'Addresses starting /feed/ are used by the site itself.');
 });
 
+it('keeps the folders the web server serves files from, such as /themes/: no item and no type may start its address with one', function (): void {
+    $admin = User::factory()->create()->assignRole('administrator');
+
+    expect(array_map(Paths::taken(...), ['themes', 'teme', 'build', 'storage', 'theme']))->toBe([true, true, true, true, false])
+        ->and(Paths::conflict('themes/harbour', 'content', '01jvm0000000000000000000aa'))->toBe('The address /themes/harbour/ is used by the site itself.')
+        ->and(fn () => addrChange($admin, ['bases' => ['category' => 'themes']]))
+        ->toThrow(ValidationException::class, 'Addresses starting /themes/ are used by the site itself.');
+});
+
 it('lets the page cache store what those routes answer, unlike the router\'s own addresses', function (): void {
     config(['app.url' => 'http://localhost']);
 
