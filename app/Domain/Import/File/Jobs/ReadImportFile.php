@@ -47,6 +47,14 @@ final class ReadImportFile implements ShouldQueue
     /** The items kept together, so a long part writes as it goes. */
     public const int ITEMS = 500;
 
+    /**
+     * The bytes of row payloads, as JSON, kept together at most: block-heavy
+     * items write sooner than ITEMS, so a worker's memory stays small.
+     *
+     * @since next
+     */
+    public const int BYTES = 8 * 1024 * 1024;
+
     /** Under the database queue's retry_after of 90 seconds, so no second worker takes the file while this one reads it. */
     public int $timeout = 75;
 
@@ -81,16 +89,17 @@ final class ReadImportFile implements ShouldQueue
             $at = $from;
             $rows = $from === 0 ? $start['rows'] : [];
             $counted = self::noFacts();
+            $bytes = 0;
 
             foreach ($stream->items($from) as $index => $item) {
                 $late = CarbonImmutable::now()->greaterThanOrEqualTo($deadline);
 
-                if ($at > $from && ($late || $at - $from >= self::ITEMS)) {
+                if ($at > $from && ($late || $at - $from >= self::ITEMS || $bytes >= self::BYTES)) {
                     if (! $this->keep($from, $at, $rows, $counted, $facts)) {
                         return;
                     }
 
-                    [$from, $rows, $counted] = [$at, [], self::noFacts()];
+                    [$from, $rows, $counted, $bytes] = [$at, [], self::noFacts(), 0];
 
                     if ($late) {
                         dispatch(new self($this->fileId, $this->actor));
@@ -100,8 +109,15 @@ final class ReadImportFile implements ShouldQueue
                 }
 
                 $read = $reader->read($item);
-                array_push($rows, ...$read['rows']);
+                unset($item);
+
+                foreach ($read['rows'] as $row) {
+                    $bytes += strlen((string) json_encode($row['payload']));
+                    $rows[] = $row;
+                }
+
                 $counted = self::added($counted, $read['facts']);
+                unset($read);
                 $at = $index + 1;
             }
 
