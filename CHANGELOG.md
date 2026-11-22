@@ -20,6 +20,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - The Themes Preview button goes through the catalogue, so it can be translated.
 - Plugin table filters offer “All” as their empty choice instead of “Any” plus the label.
 - Plugin editor panels have inner padding, so their words and Done stay inside the pane.
+- The default theme breaks long words and addresses on phones, styles inline code and rules in articles, and opens wide-header sub-menus as a dropdown.
 
 ## [1.3.2] — 2026-11-20
 

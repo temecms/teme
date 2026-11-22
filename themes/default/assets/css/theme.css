@@ -275,10 +275,35 @@
         list-style: none;
     }
 
-    .nav-wide ul {
+    /* Top-level items wrap across the bar; nested lists drop under their
+       heading so a long tree does not push the bar wider than a phone. */
+    .nav-wide > ul {
         display: flex;
         flex-wrap: wrap;
         gap: var(--teme-space-1) var(--teme-space-4);
+    }
+
+    .nav-wide li {
+        position: relative;
+    }
+
+    .nav-wide li > ul {
+        position: absolute;
+        inset-block-start: 100%;
+        inset-inline-start: 0;
+        z-index: 1;
+        display: grid;
+        gap: var(--teme-space-1);
+        min-inline-size: 12rem;
+        margin: 0;
+        padding: var(--teme-space-3);
+        list-style: none;
+        border: 1px solid var(--teme-rule);
+        border-radius: 3px;
+        background: var(--teme-base);
+        color: var(--teme-contrast);
+        box-shadow: 0 0.25rem 0.75rem
+            color-mix(in oklab, var(--teme-contrast) 12%, transparent);
     }
 
     .site-header nav a {
@@ -555,6 +580,7 @@
     }
 
     .card-title {
+        overflow-wrap: break-word;
         font: 700 var(--teme-step-2) / 1.2 var(--teme-font-heading);
         letter-spacing: -0.01em;
         text-wrap: balance;
@@ -679,6 +705,7 @@
     .article-header :is(h1, h2),
     .page-header :is(h1, h2),
     .notfound h1 {
+        overflow-wrap: break-word;
         font: 700 var(--teme-step-4) / 1.1 var(--teme-font-heading);
         letter-spacing: -0.02em;
         text-wrap: balance;
@@ -748,6 +775,7 @@
     .prose {
         max-inline-size: var(--measure, 68ch);
         margin-inline: auto;
+        overflow-wrap: break-word;
     }
 
     .page-wide .prose {
@@ -759,11 +787,26 @@
     }
 
     .prose :where(h2, h3, h4) {
+        overflow-wrap: break-word;
         font-family: var(--teme-font-heading);
         line-height: 1.2;
         letter-spacing: -0.01em;
         margin-block-start: 1.8em;
         text-wrap: balance;
+    }
+
+    /* Inline code and rules match the comment body so long URLs and fences stay inside the measure. */
+    .prose :where(code):not(:where(pre code)) {
+        padding: 0.1em 0.3em;
+        border-radius: 2px;
+        background: var(--surface);
+        font: 0.875em var(--teme-font-mono, ui-monospace, monospace);
+    }
+
+    .prose hr {
+        margin-block: var(--teme-space-6);
+        border: 0;
+        border-block-start: 1px solid var(--teme-rule);
     }
 
     .prose h2 {

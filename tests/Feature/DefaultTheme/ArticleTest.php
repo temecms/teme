@@ -79,3 +79,13 @@ it('carries its reduced-motion and forced-colours rules, and a visible focus sty
 
     expect($css)->toContain('prefers-reduced-motion: reduce')->toContain('forced-colors: active')->toContain(':focus-visible');
 });
+
+it('breaks long words in the article and titles, styles inline code and rules, and drops wide sub-menus (#594)', function (): void {
+    $css = file_get_contents(base_path('themes/default/assets/css/theme.css'));
+
+    expect($css)->toMatch('/\.prose\s*\{[^}]*overflow-wrap:\s*break-word/s')
+        ->and($css)->toMatch('/\.card-title\s*\{[^}]*overflow-wrap:\s*break-word/s')
+        ->and($css)->toMatch('/\.prose[^{]*code[^\{]*\{/s')
+        ->and($css)->toMatch('/\.prose\s+hr\s*\{/s')
+        ->and($css)->toMatch('/\.nav-wide\s+li\s*>\s*ul\s*\{[^}]*position:\s*absolute/s');
+});
