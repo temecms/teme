@@ -19,6 +19,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - The admin shortens its motion when the computer asks for less, and a browser test checks it.
 - The Themes Preview button goes through the catalogue, so it can be translated.
 - Plugin table filters offer “All” as their empty choice instead of “Any” plus the label.
+- Plugin editor panels have inner padding, so their words and Done stay inside the pane.
 
 ## [1.3.2] — 2026-11-20
 

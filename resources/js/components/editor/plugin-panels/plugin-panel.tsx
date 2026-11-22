@@ -115,7 +115,7 @@ export function PluginPanel({
     }, [busy, read]);
 
     return (
-        <div className="text-small grid gap-5" data-test="plugin-panel">
+        <div className="text-small grid gap-5 p-4" data-test="plugin-panel">
             {panel.description !== '' && (
                 <p className="text-ink-2">{panel.description}</p>
             )}
