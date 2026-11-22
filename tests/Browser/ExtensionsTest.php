@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 // Installing a plugin from the admin (docs/plans/plugin-installer.md, part B).
 
@@ -94,7 +95,7 @@ it('asks for the password, records a Packagist install, and follows it in the re
 
 it('keeps the fields inside the sheet, and shows the form to add a Git address only when there is no saved source or one asks for it', function (): void {
     DB::table('extension_sources')->insert([
-        'id' => strtolower((string) Illuminate\Support\Str::ulid()), 'kind' => 'git', 'label' => 'The maintainers’ repository with a long name',
+        'id' => strtolower((string) Str::ulid()), 'kind' => 'git', 'label' => 'The maintainers’ repository with a long name',
         'url' => 'https://git.example.com/an/address/that/is/long/enough/to/stretch/a/select/past/the/sheets/edge.git',
         'username' => null, 'credential' => null, 'created_at' => now(), 'updated_at' => now(),
     ]);
