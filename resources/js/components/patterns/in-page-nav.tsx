@@ -56,9 +56,13 @@ export function InPageNav({
     const currentInMore = more.find((item) => item.current);
 
     return (
-        <nav aria-label={label} data-slot="in-page-nav" className="mb-4">
-            <ScrollArea axis="x">
-                <ul className="flex gap-1">
+        <nav
+            aria-label={label}
+            data-slot="in-page-nav"
+            className="mb-4 max-w-full min-w-0"
+        >
+            <ScrollArea axis="x" className="w-full">
+                <ul className="flex w-max gap-1">
                     {shown.map((item) => (
                         <li key={item.href || item.label} className="flex">
                             {item.soon ? (
