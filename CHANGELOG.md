@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file. Versioning foll
 ### Fixed
 
 - Home greets you with your whole name, not only the first word.
+- The jobs menu shows “Finished” alone when a job’s message only repeats that status.
 
 ## [1.3.2] — 2026-11-20
 

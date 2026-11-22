@@ -28,6 +28,29 @@ function nameOf(running: number, failed: number): string {
 }
 
 /**
+ * The status line under a job: the state alone when the message only repeats
+ * it ("Finished."), else "Failed · reason" with the job's real summary.
+ */
+function statusLine(stateLabel: string, message: string | null): string {
+    if (message === null) {
+        return stateLabel;
+    }
+
+    const trimmed = message.trim();
+    const withoutStops = trimmed.replace(/[.!?]+$/u, '');
+
+    if (
+        withoutStops.localeCompare(stateLabel, undefined, {
+            sensitivity: 'accent',
+        }) === 0
+    ) {
+        return stateLabel;
+    }
+
+    return `${stateLabel} · ${trimmed}`;
+}
+
+/**
  * The header's jobs button (I-104): drawn only for someone who has a job, it
  * counts the jobs running, or else those failed, and opens their latest ten
  * with Retry and Cancel.
@@ -157,9 +180,7 @@ export function JobsPanelBody({
                                 <span className="font-medium">{row.label}</span>
                                 <JobProgress job={row} />
                                 <span className="text-ink-2 text-caption">
-                                    {row.stateLabel}
-                                    {row.message !== null &&
-                                        ` · ${row.message}`}
+                                    {statusLine(row.stateLabel, row.message)}
                                 </span>
                                 <span className="text-ink-2 text-caption">
                                     Started{' '}

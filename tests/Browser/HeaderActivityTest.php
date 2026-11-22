@@ -89,3 +89,39 @@ it('shows a person’s running job on the jobs button, and cancels it from the p
 
     expect(DB::table('tracked_jobs')->where('id', $job)->value('state'))->toBe('cancelled');
 });
+
+it('shows Finished alone when a job’s message only repeats that status', function (): void {
+    HeaderFixtures::jobOf($this->author, [
+        'label' => 'Refresh the plugin directory',
+        'state' => 'finished',
+        'total' => 1,
+        'done' => 1,
+        'message' => 'Finished.',
+        'ended_at' => now(),
+    ]);
+
+    $page = cmSignIn($this->author);
+    cmWaitUntil($page, <<<'JS'
+        document.querySelector('[data-test="jobs-button"]') !== null
+        JS);
+
+    $page->click('[data-test="jobs-button"]');
+    cmWaitUntil($page, <<<'JS'
+        document.querySelector('[data-test="jobs-panel"][role="dialog"] [data-test="my-job"]') !== null
+        JS);
+
+    $line = $page->script(<<<'JS'
+        () => {
+            const row = document.querySelector('[data-test="my-job"]');
+            if (!row) {
+                return null;
+            }
+
+            const lines = Array.from(row.querySelectorAll('.text-caption'), (el) => el.textContent?.trim() ?? '');
+
+            return lines.find((text) => text.startsWith('Finished')) ?? null;
+        }
+        JS);
+
+    expect($line)->toBe('Finished');
+});
