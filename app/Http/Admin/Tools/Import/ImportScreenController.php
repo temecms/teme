@@ -112,7 +112,11 @@ final class ImportScreenController extends Controller
         return [
             'analysis' => $read->toArray(),
             'problem' => null,
-            'form' => $read->reported ? $choices->form($read, $person) : null,
+            'form' => $read->reported && ! isset($site['file']['id']) ? $choices->form($read, $person) : null,
+            // An export file's plan has its own choices: its authors, its media, its addresses.
+            'fileForm' => $read->reported && isset($site['file']['id'])
+                ? $choices->fileForm($read, $site['file']['id'], $person, $screen->catchUpWith($source)['choices'] ?? [])
+                : null,
             'remembered' => $request->session()->get(ImportRunController::REMEMBERED.$source),
             'rememberedHosts' => $rememberedHosts,
             'suggestedHosts' => $site['suggestedHosts'] ?? [],

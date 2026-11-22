@@ -190,7 +190,7 @@ final class FileAddresses
         if ($host !== '') {
             $contents = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::CONTENT)
                 ->whereRaw("payload->>'content' LIKE ?", ['%'.$host.'%'])->orderBy('object_id')->limit(2000)
-                ->pluck(DB::raw("payload->>'content'"));
+                ->selectRaw("payload->>'content' as content")->pluck('content');
 
             foreach ($contents as $content) {
                 preg_match_all('/href\s*=\s*["\']([^"\']+)["\']/i', (string) $content, $found);

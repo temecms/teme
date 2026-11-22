@@ -181,6 +181,29 @@ function fileNewer(): string
     }, $bytes);
 }
 
+it('brings the same site from its export file as from its companion, apart from what a file can’t hold', function (): void {
+    $companion = fileCompanionRun($this->companion);
+    $expected = fileSnapshot();
+    $this->admin = fileForget();
+
+    $file = FileImports::ready('companion-site.xml', $this->admin);
+    $run = FileImports::run($file);
+    $actual = fileSnapshot();
+
+    expect($companion->state)->toBe(ImportRunState::Finished)
+        ->and($run->state)->toBe(ImportRunState::Finished)
+        ->and(fileLeftOut($expected, $actual))->toBe(['contents' => [], 'terms' => [], 'media' => [], 'people' => []])
+        // What the file holds and the companion's fixtures don't: the menu's own pages, a post filed under a
+        // category only its item names, and the authors a file lists without their roles.
+        ->and(fileLeftOut($actual, $expected))->toBe([
+            'contents' => [['page', 'about-us'], ['page', 'contact'], ['page', 'privacy-policy'], ['page', 'team-2'], ['post', 'harbour-news']],
+            'terms' => [['category', 'news'], ['tag', 'ferries']],
+            'media' => [],
+            'people' => ['desk@old.example', 'reader@old.example'],
+        ])
+        ->and(DB::table('comments')->count())->toBe(4);
+});
+
 it('updates what changed in a newer file, lists what it no longer holds, and deletes nothing', function (): void {
     $first = FileImports::ready('companion-site.xml', $this->admin);
     FileImports::run($first);

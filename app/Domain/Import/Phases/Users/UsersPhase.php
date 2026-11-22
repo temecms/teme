@@ -28,6 +28,7 @@ use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Phases\Terms\WordPressSlugs;
 use App\Domain\Import\Phases\Terms\WordPressText;
+use App\Domain\Import\Planning\ImportChoices;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Users\ImportedHashes;
 use App\Domain\Users\Operations\ImportUser;
@@ -95,6 +96,10 @@ final readonly class UsersPhase implements ListPhase
      */
     private function decide(SourceRef $ref, array $item, ImportContext $context): ImportResult
     {
+        if ($context->readsFile()) {
+            return $this->fromFile($ref, $item, $context);
+        }
+
         $roles = array_values(array_map(strval(...), array_filter((array) ($item['roles'] ?? []), is_string(...))));
         $choices = $context->choice('roles', []);
         $place = WordPressRoles::place($roles, is_array($choices) ? $choices : []);
@@ -140,6 +145,61 @@ final readonly class UsersPhase implements ListPhase
         }
 
         return $this->create($item, $email, (string) $place['role'], $place, $context, $promoted);
+    }
+
+    /**
+     * What becomes of one of an export file's authors, as the plan page
+     * chose: matched to a person here, credited to another, or added with
+     * the role chosen and no password (docs/architecture/import.md). A file
+     * has no roles or passwords, so a person met again stays as they are.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function fromFile(SourceRef $ref, array $item, ImportContext $context): ImportResult
+    {
+        $entry = $this->map->entry($context->sourceId, $ref);
+
+        if ($entry?->teme_id !== null) {
+            if (! User::query()->whereKey($entry->teme_id)->exists()) {
+                return ImportResult::skipped(new ImportMessage('user.deleted-here', 'They were imported before and have since been deleted in Teme, so they weren’t imported again.'));
+            }
+
+            return ImportResult::updated('user', (string) $entry->teme_id);
+        }
+
+        $login = (string) ($item['login'] ?? $item['nicename'] ?? '');
+        $email = Str::lower(trim((string) ($item['email'] ?? '')));
+        $authors = $context->choice('authors', []);
+        $chosen = is_array($authors) && is_string($authors[$login] ?? null) ? $authors[$login] : 'new:author';
+        [$how, $what] = array_pad(explode(':', $chosen, 2), 2, '');
+        $holder = $email === '' ? null : User::query()->where('email', $email)->value('id');
+
+        if ($how === 'match' || $how === 'to') {
+            $person = User::query()->find($what);
+
+            if ($person === null) {
+                throw new ImportFailed(ImportMessage::error('user.chosen-gone', 'The person chosen for them on the plan is no longer on this site, so their account wasn’t imported. Choose again and import the file again.'));
+            }
+
+            $result = ImportResult::updated('user', (string) $person->id)->withFacts(['matched' => true, 'matched_in' => $context->runId]);
+
+            return $how === 'match'
+                ? $result->withWarning(self::matched())
+                : $result->withWarning(new ImportMessage('user.credited', "Their posts and pages are credited to {$person->name}, as chosen on the plan.", ['to' => (string) $person->id]));
+        }
+
+        if ($email === '') {
+            throw new ImportFailed(ImportMessage::error('user.no-email', 'The export file has no email address for them, so they weren’t imported. Give them one in WordPress and upload a newer file, or choose who they are here on the plan.'));
+        }
+
+        // Teme gives each address one person, so the person who has it is them.
+        if ($holder !== null) {
+            return ImportResult::updated('user', (string) $holder)->withWarning(self::matched())->withFacts(['matched' => true, 'matched_in' => $context->runId]);
+        }
+
+        $role = in_array($what, ImportChoices::FILE_ROLES, true) ? $what : 'author';
+
+        return $this->create($item, $email, $role, ['role' => $role, 'placed' => [], 'unknown' => []], $context, false);
     }
 
     /**
