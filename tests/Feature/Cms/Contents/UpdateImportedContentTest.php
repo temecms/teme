@@ -142,6 +142,22 @@ it('keeps the stored ids of every block WordPress didn’t change when one word 
         ->and($document['content'][2]['content'][0]['text'])->toBe('The ferries ran early.');
 });
 
+it('brings an edit that only loose comparison would call the same, such as 10 to 10.0', function (): void {
+    $words = fn (string $text, string $id): array => ['type' => 'doc', 'content' => [
+        ['type' => 'paragraph', 'attrs' => ['id' => $id], 'content' => [['type' => 'text', 'text' => $text]]],
+    ]];
+    [$content, $written] = upcImported($this->author, ['document' => $words('10', '01K5Z9P2QH7N3X4C8V6B0M1T3D')]);
+
+    $result = upcUpdate($content, $written, ContentImports::item($this->author, [
+        'document' => $words('10.0', '01K5Z9P2QH7N3X4C8V6B0M1T3E'),
+        'modifiedAt' => CarbonImmutable::parse('2019-06-01 10:00:00', 'UTC'),
+    ]));
+    $document = (array) ContentRevision::query()->findOrFail($content->refresh()->working_revision_id)->document;
+
+    expect($result['wrote'])->toBeTrue()
+        ->and($document['content'][0]['content'][0]['text'])->toBe('10.0');
+});
+
 it('keeps a person’s change, whatever they changed, and says so', function (string $change): void {
     [$content, $written] = upcImported($this->author);
 

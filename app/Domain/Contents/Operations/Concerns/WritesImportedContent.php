@@ -71,8 +71,8 @@ trait WritesImportedContent
             $document['content'] = BlockIds::kept(array_values($document['content']), array_values($current->document['content']));
         }
 
-        // Loose comparison: JSONB gives a document's keys back in its own order.
-        $revised = $current !== null && ($current->title !== $item->title || $current->document != $document || $current->fields != $fields || $current->terms !== $terms);
+        // Key order is ignored, since JSONB gives keys back in its own order; values compare strictly.
+        $revised = $current !== null && ($current->title !== $item->title || ! BlockIds::same((array) $current->document, $document) || $current->fields != $fields || $current->terms !== $terms);
 
         $revision = $current === null || $revised ? ContentRevision::query()->create([
             'content_id' => $content->id,

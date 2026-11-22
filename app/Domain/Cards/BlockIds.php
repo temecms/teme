@@ -89,7 +89,7 @@ final class BlockIds
      */
     public static function kept(array $nodes, array $stored): array
     {
-        $bare = array_map(fn (mixed $node): mixed => is_array($node) ? self::without($node) : $node, $stored);
+        $bare = array_map(fn (mixed $node): mixed => is_array($node) ? self::canonical(self::without($node)) : null, $stored);
         $next = 0;
 
         foreach ($nodes as $i => $node) {
@@ -97,10 +97,10 @@ final class BlockIds
                 continue;
             }
 
-            $wanted = self::without($node);
+            $wanted = self::canonical(self::without($node));
 
             for ($j = $next; $j < count($stored); $j++) {
-                if ($bare[$j] == $wanted) {
+                if ($bare[$j] === $wanted) {
                     $nodes[$i] = $stored[$j];
                     $next = $j + 1;
 
@@ -110,6 +110,45 @@ final class BlockIds
         }
 
         return $nodes;
+    }
+
+    /**
+     * Whether two documents, or two nodes, hold exactly the same, whatever
+     * order their keys came back in: "10" and "10.0" differ, as they would
+     * not under PHP's loose comparison.
+     *
+     * @param  array<mixed>  $one
+     * @param  array<mixed>  $other
+     *
+     * @since next
+     */
+    public static function same(array $one, array $other): bool
+    {
+        return self::canonical($one) === self::canonical($other);
+    }
+
+    /**
+     * The value as JSON with every object's keys in order, so equal content
+     * gives equal text.
+     */
+    private static function canonical(mixed $value): string
+    {
+        return (string) json_encode(self::sorted($value), JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+    private static function sorted(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        $value = array_map(self::sorted(...), $value);
+
+        if (! array_is_list($value)) {
+            ksort($value, SORT_STRING);
+        }
+
+        return $value;
     }
 
     /**
