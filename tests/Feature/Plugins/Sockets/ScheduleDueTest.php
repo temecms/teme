@@ -99,6 +99,35 @@ it('lists a plugin whose schedules can’t run with the reason', function (): vo
         ->expectsOutputToContain('Its schedules don’t run: it was enabled from the command line without naming an administrator.')
         ->assertSuccessful();
 
+    // No time is promised for a run that won't happen.
+    $this->artisan('teme:plugins:schedules')
+        ->expectsTable(
+            ['Plugin', 'Job', 'Every', 'Last queued', 'Next due', 'Why it can’t run'],
+            [['tests/jobs', 'write-line', 'hour', 'never', '', 'Its schedules don’t run: it was enabled from the command line without naming an administrator. Disable it and enable it again from Site › Plugins, or with --as.']],
+        )
+        ->assertSuccessful();
+
     $this->artisan('teme:plugins:run-due-schedules');
     expect(($this->queued)())->toBe(0);
+});
+
+it('shows a plugin waiting for consent as not running, with no next-due time', function (): void {
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $record->consent = [...$record->consent, 'capabilities' => ['jobs']];
+    $record->save();
+
+    $this->artisan('teme:plugins:schedules')
+        ->expectsTable(
+            ['Plugin', 'Job', 'Every', 'Last queued', 'Next due', 'Why it can’t run'],
+            [['tests/jobs', 'write-line', 'hour', 'never', '', 'Waiting for its new permissions to be agreed.']],
+        )
+        ->assertSuccessful();
+});
+
+it('gives a schedule with an interval Teme doesn’t know its own reason, not the setting’s', function (): void {
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $due = app(DueSchedules::class);
+
+    expect($due->whyNotDue($record, ['job' => 'write-line', 'every' => 'fortnight']))->toBe('Its interval isn’t one Teme knows, so it never runs.')
+        ->and($due->whyNotDue($record, ['job' => 'write-line', 'every' => 'hour']))->toBeNull();
 });

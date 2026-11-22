@@ -278,3 +278,25 @@ it('records an upload’s request with the archive’s own version, and refuses 
         ->and($row->upload_id)->toBe($upload)
         ->and($row->constraint)->toBe('1.4.0');
 });
+
+it('updates a package from the source it was installed from, and says an uploaded one is updated by uploading', function (): void {
+    extFolder(['acme/hello' => ['type' => 'teme-plugin']]);
+    $source = strtolower((string) Str::ulid());
+    DB::table('extension_sources')->insert(['id' => $source, 'kind' => 'git', 'label' => 'Public Git', 'url' => 'https://git.example.com/a.git', 'username' => null, 'credential' => null, 'created_at' => now(), 'updated_at' => now()]);
+    $installed = strtolower((string) Str::ulid());
+    DB::table('extension_requests')->insert(['id' => $installed, 'action' => 'install', 'kind' => 'plugin', 'package' => 'acme/hello', 'constraint' => '*', 'source_kind' => 'git', 'source_id' => $source, 'status' => 'done', 'requested_at' => now()->subDay(), 'finished_at' => now()->subDay()]);
+
+    // An update an older Teme recorded as Packagist, whatever the package came from.
+    DB::table('extension_requests')->insert(['id' => strtolower((string) Str::ulid()), 'action' => 'update', 'kind' => 'plugin', 'package' => 'acme/hello', 'constraint' => '*', 'source_kind' => 'packagist', 'source_id' => null, 'status' => 'done', 'requested_at' => now()->subHour(), 'finished_at' => now()->subHour()]);
+
+    $update = (($this->ask)(ExtensionAction::Update))();
+    $row = DB::table('extension_requests')->where('id', $update)->first();
+
+    expect($row->source_kind)->toBe('git')
+        ->and($row->source_id)->toBe($source);
+
+    DB::table('extension_requests')->where('id', $update)->update(['status' => 'cancelled']);
+    DB::table('extension_requests')->where('id', $installed)->update(['source_kind' => 'upload', 'source_id' => null]);
+
+    expect(($this->ask)(ExtensionAction::Update))->toThrow(ValidationException::class, 'acme/hello was uploaded by hand, so it can’t be updated in place. Upload the new version.');
+});

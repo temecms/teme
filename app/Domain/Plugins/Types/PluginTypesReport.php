@@ -14,62 +14,106 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Types;
 
+use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Arr;
 
 final class PluginTypesReport
 {
     /**
      * The sentences for $report, joined; empty when it changed nothing a
-     * person needs told. Types and taxonomies are named by key, fields as
-     * type.handle.
+     * person needs told. Types and taxonomies are named by their plural
+     * name and fields only counted, so a plugin with dozens of fields still
+     * gets a notice that fits a toast.
      *
      * @param  array<string, mixed>  $report
      */
     public static function sentence(array $report): string
     {
+        $taxonomies = is_array($report['taxonomies'] ?? null) ? $report['taxonomies'] : [];
         $adopted = self::listed($report, 'adopted');
         $released = self::listed($report, 'released');
-        $taxonomies = is_array($report['taxonomies'] ?? null) ? $report['taxonomies'] : [];
-        $added = [...self::names($report['added'] ?? []), ...self::names($taxonomies['added'] ?? []), ...self::names($report['fieldsAdded'] ?? [])];
-        $updated = [...self::names($report['updated'] ?? []), ...self::names($taxonomies['updated'] ?? [])];
+        $added = self::things([...self::names($report['added'] ?? []), ...self::names($taxonomies['added'] ?? [])], self::names($report['fieldsAdded'] ?? []));
+        $took = self::things($adopted['kinds'], $adopted['fields']);
+        $changed = self::things(
+            array_values(array_diff([...self::names($report['updated'] ?? []), ...self::names($taxonomies['updated'] ?? [])], $adopted['kinds'])),
+            [],
+        );
         $fields = self::names($report['fieldsUpdated'] ?? []);
         $sentences = [];
 
         if ($added !== []) {
-            $sentences[] = __('It added :names.', ['names' => self::join($added)]);
+            $sentences[] = __('Added :names.', ['names' => self::join($added)]);
         }
 
-        if ($adopted !== []) {
-            $sentences[] = __('It took over :names, already on this site, keeping their items.', ['names' => self::join($adopted)]);
+        if ($took !== []) {
+            $sentences[] = __('Took over :names, keeping their items.', ['names' => self::join($took)]);
         }
-
-        $changed = array_values(array_diff($updated, $adopted));
 
         if ($changed !== []) {
-            $sentences[] = __('It changed :names to match its file.', ['names' => self::join($changed)]);
+            $sentences[] = __('Changed :names to match its file.', ['names' => self::join($changed)]);
         }
 
-        if ($fields !== [] && $added === [] && $adopted === [] && $changed === []) {
-            $sentences[] = __('It changed the fields :names.', ['names' => self::join($fields)]);
+        if ($fields !== [] && $added === [] && $took === [] && $changed === []) {
+            $sentences[] = __('Changed :fields.', ['fields' => self::count($fields)]);
         }
 
-        if ($released !== []) {
-            $sentences[] = __('Its file no longer has :names, so they stay as this site’s own, with their items.', ['names' => self::join($released)]);
+        $gone = self::things($released['kinds'], $released['fields']);
+
+        if ($gone !== []) {
+            $sentences[] = __('Its file no longer has :names, so they stay as this site’s own, with their items.', ['names' => self::join($gone)]);
         }
 
         return implode(' ', $sentences);
     }
 
     /**
-     * @param  array<string, mixed>  $report
+     * The names a sentence lists: each type or taxonomy by its plural name, then how many fields.
+     *
+     * @param  list<string>  $kinds
+     * @param  list<string>  $fields
      *
      * @return list<string>
+     */
+    private static function things(array $kinds, array $fields): array
+    {
+        $names = array_map(self::plural(...), $kinds);
+
+        return $fields === [] ? $names : [...$names, self::count($fields)];
+    }
+
+    /**
+     * "1 field" or "40 fields".
+     *
+     * @param  list<string>  $fields
+     */
+    private static function count(array $fields): string
+    {
+        return trans_choice(':n field|:n fields', count($fields), ['n' => (string) count($fields)]);
+    }
+
+    /**
+     * A type's or taxonomy's plural name, or its key when neither is registered.
+     */
+    private static function plural(string $key): string
+    {
+        if (app(ContentTypeRegistry::class)->has($key)) {
+            return app(ContentTypeRegistry::class)->get($key)->plural;
+        }
+
+        return app(TaxonomyRegistry::class)->has($key) ? app(TaxonomyRegistry::class)->get($key)->plural : $key;
+    }
+
+    /**
+     * @param  array<string, mixed>  $report
+     *
+     * @return array{kinds: list<string>, fields: list<string>}
      */
     private static function listed(array $report, string $key): array
     {
         $kinds = is_array($report[$key] ?? null) ? $report[$key] : [];
 
-        return [...self::names($kinds['types'] ?? []), ...self::names($kinds['taxonomies'] ?? []), ...self::names($kinds['fields'] ?? [])];
+        return ['kinds' => [...self::names($kinds['types'] ?? []), ...self::names($kinds['taxonomies'] ?? [])], 'fields' => self::names($kinds['fields'] ?? [])];
     }
 
     /**

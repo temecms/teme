@@ -88,7 +88,7 @@ function RowAction({
     return (
         <Button
             type="button"
-            variant="neutral"
+            variant="primary"
             size="sm"
             data-test="plugin-enable"
             onClick={(event) => onAsk(plugin, event.currentTarget)}

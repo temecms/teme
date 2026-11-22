@@ -3,7 +3,7 @@
 /**
  * How many notices a plugin may deliver
  * (docs/plans/plugin-sockets-3.md): at most 100 an hour, counted per
- * recipient. Those beyond are dropped, and one fault an hour is recorded
+ * recipient, in one atomic increment. Those beyond are dropped, and one fault an hour is recorded
  * under the plugin.
  *
  * @package Teme
@@ -17,7 +17,6 @@ namespace App\Domain\Plugins\Notices;
 
 use App\Domain\Hooks\ListenerFaults;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\RateLimiter;
 use RuntimeException;
 use Teme\Contracts\Notices\Notices;
 
@@ -34,12 +33,12 @@ final class NoticeRate
      */
     public function take(string $plugin, int $recipients): int
     {
-        $key = 'plugin-notices:'.$plugin;
-        $allowed = min($recipients, RateLimiter::remaining($key, self::MOST));
+        $key = 'plugin-notices-count:'.$plugin;
 
-        for ($i = 0; $i < $allowed; $i++) {
-            RateLimiter::hit($key, self::HOUR);
-        }
+        // One atomic step takes them all: two processes can't both read the same count and both pass the cap.
+        Cache::add($key, 0, self::HOUR);
+        $total = (int) Cache::increment($key, $recipients);
+        $allowed = min($recipients, self::MOST - ($total - $recipients));
 
         if ($allowed < $recipients && Cache::add('plugin-notices-fault:'.$plugin, true, self::HOUR)) {
             app(ListenerFaults::class)->record($plugin, $plugin.'#notices', Notices::class, new RuntimeException(__('It sent more than 100 notices in an hour; the rest were dropped.')));

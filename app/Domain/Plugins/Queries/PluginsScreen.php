@@ -329,7 +329,7 @@ final readonly class PluginsScreen
 
     /**
      * The sentences for a list of capabilities, then each declared public
-     * route as `METHOD path`, then each AI task with what it sends, each with
+     * route in words (`METHOD path` is how it is stored), then each AI task with what it sends, each with
      * whether it is new.
      *
      * @param  list<string>  $capabilities
@@ -365,7 +365,7 @@ final readonly class PluginsScreen
 
         foreach ($routes as $route) {
             $lines[] = [
-                'words' => $route,
+                'words' => PluginWords::route($route),
                 'new' => in_array($route, $newRoutes, true),
             ];
         }

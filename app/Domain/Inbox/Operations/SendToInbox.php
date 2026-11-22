@@ -26,6 +26,9 @@ use Teme\Contracts\Operations\OperationInput;
 
 final class SendToInbox extends BaseOperation
 {
+    /** Whom an item is from: core, or a plugin's code, which may start with a digit. */
+    public const string OWNER = '/^[a-z0-9][a-z0-9-]*$/D';
+
     /** A kind's or a job kind's key: lower-case words, hyphens inside, dots between. */
     public const string KEY = '/^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/';
 
@@ -58,7 +61,7 @@ final class SendToInbox extends BaseOperation
         ], [
             'recipient' => ['required', 'integer', 'exists:users,id'],
             'kind' => ['required', 'string', 'max:64', 'regex:'.self::KEY],
-            'owner' => ['required', 'string', 'max:64', 'regex:/^[a-z][a-z0-9-]*$/'],
+            'owner' => ['required', 'string', 'max:64', 'regex:'.self::OWNER],
             'title' => ['required', 'string', 'max:250'],
             'text' => ['nullable', 'string', 'max:1000'],
             // A mistyped route fails here, where it's written, not quietly when drawn (I-221).

@@ -19,6 +19,25 @@ All notable changes to this project are documented in this file. Versioning foll
 - The Themes Preview button goes through the catalogue, so it can be translated.
 - Plugin table filters offer "All" as their empty choice instead of "Any" plus the label.
 
+- On Plugins, Enable is now a clear primary button, no longer a grey shape that looks like the Disabled label beside it.
+- The request sheet for a plugin or theme update says "The newest" instead of the raw version rule "Asked for *", and shows the version once it is known.
+- Updating a plugin or theme installed from a Git address, a vendor's source or an upload now uses the source it came from, instead of always saying Packagist; one that was uploaded by hand says to upload the new version.
+- Enabling a plugin that brings content types shows a short notice ("Added Showcase and 40 fields. Took over Documentation, keeping their items.") instead of every field by its key.
+- The dialog that asks you to enable a plugin lists what it asks for with a check mark on each line, and says its public addresses in words ("Answers a form sent to /…") instead of "POST /…".
+- Enabling a plugin from the console whose manifest can't be read now says so and why, instead of "No plugin is named".
+- Enabling a plugin whose manifest names a route handler or a verifier that isn't in its code is refused, naming the manifest key, instead of failing later.
+- Two plugins that require each other are refused, with a sentence naming the circle, instead of neither being enableable or disableable first.
+- A background job of a plugin whose update is waiting for your agreement is cancelled instead of running.
+- teme:plugins:schedules shows no next-due time for a schedule that can't run, and says why.
+- A plugin that sends the AI something other than text is refused at once with a plain sentence.
+- When a plugin's AI task is waiting for you to agree to it again, the refusal says so, instead of saying the plugin declares no such task.
+- An inbox item from a plugin whose code starts with a digit is filed under that plugin, with its name and mark, instead of under Teme.
+- The limit of 100 plugin notices an hour is counted in one step, so two processes can't both slip past it.
+- The contracts reference lists every capability that gives a contract to a plugin (for example both content.insert and pages.insert for InlineScripts), not only the first.
+- In Add plugin and Add theme, the form to add a Git address or vendor source stays out of the way once a saved source is chosen, behind an "Add another address" link.
+- In Add plugin and Add theme, the saved-source choice and the other fields stay inside the sheet instead of running past its right edge.
+- The installer's Composer runs no longer start with "Failed to set memory limit to 0 bytes", which headed every error shown for a plugin or theme request.
+
 ## [1.3.2] — 2026-11-20
 
 ### Changed

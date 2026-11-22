@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 // Installing a plugin from the admin (docs/plans/plugin-installer.md, part B).
 
@@ -91,3 +92,38 @@ it('asks for the password, records a Packagist install, and follows it in the re
 
     expect(DB::table('extension_requests')->where('package', 'acme/link-suggestions')->value('constraint'))->toBe('^1.4.0');
 })->with([1280, 375])->with(['light', 'dark']);
+
+it('keeps the fields inside the sheet, and shows the form to add a Git address only when there is no saved source or one asks for it', function (): void {
+    DB::table('extension_sources')->insert([
+        'id' => strtolower((string) Str::ulid()), 'kind' => 'git', 'label' => 'The maintainers’ repository with a long name',
+        'url' => 'https://git.example.com/an/address/that/is/long/enough/to/stretch/a/select/past/the/sheets/edge.git',
+        'username' => null, 'credential' => null, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $this->actingAs($this->admin)->get(route('plugins.index'))->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1920, 1000)->navigate('/admin/plugins');
+    $page->click('[data-test="plugins-add"]');
+    shellSettled($page, '[data-test="extension-add-sheet"]');
+    $page->click('[data-test="extension-tab-git"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"extension-tab-git\"]').dataset.state === 'active'");
+
+    // Every field ends before the sheet does.
+    $inside = <<<'JS'
+(() => {
+    const sheet = document.querySelector('[data-test="extension-add-sheet"]').getBoundingClientRect().right;
+    return [...document.querySelectorAll('[data-test="extension-add-sheet"] [role="tabpanel"] :is(input, button[role="combobox"], select)')]
+        .every((field) => field.getBoundingClientRect().right <= sheet - 16);
+})()
+JS;
+    $page->click('#extension-git-source');
+    cmWaitUntil($page, 'document.querySelector(\'[role="option"]\') !== null');
+    $page->click('[role="option"] >> nth=-1');
+    cmWaitUntil($page, 'document.querySelector("#extension-git-source").textContent.includes("long name")');
+    $page->assertScript($inside, true)
+        ->assertScript('document.querySelector("#extension-git-label") === null', true)
+        ->assertScript('document.querySelector(\'[data-test="extension-git-add-another"]\') !== null', true);
+
+    $page->click('[data-test="extension-git-add-another"]');
+    cmWaitUntil($page, 'document.querySelector("#extension-git-label") !== null');
+    $page->assertScript($inside, true);
+});

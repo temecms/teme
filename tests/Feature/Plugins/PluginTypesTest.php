@@ -163,7 +163,7 @@ it('takes over a type, taxonomy and field made here with the same keys, keeping 
         ->and($record->types['report']['fieldsAdded'])->toBe(['recipe.cook_time'])
         ->and(Content::query()->where('type', 'recipe')->pluck('id')->all())->toBe([$recipe->id])
         ->and(DB::table('content_revisions')->where('id', $recipe->working_revision_id)->value('fields'))->toContain('"01JQ0000000000000000000SRV": 4')
-        ->and(app(PluginList::class)->typesReport('tests/recipes'))->toBe('It added recipe.cook_time. It took over recipe, cuisine and recipe.serves, already on this site, keeping their items.');
+        ->and(app(PluginList::class)->typesReport('tests/recipes'))->toBe('Added 1 field. Took over Recipes, Cuisines and 1 field, keeping their items.');
 });
 
 it('takes over a type stored with an admin screen’s name and fields made here under other keys, renaming it to the file’s and keeping the values', function (): void {
@@ -242,7 +242,7 @@ it('applies an update’s file: adds and changes what it says, and gives the sit
         ->and(array_map(fn ($field): string => $field->handle, app(FieldRegistry::class)->stored('recipe')))->toBe(['serves', 'notes', 'cook_time'])
         ->and(DB::table('field_definitions')->where('key', '01JQ0000000000000000000TME')->value('plugin'))->toBeNull()
         ->and(DB::table('content_revisions')->where('id', $recipe->working_revision_id)->value('fields'))->toContain('20 minutes')
-        ->and(app(PluginList::class)->typesReport('tests/recipes'))->toBe('It added recipe.notes. It changed recipe to match its file. Its file no longer has recipe.cook_time, so they stay as this site’s own, with their items.')
+        ->and(app(PluginList::class)->typesReport('tests/recipes'))->toBe('Added 1 field. Changed Dishes to match its file. Its file no longer has 1 field, so they stay as this site’s own, with their items.')
         ->and($found)->not->toBeNull();
 });
 

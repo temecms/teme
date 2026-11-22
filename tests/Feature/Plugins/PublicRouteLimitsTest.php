@@ -75,9 +75,9 @@ it('lists METHOD path for each route on the consent screen', function (): void {
 
     expect($row)->not->toBeNull()
         ->and(collect($row['asks'])->pluck('words')->all())->toContain('Answer addresses on the public site without anyone signing in')
-        ->and(collect($row['asks'])->pluck('words')->all())->toContain('GET /inbound/ping')
-        ->and(collect($row['asks'])->pluck('words')->all())->toContain('POST /inbound/callback')
-        ->and(collect($row['asks'])->pluck('words')->all())->toContain('GET / (query author: ^[0-9]+$; Accept: application/activity+json)');
+        ->and(collect($row['asks'])->pluck('words')->all())->toContain('Shows a page at /inbound/ping')
+        ->and(collect($row['asks'])->pluck('words')->all())->toContain('Answers a form sent to /inbound/callback')
+        ->and(collect($row['asks'])->pluck('words')->all())->toContain('Shows a page at / (query author: ^[0-9]+$; Accept: application/activity+json)');
 });
 
 it('asks for consent again when an update adds a route', function (): void {

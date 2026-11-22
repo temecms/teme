@@ -5,6 +5,7 @@ import ExtensionsController from '@/actions/App/Http/Admin/ExtensionsController'
 import { send } from '@/components/editor/editor-http';
 import { DirectoryTab } from '@/components/extensions/directory-tab';
 import { useAsk } from '@/components/extensions/use-ask';
+import { TextButton } from '@/components/ui/text-button';
 import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -163,7 +164,7 @@ function PackagistTab({
         versions !== null && versions.length > 0 ? versions[0] : null;
 
     return (
-        <div className="grid gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-4">
             <Field
                 htmlFor="extension-search"
                 label={__('Search Packagist')}
@@ -325,6 +326,8 @@ function SourceTab({
     const [url, setUrl] = useState('');
     const [username, setUsername] = useState('');
     const [credential, setCredential] = useState('');
+    // With a saved source to choose from, the form to add another waits behind a link.
+    const [adding, setAdding] = useState(false);
     const prefix = `extension-${sourceKind}`;
 
     if (!offered) {
@@ -352,15 +355,21 @@ function SourceTab({
                 setUrl('');
                 setUsername('');
                 setCredential('');
+                setAdding(false);
             },
         });
 
     return (
-        <div className="grid gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-4">
             {sources.length > 0 && (
-                <Field htmlFor={`${prefix}-source`} label={__('Saved source')}>
+                <Field
+                    htmlFor={`${prefix}-source`}
+                    label={__('Saved source')}
+                    className="grid-cols-1"
+                >
                     <SelectField
                         id={`${prefix}-source`}
+                        className="max-w-full"
                         value={sourceId}
                         onValueChange={onSource}
                         emptyLabel={__('Choose a source')}
@@ -374,84 +383,98 @@ function SourceTab({
                     />
                 </Field>
             )}
-            <fieldset className="border-line grid min-w-0 gap-3 rounded-md border p-4">
-                <legend className="text-small px-1 font-semibold">
-                    {sourceKind === 'git'
-                        ? __('Add a Git address')
-                        : __('Add a vendor source')}
-                </legend>
-                <Field htmlFor={`${prefix}-label`} label={__('Name')}>
-                    <Input
-                        id={`${prefix}-label`}
-                        value={label}
-                        maxLength={100}
-                        onChange={(event) => setLabel(event.target.value)}
-                    />
-                </Field>
-                <Field
-                    htmlFor={`${prefix}-url`}
-                    label={__('Address')}
-                    help={__(
-                        'An https address, with no name or password in it.',
-                    )}
-                >
-                    <Input
-                        id={`${prefix}-url`}
-                        type="url"
-                        value={url}
-                        spellCheck={false}
-                        onChange={(event) => setUrl(event.target.value)}
-                    />
-                </Field>
-                {sourceKind === 'composer' && (
-                    <>
-                        <Field
-                            htmlFor={`${prefix}-username`}
-                            label={__('Username')}
-                        >
-                            <Input
-                                id={`${prefix}-username`}
-                                value={username}
-                                autoComplete="off"
-                                spellCheck={false}
-                                onChange={(event) =>
-                                    setUsername(event.target.value)
-                                }
-                            />
-                        </Field>
-                        <Field
-                            htmlFor={`${prefix}-credential`}
-                            label={__('License key')}
-                            help={__(
-                                'Kept encrypted. Teme never shows it again.',
-                            )}
-                        >
-                            <Input
-                                id={`${prefix}-credential`}
-                                type="password"
-                                value={credential}
-                                autoComplete="off"
-                                onChange={(event) =>
-                                    setCredential(event.target.value)
-                                }
-                            />
-                        </Field>
-                    </>
-                )}
+            {sources.length > 0 && !adding && (
                 <div>
-                    <Button
-                        type="button"
-                        variant="neutral"
-                        size="sm"
-                        loading={busy}
-                        disabled={label === '' || url === ''}
-                        onClick={save}
-                        data-test={`${prefix}-save`}
+                    <TextButton
+                        onClick={() => setAdding(true)}
+                        data-test={`${prefix}-add-another`}
                     >
-                        {__('Save source')}
-                    </Button>
+                        {sourceKind === 'git'
+                            ? __('Add another address')
+                            : __('Add another vendor source')}
+                    </TextButton>
                 </div>
-            </fieldset>
+            )}
+            {(sources.length === 0 || adding) && (
+                <fieldset className="border-line grid min-w-0 gap-3 rounded-md border p-4">
+                    <legend className="text-small px-1 font-semibold">
+                        {sourceKind === 'git'
+                            ? __('Add a Git address')
+                            : __('Add a vendor source')}
+                    </legend>
+                    <Field htmlFor={`${prefix}-label`} label={__('Name')}>
+                        <Input
+                            id={`${prefix}-label`}
+                            value={label}
+                            maxLength={100}
+                            onChange={(event) => setLabel(event.target.value)}
+                        />
+                    </Field>
+                    <Field
+                        htmlFor={`${prefix}-url`}
+                        label={__('Address')}
+                        help={__(
+                            'An https address, with no name or password in it.',
+                        )}
+                    >
+                        <Input
+                            id={`${prefix}-url`}
+                            type="url"
+                            value={url}
+                            spellCheck={false}
+                            onChange={(event) => setUrl(event.target.value)}
+                        />
+                    </Field>
+                    {sourceKind === 'composer' && (
+                        <>
+                            <Field
+                                htmlFor={`${prefix}-username`}
+                                label={__('Username')}
+                            >
+                                <Input
+                                    id={`${prefix}-username`}
+                                    value={username}
+                                    autoComplete="off"
+                                    spellCheck={false}
+                                    onChange={(event) =>
+                                        setUsername(event.target.value)
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                htmlFor={`${prefix}-credential`}
+                                label={__('License key')}
+                                help={__(
+                                    'Kept encrypted. Teme never shows it again.',
+                                )}
+                            >
+                                <Input
+                                    id={`${prefix}-credential`}
+                                    type="password"
+                                    value={credential}
+                                    autoComplete="off"
+                                    onChange={(event) =>
+                                        setCredential(event.target.value)
+                                    }
+                                />
+                            </Field>
+                        </>
+                    )}
+                    <div>
+                        <Button
+                            type="button"
+                            variant="neutral"
+                            size="sm"
+                            loading={busy}
+                            disabled={label === '' || url === ''}
+                            onClick={save}
+                            data-test={`${prefix}-save`}
+                        >
+                            {__('Save source')}
+                        </Button>
+                    </div>
+                </fieldset>
+            )}
             <Field
                 htmlFor={`${prefix}-package`}
                 label={__('Package')}
@@ -536,7 +559,7 @@ function UploadTab({
     };
 
     return (
-        <div className="grid gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-4">
             <Field
                 htmlFor="extension-upload"
                 label={__('ZIP archive')}

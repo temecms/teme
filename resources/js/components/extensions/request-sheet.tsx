@@ -97,6 +97,29 @@ function StepIcon({ state }: { state: string }) {
     return <Circle aria-hidden="true" className={`${common} text-ink-2`} />;
 }
 
+/**
+ * The Version fact in words: the version once the installer knows it, "The
+ * newest" for any version, otherwise the constraint kept in code style.
+ */
+function versionWords(constraint: string, known: unknown): ReactNode {
+    if (typeof known === 'string') {
+        return <span className="font-mono">{known}</span>;
+    }
+
+    const trimmed = constraint.trim();
+
+    if (trimmed === '' || trimmed === '*') {
+        return __('The newest');
+    }
+
+    return (
+        <>
+            {__('The newest that fits')}{' '}
+            <span className="font-mono">{trimmed}</span>
+        </>
+    );
+}
+
 /** One fact of the request: a term and what it holds. */
 function Fact({ term, children }: { term: string; children: ReactNode }) {
     return (
@@ -227,22 +250,10 @@ export function RequestSheet({
                                 </Fact>
                                 {request.constraint !== null && (
                                     <Fact term={__('Version')}>
-                                        <span className="font-mono">
-                                            {typeof request.report.version ===
-                                            'string'
-                                                ? __(
-                                                      ':version (asked for :asked)',
-                                                      {
-                                                          version:
-                                                              request.report
-                                                                  .version,
-                                                          asked: request.constraint,
-                                                      },
-                                                  )
-                                                : __('Asked for :asked', {
-                                                      asked: request.constraint,
-                                                  })}
-                                        </span>
+                                        {versionWords(
+                                            request.constraint,
+                                            request.report.version,
+                                        )}
                                     </Fact>
                                 )}
                                 <Fact term={__('Asked')}>

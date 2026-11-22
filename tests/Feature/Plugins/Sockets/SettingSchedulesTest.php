@@ -111,3 +111,12 @@ it('refuses a switch or a timing setting it can’t use', function (array $sched
     'a timing setting that isn’t a select' => [['everyFrom' => 'note'], [['key' => 'note', 'type' => 'text', 'label' => 'Note', 'description' => 'A note.']], 'schedules everyFrom names "note", which isn’t a select setting whose options are all minute, five-minutes, fifteen-minutes, hour, day or week.'],
     'a timing option outside the intervals' => [['everyFrom' => 'often'], [['key' => 'often', 'type' => 'select', 'label' => 'Often', 'description' => 'How often.', 'options' => ['hour' => 'Hourly', 'second' => 'Every second']]], 'schedules everyFrom names "often", which isn’t a select setting whose options are all minute, five-minutes, fifteen-minutes, hour, day or week.'],
 ]);
+
+it('lists no next-due time for a schedule its setting switches off, and says why', function (): void {
+    $this->artisan('teme:plugins:schedules')
+        ->expectsTable(
+            ['Plugin', 'Job', 'Every', 'Last queued', 'Next due', 'Why it can’t run'],
+            [['tests/scheduler', 'publish-queue', 'hour', 'never', '', 'Its setting switches this schedule off.']],
+        )
+        ->assertSuccessful();
+});

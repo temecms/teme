@@ -1,3 +1,4 @@
+import { CheckIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -116,13 +117,17 @@ export function ConsentDialog({
                             </h3>
                             <ul
                                 data-test="consent-asks"
-                                className="text-small grid gap-2"
+                                className="text-small grid gap-3"
                             >
                                 {plugin.asks.map((line) => (
                                     <li
                                         key={line.words}
-                                        className="flex flex-wrap items-baseline gap-2"
+                                        className="flex items-baseline gap-2"
                                     >
+                                        <CheckIcon
+                                            aria-hidden="true"
+                                            className="text-ok-ink size-4 shrink-0"
+                                        />
                                         {settingHosts !== null &&
                                         line.words === settingHosts.replaces ? (
                                             <span data-test="consent-setting-hosts">

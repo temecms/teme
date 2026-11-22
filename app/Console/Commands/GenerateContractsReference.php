@@ -123,7 +123,7 @@ final class GenerateContractsReference extends Command
                 $when === null => 'always',
                 str_starts_with($when, 'declares ') => 'its manifest declares `'.substr($when, 9).'`',
                 str_starts_with($when, 'granted ') => vsprintf('granted `%s` and its manifest declares `%s`', explode(' declares ', substr($when, 8))),
-                default => 'granted `'.$when.'`',
+                default => 'granted '.implode(' or ', array_map(fn (string $capability): string => '`'.$capability.'`', explode('|', $when))),
             }, $this->since($class));
         }
 
@@ -239,8 +239,8 @@ final class GenerateContractsReference extends Command
 
         foreach (Capability::cases() as $capability) {
             foreach (array_keys($services->for('teme-docs/probe', 'teme-docs-probe', [$capability->value], self::PROBE_HOSTS)) as $class) {
-                if (! array_key_exists($class, $offered)) {
-                    $offered[$class] = $capability->value;
+                if (! in_array($class, $always, true)) {
+                    $offered[$class] = isset($offered[$class]) ? $offered[$class].'|'.$capability->value : $capability->value;
                 }
             }
         }

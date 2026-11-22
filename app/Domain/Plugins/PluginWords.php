@@ -237,6 +237,26 @@ final readonly class PluginWords
     }
 
     /**
+     * A public address a plugin answers, from its stored line (`METHOD path`, with
+     * a condition after it when it has one), in words people read; the address
+     * stays in the sentence. A line it can't read is returned as it is.
+     */
+    public static function route(string $line): string
+    {
+        if (preg_match('{^([A-Z]+) (\S+)(?: \((.*)\))?$}', $line, $found) !== 1) {
+            return $line;
+        }
+
+        $words = match ($found[1]) {
+            'GET' => __('Shows a page at :path', ['path' => $found[2]]),
+            'POST' => __('Answers a form sent to :path', ['path' => $found[2]]),
+            default => __('Answers :method requests at :path', ['method' => $found[1], 'path' => $found[2]]),
+        };
+
+        return ($found[3] ?? '') === '' ? $words : $words.' ('.$found[3].')';
+    }
+
+    /**
      * What a hook means, as a phrase after "It listens for".
      */
     public static function hook(string $hook): string

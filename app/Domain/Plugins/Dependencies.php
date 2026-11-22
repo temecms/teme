@@ -68,6 +68,11 @@ final readonly class Dependencies
     {
         $required = self::required($manifest);
         $problems = [];
+        $cycle = $this->cycle($manifest);
+
+        if ($cycle !== null) {
+            $problems[] = __('Its requires.plugins go in a circle: :plugins. Neither could be enabled or disabled first.', ['plugins' => implode(' → ', $cycle)]);
+        }
 
         foreach ($manifest->hooks() as $hook) {
             if (preg_match(DeclaredHooks::FULL_NAME, $hook, $parts) !== 1) {
@@ -91,6 +96,41 @@ final readonly class Dependencies
         }
 
         return $problems;
+    }
+
+    /**
+     * The plugins that make a circle through this manifest's requires.plugins, starting and ending
+     * with its own name, or null when none does.
+     *
+     * @return list<string>|null
+     */
+    private function cycle(Manifest $manifest): ?array
+    {
+        $self = $manifest->name();
+        $seen = [];
+
+        $walk = function (Manifest $from, array $path) use (&$walk, &$seen, $self): ?array {
+            foreach (array_keys(self::required($from)) as $name) {
+                if ($name === $self) {
+                    return [...$path, $self];
+                }
+
+                if (isset($seen[$name])) {
+                    continue;
+                }
+
+                $seen[$name] = true;
+                $next = $this->registry->find($name)?->manifest;
+
+                if ($next !== null && ($found = $walk($next, [...$path, $name])) !== null) {
+                    return $found;
+                }
+            }
+
+            return null;
+        };
+
+        return $walk($manifest, [$self]);
     }
 
     /**

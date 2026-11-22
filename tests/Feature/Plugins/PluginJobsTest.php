@@ -160,6 +160,21 @@ it('cancels a disabled plugin’s waiting run', function (): void {
         ->and(DB::table('jobs_lines')->count())->toBe(0);
 });
 
+it('cancels the run of a plugin whose update waits for consent, as it does a disabled one', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = ($this->jobs)()->queue('write-line', ['line' => 'later']);
+
+    // The update asks for more than was agreed: the plugin keeps jobs but no longer has http.
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $record->consent = [...$record->consent, 'capabilities' => ['jobs']];
+    $record->save();
+    ($this->run)('write-line', $id);
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Cancelled)
+        ->and(DB::table('jobs_lines')->count())->toBe(0);
+});
+
 it('runs nothing in safe mode', function (): void {
     ($this->enable)();
     Queue::fake();

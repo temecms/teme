@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\DeclaredJobs;
 use App\Domain\Plugins\Jobs\DueSchedules;
@@ -42,16 +43,20 @@ final class ListPluginSchedules extends Command
                 continue;
             }
 
-            $why = $runner->problem($record) ?? '';
+            // An update that asks for more than was agreed runs nothing: every run it queues is cancelled.
+            $why = $runner->problem($record) ?? (Consent::covers($record->consent, $found->manifest) ? '' : __('Waiting for its new permissions to be agreed.'));
 
             foreach (DeclaredJobs::of($found->manifest)->schedules() as $schedule) {
+                // No time for a schedule that can't run: its plugin can't, or this schedule can't.
+                $own = $why === '' ? $due->whyNotDue($record, $schedule) : null;
+                $next = $why === '' && $own === null ? $due->nextDue($record, $schedule['job']) : null;
                 $rows[] = [
                     $record->name,
                     $schedule['job'],
                     $schedule['every'],
                     $record->schedule_runs[$schedule['job']] ?? __('never'),
-                    $due->nextDue($record, $schedule['job'])?->toIso8601String() ?? '',
-                    $why,
+                    $next?->toIso8601String() ?? '',
+                    $why !== '' ? $why : ($own ?? ''),
                 ];
             }
         }

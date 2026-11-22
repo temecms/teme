@@ -52,12 +52,12 @@ final class InboxChannel
     /**
      * Whom the item is from: the plugin's code for a plugin's own kind, as
      * the inbox shows it (docs/plans/plugin-sockets-3.md); core otherwise, and
-     * for a code the inbox can't file, one starting with a digit.
+     * for a code the inbox can't file.
      */
     private function owner(string $kind): string
     {
         $code = app(DeclaredNotices::class)->owner($kind)['code'] ?? null;
 
-        return $code !== null && preg_match('/^[a-z][a-z0-9-]*$/D', $code) === 1 ? $code : 'core';
+        return $code !== null && preg_match(SendToInbox::OWNER, $code) === 1 ? $code : 'core';
     }
 }
