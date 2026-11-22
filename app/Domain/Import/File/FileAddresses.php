@@ -228,8 +228,11 @@ final class FileAddresses
 
     /**
      * The first of WordPress's own address structures that every published
-     * post's address in the file follows; empty when none does, or the
-     * file has no published post.
+     * post's address in the file follows, read after a language's prefix
+     * where the site runs Polylang; empty when none does, or the file has no
+     * published post. Only published posts count: WordPress exports an
+     * unpublished draft's address as /?p=123, which says nothing of the
+     * site's structure.
      */
     public static function structure(string $fileId): string
     {
@@ -242,8 +245,17 @@ final class FileAddresses
             return '';
         }
 
+        // Polylang's languages, whose slugs are the prefixes it puts before a post's address.
+        $prefixes = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::OTHER_TERMS)
+            ->whereRaw("payload->>'taxonomy' = 'language'")
+            ->selectRaw("lower(payload->>'slug') as slug")
+            ->pluck('slug')
+            ->map(fn (mixed $slug): string => (string) $slug)
+            ->filter(fn (string $slug): bool => $slug !== '')
+            ->all();
+
         foreach (self::STRUCTURES as $structure) {
-            $fits = $posts->every(fn (object $post): bool => self::follows($structure, (string) $post->permalink, (string) $post->slug, (string) $post->date, (int) $post->id));
+            $fits = $posts->every(fn (object $post): bool => self::follows($structure, self::unprefixed((string) $post->permalink, $prefixes), (string) $post->slug, (string) $post->date, (int) $post->id));
 
             if ($fits) {
                 return $structure;
@@ -251,6 +263,22 @@ final class FileAddresses
         }
 
         return '';
+    }
+
+    /**
+     * A post's address without a language's prefix as its first segment.
+     *
+     * @param  list<string>  $prefixes
+     */
+    private static function unprefixed(string $permalink, array $prefixes): string
+    {
+        $path = parse_url($permalink, PHP_URL_PATH);
+
+        if ($prefixes === [] || ! is_string($path) || preg_match('~^/([^/]+)(/.*)$~', $path, $match) !== 1 || ! in_array(strtolower(rawurldecode($match[1])), $prefixes, true)) {
+            return $permalink;
+        }
+
+        return $match[2];
     }
 
     /**
