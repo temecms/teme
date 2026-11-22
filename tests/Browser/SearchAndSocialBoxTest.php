@@ -97,7 +97,7 @@ it('keeps Social the same as search until something is typed there', function ()
     $page->type('#editor-seo-title', 'Ferry fares rise');
 
     ($this->sbxTab)($page, 'Social');
-    cmWaitUntil($page, "document.getElementById('editor-social-title').placeholder === 'Same as search: Ferry fares rise'");
+    cmWaitUntil($page, "document.getElementById('editor-social-title').placeholder === 'Ferry fares rise'");
     $page->assertSeeIn('[data-test="social-line"]', '0 of 3 set for sharing; the rest same as search.');
 
     $page->type('#editor-social-title', 'Fares are going up');
@@ -218,7 +218,7 @@ it('draws an empty meta description three lines tall, saying the excerpt stands 
 
     expect($field['value'])->toBe('')
         ->and($field['lines'])->toBeGreaterThanOrEqual(3)
-        ->and($field['placeholder'])->toBe('Using the excerpt: Dearer crossings from October.');
+        ->and($field['placeholder'])->toBe('Dearer crossings from October.');
 });
 
 it('folds the whole box down to a 52-pixel header strip naming the result\'s title and how many things to check', function (): void {
@@ -337,7 +337,8 @@ it('draws the SEO title as two lines with the template as its placeholder, and o
 
     expect($empty['tag'])->toBe('TEXTAREA')
         ->and($empty['rows'])->toBe(2)
-        ->and($empty['placeholder'])->toStartWith('Using the title template: Harbour news')
+        ->and($empty['placeholder'])->toBe('Harbour news – My Teme site')
+        ->and($empty['placeholder'])->not->toContain('Using the title template')
         ->and($empty['count'])->toMatch('/^\d+ characters, from the template · about 60 show$/')
         ->and($empty['warn'])->toBeFalse();
 

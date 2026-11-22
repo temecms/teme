@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - A failed job’s reason in the jobs menu ends with one full stop, not two.
 - Long Settings group names in the side list wrap onto a second line instead of being cut off.
 - The editor’s title field grows to fit a two-line title in every script, with no scrollbar of its own.
+- An empty SEO title’s placeholder is only the title the template makes, not “Using the title template:” as well.
 
 ## [1.3.2] — 2026-11-20
 
