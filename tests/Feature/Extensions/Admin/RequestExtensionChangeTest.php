@@ -286,6 +286,9 @@ it('updates a package from the source it was installed from, and says an uploade
     $installed = strtolower((string) Str::ulid());
     DB::table('extension_requests')->insert(['id' => $installed, 'action' => 'install', 'kind' => 'plugin', 'package' => 'acme/hello', 'constraint' => '*', 'source_kind' => 'git', 'source_id' => $source, 'status' => 'done', 'requested_at' => now()->subDay(), 'finished_at' => now()->subDay()]);
 
+    // An update an older Teme recorded as Packagist, whatever the package came from.
+    DB::table('extension_requests')->insert(['id' => strtolower((string) Str::ulid()), 'action' => 'update', 'kind' => 'plugin', 'package' => 'acme/hello', 'constraint' => '*', 'source_kind' => 'packagist', 'source_id' => null, 'status' => 'done', 'requested_at' => now()->subHour(), 'finished_at' => now()->subHour()]);
+
     $update = (($this->ask)(ExtensionAction::Update))();
     $row = DB::table('extension_requests')->where('id', $update)->first();
 

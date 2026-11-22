@@ -306,8 +306,8 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
     }
 
     /**
-     * The last finished request that installed or updated the package an update names, which holds the
-     * source it came from; null for an install, an update that names its source, or a package no request
+     * The last finished install of the package an update names, which holds the source it came from (an
+     * update never changes it, and one recorded by an older Teme may wrongly say Packagist); null for an install, an update that names its source, or a package no request
      * here installed.
      */
     private function installedFrom(RequestExtensionChangeInput $input): ?object
@@ -318,7 +318,7 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
 
         return DB::table('extension_requests')
             ->where('package', $input->package)
-            ->whereIn('action', [ExtensionAction::Install->value, ExtensionAction::Update->value])
+            ->where('action', ExtensionAction::Install->value)
             ->where('status', RequestStatus::Done->value)
             ->orderByDesc('requested_at')
             ->first(['source_kind', 'source_id']);
