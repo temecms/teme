@@ -38,6 +38,6 @@ final class WxrRefused extends RuntimeException
      */
     public static function notAnExport(): self
     {
-        return new self(__('That isn’t a WordPress export file.'));
+        return new self(__('That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.'));
     }
 }

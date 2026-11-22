@@ -30,6 +30,7 @@ use App\Domain\Import\Phases\Content\ContentWaitingStep;
 use App\Domain\Import\Phases\Content\PageParentsStep;
 use App\Domain\Import\Phases\Finish\DeletedStep;
 use App\Domain\Import\Phases\Finish\FidelityStep;
+use App\Domain\Import\Phases\Finish\FileMissingStep;
 use App\Domain\Import\Phases\Finish\RecountStep;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Phases\Languages\LanguagesStep;
@@ -109,7 +110,7 @@ final class ImportServiceProvider extends ServiceProvider
 
         $this->app->tag([FidelityStep::class, RecountStep::class], ImportPhases::TAG);
 
-        $this->app->tag([DeletedStep::class], ImportPhases::TAG);
+        $this->app->tag([DeletedStep::class, FileMissingStep::class], ImportPhases::TAG);
 
         $this->app->tag([ImportJobKind::class, PageParentsJobKind::class], JobKinds::TAG);
     }

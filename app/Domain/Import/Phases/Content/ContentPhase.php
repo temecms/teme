@@ -523,7 +523,8 @@ final class ContentPhase implements ListPhase, PreparesObjects
     private function author(array $item, ImportContext $context): array
     {
         $wordpress = self::number($item['author'] ?? null);
-        $mapped = $wordpress > 0 ? $this->map->temeId($context->sourceId, SourceRef::of('user', $wordpress)) : null;
+        // An export file numbers the authors it names only on its items below zero.
+        $mapped = $wordpress !== 0 ? $this->map->temeId($context->sourceId, SourceRef::of('user', $wordpress)) : null;
 
         if ($mapped !== null && User::query()->whereKey($mapped)->exists()) {
             return [$mapped, []];
@@ -578,7 +579,8 @@ final class ContentPhase implements ListPhase, PreparesObjects
             foreach (is_array($sent[$taxonomy->wordpress] ?? null) ? $sent[$taxonomy->wordpress] : [] as $value) {
                 $number = self::number($value);
 
-                if ($number > 0) {
+                // An export file numbers the terms it names only on its items below zero.
+                if ($number !== 0) {
                     $wanted[] = [$taxonomy->wordpress, $number];
                 }
             }

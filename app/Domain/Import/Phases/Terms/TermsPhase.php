@@ -16,6 +16,8 @@ namespace App\Domain\Import\Phases\Terms;
 
 use App\Domain\Contents\Slugs;
 use App\Domain\Import\ImportRunKind;
+use App\Domain\Import\Operations\AdoptImportedTerm;
+use App\Domain\Import\Operations\Input\AdoptImportedTermInput;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportList;
 use App\Domain\Import\Phases\ImportMessage;
@@ -25,6 +27,7 @@ use App\Domain\Import\Phases\ListPhase;
 use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Source\FileReader;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Taxonomy\Models\Term;
@@ -81,6 +84,11 @@ final readonly class TermsPhase implements ListPhase
             return ImportResult::skipped($wordpressTaxonomy === self::POST_FORMAT
                 ? new ImportMessage('term.post-format', 'A post format, which Teme doesn’t carry over, so it wasn’t imported.')
                 : new ImportMessage('term.other-taxonomy', "A term of {$wordpressTaxonomy}, a taxonomy Teme doesn’t have, so it wasn’t imported.", ['taxonomy' => $wordpressTaxonomy]));
+        }
+
+        // A term the site's export file brought under its term ID is this one (docs/architecture/import.md).
+        if (! $context->readsFile()) {
+            $this->adopt($ref, $item, $wordpressTaxonomy, $context);
         }
 
         $termId = $this->map->temeId($context->sourceId, $ref);
@@ -160,6 +168,46 @@ final readonly class TermsPhase implements ListPhase
     }
 
     /**
+     * Moves the map row an import from the site's export file made of this
+     * term, found by its taxonomy and its term ID or slug, to the companion's ID for it.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function adopt(SourceRef $ref, array $item, string $wordpressTaxonomy, ImportContext $context): void
+    {
+        $termId = (int) ($item['term_id'] ?? 0);
+        $slug = (string) ($item['slug'] ?? '');
+        $held = $this->map->entry($context->sourceId, $ref);
+
+        if ($held !== null) {
+            $facts = $held->facts;
+
+            // A file's term kept its own number, which is this term's ID: it moves apart, as the next file's read finds it.
+            if (! is_numeric($facts['file_term_id'] ?? null) || (($facts['taxonomy'] ?? null) === $wordpressTaxonomy && (int) ($facts['term_id'] ?? 0) === $termId)) {
+                return;
+            }
+
+            $apart = (string) FileReader::apart((int) $facts['file_term_id']);
+            app(AdoptImportedTerm::class)->execute(new AdoptImportedTermInput($context->sourceId, $ref->id, $apart, $context->actorId()));
+        }
+
+        $match = array_filter([
+            $termId > 0 ? ['taxonomy' => $wordpressTaxonomy, 'term_id' => $termId] : null,
+            $slug !== '' ? ['taxonomy' => $wordpressTaxonomy, 'slug' => $slug] : null,
+        ]);
+
+        foreach ($match as $facts) {
+            $from = $this->terms->fromFile($context->sourceId, $facts);
+
+            if ($from !== null && $from !== $ref->id) {
+                app(AdoptImportedTerm::class)->execute(new AdoptImportedTermInput($context->sourceId, $from, $ref->id, $context->actorId()));
+
+                return;
+            }
+        }
+    }
+
+    /**
      * The taxonomy whose WordPress name this is, or null when Teme has none.
      */
     private function taxonomyFor(string $wordpress): ?Taxonomy
@@ -190,6 +238,12 @@ final readonly class TermsPhase implements ListPhase
             'parent' => $parent,
             'path' => is_string($path) && $path !== '' ? $path : null,
         ];
+
+        // Its number and slug in an export file, which the next file's read and a later live run look for.
+        if (is_numeric($item['file_term_id'] ?? null)) {
+            $facts['file_term_id'] = (int) $item['file_term_id'];
+            $facts['slug'] = (string) ($item['slug'] ?? '');
+        }
 
         if (array_key_exists('language', $item)) {
             $facts['language'] = $item['language'];

@@ -29,6 +29,9 @@ final class FileReader implements SourceReader
     /** The statuses an import without drafts brings: published items, and the files and blocks they show. */
     private const array PUBLISHED = ['publish', 'inherit'];
 
+    /** Added to a file's term number that another term holds in the map. */
+    private const int APART = 1_000_000_000;
+
     /** @var array<int, int>|null the ID each of the file's terms has in the map, where it differs from the file's */
     private ?array $aliases = null;
 
@@ -157,6 +160,15 @@ final class FileReader implements SourceReader
     }
 
     /**
+     * The map ID a file's term takes when its own number is another term's
+     * there: far above any WordPress gives, and the same on every read.
+     */
+    public static function apart(int $fileTermId): int
+    {
+        return self::APART + $fileTermId;
+    }
+
+    /**
      * The ID each of the file's terms has in this site's map where an
      * earlier import brought the same term under another (docs/architecture/import.md).
      *
@@ -171,6 +183,8 @@ final class FileReader implements SourceReader
         $byFile = [];
         $byTerm = [];
         $bySlug = [];
+        // The file's number of the term each map row holds, or null for one a live run brought.
+        $holders = [];
 
         $rows = DB::table('import_map')
             ->leftJoin('terms', 'terms.id', '=', 'import_map.teme_id')
@@ -182,6 +196,7 @@ final class FileReader implements SourceReader
             // A live run keeps no slug among its facts: the term it made has it.
             $facts['slug'] ??= $row->slug;
             $taxonomy = (string) ($facts['taxonomy'] ?? '');
+            $holders[(int) $row->object_id] = is_numeric($facts['file_term_id'] ?? null) ? (int) $facts['file_term_id'] : null;
 
             if (is_numeric($facts['file_term_id'] ?? null)) {
                 $byFile[(int) $facts['file_term_id']] = (int) $row->object_id;
@@ -206,6 +221,9 @@ final class FileReader implements SourceReader
 
             if ($mapped !== null && $mapped !== $id) {
                 $aliases[$id] = $mapped;
+            } elseif ($mapped === null && array_key_exists($id, $holders) && $holders[$id] !== $id) {
+                // Its number is another term's in the map: it takes one of its own.
+                $aliases[$id] = self::apart($id);
             }
         }
 

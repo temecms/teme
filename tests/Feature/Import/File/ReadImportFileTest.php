@@ -187,7 +187,7 @@ it('refuses a file that isn’t an export, with its sentence', function (string 
         ->and(ImportSource::query()->count())->toBe(0);
 })->with([
     'a document type' => ['doctype.xml', 'This file has a document type declaration, which an export file never has. Teme doesn’t read it.'],
-    'a feed' => ['rss-feed.xml', 'That isn’t a WordPress export file.'],
+    'a feed' => ['rss-feed.xml', 'That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.'],
 ]);
 
 it('writes nothing for anyone who may not import', function (string $case): void {
