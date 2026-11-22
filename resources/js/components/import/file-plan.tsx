@@ -130,6 +130,13 @@ export function FilePlan({
                 title={__('Not in an export file')}
             >
                 <ul className="grid gap-3">
+                    {form?.polylang === true && (
+                        <Missing title={__('Languages')}>
+                            {__(
+                                'This site uses Polylang. An export file doesn’t say which posts are translations of each other, so every post comes across in the site’s default language, and its old address with a language prefix (such as /fr/) redirects to its new one. To keep the languages, connect the live site with Teme Companion instead.',
+                            )}
+                        </Missing>
+                    )}
                     <Missing title={__('Passwords and roles')}>
                         {__(
                             'An export file has neither. People you add get the role you choose below and set a password with “Forgotten your password?” the first time they sign in.',

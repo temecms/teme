@@ -156,6 +156,8 @@ export type FileChoicesForm = {
     /** A real category's and tag's slug from the file, for the examples; empty when it has none. */
     categoryExample: string;
     tagExample: string;
+    /** The file holds Polylang's languages, which don't come across. */
+    polylang: boolean;
     drafts: boolean;
     comments: boolean;
     postCount: number;
