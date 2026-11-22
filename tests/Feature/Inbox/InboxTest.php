@@ -224,3 +224,18 @@ it('prunes only as the operator, and writes nothing otherwise', function (): voi
 it('is on the schedule', function (): void {
     $this->artisan('schedule:list')->expectsOutputToContain('teme:inbox:prune')->assertSuccessful();
 });
+
+it('files an item under a plugin whose code starts with a digit, not under core', function (): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+
+    $id = app(SendToInbox::class)->execute(new SendToInboxInput(
+        recipientId: (string) $this->ada->id,
+        kind: 'plugin-9-writer.job-failed',
+        title: 'It failed',
+        owner: '9-writer',
+    ));
+
+    expect(DB::table('inbox_items')->where('id', $id)->value('owner'))->toBe('9-writer')
+        ->and(preg_match(SendToInbox::OWNER, '9-writer'))->toBe(1)
+        ->and(preg_match(SendToInbox::OWNER, '-writer'))->toBe(0);
+});

@@ -31,6 +31,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - teme:plugins:schedules shows no next-due time for a schedule that can't run, and says why.
 - A plugin that sends the AI something other than text is refused at once with a plain sentence.
 - When a plugin's AI task is waiting for you to agree to it again, the refusal says so, instead of saying the plugin declares no such task.
+- An inbox item from a plugin whose code starts with a digit is filed under that plugin, with its name and mark, instead of under Teme.
 
 ## [1.3.2] — 2026-11-20
 
