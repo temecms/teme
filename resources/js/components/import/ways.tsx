@@ -85,9 +85,8 @@ function WayCard({
         <div
             data-test={testId}
             className={cn(
-                'border-edge grid gap-4 rounded-md border p-5',
-                open &&
-                    'border-accent outline-accent outline-2 -outline-offset-1',
+                'border-edge bg-surface grid gap-4 rounded-md border p-5',
+                open && 'border-accent ring-accent ring-2 ring-inset',
             )}
         >
             <div className="grid gap-3">
@@ -102,7 +101,7 @@ function WayCard({
             <div>
                 <Button
                     type="button"
-                    variant={open ? 'outline' : 'default'}
+                    variant="default"
                     onClick={onOpen}
                     data-test={`${testId}-button`}
                 >
