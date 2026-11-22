@@ -107,6 +107,20 @@ it('creates every item and term in its language, at the address it had, linked o
         ->and($term?->slug)->toBe('news-it');
 });
 
+it('brings a post filed under a category of another language across without it, saying it was left off', function (): void {
+    // Polylang keeps a post's categories in its language, but a bulk edit or an earlier plugin can file it under another's.
+    $this->site->filed(21, ['category' => [5, 6]]);
+
+    $run = $this->site->import($this->source);
+    $english = plItem($this->source->id, 21);
+    $messages = ImportMessageRecord::query()->where('run_id', $run->id)->where('code', 'post.terms-other-language')->get();
+
+    expect($english)->not->toBeNull()
+        ->and(json_decode((string) DB::table('content_revisions')->where('id', $english?->working_revision_id)->value('terms'), true))->toBe([plTerm($this->source->id, 5)?->id])
+        ->and($messages)->toHaveCount(1)
+        ->and((string) $messages->first()?->message)->toContain('left off');
+});
+
 it('links each group of translations, joining the maps that lost members, and changes nothing when run again', function (): void {
     $this->site->import($this->source);
     $group = fn (array $ids): array => array_map(fn (int $id): ?string => plItem($this->source->id, $id)?->translation_group, $ids);
