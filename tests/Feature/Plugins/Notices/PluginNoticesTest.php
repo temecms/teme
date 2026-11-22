@@ -9,12 +9,14 @@ use App\Domain\Notices\NoticeSender;
 use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Notices\NoticeRate;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Preferences\PreferenceRegistry;
 use App\Domain\Support\Security\JobActor;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Teme\Contracts\Notices\NoticeMessage;
@@ -137,4 +139,11 @@ it('drops the deliveries beyond 100 an hour, and records one fault', function ()
         'hook' => Notices::class,
         'message' => 'It sent more than 100 notices in an hour; the rest were dropped.',
     ]]);
+});
+
+it('counts a plugin’s deliveries in one step, so successive takes never pass 100 together', function (): void {
+    $rate = app(NoticeRate::class);
+
+    expect([$rate->take('tests/atomic', 60), $rate->take('tests/atomic', 60), $rate->take('tests/atomic', 1)])->toBe([60, 40, 0])
+        ->and(Cache::get('plugin-notices-count:tests/atomic'))->toBe(121);
 });
