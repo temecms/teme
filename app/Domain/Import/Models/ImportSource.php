@@ -22,13 +22,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property string $id
  * @property string $address
- * @property string $api_root
+ * @property string|null $api_root
  * @property string|null $user_name
  * @property string|null $credential
- * @property string $plugin_version
- * @property int $api_version
+ * @property string|null $plugin_version
+ * @property int|null $api_version
  * @property list<string> $other_hosts
- * @property CarbonImmutable $probed_at
+ * @property CarbonImmutable|null $probed_at
  * @property CarbonImmutable|null $forgotten_at
  * @property int|null $created_by
  */

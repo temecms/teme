@@ -1,0 +1,20 @@
+[
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "<p>Before</p><!-- /wp:paragraph -->",
+        "innerContent": [
+            "<p>Before</p><!-- /wp:paragraph -->"
+        ]
+    },
+    {
+        "blockName": "core/paragraph",
+        "attrs": {},
+        "innerBlocks": [],
+        "innerHTML": "<p>Inside</p><!-- /wp:image -->",
+        "innerContent": [
+            "<p>Inside</p><!-- /wp:image -->"
+        ]
+    }
+]
