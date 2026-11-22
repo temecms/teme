@@ -99,6 +99,14 @@ it('lists a plugin whose schedules can’t run with the reason', function (): vo
         ->expectsOutputToContain('Its schedules don’t run: it was enabled from the command line without naming an administrator.')
         ->assertSuccessful();
 
+    // No time is promised for a run that won't happen.
+    $this->artisan('teme:plugins:schedules')
+        ->expectsTable(
+            ['Plugin', 'Job', 'Every', 'Last queued', 'Next due', 'Why it can’t run'],
+            [['tests/jobs', 'write-line', 'hour', 'never', '', 'Its schedules don’t run: it was enabled from the command line without naming an administrator. Disable it and enable it again from Site › Plugins, or with --as.']],
+        )
+        ->assertSuccessful();
+
     $this->artisan('teme:plugins:run-due-schedules');
     expect(($this->queued)())->toBe(0);
 });

@@ -146,7 +146,7 @@ final readonly class DueSchedules
      * Returns when this plugin's schedule for the job is next due: its
      * interval after the last run was queued, or the time the plugin was
      * enabled when none has been, so due at the next pass. Null when the
-     * plugin declares no schedule for that job.
+     * plugin declares no schedule for that job, or its own setting switches it off.
      */
     public function nextDue(PluginRecord $record, string $job): ?CarbonImmutable
     {
@@ -161,6 +161,11 @@ final readonly class DueSchedules
 
             if ($schedule['job'] !== $job || $seconds === null) {
                 continue;
+            }
+
+            // A schedule its own setting switches off is never due.
+            if (! $this->switchedOn($record->code, $schedule['enabledBy'] ?? null)) {
+                return null;
             }
 
             $last = $record->schedule_runs[$job] ?? null;

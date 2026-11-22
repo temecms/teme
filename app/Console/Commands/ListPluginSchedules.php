@@ -45,13 +45,15 @@ final class ListPluginSchedules extends Command
             $why = $runner->problem($record) ?? '';
 
             foreach (DeclaredJobs::of($found->manifest)->schedules() as $schedule) {
+                // No time for a schedule that can't run: its plugin can't, or its own setting is off.
+                $next = $why === '' ? $due->nextDue($record, $schedule['job']) : null;
                 $rows[] = [
                     $record->name,
                     $schedule['job'],
                     $schedule['every'],
                     $record->schedule_runs[$schedule['job']] ?? __('never'),
-                    $due->nextDue($record, $schedule['job'])?->toIso8601String() ?? '',
-                    $why,
+                    $next?->toIso8601String() ?? '',
+                    $why !== '' ? $why : ($next === null ? __('Its setting switches this schedule off.') : ''),
                 ];
             }
         }
