@@ -1,11 +1,75 @@
 import type { Editor } from '@tiptap/core';
 import type { JSONContent } from '@tiptap/core';
+import type { Node as ProseNode } from '@tiptap/pm/model';
 import type { EditorDocument } from '@/types';
 
 /**
+ * Lowercases for matching without following the browser's locale, so two
+ * editors count the same way (issue #539).
+ */
+function fold(text: string): string {
+    return text.toLocaleLowerCase('en-US');
+}
+
+/** A letter or digit, for whole-word edges (issue #537). */
+function isWordChar(char: string): boolean {
+    return char !== '' && /[\p{L}\p{N}]/u.test(char);
+}
+
+/**
+ * Whether the match at `at`..`at+length` in `folded` sits on word edges.
+ */
+function wholeWords(folded: string, at: number, length: number): boolean {
+    const before = at === 0 ? '' : (folded[at - 1] ?? '');
+    const after = folded[at + length] ?? '';
+
+    return !isWordChar(before) && !isWordChar(after);
+}
+
+/**
+ * Maps a character index in the folded (lowercased) string back to the
+ * original, so a link range never shifts when lowercasing changes length
+ * (issue #539).
+ */
+function originalIndex(original: string, foldedTarget: number): number {
+    let foldedAt = 0;
+
+    for (let i = 0; i <= original.length; i++) {
+        if (foldedAt === foldedTarget) {
+            return i;
+        }
+
+        if (i < original.length) {
+            foldedAt += fold(original[i] ?? '').length;
+        }
+    }
+
+    return original.length;
+}
+
+/**
+ * Whether this text node sits inside a code block (issue #536). Inline code
+ * marks are already skipped; code blocks carry no mark on their text.
+ */
+function inCodeBlock(editor: Editor, pos: number): boolean {
+    const $pos = editor.state.doc.resolve(pos);
+
+    for (let depth = $pos.depth; depth > 0; depth--) {
+        if ($pos.node(depth).type.name === 'codeBlock') {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Wraps the `occurrence`th match of `phrase`, in text outside existing
- * links and code, with an internal link to the item (rule 9: its ID, never
- * an address). False when the phrase isn't there any more.
+ * links and code (marks and code blocks), with an internal link to the
+ * item (rule 9: its ID, never an address). Matches are whole words only,
+ * counted with a locale-independent fold. Phrases split across formatting
+ * marks are not matched (same limit as Teme SEO's own counter). False when
+ * the phrase isn't there any more.
  */
 export function applyLink(
     editor: Editor,
@@ -13,32 +77,42 @@ export function applyLink(
     itemId: string,
     occurrence: number,
 ): boolean {
-    const wanted = phrase.toLocaleLowerCase();
+    const wanted = fold(phrase);
     let seen = 0;
     let found: { from: number; to: number } | null = null;
 
-    if (wanted === '') {
+    if (wanted === '' || occurrence < 1) {
         return false;
     }
 
-    editor.state.doc.descendants((node, pos) => {
+    editor.state.doc.descendants((node: ProseNode, pos: number) => {
         if (
             found !== null ||
             !node.isText ||
-            node.marks.some((mark) => ['link', 'code'].includes(mark.type.name))
+            node.marks.some((mark) =>
+                ['link', 'code'].includes(mark.type.name),
+            ) ||
+            inCodeBlock(editor, pos)
         ) {
             return found === null;
         }
 
-        const text = (node.text ?? '').toLocaleLowerCase();
+        const original = node.text ?? '';
+        const folded = fold(original);
 
         for (
-            let at = text.indexOf(wanted);
+            let at = folded.indexOf(wanted);
             at !== -1;
-            at = text.indexOf(wanted, at + wanted.length)
+            at = folded.indexOf(wanted, at + wanted.length)
         ) {
+            if (!wholeWords(folded, at, wanted.length)) {
+                continue;
+            }
+
             if (++seen === occurrence) {
-                found = { from: pos + at, to: pos + at + phrase.length };
+                const from = pos + originalIndex(original, at);
+                const to = pos + originalIndex(original, at + wanted.length);
+                found = { from, to };
 
                 return false;
             }
@@ -51,9 +125,9 @@ export function applyLink(
         return false;
     }
 
+    // No focus(): the panel already has the editor; focus() fails headless in tests.
     return editor
         .chain()
-        .focus()
         .setTextSelection(found)
         .setLink({ href: `teme:content/${itemId}` })
         .run();

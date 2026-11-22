@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Fixed
+
+- Plugin link suggestions skip matches inside a code block (#536).
+
 ## [1.3.2] — 2026-11-20
 
 ### Changed
