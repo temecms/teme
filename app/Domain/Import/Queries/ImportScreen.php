@@ -58,15 +58,17 @@ final readonly class ImportScreen
     /**
      * Returns the sites Teme knows, newest first: each with where it stands, the Teme Companion version it last reported, whether its password is forgotten, its latest import's start and the address of its page.
      *
-     * @return list<array{id: string, address: string, host: string, state: string, stateLabel: string, pluginVersion: string, forgotten: bool, lastImportAt: string|null, href: string}>
+     * @return list<array{id: string, address: string, host: string, state: string, stateLabel: string, pluginVersion: string, forgotten: bool, lastImportAt: string|null, href: string, kind: 'companion'|'file', uploadedAt: string|null}>
      */
     public function sites(): array
     {
         $sites = [];
+        $files = app(ImportFiles::class);
 
         foreach (ImportSource::query()->orderByDesc('created_at')->orderByDesc('id')->limit(100)->get() as $source) {
             $latest = $this->runs->latest((string) $source->id);
             $state = $latest === null ? 'none' : $latest->state->value;
+            $export = $files->forSource((string) $source->id);
 
             $sites[] = [
                 'id' => (string) $source->id,
@@ -78,6 +80,8 @@ final readonly class ImportScreen
                 'forgotten' => $source->forgotten_at !== null,
                 'lastImportAt' => $latest?->started_at->utc()->toIso8601String(),
                 'href' => route('tools.importer.show', ['source' => (string) $source->id], false),
+                'kind' => $export === null ? 'companion' : 'file',
+                'uploadedAt' => $export['uploadedAt'] ?? null,
             ];
         }
 

@@ -5,6 +5,8 @@
  * as text first so gateway HTML is a retry, not a JSON parse.
  */
 
+import { __ } from '@/lib/i18n';
+
 export const INITIAL_PIECE_BYTES = 2 * 1024 * 1024;
 export const MIN_PIECE_BYTES = 256 * 1024;
 export const MAX_PIECE_BYTES = 8 * 1024 * 1024;
@@ -29,6 +31,8 @@ export type PieceUploadOptions = {
     urls: PieceUploadUrls;
     onProgress?: (done: number, total: number) => void;
     onRetrying?: (pieceBytes: number) => void;
+    /** Called once the server has accepted the start (or a carry-on). */
+    onStarted?: (fileId: string) => void;
     signal?: AbortSignal;
     fetchImpl?: typeof fetch;
     sleep?: (ms: number) => Promise<void>;
@@ -81,9 +85,11 @@ function isDropped(error: unknown): boolean {
     );
 }
 
-async function readAnswer(
-    response: Response,
-): Promise<{ status: number; json: Record<string, unknown> | null; text: string }> {
+async function readAnswer(response: Response): Promise<{
+    status: number;
+    json: Record<string, unknown> | null;
+    text: string;
+}> {
     const text = await response.text();
     let json: Record<string, unknown> | null = null;
 
@@ -114,7 +120,7 @@ export async function uploadInPieces(
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
         'X-XSRF-TOKEN': xsrfToken(),
-        ...(options.headers ?? {}),
+        ...options.headers,
     };
 
     const startResponse = await fetchImpl(options.urls.start, {
@@ -133,18 +139,21 @@ export async function uploadInPieces(
         startAnswer.status >= 400 ||
         typeof startAnswer.json.fileId !== 'string'
     ) {
+        const errors = startAnswer.json?.errors as
+            | { size?: string[] }
+            | undefined;
         const message =
             typeof startAnswer.json?.message === 'string'
                 ? startAnswer.json.message
-                : typeof (startAnswer.json?.errors as { size?: string[] } | undefined)
-                        ?.size?.[0] === 'string'
-                  ? (startAnswer.json?.errors as { size: string[] }).size[0]
-                  : 'Teme couldn’t start the upload. Try again.';
+                : typeof errors?.size?.[0] === 'string'
+                  ? errors.size[0]
+                  : __('Teme couldn’t start the upload. Try again.');
 
         return { ok: false, refused: false, message };
     }
 
     const started = startAnswer.json as unknown as StartAnswer;
+    options.onStarted?.(started.fileId);
     let offset = Math.max(0, Number(started.receivedBytes) || 0);
     let pieceBytes = Math.min(INITIAL_PIECE_BYTES, MAX_PIECE_BYTES, total);
     options.onProgress?.(offset, total);
@@ -153,7 +162,7 @@ export async function uploadInPieces(
         let attempt = 0;
         let landed = false;
 
-        while (attempt < 3 && ! landed) {
+        while (attempt < 3 && !landed) {
             attempt += 1;
             const size = Math.min(pieceBytes, total - offset);
             const blob = options.file.slice(offset, offset + size);
@@ -166,7 +175,9 @@ export async function uploadInPieces(
                 const timer =
                     local && options.pieceTimeoutMs !== undefined
                         ? setTimeout(() => {
-                              const err = new Error('The operation was aborted');
+                              const err = new Error(
+                                  'The operation was aborted',
+                              );
                               err.name = 'TimeoutError';
                               local.abort(err);
                           }, options.pieceTimeoutMs)
@@ -182,16 +193,19 @@ export async function uploadInPieces(
                           ? signals[0]
                           : AbortSignal.any(signals);
 
-                const response = await fetchImpl(options.urls.piece(started.fileId), {
-                    method: 'POST',
-                    headers: {
-                        ...baseHeaders,
-                        'Content-Type': 'application/octet-stream',
-                        'X-Upload-Offset': String(offset),
+                const response = await fetchImpl(
+                    options.urls.piece(started.fileId),
+                    {
+                        method: 'POST',
+                        headers: {
+                            ...baseHeaders,
+                            'Content-Type': 'application/octet-stream',
+                            'X-Upload-Offset': String(offset),
+                        },
+                        body: blob,
+                        signal,
                     },
-                    body: blob,
-                    signal,
-                });
+                );
 
                 if (timer) {
                     clearTimeout(timer);
@@ -210,12 +224,14 @@ export async function uploadInPieces(
                 if (
                     answer.json !== null &&
                     answer.status === 422 &&
-                    typeof (answer.json.errors as { offset?: string[] } | undefined)
-                        ?.offset?.[0] === 'string'
+                    typeof (
+                        answer.json.errors as { offset?: string[] } | undefined
+                    )?.offset?.[0] === 'string'
                 ) {
                     const wanted = Number(
                         String(
-                            (answer.json.errors as { offset: string[] }).offset[0],
+                            (answer.json.errors as { offset: string[] })
+                                .offset[0],
                         ).match(/\d+/)?.[0] ?? NaN,
                     );
 
@@ -226,11 +242,14 @@ export async function uploadInPieces(
                     }
                 }
 
-                if (! GATEWAY_STATUSES.has(answer.status) && answer.json !== null) {
+                if (
+                    !GATEWAY_STATUSES.has(answer.status) &&
+                    answer.json !== null
+                ) {
                     const message =
                         typeof answer.json.message === 'string'
                             ? answer.json.message
-                            : 'Teme couldn’t take that piece. Try again.';
+                            : __('Teme couldn’t take that piece. Try again.');
 
                     return {
                         ok: false,
@@ -241,7 +260,10 @@ export async function uploadInPieces(
                 }
 
                 // Gateway HTML or status: shrink and retry.
-                pieceBytes = Math.max(MIN_PIECE_BYTES, Math.floor(pieceBytes / 2));
+                pieceBytes = Math.max(
+                    MIN_PIECE_BYTES,
+                    Math.floor(pieceBytes / 2),
+                );
                 options.onRetrying?.(pieceBytes);
 
                 if (attempt < 3) {
@@ -253,44 +275,50 @@ export async function uploadInPieces(
                         ok: false,
                         fileId: started.fileId,
                         refused: false,
-                        message: 'Upload cancelled. Nothing was kept.',
+                        message: __('Upload cancelled. Nothing was kept.'),
                     };
                 }
 
-                if (! isDropped(error) || attempt >= 3) {
+                if (!isDropped(error) || attempt >= 3) {
                     return {
                         ok: false,
                         fileId: started.fileId,
                         refused: false,
-                        message: 'The connection dropped. Try again.',
+                        message: __('The connection dropped. Try again.'),
                     };
                 }
 
-                pieceBytes = Math.max(MIN_PIECE_BYTES, Math.floor(pieceBytes / 2));
+                pieceBytes = Math.max(
+                    MIN_PIECE_BYTES,
+                    Math.floor(pieceBytes / 2),
+                );
                 options.onRetrying?.(pieceBytes);
                 await sleep(waitMs(attempt));
             }
         }
 
-        if (! landed) {
+        if (!landed) {
             return {
                 ok: false,
                 fileId: started.fileId,
                 refused: false,
-                message: 'The connection dropped. Try again.',
+                message: __('The connection dropped. Try again.'),
             };
         }
     }
 
-    const finishResponse = await fetchImpl(options.urls.finish(started.fileId), {
-        method: 'POST',
-        headers: {
-            ...baseHeaders,
-            'Content-Type': 'application/json',
+    const finishResponse = await fetchImpl(
+        options.urls.finish(started.fileId),
+        {
+            method: 'POST',
+            headers: {
+                ...baseHeaders,
+                'Content-Type': 'application/json',
+            },
+            body: '{}',
+            signal: options.signal,
         },
-        body: '{}',
-        signal: options.signal,
-    });
+    );
     const finishAnswer = await readAnswer(finishResponse);
 
     if (finishAnswer.json === null || finishAnswer.status >= 500) {
@@ -298,7 +326,7 @@ export async function uploadInPieces(
             ok: false,
             fileId: started.fileId,
             refused: false,
-            message: 'Teme couldn’t finish the upload. Try again.',
+            message: __('Teme couldn’t finish the upload. Try again.'),
         };
     }
 
@@ -310,7 +338,9 @@ export async function uploadInPieces(
             message:
                 typeof finishAnswer.json.message === 'string'
                     ? finishAnswer.json.message
-                    : 'That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.',
+                    : __(
+                          'That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.',
+                      ),
         };
     }
 

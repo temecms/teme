@@ -1,8 +1,13 @@
 /**
- * Tests for uploadInPieces (D2). Run with:
- *   node resources/js/lib/upload-in-pieces.test.mjs
+ * Tests for uploadInPieces. Run with:
+ *   npx tsx resources/js/lib/upload-in-pieces.test.mjs
  */
-import { uploadInPieces, GATEWAY_STATUSES, INITIAL_PIECE_BYTES, MIN_PIECE_BYTES } from './upload-in-pieces.ts';
+import {
+    uploadInPieces,
+    GATEWAY_STATUSES,
+    INITIAL_PIECE_BYTES,
+    MIN_PIECE_BYTES,
+} from './upload-in-pieces.ts';
 
 let failed = 0;
 
@@ -47,24 +52,39 @@ function waiters() {
                     sizeBytes: body.length,
                     carriedOn: false,
                 }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         if (String(url).includes('/pieces')) {
-            const offset = Number(new Headers(init.headers).get('X-Upload-Offset') ?? '0');
+            const offset = Number(
+                new Headers(init.headers).get('X-Upload-Offset') ?? '0',
+            );
             const chunk = init.body;
-            const size = chunk instanceof Blob ? chunk.size : String(chunk).length;
+            const size =
+                chunk instanceof Blob ? chunk.size : String(chunk).length;
             received = offset + size;
             return new Response(
-                JSON.stringify({ receivedBytes: received, sizeBytes: body.length }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                JSON.stringify({
+                    receivedBytes: received,
+                    sizeBytes: body.length,
+                }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         if (String(url).endsWith('/finish')) {
-            return new Response(JSON.stringify({ fileId: 'file1', refused: false }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            return new Response(
+                JSON.stringify({ fileId: 'file1', refused: false }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
+            );
         }
         return new Response('missing', { status: 404 });
     };
@@ -92,9 +112,14 @@ function waiters() {
         'reports progress by bytes',
         progress.length > 0 &&
             progress[progress.length - 1][0] === body.length &&
-            progress.every(([done, total]) => total === body.length && done <= total),
+            progress.every(
+                ([done, total]) => total === body.length && done <= total,
+            ),
     );
-    check('starts at 2 MB pieces', calls.filter((c) => String(c.url).includes('/pieces')).length >= 2);
+    check(
+        'starts at 2 MB pieces',
+        calls.filter((c) => String(c.url).includes('/pieces')).length >= 2,
+    );
     check('no backoff when every piece lands', sleeps.length === 0);
 }
 
@@ -114,13 +139,18 @@ function waiters() {
                     sizeBytes: body.length,
                     carriedOn: false,
                 }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         if (String(url).includes('/pieces')) {
             pieceTries += 1;
             const chunk = init.body;
-            pieceBytesSeen.push(chunk instanceof Blob ? chunk.size : String(chunk).length);
+            pieceBytesSeen.push(
+                chunk instanceof Blob ? chunk.size : String(chunk).length,
+            );
             if (pieceTries <= 2) {
                 return new Response('<html>Bad Gateway</html>', {
                     status: 502,
@@ -128,15 +158,24 @@ function waiters() {
                 });
             }
             return new Response(
-                JSON.stringify({ receivedBytes: body.length, sizeBytes: body.length }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                JSON.stringify({
+                    receivedBytes: body.length,
+                    sizeBytes: body.length,
+                }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         if (String(url).endsWith('/finish')) {
-            return new Response(JSON.stringify({ fileId: 'g1', refused: false }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            return new Response(
+                JSON.stringify({ fileId: 'g1', refused: false }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
+            );
         }
         return new Response('missing', { status: 404 });
     };
@@ -154,16 +193,26 @@ function waiters() {
         onRetrying: (size) => retrying.push(size),
     });
 
-    check('retries after 502 HTML without treating it as JSON', result.ok === true);
-    check('backs off between retries', sleeps.length >= 2 && sleeps[0] < sleeps[1]);
+    check(
+        'retries after 502 HTML without treating it as JSON',
+        result.ok === true,
+    );
+    check(
+        'backs off between retries',
+        sleeps.length >= 2 && sleeps[0] < sleeps[1],
+    );
     check(
         'halves the piece after a gateway failure',
         pieceBytesSeen[0] === Math.min(INITIAL_PIECE_BYTES, body.length) &&
             pieceBytesSeen.some((n) => n < pieceBytesSeen[0]) &&
-            Math.min(...pieceBytesSeen) >= Math.min(MIN_PIECE_BYTES, body.length),
+            Math.min(...pieceBytesSeen) >=
+                Math.min(MIN_PIECE_BYTES, body.length),
     );
     check('tells the UI it is retrying in smaller pieces', retrying.length > 0);
-    check('knows the gateway statuses', GATEWAY_STATUSES.has(502) && GATEWAY_STATUSES.has(429));
+    check(
+        'knows the gateway statuses',
+        GATEWAY_STATUSES.has(502) && GATEWAY_STATUSES.has(429),
+    );
 }
 
 // Dropped connection (network error) then success
@@ -181,7 +230,10 @@ function waiters() {
                     sizeBytes: body.length,
                     carriedOn: false,
                 }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         if (String(url).includes('/pieces')) {
@@ -190,8 +242,14 @@ function waiters() {
                 throw new TypeError('Failed to fetch');
             }
             return new Response(
-                JSON.stringify({ receivedBytes: body.length, sizeBytes: body.length }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                JSON.stringify({
+                    receivedBytes: body.length,
+                    sizeBytes: body.length,
+                }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         return new Response(JSON.stringify({ fileId: 'd1', refused: false }), {
@@ -202,12 +260,19 @@ function waiters() {
 
     const result = await uploadInPieces({
         file: fileOf(body),
-        urls: { start: '/start', piece: () => '/pieces', finish: () => '/finish' },
+        urls: {
+            start: '/start',
+            piece: () => '/pieces',
+            finish: () => '/finish',
+        },
         fetchImpl,
         sleep,
     });
 
-    check('retries when the connection drops', result.ok === true && tries >= 2);
+    check(
+        'retries when the connection drops',
+        result.ok === true && tries >= 2,
+    );
 }
 
 // Timeout is a retryable failure
@@ -225,7 +290,10 @@ function waiters() {
                     sizeBytes: body.length,
                     carriedOn: false,
                 }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         if (String(url).includes('/pieces')) {
@@ -236,8 +304,14 @@ function waiters() {
                 throw err;
             }
             return new Response(
-                JSON.stringify({ receivedBytes: body.length, sizeBytes: body.length }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                JSON.stringify({
+                    receivedBytes: body.length,
+                    sizeBytes: body.length,
+                }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         return new Response(JSON.stringify({ fileId: 't1', refused: false }), {
@@ -248,7 +322,11 @@ function waiters() {
 
     const result = await uploadInPieces({
         file: fileOf(body),
-        urls: { start: '/start', piece: () => '/pieces', finish: () => '/finish' },
+        urls: {
+            start: '/start',
+            piece: () => '/pieces',
+            finish: () => '/finish',
+        },
         fetchImpl,
         sleep,
         pieceTimeoutMs: 50,
@@ -272,14 +350,25 @@ function waiters() {
                     sizeBytes: body.length,
                     carriedOn: true,
                 }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         if (String(url).includes('/pieces')) {
-            offsets.push(Number(new Headers(init.headers).get('X-Upload-Offset') ?? '0'));
+            offsets.push(
+                Number(new Headers(init.headers).get('X-Upload-Offset') ?? '0'),
+            );
             return new Response(
-                JSON.stringify({ receivedBytes: body.length, sizeBytes: body.length }),
-                { status: 200, headers: { 'Content-Type': 'application/json' } },
+                JSON.stringify({
+                    receivedBytes: body.length,
+                    sizeBytes: body.length,
+                }),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' },
+                },
             );
         }
         return new Response(JSON.stringify({ fileId: 'c1', refused: false }), {
@@ -290,12 +379,19 @@ function waiters() {
 
     const result = await uploadInPieces({
         file: fileOf(body),
-        urls: { start: '/start', piece: () => '/pieces', finish: () => '/finish' },
+        urls: {
+            start: '/start',
+            piece: () => '/pieces',
+            finish: () => '/finish',
+        },
         fetchImpl,
         sleep,
     });
 
-    check('carries on from receivedBytes', result.ok === true && offsets[0] === 400);
+    check(
+        'carries on from receivedBytes',
+        result.ok === true && offsets[0] === 400,
+    );
 }
 
 if (failed > 0) {

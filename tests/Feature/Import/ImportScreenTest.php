@@ -78,6 +78,7 @@ it('shows the connect form, and the plugin Teme expects, while no site is connec
             ->component('tools/import/index')
             ->where('sites', [])
             ->where('companion', ['version' => '0.2.0', 'releases' => null])
+            ->where('maxFileMb', 2048)
             ->has('siteTimezone'));
 });
 
@@ -97,6 +98,8 @@ it('lists the sites Teme knows, with where each stands', function (): void {
             'forgotten' => true,
             'lastImportAt' => $run->started_at->utc()->toIso8601String(),
             'href' => "/admin/tools/import/{$source->id}",
+            'kind' => 'companion',
+            'uploadedAt' => null,
         ]]));
 });
 
