@@ -27,6 +27,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Enabling a plugin from the console whose manifest can't be read now says so and why, instead of "No plugin is named".
 - Enabling a plugin whose manifest names a route handler or a verifier that isn't in its code is refused, naming the manifest key, instead of failing later.
 - Two plugins that require each other are refused, with a sentence naming the circle, instead of neither being enableable or disableable first.
+- A background job of a plugin whose update is waiting for your agreement is cancelled instead of running.
 
 ## [1.3.2] — 2026-11-20
 

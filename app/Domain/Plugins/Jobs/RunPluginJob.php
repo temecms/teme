@@ -22,6 +22,7 @@ use App\Domain\Jobs\Operations\Input\CancelJobInput;
 use App\Domain\Jobs\Operations\Input\FailJobInput;
 use App\Domain\Jobs\Operations\Input\FinishJobInput;
 use App\Domain\Jobs\Operations\ReportJobProgress;
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Doors\PluginHttp;
 use App\Domain\Plugins\Models\PluginRecord;
@@ -116,6 +117,7 @@ final class RunPluginJob implements ShouldQueue
             || $plugin === null
             || $manifest === null
             || ! $granted
+            || ! Consent::covers($record->consent, $manifest)
             || $safeMode->active()) {
             try {
                 $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
