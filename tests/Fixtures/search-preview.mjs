@@ -15,7 +15,8 @@ if (input.preview !== undefined) {
     const { taxonomies, terms, ...rest } = input.preview;
     const preview = { ...rest, term: kickerName(taxonomies, terms, rest.fields) };
 
-    output = { title: searchTitle(preview, fillTitle).text, description: searchDescription(preview).text, social: socialCard(preview) };
+    const title = searchTitle(preview, fillTitle).text;
+    output = { title, description: searchDescription(preview).text, social: socialCard(preview, title) };
 } else if (input.address !== undefined) {
     output = { problem: canonicalAddressProblem(input.address, input.siteHost) };
 } else if (input.trail !== undefined) {
