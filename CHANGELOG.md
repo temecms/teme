@@ -19,6 +19,8 @@ All notable changes to this project are documented in this file. Versioning foll
 - The Themes Preview button goes through the catalogue, so it can be translated.
 - Plugin table filters offer "All" as their empty choice instead of "Any" plus the label.
 
+- On Plugins, Enable is now a clear primary button, no longer a grey shape that looks like the Disabled label beside it.
+
 ## [1.3.2] — 2026-11-20
 
 ### Changed
