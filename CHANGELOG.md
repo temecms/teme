@@ -20,7 +20,6 @@ All notable changes to this project are documented in this file. Versioning foll
 - The design catalogue's sections fit inside the column at phone width instead of being clipped.
 - The Themes Preview button goes through the catalogue, so it can be translated.
 - Plugin table filters offer "All" as their empty choice instead of "Any" plus the label.
-
 - On Plugins, Enable is now a clear primary button, no longer a grey shape that looks like the Disabled label beside it.
 - The request sheet for a plugin or theme update says "The newest" instead of the raw version rule "Asked for *", and shows the version once it is known.
 - Updating a plugin or theme installed from a Git address, a vendor's source or an upload now uses the source it came from, instead of always saying Packagist; one that was uploaded by hand says to upload the new version.
@@ -39,7 +38,6 @@ All notable changes to this project are documented in this file. Versioning foll
 - In Add plugin and Add theme, the form to add a Git address or vendor source stays out of the way once a saved source is chosen, behind an "Add another address" link.
 - In Add plugin and Add theme, the saved-source choice and the other fields stay inside the sheet instead of running past its right edge.
 - The installer's Composer runs no longer start with "Failed to set memory limit to 0 bytes", which headed every error shown for a plugin or theme request.
-- Import: a post filed under a term Teme can't use for it (a term of another type's taxonomy, or of another language) comes across without that term, with a warning, instead of failing with "The selected terms.0 is invalid".
 - Import: a post filed under a term Teme can't use for it comes across without that term instead of failing with "The selected terms.0 is invalid". Most often this is a post filed on WordPress under a category or tag of another language: the warning now says that term was left off.
 - Import: a site that runs Polylang, connected through a Teme Companion older than 0.3.0, no longer comes across silently in one language. Analyze says the plugin is too old to bring the languages and names the version that can, and the import can't start until it is updated. A catch-up stops too, before it writes anything, rather than bring new posts and pages into the default language.
 - Import › Choose: What comes across lists every kind the import brings, with its count from the site report, and the site's languages when it runs Polylang; a kind the report doesn't count says so instead of disappearing.
