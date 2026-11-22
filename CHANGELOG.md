@@ -20,6 +20,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Plugin table filters offer "All" as their empty choice instead of "Any" plus the label.
 
 - On Plugins, Enable is now a clear primary button, no longer a grey shape that looks like the Disabled label beside it.
+- The request sheet for a plugin or theme update says "The newest" instead of the raw version rule "Asked for *", and shows the version once it is known.
 
 ## [1.3.2] — 2026-11-20
 
