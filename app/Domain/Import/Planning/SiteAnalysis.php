@@ -181,7 +181,7 @@ final readonly class SiteAnalysis
      *
      * @param  array<mixed>  $report
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function polylangLanguages(array $report): ?int
     {
@@ -247,7 +247,7 @@ final readonly class SiteAnalysis
      * Returns how many languages the site report says Polylang has, or null
      * when it doesn't say Polylang is on.
      *
-     * @since next
+     * @since 1.3.3
      */
     public function polylangCount(): ?int
     {

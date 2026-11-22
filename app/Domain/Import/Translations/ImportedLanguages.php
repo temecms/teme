@@ -142,7 +142,7 @@ final readonly class ImportedLanguages
      *
      * @throws ImportStopped when the report says Polylang is on, or the site can't be read now
      *
-     * @since next
+     * @since 1.3.3
      */
     public function refuseUnanswered(string $sourceId, PolylangLanguages $languages): void
     {

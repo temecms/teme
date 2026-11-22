@@ -20,7 +20,7 @@ final class CompanionPlugin
     /**
      * The first version with the languages route, which brings a Polylang site's languages.
      *
-     * @since next
+     * @since 1.3.3
      */
     public const string LANGUAGES_VERSION = '0.3.0';
 

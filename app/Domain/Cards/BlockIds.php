@@ -85,7 +85,7 @@ final class BlockIds
      *
      * @return list<mixed>
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function kept(array $nodes, array $stored): array
     {
@@ -120,7 +120,7 @@ final class BlockIds
      * @param  array<mixed>  $one
      * @param  array<mixed>  $other
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function same(array $one, array $other): bool
     {

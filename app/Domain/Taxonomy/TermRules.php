@@ -52,7 +52,7 @@ final class TermRules
      *
      * @return list<string>
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function usableAmong(array $termIds, string $type, ?string $language = null): array
     {
