@@ -29,6 +29,7 @@ use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
 use App\Domain\Redirects\Queries\SiteAnswers;
+use App\Domain\Redirects\RedirectLookup;
 use App\Domain\Redirects\RedirectSource;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Str;
@@ -44,7 +45,7 @@ final readonly class CheckStep implements StepPhase
     /** The statuses that send readers on. */
     private const array ONWARD = [301, 302, 307, 308];
 
-    public function __construct(private OldSiteUrls $urls, private SiteAnswers $answers, private ContentTypeRegistry $types) {}
+    public function __construct(private OldSiteUrls $urls, private SiteAnswers $answers, private ContentTypeRegistry $types, private RedirectLookup $redirects) {}
 
     public function key(): string
     {
@@ -76,14 +77,15 @@ final readonly class CheckStep implements StepPhase
         $started = microtime(true);
         $messages = [];
         $others = [];
-        $position = $cursor;
+        // The old file addresses the uploads rule answers, counted across jobs after the cursor's |.
+        [$position, $files] = self::counted($cursor);
 
         while (true) {
             $page = $this->urls->page($reader, OldSiteUrls::KINDS, $position);
             $position = $page['cursor'];
 
             foreach ($page['items'] as $item) {
-                $messages = [...$messages, ...$this->item($page['kind'], $item, $host, $others)];
+                $messages = [...$messages, ...$this->item($page['kind'], $item, $host, $others, $files)];
 
                 // Out of time inside a page: carry on after this item. The home page and the archives come whole.
                 if (microtime(true) - $started >= self::BUDGET && $page['kind'] !== 'archive') {
@@ -100,7 +102,34 @@ final readonly class CheckStep implements StepPhase
 
         $messages = [...$messages, ...$this->otherHosts($context->runId, $others)];
 
-        return $position === null ? StepResult::done($messages) : StepResult::continueAt($position, $messages);
+        if ($position !== null) {
+            return StepResult::continueAt($position.'|'.$files, $messages);
+        }
+
+        if ($files > 0) {
+            $messages[] = new ImportMessage('check.old-files', $files === 1
+                ? '1 old file address now redirects to the media library.'
+                : number_format($files).' old file addresses now redirect to the media library.', ['count' => $files]);
+        }
+
+        return StepResult::done($messages);
+    }
+
+    /**
+     * The position a cursor holds, and how many old file addresses the jobs
+     * before counted.
+     *
+     * @return array{0: string|null, 1: int}
+     */
+    private static function counted(?string $cursor): array
+    {
+        if ($cursor === null) {
+            return [null, 0];
+        }
+
+        $at = strrpos($cursor, '|');
+
+        return $at === false ? [$cursor, 0] : [substr($cursor, 0, $at), max(0, (int) substr($cursor, $at + 1))];
     }
 
     /**
@@ -108,10 +137,11 @@ final readonly class CheckStep implements StepPhase
      *
      * @param  array<string, mixed>  $item
      * @param  array<string, string>  $others  another host, and the first of its addresses met
+     * @param  int  $files  the old file addresses the uploads rule answers, counted on
      *
      * @return list<ImportMessage>
      */
-    private function item(string $kind, array $item, string $host, array &$others): array
+    private function item(string $kind, array $item, string $host, array &$others, int &$files): array
     {
         $addresses = $kind === 'attachment_file'
             ? array_values(array_unique(array_filter((array) ($item['files'] ?? []), is_string(...))))
@@ -138,6 +168,13 @@ final readonly class CheckStep implements StepPhase
 
             $message = $this->check($own, $kind, (int) ($item['id'] ?? 0), $what, $brought);
 
+            // An old file address the uploads rule answers, or will once its item's variants are made: counted in one line, not listed.
+            if ($message === true) {
+                $files++;
+
+                continue;
+            }
+
             if ($message !== null) {
                 $messages[] = $message;
             }
@@ -149,11 +186,12 @@ final readonly class CheckStep implements StepPhase
     /**
      * What this site answers at one old address, as a message when it is
      * neither a page nor a redirect that reaches one, another site or the
-     * site's own files.
+     * site's own files; true for an old file address the uploads rule
+     * answers.
      *
      * @param  array{path: string, query: string}  $own
      */
-    private function check(array $own, string $kind, int $id, string $what, bool $brought): ?ImportMessage
+    private function check(array $own, string $kind, int $id, string $what, bool $brought): ImportMessage|true|null
     {
         $address = $own['path'].($own['query'] === '' ? '' : '?'.$own['query']);
         $context = ['address' => mb_substr($address, 0, 500), 'kind' => $kind, 'id' => $id];
@@ -166,6 +204,10 @@ final readonly class CheckStep implements StepPhase
 
         $answer = RedirectSource::readable(rawurldecode($own['path'])) ? $this->answers->at($own['path']) : null;
         $location = null;
+
+        if ($answer !== null && ($answer->by === 'old file' || ($answer->status === 404 && $this->redirects->oldFileItem($own['path']) !== null))) {
+            return true;
+        }
 
         for ($hop = 0; $answer !== null && $hop < self::HOPS && in_array($answer->status, self::ONWARD, true); $hop++) {
             $next = $answer->location === null ? null : RedirectSource::onThisSite($answer->location);

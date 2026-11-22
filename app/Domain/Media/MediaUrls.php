@@ -40,4 +40,26 @@ final class MediaUrls
 
         return MediaDisks::public()->url((string) reset($widths)['path']);
     }
+
+    /**
+     * The URL of the narrowest width variant at least $width wide, else the
+     * widest; null with no width variant yet.
+     *
+     * @since next
+     *
+     * @param  array<string, array{path: string, width: int, height: int, bytes: int}>  $variants
+     */
+    public static function nearest(array $variants, int $width): ?string
+    {
+        $widths = array_filter($variants, fn (string $key): bool => str_starts_with($key, 'w'), ARRAY_FILTER_USE_KEY);
+
+        if ($widths === []) {
+            return null;
+        }
+
+        uasort($widths, fn (array $a, array $b): int => $a['width'] <=> $b['width']);
+        $wide = array_filter($widths, fn (array $variant): bool => $variant['width'] >= $width);
+
+        return MediaDisks::public()->url((string) ($wide === [] ? end($widths) : reset($wide))['path']);
+    }
 }

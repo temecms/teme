@@ -106,8 +106,13 @@ final class PublicController extends Controller
         $redirect = app(RedirectLookup::class)->answer($request->getPathInfo(), (string) $request->getQueryString());
 
         if ($redirect === null) {
-            // An old WordPress file address of a file an import brought (I-1851).
+            // An old WordPress file address of a file an import brought (docs/architecture/import.md).
             $file = app(RedirectLookup::class)->oldFile($request->getPathInfo());
+
+            // Its item is here, its variants still being made: try again soon, and keep no copy of this answer.
+            if ($file === null && app(RedirectLookup::class)->oldFileItem($request->getPathInfo()) !== null) {
+                return new Response('', 503, ['Retry-After' => '60', 'Cache-Control' => 'no-store, private']);
+            }
 
             if ($file === null) {
                 return null;

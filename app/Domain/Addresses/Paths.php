@@ -43,6 +43,17 @@ final class Paths
     public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'ads.txt', 'api', 'llms.txt', 'ap', 'wp-json'];
 
     /**
+     * The first segment of an imported WordPress site's old file addresses,
+     * which the public fallback sends on to the media library after any
+     * redirect a person made (RedirectLookup::oldFile()). No item or person
+     * may take it, so none hides those addresses; a person's own redirect
+     * from it stays allowed.
+     *
+     * @since next
+     */
+    public const string OLD_FILES = 'wp-content';
+
+    /**
      * Folders under public/ the web server answers from before Teme sees
      * the request: the themes' files (public/themes, and installed themes'
      * through the same address) and core's icons (public/teme). An item or
@@ -151,7 +162,7 @@ final class Paths
             $first = $segments[1] ?? null;
         }
 
-        if ($first !== null && self::taken($first)) {
+        if ($first !== null && (self::taken($first) || $first === self::OLD_FILES)) {
             return __('The address :address is used by the site itself.', ['address' => $shown]);
         }
 

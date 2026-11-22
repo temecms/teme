@@ -61,7 +61,9 @@ it('passes every old address that answers: a page, an old address, a redirect, a
         ->urls('attachment_file', [['id' => 5, 'files' => ['full' => OldSite::HOME.'/wp-content/uploads/2024/05/photo.jpg', 'medium' => OldSite::HOME.'/wp-content/uploads/2024/05/photo-300x200.jpg']]])
         ->urls('archive', [['id' => 0, 'kind' => 'home', 'url' => OldSite::HOME.'/']]);
 
-    expect(ckRun($this->source, $this->run, $this->token, $site))->toBe([])
+    // The two file addresses are said in one line, counted, not listed.
+    expect(array_map(fn ($message): array => [$message->code, $message->message], ckRun($this->source, $this->run, $this->token, $site)))
+        ->toBe([['check.old-files', '2 old file addresses now redirect to the media library.']])
         ->and($site->urlRequests())->toBe(['post:0', 'term:0', 'author:0', 'attachment_page:0', 'attachment_file:0', 'archive:whole']);
 });
 
