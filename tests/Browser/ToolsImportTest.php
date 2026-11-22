@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Import\ImportRunState;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Models\User;
@@ -67,6 +68,8 @@ it('passes axe on Tools › Import and a site’s first steps, every target 24 p
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-connect"]'));
+    $page->click('[data-test="import-way-connect-button"]');
     tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
     $page->assertSee('Install and activate the Teme Companion plugin')
         ->assertNoAccessibilityIssues(3);
@@ -92,6 +95,8 @@ it('connects a site, reads what comes across, confirms the password and starts t
     Queue::fake();
 
     $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-connect"]'));
+    $page->click('[data-test="import-way-connect-button"]');
     tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
     $page->type('#import-address', FakeCompanion::SITE)
         ->type('#import-user-name', FakeCompanion::USER)
@@ -123,6 +128,8 @@ it('connects a site, reads what comes across, confirms the password and starts t
 });
 it('marks one current step on a site’s page, Choose once the plan has arrived', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-connect"]'));
+    $page->click('[data-test="import-way-connect-button"]');
     tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
     $page->type('#import-address', FakeCompanion::SITE)
         ->type('#import-user-name', FakeCompanion::USER)
@@ -249,4 +256,21 @@ it('forgets a site after asking, and says to revoke its password in WordPress (I
     $page->assertSee('Teme has forgotten the application password for https://old.example. Revoke it in WordPress too: Users › Profile › Application Passwords.');
 
     expect(ImportSource::query()->findOrFail($source)->credential)->toBeNull();
+});
+
+it('uploads an export file through the page and shows it being read', function (): void {
+    Queue::fake();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-upload"]'));
+    $page->click('[data-test="import-way-upload-button"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-upload"]'));
+    $page->assertSee('Upload an export file')
+        ->attach('[data-test="import-upload-input"]', base_path('tests/Fixtures/Import/wxr/small.xml'));
+
+    tiWaitUntil($page, tiPresent('[data-test="import-upload-reading"]'));
+    $page->assertSee('Reading the file: counting its posts, pages, media and authors…')
+        ->assertNoJavaScriptErrors();
+
+    expect(ImportFile::query()->sole()->state)->toBe('reading');
 });

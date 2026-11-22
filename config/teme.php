@@ -78,10 +78,13 @@ return [
     /*
      * Whether an import may read a site on this computer or its private
      * network, and over plain http to it (docs/studies/import.md). On only
-     * where APP_ENV is local, as on a developer's machine.
+     * where APP_ENV is local, as on a developer's machine. max_file_mb is
+     * the largest WordPress export file an upload may keep on the private
+     * local disk (TEME_IMPORT_MAX_FILE_MB), 2 GB by default.
      */
     'import' => [
         'local_sources' => env('APP_ENV', 'production') === 'local',
+        'max_file_mb' => (int) env('TEME_IMPORT_MAX_FILE_MB', 2048),
     ],
 
     /*

@@ -13,12 +13,18 @@ export type ImportSiteRow = {
     /** ISO 8601, in UTC; null before its first import. */
     lastImportAt: string | null;
     href: string;
+    /** Live companion site, or one brought from an export file. */
+    kind: 'companion' | 'file';
+    /** ISO 8601, in UTC; set when kind is file. */
+    uploadedAt: string | null;
 };
 
 export type ImportIndexPage = {
     sites: ImportSiteRow[];
     companion: { version: string; releases: string | null };
     siteTimezone: string;
+    /** Largest export upload, in megabytes. */
+    maxFileMb: number;
 };
 
 export type ImportSite = {

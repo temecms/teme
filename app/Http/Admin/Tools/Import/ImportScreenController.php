@@ -35,6 +35,7 @@ final class ImportScreenController extends Controller
             'sites' => $screen->sites(),
             'companion' => ['version' => CompanionPlugin::VERSION, 'releases' => CompanionPlugin::RELEASES],
             'siteTimezone' => $settings->string('general', 'timezone'),
+            'maxFileMb' => max(1, (int) config('teme.import.max_file_mb')),
         ]);
     }
 
