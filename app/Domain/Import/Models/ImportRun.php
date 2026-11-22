@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property string $id
  * @property string $source_id
+ * @property string|null $file_id
  * @property ImportRunKind $kind
  * @property ImportRunState $state
  * @property string|null $phase
