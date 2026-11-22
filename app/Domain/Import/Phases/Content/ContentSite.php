@@ -18,7 +18,7 @@ namespace App\Domain\Import\Phases\Content;
 use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Queries\ImportSources;
-use App\Domain\Import\Source\CompanionClients;
+use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Support\Network\AddressRefused;
 use Illuminate\Contracts\Cache\Repository;
@@ -29,7 +29,7 @@ final readonly class ContentSite
     /** How long the report's answer is kept: as long as Tools › Import keeps the analysis. */
     public const int KEEP_SECONDS = 21600;
 
-    public function __construct(private ImportSources $sources, private CompanionClients $clients, private Repository $cache) {}
+    public function __construct(private ImportSources $sources, private SourceReaders $readers, private Repository $cache) {}
 
     /**
      * The cache key a source's answer is kept under.
@@ -73,7 +73,7 @@ final readonly class ContentSite
     private function read(ImportSource $source): ?array
     {
         try {
-            $report = $this->clients->for($source)->whole('analyze')['report'] ?? null;
+            $report = $this->readers->forSource($source)->whole('analyze')['report'] ?? null;
         } catch (SourceRefused|AddressRefused) {
             return null;
         }

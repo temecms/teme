@@ -124,7 +124,7 @@ final readonly class ImportRunJobs
             return;
         }
 
-        $steps = $this->steps($run->kind);
+        $steps = $this->steps($run->kind, $run->file_id !== null);
         $now = array_search($run->phase, array_map(fn (ImportPhase $phase): string => $phase->key(), $steps), true);
 
         app(ReportJobProgress::class)->execute(new ReportJobProgressInput(
@@ -148,13 +148,29 @@ final readonly class ImportRunJobs
     }
 
     /**
-     * Returns the phases a run of this kind goes through, in order.
+     * The steps a run reading an export file passes over, since a file holds
+     * none of what they bring (docs/architecture/import.md).
+     */
+    public const array NOT_FROM_FILES = [
+        'fidelity', 'redirects', 'plugin-options', 'plugin-data', 'plugin-data-gone', 'widgets', 'fediverse',
+        'fediverse-replies', 'languages', 'translations', 'language-words', 'settings', 'deleted',
+    ];
+
+    /** The steps only a run reading an export file goes through. */
+    public const array ONLY_FROM_FILES = ['file-missing'];
+
+    /**
+     * Returns the phases a run of this kind goes through, in order: those of
+     * a run reading an export file when $fromFile, else those of the
+     * companion's.
      *
      * @return list<ImportPhase>
      */
-    public function steps(ImportRunKind $kind): array
+    public function steps(ImportRunKind $kind, bool $fromFile = false): array
     {
-        return array_values(array_filter($this->phases->all(), fn (ImportPhase $phase): bool => $phase->runsIn($kind)));
+        $skipped = $fromFile ? self::NOT_FROM_FILES : self::ONLY_FROM_FILES;
+
+        return array_values(array_filter($this->phases->all(), fn (ImportPhase $phase): bool => $phase->runsIn($kind) && ! in_array($phase->key(), $skipped, true)));
     }
 
     /**
@@ -209,7 +225,7 @@ final readonly class ImportRunJobs
         app(StartJob::class)->execute(new StartJobInput(
             kind: ImportJobKind::KEY,
             label: $this->label($run),
-            total: count($this->steps($run->kind)),
+            total: count($this->steps($run->kind, $run->file_id !== null)),
             runType: self::RUN_TYPE,
             runId: (string) $run->id,
             actorId: $actor->userId,

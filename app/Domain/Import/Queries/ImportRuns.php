@@ -73,6 +73,7 @@ final class ImportRuns
             $after,
             (int) ($run->options['pause_ms'] ?? 1000),
             $run->choices,
+            $run->file_id === null ? null : (string) $run->file_id,
         );
     }
 }

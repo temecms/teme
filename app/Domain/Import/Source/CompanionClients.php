@@ -55,9 +55,14 @@ final readonly class CompanionClients
      * A reader for a source Teme keeps.
      *
      * @throws AddressRefused when its address now resolves somewhere Teme won't go
+     * @throws SourceRefused for a site never connected live
      */
     public function for(ImportSource $source): SourceReader
     {
+        if ($source->api_root === null) {
+            throw SourceRefused::notCompanion();
+        }
+
         // Later (I-1718): a database reader is chosen here, by the source's kind.
         return new CompanionClient($this->addresses->check($source->api_root), $source->api_root, (string) $source->user_name, (string) $source->credential);
     }
