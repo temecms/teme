@@ -251,28 +251,35 @@ final readonly class SeoArea implements PluginArea
             ->where(fn (Builder $visible) => $visible->where('i.status', 'published')->orWhereIn('i.id', $editable));
         $this->search($builder, $query->search);
         $check = $query->filters['check'] ?? null;
+        $missing = $query->filters['missing'] ?? null;
+        $status = $query->filters['status'] ?? null;
+        $cornerstone = ($query->filters['cornerstone'] ?? null) === 'yes';
+        // The audit and titles share this record (FINDINGS.md wall 6). With no
+        // titles filter and no audit check, show the audit's default: published
+        // items that have a problem — never drafts as "Checked once published".
+        $auditDefault = $check === null && $missing === null && $status === null && ! $cornerstone;
 
-        if ($check !== null || ($query->filters['cornerstone'] ?? null) === 'yes') {
+        if ($auditDefault || $check !== null || $cornerstone) {
             $builder->whereRaw(BuiltInChecks::published('i'));
         }
 
-        if ($check === 'any') {
+        if ($auditDefault || $check === 'any') {
             $builder->where('i.problem_count', '>', 0);
         } elseif ($check !== null && array_key_exists($check, BuiltInChecks::conditions())) {
             $builder->whereRaw('i.problems @> ?::jsonb', [json_encode($check)]);
         }
 
-        if (($query->filters['cornerstone'] ?? null) === 'yes') {
+        if ($cornerstone) {
             $builder->where('i.cornerstone', true);
         }
 
-        match ($query->filters['missing'] ?? null) {
+        match ($missing) {
             'seo-title' => $builder->whereRaw("coalesce(i.seo_title, '') = ''"),
             'description' => $builder->whereRaw("coalesce(i.meta_description, '') = ''"),
             default => null,
         };
 
-        match ($query->filters['status'] ?? null) {
+        match ($status) {
             'published' => $builder->where('i.status', 'published'),
             'unpublished' => $builder->where('i.status', '<>', 'published'),
             default => null,

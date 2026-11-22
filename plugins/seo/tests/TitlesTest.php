@@ -37,28 +37,25 @@ final class TitlesTest extends SeoTestCase
                 ->where('block_titles.rows.0.cells.description.value', 'How and when.')));
     }
 
-    #[TestDox('lists to a person only the drafts they may edit, on both pages that list items')]
-    public function test_it_lists_to_a_person_only_the_drafts_they_may_edit_on_both_pages_that_list_items(): void
+    #[TestDox('lists to a person only the drafts they may edit, when titles asks for unpublished items')]
+    public function test_it_lists_to_a_person_only_the_drafts_they_may_edit_when_titles_asks_for_unpublished_items(): void
     {
         $author = $this->person('author');
         User::query()->findOrFail($author->id)->givePermissionTo('plugin.seo.manage');
-        $published = seoWrite($this->editor, 'Feeding roses');
+        seoWrite($this->editor, 'Feeding roses');
         $secret = seoWrite($this->editor, 'An editor’s secret plan', publish: false);
         $own = seoWrite($author, 'My own draft', publish: false);
 
         $this->signIn($author);
-
-        foreach (['titles' => 'titles', 'audit' => 'problems'] as $page => $block) {
-            $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => $page]))
-                ->assertOk()
-                ->assertInertia(fn (Assert $view) => $view->loadDeferredProps('block_'.$block, fn (Assert $reload) => $reload
-                    ->where('block_'.$block.'.total', 2)
-                    ->where('block_'.$block.'.rows', fn (iterable $rows): bool => self::ids($rows) === self::ids([['id' => $published->id], ['id' => $own->id]]))));
-        }
+        $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'titles', 't' => ['titles' => ['filters' => ['status' => 'unpublished']]]]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $view) => $view->loadDeferredProps('block_titles', fn (Assert $reload) => $reload
+                ->where('block_titles.total', 1)
+                ->where('block_titles.rows.0.id', $own->id)));
 
         // The drafts an editor may edit are all theirs to see.
         $this->signIn($this->editor);
-        $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'titles', 't' => ['titles' => ['search' => 'secret plan']]]))
+        $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'titles', 't' => ['titles' => ['filters' => ['status' => 'unpublished'], 'search' => 'secret plan']]]))
             ->assertInertia(fn (Assert $view) => $view->loadDeferredProps('block_titles', fn (Assert $reload) => $reload
                 ->where('block_titles.total', 1)
                 ->where('block_titles.rows.0.id', $secret->id)));

@@ -8,6 +8,7 @@ All notable changes to Teme SEO are listed here. Teme SEO follows [Semantic Vers
 
 - The Search Console job fails once when the site isn’t connected, instead of retrying.
 - Search Console rows no longer open an edit form whose save always refused.
+- The Audit with no filter lists only published items that have a problem, not drafts.
 
 ## 1.0.1
 
