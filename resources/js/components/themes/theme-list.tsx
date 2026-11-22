@@ -269,7 +269,7 @@ export function ThemeList({
                                                 }
                                                 data-test="theme-preview"
                                             >
-                                                Preview
+                                                {__('Preview')}
                                                 <span className="sr-only">
                                                     {' '}
                                                     {theme.name}
