@@ -36,6 +36,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - The contracts reference lists every capability that gives a contract to a plugin (for example both content.insert and pages.insert for InlineScripts), not only the first.
 - In Add plugin and Add theme, the form to add a Git address or vendor source stays out of the way once a saved source is chosen, behind an "Add another address" link.
 - In Add plugin and Add theme, the saved-source choice and the other fields stay inside the sheet instead of running past its right edge.
+- The installer's Composer runs no longer start with "Failed to set memory limit to 0 bytes", which headed every error shown for a plugin or theme request.
 
 ## [1.3.2] — 2026-11-20
 

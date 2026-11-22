@@ -147,6 +147,8 @@ class ComposerRunner
             'COMPOSER_AUTH' => $auth === [] ? false : json_encode($auth, JSON_THROW_ON_ERROR),
             'COMPOSER_NO_INTERACTION' => '1',
             'COMPOSER_MEMORY_LIMIT' => '768M',
+            // The image's php.ini reads memory_limit from this one; removed, it reads empty and PHP warns "Failed to set memory limit to 0 bytes".
+            'PHP_MEMORY_LIMIT' => '768M',
             'COMPOSER_ALLOW_SUPERUSER' => (string) getenv('COMPOSER_ALLOW_SUPERUSER') === '1' ? '1' : false,
         ] + array_fill_keys(array_keys(getenv()), false)
             + array_fill_keys(array_keys($_ENV), false)

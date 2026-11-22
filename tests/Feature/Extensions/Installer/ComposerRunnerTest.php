@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Extensions\ExtensionAction;
+use Symfony\Component\Process\Process;
 use Tests\Fixtures\Extensions\ExtensionsFolder;
 
 beforeEach(function (): void {
@@ -57,9 +58,17 @@ it('gives Composer none of the site’s secrets', function (): void {
 
     expect($environment['APP_KEY'])->toBeFalse()
         ->and($environment['DB_PASSWORD'])->toBeFalse()
-        ->and(array_keys($passed))->toEqualCanonicalizing(['PATH', 'HOME', 'COMPOSER_HOME', 'COMPOSER_AUTH', 'COMPOSER_NO_INTERACTION', 'COMPOSER_MEMORY_LIMIT', ...(getenv('COMPOSER_ALLOW_SUPERUSER') === '1' ? ['COMPOSER_ALLOW_SUPERUSER'] : [])])
+        ->and(array_keys($passed))->toEqualCanonicalizing(['PATH', 'HOME', 'COMPOSER_HOME', 'COMPOSER_AUTH', 'COMPOSER_NO_INTERACTION', 'COMPOSER_MEMORY_LIMIT', 'PHP_MEMORY_LIMIT', ...(getenv('COMPOSER_ALLOW_SUPERUSER') === '1' ? ['COMPOSER_ALLOW_SUPERUSER'] : [])])
         ->and(json_decode((string) $passed['COMPOSER_AUTH'], true))->toBe(['github-oauth' => ['github.com' => 'a-key']])
-        ->and($passed['COMPOSER_HOME'])->toBe($this->folder->root.'/.composer');
+        ->and($passed['COMPOSER_HOME'])->toBe($this->folder->root.'/.composer')
+        ->and($passed['PHP_MEMORY_LIMIT'])->toBe('768M');
+});
+
+it('gives the PHP the image’s php.ini configures a memory limit, so Composer’s run starts with no warning', function (): void {
+    $process = new Process([PHP_BINARY, '-n', '-d', 'memory_limit='.'${PHP_MEMORY_LIMIT}', '-r', 'echo ini_get("memory_limit");'], null, $this->folder->composer()->environment());
+    $process->run();
+
+    expect($process->getErrorOutput().$process->getOutput())->not->toContain('Failed to set memory limit');
 });
 
 it('never runs a Composer plugin a package depends on', function (): void {
