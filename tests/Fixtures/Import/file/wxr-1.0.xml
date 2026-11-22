@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0"
+	xmlns:excerpt="http://wordpress.org/export/1.0/excerpt/"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:wp="http://wordpress.org/export/1.0/"
+>
+<channel>
+	<title>The Harbour</title>
+	<link>https://old.example</link>
+	<description>News from the harbour</description>
+	<pubDate>Thu, 01 Oct 2026 09:30:00 +0000</pubDate>
+	<language>en-GB</language>
+	<wp:wxr_version>1.0</wp:wxr_version>
+	<wp:base_site_url>https://old.example</wp:base_site_url>
+	<wp:base_blog_url>https://old.example</wp:base_blog_url>
+
+	<wp:category><wp:category_nicename><![CDATA[news]]></wp:category_nicename><wp:category_parent><![CDATA[]]></wp:category_parent><wp:cat_name><![CDATA[News]]></wp:cat_name></wp:category>
+	<generator>https://wordpress.org/?v=6.6</generator>
+	<item>
+		<title><![CDATA[First light]]></title>
+		<link>https://old.example/first-light/</link>
+		<pubDate>Mon, 06 May 2024 07:08:09 +0000</pubDate>
+		<dc:creator><![CDATA[ada]]></dc:creator>
+		<guid isPermaLink="false">https://old.example/?p=10</guid>
+		<description></description>
+		<content:encoded><![CDATA[<p>Boats &amp; gulls.</p>]]></content:encoded>
+		<excerpt:encoded><![CDATA[]]></excerpt:encoded>
+		<wp:post_id>10</wp:post_id>
+		<wp:post_date><![CDATA[2024-05-06 08:08:09]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2024-05-06 07:08:09]]></wp:post_date_gmt>
+		<wp:post_name><![CDATA[first-light]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_type><![CDATA[post]]></wp:post_type>
+		<category domain="category" nicename="news"><![CDATA[News]]></category>
+	</item>
+	<item>
+		<title><![CDATA[About]]></title>
+		<link>https://old.example/about/</link>
+		<dc:creator><![CDATA[ada]]></dc:creator>
+		<content:encoded><![CDATA[<p>We write about the harbour.</p>]]></content:encoded>
+		<wp:post_id>11</wp:post_id>
+		<wp:post_name><![CDATA[about]]></wp:post_name>
+		<wp:status><![CDATA[publish]]></wp:status>
+		<wp:post_type><![CDATA[page]]></wp:post_type>
+		<wp:postmeta><wp:meta_key><![CDATA[_wp_page_template]]></wp:meta_key><wp:meta_value><![CDATA[default]]></wp:meta_value></wp:postmeta>
+	</item>
+</channel>
+</rss>
