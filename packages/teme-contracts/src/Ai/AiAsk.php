@@ -74,9 +74,14 @@ final readonly class AiAsk
             throw new InvalidArgumentException('An AI request’s instructions must be 1 to 100,000 characters.');
         }
 
-        foreach (array_keys($inputs) as $name) {
+        foreach ($inputs as $name => $value) {
             if (preg_match('/^[a-z][a-z_]*$/', (string) $name) !== 1) {
                 throw new InvalidArgumentException('An AI request’s inputs are each named in lower-case letters and underscores.');
+            }
+
+            // @phpstan-ignore function.alreadyNarrowedType (the type says string; a plugin's code may not)
+            if (! is_string($value)) {
+                throw new InvalidArgumentException('An AI request’s inputs are each text.');
             }
         }
 

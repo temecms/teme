@@ -29,6 +29,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Two plugins that require each other are refused, with a sentence naming the circle, instead of neither being enableable or disableable first.
 - A background job of a plugin whose update is waiting for your agreement is cancelled instead of running.
 - teme:plugins:schedules shows no next-due time for a schedule that can't run, and says why.
+- A plugin that sends the AI something other than text is refused at once with a plain sentence.
 
 ## [1.3.2] — 2026-11-20
 

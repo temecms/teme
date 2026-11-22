@@ -13,6 +13,7 @@ use App\Domain\Ai\AiRequest;
 use App\Domain\Ai\AiResult;
 use App\Domain\Ai\AiUsage;
 use App\Domain\Ai\ModelRef;
+use Teme\Contracts\Ai\AiAsk;
 
 it('refuses a request it could not send as given', function (string $case, string $message): void {
     $hello = [AiMessage::user('Hello')];
@@ -133,3 +134,8 @@ it('reads a model choice as provider:model, the model keeping its own slashes an
     'no model' => ['anthropic:', null],
     'no colon' => ['claude-sonnet', null],
 ]);
+
+it('refuses an AI ask whose input isn’t text, before it is built into a prompt', function (): void {
+    expect(fn () => new AiAsk('summarise', 'Be brief.', ['body' => ['not', 'text']]))
+        ->toThrow(InvalidArgumentException::class, 'An AI request’s inputs are each text.');
+});
