@@ -8,6 +8,7 @@ All notable changes to this project are documented in this file. Versioning foll
 
 - Plugin link suggestions skip matches inside a code block (#536).
 - Plugin link suggestions match whole words only, not inside longer words (#537).
+- Plugin link suggestions that span formatting marks stay unmatched, matching Teme SEO’s own counter; documented with a test (#538).
 
 ## [1.3.2] — 2026-11-20
 
