@@ -26,6 +26,7 @@ use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
+use Composer\Autoload\ClassLoader;
 use Composer\Semver\Semver;
 use Composer\Semver\VersionParser;
 use ReflectionClass;
@@ -430,7 +431,9 @@ final readonly class ManifestValidator
     /**
      * Each route's handler, from its source's reading, asks only for what
      * the plugin's class may (docs/plans/plugin-sockets-1.md, A-W13). A
-     * handler whose file isn't found is left to the route's own checks.
+     * handler or verifier the plugin's own code doesn't declare is refused
+     * unless Composer's autoloader can load it, as it can for a class of a
+     * package the plugin depends on: those run today, so they stay allowed.
      *
      * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>, verifiers?: array<string, bool>}|null  $reading
      *
@@ -445,11 +448,11 @@ final readonly class ManifestValidator
             $handler = is_string($route['handler'] ?? null) ? ltrim($route['handler'], '\\') : '';
             $verifier = is_array($route['verify'] ?? null) && is_string($route['verify']['class'] ?? null) ? ltrim($route['verify']['class'], '\\') : '';
 
-            if ($handler !== '' && $reading !== null && array_key_exists($handler, $reading['handlers'] ?? []) && $reading['handlers'][$handler] === null) {
+            if ($handler !== '' && $reading !== null && array_key_exists($handler, $reading['handlers'] ?? []) && $reading['handlers'][$handler] === null && ! self::loadable($handler)) {
                 $errors[] = __('routes.:number.handler names :class, which isn’t in the plugin’s code.', ['number' => (string) $number, 'class' => $handler]);
             }
 
-            if ($verifier !== '' && $reading !== null && ($reading['verifiers'][$verifier] ?? true) === false) {
+            if ($verifier !== '' && $reading !== null && ($reading['verifiers'][$verifier] ?? true) === false && ! self::loadable($verifier)) {
                 $errors[] = __('routes.:number.verify.class names :class, which isn’t in the plugin’s code.', ['number' => (string) $number, 'class' => $verifier]);
             }
         }
@@ -469,6 +472,20 @@ final readonly class ManifestValidator
         }
 
         return $errors;
+    }
+
+    /**
+     * Whether Composer's autoloader knows where a class is, without loading it (so no code runs).
+     */
+    private static function loadable(string $class): bool
+    {
+        foreach (ClassLoader::getRegisteredLoaders() as $loader) {
+            if ($loader->findFile($class) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

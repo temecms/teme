@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Hooks\Reference\HookCatalogue;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestValidator;
+use Illuminate\Support\Str;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Hooks;
 use Teme\Contracts\Plugins\Capability;
@@ -188,4 +189,12 @@ it('refuses a route handler and a custom verifier whose classes aren’t in the 
 
     expect($errors)->toContain('routes.0.handler names Tests\\Fixtures\\Plugins\\Inbound\\Nowhere, which isn’t in the plugin’s code.')
         ->toContain('routes.2.verify.class names Tests\\Fixtures\\Plugins\\Inbound\\NoVerifier, which isn’t in the plugin’s code.');
+});
+
+it('accepts a route handler or verifier Composer can load though the plugin’s own code doesn’t declare it, as a dependency’s class runs today', function (): void {
+    $manifest = json_decode((string) file_get_contents(PluginFixtures::path('inbound').'/teme-plugin.json'), true);
+    $manifest['routes'][0]['handler'] = Str::class;
+    $manifest['routes'][2]['verify'] = ['kind' => 'custom', 'class' => Str::class];
+
+    expect(implode(' ', ($this->errors)($manifest, 'inbound')))->not->toContain('which isn’t in the plugin’s code');
 });
