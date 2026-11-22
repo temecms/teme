@@ -13,18 +13,11 @@ All notable changes to this project are documented in this file. Versioning foll
 - A content type, category or tag can no longer be given an address under `/themes/` or `/teme/`, where the web server serves theme and icon files: such pages were linked but answered "not found".
 - A command or a page no longer waits half a minute when the database can't be reached: Teme gives up after 5 seconds (`DB_CONNECT_TIMEOUT`) and says so.
 - Home greets you with your whole name, not only the first word.
-- The jobs menu shows “Finished” alone when a job’s message only repeats that status.
-- A failed job’s reason in the jobs menu ends with one full stop, not two.
 - Long Settings group names in the side list wrap onto a second line instead of being cut off.
-- The editor’s title field grows to fit a two-line title in every script, with no scrollbar of its own.
-- An empty SEO title’s placeholder is only the title the template makes, not “Using the title template:” as well.
-- On a phone, choosing a page in the admin menu closes the menu as the page opens.
-- Your own row on People puts Change role… and Manage yourself in Account in the same actions place as other rows.
-- The editor’s Tools menu stays within a phone screen instead of stretching past the right edge.
-- The design catalogue’s sections fit inside the column at phone width instead of being clipped.
-- The admin shortens its motion when the computer asks for less, and a browser test checks it.
+- An empty SEO title's placeholder is only the title the template makes, not "Using the title template:" as well.
+- The design catalogue's sections fit inside the column at phone width instead of being clipped.
 - The Themes Preview button goes through the catalogue, so it can be translated.
-- Plugin table filters offer “All” as their empty choice instead of “Any” plus the label.
+- Plugin table filters offer "All" as their empty choice instead of "Any" plus the label.
 
 ## [1.3.2] — 2026-11-20
 
