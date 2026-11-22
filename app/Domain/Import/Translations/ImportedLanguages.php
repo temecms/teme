@@ -18,6 +18,8 @@ namespace App\Domain\Import\Translations;
 
 use App\Domain\Import\ImportEngine;
 use App\Domain\Import\Phases\ImportStopped;
+use App\Domain\Import\Planning\CompanionPlugin;
+use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Queries\ImportSources;
 use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourceReader;
@@ -57,7 +59,7 @@ final readonly class ImportedLanguages
                 throw $refused;
             }
 
-            $languages = PolylangLanguages::none();
+            $languages = PolylangLanguages::unanswered();
         }
 
         $this->cache->put(self::key($sourceId), $languages->toArray(), self::KEEP_SECONDS);
@@ -112,11 +114,12 @@ final readonly class ImportedLanguages
      * without Polylang, and for a type or taxonomy this site doesn't
      * translate; false when the slug names a language this site lacks.
      *
-     * @throws ImportStopped when the answer isn't kept and the site can't be read now
+     * @throws ImportStopped when the answer isn't kept and the site can't be read now, or the companion can't say the languages the site report counts
      */
     public function stored(string $sourceId, mixed $slug, bool $translated): string|false|null
     {
         $languages = $this->forObjects($sourceId);
+        $this->refuseUnanswered($sourceId, $languages);
 
         if (! $languages->active || ! $translated || ! is_string($slug) || $slug === '' || $slug === $languages->default) {
             return null;
@@ -130,5 +133,34 @@ final readonly class ImportedLanguages
         }
 
         return $site->stored($tag);
+    }
+
+    /**
+     * Stops the run when the companion has no languages route to ask and
+     * the site report says Polylang is on: imported, everything would land
+     * in the default language, and a catch-up never analyzes the site again.
+     *
+     * @throws ImportStopped when the report says Polylang is on, or the site can't be read now
+     *
+     * @since next
+     */
+    public function refuseUnanswered(string $sourceId, PolylangLanguages $languages): void
+    {
+        if ($languages->answered) {
+            return;
+        }
+
+        try {
+            // A report read afresh refuses by itself; one kept says how many languages it counted.
+            $polylang = app(ImportAnalysis::class)->read($sourceId)->polylangCount();
+        } catch (SourceRefused|AddressRefused $refused) {
+            throw ImportStopped::because($refused->reason, $refused->sentence().ImportEngine::AGAIN);
+        }
+
+        if ($polylang !== null) {
+            $refused = SourceRefused::languagesTooOld($polylang, CompanionPlugin::LANGUAGES_VERSION);
+
+            throw ImportStopped::because($refused->reason, $refused->sentence());
+        }
     }
 }

@@ -83,7 +83,7 @@ it('says when WordPress has made no site report yet', function (): void {
         ->and($analysis->menuLocations())->toBe([]);
 });
 
-it('reads counts written as text and leaves out what a report doesn’t have', function (): void {
+it('reads counts written as text, and keeps a row for each kind the report doesn’t count, saying so', function (): void {
     $this->fake->items('analyze', ['api' => 1, 'report' => ['generated_at' => 'not a date', 'sections' => [
         'content_types' => ['post_types' => ['post' => ['builtin' => true, 'counts' => ['publish' => '7', 'draft' => 'many']], 'idb_book' => ['builtin' => false]]],
         'users' => ['total' => '4', 'by_role' => ['subscriber' => '1', 'none' => '1'], 'custom_roles' => []],
@@ -92,7 +92,7 @@ it('reads counts written as text and leaves out what a report doesn’t have', f
     $analysis = ($this->analysis)()->toArray();
 
     expect($analysis['reportedAt'])->toBeNull()
-        ->and(array_column($analysis['comes'], 'count', 'key'))->toBe(['posts' => 7, 'pages' => 0, 'media' => 0, 'categories' => 0, 'tags' => 0, 'people' => 2, 'comments' => 0, 'menus' => 0])
+        ->and(array_column($analysis['comes'], 'count', 'key'))->toBe(['posts' => 7, 'pages' => null, 'media' => null, 'categories' => null, 'tags' => null, 'people' => 2, 'comments' => null, 'menus' => null])
         ->and(array_column($analysis['stays'], 'key'))->toBe(['subscribers'])
         ->and($analysis['seo'])->toBeNull();
 });
@@ -210,3 +210,44 @@ it('refuses a choice that doesn’t fit, under its field, in words', function (s
     'a place the theme lacks', 'a template the theme lacks', 'a role Teme lacks', 'someone who can’t write',
     'a site not listed', 'a pause not offered', 'a location the report doesn’t list', 'a template the report doesn’t list',
 ]);
+
+/**
+ * The fixture's site report, saying Polylang is on with five languages.
+ *
+ * @return array<string, mixed>
+ */
+function plPolylangReport(): array
+{
+    $answer = json_decode((string) file_get_contents(base_path('tests/Fixtures/Import/Companion/analyze.json')), true, flags: JSON_THROW_ON_ERROR);
+    $answer['report']['sections']['multilingual'] = ['wpml' => null, 'polylang' => ['version' => '3.7.4', 'languages' => 5], 'translatepress' => null, 'weglot' => null];
+
+    return $answer;
+}
+
+it('refuses to analyze a Polylang site through a companion too old to bring its languages, naming the version that can', function (): void {
+    $this->fake->items('analyze', plPolylangReport());
+    $this->fake->answer('languages', 404, ['code' => 'rest_no_route', 'message' => 'No route was found matching the URL and request method.', 'data' => ['status' => 404]]);
+
+    expect($this->analysis)->toThrow(function (SourceRefused $refusal): void {
+        expect($refusal->reason)->toBe(SourceRefused::TOO_OLD)
+            ->and($refusal->retryable)->toBeFalse()
+            ->and($refusal->sentence())->toBe('The site report says Polylang is on, with 5 languages, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to 0.3.0 or later, then choose Analyze again.');
+    });
+
+    expect(app(ImportAnalysis::class)->kept($this->source->id))->toBeNull();
+});
+
+it('analyzes a Polylang site whose companion brings its languages', function (): void {
+    $this->fake->items('analyze', plPolylangReport());
+
+    expect(($this->analysis)()->reported)->toBeTrue();
+});
+
+it('counts the languages a Polylang site brings among what comes across', function (): void {
+    $this->fake->items('analyze', plPolylangReport());
+    $this->fake->items('languages', ['api' => 1, 'active' => true]);
+
+    expect(array_column(($this->analysis)()->toArray()['comes'], 'count', 'key'))->toBe([
+        'posts' => 126, 'pages' => 9, 'media' => 340, 'categories' => 12, 'tags' => 85, 'people' => 5, 'comments' => 231, 'menus' => 2, 'languages' => 5,
+    ]);
+});

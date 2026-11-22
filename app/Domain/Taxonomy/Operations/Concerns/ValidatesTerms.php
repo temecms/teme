@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations\Concerns;
 
+use App\Domain\Contents\Slugs;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Taxonomy\Queries\TermTree;
 use App\Domain\Types\TaxonomyRegistry;
@@ -51,7 +52,7 @@ trait ValidatesTerms
             [
                 'taxonomy' => ['required', Rule::in($taxonomies->keys())],
                 'name' => ['required', 'string', 'max:200'],
-                'slug' => ['nullable', 'string', 'max:190', 'regex:/^[\p{Ll}\p{Lo}\p{N}]+(?:-[\p{Ll}\p{Lo}\p{N}]+)*$/u'],
+                'slug' => ['nullable', 'string', 'max:190', 'regex:'.Slugs::RULE],
             ],
             [
                 'name.required' => __('Give it a name.'),

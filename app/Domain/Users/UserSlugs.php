@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Users;
 
+use App\Domain\Contents\Slugs;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 final class UserSlugs
 {
@@ -25,7 +25,7 @@ final class UserSlugs
      */
     public static function unique(string $name): string
     {
-        return self::free(Str::slug($name) ?: 'author');
+        return self::free(Slugs::fromText($name) ?: 'author');
     }
 
     /**

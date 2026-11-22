@@ -63,8 +63,16 @@ final readonly class ImportAnalysis
         $reader = $this->clients->for($source);
         $report = $reader->whole('analyze')['report'] ?? null;
         $analysis = is_array($report) ? SiteAnalysis::fromReport($report) : SiteAnalysis::noReport();
+        $languages = app(ImportedLanguages::class)->refresh($sourceId, $reader);
+        $polylang = is_array($report) ? SiteAnalysis::polylangLanguages($report) : null;
+
+        // Never one language, silently, for a site whose report says it has several.
+        if ($polylang !== null && ! $languages->answered) {
+            throw SourceRefused::languagesTooOld($polylang, CompanionPlugin::LANGUAGES_VERSION);
+        }
+
         // What the import does with the site's languages (I-3446).
-        $analysis = $analysis->withStays(LanguageNotes::stays(app(ImportedLanguages::class)->refresh($sourceId, $reader)));
+        $analysis = $analysis->withStays(LanguageNotes::stays($languages));
 
         $this->cache->put(self::key($sourceId), $analysis->toArray(), self::KEEP_SECONDS);
         $this->suggestedHosts->remember($sourceId, is_array($report) ? $report : null);

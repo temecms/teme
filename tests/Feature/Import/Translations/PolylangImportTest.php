@@ -11,8 +11,10 @@ use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Phases\Languages\TranslationsStep;
 use App\Domain\Import\Phases\SourceRef;
+use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Source\CompanionClients;
+use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\Models\Navigation;
@@ -32,6 +34,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
+use Tests\Fixtures\Import\ContentImports;
+use Tests\Fixtures\Import\FakeCompanion;
 use Tests\Fixtures\Import\PolylangSite;
 
 uses(RefreshDatabase::class);
@@ -107,6 +111,20 @@ it('creates every item and term in its language, at the address it had, linked o
         ->and($term?->slug)->toBe('news-it');
 });
 
+it('brings a post filed under a category of another language across without it, saying it was left off', function (): void {
+    // Polylang keeps a post's categories in its language, but a bulk edit or an earlier plugin can file it under another's.
+    $this->site->filed(21, ['category' => [5, 6]]);
+
+    $run = $this->site->import($this->source);
+    $english = plItem($this->source->id, 21);
+    $messages = ImportMessageRecord::query()->where('run_id', $run->id)->where('code', 'post.terms-other-language')->get();
+
+    expect($english)->not->toBeNull()
+        ->and(json_decode((string) DB::table('content_revisions')->where('id', $english?->working_revision_id)->value('terms'), true))->toBe([plTerm($this->source->id, 5)?->id])
+        ->and($messages)->toHaveCount(1)
+        ->and((string) $messages->first()?->message)->toContain('left off');
+});
+
 it('links each group of translations, joining the maps that lost members, and changes nothing when run again', function (): void {
     $this->site->import($this->source);
     $group = fn (array $ids): array => array_map(fn (int $id): ?string => plItem($this->source->id, $id)?->translation_group, $ids);
@@ -176,6 +194,32 @@ it('stops before writing anything when Polylang set each page\'s language from i
         ->and($run->stop_reason)->toBe('languages-from-content')
         ->and(Content::query()->count())->toBe(0)
         ->and(app(SiteLanguages::class)->others())->toBe([]);
+});
+
+it('stops a catch-up rather than bring a new post into the default language once the companion is too old to say the site\'s languages', function (): void {
+    $this->site->import($this->source);
+    // Later the plugin is swapped for one without the languages route, and nothing is kept from before.
+    $this->site->with('analyze', tiReport(['multilingual' => ['wpml' => null, 'polylang' => ['version' => '3.7.4', 'languages' => 7], 'translatepress' => null, 'weglot' => null]]));
+
+    foreach (range(1, 4) as $ignored) {
+        $this->site->companion->answer('languages', 404, ['code' => 'rest_no_route', 'message' => 'No route was found matching the URL and request method.', 'data' => ['status' => 404]]);
+    }
+
+    $this->site->with('content', [ContentImports::wpItem(28, [
+        'type' => 'post', 'slug' => 'nuovo', 'title' => 'Nuovo', 'author' => 1, 'language' => 'it', 'translations' => [],
+        'blocks' => [wpBlock('core/paragraph', '<p>Nuovo.</p>')], 'content' => '', 'permalink' => FakeCompanion::SITE.'/it/nuovo/',
+        'modified_gmt' => now()->addDay()->format('Y-m-d H:i:s'),
+    ])]);
+    Cache::forget(ImportedLanguages::key($this->source->id));
+    Cache::forget(ImportAnalysis::key($this->source->id));
+
+    $run = $this->site->import($this->source, ImportRunKind::CatchUp);
+
+    expect($run->state)->toBe(ImportRunState::Stopped)
+        ->and($run->stop_reason)->toBe(SourceRefused::TOO_OLD)
+        ->and($run->stop_message)->toContain('The site report says Polylang is on, with 7 languages')
+        ->and(plItem($this->source->id, 28))->toBeNull()
+        ->and(app(SiteLanguages::class)->defaultTag())->toBe('en');
 });
 
 it('says which languages Teme doesn\'t offer, and leaves their posts on the old site', function (): void {

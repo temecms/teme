@@ -128,3 +128,13 @@ it('refuses grants it can’t use, saying why, and writes nothing', function (ar
     'a type that shares the standard ones' => [[['type' => 'note', 'role' => 'editor', 'abilities' => ['create']]], 'grants.0', 'Grant 1: note uses the standard content permissions, so it has none of its own to grant.'],
     'one role twice' => [[['type' => 'film', 'role' => 'editor', 'abilities' => ['create']], ['type' => 'film', 'role' => 'editor', 'abilities' => []]], 'grants.1', 'Grant 2: the file grants film to editor twice.'],
 ]);
+
+it('reports only the real reason for a type it refuses, not its grants as well', function (): void {
+    $refused = [...$this->own, 'public' => 'yes'];
+    $file = ctFile([$refused], ['grants' => [['type' => 'film', 'role' => 'editor', 'abilities' => ['create']]]]);
+
+    expect(fn () => ($this->import)($file))->toThrow(function (ValidationException $refusal): void {
+        expect($refusal->errors())->toHaveKey('types.0')
+            ->and($refusal->errors())->not->toHaveKey('grants.0');
+    });
+});

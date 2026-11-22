@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Users;
 
+use App\Domain\Contents\Slugs;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Phases\ImportContext;
@@ -155,7 +156,7 @@ final readonly class UsersPhase implements ListPhase
         ['slug' => $slug] = WordPressSlugs::fromWordPress($nicename);
 
         if ($slug === '') {
-            ['slug' => $slug] = WordPressSlugs::fromWordPress(Str::slug($name) ?: 'author');
+            ['slug' => $slug] = WordPressSlugs::fromWordPress(Slugs::fromText($name) ?: 'author');
         }
 
         $holder = User::query()->where('slug', $slug)->value('id');

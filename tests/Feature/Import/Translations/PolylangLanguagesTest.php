@@ -63,7 +63,9 @@ it('reads a site whose companion has no languages route as one without Polylang,
     $languages = app(ImportedLanguages::class)->refresh($source->id, ($this->reader)());
 
     expect($languages->active)->toBeFalse()
+        ->and($languages->answered)->toBeFalse()
         ->and(app(ImportedLanguages::class)->for($source->id)->active)->toBeFalse()
+        ->and(app(ImportedLanguages::class)->for($source->id)->answered)->toBeFalse()
         ->and($this->site->companion->requestsTo('languages'))->toHaveCount(1);
 });
 

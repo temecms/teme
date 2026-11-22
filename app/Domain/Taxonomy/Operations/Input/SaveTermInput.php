@@ -15,17 +15,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations\Input;
 
+use App\Domain\Contents\Slugs;
 use Teme\Contracts\Operations\OperationInput;
 
 final readonly class SaveTermInput implements OperationInput
 {
+    /** The slug in its composed form, the form a request's address is looked up by. */
+    public ?string $slug;
+
     /**
      * @param  string|null  $language  a new term's language, a site language's tag; null for the default (I-3360). An update keeps the term's own.
      */
     public function __construct(
         public string $taxonomy,
         public string $name,
-        public ?string $slug,
+        ?string $slug,
         public ?string $parentId,
         public ?string $description,
         public ?string $actorId,
@@ -33,7 +37,9 @@ final readonly class SaveTermInput implements OperationInput
         public bool $keepParent = false,
         public bool $keepDescription = false,
         public ?string $language = null,
-    ) {}
+    ) {
+        $this->slug = $slug === null ? null : Slugs::normal($slug);
+    }
 
     public function actorId(): ?string
     {

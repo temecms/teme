@@ -44,6 +44,35 @@ final class TermRules
     }
 
     /**
+     * Returns those of these term IDs that usableBy() accepts for an item of
+     * this type in this language, in their order.
+     *
+     * @param  list<string>  $termIds
+     * @param  string|null  $language  the item's language as a row stores it: null for the default
+     *
+     * @return list<string>
+     *
+     * @since next
+     */
+    public static function usableAmong(array $termIds, string $type, ?string $language = null): array
+    {
+        if ($termIds === []) {
+            return [];
+        }
+
+        $taxonomies = array_map(fn (Taxonomy $taxonomy): string => $taxonomy->key, app(TaxonomyRegistry::class)->forType($type));
+        $shared = TranslatedTypes::untranslatedTaxonomies();
+
+        $usable = DB::table('terms')->whereIn('id', $termIds)->whereIn('taxonomy', $taxonomies)
+            ->where(fn (Builder $query) => $query
+                ->when($shared !== [], fn (Builder $q) => $q->whereIn('taxonomy', $shared))
+                ->orWhere(fn (Builder $q) => $language === null ? $q->whereNull('language') : $q->where('language', $language)))
+            ->pluck('id')->map(fn (mixed $id): string => (string) $id)->all();
+
+        return array_values(array_filter($termIds, fn (string $id): bool => in_array($id, $usable, true)));
+    }
+
+    /**
      * Refuses, naming it, the first of these terms that is in another
      * language than the item's, so an editor learns which to change rather
      * than that one is invalid.

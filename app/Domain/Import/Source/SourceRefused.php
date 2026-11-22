@@ -52,9 +52,16 @@ final class SourceRefused extends RuntimeException
         parent::__construct($words);
     }
 
-    public static function unreachable(): self
+    /**
+     * @param  string|null  $why  what went wrong with the connection, in plain words, when it is known
+     */
+    public static function unreachable(?string $why = null): self
     {
-        return new self(self::UNREACHABLE, 'address', true, 'Teme couldn’t reach the site. Check the address, and that the site is up.');
+        $words = $why === null
+            ? __('Teme couldn’t reach the site. Check the address, and that the site is up.')
+            : __('Teme couldn’t reach the site: :why. Check the address, and that the site is up.', ['why' => $why]);
+
+        return new self(self::UNREACHABLE, 'address', true, $words);
     }
 
     public static function busy(int $status): self
@@ -86,6 +93,21 @@ final class SourceRefused extends RuntimeException
     public static function tooOld(int $api): self
     {
         return new self(self::TOO_OLD, 'address', false, 'This site’s Teme Companion plugin is too old for Teme. Update it, then try again.');
+    }
+
+    /**
+     * The site reports Polylang, and its companion has no languages route
+     * to bring the languages: imported, everything would land in one.
+     *
+     * @since next
+     */
+    public static function languagesTooOld(int $languages, string $version): self
+    {
+        $words = $languages === 1
+            ? __('The site report says Polylang is on, with 1 language, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to :version or later, then choose Analyze again.', ['version' => $version])
+            : __('The site report says Polylang is on, with :count languages, and this site’s Teme Companion plugin is too old to bring languages across: everything would come in one language. Update the plugin to :version or later, then choose Analyze again.', ['count' => $languages, 'version' => $version]);
+
+        return new self(self::TOO_OLD, 'address', false, $words);
     }
 
     public static function noApplicationPasswords(): self

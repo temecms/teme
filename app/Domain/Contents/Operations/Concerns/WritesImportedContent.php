@@ -66,13 +66,13 @@ trait WritesImportedContent
         $terms = array_values(array_unique($item->terms));
         $current = $content->working_revision_id === null ? null : ContentRevision::query()->find($content->working_revision_id);
 
-        // The same words with new block IDs are the stored document, its IDs kept (I-3362).
-        if ($current !== null && BlockIds::without((array) $current->document) == BlockIds::without($document)) {
-            $document = (array) $current->document;
+        // A block with the same words as a stored one keeps the stored one's IDs, so the same words are the stored document.
+        if ($current !== null && is_array($document['content'] ?? null) && is_array($current->document['content'] ?? null)) {
+            $document['content'] = BlockIds::kept(array_values($document['content']), array_values($current->document['content']));
         }
 
-        // Loose comparison: JSONB gives a document's keys back in its own order.
-        $revised = $current !== null && ($current->title !== $item->title || $current->document != $document || $current->fields != $fields || $current->terms !== $terms);
+        // Key order is ignored, since JSONB gives keys back in its own order; values compare strictly.
+        $revised = $current !== null && ($current->title !== $item->title || ! BlockIds::same((array) $current->document, $document) || $current->fields != $fields || $current->terms !== $terms);
 
         $revision = $current === null || $revised ? ContentRevision::query()->create([
             'content_id' => $content->id,

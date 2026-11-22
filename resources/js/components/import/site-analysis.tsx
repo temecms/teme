@@ -121,7 +121,9 @@ export function SiteAnalysis({
                                 <div key={row.key} className="contents">
                                     <dt className="text-ink-2">{row.label}</dt>
                                     <dd className="text-end tabular-nums">
-                                        {row.count.toLocaleString()}
+                                        {row.count === null
+                                            ? __('Not counted in the report')
+                                            : row.count.toLocaleString()}
                                     </dd>
                                 </div>
                             ))}

@@ -17,6 +17,7 @@ namespace App\Domain\People\Operations\Concerns;
 
 use App\Domain\Addresses\Addresses;
 use App\Domain\Addresses\Paths;
+use App\Domain\Contents\Slugs;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -33,7 +34,7 @@ trait ValidatesPersonDetails
             array_filter(['name' => $name === null ? null : trim($name), 'slug' => $slug, 'bio' => $bio === null ? null : trim($bio)], fn (?string $value): bool => $value !== null),
             [
                 'name' => ['sometimes', 'required', 'string', 'max:255'],
-                'slug' => ['sometimes', 'required', 'string', 'max:190', 'regex:/^[\p{Ll}\p{Lo}\p{N}]+(?:-[\p{Ll}\p{Lo}\p{N}]+)*$/u'],
+                'slug' => ['sometimes', 'required', 'string', 'max:190', 'regex:'.Slugs::RULE],
                 'bio' => ['sometimes', 'nullable', 'string', 'max:1000'],
             ],
             [

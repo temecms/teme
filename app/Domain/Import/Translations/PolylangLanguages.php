@@ -43,6 +43,7 @@ final readonly class PolylangLanguages
      * @param  array<string, array<string, array<string, int>>>  $menus
      * @param  array<string, list<array{name: string, translation: string}>>  $strings
      * @param  array<string, array{name: string, languages: int}>  $others  plugin slug => its name and its languages
+     * @param  bool  $answered  false when the companion has no languages route to ask
      */
     private function __construct(
         public bool $active,
@@ -54,6 +55,7 @@ final readonly class PolylangLanguages
         public array $menus,
         public array $strings,
         public array $others = [],
+        public bool $answered = true,
     ) {}
 
     /**
@@ -68,6 +70,17 @@ final readonly class PolylangLanguages
     }
 
     /**
+     * What a companion too old to have the languages route says: nothing,
+     * read as a site without Polylang, marked as not answered.
+     *
+     * @since next
+     */
+    public static function unanswered(): self
+    {
+        return new self(false, '', [], [], [], [], [], [], [], false);
+    }
+
+    /**
      * The companion's answer, read: languages without a slug or a locale
      * are left out, and a default that names none of them makes it read as
      * a site without Polylang.
@@ -76,6 +89,11 @@ final readonly class PolylangLanguages
      */
     public static function fromAnswer(array $answer): self
     {
+        // Only toArray() writes it: a kept answer from a companion with no languages route.
+        if (($answer['answered'] ?? true) === false) {
+            return self::unanswered();
+        }
+
         $others = [];
 
         foreach (self::map($answer['others'] ?? null) as $plugin => $other) {
@@ -298,6 +316,7 @@ final readonly class PolylangLanguages
             'menus' => $this->menus,
             'strings' => $this->strings,
             'others' => $this->others,
+            'answered' => $this->answered,
         ];
     }
 

@@ -209,7 +209,7 @@ it('drops core\'s dynamic blocks and tables of contents, naming each, and joins 
         ->and($said)->toBe([
             ['block.dynamic', 'Left out 2 core/latest-posts blocks: WordPress drew them when the page loaded, and on Teme the theme does that job.', ['name' => 'core/latest-posts', 'count' => 2]],
             ['block.dynamic', 'Left out 1 core/query block: WordPress drew it when the page loaded, and on Teme the theme does that job.', ['name' => 'core/query', 'count' => 1]],
-            ['block.contents-list', 'Left out 1 table of contents (simpletoc/toc): Teme’s theme draws its own.', ['name' => 'simpletoc/toc', 'count' => 1]],
+            ['block.contents-list', 'Left out 1 table of contents (simpletoc/toc): Teme and its theme don’t draw one; a table-of-contents plugin can.', ['name' => 'simpletoc/toc', 'count' => 1]],
             ['block.page-break', 'Joined the article’s 3 pages into one: Teme shows each article on a single page.', ['count' => 2]],
         ]);
 });

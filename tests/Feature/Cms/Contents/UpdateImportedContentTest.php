@@ -123,6 +123,41 @@ it('writes nothing when WordPress’s item comes again with the same words and n
         ->and(array_map(fn (array $node): string => $node['attrs']['id'], $document['content']))->toBe(['01K5Z9P2QH7N3X4C8V6B0M1T3D', '01K5Z9P2QH7N3X4C8V6B0M1T3E']);
 });
 
+it('keeps the stored ids of every block WordPress didn’t change when one word of the body changed', function (): void {
+    $words = fn (string $heading, string $card, string $paragraph, string $text): array => ['type' => 'doc', 'content' => [
+        ['type' => 'heading', 'attrs' => ['level' => 2, 'id' => $heading], 'content' => [['type' => 'text', 'text' => 'Tides']]],
+        ['type' => 'paragraph', 'attrs' => ['id' => $card], 'content' => [['type' => 'text', 'text' => 'High water at noon.']]],
+        ['type' => 'paragraph', 'attrs' => ['id' => $paragraph], 'content' => [['type' => 'text', 'text' => $text]]],
+    ]];
+    [$content, $written] = upcImported($this->author, ['document' => $words('01K5Z9P2QH7N3X4C8V6B0M1T3D', '01K5Z9P2QH7N3X4C8V6B0M1T3E', '01K5Z9P2QH7N3X4C8V6B0M1T3F', 'The ferries ran late.')]);
+
+    $result = upcUpdate($content, $written, ContentImports::item($this->author, [
+        'document' => $words('01K5Z9P2QH7N3X4C8V6B0M1T3G', '01K5Z9P2QH7N3X4C8V6B0M1T3H', '01K5Z9P2QH7N3X4C8V6B0M1T3J', 'The ferries ran early.'),
+        'modifiedAt' => CarbonImmutable::parse('2019-06-01 10:00:00', 'UTC'),
+    ]));
+    $document = (array) ContentRevision::query()->findOrFail($content->refresh()->working_revision_id)->document;
+
+    expect($result['wrote'])->toBeTrue()
+        ->and(array_map(fn (array $node): string => $node['attrs']['id'], $document['content']))->toBe(['01K5Z9P2QH7N3X4C8V6B0M1T3D', '01K5Z9P2QH7N3X4C8V6B0M1T3E', '01K5Z9P2QH7N3X4C8V6B0M1T3J'])
+        ->and($document['content'][2]['content'][0]['text'])->toBe('The ferries ran early.');
+});
+
+it('brings an edit that only loose comparison would call the same, such as 10 to 10.0', function (): void {
+    $words = fn (string $text, string $id): array => ['type' => 'doc', 'content' => [
+        ['type' => 'paragraph', 'attrs' => ['id' => $id], 'content' => [['type' => 'text', 'text' => $text]]],
+    ]];
+    [$content, $written] = upcImported($this->author, ['document' => $words('10', '01K5Z9P2QH7N3X4C8V6B0M1T3D')]);
+
+    $result = upcUpdate($content, $written, ContentImports::item($this->author, [
+        'document' => $words('10.0', '01K5Z9P2QH7N3X4C8V6B0M1T3E'),
+        'modifiedAt' => CarbonImmutable::parse('2019-06-01 10:00:00', 'UTC'),
+    ]));
+    $document = (array) ContentRevision::query()->findOrFail($content->refresh()->working_revision_id)->document;
+
+    expect($result['wrote'])->toBeTrue()
+        ->and($document['content'][0]['content'][0]['text'])->toBe('10.0');
+});
+
 it('keeps a person’s change, whatever they changed, and says so', function (string $change): void {
     [$content, $written] = upcImported($this->author);
 

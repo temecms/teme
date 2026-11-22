@@ -147,6 +147,21 @@ final class PolylangSite
     }
 
     /**
+     * Files one post or page under these WordPress terms instead, the rest
+     * of the site unchanged.
+     *
+     * @param  array<string, list<int>>  $terms
+     */
+    public function filed(int $id, array $terms): self
+    {
+        $this->content();
+        $this->content[$id]['terms'] = $terms;
+        $this->companion->items('content', array_values($this->content));
+
+        return $this;
+    }
+
+    /**
      * Sets every route's items from the site as it stands.
      */
     private function set(): void

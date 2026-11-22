@@ -105,7 +105,7 @@ final class UpdateContentDetails extends BaseOperation
             ],
             [
                 'title' => ['nullable', 'string', 'min:1', 'max:512'],
-                'slug' => ['nullable', 'string', 'max:200', 'regex:/^[\p{Ll}\p{Lo}\p{N}]+(?:-[\p{Ll}\p{Lo}\p{N}]+)*$/u'],
+                'slug' => ['nullable', 'string', 'max:200', 'regex:'.Slugs::RULE],
                 'author' => ['nullable', Rule::exists('users', 'id')],
                 'terms' => ['nullable', 'array', 'max:50'],
                 'terms.*' => ['string', 'distinct'],

@@ -181,6 +181,20 @@ it('a catch-up that brings a changed block writes it into every post that uses i
         ->and(SecondPassImports::words(spItem($this->source->id, 13)))->toBe('Boats came in at dawn. Open daily from nine. The tide turned at noon.');
 });
 
+it('a catch-up that brings a reusable block again with the same words keeps every block ID and writes nothing', function (): void {
+    SecondPassImports::run($this->companion, $this->source, [SecondPassImports::using(12, 88), SecondPassImports::block(88)]);
+    $item = spItem($this->source->id, 12);
+    $ids = fn (): array => array_map(fn (array $node): ?string => $node['attrs']['id'] ?? null, (array) ContentRevision::query()->findOrFail($item->refresh()->working_revision_id)->document['content']);
+    $before = $ids();
+    $revisions = ContentRevision::query()->where('content_id', $item->id)->count();
+    $this->travel(5)->seconds();
+
+    SecondPassImports::run($this->companion, $this->source, [SecondPassImports::block(88, 'Open daily from nine.', ['modified_gmt' => CarbonImmutable::now('UTC')->format('Y-m-d H:i:s')])], ImportRunKind::CatchUp);
+
+    expect($ids())->toBe($before)
+        ->and(ContentRevision::query()->where('content_id', $item->id)->count())->toBe($revisions);
+});
+
 it('a catch-up that changes only a block inside another block still reaches the post that uses the outer one', function (): void {
     $outer = ['blocks' => [wpBlock('core/paragraph', '<p>Opening hours:</p>'), wpBlock('core/block', '', ['ref' => 90])]];
     SecondPassImports::run($this->companion, $this->source, [SecondPassImports::using(12, 88), SecondPassImports::block(88, '', $outer), SecondPassImports::block(90)]);

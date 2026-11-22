@@ -14,11 +14,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
 
+use App\Domain\Contents\Slugs;
 use App\Domain\Contents\Tree\TreePlace;
 use Teme\Contracts\Operations\OperationInput;
 
 final readonly class UpdateContentDetailsInput implements OperationInput
 {
+    /** The slug in its composed form, the form a request's address is looked up by. */
+    public ?string $slug;
+
     /**
      * @param  list<string>|null  $terms  the whole new list, in the editor's order
      * @param  array<string, mixed>|null  $fields  field key => new value, only the fields to change
@@ -29,13 +33,15 @@ final readonly class UpdateContentDetailsInput implements OperationInput
         public string $expectedRevisionId,
         public ?string $actorId,
         public ?string $title = null,
-        public ?string $slug = null,
+        ?string $slug = null,
         public ?int $authorId = null,
         public ?array $terms = null,
         public ?string $publishedAt = null,
         public ?array $fields = null,
         public ?TreePlace $place = null,
-    ) {}
+    ) {
+        $this->slug = $slug === null ? null : Slugs::normal($slug);
+    }
 
     public function actorId(): ?string
     {

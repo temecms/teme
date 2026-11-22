@@ -62,7 +62,8 @@ export type ImportRunView = {
 export type SiteAnalysisView = {
     reported: boolean;
     reportedAt: string | null;
-    comes: { key: string; label: string; count: number }[];
+    /** A null count: the site report doesn't count that kind. */
+    comes: { key: string; label: string; count: number | null }[];
     stays: {
         key: string;
         wordpressKey: string | null;
