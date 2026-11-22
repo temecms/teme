@@ -39,3 +39,27 @@ it('passes axe at a phone\'s width, and its sidebar\'s drawer holds the title th
     $page->click('[data-sidebar="trigger"]')
         ->assertScript("(() => { const drawer = document.querySelector('[data-mobile=\"true\"][role=\"dialog\"]'); const title = drawer && document.getElementById(drawer.getAttribute('aria-labelledby')); return title !== null && drawer.contains(title) && title.textContent === 'Main menu'; })()");
 });
+
+it('closes the phone menu when a page is chosen', function (): void {
+    $posts = route('content.index', ['type' => 'posts'], false);
+    $page = cmSignIn($this->admin)->resize(375, 812);
+
+    $page->click('[data-sidebar="trigger"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-mobile="true"][role="dialog"]\') !== null');
+
+    $page->click("a[data-slot=\"sidebar-menu-button\"][href=\"{$posts}\"]");
+    cmWaitUntil($page, "location.pathname === '{$posts}'");
+    cmWaitUntil($page, <<<'JS'
+        (() => {
+            const drawer = document.querySelector('[data-mobile="true"][role="dialog"]');
+            return drawer === null || drawer.getAttribute('data-state') === 'closed';
+        })()
+        JS);
+
+    expect($page->script(<<<'JS'
+        () => {
+            const drawer = document.querySelector('[data-mobile="true"][role="dialog"]');
+            return drawer === null || drawer.getAttribute('data-state') === 'closed';
+        }
+        JS))->toBeTrue();
+});

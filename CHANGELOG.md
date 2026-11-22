@@ -12,6 +12,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Long Settings group names in the side list wrap onto a second line instead of being cut off.
 - The editor’s title field grows to fit a two-line title in every script, with no scrollbar of its own.
 - An empty SEO title’s placeholder is only the title the template makes, not “Using the title template:” as well.
+- On a phone, choosing a page in the admin menu closes the menu as the page opens.
 
 ## [1.3.2] — 2026-11-20
 

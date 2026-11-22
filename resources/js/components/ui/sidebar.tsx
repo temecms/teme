@@ -1,3 +1,4 @@
+import { router } from "@inertiajs/react"
 import { Slot } from "@radix-ui/react-slot"
 import type { VariantProps} from "class-variance-authority";
 import { cva } from "class-variance-authority"
@@ -85,6 +86,15 @@ function SidebarProvider({
       setOverlayOpen(false)
     }
   }, [width])
+
+  // Choosing a page on the phone closes the drawer as the new page opens.
+  React.useEffect(
+    () =>
+      router.on("start", () => {
+        setOpenMobile(false)
+      }),
+    [],
+  )
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -650,6 +660,7 @@ function SidebarMenuButton({
   size = "default",
   tooltip,
   className,
+  onClick,
   ...props
 }: React.ComponentProps<"button"> & {
   asChild?: boolean
@@ -657,7 +668,7 @@ function SidebarMenuButton({
   tooltip?: string | React.ComponentProps<typeof TooltipContent>
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot : "button"
-  const { isMobile, state } = useSidebar()
+  const { isMobile, state, setOpenMobile } = useSidebar()
 
   const button = (
     <Comp
@@ -666,6 +677,12 @@ function SidebarMenuButton({
       data-size={size}
       data-active={isActive}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+      onClick={(event) => {
+        if (isMobile) {
+          setOpenMobile(false)
+        }
+        onClick?.(event)
+      }}
       {...props}
     />
   )
@@ -819,6 +836,7 @@ function SidebarMenuSubButton({
   size = "md",
   isActive = false,
   className,
+  onClick,
   ...props
 }: React.ComponentProps<"a"> & {
   asChild?: boolean
@@ -826,6 +844,7 @@ function SidebarMenuSubButton({
   isActive?: boolean
 }) {
   const Comp = asChild ? Slot : "a"
+  const { isMobile, setOpenMobile } = useSidebar()
 
   return (
     <Comp
@@ -841,6 +860,12 @@ function SidebarMenuSubButton({
         "group-data-[collapsible=icon]:hidden",
         className
       )}
+      onClick={(event) => {
+        if (isMobile) {
+          setOpenMobile(false)
+        }
+        onClick?.(event)
+      }}
       {...props}
     />
   )
