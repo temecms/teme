@@ -111,6 +111,33 @@ it('shows Title\'s and Excerpt\'s labels only while they are focused, and keeps 
     $page->assertScript(($this->esfLabelShown)('editor-title'), false);
 });
 
+it('grows the title field to fit a two-line Hindi or Thai title, with no scrollbar of its own', function (string $title): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), "/admin/content/{$this->empty->id}/edit"));
+
+    $page->click('#editor-title')->clear('#editor-title')->type('#editor-title', $title);
+    cmWaitUntil($page, 'document.getElementById("editor-title")?.value.length > 20');
+
+    $scrolls = $page->script(<<<'JS'
+        () => {
+            const field = document.getElementById('editor-title');
+            if (field === null) {
+                return null;
+            }
+
+            return {
+                scrolls: field.scrollHeight > field.clientHeight + 1,
+                overflowY: getComputedStyle(field).overflowY,
+            };
+        }
+        JS);
+
+    expect($scrolls['scrolls'])->toBeFalse()
+        ->and($scrolls['overflowY'])->toBeIn(['hidden', 'clip']);
+})->with([
+    'Hindi' => ['छुट्टियों में पालतू जानवर का तोहफा: देने से पहले जान लें ये 10 जरूरी बातें'],
+    'Thai' => ['สุนัขพันธุ์เล็กที่เลี้ยงง่าย เหมาะกับคอนโดและบ้านในเมืองสำหรับครอบครัวใหม่'],
+]);
+
 it('counts words, characters and reading time under the body as it is typed, each number first', function (): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), "/admin/content/{$this->empty->id}/edit"));
 

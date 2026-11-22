@@ -10,6 +10,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - The jobs menu shows “Finished” alone when a job’s message only repeats that status.
 - A failed job’s reason in the jobs menu ends with one full stop, not two.
 - Long Settings group names in the side list wrap onto a second line instead of being cut off.
+- The editor’s title field grows to fit a two-line title in every script, with no scrollbar of its own.
 
 ## [1.3.2] — 2026-11-20
 

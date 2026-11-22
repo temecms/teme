@@ -1520,13 +1520,14 @@ export default function ContentEdit(page: ContentEditPage) {
                                     id="editor-title"
                                     spellCheck={spellcheck}
                                     aria-describedby="editor-title-error"
+                                    autoGrow
                                     rows={1}
                                     placeholder={__('Title')}
                                     value={title}
                                     onChange={(event) =>
                                         setTitle(event.target.value)
                                     }
-                                    className="text-display field-sizing-content resize-none border-0 bg-transparent px-0 py-0 font-serif font-semibold text-balance focus-visible:outline-0"
+                                    className="text-display resize-none border-0 bg-transparent px-0 py-0 font-serif font-semibold text-balance focus-visible:outline-0"
                                 />
                                 <InputError id="editor-title-error" />
                             </div>

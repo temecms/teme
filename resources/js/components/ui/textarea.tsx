@@ -30,7 +30,7 @@ function Textarea({
     <textarea
       ref={ref}
       data-slot="textarea"
-      rows={Math.max(rows, 3)}
+      rows={autoGrow ? rows : Math.max(rows, 3)}
       onInput={(event) => {
         grow()
         onInput?.(event)
