@@ -73,3 +73,18 @@ it('gives back the real-markup samples\' blocks from the markup they were stored
 
     expect(BlockMarkup::parse($html))->toBe($expected);
 })->with(fn (): array => array_map('basename', glob(dirname(__DIR__, 3).'/Fixtures/Import/real-markup/*.json') ?: []));
+
+/*
+ * Posts written for these tests, and the blocks WordPress's own parse_blocks()
+ * made of them, produced by running WordPress outside Teme: Teme's reader must
+ * agree with it on well-formed markup, which is what sites store. On broken
+ * markup the two differ on purpose: WordPress gives an unclosed block's text
+ * twice and turns everything after a stray closer into one freeform block;
+ * Teme keeps each piece of text once, in its block (the fixtures in blocks/).
+ */
+it('reads stored posts into exactly the blocks WordPress makes of them', function (string $name): void {
+    $dir = base_path('tests/Fixtures/Import/file/wordpress');
+    $expected = json_decode((string) file_get_contents("{$dir}/{$name}.parsed.json"), true, 512, JSON_THROW_ON_ERROR);
+
+    expect(BlockMarkup::parse((string) file_get_contents("{$dir}/{$name}.html")))->toBe($expected);
+})->with(['post-gutenberg', 'post-layout', 'post-embeds', 'post-mixed-classic']);

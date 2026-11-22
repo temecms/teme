@@ -41,3 +41,18 @@ it('gives the real-markup samples\' freeform chunks the paragraphs wpautop() gav
         expect(Paragraphs::make($block['innerHTML']))->toBe($block['autop']);
     }
 })->with(['tagdiv-row.json', 'wpbakery-row.json']);
+
+/*
+ * Classic posts written for these tests, and the HTML WordPress's own wpautop()
+ * made of them (with its default shortcodes registered, and shortcode_unautop()
+ * after it, as a site shows a post), produced by running WordPress outside Teme.
+ * They leave out where WordPress's output is broken HTML: it wraps a script in
+ * paragraphs and leaves a div's first paragraph unopened. Teme's own fixtures in
+ * paragraphs/ hold the right result for those.
+ */
+it('makes the paragraphs WordPress makes of a classic post', function (string $name): void {
+    $dir = base_path('tests/Fixtures/Import/file/wordpress');
+
+    expect(Paragraphs::make((string) file_get_contents("{$dir}/{$name}.html")))
+        ->toBe((string) file_get_contents("{$dir}/{$name}.autop.html"));
+})->with(['classic-article', 'classic-shortcodes']);
