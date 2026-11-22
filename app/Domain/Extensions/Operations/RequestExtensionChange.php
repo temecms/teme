@@ -97,7 +97,7 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
             'package' => $input->action->namesPackage() ? $input->package : null,
             'constraint' => $this->constraint($input),
             'source_kind' => $this->sourceKind($input),
-            'source_id' => $this->changesCode($input) && $this->sourceKind($input) !== PackagistSource::KEY ? $input->sourceId : null,
+            'source_id' => $this->changesCode($input) && $this->sourceKind($input) !== PackagistSource::KEY ? $this->sourceId($input) : null,
             'upload_id' => $this->changesCode($input) ? $input->uploadId : null,
             'status' => RequestStatus::Requested->value,
             'requested_by' => $input->actorId() === null ? null : (int) $input->actorId(),
@@ -241,6 +241,10 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
         }
 
         if ($kind === self::UPLOAD) {
+            if ($input->action === ExtensionAction::Update && $input->uploadId === null) {
+                return __(':name was uploaded by hand, so it can’t be updated in place. Upload the new version.', ['name' => $package]);
+            }
+
             $upload = $input->uploadId === null ? null : ExtensionUploadRecord::query()->find($input->uploadId);
 
             return match (true) {
@@ -254,7 +258,8 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
             return $this->directoryRefusal($input, $package);
         }
 
-        $source = $input->sourceId === null ? null : ExtensionSourceRecord::query()->find($input->sourceId);
+        $sourceId = $this->sourceId($input);
+        $source = $sourceId === null ? null : ExtensionSourceRecord::query()->find($sourceId);
 
         return $source === null || $source->kind !== $kind ? __('Choose a saved source, or add one.') : null;
     }
@@ -284,7 +289,39 @@ final class RequestExtensionChange extends BaseOperation implements RequiresElev
             return null;
         }
 
-        return $input->sourceKind ?? PackagistSource::KEY;
+        return $input->sourceKind ?? $this->installedFrom($input)->source_kind ?? PackagistSource::KEY;
+    }
+
+    /**
+     * The saved source the request uses: the one it names, or for an update that names none, the one
+     * the package was installed from.
+     */
+    private function sourceId(RequestExtensionChangeInput $input): ?string
+    {
+        if ($input->sourceKind !== null) {
+            return $input->sourceId;
+        }
+
+        return $input->sourceId ?? $this->installedFrom($input)?->source_id;
+    }
+
+    /**
+     * The last finished request that installed or updated the package an update names, which holds the
+     * source it came from; null for an install, an update that names its source, or a package no request
+     * here installed.
+     */
+    private function installedFrom(RequestExtensionChangeInput $input): ?object
+    {
+        if ($input->action !== ExtensionAction::Update || $input->sourceKind !== null || $input->package === null) {
+            return null;
+        }
+
+        return DB::table('extension_requests')
+            ->where('package', $input->package)
+            ->whereIn('action', [ExtensionAction::Install->value, ExtensionAction::Update->value])
+            ->where('status', RequestStatus::Done->value)
+            ->orderByDesc('requested_at')
+            ->first(['source_kind', 'source_id']);
     }
 
     /**
