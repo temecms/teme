@@ -15,10 +15,30 @@ namespace App\Domain\Contents;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Normalizer;
 
 final class Slugs
 {
     /** Scripts whose vowel signs are combining marks, kept as written in a slug. */
+    /**
+     * Marks that can't be seen: the combining grapheme joiner and the
+     * variation selectors, which would make a second address look like
+     * the first.
+     *
+     * @since next
+     */
+    public const string INVISIBLE_MARKS = '\x{034F}\x{FE00}-\x{FE0F}\x{E0100}-\x{E01EF}';
+
+    /**
+     * Teme's slug rule: letters and numbers of any script, lower case, each
+     * letter with the vowel signs and other combining marks written with it
+     * (none it can't show), joined by single hyphens. A slug is checked in
+     * its composed form (normal()), the form a request is looked up by.
+     *
+     * @since next
+     */
+    public const string RULE = '/^(?!.*['.self::INVISIBLE_MARKS.'])(?:[\p{Ll}\p{Lo}\p{N}][\p{Mn}\p{Mc}]*)+(?:-(?:[\p{Ll}\p{Lo}\p{N}][\p{Mn}\p{Mc}]*)+)*$/u';
+
     private const string KEPT_SCRIPTS = '\p{Devanagari}\p{Bengali}\p{Gurmukhi}\p{Gujarati}\p{Oriya}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Sinhala}\p{Thai}\p{Lao}\p{Tibetan}\p{Myanmar}\p{Khmer}';
 
     /**
@@ -32,14 +52,28 @@ final class Slugs
      */
     public static function fromText(string $text): string
     {
+        $text = self::normal($text);
         // Str::ascii would spell these scripts in Latin letters without their vowels, or drop them.
         $text = (string) preg_replace_callback('/[^'.self::KEPT_SCRIPTS.']+/u', fn (array $run): string => Str::ascii($run[0], 'en'), $text);
         $text = str_replace(['_', '@'], ['-', '-at-'], $text);
-        $text = (string) preg_replace('/[^-\pL\pM\pN\s]+/u', '', mb_strtolower($text, 'UTF-8'));
+        $text = (string) preg_replace(['/['.self::INVISIBLE_MARKS.']/u', '/[^-\pL\p{Mn}\p{Mc}\pN\s]+/u'], '', mb_strtolower($text, 'UTF-8'));
         // A mark belongs to the letter before it; one with none goes.
-        $text = (string) preg_replace(['/[-\s]+/u', '/(?<=^|-)\pM+/u', '/-{2,}/'], ['-', '', '-'], $text);
+        $text = (string) preg_replace(['/[-\s]+/u', '/(?<=^|-)[\p{Mn}\p{Mc}]+/u', '/-{2,}/'], ['-', '', '-'], $text);
 
-        return trim($text, '-');
+        return self::normal(trim($text, '-'));
+    }
+
+    /**
+     * The text in Unicode's composed form (NFC), as every request's address
+     * is read: a slug stored in another form could never be opened.
+     *
+     * @since next
+     */
+    public static function normal(string $text): string
+    {
+        $composed = Normalizer::normalize($text, Normalizer::FORM_C);
+
+        return $composed === false ? $text : $composed;
     }
 
     /**

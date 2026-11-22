@@ -40,9 +40,6 @@ final class ImportedContents
     /** The most old addresses one item keeps: a plugin that loops can leave hundreds of old slugs. */
     public const int MOST_OLD_ADDRESSES = 50;
 
-    /** Teme's slug rule, as UpdateContentDetails holds it (I-397). */
-    private const string SLUG = '/^(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+(?:-(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+)*$/u';
-
     /**
      * Refuses an item Teme's own rules wouldn't save: its type, title, slug,
      * status and date, author, terms, fields, template, document and address.
@@ -63,7 +60,7 @@ final class ImportedContents
             throw ValidationException::withMessages(['title' => 'Give it a title of 512 characters or fewer.']);
         }
 
-        if (mb_strlen($item->slug) > 200 || preg_match(self::SLUG, $item->slug) !== 1) {
+        if (mb_strlen($item->slug) > 200 || preg_match(Slugs::RULE, $item->slug) !== 1) {
             throw ValidationException::withMessages(['slug' => 'Its address name must be letters and numbers joined by hyphens, 200 characters at most.']);
         }
 

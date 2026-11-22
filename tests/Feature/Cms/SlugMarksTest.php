@@ -11,6 +11,7 @@ use App\Domain\Users\UserSlugs;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
@@ -47,4 +48,46 @@ it('keeps WordPress’s own address when it holds vowel signs', function (string
 it('still turns a mark with no letter before it into nothing', function (): void {
     expect(Slugs::fromTitle("\u{0947}Owls"))->toBe('owls')
         ->and(WordPressSlugs::fromWordPress(rawurlencode("\u{0947}owls")))->toBe(['slug' => 'owls', 'kept' => false]);
+});
+
+dataset('decomposed titles', [
+    // ো typed as its two halves, U+09C7 U+09BE; NFC holds it as U+09CB.
+    'Bengali' => ["আমাদ\u{09C7}\u{09BE}র কথা"],
+    // ทุ่ง with the tone mark before the vowel sign below; NFC puts the vowel sign first.
+    'Thai' => ["ท\u{0E48}\u{0E38}ง นา"],
+]);
+
+it('makes an address in the form a request is looked up by, which the page answers at and the composed spelling clashes with', function (string $title): void {
+    $this->seed(RoleSeeder::class);
+    $editor = User::factory()->create()->assignRole('editor');
+    $post = lifecycleDraft($editor, $title);
+    listsPublish($post, $editor);
+    $slug = $post->refresh()->slug;
+    $composed = (string) Normalizer::normalize(Slugs::fromTitle($title), Normalizer::FORM_C);
+
+    expect($slug)->toBe($composed)
+        ->and(Slugs::unique('post', $composed))->toBe($composed.'-2');
+
+    $path = (string) addrCurrent('content', $post->id);
+    addrGet('/'.implode('/', array_map(rawurlencode(...), explode('/', $path))).'/')->assertOk();
+})->with('decomposed titles');
+
+it('stores a typed address in its composed form, so it can be opened', function (): void {
+    $this->seed(RoleSeeder::class);
+    $editor = User::factory()->create()->assignRole('editor');
+
+    $term = app(CreateTerm::class)->execute(new SaveTermInput('category', 'Café', "cafe\u{0301}", null, null, (string) $editor->id));
+
+    expect($term->slug)->toBe("caf\u{00E9}")
+        ->and(WordPressSlugs::fromWordPress(rawurlencode("cafe\u{0301}")))->toBe(['slug' => "caf\u{00E9}", 'kept' => true]);
+});
+
+it('refuses an address holding a variation selector, which can’t be seen', function (): void {
+    $this->seed(RoleSeeder::class);
+    $editor = User::factory()->create()->assignRole('editor');
+    app(CreateTerm::class)->execute(new SaveTermInput('category', 'About', 'about', null, null, (string) $editor->id));
+
+    expect(fn () => app(CreateTerm::class)->execute(new SaveTermInput('category', 'About', "abo\u{FE0F}ut", null, null, (string) $editor->id)))->toThrow(ValidationException::class)
+        ->and(Slugs::fromTitle("abo\u{FE0F}ut"))->toBe('about')
+        ->and(WordPressSlugs::fromWordPress(rawurlencode("abo\u{FE0F}ut"))['slug'])->toBe('about');
 });
