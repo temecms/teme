@@ -154,18 +154,39 @@ it('changes a role in a dialog from the row\'s menu, and says what happened, on 
     expect($this->author->refresh()->hasRole('editor'))->toBeTrue();
 });
 
-it('locks your own row\'s Change role…, saying why, and offers no menu there', function (): void {
+it('locks your own row\'s Change role… in the same actions place as other rows', function (): void {
     $page = cmSignIn($this->admin)
         ->navigate('/admin/users');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"own-row-lock\"]') !== null && document.querySelector('[aria-label=\"Actions for Ada Admin\"]') === null")
+    cmWaitUntil($page, "document.querySelector('[data-test=\"own-row-lock\"]') !== null")
         ->assertAttribute('[data-test="own-row-lock"]', 'aria-disabled', 'true')
         ->assertAttribute('[data-test="own-row-lock"]', 'aria-describedby', 'own-role-reason')
         ->assertScript("document.getElementById('own-role-reason').textContent", 'You can’t change your own role. Ask another administrator.')
-        // Pressed from the keyboard's focus, through the page itself: a locked
-        // button is one a browser driver refuses to click, by design.
-        ->assertScript("(() => { const lock = document.querySelector('[data-test=\"own-row-lock\"]'); lock.focus(); lock.click(); return document.activeElement === lock && document.querySelector('[role=\"dialog\"]') === null; })()", true)
-        ->click('a >> text="Manage yourself in Account"')
+        ->assertScript("(() => { const lock = document.querySelector('[data-test=\"own-row-lock\"]'); lock.focus(); lock.click(); return document.activeElement === lock && document.querySelector('[role=\"dialog\"]') === null; })()", true);
+
+    $layout = $page->script(<<<'JS'
+        () => {
+            const group = document.querySelector('[aria-label="Actions for you"]');
+            const lock = document.querySelector('[data-test="own-row-lock"]');
+            const account = group?.querySelector('a');
+            if (!group || !lock || !account) {
+                return null;
+            }
+
+            return {
+                sameLine: Math.abs(lock.getBoundingClientRect().top - account.getBoundingClientRect().top) < 8,
+                usesRowLinks: group.getAttribute('data-test') === 'row-links',
+                notLooseGrid: getComputedStyle(group).display !== 'grid',
+            };
+        }
+        JS);
+
+    expect($layout)->not->toBeNull()
+        ->and($layout['sameLine'])->toBeTrue()
+        ->and($layout['usesRowLinks'])->toBeTrue()
+        ->and($layout['notLooseGrid'])->toBeTrue();
+
+    $page->click('a >> text="Manage yourself in Account"')
         ->assertPathIs(route('profile.edit', [], false));
 });
 

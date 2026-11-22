@@ -10,36 +10,43 @@ import { edit as editProfile } from '@/routes/profile';
 import type { UserRow } from '@/types';
 
 /**
- * Your own row: nothing on it can change you, so the action people look for
- * is drawn locked on the row's line, beside the way to your account, with
- * the reason under them. The lock stays focusable, so a screen reader
- * reaches the reason.
+ * Your own row: the same actions place as every other row, with Change
+ * role… unavailable, its reason beside it, and Manage yourself in Account.
+ * The lock stays focusable, so a screen reader reaches the reason.
  */
 export function OwnRowLock() {
     return (
-        <div className="grid justify-items-start gap-1">
-            <div
-                role="group"
-                aria-label={__('Actions for you')}
-                className="text-small flex flex-wrap items-center gap-x-3"
+        <div
+            role="group"
+            aria-label={__('Actions for you')}
+            data-test="row-links"
+            className="mt-0.5 flex flex-wrap items-center gap-x-1 text-xs"
+        >
+            <TextButton
+                aria-disabled="true"
+                aria-describedby="own-role-reason"
+                data-test="own-row-lock"
+                className="text-ink-2 inline-flex min-h-6 cursor-not-allowed items-center gap-1 rounded-sm px-1 font-normal hover:decoration-transparent"
+                onClick={(event) => event.preventDefault()}
             >
-                <TextButton
-                    aria-disabled="true"
-                    aria-describedby="own-role-reason"
-                    data-test="own-row-lock"
-                    className="text-ink-2 cursor-not-allowed font-normal hover:decoration-transparent"
-                    onClick={(event) => event.preventDefault()}
-                >
-                    <Lock aria-hidden="true" className="size-4" />
-                    {__('Change role…')}
-                </TextButton>
-                <TextButton asChild className="font-normal">
-                    <Link href={editProfile()}>
-                        {__('Manage yourself in Account')}
-                    </Link>
-                </TextButton>
-            </div>
-            <p id="own-role-reason" className="text-caption text-ink-3">
+                <Lock aria-hidden="true" className="size-3.5" />
+                {__('Change role…')}
+            </TextButton>
+            <span aria-hidden="true" className="text-ink-2">
+                ·
+            </span>
+            <TextButton
+                asChild
+                className="text-accent-ink inline-flex min-h-6 items-center rounded-sm px-1 font-normal hover:underline"
+            >
+                <Link href={editProfile()}>
+                    {__('Manage yourself in Account')}
+                </Link>
+            </TextButton>
+            <p
+                id="own-role-reason"
+                className="text-caption text-ink-3 basis-full"
+            >
                 {__(
                     'You can’t change your own role. Ask another administrator.',
                 )}
