@@ -426,11 +426,9 @@ export function SearchPanel({
     const date = seo.kind === 'item' ? (seo.tokens.date ?? null) : null;
     const descriptionPlaceholder =
         description.from === 'excerpt' && description.text !== null
-            ? __('Using the excerpt: :value', { value: description.text })
+            ? description.text
             : description.from === 'tagline' && description.text !== null
-              ? __('Using the site’s tagline: :text', {
-                    text: description.text,
-                })
+              ? description.text
               : hasExcerpt
                 ? __(
                       'No excerpt either: search engines will choose text from the page',
@@ -640,12 +638,7 @@ export function SearchPanel({
                                         describedBy="editor-seo-title-count"
                                         rows={2}
                                         className={`${textareaClass} resize-none`}
-                                        placeholder={__(
-                                            'Using the title template: :title',
-                                            {
-                                                title: search.title.text,
-                                            },
-                                        )}
+                                        placeholder={search.title.text}
                                     />
                                     <MetadataProposal
                                         handle="seo_title"
@@ -851,12 +844,7 @@ export function SearchPanel({
                                         }
                                         id="editor-social-title"
                                         describedBy="editor-social-title-hint"
-                                        placeholder={__(
-                                            'Same as search: :value',
-                                            {
-                                                value: search.title.text,
-                                            },
-                                        )}
+                                        placeholder={search.title.text}
                                     />
                                     <MetadataProposal
                                         handle="social_title"
@@ -899,10 +887,7 @@ export function SearchPanel({
                                         placeholder={
                                             search.description.text === null
                                                 ? undefined
-                                                : __('Same as search: :value', {
-                                                      value: search.description
-                                                          .text,
-                                                  })
+                                                : search.description.text
                                         }
                                     />
                                     <MetadataProposal
