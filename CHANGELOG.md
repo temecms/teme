@@ -9,6 +9,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Home greets you with your whole name, not only the first word.
 - The jobs menu shows “Finished” alone when a job’s message only repeats that status.
 - A failed job’s reason in the jobs menu ends with one full stop, not two.
+- Long Settings group names in the side list wrap onto a second line instead of being cut off.
 
 ## [1.3.2] — 2026-11-20
 
