@@ -5,14 +5,7 @@ declare(strict_types=1);
 use App\Domain\Import\File\WxrRefused;
 use App\Domain\Import\File\WxrStream;
 use Illuminate\Support\Facades\Process;
-
-/**
- * The path of one of the file reader's fixtures.
- */
-function wxrFixture(string $name): string
-{
-    return dirname(__DIR__, 3).'/Fixtures/Import/file/'.$name;
-}
+use Tests\Fixtures\Import\ExportFiles;
 
 /**
  * The sentence a file is refused with, or null when it is read whole.
@@ -31,7 +24,7 @@ function wxrRefusal(string $path): ?string
 }
 
 it('reads the channel and each item of an export file of every version', function (string $version): void {
-    $stream = WxrStream::open(wxrFixture("wxr-{$version}.xml"));
+    $stream = WxrStream::open(ExportFiles::path("wxr-{$version}.xml"));
     $channel = $stream->channel();
     $items = iterator_to_array($stream->items());
 
@@ -58,30 +51,30 @@ it('reads the channel and each item of an export file of every version', functio
 })->with(['1.0', '1.1', '1.2']);
 
 it('refuses a file with a document type declaration before reading anything', function (): void {
-    expect(wxrRefusal(wxrFixture('doctype.xml')))
+    expect(wxrRefusal(ExportFiles::path('doctype.xml')))
         ->toBe('This file has a document type declaration, which an export file never has. Teme doesn’t read it.');
 });
 
 it('refuses an entity it would have to look up', function (): void {
-    expect(wxrRefusal(wxrFixture('entity.xml')))->toBe('That isn’t a WordPress export file.');
+    expect(wxrRefusal(ExportFiles::path('entity.xml')))->toBe('That isn’t a WordPress export file.');
 });
 
 it('refuses an RSS feed that isn’t an export', function (): void {
-    expect(wxrRefusal(wxrFixture('rss-feed.xml')))->toBe('That isn’t a WordPress export file.');
+    expect(wxrRefusal(ExportFiles::path('rss-feed.xml')))->toBe('That isn’t a WordPress export file.');
 });
 
 it('refuses a file that isn’t XML at all, and one that breaks off partway', function (): void {
     $folder = sys_get_temp_dir().'/wxr-'.bin2hex(random_bytes(4));
     mkdir($folder);
     file_put_contents("{$folder}/text.xml", 'Just some words.');
-    file_put_contents("{$folder}/cut.xml", substr((string) file_get_contents(wxrFixture('wxr-1.2.xml')), 0, -400));
+    file_put_contents("{$folder}/cut.xml", substr((string) file_get_contents(ExportFiles::path('wxr-1.2.xml')), 0, -400));
 
     expect(wxrRefusal("{$folder}/text.xml"))->toBe('That isn’t a WordPress export file.')
         ->and(wxrRefusal("{$folder}/cut.xml"))->toBe('That isn’t a WordPress export file.');
 });
 
 it('reads a resumed file from the item after the ones it already read', function (): void {
-    $items = iterator_to_array(WxrStream::open(wxrFixture('wxr-1.2.xml'))->items(1));
+    $items = iterator_to_array(WxrStream::open(ExportFiles::path('wxr-1.2.xml'))->items(1));
 
     expect(array_keys($items))->toBe([1])
         ->and($items[1]['fields']['wp:post_id'])->toBe('11');

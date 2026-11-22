@@ -3,22 +3,10 @@
 declare(strict_types=1);
 
 use App\Domain\Import\File\ChannelRows;
-use App\Domain\Import\File\ContentBlocks;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\File\MenuRows;
 use App\Domain\Import\File\WxrStream;
-
-/**
- * The block parser's stand-in until the parser's own part joins: the whole
- * content as one classic chunk, and paragraphs marked so a test sees them.
- */
-function wxrBlocks(): ContentBlocks
-{
-    return ContentBlocks::using(
-        fn (string $html): array => $html === '' ? [] : [['blockName' => null, 'attrs' => [], 'innerBlocks' => [], 'innerHTML' => $html, 'innerContent' => [$html]]],
-        fn (string $html): string => '<p>'.trim($html).'</p>',
-    );
-}
+use Tests\Fixtures\Import\ExportFiles;
 
 /**
  * Every row a fixture gives, by list and ID, with its menus put together,
@@ -28,9 +16,9 @@ function wxrBlocks(): ContentBlocks
  */
 function wxrRead(string $name): array
 {
-    $stream = WxrStream::open(dirname(__DIR__, 3).'/Fixtures/Import/file/'.$name);
+    $stream = WxrStream::open(ExportFiles::path($name));
     $channel = ChannelRows::read($stream->channel());
-    $reader = new ItemRows($channel['lookups'], wxrBlocks(), 'old.example');
+    $reader = new ItemRows($channel['lookups'], ExportFiles::blocks(), 'old.example');
     $rows = [];
     $facts = [];
 
