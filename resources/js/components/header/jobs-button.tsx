@@ -29,7 +29,8 @@ function nameOf(running: number, failed: number): string {
 
 /**
  * The status line under a job: the state alone when the message only repeats
- * it ("Finished."), else "Failed · reason" with the job's real summary.
+ * it ("Finished."), else "Failed · reason." with one closing stop — a reason
+ * that already ends with a stop is left as it is, not given a second.
  */
 function statusLine(stateLabel: string, message: string | null): string {
     if (message === null) {
@@ -47,7 +48,14 @@ function statusLine(stateLabel: string, message: string | null): string {
         return stateLabel;
     }
 
-    return `${stateLabel} · ${trimmed}`;
+    const ending = trimmed.match(/[.!?]+$/u)?.[0] ?? '';
+    const stop = ending.startsWith('!')
+        ? '!'
+        : ending.startsWith('?')
+          ? '?'
+          : '.';
+
+    return `${stateLabel} · ${withoutStops}${stop}`;
 }
 
 /**

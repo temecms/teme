@@ -125,3 +125,40 @@ it('shows Finished alone when a job’s message only repeats that status', funct
 
     expect($line)->toBe('Finished');
 });
+
+it('ends a failed job’s reason with one full stop, not two', function (): void {
+    HeaderFixtures::jobOf($this->author, [
+        'label' => 'Refresh the plugin directory',
+        'state' => 'failed',
+        'total' => 1,
+        'done' => 0,
+        'message' => 'The directory index can’t be used: This Teme has no key to check the directory’s signature with, so it reads nothing from the directory..',
+        'ended_at' => now(),
+    ]);
+
+    $page = cmSignIn($this->author);
+    cmWaitUntil($page, <<<'JS'
+        document.querySelector('[data-test="jobs-button"]') !== null
+        JS);
+
+    $page->click('[data-test="jobs-button"]');
+    cmWaitUntil($page, <<<'JS'
+        document.querySelector('[data-test="jobs-panel"][role="dialog"] [data-test="my-job"]') !== null
+        JS);
+
+    $line = $page->script(<<<'JS'
+        () => {
+            const row = document.querySelector('[data-test="my-job"]');
+            if (!row) {
+                return null;
+            }
+
+            const lines = Array.from(row.querySelectorAll('.text-caption'), (el) => el.textContent?.trim() ?? '');
+
+            return lines.find((text) => text.startsWith('Failed')) ?? null;
+        }
+        JS);
+
+    expect($line)->toBe('Failed · The directory index can’t be used: This Teme has no key to check the directory’s signature with, so it reads nothing from the directory.')
+        ->and($line)->not->toContain('..');
+});
