@@ -33,6 +33,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - When a plugin's AI task is waiting for you to agree to it again, the refusal says so, instead of saying the plugin declares no such task.
 - An inbox item from a plugin whose code starts with a digit is filed under that plugin, with its name and mark, instead of under Teme.
 - The limit of 100 plugin notices an hour is counted in one step, so two processes can't both slip past it.
+- The contracts reference lists every capability that gives a contract to a plugin (for example both content.insert and pages.insert for InlineScripts), not only the first.
 
 ## [1.3.2] — 2026-11-20
 

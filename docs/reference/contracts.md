@@ -16,12 +16,12 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Media\MediaWriter` | granted `media.write` | 1.0.0 |
 | `Teme\Contracts\Http\OutboundHttp` | granted `http` | 0.5.0 |
 | `Teme\Contracts\Jobs\Jobs` | granted `jobs` | 1.0.0 |
-| `Teme\Contracts\Insertions\InsertionsChanged` | granted `content.insert` | 1.0.0 |
+| `Teme\Contracts\Insertions\InsertionsChanged` | granted `content.insert` or `pages.insert` | 1.0.0 |
 | `Teme\Contracts\Fediverse\FediverseFollowers` | granted `fediverse.read` | 1.0.0 |
 | `Teme\Contracts\Fediverse\FediverseSender` | granted `fediverse.send` | 1.0.0 |
 | `Teme\Contracts\Site\SiteInfo` | always | 1.0.0 |
 | `Teme\Contracts\Settings\PluginSettingsWriter` | its manifest declares `contributes.settings` | 1.0.0 |
-| `Teme\Contracts\Insertions\InlineScripts` | granted `content.insert` | 1.0.0 |
+| `Teme\Contracts\Insertions\InlineScripts` | granted `content.insert` or `pages.insert` | 1.0.0 |
 | `Teme\Contracts\Content\ContentReader` | granted `content.read` | 1.0.0 |
 | `Teme\Contracts\People\PeopleReader` | granted `people.read` | 1.0.0 |
 | `Teme\Contracts\Ai\SiteAi` | granted `ai` and its manifest declares `contributes.aiTasks` | 1.0.0 |

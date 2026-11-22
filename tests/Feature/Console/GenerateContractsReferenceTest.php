@@ -137,3 +137,11 @@ it('keeps the committed contracts reference in step with the command', function 
 
     expect(file_get_contents($path))->toBe(file_get_contents(base_path('docs/reference/contracts.md')));
 });
+
+it('lists every capability that gives a contract, not only the first', function (): void {
+    $path = storage_path('framework/testing/contracts-reference-several.md');
+
+    $this->artisan('teme:docs:contracts', ['--output' => $path])->assertSuccessful();
+
+    expect(file_get_contents($path))->toContain('| `Teme\Contracts\Insertions\InlineScripts` | granted `content.insert` or `pages.insert` |');
+});
