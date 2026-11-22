@@ -9,6 +9,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Plugin link suggestions skip matches inside a code block (#536).
 - Plugin link suggestions match whole words only, not inside longer words (#537).
 - Plugin link suggestions link exactly the words they name, even words with letters such as İ that change length when compared (#539).
+- A page chosen as the home page shares under the home page's title (as its browser tab shows), not the page's own name such as "Home". A social or SEO title of its own still wins.
 
 ## [1.3.2] — 2026-11-20
 

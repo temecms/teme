@@ -127,7 +127,8 @@ final class PageHead
             $url,
             $canonical,
             $robots,
-            self::text($fields[BuiltInFields::SOCIAL_TITLE] ?? null) ?? $seoTitle ?? $model->title,
+            // The home page shares under the title its tab shows, not the page's own name, such as "Home".
+            self::text($fields[BuiltInFields::SOCIAL_TITLE] ?? null) ?? ($isFront ? $title : $seoTitle ?? $model->title),
             self::text($fields[BuiltInFields::SOCIAL_DESCRIPTION] ?? null) ?? $description,
             $isFront ? 'website' : 'article',
             $this->image($fields, $model->firstImageId),
