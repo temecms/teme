@@ -37,6 +37,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - In Add plugin and Add theme, the form to add a Git address or vendor source stays out of the way once a saved source is chosen, behind an "Add another address" link.
 - In Add plugin and Add theme, the saved-source choice and the other fields stay inside the sheet instead of running past its right edge.
 - The installer's Composer runs no longer start with "Failed to set memory limit to 0 bytes", which headed every error shown for a plugin or theme request.
+- Import: a post filed under a term Teme can't use for it (a term of another type's taxonomy, or of another language) comes across without that term, with a warning, instead of failing with "The selected terms.0 is invalid".
 
 ## [1.3.2] — 2026-11-20
 

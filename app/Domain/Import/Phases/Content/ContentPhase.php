@@ -53,6 +53,7 @@ use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Taxonomy\TermRules;
 use App\Domain\Themes\TemplateChoice;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
@@ -325,7 +326,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
         $path = WordPressPost::path($item);
         $supported = array_map(fn (Field $field): string => $field->key, $this->fields->forType($type->key));
         [$authorId, $notes] = $this->author($item, $context);
-        $terms = $this->terms($item, $type, $context);
+        $terms = $this->terms($item, $type, $context, $language);
         $seo = (new WordPressSeo($site, new MapTargets($context->sourceId), new ImportedMedia($context->sourceId)))
             ->read($item['seo'] ?? null, (int) $ref->id, $path, $supported, $terms['primaryTaxonomy']);
         $fields = $seo['fields'];
@@ -548,15 +549,15 @@ final class ContentPhase implements ListPhase, PreparesObjects
     /**
      * The item's terms in WordPress's order (each Teme taxonomy of its type
      * taking WordPress's terms of its WordPress name, through the map, still
-     * here, at most 50); its categories by WordPress's term_id, for the
-     * primary category; the WordPress name of the type's first hierarchical
-     * taxonomy; and what to say.
+     * here and ones the item may be filed under, at most 50); its categories
+     * by WordPress's term_id, for the primary category; the WordPress name
+     * of the type's first hierarchical taxonomy; and what to say.
      *
      * @param  array<string, mixed>  $item
      *
      * @return array{terms: list<string>, byTermId: array<int, string>, primaryTaxonomy: string|null, messages: list<ImportMessage>}
      */
-    private function terms(array $item, ContentType $type, ImportContext $context): array
+    private function terms(array $item, ContentType $type, ImportContext $context, ?string $language): array
     {
         $sent = is_array($item['terms'] ?? null) ? $item['terms'] : [];
         $wanted = [];
@@ -590,7 +591,8 @@ final class ContentPhase implements ListPhase, PreparesObjects
             $rows[(string) $row->object_id] = $row;
         }
 
-        $here = DB::table('terms')->whereIn('id', array_map(fn (ImportMapEntry $row): string => (string) $row->teme_id, $rows))->pluck('id')->map(fn (mixed $id): string => (string) $id)->all();
+        // Only terms the item may be filed under, so a term the save would refuse never fails the item.
+        $here = TermRules::usableAmong(array_values(array_map(fn (ImportMapEntry $row): string => (string) $row->teme_id, $rows)), $type->key, $language);
         $terms = [];
         // The primary taxonomy's terms by WordPress's term_id, for the primary category (I-869).
         $byTermId = [];

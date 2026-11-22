@@ -19,6 +19,7 @@ use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Phases\Content\ContentPhase;
 use App\Domain\Import\Phases\Content\ContentWaitingStep;
 use App\Domain\Import\Phases\ImportPhases;
+use App\Domain\Taxonomy\Models\Term;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Tests\Fixtures\Import\ContentImports;
+use Tests\Fixtures\Import\ImportRecords;
 
 uses(RefreshDatabase::class);
 
@@ -108,6 +110,39 @@ it('files it under its categories and tags, the SEO plugin’s primary category 
         ->and($second->fields[BuiltInFields::PRIMARY_CATEGORY])->toBe($news->id)
         ->and(ContentImports::codes(ContentImports::row($this->source->id, 12)))->toContain('post.terms-missing')
         ->and(ContentImports::codes(ContentImports::row($this->source->id, 12)))->toContain('post.terms-left');
+});
+
+it('brings a post holding a term of a skipped taxonomy across without it, saying so, never failing for it', function (): void {
+    $boats = typesTerm($this->admin, 'category', 'Boats');
+    ContentImports::term($this->source->id, $boats, 5, 7, 'category');
+    // The terms phase skipped term 30 of ef_usergroup, a taxonomy Teme doesn't have: its row has no Teme term.
+    ImportRecords::entry($this->source->id, ImportRecords::run($this->source->id), 'term', '30', 'skipped', ['teme_type' => null, 'teme_id' => null]);
+
+    ContentImports::run($this->companion, $this->source, [
+        ContentImports::wpItem(12, ['terms' => ['category' => [5], 'ef_usergroup' => [30], 'post_status' => [31]]]),
+    ]);
+    $row = ContentImports::row($this->source->id, 12);
+
+    expect($row?->status)->toBe(ImportStatus::Imported)
+        ->and(ContentRevision::query()->findOrFail(cphItem($this->source->id, 12)->working_revision_id)->terms)->toBe([$boats->id])
+        ->and(ContentImports::codes($row))->toContain('post.terms-left');
+});
+
+it('leaves off a term its type or language can’t use, counting it among those that didn’t come across, never failing for it', function (): void {
+    $boats = typesTerm($this->admin, 'category', 'Boats');
+    $genre = Term::query()->create(['taxonomy' => 'ef_genre', 'name' => 'Drama', 'slug' => 'drama']);
+    ContentImports::term($this->source->id, $boats, 5, 7, 'category');
+    // A map row whose Teme term is one posts can't be filed under.
+    ContentImports::term($this->source->id, $genre, 6, 8, 'category');
+
+    ContentImports::run($this->companion, $this->source, [
+        ContentImports::wpItem(12, ['terms' => ['category' => [5, 6]]]),
+    ]);
+    $row = ContentImports::row($this->source->id, 12);
+
+    expect($row?->status)->toBe(ImportStatus::Imported)
+        ->and(ContentRevision::query()->findOrFail(cphItem($this->source->id, 12)->working_revision_id)->terms)->toBe([$boats->id])
+        ->and(ContentImports::codes($row))->toContain('post.terms-missing');
 });
 
 it('sets its pin, discussion, excerpt, featured image and template, the template through the choices (I-156, I-443)', function (): void {
