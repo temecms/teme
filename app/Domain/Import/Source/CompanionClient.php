@@ -20,6 +20,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use SensitiveParameter;
 
 final class CompanionClient implements SourceReader
@@ -93,6 +94,29 @@ final class CompanionClient implements SourceReader
     }
 
     /**
+     * The refusal for a connection that failed, saying why in plain words
+     * when cURL's error number tells, and logging it: never the error's own
+     * text, which names the address asked.
+     */
+    private static function unreachable(ConnectionException $lost): SourceRefused
+    {
+        $error = preg_match('/cURL error (\d+)/', $lost->getMessage(), $match) === 1 ? (int) $match[1] : null;
+
+        $why = match ($error) {
+            6 => 'its name doesn’t lead to any server',
+            7 => 'its server refused the connection',
+            28 => 'it didn’t answer in time',
+            35, 51, 53, 54, 58, 59, 60, 77, 80, 83, 90, 91 => 'its secure connection couldn’t be checked (its HTTPS certificate)',
+            52, 55, 56 => 'the connection broke before it answered',
+            default => null,
+        };
+
+        Log::warning($why === null ? 'Import: Teme couldn’t reach the site.' : "Import: Teme couldn’t reach the site: {$why}.", ['error' => $error]);
+
+        return SourceRefused::unreachable($why);
+    }
+
+    /**
      * One GET of the export API, its answer decoded.
      *
      * @param  array<string, scalar>  $query
@@ -105,8 +129,8 @@ final class CompanionClient implements SourceReader
     {
         try {
             $response = $this->request($signedIn)->get($this->url($route, $query));
-        } catch (ConnectionException) {
-            throw SourceRefused::unreachable();
+        } catch (ConnectionException $lost) {
+            throw self::unreachable($lost);
         }
 
         $this->refuseUnlessFine($response);

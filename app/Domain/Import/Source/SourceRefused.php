@@ -52,9 +52,14 @@ final class SourceRefused extends RuntimeException
         parent::__construct($words);
     }
 
-    public static function unreachable(): self
+    /**
+     * @param  string|null  $why  what went wrong with the connection, in plain words, when it is known
+     */
+    public static function unreachable(?string $why = null): self
     {
-        return new self(self::UNREACHABLE, 'address', true, 'Teme couldn’t reach the site. Check the address, and that the site is up.');
+        $reached = $why === null ? 'Teme couldn’t reach the site.' : "Teme couldn’t reach the site: {$why}.";
+
+        return new self(self::UNREACHABLE, 'address', true, $reached.' Check the address, and that the site is up.');
     }
 
     public static function busy(int $status): self

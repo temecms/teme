@@ -7,6 +7,7 @@ use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourceRefused;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\Fixtures\Import\FakeCompanion;
 
 beforeEach(function (): void {
@@ -112,4 +113,29 @@ it('says which site a redirect leads to, and never follows it', function (): voi
     expect($this->probe)->toThrow(SourceRefused::class, 'The site sent Teme on to https://www.old.example. Use that address instead.');
 
     expect(array_column($this->fake->requests, 'route'))->toBe(['probe']);
+});
+
+it('says why the site couldn’t be reached, in plain words, and logs it', function (string $error, string $why): void {
+    Http::fake(['*' => Http::failedConnection("cURL error {$error} (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for https://old.example/wp-json/teme/v1/probe")]);
+    Log::spy();
+
+    expect($this->probe)->toThrow(function (SourceRefused $refusal) use ($why): void {
+        expect($refusal->reason)->toBe(SourceRefused::UNREACHABLE)
+            ->and($refusal->retryable)->toBeTrue()
+            ->and($refusal->getMessage())->toBe("Teme couldn’t reach the site: {$why}. Check the address, and that the site is up.")
+            ->and($refusal->getMessage())->not->toContain('cURL');
+    });
+
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $message, array $context): bool => str_contains($message, $why) && ($context['error'] ?? null) === (int) $error)->once();
+})->with([
+    'a timeout' => ['28: Operation timed out after 30001 milliseconds with 0 bytes received', 'it didn’t answer in time'],
+    'a refused connection' => ['7: Failed to connect to old.example port 443: Connection refused', 'its server refused the connection'],
+    'a name that resolves to nothing' => ['6: Could not resolve host: old.example', 'its name doesn’t lead to any server'],
+    'a certificate that can’t be checked' => ['60: SSL certificate problem: unable to get local issuer certificate', 'its secure connection couldn’t be checked (its HTTPS certificate)'],
+]);
+
+it('keeps the plain sentence when it can’t tell why the site couldn’t be reached', function (): void {
+    Http::fake(['*' => Http::failedConnection('The connection was lost.')]);
+
+    expect($this->probe)->toThrow(SourceRefused::class, 'Teme couldn’t reach the site. Check the address, and that the site is up.');
 });
