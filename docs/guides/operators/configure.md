@@ -28,6 +28,7 @@ You need only two settings to start: `TEME_IMAGE` and `APP_URL`. Everything else
 |---|---|---|
 | `DB_HOST` | `postgres` in the recipe | The PostgreSQL server's host. |
 | `DB_PORT` | `5432` in the recipe | Its port. |
+| `DB_CONNECT_TIMEOUT` | `5` | Seconds to wait for the database to answer a connection. A database that can't be reached fails a command or a page within that time, with its error, instead of hanging. |
 | `DATABASE_URL` | none | The database's whole address, `postgresql://user:password@host:5432/database`, instead of the five settings: the way many hosts show it. A password with a special character is written with `%XX` codes. A `DB_HOST` that holds an address, or a `DATABASE_URL` that cannot be read, stops Teme with a sentence that never repeats it. |
 | `PORT` | `8080` | The port a container that runs every role listens on, when its host says which port it routes to. |
 | `DB_DATABASE` | `teme` in the recipe | The database's name. |

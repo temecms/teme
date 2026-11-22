@@ -108,6 +108,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Seconds to wait for the database to answer a connection: a database that can't be
+            // reached fails a command quickly with its error, instead of the driver's 30 seconds.
+            'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_CONNECT_TIMEOUT', 5)],
         ],
 
         // The scale benchmark's own database (docs/architecture/content-management.md).
@@ -125,6 +128,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Seconds to wait for the database to answer a connection: a database that can't be
+            // reached fails a command quickly with its error, instead of the driver's 30 seconds.
+            'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_CONNECT_TIMEOUT', 5)],
         ],
 
         // The weekly test restore's spare database (I-2406). Teme empties it
@@ -143,6 +149,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Seconds to wait for the database to answer a connection: a database that can't be
+            // reached fails a command quickly with its error, instead of the driver's 30 seconds.
+            'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_CONNECT_TIMEOUT', 5)],
         ],
 
         'sqlsrv' => [
