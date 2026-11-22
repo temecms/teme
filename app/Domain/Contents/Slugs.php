@@ -25,7 +25,7 @@ final class Slugs
      * variation selectors, which would make a second address look like
      * the first.
      *
-     * @since next
+     * @since 1.3.3
      */
     public const string INVISIBLE_MARKS = '\x{034F}\x{FE00}-\x{FE0F}\x{E0100}-\x{E01EF}';
 
@@ -35,7 +35,7 @@ final class Slugs
      * (none it can't show), joined by single hyphens. A slug is checked in
      * its composed form (normal()), the form a request is looked up by.
      *
-     * @since next
+     * @since 1.3.3
      */
     public const string RULE = '/^(?!.*['.self::INVISIBLE_MARKS.'])(?:[\p{Ll}\p{Lo}\p{N}][\p{Mn}\p{Mc}]*)+(?:-(?:[\p{Ll}\p{Lo}\p{N}][\p{Mn}\p{Mc}]*)+)*$/u';
 
@@ -48,7 +48,7 @@ final class Slugs
      * kept as written, its marks with it; an empty slug when nothing of it
      * is usable.
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function fromText(string $text): string
     {
@@ -67,7 +67,7 @@ final class Slugs
      * The text in Unicode's composed form (NFC), as every request's address
      * is read: a slug stored in another form could never be opened.
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function normal(string $text): string
     {

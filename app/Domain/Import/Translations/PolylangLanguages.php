@@ -73,7 +73,7 @@ final readonly class PolylangLanguages
      * What a companion too old to have the languages route says: nothing,
      * read as a site without Polylang, marked as not answered.
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function unanswered(): self
     {

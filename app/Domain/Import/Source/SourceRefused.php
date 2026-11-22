@@ -99,7 +99,7 @@ final class SourceRefused extends RuntimeException
      * The site reports Polylang, and its companion has no languages route
      * to bring the languages: imported, everything would land in one.
      *
-     * @since next
+     * @since 1.3.3
      */
     public static function languagesTooOld(int $languages, string $version): self
     {
