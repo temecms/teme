@@ -17,6 +17,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - The editor’s Tools menu stays within a phone screen instead of stretching past the right edge.
 - The design catalogue’s sections fit inside the column at phone width instead of being clipped.
 - The admin shortens its motion when the computer asks for less, and a browser test checks it.
+- The Themes Preview button goes through the catalogue, so it can be translated.
 
 ## [1.3.2] — 2026-11-20
 

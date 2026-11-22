@@ -204,7 +204,6 @@ components/themes/theme-list.tsx	Change the brand colour in Settings › General
 components/themes/theme-list.tsx	Incompatible
 components/themes/theme-list.tsx	Installed themes
 components/themes/theme-list.tsx	No themes are installed.
-components/themes/theme-list.tsx	Preview
 components/themes/theme-list.tsx	Previewing
 components/themes/theme-list.tsx	This is the site’s theme, but it can’t be used, so visitors see plain pages until it’s fixed or you activate another theme.
 components/themes/theme-preview-panel.tsx	. Choose them under Menus below.
