@@ -39,6 +39,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - The installer's Composer runs no longer start with "Failed to set memory limit to 0 bytes", which headed every error shown for a plugin or theme request.
 - Import: a post filed under a term Teme can't use for it (a term of another type's taxonomy, or of another language) comes across without that term, with a warning, instead of failing with "The selected terms.0 is invalid".
 - Import: a site that runs Polylang, connected through a Teme Companion older than 0.3.0, no longer comes across silently in one language. Analyze says the plugin is too old to bring the languages and names the version that can, and the import can't start until it is updated.
+- Import › Choose: What comes across lists every kind the import brings, with its count from the site report, and the site's languages when it runs Polylang; a kind the report doesn't count says so instead of disappearing.
 
 ## [1.3.2] — 2026-11-20
 

@@ -83,7 +83,7 @@ it('says when WordPress has made no site report yet', function (): void {
         ->and($analysis->menuLocations())->toBe([]);
 });
 
-it('reads counts written as text and leaves out what a report doesn’t have', function (): void {
+it('reads counts written as text, and keeps a row for each kind the report doesn’t count, saying so', function (): void {
     $this->fake->items('analyze', ['api' => 1, 'report' => ['generated_at' => 'not a date', 'sections' => [
         'content_types' => ['post_types' => ['post' => ['builtin' => true, 'counts' => ['publish' => '7', 'draft' => 'many']], 'idb_book' => ['builtin' => false]]],
         'users' => ['total' => '4', 'by_role' => ['subscriber' => '1', 'none' => '1'], 'custom_roles' => []],
@@ -92,7 +92,7 @@ it('reads counts written as text and leaves out what a report doesn’t have', f
     $analysis = ($this->analysis)()->toArray();
 
     expect($analysis['reportedAt'])->toBeNull()
-        ->and(array_column($analysis['comes'], 'count', 'key'))->toBe(['posts' => 7, 'pages' => 0, 'media' => 0, 'categories' => 0, 'tags' => 0, 'people' => 2, 'comments' => 0, 'menus' => 0])
+        ->and(array_column($analysis['comes'], 'count', 'key'))->toBe(['posts' => 7, 'pages' => null, 'media' => null, 'categories' => null, 'tags' => null, 'people' => 2, 'comments' => null, 'menus' => null])
         ->and(array_column($analysis['stays'], 'key'))->toBe(['subscribers'])
         ->and($analysis['seo'])->toBeNull();
 });
@@ -241,4 +241,13 @@ it('analyzes a Polylang site whose companion brings its languages', function ():
     $this->fake->items('analyze', plPolylangReport());
 
     expect(($this->analysis)()->reported)->toBeTrue();
+});
+
+it('counts the languages a Polylang site brings among what comes across', function (): void {
+    $this->fake->items('analyze', plPolylangReport());
+    $this->fake->items('languages', ['api' => 1, 'active' => true]);
+
+    expect(array_column(($this->analysis)()->toArray()['comes'], 'count', 'key'))->toBe([
+        'posts' => 126, 'pages' => 9, 'media' => 340, 'categories' => 12, 'tags' => 85, 'people' => 5, 'comments' => 231, 'menus' => 2, 'languages' => 5,
+    ]);
 });

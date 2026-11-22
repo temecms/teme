@@ -39,7 +39,7 @@ final readonly class SiteAnalysis
     ];
 
     /**
-     * @param  list<array{key: string, label: string, count: int}>  $comes
+     * @param  list<array{key: string, label: string, count: int|null}>  $comes
      * @param  list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>  $stays
      * @param  array{custom: int, total: int}|null  $warning
      * @param  list<string>  $menuLocations
@@ -91,16 +91,26 @@ final readonly class SiteAnalysis
         $roleless = self::count(self::map($users['by_role'] ?? null)['none'] ?? null);
         [$comments, $otherComments] = self::comments(self::map(self::map($sections['comments'] ?? null)['by_status_and_type'] ?? null));
 
+        // Every kind the import brings has its row; one the report doesn't count says so with a null count.
+        $media = self::map($sections['media'] ?? null);
+        $category = self::map($taxonomies['category'] ?? null);
+        $tag = self::map($taxonomies['post_tag'] ?? null);
         $comes = [
-            ['key' => 'posts', 'label' => 'Posts', 'count' => self::items($post)],
-            ['key' => 'pages', 'label' => 'Pages', 'count' => self::items($page)],
-            ['key' => 'media', 'label' => 'Media files', 'count' => self::count(self::map($sections['media'] ?? null)['total'] ?? null)],
-            ['key' => 'categories', 'label' => 'Categories', 'count' => self::count(self::map($taxonomies['category'] ?? null)['terms'] ?? null)],
-            ['key' => 'tags', 'label' => 'Tags', 'count' => self::count(self::map($taxonomies['post_tag'] ?? null)['terms'] ?? null)],
-            ['key' => 'people', 'label' => 'People', 'count' => max(0, self::count($users['total'] ?? null) - $subscribers - $roleless)],
-            ['key' => 'comments', 'label' => 'Comments', 'count' => $comments],
-            ['key' => 'menus', 'label' => 'Menus', 'count' => count(self::map($menus['menus'] ?? null))],
+            ['key' => 'posts', 'label' => 'Posts', 'count' => $post === [] ? null : self::items($post)],
+            ['key' => 'pages', 'label' => 'Pages', 'count' => $page === [] ? null : self::items($page)],
+            ['key' => 'media', 'label' => 'Media files', 'count' => array_key_exists('total', $media) ? self::count($media['total']) : null],
+            ['key' => 'categories', 'label' => 'Categories', 'count' => array_key_exists('terms', $category) ? self::count($category['terms']) : null],
+            ['key' => 'tags', 'label' => 'Tags', 'count' => array_key_exists('terms', $tag) ? self::count($tag['terms']) : null],
+            ['key' => 'people', 'label' => 'People', 'count' => array_key_exists('total', $users) ? max(0, self::count($users['total']) - $subscribers - $roleless) : null],
+            ['key' => 'comments', 'label' => 'Comments', 'count' => is_array(self::map($sections['comments'] ?? null)['by_status_and_type'] ?? null) ? $comments : null],
+            ['key' => 'menus', 'label' => 'Menus', 'count' => is_array($menus['menus'] ?? null) ? count($menus['menus']) : null],
         ];
+
+        $languages = self::polylangLanguages($report);
+
+        if ($languages !== null) {
+            $comes[] = ['key' => 'languages', 'label' => 'Languages', 'count' => $languages];
+        }
 
         $stays = [];
         $customPublished = 0;
@@ -188,7 +198,7 @@ final readonly class SiteAnalysis
     public static function fromArray(array $stored): self
     {
         // Only toArray() writes what is kept, so its shape holds.
-        /** @var array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, menuLocations: list<string>, templates: array<string, int>, customRoles: array<string, list<string>>, outsideHosts: array<string, int>} $kept */
+        /** @var array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int|null}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, menuLocations: list<string>, templates: array<string, int>, customRoles: array<string, list<string>>, outsideHosts: array<string, int>} $kept */
         $kept = $stored;
 
         return new self(
@@ -215,7 +225,7 @@ final readonly class SiteAnalysis
     /**
      * Returns the analysis as the page draws it, with what the choices need.
      *
-     * @return array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, menuLocations: list<string>, templates: array<string, int>, customRoles: array<string, list<string>>, outsideHosts: array<string, int>}
+     * @return array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int|null}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, menuLocations: list<string>, templates: array<string, int>, customRoles: array<string, list<string>>, outsideHosts: array<string, int>}
      */
     public function toArray(): array
     {
