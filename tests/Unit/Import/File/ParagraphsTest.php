@@ -18,7 +18,6 @@ it('makes paragraphs of classic HTML as WordPress shows it', function (string $n
 })->with([
     'blank lines separate paragraphs' => 'blank-lines',
     'single newlines become line breaks' => 'line-breaks',
-    'windows line endings' => 'windows-lines',
     'nothing inside pre is wrapped' => 'pre',
     'nothing inside script or style is wrapped' => 'script-and-style',
     'block-level elements are never wrapped' => 'block-level',
@@ -26,6 +25,10 @@ it('makes paragraphs of classic HTML as WordPress shows it', function (string $n
     'shortcodes on their own line stay unwrapped' => 'shortcodes',
     'only whitespace' => 'blank',
 ]);
+
+it('reads windows and old mac line endings as newlines', function (): void {
+    expect(Paragraphs::make("One\r\nline\r\n\r\nTwo\rthree"))->toBe("<p>One<br />\nline</p>\n<p>Two<br />\nthree</p>\n");
+});
 
 it('gives the real-markup samples\' freeform chunks the paragraphs wpautop() gave them', function (string $file): void {
     /** @var array{blocks: list<array<string, mixed>>} $fixture */
