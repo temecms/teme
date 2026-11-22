@@ -310,7 +310,7 @@ function Section({
         <section
             id={id}
             aria-labelledby={`${id}-title`}
-            className="grid scroll-mt-16 gap-4"
+            className="grid min-w-0 scroll-mt-16 gap-4"
         >
             <div className="grid gap-1">
                 <h2 id={`${id}-title`} className="text-lead font-semibold">
@@ -573,7 +573,7 @@ function PatternFrame({
     return (
         <div
             data-test={`catalogue-pattern-${name}`}
-            className="border-line rounded-lg border"
+            className="border-line min-w-0 overflow-x-clip rounded-lg border"
         >
             {children}
         </div>
@@ -937,7 +937,7 @@ export default function Catalogue() {
 
             <div
                 data-test="catalogue"
-                className="grid gap-10 px-4 pt-2 pb-16 md:px-8"
+                className="grid min-w-0 gap-10 px-4 pt-2 pb-16 md:px-8"
             >
                 <h1 className="text-title font-semibold">
                     {__('Design catalogue')}

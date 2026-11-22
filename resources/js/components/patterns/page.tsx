@@ -20,7 +20,7 @@ export function Page({
         <div
             data-slot="page"
             className={cn(
-                'mx-auto w-full max-w-(--page-max) px-8 pt-2 pb-16 max-md:px-4',
+                'mx-auto w-full max-w-(--page-max) min-w-0 px-8 pt-2 pb-16 max-md:px-4',
                 className,
             )}
         >
