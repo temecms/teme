@@ -107,11 +107,9 @@ final readonly class SeoArea implements PluginArea
      */
     public function values(string $record, string $id, AreaContext $context): ?array
     {
+        // Search Console rows are a report, not a form: there is nothing to edit.
         if ($record === 'search') {
-            $kind = str_starts_with($id, 'page-') ? 'page' : 'query';
-            $key = $this->search->key($kind, (int) substr($id, strpos($id, '-') + 1));
-
-            return $key === null ? null : ['key' => $key];
+            return null;
         }
 
         try {
@@ -404,7 +402,7 @@ final readonly class SeoArea implements PluginArea
             'clicks' => Cell::number($row['clicks']),
             'impressions' => Cell::number($row['impressions']),
             'position' => Cell::number($row['position']),
-        ], ['edit']), $found['rows']), $found['total']);
+        ]), $found['rows']), $found['total']);
     }
 
     /**

@@ -141,6 +141,23 @@ final class SearchConsoleTest extends SeoTestCase
             ->and($declared['tries'] ?? null)->toBe(1);
     }
 
+    #[TestDox('doesn’t open an edit form for a Search Console row')]
+    public function test_it_doesnt_open_an_edit_form_for_a_search_console_row(): void
+    {
+        DB::table('seo_search_rows')->insert([
+            'kind' => 'query',
+            'key' => 'feeding roses',
+            'clicks' => 3,
+            'impressions' => 40,
+            'position' => 4.0,
+        ]);
+        $id = (int) DB::table('seo_search_rows')->where('kind', 'query')->where('key', 'feeding roses')->value('id');
+
+        $this->signIn($this->admin);
+        $this->get(route('plugins.area.edit', ['code' => 'seo', 'record' => 'search', 'id' => 'query-'.$id]))
+            ->assertNotFound();
+    }
+
     /**
      * Fills in Search Console's settings, as an administrator would.
      */
