@@ -1,7 +1,9 @@
 import { Form, Link } from '@inertiajs/react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
 import ImportSourceController from '@/actions/App/Http/Admin/Tools/Import/ImportSourceController';
+import ImportFileController from '@/actions/App/Http/Admin/Tools/Import/ImportFileController';
 import { ConfirmAction } from '@/components/confirm-action';
+import { UploadForm } from '@/components/import/upload-form';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { Button } from '@/components/ui/button';
@@ -13,7 +15,7 @@ import { useState } from 'react';
 import { FigureTiles } from '@/components/tools/figure-tiles';
 import type { FigureTile } from '@/components/tools/figure-tiles';
 import { __, __n } from '@/lib/i18n';
-import { formatInZone } from '@/lib/zoned-time';
+import { dayInZone, formatInZone } from '@/lib/zoned-time';
 import { show } from '@/routes/tools/importer';
 import type {
     ImportRunView,
@@ -36,6 +38,7 @@ export function RunReport({
     downloads,
     latest,
     siteTimezone,
+    maxFileMb,
 }: {
     site: ImportSite;
     run: ImportRunView;
@@ -43,8 +46,10 @@ export function RunReport({
     downloads: { everything: string; attention: string } | null;
     latest: boolean;
     siteTimezone: string;
+    maxFileMb: number;
 }) {
     const finished = run.state === 'finished';
+    const [newer, setNewer] = useState(false);
     const number = (value: number) => value.toLocaleString();
     const counts = run.counts;
 
@@ -182,11 +187,17 @@ export function RunReport({
                                 ? __(
                                       'Ready to switch: nothing failed and every old address answers on Teme.',
                                   )
-                                : __n(
-                                      'Not ready to switch yet: :count problem needs attention. Fix them on WordPress or here, then catch up.|Not ready to switch yet: :count problems need attention. Fix them on WordPress or here, then catch up.',
-                                      report.problems,
-                                      { count: number(report.problems) },
-                                  )}
+                                : run.file !== null
+                                  ? __n(
+                                        'Not ready to switch yet: :count problem needs attention. Fix them on WordPress and upload a newer file, or fix them here.|Not ready to switch yet: :count problems need attention. Fix them on WordPress and upload a newer file, or fix them here.',
+                                        report.problems,
+                                        { count: number(report.problems) },
+                                    )
+                                  : __n(
+                                        'Not ready to switch yet: :count problem needs attention. Fix them on WordPress or here, then catch up.|Not ready to switch yet: :count problems need attention. Fix them on WordPress or here, then catch up.',
+                                        report.problems,
+                                        { count: number(report.problems) },
+                                    )}
                         </p>
                     </Notice>
                 )}
@@ -308,7 +319,92 @@ export function RunReport({
                     </div>
                 )}
 
-                {finished && latest && !site.forgotten && (
+                {finished && latest && run.file !== null && (
+                    <>
+                        <section
+                            aria-labelledby="import-bring-changed"
+                            className="grid justify-items-start gap-2"
+                        >
+                            <h3
+                                id="import-bring-changed"
+                                className="text-body font-semibold"
+                            >
+                                {__('Bring what changed')}
+                            </h3>
+                            <p>
+                                {__(
+                                    'Export the site again in WordPress and upload the new file. Teme brings what’s new or edited since this import and leaves alone what you’ve changed here. Anything missing from the new file is listed, never deleted here.',
+                                )}
+                            </p>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                data-test="import-upload-newer"
+                                onClick={() => setNewer((open) => !open)}
+                            >
+                                {__('Upload a newer file')}
+                            </Button>
+                        </section>
+                        {newer && <UploadForm maxFileMb={maxFileMb} />}
+
+                        {!run.file.deleted && (
+                            <section
+                                aria-labelledby="import-delete-file"
+                                className="grid justify-items-start gap-2"
+                            >
+                                <h3
+                                    id="import-delete-file"
+                                    className="text-body font-semibold"
+                                >
+                                    {__('Delete the uploaded file')}
+                                </h3>
+                                <p>
+                                    {__(
+                                        'The export file holds drafts, private posts and people’s email addresses. When the import is done, delete it. What was imported stays, and so does this report.',
+                                    )}
+                                </p>
+                                <Form
+                                    {...ImportFileController.destroy.form({
+                                        file: run.file.id,
+                                    })}
+                                    options={{ preserveScroll: true }}
+                                >
+                                    <ConfirmAction
+                                        title={__('Delete the uploaded file?')}
+                                        description={__(
+                                            'What was imported stays, and so does this report. To import the site again, upload its file again.',
+                                        )}
+                                        confirmLabel={__('Delete the file')}
+                                        confirmVariant="destructive"
+                                    >
+                                        <Button
+                                            type="submit"
+                                            variant="outline"
+                                            data-test="import-delete-file"
+                                        >
+                                            {__('Delete the file…')}
+                                        </Button>
+                                    </ConfirmAction>
+                                </Form>
+                                {run.file.deletesOn !== null && (
+                                    <p className="text-small text-ink-2">
+                                        {__(
+                                            'Teme deletes the uploaded file on :date.',
+                                            {
+                                                date: dayInZone(
+                                                    run.file.deletesOn,
+                                                    siteTimezone,
+                                                ),
+                                            },
+                                        )}
+                                    </p>
+                                )}
+                            </section>
+                        )}
+                    </>
+                )}
+
+                {finished && latest && run.file === null && !site.forgotten && (
                     <>
                         <section
                             aria-labelledby="import-catch-up"

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * What every phase of one run is given: the run, its kind and actor, a catch-up's starting time, the pause between pages, and the choices made before it began (Tools › Import's choices step).
+ * What every phase of one run is given: the run, its kind and actor, a catch-up's starting time, the pause between pages, the choices made before it began (Tools › Import's choices step), and the export file it reads, if any.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -29,6 +29,7 @@ final readonly class ImportContext
         public ?CarbonImmutable $modifiedAfter,
         public int $pauseMs,
         public array $choices,
+        public ?string $fileId = null,
     ) {}
 
     /**
@@ -37,6 +38,16 @@ final readonly class ImportContext
     public function actorId(): ?string
     {
         return $this->actor->userId;
+    }
+
+    /**
+     * Whether the run reads an uploaded export file rather than the companion.
+     *
+     * @since next
+     */
+    public function readsFile(): bool
+    {
+        return $this->fileId !== null;
     }
 
     /**

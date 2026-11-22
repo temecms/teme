@@ -118,3 +118,13 @@ export function formatInZone(iso: string, zone: string): string {
         minute: '2-digit',
     }).format(new Date(iso));
 }
+
+/** The day of an instant as the site's clock shows it: "18 Sep 2026". */
+export function dayInZone(iso: string, zone: string): string {
+    return new Intl.DateTimeFormat(adminLocale(), {
+        timeZone: zone,
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    }).format(new Date(iso));
+}

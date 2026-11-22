@@ -26,7 +26,9 @@ use App\Domain\Import\Operations\StartImportUpload;
 use App\Domain\Import\Queries\ImportFiles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 final class ImportFileController extends Controller
 {
@@ -73,9 +75,16 @@ final class ImportFileController extends Controller
         return response()->json(['cancelled' => true]);
     }
 
-    public function destroy(Request $request, string $file, DeleteImportFile $delete): JsonResponse
+    public function destroy(Request $request, string $file, DeleteImportFile $delete): JsonResponse|RedirectResponse
     {
         $delete->execute(new DeleteImportFileInput($file, self::actor($request)));
+
+        // The report's Delete the file… goes back to it, saying so.
+        if ($request->header('X-Inertia') !== null) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => 'Deleted the export file. What was imported stays.']);
+
+            return redirect()->back(fallback: route('tools.importer.index'));
+        }
 
         return response()->json(['deleted' => true]);
     }

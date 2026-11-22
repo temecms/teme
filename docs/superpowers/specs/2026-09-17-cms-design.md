@@ -314,7 +314,7 @@ It also removes the three per-install unknowns entirely: the table prefix become
 
 Minimum endpoint set: probe (unauthenticated capability check), analyze (counts, post types, taxonomies, active plugins, detected SEO and field plugins), content, media, taxonomies, comments, options, redirects. All paginated and resumable — the source host has PHP timeouts and memory limits we do not control.
 
-**Direct database read is the fallback**, for sites where a plugin cannot be installed, and optionally for bulk content on very large libraries where HTTP round trips dominate. WXR is not an input path: `export_wp()` omits the `options` table entirely, drops spam comments, omits `comment_agent`, and skips revisions by design.
+**Direct database read is the fallback**, for sites where a plugin cannot be installed, and optionally for bulk content on very large libraries where HTTP round trips dominate. **The companion is the full path; an uploaded export file is the second**, for a site's content where the plugin can't be installed, or the site is gone. The export file (WXR, from WordPress's Tools › Export) brings posts, pages and custom types with their categories, tags and authors, comments, menus, featured images and each item's own address. It can't bring what `export_wp()` leaves out, and the file's plan says so: the `options` table (site settings, widgets, where each menu sits, the category and tag bases), passwords and roles, redirects kept by plugins, spam comments, `comment_agent`, and revisions. The media files themselves aren't in it: they are downloaded from the old site while it answers, or kept there as links. How the file is read is in `docs/architecture/import.md`, *A file as the source*.
 
 Three traps that must be handled explicitly:
 

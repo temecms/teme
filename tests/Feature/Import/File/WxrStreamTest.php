@@ -56,11 +56,11 @@ it('refuses a file with a document type declaration before reading anything', fu
 });
 
 it('refuses an entity it would have to look up', function (): void {
-    expect(wxrRefusal(ExportFiles::path('entity.xml')))->toBe('That isn’t a WordPress export file.');
+    expect(wxrRefusal(ExportFiles::path('entity.xml')))->toBe('That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.');
 });
 
 it('refuses an RSS feed that isn’t an export', function (): void {
-    expect(wxrRefusal(ExportFiles::path('rss-feed.xml')))->toBe('That isn’t a WordPress export file.');
+    expect(wxrRefusal(ExportFiles::path('rss-feed.xml')))->toBe('That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.');
 });
 
 it('refuses a file that isn’t XML at all, and one that breaks off partway', function (): void {
@@ -69,8 +69,8 @@ it('refuses a file that isn’t XML at all, and one that breaks off partway', fu
     file_put_contents("{$folder}/text.xml", 'Just some words.');
     file_put_contents("{$folder}/cut.xml", substr((string) file_get_contents(ExportFiles::path('wxr-1.2.xml')), 0, -400));
 
-    expect(wxrRefusal("{$folder}/text.xml"))->toBe('That isn’t a WordPress export file.')
-        ->and(wxrRefusal("{$folder}/cut.xml"))->toBe('That isn’t a WordPress export file.');
+    expect(wxrRefusal("{$folder}/text.xml"))->toBe('That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.')
+        ->and(wxrRefusal("{$folder}/cut.xml"))->toBe('That isn’t a WordPress export file. Teme reads the .xml file from WordPress’s Tools › Export. Choose that file and try again.');
 });
 
 it('reads a resumed file from the item after the ones it already read', function (): void {

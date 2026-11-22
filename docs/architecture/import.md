@@ -99,6 +99,7 @@ Every phase has a key, an order and a label. **Core's phases sit at the hundreds
 | 1200 | `fidelity` | Compared with WordPress | step | both | The fidelity check, below (I-337) | `Phases/Finish/FidelityStep.php:55` |
 | 1210 | `recount` | Counts | step | both | Checks once the counts the import kept item by item, and fixes where they drifted (I-141) | `Phases/Finish/RecountStep.php:30` |
 | 1250 | `deleted` | Deleted on WordPress | step | catch-up | Lists what WordPress deleted since it was imported, and counts the failures the catch-up didn't meet (I-345), below | `Phases/Finish/DeletedStep.php:77` |
+| 1260 | `file-missing` | Missing from the file | step | full | On a run of an export file only: lists each item an earlier import of the same site brought that the newer file leaves out, and deletes nothing; *A file as the source*, below | `Phases/Finish/FileMissingStep.php` |
 
 Paths are under `app/Domain/Import/`. A full run goes through 25 steps; a catch-up through 23. 1.11a's own table had a single `finish` at 1200; 1.11n made it `fidelity` at 1200 and `recount` at 1210 (`docs/superpowers/plans/2026-10-18-phase1-slice11n-second-pass-and-catch-up.md:3880`).
 
@@ -226,6 +227,28 @@ Teme reads a WordPress site through the **Teme Companion** plugin, in its own re
 | Each shortcode's own output (B-841) | Teme has the shortcode, not what WordPress drew from it. The registered shortcodes come from the site report (`app/Domain/Import/Phases/Content/ContentSite.php:85-96`) |
 
 Every address criterion 6 asks about comes from 0.2.0's `urls`, so the proof stands on 0.2.0.
+
+## A file as the source
+
+The companion is the full path. **An uploaded export file is the second**, for a site's content where the plugin can't be installed, or the site is gone: the `.xml` file from WordPress's Tools › Export (WXR). Spec §5.10 says why it is not the first. The run, its steps, the check and the report are the companion's; only the reader differs.
+
+**Reading.** The upload goes up in pieces, and `ReadImportFile` (`app/Domain/Import/File/Jobs/ReadImportFile.php`) streams it once into `import_file_rows`: one row for each item, term, author, comment and menu, as `(file_id, list, object_id, payload)`, the payload in the shape the companion's route of that list answers. The file is read, never trusted: one that isn't an export or carries a DOCTYPE is refused with a sentence (`app/Domain/Import/File/WxrRefused.php`), and one larger than `teme.import.max_file_mb` (`config/teme.php`) is refused at the upload.
+
+**The reader.** `SourceReaders` hands a run the reader its source needs: `CompanionClient` for a site, `FileReader` (`app/Domain/Import/Source/FileReader.php`) for a file. `FileReader` answers `page()` and `whole()` from the file's rows, so the phases can't tell the two apart. The lists a file can't hold answer as a site without them would: empty, or with the plan's choices in their place. `ImportContext::readsFile()` tells a step which reader it has, and these steps pass over a file's run, saying so on the report: site settings, widgets, redirects, languages and their words, plugin data, the fediverse steps, the fidelity check (there is no rendered page to compare with) and `deleted`.
+
+**What a file can't bring, and what stands in for it.** Each is said on the file's plan, under *Not in an export file*:
+
+| Not in the file | What the run does |
+|---|---|
+| Passwords and roles | Each author is matched by email to a person on this site, credited to a person chosen on the plan, or added with the role chosen there and no password anyone knows; they set one with *Forgotten your password?* (`UsersPhase`). An author with no email in the file is not added, and the report says so |
+| The media files | Downloaded from the old site's addresses in the file, through the same downloader and public-address check as the companion's, while the old site answers; the plan asks it first (`FileDownloader::answers()`). Or kept at the old site as links, and no file is downloaded (`MediaPhase`) |
+| Where each menu sits | The menus come across; the plan places each in a location of this site's theme |
+| The category and tag bases | Read from the terms' links in the file where it can, and shown on the plan to change (`FileAddresses`). Each post's and page's own address is in the file, so it keeps it |
+| Site settings, widgets, plugins' redirects, spam comments, revisions | Not imported |
+
+**A newer file of the same site.** A file names its site by its address, so a newer file is a second import of the same source, and the map carries over: what is new or edited since comes across, and what was changed here is left alone, as catch-up does. `file-missing` (1260) lists what the earlier import brought that the newer file leaves out, and deletes nothing. A file's terms carry WordPress's numbers, which may differ from the numbers the companion gave the same terms: an earlier term is matched by taxonomy and number, then by slug (`TermsPhase`, `AdoptImportedTerm`), and a file's number another term already holds in the map is moved apart (`FileReader::apart()`), so the two never meet in one row. Authors and terms a file names only on its items, with no row of their own, take negative numbers.
+
+**Keeping the file.** The file holds drafts, private posts and people's email addresses. The report offers to delete it, and `teme:import:prune-files`, run daily, deletes each file 30 days after the last import from it ended (`app/Console/Commands/PruneImportFiles.php`). Its rows go with it; what was imported, and the report, stay.
 
 ## Where Teme connects: the public-address check
 

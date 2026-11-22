@@ -67,6 +67,11 @@ final readonly class SiteSettingsStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
+        // An export file has none of this (docs/architecture/import.md).
+        if ($context->readsFile()) {
+            return StepResult::done();
+        }
+
         app(ClearRunMessages::class)->execute(new ClearRunMessagesInput($context->runId, 'setting.', $context->actorId()));
 
         $answer = $reader->whole('settings');

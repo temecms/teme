@@ -15,12 +15,14 @@ namespace App\Domain\Import\Queries;
 use App\Domain\Import\ImportMessageLevel;
 use App\Domain\Import\ImportOutcome;
 use App\Domain\Import\ImportRunState;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Phases\ImportPhase;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\PluginData\PluginDataLists;
 use App\Domain\Import\PluginData\PluginDataReport;
+use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Tracking\ImportRunJobs;
 use Illuminate\Support\Facades\DB;
 
@@ -89,9 +91,9 @@ final readonly class ImportScreen
     }
 
     /**
-     * Returns one site as its page draws it: its address, who it is connected as, when it was last probed and whether its password is forgotten; null when Teme has no such site.
+     * Returns one site as its page draws it: its address, who it is connected as, when it was last probed and whether its password is forgotten, and the export file it reads from now, if any; null when Teme has no such site. A site never connected live has no user name, version or connection date.
      *
-     * @return array{id: string, address: string, host: string, userName: string|null, pluginVersion: string, connectedAt: string, forgotten: bool, otherHosts: list<string>, suggestedHosts: list<array{host: string, links: int}>}|null
+     * @return array{id: string, address: string, host: string, userName: string|null, pluginVersion: string|null, connectedAt: string|null, forgotten: bool, connected: bool, file: array{id: string, name: string, sizeBytes: int, madeAt: string|null, uploadedAt: string, deletesOn: string|null}|null, otherHosts: list<string>, suggestedHosts: list<array{host: string, links: int}>}|null
      */
     public function site(string $sourceId): ?array
     {
@@ -107,8 +109,10 @@ final readonly class ImportScreen
             'host' => self::host($source->address),
             'userName' => $source->user_name,
             'pluginVersion' => $source->plugin_version,
-            'connectedAt' => $source->probed_at->utc()->toIso8601String(),
+            'connectedAt' => $source->probed_at?->utc()->toIso8601String(),
             'forgotten' => $source->forgotten_at !== null,
+            'connected' => $source->api_root !== null,
+            'file' => $this->file($source),
             'otherHosts' => array_values(array_filter((array) ($source->other_hosts ?? []), is_string(...))),
             'suggestedHosts' => $source->forgotten_at !== null || $source->credential === null
                 ? []
@@ -119,8 +123,10 @@ final readonly class ImportScreen
     /**
      * Returns the step a site's page opens at (I-227): Connect while its
      * password is forgotten and nothing runs; Analyze and Choose before its
-     * first import; Import while its latest import runs or has stopped;
-     * Report once that has finished. Null when Teme has no such site.
+     * first import, and before an import of a newer export file; Import
+     * while its latest import runs or has stopped; Report once that has
+     * finished. A site never connected live with no file left is at
+     * Connect. Null when Teme has no such site.
      */
     public function step(string $sourceId): ?string
     {
@@ -131,10 +137,14 @@ final readonly class ImportScreen
         }
 
         $latest = $this->runs->latest($sourceId);
+        $file = app(SourceReaders::class)->fileOf($source);
+        // A file read after the latest import began waits for its own.
+        $newerFile = $file !== null && $latest !== null && $latest->state !== ImportRunState::Running && $file->id !== $latest->file_id && $file->created_at->greaterThan($latest->started_at);
 
         return match (true) {
             $source->forgotten_at !== null && $latest?->state !== ImportRunState::Running => 'connect',
-            $latest === null => 'plan',
+            $source->api_root === null && $file === null && $latest === null => 'connect',
+            $latest === null, $newerFile => 'plan',
             $latest->state === ImportRunState::Finished => 'report',
             default => 'import',
         };
@@ -153,7 +163,7 @@ final readonly class ImportScreen
     /**
      * Returns one import as its page draws it: its kind and state, when it started and ended, why it stopped, its counts and its steps; null when Teme has no such import.
      *
-     * @return array{id: string, kind: string, kindLabel: string, state: string, stateLabel: string, startedAt: string, endedAt: string|null, stopMessage: string|null, counts: array{created: int, updated: int, skipped: int, failed: int, warnings: int}, steps: list<array{key: string, label: string, state: string}>}|null
+     * @return array{id: string, kind: string, kindLabel: string, state: string, stateLabel: string, startedAt: string, endedAt: string|null, stopMessage: string|null, counts: array{created: int, updated: int, skipped: int, failed: int, warnings: int}, steps: list<array{key: string, label: string, state: string}>, file: array{id: string, name: string, sizeBytes: int, uploadedAt: string, deletesOn: string|null, deleted: bool}|null}|null
      */
     public function run(string $runId): ?array
     {
@@ -174,6 +184,7 @@ final readonly class ImportScreen
             'stopMessage' => $run->stop_message,
             'counts' => $this->counts($run),
             'steps' => $this->steps($run),
+            'file' => $this->runFile($run),
         ];
     }
 
@@ -464,7 +475,7 @@ final readonly class ImportScreen
      */
     private function steps(ImportRun $run): array
     {
-        $steps = $this->tracking->steps($run->kind);
+        $steps = $this->tracking->steps($run->kind, $run->file_id !== null);
         $position = array_search($run->phase, array_map(fn (ImportPhase $phase): string => $phase->key(), $steps), true);
         $rows = [];
 
@@ -481,6 +492,44 @@ final readonly class ImportScreen
         }
 
         return $rows;
+    }
+
+    /**
+     * The export file the site reads from now, as the plan's head says it.
+     *
+     * @return array{id: string, name: string, sizeBytes: int, madeAt: string|null, uploadedAt: string, deletesOn: string|null}|null
+     */
+    private function file(ImportSource $source): ?array
+    {
+        $file = app(SourceReaders::class)->fileOf($source);
+
+        return $file === null ? null : [
+            'id' => (string) $file->id,
+            'name' => $file->name,
+            'sizeBytes' => (int) $file->size_bytes,
+            'madeAt' => $file->made_at?->utc()->toIso8601String(),
+            'uploadedAt' => $file->created_at->utc()->toIso8601String(),
+            'deletesOn' => app(ImportFiles::class)->deletesOn((string) $file->id),
+        ];
+    }
+
+    /**
+     * The export file a run read, deleted or not; null for a run of the companion.
+     *
+     * @return array{id: string, name: string, sizeBytes: int, uploadedAt: string, deletesOn: string|null, deleted: bool}|null
+     */
+    private function runFile(ImportRun $run): ?array
+    {
+        $file = $run->file_id === null ? null : ImportFile::query()->find($run->file_id);
+
+        return $file === null ? null : [
+            'id' => (string) $file->id,
+            'name' => $file->name,
+            'sizeBytes' => (int) $file->size_bytes,
+            'uploadedAt' => $file->created_at->utc()->toIso8601String(),
+            'deletesOn' => app(ImportFiles::class)->deletesOn((string) $file->id),
+            'deleted' => $file->deleted_at !== null,
+        ];
     }
 
     private static function host(string $address): string

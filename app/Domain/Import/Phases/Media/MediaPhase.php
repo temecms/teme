@@ -93,6 +93,11 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects
 
     public function lists(ImportContext $context): array
     {
+        // Kept on the old site as links: nothing is downloaded or recorded (docs/architecture/import.md).
+        if ($context->readsFile() && $context->choice('media') === 'links') {
+            return [];
+        }
+
         $query = $context->modifiedAfter === null ? [] : ['modified_after' => $context->modifiedAfter->utc()->format('Y-m-d H:i:s')];
 
         return [new ImportList('media', $query, self::PAGE)];

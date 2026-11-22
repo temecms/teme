@@ -56,6 +56,11 @@ final readonly class FediverseStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
+        // An export file has none of this (docs/architecture/import.md).
+        if ($context->readsFile()) {
+            return StepResult::done();
+        }
+
         if (! FediverseExport::answered($context->sourceId)) {
             return StepResult::done([new ImportMessage('fediverse.companion-too-old', __('The companion on this site is too old to move fediverse followers. To bring them across, update the companion on WordPress, then catch up.'))]);
         }

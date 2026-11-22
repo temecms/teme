@@ -19,10 +19,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
 
+use App\Domain\Import\File\FileAddresses;
 use App\Domain\Import\ImportEngine;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\ImportStatus;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
@@ -30,6 +32,7 @@ use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\StartImportRunInput;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Queries\ImportRuns;
+use App\Domain\Import\Source\FileReader;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -87,7 +90,18 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
         /** @var StartImportRunInput $input */
         $source = ImportSource::query()->whereKey($input->sourceId)->lockForUpdate()->firstOrFail();
 
-        if ($source->credential === null) {
+        // A run of an uploaded file reads the file, never the companion (docs/architecture/import.md).
+        $file = $input->fileId === null ? null : ImportFile::query()->whereKey($input->fileId)->lockForUpdate()->first();
+
+        if ($input->fileId !== null && ($file === null || $file->source_id !== $source->id || $file->state !== 'ready' || $file->deleted_at !== null)) {
+            throw ValidationException::withMessages(['file' => 'Teme no longer has that export file. Upload it again.']);
+        }
+
+        if ($file !== null && $input->kind !== ImportRunKind::Full) {
+            throw ValidationException::withMessages(['kind' => 'An export file is imported whole: upload a newer file to bring what changed.']);
+        }
+
+        if ($file === null && $source->credential === null) {
             throw ValidationException::withMessages(['source' => 'Teme has forgotten this site’s application password. Connect the site again first.']);
         }
 
@@ -102,6 +116,7 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
         $token = strtolower((string) Str::ulid());
         $run = ImportRun::query()->create([
             'source_id' => $source->id,
+            'file_id' => $file?->id,
             'kind' => $input->kind,
             'state' => ImportRunState::Running,
             'phase' => $this->phases->first($input->kind)?->key(),
@@ -113,12 +128,17 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
             'started_at' => now(),
         ]);
 
+        // The old site's addresses, from the bases chosen, for the address steps and the check.
+        if ($file !== null) {
+            FileAddresses::write((string) $file->id, FileReader::basesOf($input->choices), (new FileReader((string) $file->id, (string) $source->id))->aliases());
+        }
+
         // Every failure is marked for this run; a full import meets them all, a catch-up only what changed.
         ImportMapEntry::query()->where('source_id', $source->id)->where('status', ImportStatus::Failed->value)
             ->update(['status' => ImportStatus::NeedsUpdate->value]);
 
         app(SecurityLog::class)->record(SecurityEventType::ImportStarted, $input->actorId(), context: [
-            'run' => (string) $run->id, 'source' => (string) $source->id, 'kind' => $input->kind->value, 'continued' => false,
+            'run' => (string) $run->id, 'source' => (string) $source->id, 'kind' => $input->kind->value, 'continued' => false, ...($file === null ? [] : ['file' => (string) $file->id]),
         ]);
 
         return ['runId' => (string) $run->id, 'token' => $token, 'actorId' => $input->actorId()];

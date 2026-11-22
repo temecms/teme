@@ -27,6 +27,7 @@ final class EditorGuide
         'page-cache.md',
         'status-banners.md',
         'backups.md',
+        'import-from-an-export-file.md',
     ];
 
     /** What a page is: the index, or a set of tasks. */

@@ -27,6 +27,7 @@ use App\Domain\Import\Operations\Concerns\LocksObjects;
 use App\Domain\Import\Operations\Input\ImportObjectInput;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Phases\ListPhase;
+use App\Domain\Import\Phases\Terms\TermsPhase;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
@@ -64,6 +65,11 @@ final class ImportObject extends BaseOperation
 
         $result = $phase->import($input->ref, $input->item, $input->context, $input->prepared);
         $now = now();
+
+        // The terms phase moves an export file's rows to and from this object (AdoptImportedTerm), so its row is read again.
+        if ($phase instanceof TermsPhase) {
+            $entry = $this->map->entry($run->source_id, $input->ref);
+        }
 
         $entry ??= new ImportMapEntry(['source_id' => $run->source_id, 'object_type' => $input->ref->type, 'object_id' => $input->ref->id]);
         $entry->fill([

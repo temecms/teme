@@ -378,6 +378,8 @@ function accSteps(): array
 
             return null;
         }],
+        // A run of the companion passes over the export file's own step.
+        'file-missing' => ['file-missing', $alone],
         'deleted' => ['deleted', function (ImportRun $run): ImportRun {
             $this->travel(1)->hours();
             $this->site->renameAndDelete();

@@ -38,7 +38,7 @@
         <!-- One limit for every run, serial, parallel or CI, whatever the machine's php.ini says:
              the architecture tests parse the codebase, and by rc.12 LayeringTest alone needs more
              than 512 MB, so they run in a process of their own, before the suite (#16, B-261). -->
-        <ini name="memory_limit" value="2G"/>
+        <ini name="memory_limit" value="3G"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_URL" value="http://localhost"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>

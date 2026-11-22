@@ -55,6 +55,11 @@ final readonly class WidgetsStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
+        // An export file has none of this (docs/architecture/import.md).
+        if ($context->readsFile()) {
+            return StepResult::done();
+        }
+
         $report = $reader->whole('analyze')['report'] ?? null;
         $sections = is_array($report) && is_array($report['sections'] ?? null) ? $report['sections'] : [];
         $widgets = is_array($sections['widgets'] ?? null) ? $sections['widgets'] : [];

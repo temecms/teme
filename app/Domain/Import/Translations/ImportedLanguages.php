@@ -21,8 +21,8 @@ use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Planning\CompanionPlugin;
 use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Queries\ImportSources;
-use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourceReader;
+use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Support\Network\AddressRefused;
@@ -33,7 +33,7 @@ final readonly class ImportedLanguages
     /** How long the answer is kept: as long as Tools › Import keeps the analysis. */
     public const int KEEP_SECONDS = 21600;
 
-    public function __construct(private ImportSources $sources, private CompanionClients $clients, private Repository $cache) {}
+    public function __construct(private ImportSources $sources, private SourceReaders $readers, private Repository $cache) {}
 
     /**
      * The cache key a source's answer is kept under.
@@ -89,7 +89,7 @@ final readonly class ImportedLanguages
             return PolylangLanguages::none();
         }
 
-        return $this->refresh($sourceId, $this->clients->for($source));
+        return $this->refresh($sourceId, $this->readers->forSource($source));
     }
 
     /**

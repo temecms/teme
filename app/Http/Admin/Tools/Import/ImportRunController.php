@@ -47,10 +47,12 @@ final class ImportRunController extends Controller
             return back()->withErrors(['choices' => 'Analyze the site before you start: Teme needs its report.']);
         }
 
-        $chosen = $choices->validated($request->all(), $kept);
+        $fileId = $site['file']['id'] ?? null;
+        $chosen = $fileId === null ? $choices->validated($request->all(), $kept) : $choices->validatedFile($request->all(), $kept, $fileId);
 
         try {
-            $start->execute(new StartImportRunInput($source, ImportRunKind::Full, ['pause_ms' => $chosen['pauseMs']], $chosen['choices'], self::actor($request)));
+            // The site's export file when it reads from one now, else its companion.
+            $start->execute(new StartImportRunInput($source, ImportRunKind::Full, ['pause_ms' => $chosen['pauseMs']], $chosen['choices'], self::actor($request), $fileId));
         } catch (ElevationRequiredException $ask) {
             // Kept across the password's confirmation, so nothing is chosen twice.
             $request->session()->put(self::REMEMBERED.$source, [...$chosen['choices'], 'pause' => $chosen['pauseMs']]);
