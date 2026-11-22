@@ -181,6 +181,25 @@ final readonly class DueSchedules
     }
 
     /**
+     * Why a schedule of this plugin has no next-due time, in plain words, or null when it has one: its
+     * own setting switches it off, or its interval is none Teme knows.
+     *
+     * @param  array{job: string, every: string, enabledBy?: string|null, everyFrom?: string|null}  $schedule
+     */
+    public function whyNotDue(PluginRecord $record, array $schedule): ?string
+    {
+        if (! $this->switchedOn($record->code, $schedule['enabledBy'] ?? null)) {
+            return __('Its setting switches this schedule off.');
+        }
+
+        if (! isset(self::SECONDS[$this->every($record->code, $schedule['every'], $schedule['everyFrom'] ?? null)])) {
+            return __('Its interval isn’t one Teme knows, so it never runs.');
+        }
+
+        return null;
+    }
+
+    /**
      * Whether the plugin's switch for a schedule is on: always, when the
      * schedule names none.
      */
