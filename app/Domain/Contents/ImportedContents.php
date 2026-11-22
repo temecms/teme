@@ -41,7 +41,7 @@ final class ImportedContents
     public const int MOST_OLD_ADDRESSES = 50;
 
     /** Teme's slug rule, as UpdateContentDetails holds it (I-397). */
-    private const string SLUG = '/^[\p{Ll}\p{Lo}\p{N}]+(?:-[\p{Ll}\p{Lo}\p{N}]+)*$/u';
+    private const string SLUG = '/^(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+(?:-(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+)*$/u';
 
     /**
      * Refuses an item Teme's own rules wouldn't save: its type, title, slug,

@@ -17,8 +17,8 @@ namespace App\Domain\Import\Phases\Terms;
 
 final class WordPressSlugs
 {
-    /** Teme's slug rule, as ValidatesTerms holds it: letters and numbers of any script, lower-case, joined by single hyphens. */
-    public const string RULE = '/^[\p{Ll}\p{Lo}\p{N}]+(?:-[\p{Ll}\p{Lo}\p{N}]+)*$/u';
+    /** Teme's slug rule, as ValidatesTerms holds it: letters and numbers of any script, each letter with its combining marks (vowel signs), lower-case, joined by single hyphens. */
+    public const string RULE = '/^(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+(?:-(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+)*$/u';
 
     /**
      * The slug Teme gives a WordPress slug, at most $max characters, and
@@ -36,7 +36,9 @@ final class WordPressSlugs
             return ['slug' => $decoded, 'kept' => true];
         }
 
-        $made = trim((string) preg_replace('/[^\p{Ll}\p{Lo}\p{N}]+/u', '-', $decoded), '-');
+        $made = (string) preg_replace('/[^\p{Ll}\p{Lo}\p{N}\p{M}]+/u', '-', $decoded);
+        // A mark belongs to the letter before it; one with none goes, and the hyphens it leaves with it.
+        $made = trim((string) preg_replace(['/(?<=^|-)\p{M}+/u', '/-{2,}/'], ['', '-'], $made), '-');
 
         return ['slug' => rtrim(mb_substr($made, 0, $max), '-'), 'kept' => false];
     }

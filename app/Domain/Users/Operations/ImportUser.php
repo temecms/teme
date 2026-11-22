@@ -50,7 +50,7 @@ final class ImportUser extends BaseOperation
             [
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
-                'slug' => ['required', 'string', 'max:190', 'regex:/^[\p{Ll}\p{Lo}\p{N}]+(?:-[\p{Ll}\p{Lo}\p{N}]+)*$/u', Rule::unique('users', 'slug'), Rule::unique('people', 'slug')],
+                'slug' => ['required', 'string', 'max:190', 'regex:/^(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+(?:-(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+)*$/u', Rule::unique('users', 'slug'), Rule::unique('people', 'slug')],
                 'bio' => ['nullable', 'string', 'max:1000'],
                 'role' => ['required', Rule::in(array_keys(Roles::LABELS))],
             ],

@@ -51,7 +51,7 @@ trait ValidatesTerms
             [
                 'taxonomy' => ['required', Rule::in($taxonomies->keys())],
                 'name' => ['required', 'string', 'max:200'],
-                'slug' => ['nullable', 'string', 'max:190', 'regex:/^[\p{Ll}\p{Lo}\p{N}]+(?:-[\p{Ll}\p{Lo}\p{N}]+)*$/u'],
+                'slug' => ['nullable', 'string', 'max:190', 'regex:/^(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+(?:-(?:[\p{Ll}\p{Lo}\p{N}]\p{M}*)+)*$/u'],
             ],
             [
                 'name.required' => __('Give it a name.'),

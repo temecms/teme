@@ -18,12 +18,36 @@ use Illuminate\Support\Str;
 
 final class Slugs
 {
+    /** Scripts whose vowel signs are combining marks, kept as written in a slug. */
+    private const string KEPT_SCRIPTS = '\p{Devanagari}\p{Bengali}\p{Gurmukhi}\p{Gujarati}\p{Oriya}\p{Tamil}\p{Telugu}\p{Kannada}\p{Malayalam}\p{Sinhala}\p{Thai}\p{Lao}\p{Tibetan}\p{Myanmar}\p{Khmer}';
+
+    /**
+     * The slug some text makes, as Str::slug makes it (lower case, Latin
+     * letters without their accents, words joined by single hyphens), but
+     * with each letter of a script whose vowel signs are combining marks
+     * kept as written, its marks with it; an empty slug when nothing of it
+     * is usable.
+     *
+     * @since next
+     */
+    public static function fromText(string $text): string
+    {
+        // Str::ascii would spell these scripts in Latin letters without their vowels, or drop them.
+        $text = (string) preg_replace_callback('/[^'.self::KEPT_SCRIPTS.']+/u', fn (array $run): string => Str::ascii($run[0], 'en'), $text);
+        $text = str_replace(['_', '@'], ['-', '-at-'], $text);
+        $text = (string) preg_replace('/[^-\pL\pM\pN\s]+/u', '', mb_strtolower($text, 'UTF-8'));
+        // A mark belongs to the letter before it; one with none goes.
+        $text = (string) preg_replace(['/[-\s]+/u', '/(?<=^|-)\pM+/u', '/-{2,}/'], ['-', '', '-'], $text);
+
+        return trim($text, '-');
+    }
+
     /**
      * The slug a title would have before any de-duplication.
      */
     public static function fromTitle(string $title): string
     {
-        $base = Str::slug($title) ?: 'untitled';
+        $base = self::fromText($title) ?: 'untitled';
 
         // Leave room for a suffix inside the 255-character column. Titles may
         // be up to 512 characters, so without this a long title fails the
