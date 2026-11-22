@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Import\Phases\Check;
 
 use App\Domain\Addresses\Paths;
+use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Operations\ClearRunMessages;
@@ -32,6 +33,7 @@ use App\Domain\Redirects\Queries\SiteAnswers;
 use App\Domain\Redirects\RedirectLookup;
 use App\Domain\Redirects\RedirectSource;
 use App\Domain\Types\ContentTypeRegistry;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 final readonly class CheckStep implements StepPhase
@@ -44,6 +46,9 @@ final readonly class CheckStep implements StepPhase
 
     /** The statuses that send readers on. */
     private const array ONWARD = [301, 302, 307, 308];
+
+    /** The kinds of the old site's addresses that are its media's: left on the old site when a file's media are kept there as links. */
+    private const array MEDIA_KINDS = ['attachment_page', 'attachment_file'];
 
     public function __construct(private OldSiteUrls $urls, private SiteAnswers $answers, private ContentTypeRegistry $types, private RedirectLookup $redirects) {}
 
@@ -79,13 +84,16 @@ final readonly class CheckStep implements StepPhase
         $others = [];
         // The old file addresses the uploads rule answers, counted across jobs after the cursor's |.
         [$position, $files] = self::counted($cursor);
+        // A file's media kept on the old site as links, as the person chose: their addresses aren't Teme's to answer.
+        $kept = $context->readsFile() && $context->choice('media') === 'links';
+        $kinds = $kept ? array_values(array_diff(OldSiteUrls::KINDS, self::MEDIA_KINDS)) : OldSiteUrls::KINDS;
 
         while (true) {
-            $page = $this->urls->page($reader, OldSiteUrls::KINDS, $position);
+            $page = $this->urls->page($reader, $kinds, $position);
             $position = $page['cursor'];
 
             foreach ($page['items'] as $item) {
-                $messages = [...$messages, ...$this->item($page['kind'], $item, $host, $others, $files)];
+                $messages = [...$messages, ...$this->item($page['kind'], $item, $host, $others, $files, $kept)];
 
                 // Out of time inside a page: carry on after this item. The home page and the archives come whole.
                 if (microtime(true) - $started >= self::BUDGET && $page['kind'] !== 'archive') {
@@ -112,6 +120,10 @@ final readonly class CheckStep implements StepPhase
                 : number_format($files).' old file addresses now redirect to the media library.', ['count' => $files]);
         }
 
+        if ($kept && $context->fileId !== null) {
+            $messages = [...$messages, ...self::keptMedia($context->fileId, $context->sourceId, $host)];
+        }
+
         return StepResult::done($messages);
     }
 
@@ -133,15 +145,50 @@ final readonly class CheckStep implements StepPhase
     }
 
     /**
+     * The one line for a file's media kept on the old site as links: how
+     * many files stay there, and how many brought posts' featured images
+     * with them, in place of a warning for each post. None for a file
+     * without media.
+     *
+     * @return list<ImportMessage>
+     */
+    private static function keptMedia(string $fileId, string $sourceId, string $host): array
+    {
+        $files = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::MEDIA)->count();
+
+        if ($files === 0) {
+            return [];
+        }
+
+        $featured = DB::table('import_file_rows as row')
+            ->where('row.file_id', $fileId)
+            ->where('row.list', ItemRows::CONTENT)
+            ->whereRaw("(row.payload->>'featured_media') IS NOT NULL")
+            ->whereExists(fn ($brought) => $brought->from('import_map as map')
+                ->where('map.source_id', $sourceId)
+                ->where('map.object_type', 'post')
+                ->whereNotNull('map.teme_id')
+                ->whereRaw('map.object_id = row.object_id::text'))
+            ->count();
+
+        $words = ($files === 1 ? '1 media file stays' : number_format($files).' media files stay')." on {$host}, as chosen"
+            .($featured === 0 ? '' : ($featured === 1 ? ', and 1 post’s featured image' : ', and '.number_format($featured).' posts’ featured images'))
+            .': their old addresses and the posts’ images point there, and stop working when that site closes. Import the file again and choose Download to bring them.';
+
+        return [new ImportMessage('check.media-kept', $words, ['files' => $files, 'featured' => $featured, 'host' => $host])];
+    }
+
+    /**
      * One item's addresses checked: its own, or each file of an attachment.
      *
      * @param  array<string, mixed>  $item
      * @param  array<string, string>  $others  another host, and the first of its addresses met
      * @param  int  $files  the old file addresses the uploads rule answers, counted on
+     * @param  bool  $kept  whether a file's media stay on the old site as links
      *
      * @return list<ImportMessage>
      */
-    private function item(string $kind, array $item, string $host, array &$others, int &$files): array
+    private function item(string $kind, array $item, string $host, array &$others, int &$files, bool $kept): array
     {
         $addresses = $kind === 'attachment_file'
             ? array_values(array_unique(array_filter((array) ($item['files'] ?? []), is_string(...))))
@@ -163,6 +210,11 @@ final readonly class CheckStep implements StepPhase
                     $others[OldSiteUrls::bare($other)] ??= $address;
                 }
 
+                continue;
+            }
+
+            // A media address left on the old site as chosen: an attachment's own, or a file in its uploads folder.
+            if ($kept && self::media($own)) {
                 continue;
             }
 
@@ -240,6 +292,19 @@ final readonly class CheckStep implements StepPhase
         }
 
         return new ImportMessage('check.other-status', "{$shown}, {$what} on the old site, answers {$answer->status} here.", $context);
+    }
+
+    /**
+     * Whether an old address is one of the old site's media's: below its
+     * uploads folder, or an attachment asked for by its ID.
+     *
+     * @param  array{path: string, query: string}  $own
+     */
+    private static function media(array $own): bool
+    {
+        parse_str($own['query'], $query);
+
+        return isset($query['attachment_id']) || strncasecmp(ltrim($own['path'], '/'), RedirectLookup::UPLOADS, strlen(RedirectLookup::UPLOADS)) === 0;
     }
 
     /**

@@ -354,7 +354,11 @@ final class ContentPhase implements ListPhase, PreparesObjects
                 $fields[BuiltInFields::FEATURED_IMAGE] = ['id' => $mediaId, 'alt' => null, 'decorative' => false];
             } else {
                 $missing = true;
-                $notes[] = new ImportMessage('post.featured-missing', 'Its featured image isn’t in Teme’s library, so it has none for now. A later import sets it if the image comes across.');
+
+                // A file's media kept on the old site as links: the address check says so once for every post (CheckStep).
+                if (! ($context->readsFile() && $context->choice('media') === 'links')) {
+                    $notes[] = new ImportMessage('post.featured-missing', 'Its featured image isn’t in Teme’s library, so it has none for now. A later import sets it if the image comes across.');
+                }
             }
         }
 
