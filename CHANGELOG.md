@@ -22,6 +22,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - On Plugins, Enable is now a clear primary button, no longer a grey shape that looks like the Disabled label beside it.
 - The request sheet for a plugin or theme update says "The newest" instead of the raw version rule "Asked for *", and shows the version once it is known.
 - Updating a plugin or theme installed from a Git address, a vendor's source or an upload now uses the source it came from, instead of always saying Packagist; one that was uploaded by hand says to upload the new version.
+- Enabling a plugin that brings content types shows a short notice ("Added Showcase and 40 fields. Took over Documentation, keeping their items.") instead of every field by its key.
 
 ## [1.3.2] — 2026-11-20
 
