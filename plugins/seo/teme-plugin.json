@@ -481,11 +481,6 @@
                                     "id": "description",
                                     "label": "Meta description",
                                     "kind": "text"
-                                },
-                                {
-                                    "id": "status",
-                                    "label": "Status",
-                                    "kind": "badge"
                                 }
                             ],
                             "search": true,

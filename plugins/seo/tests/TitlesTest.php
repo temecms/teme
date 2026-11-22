@@ -37,6 +37,19 @@ final class TitlesTest extends SeoTestCase
                 ->where('block_titles.rows.0.cells.description.value', 'How and when.')));
     }
 
+    #[TestDox('fits the Titles and descriptions table without a Status column that hid the rest')]
+    public function test_it_fits_the_titles_and_descriptions_table_without_a_status_column_that_hid_the_rest(): void
+    {
+        $this->signIn($this->editor);
+        $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'titles']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('blocks', fn (iterable $blocks): bool => collect($blocks)->contains(fn (mixed $block): bool => is_array($block)
+                    && ($block['id'] ?? null) === 'titles'
+                    && ($block['type'] ?? null) === 'table'
+                    && collect($block['columns'] ?? [])->pluck('id')->all() === ['title', 'seo-title', 'description'])));
+    }
+
     #[TestDox('lists to a person only the drafts they may edit, when titles asks for unpublished items')]
     public function test_it_lists_to_a_person_only_the_drafts_they_may_edit_when_titles_asks_for_unpublished_items(): void
     {
