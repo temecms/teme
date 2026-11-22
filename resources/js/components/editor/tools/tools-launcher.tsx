@@ -154,7 +154,7 @@ export function ToolsLauncher({
             <PopoverContent
                 align="end"
                 aria-labelledby={`${fieldId}-label`}
-                className="w-112 max-w-full p-0"
+                className="w-112 max-w-[min(28rem,calc(100vw-2rem))] p-0"
             >
                 <div className="grid gap-2 p-3">
                     <Label id={`${fieldId}-label`} htmlFor={fieldId}>

@@ -14,6 +14,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - An empty SEO title’s placeholder is only the title the template makes, not “Using the title template:” as well.
 - On a phone, choosing a page in the admin menu closes the menu as the page opens.
 - Your own row on People puts Change role… and Manage yourself in Account in the same actions place as other rows.
+- The editor’s Tools menu stays within a phone screen instead of stretching past the right edge.
 
 ## [1.3.2] — 2026-11-20
 

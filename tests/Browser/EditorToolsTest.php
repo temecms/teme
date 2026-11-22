@@ -194,6 +194,37 @@ it('opens every tool from the command palette too', function (): void {
     cmWaitUntil($page, "(() => { const shown = Array.from(document.querySelectorAll('[role=\"option\"]'), (option) => option.textContent.toLowerCase()).join(' '); return ['outline', 'history', 'share', 'assistant'].every((name) => shown.includes(name)); })()");
 });
 
+it('keeps the Tools menu within a phone screen at 375px', function (): void {
+    // On a phone the menu is a drawer, so cmEditorSettled's folded sidebar never comes.
+    $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), $this->edit);
+    cmWaitUntil($page, "document.querySelector('.teme-prose') !== null");
+    $page->click('[data-test="editor-tools"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="popover-content"]\') !== null');
+
+    $box = $page->script(<<<'JS'
+        () => {
+            const menu = document.querySelector('[data-slot="popover-content"]');
+            if (menu === null) {
+                return null;
+            }
+
+            const rect = menu.getBoundingClientRect();
+
+            return {
+                width: Math.round(rect.width),
+                left: Math.round(rect.left),
+                right: Math.round(rect.right),
+                viewport: window.innerWidth,
+            };
+        }
+        JS);
+
+    expect($box)->not->toBeNull()
+        ->and($box['width'])->toBeLessThanOrEqual($box['viewport'] - 16)
+        ->and($box['left'])->toBeGreaterThanOrEqual(0)
+        ->and($box['right'])->toBeLessThanOrEqual($box['viewport']);
+});
+
 it('passes axe with Tools open, light and dark', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
