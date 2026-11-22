@@ -85,7 +85,7 @@ final readonly class ManifestValidator
      * @param  array<string, mixed>  $manifest
      * @param  array<string, mixed>|null  $composer
      *
-     * @return array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null
+     * @return array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>, verifiers?: array<string, bool>}|null
      */
     public function classReading(array $manifest, string $path, ?array $composer): ?array
     {
@@ -110,7 +110,18 @@ final readonly class ManifestValidator
             }
         }
 
-        return [...$reading, 'handlers' => $handlers];
+        // A custom verifier's class is named in the manifest too, and must be in the plugin's code.
+        $verifiers = [];
+
+        foreach (is_array($manifest['routes'] ?? null) ? $manifest['routes'] : [] as $route) {
+            $verifier = is_array($route) && is_array($route['verify'] ?? null) && is_string($route['verify']['class'] ?? null) ? ltrim($route['verify']['class'], '\\') : '';
+
+            if ($verifier !== '' && ! array_key_exists($verifier, $verifiers)) {
+                $verifiers[$verifier] = $this->scan->pluginClass($path, $composer, $verifier) !== null;
+            }
+        }
+
+        return [...$reading, 'handlers' => $handlers, 'verifiers' => $verifiers];
     }
 
     /**
@@ -119,7 +130,7 @@ final readonly class ManifestValidator
      *
      * @param  array<string, mixed>  $manifest
      * @param  array<string, mixed>|null  $composer
-     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null  $reading
+     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>, verifiers?: array<string, bool>}|null  $reading
      *
      * @return list<string>
      */
@@ -421,13 +432,27 @@ final readonly class ManifestValidator
      * the plugin's class may (docs/plans/plugin-sockets-1.md, A-W13). A
      * handler whose file isn't found is left to the route's own checks.
      *
-     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null  $reading
+     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>, verifiers?: array<string, bool>}|null  $reading
      *
      * @return list<string>
      */
     private function handlers(Manifest $read, ?array $reading): array
     {
         $errors = [];
+
+        // A class a route names that the plugin's own code doesn't declare: said now, with the key that names it.
+        foreach ($read->routes() as $number => $route) {
+            $handler = is_string($route['handler'] ?? null) ? ltrim($route['handler'], '\\') : '';
+            $verifier = is_array($route['verify'] ?? null) && is_string($route['verify']['class'] ?? null) ? ltrim($route['verify']['class'], '\\') : '';
+
+            if ($handler !== '' && $reading !== null && array_key_exists($handler, $reading['handlers'] ?? []) && $reading['handlers'][$handler] === null) {
+                $errors[] = __('routes.:number.handler names :class, which isn’t in the plugin’s code.', ['number' => (string) $number, 'class' => $handler]);
+            }
+
+            if ($verifier !== '' && $reading !== null && ($reading['verifiers'][$verifier] ?? true) === false) {
+                $errors[] = __('routes.:number.verify.class names :class, which isn’t in the plugin’s code.', ['number' => (string) $number, 'class' => $verifier]);
+            }
+        }
 
         foreach ($reading['handlers'] ?? [] as $class => $handler) {
             if ($handler === null) {

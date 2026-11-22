@@ -25,6 +25,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Enabling a plugin that brings content types shows a short notice ("Added Showcase and 40 fields. Took over Documentation, keeping their items.") instead of every field by its key.
 - The dialog that asks you to enable a plugin lists what it asks for with a check mark on each line, and says its public addresses in words ("Answers a form sent to /…") instead of "POST /…".
 - Enabling a plugin from the console whose manifest can't be read now says so and why, instead of "No plugin is named".
+- Enabling a plugin whose manifest names a route handler or a verifier that isn't in its code is refused, naming the manifest key, instead of failing later.
 
 ## [1.3.2] — 2026-11-20
 

@@ -33,7 +33,7 @@ use Throwable;
 use ValueError;
 
 /**
- * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}
+ * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>, verifiers?: array<string, bool>}
  * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>, migrations: list<string>, types: array{version: string|null, problems: list<string>}}
  */
 final class PluginRegistry

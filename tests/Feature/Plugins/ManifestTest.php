@@ -178,3 +178,14 @@ it('takes Teme’s own pre-releases in a range that names them, and says why ^0.
     'this minor’s pre-release, with ^0.5' => ['^0.5', '0.5.0-alpha.1', null],
     'the next minor’s pre-release, with ^0.5' => ['^0.5', '0.6.0-alpha.1', 'The plugin requires Teme ^0.5, but this is Teme 0.6.0-alpha.1.'],
 ]);
+
+it('refuses a route handler and a custom verifier whose classes aren’t in the plugin, naming the manifest key', function (): void {
+    $manifest = json_decode((string) file_get_contents(PluginFixtures::path('inbound').'/teme-plugin.json'), true);
+    $manifest['routes'][0]['handler'] = 'Tests\\Fixtures\\Plugins\\Inbound\\Nowhere';
+    $manifest['routes'][2]['verify'] = ['kind' => 'custom', 'class' => 'Tests\\Fixtures\\Plugins\\Inbound\\NoVerifier'];
+
+    $errors = ($this->errors)($manifest, 'inbound');
+
+    expect($errors)->toContain('routes.0.handler names Tests\\Fixtures\\Plugins\\Inbound\\Nowhere, which isn’t in the plugin’s code.')
+        ->toContain('routes.2.verify.class names Tests\\Fixtures\\Plugins\\Inbound\\NoVerifier, which isn’t in the plugin’s code.');
+});
