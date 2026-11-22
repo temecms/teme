@@ -12,6 +12,10 @@ All notable changes to this project are documented in this file. Versioning foll
 - Delete the uploaded file from the report. Teme deletes it by itself 30 days after the last import from it ended (teme:import:prune-files, run daily). What was imported stays.
 - The editors' guide's Import from an export file, and the migration runbook's way through with a file.
 
+### Changed
+
+- The background workers restart themselves after a job only once they hold 512 MB, not Laravel's default 128 MB: resizing a large photo or reading a large export file no longer restarts a worker after nearly every job. Nothing to change on a running site: it comes with the image.
+
 ## [1.3.3] — 2026-11-22
 
 ### Fixed

@@ -163,8 +163,8 @@ it('starts every process, each as its own user, and passes its one health check'
 
     $processes = aioExec($name, 'ps -eo user,args');
 
-    expect($processes)->toMatch('/^www-data\s+.*php artisan queue:work --tries=3 --max-time=3600$/m')
-        ->and($processes)->toMatch('/^www-data\s+.*php artisan queue:work database-long --queue=long --tries=3 --max-time=3600$/m')
+    expect($processes)->toMatch('/^www-data\s+.*php artisan queue:work --tries=3 --max-time=3600 --memory=512$/m')
+        ->and($processes)->toMatch('/^www-data\s+.*php artisan queue:work database-long --queue=long --tries=3 --max-time=3600 --memory=512$/m')
         ->and($processes)->toMatch('/^www-data\s+.*php artisan schedule:work$/m')
         ->and($processes)->toMatch('/^www-data\s+.*php artisan teme:updater$/m')
         ->and($processes)->toMatch('/^teme-in\S*\s+.*php artisan teme:installer$/m')

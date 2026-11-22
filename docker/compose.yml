@@ -78,7 +78,7 @@ services:
     worker:
         <<: *teme
         command:
-            ['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600']
+            ['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600', '--memory=512']
         init: true
         stop_signal: SIGTERM
         stop_grace_period: 6m
@@ -104,6 +104,7 @@ services:
                 '--queue=long',
                 '--tries=3',
                 '--max-time=3600',
+                '--memory=512',
             ]
         init: true
         stop_signal: SIGTERM
