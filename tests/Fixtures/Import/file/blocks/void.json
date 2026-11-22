@@ -1,0 +1,34 @@
+[
+    {
+        "blockName": "core/block",
+        "attrs": {
+            "ref": 88
+        },
+        "innerBlocks": [],
+        "innerHTML": "",
+        "innerContent": []
+    },
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n",
+        "innerContent": [
+            "\n"
+        ]
+    },
+    {
+        "blockName": "core/latest-posts",
+        "attrs": {},
+        "innerBlocks": [],
+        "innerHTML": "",
+        "innerContent": []
+    },
+    {
+        "blockName": "core/separator",
+        "attrs": {},
+        "innerBlocks": [],
+        "innerHTML": "",
+        "innerContent": []
+    }
+]

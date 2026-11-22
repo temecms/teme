@@ -1,0 +1,11 @@
+[
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "<p>Just classic text.</p>\n\n<p>Written before blocks.</p>",
+        "innerContent": [
+            "<p>Just classic text.</p>\n\n<p>Written before blocks.</p>"
+        ]
+    }
+]
