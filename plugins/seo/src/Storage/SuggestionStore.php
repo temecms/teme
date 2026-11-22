@@ -71,7 +71,7 @@ final class SuggestionStore
      * Returns the suggestions still waiting for the person, oldest first, at
      * most twenty; one that can no longer be made is left out. When
      * $revisionId is given, a suggestion made from another revision is
-     * dropped from the table and left out of the answer.
+     * left out of the answer.
      *
      * @return list<Suggestion>
      */
@@ -83,9 +83,9 @@ final class SuggestionStore
             $change = json_decode((string) $row->change, true);
             $madeFrom = is_array($change) && is_string($change['revision_id'] ?? null) ? $change['revision_id'] : null;
 
+            // Made from an earlier revision: using it would undo later edits, so it isn't offered.
+            // Left in the table: a panel being drawn writes nothing (the next rewrite replaces it).
             if ($revisionId !== null && $madeFrom !== null && $madeFrom !== $revisionId) {
-                DB::table('seo_suggestions')->where('id', $row->id)->delete();
-
                 continue;
             }
 

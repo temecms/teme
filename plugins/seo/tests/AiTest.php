@@ -110,8 +110,8 @@ final class AiTest extends SeoTestCase
             ->and(end($job->messages))->toBe('The AI suggested no change.');
     }
 
-    #[TestDox('drops a keyphrase rewrite once the draft has moved on from the revision it was made from')]
-    public function test_it_drops_a_keyphrase_rewrite_once_the_draft_has_moved_on_from_the_revision_it_was_made_from(): void
+    #[TestDox('stops offering a keyphrase rewrite once the draft has moved on from the revision it was made from')]
+    public function test_it_stops_offering_a_keyphrase_rewrite_once_the_draft_has_moved_on_from_the_revision_it_was_made_from(): void
     {
         $ai = new SeoFakeAi(['blocks' => [['index' => 0, 'text' => 'Rose care starts with feeding.']]]);
         $madeFrom = '01kccccccccccccccccccccccc';
@@ -125,6 +125,7 @@ final class AiTest extends SeoTestCase
 
         expect((new KeyphrasePanel(new SuggestionStore))->view($stillOn)->suggestions)->toHaveCount(1)
             ->and((new KeyphrasePanel(new SuggestionStore))->view($movedOn)->suggestions)->toHaveCount(0)
-            ->and(DB::table('seo_suggestions')->where('item_id', $this->draftId)->whereNull('settled')->count())->toBe(0);
+            // Drawing the panel writes nothing: the old rewrite is only left out.
+            ->and(DB::table('seo_suggestions')->where('item_id', $this->draftId)->whereNull('settled')->count())->toBe(1);
     }
 }
