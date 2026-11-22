@@ -111,3 +111,16 @@ it('says when no plugin has that name', function (string $command): void {
 
     expect($exit)->toBe(1)->and(Artisan::output())->toContain('No plugin is named "tests/nobody".');
 })->with(['teme:plugins:enable', 'teme:plugins:disable']);
+
+it('says why a manifest that is not valid JSON can’t be read, when enabling its plugin', function (): void {
+    $folder = PluginFixtures::copy('hello');
+    file_put_contents($folder.'/teme-plugin.json', '{"name": ');
+    unlink($folder.'/composer.json');
+    PluginFixtures::use($folder);
+
+    $exit = Artisan::call('teme:plugins:enable', ['name' => basename($folder), '--agree' => true]);
+
+    expect($exit)->toBe(1)
+        ->and(Artisan::output())->toContain('teme-plugin.json')->toContain('not valid JSON')
+        ->not->toContain('No plugin is named');
+});

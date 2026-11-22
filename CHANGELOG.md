@@ -24,6 +24,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Updating a plugin or theme installed from a Git address, a vendor's source or an upload now uses the source it came from, instead of always saying Packagist; one that was uploaded by hand says to upload the new version.
 - Enabling a plugin that brings content types shows a short notice ("Added Showcase and 40 fields. Took over Documentation, keeping their items.") instead of every field by its key.
 - The dialog that asks you to enable a plugin lists what it asks for with a check mark on each line, and says its public addresses in words ("Answers a form sent to /…") instead of "POST /…".
+- Enabling a plugin from the console whose manifest can't be read now says so and why, instead of "No plugin is named".
 
 ## [1.3.2] — 2026-11-20
 

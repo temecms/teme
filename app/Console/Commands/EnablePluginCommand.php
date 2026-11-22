@@ -21,6 +21,7 @@ use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\Editor\DeclaredPanel;
+use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -54,13 +55,34 @@ final class EnablePluginCommand extends Command
         return $sentences->coreOnly(fn (): int => $this->enable($registry, $enable, $schedules));
     }
 
+    /**
+     * The plugin whose manifest can't be read that $name points to, by its folder or its folder's name:
+     * with no readable manifest it has no Composer name of its own to be found by.
+     */
+    private function unreadableAt(PluginRegistry $registry, string $name): ?FoundPlugin
+    {
+        foreach ($registry->all() as $found) {
+            if ($found->manifest === null && ($found->path === $name || basename($found->path) === $name)) {
+                return $found;
+            }
+        }
+
+        return null;
+    }
+
     private function enable(PluginRegistry $registry, EnablePlugin $enable, ScheduleRunner $schedules): int
     {
         $name = (string) $this->argument('name');
-        $plugin = $registry->find($name);
+        $plugin = $registry->find($name) ?? $this->unreadableAt($registry, $name);
 
         if ($plugin === null) {
             $this->components->error(__('No plugin is named ":name".', ['name' => $name]));
+
+            return self::FAILURE;
+        }
+
+        if ($plugin->manifest === null) {
+            $this->components->error(__('The manifest at :path can’t be read: :why', ['path' => $plugin->path.'/teme-plugin.json', 'why' => $plugin->problems[0] ?? '']));
 
             return self::FAILURE;
         }
