@@ -2,6 +2,12 @@
 
 All notable changes to Teme SEO are listed here. Teme SEO follows [Semantic Versioning](https://semver.org/); its version is its own, apart from Teme's.
 
+## 1.0.2
+
+### Fixed
+
+- The Search Console job fails once when the site isn’t connected, instead of retrying.
+
 ## 1.0.1
 
 ### Changed

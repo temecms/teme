@@ -125,6 +125,22 @@ final class SearchConsoleTest extends SeoTestCase
         $this->outbound()->assertNothingSent();
     }
 
+    #[TestDox('fails the Search Console job once when the site isn’t connected, without a retry')]
+    public function test_it_fails_the_search_console_job_once_when_the_site_isnt_connected_without_a_retry(): void
+    {
+        $manifest = json_decode((string) file_get_contents(dirname(__DIR__).'/teme-plugin.json'), true);
+        $declared = null;
+
+        foreach (is_array($manifest['jobs'] ?? null) ? $manifest['jobs'] : [] as $job) {
+            if (is_array($job) && ($job['key'] ?? null) === 'search-console') {
+                $declared = $job;
+            }
+        }
+
+        expect($declared)->toBeArray()
+            ->and($declared['tries'] ?? null)->toBe(1);
+    }
+
     /**
      * Fills in Search Console's settings, as an administrator would.
      */
