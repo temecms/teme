@@ -269,9 +269,7 @@ export function AreaTable({
                         key={filter.id}
                         aria-label={filter.label}
                         className="w-44"
-                        emptyLabel={__('Any :filter', {
-                            filter: filter.label.toLowerCase(),
-                        })}
+                        emptyLabel={__('All')}
                         options={filter.options}
                         value={ask.filters?.[filter.id] ?? ''}
                         onValueChange={(value) => {

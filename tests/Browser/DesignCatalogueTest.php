@@ -174,6 +174,27 @@ it('keeps the page patterns in their frames at 375 pixels, with one h1 each and 
         ->assertScript('[...document.querySelectorAll(\'[data-test^="catalogue-pattern-"]\')].every((frame) => frame.querySelectorAll(\'[data-test="pattern-title"]\').length === 1)');
 });
 
+it('keeps every catalogue section inside the column at 375 pixels', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 900), '/admin/_catalogue');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="catalogue"]\') !== null');
+
+    $overflow = cmScriptArray($page, <<<'JS'
+        () => {
+            const root = document.querySelector('[data-test="catalogue"]');
+            const column = Math.ceil(root.getBoundingClientRect().width);
+
+            return Array.from(root.querySelectorAll('section[id]'), (section) => ({
+                id: section.id,
+                width: Math.round(section.getBoundingClientRect().width),
+                scrollWidth: section.scrollWidth,
+            })).filter((row) => row.scrollWidth > column + 1 || row.width > column + 1).map((row) => row.id);
+        }
+        JS);
+
+    expect($overflow)->toBe([])
+        ->and($page->script('() => document.querySelector(\'[data-test="catalogue"]\').scrollWidth <= document.querySelector(\'[data-test="catalogue"]\').clientWidth + 1'))->toBeTrue();
+});
+
 it('keeps a space between a required field\'s label and its "Required" (#503)', function (): void {
     $page = cmNavigate(cmSignIn($this->admin), '/admin/_catalogue');
     cmWaitUntil($page, 'document.querySelector(\'label[for="catalogue-input-error"]\') !== null');

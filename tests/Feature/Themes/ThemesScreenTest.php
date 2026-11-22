@@ -203,3 +203,10 @@ it('sends the previewed theme\'s settings address to its settings on Themes once
 
     $this->actingAs($this->admin)->get('/admin/themes/good/settings')->assertRedirect('/admin/themes');
 });
+
+it('wraps the theme card\'s Preview through the catalogue (#519)', function (): void {
+    $source = file_get_contents(resource_path('js/components/themes/theme-list.tsx'));
+
+    expect($source)->toContain("{__('Preview')}")
+        ->and($source)->not->toMatch('/>(\s*)Preview(\s*)<span className="sr-only">/');
+});

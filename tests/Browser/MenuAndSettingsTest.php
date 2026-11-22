@@ -124,6 +124,35 @@ it('draws the Settings menu beside each Settings screen, the current one marked,
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
+it('wraps long Settings group names in the side list at 1280px, so none overflow', function (): void {
+    $page = cmSignIn($this->admin)->resize(1280, 900)
+        ->navigate(route('settings.show', ['group' => 'general'], false))
+        ->assertSeeIn('nav[aria-label="Settings"]', 'Plugin and theme directory');
+
+    $clipped = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('nav[aria-label="Settings"] a[data-test="settings-group"]')]
+            .map((link) => {
+                const label = link.querySelector('span');
+                if (!label) {
+                    return null;
+                }
+
+                const style = getComputedStyle(label);
+
+                return {
+                    text: label.textContent?.trim() ?? '',
+                    nowrap: style.whiteSpace === 'nowrap',
+                    ellipsis: style.textOverflow === 'ellipsis',
+                    clipped: label.scrollWidth > label.clientWidth + 1,
+                };
+            })
+            .filter((row) => row !== null && (row.nowrap || row.ellipsis || row.clipped))
+            .map((row) => row.text)
+        JS);
+
+    expect($clipped)->toBe([]);
+});
+
 it('finds a setting as you type, in a list under the box, and takes you to its field', function (): void {
     $page = cmSignIn($this->admin)->navigate(route('settings.show', ['group' => 'media'], false))
         ->type('[data-test="find-setting"]', 'time zone')

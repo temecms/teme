@@ -86,19 +86,17 @@ export default function Dashboard({
 
     const greetingLine = (() => {
         const hour = new Date().getHours();
-        const first =
-            auth.user.name.trim().split(/\s+/u).filter(Boolean)[0] ??
-            auth.user.name;
+        const name = auth.user.name.trim();
 
         if (hour >= 5 && hour <= 11) {
-            return __('Good morning, :name', { name: first });
+            return __('Good morning, :name', { name });
         }
 
         if (hour >= 12 && hour <= 17) {
-            return __('Good afternoon, :name', { name: first });
+            return __('Good afternoon, :name', { name });
         }
 
-        return __('Good evening, :name', { name: first });
+        return __('Good evening, :name', { name });
     })();
 
     const create = mainType.canCreate && (

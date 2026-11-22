@@ -93,7 +93,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 data-test="settings-group"
                 className={LINK}
             >
-                <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                <span className="min-w-0 flex-1 text-start wrap-break-word">
+                    {item.label}
+                </span>
                 {item.plugin && (
                     <span
                         title={__('A plugin’s settings')}

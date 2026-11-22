@@ -52,6 +52,16 @@ it('greets the person and offers New post, Upload media and Customize', function
     $contributor->assertDontSee('Upload media');
 });
 
+it('greets the person with their whole name, not only the first word', function (): void {
+    $person = User::factory()->create(['name' => 'The Verbalia'])->assignRole('editor');
+    $this->actingAs($person)->get(route('dashboard'))->assertOk();
+
+    $page = cmSignIn($person)->resize(1280, 900);
+    shellSettled($page, '[data-slot="page-header"]');
+
+    $page->assertSeeIn('[data-test="pattern-title"]', 'The Verbalia');
+});
+
 it('draws the panels in the person\'s sizes in a 12-column grid', function (): void {
     lscrPrefer($this->editor, ['dashboard.sizes' => ['my_drafts:full']]);
 

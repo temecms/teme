@@ -12,6 +12,12 @@ All notable changes to this project are documented in this file. Versioning foll
 - A page chosen as the home page shares under the home page's title (as its browser tab shows), not the page's own name such as "Home". A social or SEO title of its own still wins.
 - A content type, category or tag can no longer be given an address under `/themes/` or `/teme/`, where the web server serves theme and icon files: such pages were linked but answered "not found".
 - A command or a page no longer waits half a minute when the database can't be reached: Teme gives up after 5 seconds (`DB_CONNECT_TIMEOUT`) and says so.
+- Home greets you with your whole name, not only the first word.
+- Long Settings group names in the side list wrap onto a second line instead of being cut off.
+- An empty SEO title's placeholder is only the title the template makes, not "Using the title template:" as well.
+- The design catalogue's sections fit inside the column at phone width instead of being clipped.
+- The Themes Preview button goes through the catalogue, so it can be translated.
+- Plugin table filters offer "All" as their empty choice instead of "Any" plus the label.
 
 ## [1.3.2] — 2026-11-20
 

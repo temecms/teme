@@ -79,12 +79,12 @@ export function PluginAreaPage({
 
     return (
         <Page>
-            <div className="flex items-start gap-4">
+            <div className="flex min-w-0 items-start gap-4">
                 <PluginIcon
                     size={64}
                     name={plugin.name}
                     src={plugin.icon ?? null}
-                    className="mt-2"
+                    className="mt-2 shrink-0"
                 />
                 <div className="min-w-0 flex-1">
                     <PageHeader
