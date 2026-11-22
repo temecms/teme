@@ -22,7 +22,7 @@ namespace Teme\Contracts\Ai;
 final readonly class AiStanding
 {
     /**
-     * @param  string  $reason  one of: ready, ai-off, plugin-off, no-model, model-lacks, site-budget, plugin-budget, hourly-limit
+     * @param  string  $reason  one of: ready, ai-off, plugin-off, no-model, model-lacks, site-budget, plugin-budget, hourly-limit, no-task, task-waiting
      * @param  string  $sentence  why, in one plain sentence a person may read; empty when ready
      * @param  int|null  $monthBudgetMicrodollars  null when the plugin has no budget of its own
      *

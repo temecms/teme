@@ -2,7 +2,7 @@
 
 /**
  * Refused before sending (reason as AiStanding's, or no-person, no-permission,
- * in-transaction, no-task, too-many-tokens, no-schema, too-long), or failed
+ * in-transaction, no-task, task-waiting, too-many-tokens, no-schema, too-long), or failed
  * after (unavailable, rate-limited, invalid-output, timeout, refused).
  *
  * @package Teme
@@ -18,7 +18,7 @@ use RuntimeException;
 
 /**
  * Refused before sending (reason as AiStanding's, or no-person, no-permission,
- * in-transaction, no-task, too-many-tokens, no-schema, too-long), or failed
+ * in-transaction, no-task, task-waiting, too-many-tokens, no-schema, too-long), or failed
  * after (unavailable, rate-limited, invalid-output, timeout, refused). Its
  * message is one plain sentence, never the AI service's own words.
  *

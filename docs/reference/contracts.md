@@ -141,7 +141,7 @@ One request: the plugin's instructions, its named inputs (each fenced by core), 
 
 `Teme\Contracts\Ai\AiRefused`, class. Since 1.0.0.
 
-Refused before sending (reason as AiStanding's, or no-person, no-permission, in-transaction, no-task, too-many-tokens, no-schema, too-long), or failed after (unavailable, rate-limited, invalid-output, timeout, refused). Its message is one plain sentence, never the AI service's own words.
+Refused before sending (reason as AiStanding's, or no-person, no-permission, in-transaction, no-task, task-waiting, too-many-tokens, no-schema, too-long), or failed after (unavailable, rate-limited, invalid-output, timeout, refused). Its message is one plain sentence, never the AI service's own words.
 
 - `__construct(string $reason, string $sentence)`. Since 1.0.0.
 
