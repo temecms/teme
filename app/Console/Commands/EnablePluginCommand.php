@@ -81,14 +81,10 @@ final class EnablePluginCommand extends Command
             return self::FAILURE;
         }
 
-        if ($plugin->manifest === null) {
-            $this->components->error(__('The manifest at :path can’t be read: :why', ['path' => $plugin->path.'/teme-plugin.json', 'why' => $plugin->problems[0] ?? '']));
-
-            return self::FAILURE;
-        }
-
         if (! $plugin->usable()) {
-            $this->components->error($plugin->problems[0] ?? '');
+            $this->components->error($plugin->manifest === null
+                ? __('The manifest at :path can’t be read: :why', ['path' => $plugin->path.'/teme-plugin.json', 'why' => $plugin->problems[0] ?? ''])
+                : ($plugin->problems[0] ?? ''));
 
             return self::FAILURE;
         }
