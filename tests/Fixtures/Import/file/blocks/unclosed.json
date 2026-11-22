@@ -1,0 +1,40 @@
+[
+    {
+        "blockName": "core/group",
+        "attrs": {},
+        "innerBlocks": [
+            {
+                "blockName": "core/paragraph",
+                "attrs": {},
+                "innerBlocks": [],
+                "innerHTML": "<p>Never closed</p></div>",
+                "innerContent": [
+                    "<p>Never closed</p></div>"
+                ]
+            }
+        ],
+        "innerHTML": "<div>",
+        "innerContent": [
+            "<div>",
+            null
+        ]
+    },
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n",
+        "innerContent": [
+            "\n"
+        ]
+    },
+    {
+        "blockName": "core/quote",
+        "attrs": {},
+        "innerBlocks": [],
+        "innerHTML": "<blockquote><p>Open to the end</p></blockquote>",
+        "innerContent": [
+            "<blockquote><p>Open to the end</p></blockquote>"
+        ]
+    }
+]

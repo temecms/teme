@@ -1,0 +1,11 @@
+[
+    {
+        "blockName": "acme/quote",
+        "attrs": {
+            "text": "<b>Bold</b> -- café 😀"
+        },
+        "innerBlocks": [],
+        "innerHTML": "",
+        "innerContent": []
+    }
+]
