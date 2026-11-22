@@ -16,6 +16,7 @@ namespace App\Domain\Import\Queries;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportRun;
+use App\Domain\Import\Phases\Addresses\WordPressAddresses;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -111,6 +112,23 @@ final readonly class ImportFiles
         }
 
         return $authors;
+    }
+
+    /**
+     * Returns how many posts, pages and media files an export file lists, for its plan's choices.
+     *
+     * @return array{postCount: int, pageCount: int, mediaCount: int}
+     */
+    public function counts(string $fileId): array
+    {
+        $types = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::CONTENT)
+            ->selectRaw("payload->>'type' AS type, count(*) AS total")->groupByRaw('1')->pluck('total', 'type');
+
+        return [
+            'postCount' => (int) ($types[WordPressAddresses::POSTS] ?? 0),
+            'pageCount' => (int) ($types[WordPressAddresses::PAGES] ?? 0),
+            'mediaCount' => DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::MEDIA)->count(),
+        ];
     }
 
     /**

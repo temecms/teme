@@ -143,7 +143,7 @@ final readonly class ImportChoices
      *
      * @param  array<string, mixed>  $last
      *
-     * @return array{menuLocations: list<array{key: string, label: string, value: string}>, slots: list<array{value: string, label: string}>, templates: list<array{key: string, count: int, value: string}>, themeTemplates: list<array{value: string, label: string}>, owner: string, people: list<array{value: string, label: string}>, pause: int, authors: list<array{login: string, name: string, email: string, items: int, matched: string|null, value: string}>, fileRoles: list<string>, types: list<array{key: string, label: string, count: int, type: string|null, typeLabel: string|null, value: string}>, media: string, categoryBase: string, tagBase: string, drafts: bool, comments: bool}
+     * @return array{menuLocations: list<array{key: string, label: string, value: string}>, slots: list<array{value: string, label: string}>, templates: list<array{key: string, count: int, value: string}>, themeTemplates: list<array{value: string, label: string}>, owner: string, people: list<array{value: string, label: string}>, pause: int, authors: list<array{login: string, name: string, email: string, items: int, matched: string|null, value: string}>, fileRoles: list<string>, types: list<array{key: string, label: string, count: int, type: string|null, typeLabel: string|null, value: string}>, media: string, categoryBase: string, tagBase: string, drafts: bool, comments: bool, postCount: int, pageCount: int, mediaCount: int}
      */
     public function fileForm(SiteAnalysis $analysis, string $fileId, string $personId, array $last = []): array
     {
@@ -192,6 +192,7 @@ final readonly class ImportChoices
             'tagBase' => (string) $kept('tag_base', $bases['tag_base']),
             'drafts' => (bool) $kept('drafts', true),
             'comments' => (bool) $kept('comments', true),
+            ...$this->files->counts($fileId),
         ];
     }
 

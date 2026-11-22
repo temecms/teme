@@ -15,6 +15,7 @@ namespace App\Domain\Import\Queries;
 use App\Domain\Import\ImportMessageLevel;
 use App\Domain\Import\ImportOutcome;
 use App\Domain\Import\ImportRunState;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Phases\ImportPhase;
@@ -162,7 +163,7 @@ final readonly class ImportScreen
     /**
      * Returns one import as its page draws it: its kind and state, when it started and ended, why it stopped, its counts and its steps; null when Teme has no such import.
      *
-     * @return array{id: string, kind: string, kindLabel: string, state: string, stateLabel: string, startedAt: string, endedAt: string|null, stopMessage: string|null, counts: array{created: int, updated: int, skipped: int, failed: int, warnings: int}, steps: list<array{key: string, label: string, state: string}>}|null
+     * @return array{id: string, kind: string, kindLabel: string, state: string, stateLabel: string, startedAt: string, endedAt: string|null, stopMessage: string|null, counts: array{created: int, updated: int, skipped: int, failed: int, warnings: int}, steps: list<array{key: string, label: string, state: string}>, file: array{id: string, name: string, sizeBytes: int, uploadedAt: string, deletesOn: string|null, deleted: bool}|null}|null
      */
     public function run(string $runId): ?array
     {
@@ -183,6 +184,7 @@ final readonly class ImportScreen
             'stopMessage' => $run->stop_message,
             'counts' => $this->counts($run),
             'steps' => $this->steps($run),
+            'file' => $this->runFile($run),
         ];
     }
 
@@ -508,6 +510,25 @@ final readonly class ImportScreen
             'madeAt' => $file->made_at?->utc()->toIso8601String(),
             'uploadedAt' => $file->created_at->utc()->toIso8601String(),
             'deletesOn' => app(ImportFiles::class)->deletesOn((string) $file->id),
+        ];
+    }
+
+    /**
+     * The export file a run read, deleted or not; null for a run of the companion.
+     *
+     * @return array{id: string, name: string, sizeBytes: int, uploadedAt: string, deletesOn: string|null, deleted: bool}|null
+     */
+    private function runFile(ImportRun $run): ?array
+    {
+        $file = $run->file_id === null ? null : ImportFile::query()->find($run->file_id);
+
+        return $file === null ? null : [
+            'id' => (string) $file->id,
+            'name' => $file->name,
+            'sizeBytes' => (int) $file->size_bytes,
+            'uploadedAt' => $file->created_at->utc()->toIso8601String(),
+            'deletesOn' => app(ImportFiles::class)->deletesOn((string) $file->id),
+            'deleted' => $file->deleted_at !== null,
         ];
     }
 

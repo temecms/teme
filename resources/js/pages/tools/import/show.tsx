@@ -1,7 +1,8 @@
 import { Deferred, Head, setLayoutProps, usePoll } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ChoicesForm } from '@/components/import/choices-form';
 import { ConnectForm } from '@/components/import/connect-form';
+import { FilePlan } from '@/components/import/file-plan';
 import { ImportSteps } from '@/components/import/import-steps';
 import { OtherHostsForm } from '@/components/import/other-hosts-form';
 import { RunProgress } from '@/components/import/run-progress';
@@ -11,13 +12,14 @@ import {
     AnalysisSkeleton,
     SiteAnalysis,
 } from '@/components/import/site-analysis';
+import { UploadForm } from '@/components/import/upload-form';
 import { ListPage } from '@/components/patterns/list-page';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { __ } from '@/lib/i18n';
-import { formatInZone } from '@/lib/zoned-time';
+import { dayInZone, formatInZone } from '@/lib/zoned-time';
 import { index } from '@/routes/tools';
 import { index as importerIndex } from '@/routes/tools/importer';
-import type { ImportPlan, ImportShowPage } from '@/types/import';
+import type { ImportPlan, ImportShowPage, ImportSite } from '@/types/import';
 
 /** The plan step, once its deferred data has arrived: the analysis, then the choices. */
 function Plan({
@@ -80,6 +82,89 @@ function Plan({
     );
 }
 
+/** A size in megabytes, to one place. */
+function megabytes(bytes: number): string {
+    return (bytes / (1024 * 1024)).toLocaleString(undefined, {
+        maximumFractionDigits: 1,
+    });
+}
+
+/** The plan of a site read from its export file, with another file's upload when asked for. */
+function FileSitePlan({
+    site,
+    plan,
+    maxFileMb,
+}: {
+    site: ImportSite;
+    plan: ImportPlan | null | undefined;
+    maxFileMb: number;
+}) {
+    const [another, setAnother] = useState(false);
+
+    if (plan == null) {
+        return <AnalysisSkeleton />;
+    }
+
+    return (
+        <>
+            <FilePlan
+                site={site}
+                plan={plan}
+                onAnotherFile={() => setAnother((open) => !open)}
+            />
+            {another && <UploadForm maxFileMb={maxFileMb} />}
+        </>
+    );
+}
+
+/** The line under a site's name: its export file, or its live connection. */
+function describe(
+    site: ImportSite,
+    step: ImportShowPage['step'],
+    run: ImportShowPage['run'],
+    siteTimezone: string,
+): string {
+    if (step === 'plan' && site.file !== null) {
+        const file = site.file;
+
+        return file.madeAt === null
+            ? __('Export file :name, :size MB, uploaded :date.', {
+                  name: file.name,
+                  size: megabytes(file.sizeBytes),
+                  date: dayInZone(file.uploadedAt, siteTimezone),
+              })
+            : __(
+                  'Export file :name, :size MB, made in WordPress on :made and uploaded :uploaded.',
+                  {
+                      name: file.name,
+                      size: megabytes(file.sizeBytes),
+                      made: dayInZone(file.madeAt, siteTimezone),
+                      uploaded: dayInZone(file.uploadedAt, siteTimezone),
+                  },
+              );
+    }
+
+    if (run?.file != null) {
+        return __('Export file :name, :size MB, uploaded :date.', {
+            name: run.file.name,
+            size: megabytes(run.file.sizeBytes),
+            date: dayInZone(run.file.uploadedAt, siteTimezone),
+        });
+    }
+
+    if (site.forgotten) {
+        return __('Teme has forgotten this site’s application password.');
+    }
+
+    return site.connectedAt === null
+        ? ''
+        : __('Connected as :name on :date. Teme Companion :version.', {
+              name: site.userName ?? '',
+              date: formatInZone(site.connectedAt, siteTimezone),
+              version: site.pluginVersion ?? '',
+          });
+}
+
 /** A site's page (I-227): its five steps, and the section for the one it stands at. */
 export default function ImportShow({
     site,
@@ -93,6 +178,7 @@ export default function ImportShow({
     downloads,
     rememberedHosts,
     siteTimezone,
+    maxFileMb,
 }: ImportShowPage) {
     const { start, stop } = usePoll(
         3000,
@@ -126,13 +212,12 @@ export default function ImportShow({
         ],
     });
 
-    const description = site.forgotten
-        ? __('Teme has forgotten this site’s application password.')
-        : __('Connected as :name on :date. Teme Companion :version.', {
-              name: site.userName ?? '',
-              date: formatInZone(site.connectedAt, siteTimezone),
-              version: site.pluginVersion,
-          });
+    const description = describe(site, step, run, siteTimezone);
+    // A site read from its export file, or an import of one: Upload comes first.
+    const fromFile =
+        step === 'plan'
+            ? site.file !== null
+            : run?.file != null || !site.connected;
 
     return (
         <>
@@ -141,7 +226,11 @@ export default function ImportShow({
             <ListPage title={site.host} description={description}>
                 <ImportSteps
                     step={step}
-                    choosing={plan != null && plan.form !== null}
+                    choosing={
+                        plan != null &&
+                        (plan.form !== null || plan.fileForm !== null)
+                    }
+                    file={fromFile}
                 />
 
                 {step === 'connect' && (
@@ -160,7 +249,17 @@ export default function ImportShow({
                     />
                 )}
 
-                {step === 'plan' && (
+                {step === 'plan' && site.file !== null && (
+                    <Deferred data="plan" fallback={<AnalysisSkeleton />}>
+                        <FileSitePlan
+                            site={site}
+                            plan={plan}
+                            maxFileMb={maxFileMb}
+                        />
+                    </Deferred>
+                )}
+
+                {step === 'plan' && site.file === null && (
                     <Deferred data="plan" fallback={<AnalysisSkeleton />}>
                         <Plan
                             siteId={site.id}
@@ -183,6 +282,7 @@ export default function ImportShow({
                         downloads={downloads}
                         latest={latest}
                         siteTimezone={siteTimezone}
+                        maxFileMb={maxFileMb}
                     />
                 )}
 

@@ -139,7 +139,9 @@ it('asks a file’s choices on its plan, refuses ones that don’t fit, and star
             ->where('plan.form', null)
             ->where('plan.fileForm.authors.0.login', 'ada')
             ->where('plan.fileForm.authors.0.value', 'new:author')
-            ->where('plan.fileForm.media', 'download')));
+            ->where('plan.fileForm.media', 'download')
+            ->where('plan.fileForm.pageCount', 6)
+            ->where('plan.oldSiteAnswers', true)));
 
     $this->withSession(scConfirmed())->from($show)
         ->post($show.'/start', $choices(['media' => 'somewhere', 'authors' => ['ada' => 'to:999999']]))
@@ -155,4 +157,21 @@ it('asks a file’s choices on its plan, refuses ones that don’t fit, and star
     expect($run->file_id)->toBe($file->id)
         ->and($run->choices['authors'])->toMatchArray(['ada' => 'new:editor', 'harbour' => 'to:'.$this->admin->id])
         ->and($run->choices['media'])->toBe('download');
+});
+
+it('deletes the uploaded file from its report, and goes back to it saying so', function (): void {
+    $file = FileImports::ready('companion-site.xml', $this->admin);
+    $run = FileImports::run($file);
+    $show = '/admin/tools/import/'.$file->source_id;
+
+    $this->actingAs($this->admin)->get($show)
+        ->assertInertia(fn (Assert $page) => $page->where('step', 'report')->where('run.file.id', $file->id)->where('run.file.deleted', false));
+
+    $this->from($show)->withHeader('X-Inertia', 'true')->post("/admin/tools/import/files/{$file->id}/delete")
+        ->assertRedirect($show)
+        ->assertInertiaFlash('toast.message', 'Deleted the export file. What was imported stays.');
+
+    expect($file->refresh()->deleted_at)->not->toBeNull()
+        ->and(DB::table('contents')->count())->toBeGreaterThan(0)
+        ->and(ImportRun::query()->whereKey($run->id)->exists())->toBeTrue();
 });

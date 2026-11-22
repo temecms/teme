@@ -2,9 +2,9 @@ import { StepBar } from '@/components/ui/step-bar';
 import { __ } from '@/lib/i18n';
 import type { ImportStep } from '@/types/import';
 
-/** The five steps' words, looked up as they are drawn. */
-const steps = () => [
-    __('Connect'),
+/** The five steps' words, looked up as they are drawn; a site read from its export file starts with Upload. */
+const steps = (file: boolean) => [
+    file ? __('Upload') : __('Connect'),
     __('Analyze'),
     __('Choose'),
     __('Import'),
@@ -30,13 +30,15 @@ function current(step: ImportStep, choosing: boolean): number {
 export function ImportSteps({
     step,
     choosing = false,
+    file = false,
 }: {
     step: ImportStep;
     choosing?: boolean;
+    file?: boolean;
 }) {
     return (
         <StepBar
-            steps={steps()}
+            steps={steps(file)}
             current={current(step, choosing)}
             aria-label={__('Import steps')}
             data-test="import-step"
