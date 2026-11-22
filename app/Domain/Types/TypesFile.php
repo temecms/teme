@@ -144,6 +144,7 @@ final class TypesFile
         $definitions = [];
         $keys = [];
         $segments = [];
+        $refused = [];
 
         foreach ($types as $i => $raw) {
             if (! is_array($raw)) {
@@ -156,6 +157,11 @@ final class TypesFile
                 $definition = TypeDefinition::fromArray($raw);
             } catch (InvalidTypeDefinition $failure) {
                 $name = is_string($raw['key'] ?? null) ? $raw['key'] : 'Type '.($i + 1);
+
+                if (is_string($raw['key'] ?? null)) {
+                    $refused[$raw['key']] = true;
+                }
+
                 $problems["types.{$i}"][] = __(':name: :problems', [
                     'name' => $name,
                     'problems' => implode(' ', $failure->problems),
@@ -192,7 +198,7 @@ final class TypesFile
             $seen = [];
 
             foreach ($file['grants'] as $i => $entry) {
-                foreach (self::grantEntryProblems($entry, $i, $byKey, $seen) as $message) {
+                foreach (self::grantEntryProblems($entry, $i, $byKey, $refused, $seen) as $message) {
                     $problems["grants.{$i}"][] = $message;
                 }
             }
@@ -327,11 +333,12 @@ final class TypesFile
      * checks that need a readable grant.
      *
      * @param  array<string, TypeDefinition>  $byKey
+     * @param  array<string, true>  $refused  the keys of the file's types refused for another reason
      * @param  array<string, true>  $seen
      *
      * @return list<string>
      */
-    private static function grantEntryProblems(mixed $entry, int $index, array $byKey, array &$seen): array
+    private static function grantEntryProblems(mixed $entry, int $index, array $byKey, array $refused, array &$seen): array
     {
         $n = (string) ($index + 1);
 
@@ -371,7 +378,8 @@ final class TypesFile
         $role = $entry['role'];
 
         if (! isset($byKey[$type])) {
-            return [__('Grant :n: the file has no type :type.', ['n' => $n, 'type' => $type])];
+            // A type the file has but refused is said once, as its own problem.
+            return isset($refused[$type]) ? [] : [__('Grant :n: the file has no type :type.', ['n' => $n, 'type' => $type])];
         }
 
         if ($byKey[$type]->permissions !== TypeDefinition::OWN) {
