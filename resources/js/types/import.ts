@@ -182,6 +182,8 @@ export type ImportPlan = {
     /** For a site read from its file: whether the old site answers, so its media can be downloaded. */
     oldSiteAnswers: boolean | null;
     remembered: RememberedChoices | null;
+    /** A start the password's confirmation interrupted: sent again once, at once. */
+    resumeStart: boolean;
     rememberedHosts: string[] | null;
     suggestedHosts: { host: string; links: number }[];
 };

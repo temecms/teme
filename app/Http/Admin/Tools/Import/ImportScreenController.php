@@ -97,14 +97,14 @@ final class ImportScreenController extends Controller
      * confirmation; or why the site couldn't be read. Suggested hosts are
      * filled from that same analysis read.
      *
-     * @return array{analysis: array<string, mixed>|null, problem: string|null, form: array<string, mixed>|null, fileForm: array<string, mixed>|null, oldSiteAnswers: bool|null, remembered: mixed, rememberedHosts: list<string>|null, suggestedHosts: list<array{host: string, links: int}>}
+     * @return array{analysis: array<string, mixed>|null, problem: string|null, form: array<string, mixed>|null, fileForm: array<string, mixed>|null, oldSiteAnswers: bool|null, remembered: mixed, resumeStart: bool, rememberedHosts: list<string>|null, suggestedHosts: list<array{host: string, links: int}>}
      */
     private static function plan(Request $request, string $source, string $person, ImportAnalysis $analysis, ImportChoices $choices, ImportScreen $screen): array
     {
         try {
             $read = $analysis->read($source);
         } catch (SourceRefused|AddressRefused $refused) {
-            return ['analysis' => null, 'problem' => $refused->sentence(), 'form' => null, 'fileForm' => null, 'oldSiteAnswers' => null, 'remembered' => null, 'rememberedHosts' => null, 'suggestedHosts' => []];
+            return ['analysis' => null, 'problem' => $refused->sentence(), 'form' => null, 'fileForm' => null, 'oldSiteAnswers' => null, 'remembered' => null, 'resumeStart' => false, 'rememberedHosts' => null, 'suggestedHosts' => []];
         }
 
         $site = $screen->site($source);
@@ -122,8 +122,28 @@ final class ImportScreenController extends Controller
             // Whether the old site answers now, so its media files can be downloaded during the import.
             'oldSiteAnswers' => isset($site['file']['id']) ? app(FileDownloader::class)->answers($site['address']) : null,
             'remembered' => $request->session()->get(ImportRunController::REMEMBERED.$source),
+            // A start the password's confirmation interrupted: the plan sends it again once, now the password is confirmed.
+            'resumeStart' => self::resumes($request, $source),
             'rememberedHosts' => $rememberedHosts,
             'suggestedHosts' => $site['suggestedHosts'] ?? [],
         ];
+    }
+
+    /**
+     * Whether a start the password's confirmation interrupted waits to be
+     * sent again, now that the password is confirmed: once, so a reload
+     * doesn't start a second import.
+     */
+    private static function resumes(Request $request, string $source): bool
+    {
+        $confirmedAt = (int) $request->session()->get('auth.password_confirmed_at', 0);
+
+        if (! $request->session()->has(ImportRunController::RESUME.$source) || time() - $confirmedAt > (int) config('auth.password_timeout', 900)) {
+            return false;
+        }
+
+        $request->session()->forget(ImportRunController::RESUME.$source);
+
+        return true;
     }
 }

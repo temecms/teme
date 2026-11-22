@@ -113,10 +113,7 @@ it('connects a site, reads what comes across, confirms the password and starts t
     $page->type('#password', 'password')
         ->click('[data-test="confirm-password-button"]');
 
-    tiWaitUntil($page, tiPresent('[data-test="import-start"]'));
-    tiWaitUntil($page, 'document.querySelector('.json_encode('#import-host-0').')?.getAttribute("data-state") === "checked"');
-    $page->click('[data-test="import-start"]');
-
+    // Back from the password, the start carries on by itself, with the choices kept: no second Start.
     tiWaitUntil($page, tiPresent('[data-test="import-stop"]'));
     $page->assertSee('Started importing old.example.')
         ->assertSeeIn('[data-test="import-step"]', 'Import');
@@ -296,9 +293,7 @@ it('imports a site from its export file, from the upload to the report', functio
     $page->type('#password', 'password')
         ->click('[data-test="confirm-password-button"]');
 
-    tiWaitUntil($page, tiPresent('[data-test="import-start"]'));
-    $page->click('[data-test="import-start"]');
-
+    // Back from the password, the start carries on by itself.
     tiWaitUntil($page, tiPresent('[data-test="import-upload-newer"]'));
     $page->assertSeeIn('[data-test="import-step"]', 'Report')
         ->assertSee('Bring what changed')
@@ -315,4 +310,25 @@ it('imports a site from its export file, from the upload to the report', functio
 
     expect($run->state)->toBe(ImportRunState::Finished)
         ->and($run->file_id)->toBe(ImportFile::query()->sole()->id);
+});
+
+it('carries an export file’s start on after the password, and shows the Import step at once', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-upload"]'));
+    $page->click('[data-test="import-way-upload-button"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-upload"]'));
+    $page->attach('[data-test="import-upload-input"]', base_path('tests/Fixtures/Import/wxr/small.xml'));
+    tiWaitUntil($page, tiPresent('[data-test="import-file-plan"]'));
+
+    // The run waits on the queue, as it does on a site with a worker.
+    Queue::fake();
+    $page->click('[data-test="import-start"]');
+    tiWaitUntil($page, tiPresent('#password'));
+    $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
+
+    tiWaitUntil($page, tiPresent('[data-test="import-progress"]'));
+    $page->assertSeeIn('[data-test="import-step"]', 'Import')
+        ->assertNoJavaScriptErrors();
+
+    expect(ImportRun::query()->count())->toBe(1);
 });

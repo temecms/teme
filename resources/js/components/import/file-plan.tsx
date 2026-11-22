@@ -1,6 +1,7 @@
+import type { FormComponentRef } from '@inertiajs/core';
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -183,6 +184,7 @@ export function FilePlan({
                     site={site}
                     form={form}
                     answers={plan.oldSiteAnswers ?? false}
+                    resume={plan.resumeStart}
                 />
             </Section>
         </div>
@@ -232,11 +234,23 @@ function FileChoices({
     site,
     form,
     answers,
+    resume,
 }: {
     site: ImportSite;
     form: FileChoicesForm;
     answers: boolean;
+    /** Send the form once at once: a start the password's confirmation interrupted. */
+    resume: boolean;
 }) {
+    const formRef = useRef<FormComponentRef>(null);
+
+    // Carries the start on once the person is back from confirming their password.
+    useEffect(() => {
+        if (resume) {
+            formRef.current?.submit();
+        }
+    }, [resume]);
+
     const [media, setMedia] = useState<string>(answers ? form.media : 'links');
     const [drafts, setDrafts] = useState(form.drafts);
     const [comments, setComments] = useState(form.comments);
@@ -249,6 +263,7 @@ function FileChoices({
 
     return (
         <Form
+            ref={formRef}
             {...ImportRunController.start.form({ source: site.id })}
             className="grid w-full max-w-(--form-max) gap-6"
             data-test="import-file-choices"

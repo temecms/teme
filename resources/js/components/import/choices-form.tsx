@@ -1,5 +1,6 @@
+import type { FormComponentRef } from '@inertiajs/core';
 import { Form } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -25,10 +26,13 @@ export function ChoicesForm({
     siteId,
     form,
     remembered,
+    resume = false,
 }: {
     siteId: string;
     form: ChoicesFormView;
     remembered: RememberedChoices | null;
+    /** Send the form once at once: a start the password's confirmation interrupted. */
+    resume?: boolean;
 }) {
     // What starts each choice: the choices kept across the password's
     // confirmation, else the screen's defaults.
@@ -42,8 +46,18 @@ export function ChoicesForm({
         remembered?.outside_images ?? [],
     );
 
+    const formRef = useRef<FormComponentRef>(null);
+
+    // Carries the start on once the person is back from confirming their password.
+    useEffect(() => {
+        if (resume) {
+            formRef.current?.submit();
+        }
+    }, [resume]);
+
     return (
         <Form
+            ref={formRef}
             {...ImportRunController.start.form({ source: siteId })}
             className="grid gap-6"
         >

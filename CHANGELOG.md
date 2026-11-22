@@ -15,6 +15,7 @@ All notable changes to this project are documented in this file. Versioning foll
 ### Fixed
 
 - Import: the old site's file addresses (`/wp-content/uploads/…`), originals and WordPress's resized copies such as `photo-300x200.jpg`, now redirect for good to the media library, for a live import and a file's alike: a resized copy to Teme's nearest size of the same picture, anything else to the picture at its largest or the file itself. One rule covers the whole folder, so no redirect is made per file, and a redirect you made yourself still wins. The address check no longer lists each of them as "not found": it says in one line how many now redirect, and a file the import didn't bring is still listed. While Teme is still making a picture's sizes, its old address asks readers to try again in a minute instead of answering "not found". No post, page or person can take an address under `/wp-content/`.
+- Import: when Start asks for your password first, the import starts as soon as you've confirmed it, without choosing Start again, and the site's page opens at the Import step at once.
 - Import: a live site whose tag pages have no prefix (no `/tag/` before the tag) keeps them that way, as a site whose category pages have none already did.
 
 ## [1.3.3] — 2026-11-22
