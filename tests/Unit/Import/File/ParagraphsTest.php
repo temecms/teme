@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Import\File\Paragraphs;
+
+/*
+ * Classic-editor HTML made into paragraphs as WordPress shows it, after
+ * wpautop()'s documented behaviour. Each fixture pairs the stored HTML with
+ * the HTML it must become.
+ */
+
+it('makes paragraphs of classic HTML as WordPress shows it', function (string $name): void {
+    $dir = base_path('tests/Fixtures/Import/file/paragraphs');
+
+    expect(Paragraphs::make((string) file_get_contents("{$dir}/{$name}.html")))
+        ->toBe((string) file_get_contents("{$dir}/{$name}.autop.html"));
+})->with([
+    'blank lines separate paragraphs' => 'blank-lines',
+    'single newlines become line breaks' => 'line-breaks',
+    'windows line endings' => 'windows-lines',
+    'nothing inside pre is wrapped' => 'pre',
+    'nothing inside script or style is wrapped' => 'script-and-style',
+    'block-level elements are never wrapped' => 'block-level',
+    'a blockquote holds its paragraph' => 'blockquote',
+    'shortcodes on their own line stay unwrapped' => 'shortcodes',
+    'only whitespace' => 'blank',
+]);
+
+it('gives the real-markup samples\' freeform chunks the paragraphs wpautop() gave them', function (string $file): void {
+    /** @var array{blocks: list<array<string, mixed>>} $fixture */
+    $fixture = json_decode((string) file_get_contents(base_path("tests/Fixtures/Import/real-markup/{$file}")), true, 512, JSON_THROW_ON_ERROR);
+    $freeform = array_values(array_filter($fixture['blocks'], fn (array $block): bool => $block['blockName'] === null));
+
+    expect($freeform)->not->toBe([]);
+
+    foreach ($freeform as $block) {
+        expect(Paragraphs::make($block['innerHTML']))->toBe($block['autop']);
+    }
+})->with(['tagdiv-row.json', 'wpbakery-row.json']);
