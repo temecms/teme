@@ -5,13 +5,13 @@ import type { EditorDocument } from '@/types';
 
 /**
  * Lowercases for matching without following the browser's locale, so two
- * editors count the same way (issue #539).
+ * editors count the same way (issue 539).
  */
 function fold(text: string): string {
     return text.toLocaleLowerCase('en-US');
 }
 
-/** A letter or digit, for whole-word edges (issue #537). */
+/** A letter or digit, for whole-word edges (issue 537). */
 function isWordChar(char: string): boolean {
     return char !== '' && /[\p{L}\p{N}]/u.test(char);
 }
@@ -29,7 +29,7 @@ function wholeWords(folded: string, at: number, length: number): boolean {
 /**
  * Maps a character index in the folded (lowercased) string back to the
  * original, so a link range never shifts when lowercasing changes length
- * (issue #539).
+ * (issue 539).
  */
 function originalIndex(original: string, foldedTarget: number): number {
     let foldedAt = 0;
@@ -48,7 +48,7 @@ function originalIndex(original: string, foldedTarget: number): number {
 }
 
 /**
- * Whether this text node sits inside a code block (issue #536). Inline code
+ * Whether this text node sits inside a code block (issue 536). Inline code
  * marks are already skipped; code blocks carry no mark on their text.
  */
 function inCodeBlock(editor: Editor, pos: number): boolean {

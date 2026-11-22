@@ -47,7 +47,7 @@ final class TitlesTest extends SeoTestCase
                 ->where('blocks', fn (iterable $blocks): bool => collect($blocks)->contains(fn (mixed $block): bool => is_array($block)
                     && ($block['id'] ?? null) === 'titles'
                     && ($block['type'] ?? null) === 'table'
-                    && collect($block['columns'] ?? [])->pluck('id')->all() === ['title', 'seo-title', 'description'])));
+                    && collect((array) ($block['columns'] ?? []))->pluck('id')->all() === ['title', 'seo-title', 'description'])));
     }
 
     #[TestDox('lists to a person only the drafts they may edit, when titles asks for unpublished items')]
@@ -125,25 +125,5 @@ final class TitlesTest extends SeoTestCase
             ->assertSessionHasErrors('record');
 
         expect(DB::table('content_revisions')->where('content_id', $item->id)->where('title', 'Mine now')->exists())->toBeFalse();
-    }
-
-    /**
-     * The rows' IDs, sorted.
-     *
-     * @param  iterable<mixed>  $rows
-     *
-     * @return list<string>
-     */
-    private static function ids(iterable $rows): array
-    {
-        $ids = [];
-
-        foreach ($rows as $row) {
-            $ids[] = is_array($row) && is_string($row['id'] ?? null) ? $row['id'] : '';
-        }
-
-        sort($ids);
-
-        return $ids;
     }
 }
