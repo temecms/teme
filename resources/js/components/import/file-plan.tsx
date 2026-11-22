@@ -511,18 +511,24 @@ function FileChoices({
                             name="category_base"
                             host={host}
                             value={form.categoryBase}
-                            example="news"
+                            example={form.categoryExample}
                             error={errors.category_base}
                             label={__('Category addresses')}
+                            none={__(
+                                'No prefix: category pages sit straight after the site’s address, as Yoast’s “Remove category prefix” makes them.',
+                            )}
                         />
                         <Base
                             id="import-tag-base"
                             name="tag_base"
                             host={host}
                             value={form.tagBase}
-                            example="budget"
+                            example={form.tagExample}
                             error={errors.tag_base}
                             label={__('Tag addresses')}
+                            none={__(
+                                'No prefix: tag pages sit straight after the site’s address, as a plugin can make them.',
+                            )}
                         />
                     </fieldset>
 
@@ -568,6 +574,7 @@ function Base({
     example,
     error,
     label,
+    none,
 }: {
     id: string;
     name: string;
@@ -576,21 +583,41 @@ function Base({
     example: string;
     error?: string;
     label: string;
+    none: string;
 }) {
+    // An empty base is no prefix: the pages sit straight after the site's address.
+    const [bare, setBare] = useState(value === '');
+    const [base, setBase] = useState(value === '' ? '' : value);
+    const slug = example === '' ? '…' : example;
+
     return (
-        <Field htmlFor={id} label={label} error={error}>
-            <div className="text-small flex flex-wrap items-center gap-1 font-mono">
-                <span className="text-ink-2">{host}/</span>
-                <Input
-                    id={id}
-                    name={name}
-                    defaultValue={value}
-                    className="w-40 font-mono"
-                    autoComplete="off"
-                    spellCheck={false}
+        <div className="grid gap-2">
+            <Field htmlFor={id} label={label} error={error}>
+                <div className="text-small flex flex-wrap items-center gap-1 font-mono">
+                    <span className="text-ink-2">{host}/</span>
+                    {!bare && (
+                        <Input
+                            id={id}
+                            value={base}
+                            onChange={(event) => setBase(event.target.value)}
+                            className="w-40 font-mono"
+                            autoComplete="off"
+                            spellCheck={false}
+                        />
+                    )}
+                    <span className="text-ink-2">
+                        {bare ? `${slug}/` : `/${slug}/`}
+                    </span>
+                </div>
+            </Field>
+            <input type="hidden" name={name} value={bare ? '' : base} />
+            <FieldInline htmlFor={`${id}-none`} label={none}>
+                <Checkbox
+                    id={`${id}-none`}
+                    checked={bare}
+                    onCheckedChange={(checked) => setBare(checked === true)}
                 />
-                <span className="text-ink-2">/{example}/</span>
-            </div>
-        </Field>
+            </FieldInline>
+        </div>
     );
 }

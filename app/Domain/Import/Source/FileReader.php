@@ -351,7 +351,8 @@ final class FileReader implements SourceReader
     }
 
     /**
-     * The bases a run's choices give category and tag addresses, or WordPress's own.
+     * The bases a run's choices give category and tag addresses, empty for
+     * no prefix, or WordPress's own when none was chosen.
      *
      * @param  array<string, mixed>  $choices
      *
@@ -359,7 +360,8 @@ final class FileReader implements SourceReader
      */
     public static function basesOf(array $choices): array
     {
-        $base = fn (string $key, string $default): string => is_string($choices[$key] ?? null) && trim($choices[$key], '/ ') !== '' ? trim($choices[$key], '/ ') : $default;
+        // An empty base chosen is no prefix; none chosen is WordPress's own.
+        $base = fn (string $key, string $default): string => is_string($choices[$key] ?? null) ? trim($choices[$key], '/ ') : $default;
 
         return ['category_base' => $base('category_base', FileAddresses::CATEGORY_BASE), 'tag_base' => $base('tag_base', FileAddresses::TAG_BASE)];
     }

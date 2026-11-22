@@ -153,6 +153,9 @@ export type FileChoicesForm = {
     media: string;
     categoryBase: string;
     tagBase: string;
+    /** A real category's and tag's slug from the file, for the examples; empty when it has none. */
+    categoryExample: string;
+    tagExample: string;
     drafts: boolean;
     comments: boolean;
     postCount: number;

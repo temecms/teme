@@ -43,7 +43,7 @@ final class WordPressAddresses
     private const string CATEGORY_BASE = 'category';
 
     /** The base WordPress gives tags when the site names none. */
-    private const string TAG_BASE = 'tag';
+    public const string TAG_BASE = 'tag';
 
     /** The structure tags Teme has a token for. */
     private const array TOKENS = [
@@ -164,14 +164,26 @@ final class WordPressAddresses
      */
     public static function stripsCategoryBase(?string $link, string $structure, string $categoryBase): bool
     {
+        return self::stripsBase($link, $structure, $categoryBase, self::CATEGORY_BASE);
+    }
+
+    /**
+     * Whether a taxonomy's addresses leave their base out, read from one
+     * term's own address: true when it doesn't hold the base, or
+     * $default after the structure's front, that WordPress would put there.
+     *
+     * @since next
+     */
+    public static function stripsBase(?string $link, string $structure, string $base, string $default): bool
+    {
         $path = $link === null ? null : parse_url($link, PHP_URL_PATH);
 
         if (! is_string($path) || trim($path, '/') === '') {
             return false;
         }
 
-        $base = trim($categoryBase, '/');
-        $expected = trim($base === '' ? self::front($structure).self::CATEGORY_BASE : $base, '/');
+        $base = trim($base, '/');
+        $expected = trim($base === '' ? self::front($structure).$default : $base, '/');
 
         return ! str_contains('/'.trim($path, '/').'/', '/'.$expected.'/');
     }
@@ -185,7 +197,7 @@ final class WordPressAddresses
      *
      * @return array{values: array<string, string>, messages: list<ImportMessage>}
      */
-    public static function plan(string $structure, string $categoryBase, string $tagBase, bool $stripped, ?string $postType, ?string $pageType, ?string $categoryTaxonomy, ?string $tagTaxonomy): array
+    public static function plan(string $structure, string $categoryBase, string $tagBase, bool $stripped, ?string $postType, ?string $pageType, ?string $categoryTaxonomy, ?string $tagTaxonomy, bool $tagStripped = false): array
     {
         $structure = trim($structure);
         $front = self::front($structure);
@@ -230,12 +242,15 @@ final class WordPressAddresses
         }
 
         if ($tagTaxonomy !== null) {
-            $tag = self::base($tagBase, self::TAG_BASE, $front);
+            // A tag's base left out, as a plugin can: tags sit straight after the site's address, as categories can.
+            $tag = $tagStripped
+                ? ['base' => '', 'exact' => ! $indexed && ($front === '/' || trim($tagBase, '/') !== '')]
+                : self::base($tagBase, self::TAG_BASE, $front);
             $values['base_'.$tagTaxonomy] = $tag['base'];
 
             if (! $tag['exact']) {
-                $was = self::prefix($tagBase, self::TAG_BASE, $front);
-                $now = '/'.$tag['base'].'/';
+                $was = self::prefix($tagBase, $tagStripped ? '' : self::TAG_BASE, $front);
+                $now = $tag['base'] === '' ? '/' : '/'.$tag['base'].'/';
                 $messages[] = self::changed('tags', "Tags’ addresses on the old site started {$was}, which Teme can’t write, so here they start {$now}. Each tag’s old address answers with a permanent redirect to its new one.", $was, $now);
             }
         }
