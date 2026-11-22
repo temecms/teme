@@ -13,7 +13,7 @@ import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
 import { SelectField } from '@/components/ui/select-field';
 import { StatusPill } from '@/components/ui/status-pill';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
 import type { FileChoicesForm, ImportPlan, ImportSite } from '@/types/import';
 
 const LEGEND = 'text-body text-ink font-semibold';
@@ -154,8 +154,9 @@ export function FilePlan({
                         <Missing title={__('Custom types Teme doesn’t have')}>
                             {missingTypes.map((type) => (
                                 <span key={type.key} className="block">
-                                    {__(
-                                        ':type, :n items: this site has no :type type yet. Add one with a plugin or a types file, then import again.',
+                                    {__n(
+                                        ':type, :n item: this site has no :type type yet. Add one with a plugin or a types file, then import again.|:type, :n items: this site has no :type type yet. Add one with a plugin or a types file, then import again.',
+                                        type.count,
                                         {
                                             type: type.label,
                                             n: type.count.toLocaleString(),
@@ -292,11 +293,15 @@ function FileChoices({
                                     label={author.name}
                                     help={
                                         <>
-                                            {__(':login · :email · :n items', {
-                                                login: author.login,
-                                                email: author.email,
-                                                n: author.items.toLocaleString(),
-                                            })}
+                                            {__n(
+                                                ':login · :email · :n item|:login · :email · :n items',
+                                                author.items,
+                                                {
+                                                    login: author.login,
+                                                    email: author.email,
+                                                    n: author.items.toLocaleString(),
+                                                },
+                                            )}
                                             {author.matched !== null && (
                                                 <span className="text-ok-ink block">
                                                     {__(

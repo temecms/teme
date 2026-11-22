@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Planning;
 
+use App\Domain\Import\WordPressRecords;
 use Carbon\CarbonImmutable;
 use Throwable;
 
@@ -118,7 +119,8 @@ final readonly class SiteAnalysis
         foreach ($types as $key => $type) {
             $type = self::map($type);
 
-            if (($type['builtin'] ?? true) !== false) {
+            // WordPress's own records are no custom type, whatever a report says of them.
+            if (($type['builtin'] ?? true) !== false || WordPressRecords::internal((string) $key)) {
                 continue;
             }
 

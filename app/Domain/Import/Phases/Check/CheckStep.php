@@ -29,6 +29,7 @@ use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
+use App\Domain\Import\WordPressRecords;
 use App\Domain\Redirects\Queries\SiteAnswers;
 use App\Domain\Redirects\RedirectLookup;
 use App\Domain\Redirects\RedirectSource;
@@ -190,6 +191,11 @@ final readonly class CheckStep implements StepPhase
      */
     private function item(string $kind, array $item, string $host, array &$others, int &$files, bool $kept): array
     {
+        // WordPress's own records, such as a theme's custom CSS, are no page of the site's; only an item's address names their type.
+        if (WordPressRecords::internal(is_string($item['type'] ?? null) ? $item['type'] : '', is_string($item['status'] ?? null) ? $item['status'] : '')) {
+            return [];
+        }
+
         $addresses = $kind === 'attachment_file'
             ? array_values(array_unique(array_filter((array) ($item['files'] ?? []), is_string(...))))
             : [is_string($item['url'] ?? null) ? $item['url'] : ''];

@@ -35,7 +35,7 @@ The plan lists what isn't in an export file, under **Not in an export file**:
 - **Passwords and roles**: people you add get the role you choose, and set a password with "Forgotten your password?" the first time they sign in.
 - **Where menus sit**: the menus come across, and you place them on the plan.
 - **Redirects made by plugins**: each item's own address comes across. Redirects kept by a plugin such as Redirection don't.
-- **Custom types Teme doesn’t have**: their items stay behind until the site has such a type. Add one with a plugin or a types file, then import again.
+- **Custom types Teme doesn’t have**: their items stay behind until the site has such a type. Add one with a plugin or a types file, then import again. WordPress’s own records, such as a theme’s custom CSS, styles and templates, aren’t content and are never listed.
 - **Site settings and widgets**: set the title, front page, time zone and widgets in Teme's settings and theme.
 - **Spam comments**: WordPress leaves them out of the export.
 

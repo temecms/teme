@@ -15,13 +15,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\File;
 
+use App\Domain\Import\WordPressRecords;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 final class FileReport
 {
     /** The types and taxonomies WordPress itself defines, as the companion marks them built in. */
-    private const array BUILTIN_TYPES = ['post', 'page', 'attachment', 'wp_block', 'wp_template', 'wp_template_part', 'wp_navigation', 'nav_menu_item', 'revision'];
+    private const array BUILTIN_TYPES = ['post', 'page', 'attachment', 'wp_block', 'wp_navigation', 'nav_menu_item', ...WordPressRecords::TYPES];
 
     /** The types WordPress shows the public by its own rules; a file says nothing of any other's. */
     private const array PUBLIC_TYPES = ['post', 'page', 'attachment'];

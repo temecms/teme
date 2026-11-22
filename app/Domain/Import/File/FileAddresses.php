@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Import\File;
 
 use App\Domain\Import\Phases\Addresses\WordPressAddresses;
+use App\Domain\Import\WordPressRecords;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,8 +34,8 @@ final class FileAddresses
     /** The kinds of address a file lists; the home page is answered whole. */
     public const array KINDS = ['post', 'term', 'author', 'attachment_page', 'attachment_file'];
 
-    /** The types that never have an address of their own. */
-    private const array UNADDRESSED = ['wp_block', 'wp_navigation', 'wp_template', 'wp_template_part', 'wp_global_styles', 'nav_menu_item', 'attachment'];
+    /** The types that never have an address of their own, WordPress's own records among them. */
+    private const array UNADDRESSED = ['wp_block', 'wp_navigation', 'nav_menu_item', 'attachment', ...WordPressRecords::TYPES];
 
     /**
      * WordPress's own address structures, from Settings › Permalinks, tried

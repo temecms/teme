@@ -16,6 +16,7 @@ namespace App\Domain\Import\Source;
 use App\Domain\Import\File\FileAddresses;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\Models\ImportFile;
+use App\Domain\Import\WordPressRecords;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -252,6 +253,9 @@ final class FileReader implements SourceReader
             ->where('file_id', $this->fileId)
             ->where('list', ItemRows::CONTENT)
             ->when($afterId !== 0, fn ($q) => $q->where('object_id', '>', $afterId))
+            // A file read before they were left out may still hold WordPress's own records.
+            ->whereNotIn(DB::raw("payload->>'type'"), WordPressRecords::TYPES)
+            ->whereRaw("payload->>'status' IS DISTINCT FROM ?", [WordPressRecords::AUTO_DRAFT])
             ->when($types !== [], fn ($q) => $q->whereIn(DB::raw("payload->>'type'"), $types))
             ->when($statuses !== [], fn ($q) => $q->whereIn(DB::raw("payload->>'status'"), $statuses))
             ->orderBy('object_id')
