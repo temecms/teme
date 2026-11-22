@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Operations\Input\SaveDraftInput;
+use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Media\Models\Media;
 use App\Models\User;
@@ -101,6 +103,23 @@ it('falls back from the social image to the featured image, then to the first im
         default => expect([$tags['og:image'], $tags['og:image:width'], $tags['twitter:card']])->toBe(['', '', 'summary_large_image']),
     };
 })->with(['the featured image', 'the first image in the body', 'no image']);
+
+it('shares a page chosen as the home page under the home page\'s title, unless the page has a social or SEO title of its own', function (): void {
+    $admin = User::factory()->create()->assignRole('administrator');
+    $editor = User::factory()->create()->assignRole('editor');
+    $home = addrPublished($editor, 'Home', 'page');
+    $news = addrPublished($editor, 'News', 'page');
+    addrChange($admin, ['frontShows' => 'page', 'frontPageId' => $home->id, 'postsPageId' => $news->id]);
+
+    $tab = headValue(headDom('/'), '//title');
+
+    expect(($this->tags)('/')['og:title'])->toBe($tab)->not->toBe('Home');
+
+    app(SaveDraft::class)->execute(new SaveDraftInput($home->id, 'Home', ['type' => 'doc', 'content' => []], [BuiltInFields::SOCIAL_TITLE => 'Read the harbour paper'], $home->refresh()->working_revision_id, (string) $editor->id));
+    listsPublish($home, $editor);
+
+    expect(($this->tags)('/')['og:title'])->toBe('Read the harbour paper');
+});
 
 it('describes the home page and an archive as a website, and draws no social tags on a search, a 404 or core\'s reply page (I-293)', function (): void {
     $news = headTerm('category', 'News');

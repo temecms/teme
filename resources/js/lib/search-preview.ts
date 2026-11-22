@@ -129,8 +129,14 @@ export function firstImageId(document: unknown): string | null {
     return null;
 }
 
-/** The social card (I-293): each part falls back in turn, as the page's Open Graph tags do. */
-export function socialCard(input: PreviewInput): {
+/**
+ * The social card (I-293): each part falls back in turn, as the page's Open Graph tags do.
+ * The home page's title falls back to the title its tab shows (searchTitle's), not the page's own name.
+ */
+export function socialCard(
+    input: PreviewInput,
+    searchTitleText: string | null = null,
+): {
     title: string;
     titleFrom: 'social' | 'seo' | 'title';
     description: string | null;
@@ -151,7 +157,11 @@ export function socialCard(input: PreviewInput): {
     const fallback = input.seo.defaultImage?.id ?? null;
 
     return {
-        title: socialTitle ?? seoTitle ?? input.title,
+        title:
+            socialTitle ??
+            (input.seo.kind === 'home' && searchTitleText !== null
+                ? searchTitleText
+                : (seoTitle ?? input.title)),
         titleFrom:
             socialTitle !== null
                 ? 'social'

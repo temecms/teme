@@ -116,7 +116,7 @@ export function useSearchPreview({
                         ? 0
                         : textWidth(description.text, 14),
             },
-            card: socialCard(preview),
+            card: socialCard(preview, title.text),
             listing: listed,
             checks: coreChecks(input),
             publishingChecks: coreChecks({ ...input, publishing: true }),

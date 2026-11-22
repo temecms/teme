@@ -43,6 +43,17 @@ final class Paths
     public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'ads.txt', 'api', 'llms.txt', 'ap', 'wp-json'];
 
     /**
+     * Folders under public/ the web server answers from before Teme sees
+     * the request: the themes' files (public/themes, and installed themes'
+     * through the same address) and core's icons (public/teme). An item or
+     * a type there would be drawn as a link but never served. `build` and
+     * `storage` are the router's already (RESERVED).
+     *
+     * @var list<string>
+     */
+    public const array PUBLIC_FOLDERS = ['themes', 'teme'];
+
+    /**
      * Every kind of target this release writes to the path table and
      * answers: an item, a term, an account, a person with no account and a
      * type's archive page. A
@@ -79,7 +90,7 @@ final class Paths
      */
     public static function reserved(string $segment): bool
     {
-        return in_array($segment, self::RESERVED, true) || in_array($segment, self::SITE_ROUTES, true);
+        return in_array($segment, self::RESERVED, true) || in_array($segment, self::SITE_ROUTES, true) || in_array($segment, self::PUBLIC_FOLDERS, true);
     }
 
     /**
