@@ -50,6 +50,39 @@ afterEach(function (): void {
     rmdir($this->folder);
 });
 
+it('asks the old site again when it is busy or silent, and says yes when a later try answers', function (string $first): void {
+    ($this->serve)(['photos.example/*' => $first === 'busy'
+        ? Http::sequence()->pushStatus(503)->pushStatus(200)
+        : Http::sequence()->pushFailedConnection('timeout')->pushStatus(200)]);
+
+    expect(app(FileDownloader::class)->answers('https://photos.example/'))->toBeTrue();
+
+    Http::assertSentCount(2);
+    Sleep::assertSequence([Sleep::for(1)->second()]);
+    expect(($this->leftovers)())->toBe([]);
+})->with(['busy' => ['busy'], 'silent' => ['silent']]);
+
+it('says the old site does not answer only after three tries', function (): void {
+    ($this->serve)(['photos.example/*' => Http::sequence()->pushStatus(503)->pushStatus(503)->pushFailedConnection('timeout')]);
+
+    expect(app(FileDownloader::class)->answers('https://photos.example/'))->toBeFalse();
+
+    Http::assertSentCount(3);
+    Sleep::assertSequence([Sleep::for(1)->second(), Sleep::for(2)->seconds()]);
+    expect(($this->leftovers)())->toBe([]);
+});
+
+it('counts a refused HEAD as an answer, and never asks again a host it will not connect to', function (): void {
+    ($this->serve)(['photos.example/*' => Http::response('', 405)]);
+    expect(app(FileDownloader::class)->answers('https://photos.example/'))->toBeTrue();
+    Http::assertSentCount(1);
+
+    ($this->serve)([]);
+    expect(app(FileDownloader::class)->answers('https://inside.example/'))->toBeFalse();
+    Http::assertNothingSent();
+    Sleep::assertNeverSlept();
+});
+
 it('downloads a file into a temporary file, judged by its bytes, named from its address, with where it came from (I-453)', function (): void {
     ($this->serve)(['photos.example/*' => Http::response($this->jpeg, 200, ['Content-Type' => 'image/jpeg'])]);
 
