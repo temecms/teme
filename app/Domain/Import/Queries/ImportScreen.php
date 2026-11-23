@@ -20,6 +20,7 @@ use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Phases\ImportPhase;
 use App\Domain\Import\Phases\ImportPhases;
+use App\Domain\Import\Phases\Settings\SiteSettingsStep;
 use App\Domain\Import\PluginData\PluginDataLists;
 use App\Domain\Import\PluginData\PluginDataReport;
 use App\Domain\Import\Source\SourceReaders;
@@ -290,7 +291,8 @@ final readonly class ImportScreen
             ->where('run_id', $runId)
             ->selectRaw('level, code, count(*) AS total, (array_agg(message ORDER BY created_at, id))[1] AS words')
             ->groupBy('level', 'code')
-            ->orderByRaw("(level = 'error') DESC, count(*) DESC, code")
+            // An empty front page first: it is the home page readers meet.
+            ->orderByRaw("(code = ?) DESC, (level = 'error') DESC, count(*) DESC, code", [SiteSettingsStep::FRONT_EMPTY])
             ->limit(self::CODES + 1)
             ->get();
 

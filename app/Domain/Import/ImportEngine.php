@@ -42,8 +42,9 @@ final readonly class ImportEngine
     public function __construct(private ImportPhases $phases, private ImportRuns $runs) {}
 
     /**
-     * Starts the run's phase, or its first when that phase is gone, or
-     * finishes the run when no phase is left. Called after StartImportRun or
+     * Starts the run's phase, the next after it when this release retired
+     * it, or its first when that phase is unknown, or finishes the run when
+     * no phase is left. Called after StartImportRun or
      * ContinueImportRun commits.
      */
     public function begin(string $runId, string $token, JobActor $actor): void
@@ -56,7 +57,7 @@ final readonly class ImportEngine
 
         app(ImportRunJobs::class)->begin($run, $actor);
 
-        $phase = ($run->phase === null ? null : $this->phases->find($run->phase)) ?? $this->phases->first($run->kind);
+        $phase = $this->phases->resume($run->phase, $run->kind);
 
         if ($phase === null) {
             app(FinishImportRun::class)->execute(new FinishImportRunInput($runId, $token, $actor->userId));

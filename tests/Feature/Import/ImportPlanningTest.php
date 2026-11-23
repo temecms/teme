@@ -23,7 +23,7 @@ beforeEach(function (): void {
 
     $this->analysis = fn (): SiteAnalysis => app(ImportAnalysis::class)->read($this->source->id);
 
-    // The choices the screen would send with every default kept.
+    // The choices the screen would send with every default kept, and an earlier release's menu places and page templates, which are ignored.
     $this->input = fn (array $changes = []): array => array_replace([
         'menu_locations' => ['primary' => 'primary', 'footer_navigation' => ''],
         'templates' => ['template-full-width.php' => 'full-width', 'template-landing.php' => ''],
@@ -59,7 +59,7 @@ it('lists what stays behind, each with its count and why (I-328, I-344, I-1701)'
         ['key' => 'taxonomy.idb_genre', 'wordpressKey' => 'idb_genre', 'label' => 'Genres', 'count' => 9, 'why' => 'A custom taxonomy. Teme can’t import these yet.'],
         ['key' => 'subscribers', 'wordpressKey' => null, 'label' => 'Subscribers', 'count' => 2, 'why' => 'Readers can’t have accounts on Teme yet. Their comments come across, and those who have published posts come as contributors.'],
         ['key' => 'revisions', 'wordpressKey' => null, 'label' => 'Revisions', 'count' => 640, 'why' => 'Earlier versions stay in WordPress.'],
-        ['key' => 'widgets', 'wordpressKey' => null, 'label' => 'Widgets', 'count' => 6, 'why' => 'Set up your theme’s regions again in Content › Regions.'],
+        ['key' => 'widgets', 'wordpressKey' => null, 'label' => 'Widgets and theme settings', 'count' => 6, 'why' => 'Set up in Teme’s theme.'],
         ['key' => 'other-comments', 'wordpressKey' => null, 'label' => 'Other comments', 'count' => 21, 'why' => 'Likes, mentions and notes plugins kept as comments.'],
     ]);
 });
@@ -80,7 +80,7 @@ it('says when WordPress has made no site report yet', function (): void {
 
     expect($analysis->reported)->toBeFalse()
         ->and($analysis->toArray())->toMatchArray(['reportedAt' => null, 'comes' => [], 'stays' => [], 'warning' => null, 'seo' => null])
-        ->and($analysis->menuLocations())->toBe([]);
+        ->and($analysis->toArray())->not->toHaveKeys(['menuLocations', 'templates']);
 });
 
 it('reads counts written as text, and keeps a row for each kind the report doesn’t count, saying so', function (): void {
@@ -128,10 +128,6 @@ it('offers each choice from the analysis and from Teme, each with its default (I
     $form = app(ImportChoices::class)->form(($this->analysis)(), (string) $this->admin->id);
 
     expect($form)->toBe([
-        'menuLocations' => [['key' => 'primary', 'value' => 'primary'], ['key' => 'footer_navigation', 'value' => '']],
-        'slots' => [['value' => 'primary', 'label' => 'Header'], ['value' => 'footer', 'label' => 'Footer']],
-        'templates' => [['key' => 'template-full-width.php', 'count' => 2, 'value' => ''], ['key' => 'template-landing.php', 'count' => 1, 'value' => '']],
-        'themeTemplates' => [['value' => 'full-width', 'label' => 'Full width']],
         'roles' => [['key' => 'wpseo_manager', 'value' => 'editor'], ['key' => 'wpseo_editor', 'value' => 'author']],
         'roleOptions' => [
             ['value' => 'administrator', 'label' => 'Administrator'],
@@ -173,13 +169,11 @@ it('proposes leaving behind the people of a custom role that can’t write (I-17
         ->toContain(['key' => 'customer', 'value' => 'none']);
 });
 
-it('keeps choices that fit as the run’s choices, with the pause as an option', function (): void {
+it('keeps choices that fit as the run’s choices, with the pause as an option, and ignores menu places and page templates', function (): void {
     $kept = app(ImportChoices::class)->validated(($this->input)(['roles' => ['wpseo_manager' => 'editor', 'wpseo_editor' => 'none']]), ($this->analysis)());
 
     expect($kept)->toBe([
         'choices' => [
-            'menu_locations' => ['primary' => 'primary', 'footer_navigation' => null],
-            'templates' => ['template-full-width.php' => 'full-width', 'template-landing.php' => null],
             'roles' => ['wpseo_manager' => 'editor', 'wpseo_editor' => 'none'],
             'owner' => (string) $this->admin->id,
             'outside_images' => ['cdn.partner.example'],
@@ -190,14 +184,10 @@ it('keeps choices that fit as the run’s choices, with the pause as an option',
 
 it('refuses a choice that doesn’t fit, under its field, in words', function (string $case): void {
     [$changes, $field, $words] = match ($case) {
-        'a place the theme lacks' => [['menu_locations' => ['primary' => 'sidebar', 'footer_navigation' => '']], 'menu_locations.primary', 'Choose one of the theme’s places for menus, or Don’t place it.'],
-        'a template the theme lacks' => [['templates' => ['template-full-width.php' => 'landing', 'template-landing.php' => '']], 'templates.template-full-width.php', 'Choose one of the theme’s templates.'],
         'a role Teme lacks' => [['roles' => ['wpseo_manager' => 'editor', 'wpseo_editor' => 'subscriber']], 'roles.wpseo_editor', 'Choose one of Teme’s roles.'],
         'someone who can’t write' => [['owner' => '999999'], 'owner', 'Choose someone who can write on Teme.'],
         'a site not listed' => [['outside_images' => ['evil.example']], 'outside_images', 'Tick only the sites listed.'],
         'a pause not offered' => [['pause' => '750'], 'pause', 'Choose one of the pauses listed.'],
-        'a location the report doesn’t list' => [['menu_locations' => ['primary' => 'primary', 'footer_navigation' => '', 'sidebar_left' => '']], 'menu_locations', 'Analyze the site again: its report has changed.'],
-        'a template the report doesn’t list' => [['templates' => ['template-full-width.php' => '', 'template-landing.php' => '', 'old.php' => '']], 'templates', 'Analyze the site again: its report has changed.'],
     };
 
     try {
@@ -207,8 +197,7 @@ it('refuses a choice that doesn’t fit, under its field, in words', function (s
         expect($refused->errors())->toBe([$field => [$words]]);
     }
 })->with([
-    'a place the theme lacks', 'a template the theme lacks', 'a role Teme lacks', 'someone who can’t write',
-    'a site not listed', 'a pause not offered', 'a location the report doesn’t list', 'a template the report doesn’t list',
+    'a role Teme lacks', 'someone who can’t write', 'a site not listed', 'a pause not offered',
 ]);
 
 /**

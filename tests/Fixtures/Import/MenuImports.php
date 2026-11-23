@@ -10,9 +10,8 @@ use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
-use App\Domain\Import\Phases\Menus\MenuPlacesStep;
 use App\Domain\Import\Phases\Menus\MenusPhase;
-use App\Domain\Import\Phases\Menus\WidgetsStep;
+use App\Domain\Import\Phases\Menus\UnplacedMenusStep;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\Models\NavigationItem;
 use App\Domain\Taxonomy\Models\Term;
@@ -177,7 +176,7 @@ final class MenuImports
             $companion->items('menus', $answer);
         }
 
-        importPhaseAlone(app(MenusPhase::class), app(MenuPlacesStep::class), app(WidgetsStep::class));
+        importPhaseAlone(app(MenusPhase::class), app(UnplacedMenusStep::class));
 
         return importRun($source, $actor, ImportRunKind::Full, $choices);
     }

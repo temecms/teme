@@ -14,6 +14,7 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ### Changed
 
+- Import brings the content, not the old site's structure, for a live site and an export file alike: it no longer brings or lists widgets, no longer asks which template each WordPress page template becomes (pages use the theme's default), and no longer asks where each menu goes. Menus and their items still come across, unplaced, and the report says once how many to place under Content › Navigation. Choices saved for these on earlier imports are ignored.
 - The background workers restart themselves after a job only once they hold 512 MB, not Laravel's default 128 MB: resizing a large photo or reading a large export file no longer restarts a worker after nearly every job. Nothing to change on a running site: it comes with the image.
 
 ### Fixed
@@ -21,6 +22,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - Import: the old site's file addresses (`/wp-content/uploads/…`), originals and WordPress's resized copies such as `photo-300x200.jpg`, now redirect for good to the media library, for a live import and a file's alike: a resized copy to Teme's nearest size of the same picture, anything else to the picture at its largest or the file itself. One rule covers the whole folder, so no redirect is made per file, and a redirect you made yourself still wins. The address check no longer lists each of them as "not found": it says in one line how many now redirect, and a file the import didn't bring is still listed. While Teme is still making a picture's sizes, its old address asks readers to try again in a minute instead of answering "not found". No post, page or person can take an address under `/wp-content/`.
 - Import: when Start asks for your password first, the import starts as soon as you've confirmed it, without choosing Start again, and the site's page opens at the Import step at once.
 - Import: a live site whose tag pages have no prefix (no `/tag/` before the tag) keeps them that way, as a site whose category pages have none already did.
+- Import: when the old site's front page comes across empty, because all it showed was layout Teme doesn't bring (a post list, a query loop, a theme's sections), the report says so first, naming those blocks, and the site isn't counted ready to switch until it's dealt with: show your latest posts on the home page in Settings › Reading, or rebuild the page.
 
 ## [1.3.3] — 2026-11-22
 

@@ -39,9 +39,8 @@ use App\Domain\Import\Phases\Languages\TranslationsStep;
 use App\Domain\Import\Phases\Media\MediaParentsStep;
 use App\Domain\Import\Phases\Media\MediaPhase;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
-use App\Domain\Import\Phases\Menus\MenuPlacesStep;
 use App\Domain\Import\Phases\Menus\MenusPhase;
-use App\Domain\Import\Phases\Menus\WidgetsStep;
+use App\Domain\Import\Phases\Menus\UnplacedMenusStep;
 use App\Domain\Import\Phases\Redirects\RedirectsStep;
 use App\Domain\Import\Phases\SecondPass\SecondPassStep;
 use App\Domain\Import\Phases\Settings\SiteSettingsStep;
@@ -97,7 +96,7 @@ final class ImportServiceProvider extends ServiceProvider
 
         $this->app->tag([FediverseRepliesStep::class], ImportPhases::TAG);
 
-        $this->app->tag([MenusPhase::class, MenuPlacesStep::class, WidgetsStep::class], ImportPhases::TAG);
+        $this->app->tag([MenusPhase::class, UnplacedMenusStep::class], ImportPhases::TAG);
 
         $this->app->tag([RedirectsStep::class, OldAddressesStep::class], ImportPhases::TAG);
 

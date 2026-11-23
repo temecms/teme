@@ -143,7 +143,9 @@ export function FilePlan({
                         )}
                     </Missing>
                     <Missing title={__('Where menus sit')}>
-                        {__('The menus come across; you place them below.')}
+                        {__(
+                            'The menus come across; place them under Content › Navigation after the import.',
+                        )}
                     </Missing>
                     <Missing title={__('Redirects made by plugins')}>
                         {__(
@@ -166,10 +168,8 @@ export function FilePlan({
                             ))}
                         </Missing>
                     )}
-                    <Missing title={__('Site settings and widgets')}>
-                        {__(
-                            'Title, front page, time zone and widgets are set in Teme’s Settings and theme.',
-                        )}
+                    <Missing title={__('Widgets and theme settings')}>
+                        {__('Set up in Teme’s theme.')}
                     </Missing>
                     <Missing title={__('Spam comments')}>
                         {__('WordPress leaves them out of the export.')}
@@ -480,43 +480,6 @@ function FileChoices({
                         />
                     </fieldset>
 
-                    {form.menuLocations.length > 0 && (
-                        <fieldset className={GROUP}>
-                            <legend className={LEGEND}>
-                                {__('Menu locations')}
-                            </legend>
-                            <p className="text-small text-ink-2">
-                                {__(
-                                    'Where each menu goes in this site’s theme. The file has the menus but not their places.',
-                                )}
-                            </p>
-                            {form.menuLocations.map((row) => (
-                                <Field
-                                    key={row.key}
-                                    htmlFor={`import-location-${row.key}`}
-                                    label={row.label}
-                                    error={errors[`menu_locations.${row.key}`]}
-                                >
-                                    <SelectField
-                                        id={`import-location-${row.key}`}
-                                        name={`menu_locations[${row.key}]`}
-                                        options={form.slots}
-                                        emptyLabel={__('Don’t place it')}
-                                        defaultValue={row.value}
-                                    />
-                                </Field>
-                            ))}
-                        </fieldset>
-                    )}
-
-                    {form.templates.map((row) => (
-                        <input
-                            key={row.key}
-                            type="hidden"
-                            name={`templates[${row.key}]`}
-                            value={row.value}
-                        />
-                    ))}
                     <input type="hidden" name="owner" value={form.owner} />
                     <input
                         type="hidden"

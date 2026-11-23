@@ -119,7 +119,7 @@ it('gives SiteAnalysis the counts the file has', function (): void {
     ])
         ->and($analysis['seo'])->toBe('Yoast SEO')
         ->and($analysis['reportedAt'])->not->toBeNull()
-        ->and($analysis['templates'])->toBe(['template-full-width.php' => 1])
+        ->and($analysis)->not->toHaveKey('templates')
         ->and(array_column($analysis['stays'], 'count', 'key'))->toBe(['taxonomy.genre' => 1]);
 });
 

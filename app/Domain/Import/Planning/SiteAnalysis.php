@@ -43,8 +43,6 @@ final readonly class SiteAnalysis
      * @param  list<array{key: string, label: string, count: int|null}>  $comes
      * @param  list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>  $stays
      * @param  array{custom: int, total: int}|null  $warning
-     * @param  list<string>  $menuLocations
-     * @param  array<string, int>  $templates
      * @param  array<string, list<string>>  $customRoles
      * @param  array<string, int>  $outsideHosts
      */
@@ -55,8 +53,6 @@ final readonly class SiteAnalysis
         private array $stays,
         private ?array $warning,
         private ?string $seo,
-        private array $menuLocations,
-        private array $templates,
         private array $customRoles,
         private array $outsideHosts,
     ) {}
@@ -66,7 +62,7 @@ final readonly class SiteAnalysis
      */
     public static function noReport(): self
     {
-        return new self(false, null, [], [], null, null, [], [], [], []);
+        return new self(false, null, [], [], null, null, [], []);
     }
 
     /**
@@ -153,7 +149,7 @@ final readonly class SiteAnalysis
         foreach ([
             ['subscribers', 'Subscribers', $subscribers, 'Readers can’t have accounts on Teme yet. Their comments come across, and those who have published posts come as contributors.'],
             ['revisions', 'Revisions', self::count($states['revisions'] ?? null), 'Earlier versions stay in WordPress.'],
-            ['widgets', 'Widgets', $widgets, 'Set up your theme’s regions again in Content › Regions.'],
+            ['widgets', 'Widgets and theme settings', $widgets, 'Set up in Teme’s theme.'],
             ['other-comments', 'Other comments', $otherComments, 'Likes, mentions and notes plugins kept as comments.'],
         ] as [$key, $label, $count, $why]) {
             if ($count > 0) {
@@ -170,8 +166,6 @@ final readonly class SiteAnalysis
             $stays,
             $customPublished > $builtinPublished ? ['custom' => $customPublished, 'total' => $customPublished + $builtinPublished] : null,
             self::seo(self::map(self::map($sections['seo'] ?? null)['plugins'] ?? null)),
-            self::locations(self::map($menus['assigned_locations'] ?? null)),
-            self::counted(self::map($states['page_templates'] ?? null), ['default']),
             self::roles(self::map($users['custom_roles'] ?? null)),
             self::hosts(self::map($images['external_hosts'] ?? null)),
         );
@@ -199,13 +193,13 @@ final readonly class SiteAnalysis
      */
     public static function fromArray(array $stored): self
     {
-        // Only toArray() writes what is kept, so its shape holds.
-        /** @var array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int|null}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, menuLocations: list<string>, templates: array<string, int>, customRoles: array<string, list<string>>, outsideHosts: array<string, int>} $kept */
+        // Only toArray() writes what is kept, so its shape holds; an earlier release's menu places and page templates are left.
+        /** @var array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int|null}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, customRoles: array<string, list<string>>, outsideHosts: array<string, int>} $kept */
         $kept = $stored;
 
         return new self(
             $kept['reported'], $kept['reportedAt'], $kept['comes'], $kept['stays'], $kept['warning'], $kept['seo'],
-            $kept['menuLocations'], $kept['templates'], $kept['customRoles'], $kept['outsideHosts'],
+            $kept['customRoles'], $kept['outsideHosts'],
         );
     }
 
@@ -220,14 +214,14 @@ final readonly class SiteAnalysis
     {
         return new self(
             $this->reported, $this->reportedAt, $this->comes, [...$this->stays, ...$stays], $this->warning, $this->seo,
-            $this->menuLocations, $this->templates, $this->customRoles, $this->outsideHosts,
+            $this->customRoles, $this->outsideHosts,
         );
     }
 
     /**
      * Returns the analysis as the page draws it, with what the choices need.
      *
-     * @return array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int|null}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, menuLocations: list<string>, templates: array<string, int>, customRoles: array<string, list<string>>, outsideHosts: array<string, int>}
+     * @return array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int|null}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, customRoles: array<string, list<string>>, outsideHosts: array<string, int>}
      */
     public function toArray(): array
     {
@@ -238,8 +232,6 @@ final readonly class SiteAnalysis
             'stays' => $this->stays,
             'warning' => $this->warning,
             'seo' => $this->seo,
-            'menuLocations' => $this->menuLocations,
-            'templates' => $this->templates,
             'customRoles' => $this->customRoles,
             'outsideHosts' => $this->outsideHosts,
         ];
@@ -260,26 +252,6 @@ final readonly class SiteAnalysis
         }
 
         return null;
-    }
-
-    /**
-     * Returns the WordPress menu locations that hold a menu.
-     *
-     * @return list<string>
-     */
-    public function menuLocations(): array
-    {
-        return $this->menuLocations;
-    }
-
-    /**
-     * Returns the page templates WordPress's pages use, other than its default, with how many pages use each.
-     *
-     * @return array<string, int>
-     */
-    public function templates(): array
-    {
-        return $this->templates;
     }
 
     /**
@@ -356,16 +328,6 @@ final readonly class SiteAnalysis
     }
 
     /**
-     * @param  array<mixed>  $assigned
-     *
-     * @return list<string>
-     */
-    private static function locations(array $assigned): array
-    {
-        return array_map(strval(...), array_keys(array_filter($assigned, fn (mixed $menu): bool => self::count($menu) > 0)));
-    }
-
-    /**
      * @param  array<mixed>  $rows
      *
      * @return array<string, list<string>>
@@ -401,27 +363,6 @@ final readonly class SiteAnalysis
         uksort($hosts, fn (string $a, string $b): int => [$hosts[$b], $a] <=> [$hosts[$a], $b]);
 
         return $hosts;
-    }
-
-    /**
-     * Counts above 0 by key, less the keys left out.
-     *
-     * @param  array<mixed>  $rows
-     * @param  list<string>  $without
-     *
-     * @return array<string, int>
-     */
-    private static function counted(array $rows, array $without): array
-    {
-        $counted = [];
-
-        foreach ($rows as $key => $count) {
-            if (! in_array((string) $key, $without, true) && self::count($count) > 0) {
-                $counted[(string) $key] = self::count($count);
-            }
-        }
-
-        return $counted;
     }
 
     /**
