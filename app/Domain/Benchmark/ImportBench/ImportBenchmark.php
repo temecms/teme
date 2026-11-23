@@ -30,7 +30,6 @@ use App\Domain\Import\Operations\StopImportRun;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
-use App\Domain\Themes\ActiveTheme;
 use Closure;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -422,9 +421,7 @@ final class ImportBenchmark
      */
     private function choices(): array
     {
-        $places = array_keys(app(ActiveTheme::class)->get()?->manifest?->navigations() ?? []);
-
-        return ['menu_locations' => ['primary' => $places[0] ?? ''], 'outside_images' => []];
+        return ['outside_images' => []];
     }
 
     /**

@@ -20,9 +20,6 @@ use App\Domain\Import\File\FileAddresses;
 use App\Domain\Import\Operations\StartImportRun;
 use App\Domain\Import\Phases\Users\WordPressRoles;
 use App\Domain\Import\Queries\ImportFiles;
-use App\Domain\Import\Source\FileReader;
-use App\Domain\Themes\ActiveTheme;
-use App\Domain\Themes\TemplateChoice;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Users\Queries\AuthorOptions;
 use App\Domain\Users\Queries\RoleOptions;
@@ -33,9 +30,6 @@ final readonly class ImportChoices
 {
     /** The pauses between requests to the old site, in milliseconds, with their words. */
     public const array PAUSES = [0 => 'No pause', 500 => 'Half a second', 1000 => 'One second', 2000 => 'Two seconds', 5000 => 'Five seconds'];
-
-    /** WordPress's page templates belong to its pages, which arrive as Teme's built-in page type (I-443). */
-    private const string PAGE_TYPE = 'page';
 
     private const string CHANGED = 'Analyze the site again: its report has changed.';
 
@@ -51,24 +45,19 @@ final readonly class ImportChoices
     /** An address's base: words of letters, digits, hyphens and underscores, between slashes. */
     private const string BASE = '/^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*$/';
 
-    public function __construct(private RoleOptions $roles, private AuthorOptions $authors, private ActiveTheme $theme, private ImportFiles $files, private ContentTypeRegistry $types) {}
+    public function __construct(private RoleOptions $roles, private AuthorOptions $authors, private ImportFiles $files, private ContentTypeRegistry $types) {}
 
     /**
      * Returns what the choices step draws: each choice's options, and its
      * default, for this site's analysis and the person choosing.
      *
-     * @return array{menuLocations: list<array{key: string, value: string}>, slots: list<array{value: string, label: string}>, templates: list<array{key: string, count: int, value: string}>, themeTemplates: list<array{value: string, label: string}>, roles: list<array{key: string, value: string}>, roleOptions: list<array{value: string, label: string}>, owner: string, people: list<array{value: string, label: string}>, outsideHosts: list<array{host: string, count: int}>, pause: int, pauses: list<array{value: int, label: string}>}
+     * @return array{roles: list<array{key: string, value: string}>, roleOptions: list<array{value: string, label: string}>, owner: string, people: list<array{value: string, label: string}>, outsideHosts: list<array{host: string, count: int}>, pause: int, pauses: list<array{value: int, label: string}>}
      */
     public function form(SiteAnalysis $analysis, string $personId): array
     {
-        $slots = $this->slots();
         $people = $this->people();
 
         return [
-            'menuLocations' => array_map(fn (string $key): array => ['key' => $key, 'value' => array_key_exists($key, $slots) ? $key : ''], $analysis->menuLocations()),
-            'slots' => self::options($slots),
-            'templates' => array_map(fn (string $file, int $count): array => ['key' => $file, 'count' => $count, 'value' => ''], array_keys($analysis->templates()), $analysis->templates()),
-            'themeTemplates' => self::options($this->templates()),
             'roles' => array_map(fn (string $role, array $capabilities): array => ['key' => $role, 'value' => self::suggestedRole($capabilities) ?? self::NONE], array_keys($analysis->customRoles()), $analysis->customRoles()),
             'roleOptions' => [...$this->roles->all(), ['value' => self::NONE, 'label' => 'Leave behind']],
             'owner' => array_key_exists($personId, $people) ? $personId : (string) (array_key_first($people) ?? ''),
@@ -81,11 +70,13 @@ final readonly class ImportChoices
 
     /**
      * Returns the run's choices and its pause from what the form sent, each
-     * checked against what the analysis lists and Teme offers.
+     * checked against what the analysis lists and Teme offers. Where menus
+     * sit and which template a page uses are the new theme's, so neither is
+     * asked, and any sent, as an earlier release's form did, is ignored.
      *
      * @param  array<string, mixed>  $input
      *
-     * @return array{choices: array{menu_locations: array<string, string|null>, templates: array<string, string|null>, roles: array<string, string>, owner: string, outside_images: list<string>}, pauseMs: int}
+     * @return array{choices: array{roles: array<string, string>, owner: string, outside_images: list<string>}, pauseMs: int}
      *
      * @throws ValidationException under each field that doesn't fit
      */
@@ -93,8 +84,6 @@ final readonly class ImportChoices
     {
         $errors = [];
 
-        [$locations, $errors] = self::mapped($input, 'menu_locations', $analysis->menuLocations(), array_keys($this->slots()), true, 'Choose one of the theme’s places for menus, or Don’t place it.', $errors);
-        [$templates, $errors] = self::mapped($input, 'templates', array_keys($analysis->templates()), array_keys($this->templates()), true, 'Choose one of the theme’s templates.', $errors);
         [$roles, $errors] = self::mapped($input, 'roles', array_keys($analysis->customRoles()), [...array_column($this->roles->all(), 'value'), self::NONE], false, 'Choose one of Teme’s roles.', $errors);
 
         $owner = is_scalar($input['owner'] ?? null) ? (string) $input['owner'] : '';
@@ -122,8 +111,6 @@ final readonly class ImportChoices
 
         return [
             'choices' => [
-                'menu_locations' => $locations,
-                'templates' => $templates,
                 // Every role was checked above, so none is empty here.
                 'roles' => array_map(fn (?string $role): string => (string) $role, $roles),
                 'owner' => $owner,
@@ -143,19 +130,11 @@ final readonly class ImportChoices
      *
      * @param  array<string, mixed>  $last
      *
-     * @return array{menuLocations: list<array{key: string, label: string, value: string}>, slots: list<array{value: string, label: string}>, templates: list<array{key: string, count: int, value: string}>, themeTemplates: list<array{value: string, label: string}>, owner: string, people: list<array{value: string, label: string}>, pause: int, authors: list<array{login: string, name: string, email: string, items: int, matched: string|null, value: string}>, fileRoles: list<string>, types: list<array{key: string, label: string, count: int, type: string|null, typeLabel: string|null, value: string}>, media: string, categoryBase: string, tagBase: string, categoryExample: string, tagExample: string, polylang: bool, drafts: bool, comments: bool, postCount: int, pageCount: int, mediaCount: int}
+     * @return array{owner: string, people: list<array{value: string, label: string}>, pause: int, authors: list<array{login: string, name: string, email: string, items: int, matched: string|null, value: string}>, fileRoles: list<string>, types: list<array{key: string, label: string, count: int, type: string|null, typeLabel: string|null, value: string}>, media: string, categoryBase: string, tagBase: string, categoryExample: string, tagExample: string, polylang: bool, drafts: bool, comments: bool, postCount: int, pageCount: int, mediaCount: int}
      */
     public function fileForm(SiteAnalysis $analysis, string $fileId, string $personId, array $last = []): array
     {
         $companion = $this->form($analysis, $personId);
-        $menus = [];
-
-        foreach ((array) ((new FileReader($fileId, ''))->whole('menus')['menus'] ?? []) as $menu) {
-            if (is_array($menu)) {
-                $menus[FileReader::menuPlace((int) ($menu['id'] ?? 0))] = (string) ($menu['name'] ?? '');
-            }
-        }
-
         $authors = [];
 
         foreach ($this->files->authors($fileId) as $author) {
@@ -173,14 +152,9 @@ final readonly class ImportChoices
 
         $bases = FileAddresses::bases($fileId);
         $kept = fn (string $key, mixed $default): mixed => array_key_exists($key, $last) && get_debug_type($last[$key]) === get_debug_type($default) ? $last[$key] : $default;
-        $places = is_array($last['menu_locations'] ?? null) ? $last['menu_locations'] : [];
         $types = is_array($last['types'] ?? null) ? $last['types'] : [];
 
         return [
-            'menuLocations' => array_map(fn (string $key): array => ['key' => $key, 'label' => $menus[$key] ?? $key, 'value' => is_string($places[$key] ?? null) ? $places[$key] : ''], $analysis->menuLocations()),
-            'slots' => $companion['slots'],
-            'templates' => $companion['templates'],
-            'themeTemplates' => $companion['themeTemplates'],
             'owner' => $companion['owner'],
             'people' => $companion['people'],
             'pause' => $companion['pause'],
@@ -206,7 +180,7 @@ final readonly class ImportChoices
      *
      * @param  array<string, mixed>  $input
      *
-     * @return array{choices: array{menu_locations: array<string, string|null>, templates: array<string, string|null>, roles: array<string, string>, owner: string, outside_images: list<string>, authors: array<string, string>, media: string, category_base: string, tag_base: string, types: array<string, string|null>, drafts: bool, comments: bool}, pauseMs: int}
+     * @return array{choices: array{roles: array<string, string>, owner: string, outside_images: list<string>, authors: array<string, string>, media: string, category_base: string, tag_base: string, types: array<string, string|null>, drafts: bool, comments: bool}, pauseMs: int}
      *
      * @throws ValidationException under each field that doesn't fit
      */
@@ -383,28 +357,6 @@ final readonly class ImportChoices
         }
 
         return [$kept, $errors];
-    }
-
-    /**
-     * The active theme's places for menus: key to label.
-     *
-     * @return array<string, string>
-     */
-    private function slots(): array
-    {
-        $theme = $this->theme->get();
-
-        return $theme !== null && $theme->usable() ? ($theme->manifest?->navigations() ?? []) : [];
-    }
-
-    /**
-     * The active theme's page templates: key to label, its default left out.
-     *
-     * @return array<string, string>
-     */
-    private function templates(): array
-    {
-        return TemplateChoice::declared(self::PAGE_TYPE);
     }
 
     /**

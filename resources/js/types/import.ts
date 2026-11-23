@@ -108,10 +108,6 @@ export type SiteAnalysisView = {
 };
 
 export type ChoicesForm = {
-    menuLocations: { key: string; value: string }[];
-    slots: { value: string; label: string }[];
-    templates: { key: string; count: number; value: string }[];
-    themeTemplates: { value: string; label: string }[];
     roles: { key: string; value: string }[];
     roleOptions: { value: string; label: string }[];
     owner: string;
@@ -123,10 +119,6 @@ export type ChoicesForm = {
 
 /** The choices of a site read from its export file, with their defaults. */
 export type FileChoicesForm = {
-    menuLocations: { key: string; label: string; value: string }[];
-    slots: { value: string; label: string }[];
-    templates: { key: string; count: number; value: string }[];
-    themeTemplates: { value: string; label: string }[];
     owner: string;
     people: { value: string; label: string }[];
     pause: number;
@@ -167,8 +159,6 @@ export type FileChoicesForm = {
 
 /** The choices kept across the password's confirmation. */
 export type RememberedChoices = {
-    menu_locations: Record<string, string | null>;
-    templates: Record<string, string | null>;
     roles: Record<string, string>;
     owner: string;
     outside_images: string[];

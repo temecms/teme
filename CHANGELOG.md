@@ -14,6 +14,7 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ### Changed
 
+- Import brings the content, not the old site's structure, for a live site and an export file alike: it no longer brings or lists widgets, no longer asks which template each WordPress page template becomes (pages use the theme's default), and no longer asks where each menu goes. Menus and their items still come across, unplaced, and the report says once how many to place under Content › Navigation. Choices saved for these on earlier imports are ignored.
 - The background workers restart themselves after a job only once they hold 512 MB, not Laravel's default 128 MB: resizing a large photo or reading a large export file no longer restarts a worker after nearly every job. Nothing to change on a running site: it comes with the image.
 
 ### Fixed

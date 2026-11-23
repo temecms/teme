@@ -33,10 +33,10 @@ When the file is up, Teme reads it and counts its posts, pages, media and author
 The plan lists what isn't in an export file, under **Not in an export file**:
 
 - **Passwords and roles**: people you add get the role you choose, and set a password with "Forgotten your password?" the first time they sign in.
-- **Where menus sit**: the menus come across, and you place them on the plan.
+- **Where menus sit**: the menus come across unplaced. Place them under **Content › Navigation** after the import; the report says how many came.
 - **Redirects made by plugins**: each item's own address comes across. Redirects kept by a plugin such as Redirection don't.
 - **Custom types Teme doesn’t have**: their items stay behind until the site has such a type. Add one with a plugin or a types file, then import again. WordPress’s own records, such as a theme’s custom CSS, styles and templates, aren’t content and are never listed.
-- **Site settings and widgets**: set the title, front page, time zone and widgets in Teme's settings and theme.
+- **Widgets and theme settings**: set up in Teme’s theme.
 - **Spam comments**: WordPress leaves them out of the export.
 
 To bring these too, connect the live site with Teme Companion instead.
@@ -50,7 +50,6 @@ Under **Your choices**, the plan asks what the file can't say. Teme uses these f
 - **Authors**: each author in the file is matched by email to a person on this site. Choose for each one: the person here, adding them with a role, or crediting their posts and pages to someone. The import emails no one.
 - **What to bring**: posts and pages always come. Choose each custom type Teme has, and whether drafts, scheduled and private items and comments come too.
 - **Media files**: the file lists the media, but the files themselves are on the old site. Download them from it while it answers, or keep them there as links. Links break when the old site closes. The plan says whether the old site answers now.
-- **Menu locations**: choose where each menu goes in this site's theme, or **Don’t place it**.
 - **Category and tag addresses**: the first part of the old address of the category and tag pages. Teme fills them from the file's links; change them if the old site used others.
 
 Choose **Start the import**. Teme asks for your password first. The import runs in the background: you can leave the page, and the result reaches your inbox.

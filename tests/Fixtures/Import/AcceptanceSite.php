@@ -64,8 +64,9 @@ final class AcceptanceSite
     }
 
     /**
-     * The choices a person would make on Tools › Import for this site: its
-     * menu's location at the theme's first place, and no outside image ticked.
+     * The choices a person would make on Tools › Import for this site: no
+     * outside image ticked, and its menu's location at the theme's first
+     * place, as an earlier release asked, which a run now ignores.
      *
      * @return array<string, mixed>
      */
