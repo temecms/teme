@@ -63,12 +63,12 @@ it('saves code with a wildcard host when the password is fresh', function (): vo
         ->click('[data-test="site-code-add"]')
         ->type('#site-code-name', 'Visitor analytics')
         ->type('#site-code-code', $code)
-        ->type('#site-code-origins', '*.kraftysprouts.com')
+        ->type('#site-code-origins', '*.example.org')
         ->click('[data-test="site-code-save"]');
 
     ($this->textShown)($page, 'Code added. Every public page includes “Visitor analytics” in the head.');
 
-    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.kraftysprouts.com']);
+    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.example.org']);
 });
 
 it('asks for a lapsed password in place and keeps the wildcard host', function (): void {
@@ -78,7 +78,7 @@ it('asks for a lapsed password in place and keeps the wildcard host', function (
         ->click('[data-test="site-code-add"]')
         ->type('#site-code-name', 'Visitor analytics')
         ->type('#site-code-code', $code)
-        ->type('#site-code-origins', '*.kraftysprouts.com')
+        ->type('#site-code-origins', '*.example.org')
         ->click('[data-test="site-code-save"]');
 
     cmWaitUntil($page, 'document.querySelector(\'[data-test="fresh-password-input"]\') !== null');
@@ -86,7 +86,7 @@ it('asks for a lapsed password in place and keeps the wildcard host', function (
         ->click('[data-test="fresh-password-confirm"]');
     ($this->textShown)($page, 'Code added. Every public page includes “Visitor analytics” in the head.');
 
-    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.kraftysprouts.com']);
+    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.example.org']);
 });
 
 it('adds code once the password is confirmed, switches it off and deletes it, each step saying so (I-864)', function (): void {

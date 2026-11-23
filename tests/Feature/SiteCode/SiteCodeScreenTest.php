@@ -147,7 +147,7 @@ it('asks for the password before any change, sends the person back to Site code 
 it('answers 423, writing nothing, when a save asks in place and the password lapsed, wildcard hosts included', function (): void {
     $this->actingAs($this->admin)
         ->from('/admin/settings/site-code')
-        ->post('/admin/settings/site-code', [...$this->form, 'origins' => '*.kraftysprouts.com'], ['X-Teme-Ask-In-Place' => '1'])
+        ->post('/admin/settings/site-code', [...$this->form, 'origins' => '*.example.org'], ['X-Teme-Ask-In-Place' => '1'])
         ->assertStatus(423);
 
     expect(SiteCodeEntry::query()->count())->toBe(0)
@@ -157,10 +157,10 @@ it('answers 423, writing nothing, when a save asks in place and the password lap
 it('saves a wildcard host and reports a refused one under origins once the password is fresh', function (): void {
     $as = fn () => $this->actingAs($this->admin)->withSession(scConfirmed())->from('/admin/settings/site-code');
 
-    $as()->post('/admin/settings/site-code', [...$this->form, 'origins' => "*.kraftysprouts.com\nplausible.io"])
+    $as()->post('/admin/settings/site-code', [...$this->form, 'origins' => "*.example.org\nplausible.io"])
         ->assertRedirect('/admin/settings/site-code')
         ->assertSessionHasNoErrors();
-    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.kraftysprouts.com', 'plausible.io']);
+    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.example.org', 'plausible.io']);
 
     $as()->post('/admin/settings/site-code', [...$this->form, 'origins' => 'https://x.io'])
         ->assertSessionHasErrors('origins');
