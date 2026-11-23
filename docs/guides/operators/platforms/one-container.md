@@ -45,8 +45,8 @@ Run one replica. Each replica would run its own scheduler, and two that start to
 | the deploy step | `www-data` | Makes Teme's database login, caches the configuration, and runs `php artisan teme:deploy`, which backs up and migrates under a lock. The web server starts only once it has ended well. |
 | the installer's check | `teme-installer` | Checks the installed plugins and themes against this release before the site starts. |
 | nginx and PHP-FPM | `root` (their masters), `nginx` and `www-data` (their workers) | The web server. |
-| `php artisan queue:work --tries=3 --max-time=3600` | `www-data` | The default queue. |
-| `php artisan queue:work database-long --queue=long --tries=3 --max-time=3600` | `www-data` | The long queue. |
+| `php artisan queue:work --tries=3 --max-time=3600 --memory=512` | `www-data` | The default queue. |
+| `php artisan queue:work database-long --queue=long --tries=3 --max-time=3600 --memory=512` | `www-data` | The long queue. |
 | `php artisan schedule:work` | `www-data` | The scheduler. |
 | `php artisan teme:installer` | `teme-installer` | Installs, updates and removes the plugins and themes asked for from the admin. It alone can write `/var/teme/extensions`. |
 | `php artisan teme:updater` | `www-data` | Carries out an update asked for from the admin, where the host has an update driver. |

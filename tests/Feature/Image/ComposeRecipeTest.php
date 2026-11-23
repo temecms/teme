@@ -87,7 +87,7 @@ it('runs each role\'s command, with the health checks the image provides', funct
     expect($services['deploy']['command'])->toBe(['php', 'artisan', 'teme:deploy'])
         ->and($services['deploy']['healthcheck'])->toBe(['disable' => true])
         ->and($services['web'])->not->toHaveKey('command')
-        ->and($services['worker']['command'])->toBe(['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600'])
+        ->and($services['worker']['command'])->toBe(['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600', '--memory=512'])
         ->and($services['worker']['healthcheck']['test'])->toBe(['CMD', 'healthcheck-queue'])
         ->and($services['scheduler']['command'])->toBe(['php', 'artisan', 'schedule:work'])
         ->and($services['scheduler']['healthcheck']['test'])->toBe(['CMD', 'healthcheck-schedule']);
@@ -106,7 +106,7 @@ it('gives every role but web Docker\'s init as its first process, and leaves web
 it('keeps worker-long off until the long queue has a connection of its own (issue #146)', function (): void {
     $service = ImageFiles::compose()['services']['worker-long'];
 
-    expect($service['command'])->toBe(['php', 'artisan', 'queue:work', 'database-long', '--queue=long', '--tries=3', '--max-time=3600'])
+    expect($service['command'])->toBe(['php', 'artisan', 'queue:work', 'database-long', '--queue=long', '--tries=3', '--max-time=3600', '--memory=512'])
         ->and($service['healthcheck']['test'])->toBe(['CMD', 'healthcheck-queue']);
 
     if (config('queue.connections.database-long') === null) {
