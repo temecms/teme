@@ -63,6 +63,8 @@ export default defineConfig({
         },
     },
     server: {
+        // A CSP source can't be an IPv6 literal, so the dev server announces a name.
+        host: 'localhost',
         watch: {
             ignored: [
                 '**/.agents/**',

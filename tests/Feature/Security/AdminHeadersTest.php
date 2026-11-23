@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
 
 uses(RefreshDatabase::class);
 
@@ -21,6 +22,36 @@ it('sends a strict script policy with a fresh nonce on admin pages', function ()
         ->and((string) $second->headers->get('Content-Security-Policy'))->not->toContain($nonce[1]);
 
     $first->assertSee('nonce="'.$nonce[1].'"', false);
+});
+
+it('allows the dev server in the admin policy and nonces the refresh preamble', function (): void {
+    $hot = tempnam(sys_get_temp_dir(), 'teme-hot');
+    file_put_contents($hot, 'http://localhost:5174');
+    $this->withVite();
+    Vite::useHotFile($hot);
+    app()->detectEnvironment(fn (): string => 'local');
+
+    try {
+        $response = $this->get('/admin/login');
+    } finally {
+        unlink($hot);
+    }
+
+    $policy = (string) $response->headers->get('Content-Security-Policy');
+    preg_match("/'nonce-([^']+)'/", $policy, $nonce);
+
+    expect($policy)->toContain("script-src 'self' 'nonce-{$nonce[1]}' http://localhost:5174")
+        ->and($policy)->toContain("style-src 'self' 'unsafe-inline' http://localhost:5174")
+        ->and($policy)->toContain("connect-src 'self' http://localhost:5174 ws://localhost:5174")
+        ->and($policy)->not->toContain('[');
+
+    $response->assertSee('<script type="module" nonce="'.$nonce[1].'">', false);
+});
+
+it('announces the dev server by name, because a CSP source cannot be an IPv6 literal', function (): void {
+    $config = (string) file_get_contents(base_path('vite.config.ts'));
+
+    expect($config)->toMatch("/server:\\s*\\{[^}]*host:\\s*'localhost'/s");
 });
 
 it('forbids framing and sniffing on admin pages', function (): void {

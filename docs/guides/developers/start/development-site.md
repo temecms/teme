@@ -28,6 +28,8 @@ You build a plugin or theme in its own folder or repository, and test it against
    cd teme && composer install && npm ci && npm run build
    ```
 
+   With `composer run dev`, the development server is announced as `localhost`; to reach it from a phone on the local network or from Docker, set Vite's `server.host` to `true` and set `server.origin` for that environment.
+
 2. Start PostgreSQL and Valkey from Teme's own `docker-compose.yml`:
 
    ```bash

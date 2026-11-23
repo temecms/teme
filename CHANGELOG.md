@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Fixed
+
+- Development mode (`composer run dev`) shows pages again on Windows.
+
 ## [1.4.0] — 2026-11-23
 
 ### Added
