@@ -8,6 +8,7 @@ use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Phases\Settings\SitemapAddresses;
 use App\Domain\Import\Phases\Settings\SiteSettingsStep;
+use App\Domain\Import\Queries\ImportScreen;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\Operations\UpdateSettings;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Teme\Contracts\Settings\SettingsReader;
 use Tests\Fixtures\Import\ImportRecords;
 use Tests\Fixtures\Import\OldSite;
@@ -158,4 +160,49 @@ it('registers the settings at 1000, for every kind of run', function (): void {
         ->and($phase?->order())->toBe(1000)
         ->and($phase?->label())->toBe('Settings')
         ->and($phase?->runsIn(ImportRunKind::CatchUp))->toBeTrue();
+});
+
+/**
+ * A left-out block recorded against an item's map row, as the content phase writes one.
+ */
+function ssLeftOut(string $run, string $mapId, string $code, string $name): void
+{
+    DB::table('import_messages')->insert(['id' => (string) Str::ulid(), 'run_id' => $run, 'map_id' => $mapId, 'level' => 'warning', 'code' => $code, 'message' => 'Left out.', 'context' => json_encode(['name' => $name, 'count' => 1]), 'created_at' => now()]);
+}
+
+it('says first, as something to look at before the switch, when the front page came across empty of all but left-out layout', function (): void {
+    $home = addrPublished($this->admin, 'Welcome', 'page');
+    $map = ImportRecords::entry($this->source, $this->run, 'post', '2', 'created', ['teme_type' => 'content', 'teme_id' => $home->id]);
+    DB::table('content_revisions')->where('id', DB::table('contents')->where('id', $home->id)->value('published_revision_id'))->update(['document' => json_encode(['type' => 'doc', 'content' => [['type' => 'paragraph']]])]);
+
+    foreach ([['block.dynamic', 'core/latest-posts'], ['block.dynamic', 'core/query'], ['block.dynamic', 'core/latest-posts'], ['block.contents-list', 'yoast-seo/table-of-contents'], ['block.dynamic', 'core/archives']] as [$code, $name]) {
+        ssLeftOut($this->run, $map, $code, $name);
+    }
+
+    $said = ssRun($this->source, $this->run, (new OldSite)->options(['show_on_front' => 'page', 'page_on_front' => '2']));
+    $empty = array_values(array_filter($said, fn (ImportMessage $message): bool => $message->code === 'setting.front-page-empty'));
+
+    expect(AddressSettings::current()->frontPageId)->toBe($home->id)
+        ->and(array_map(fn (ImportMessage $message): array => [$message->level->value, $message->message], $empty))->toBe([[
+            'error', 'The front page, Welcome, came across empty: it was built from core/latest-posts, core/query, yoast-seo/table-of-contents and others, layout Teme doesn’t bring. Show your latest posts on the home page in Settings › Reading, or rebuild the page in Teme.',
+        ]]);
+
+    // Recorded beside the run's other messages, it comes first on the report.
+    ImportRecords::message($this->run, null, $empty[0]->code, $empty[0]->message, 'error');
+
+    expect(app(ImportScreen::class)->report($this->run)['messages'][0]['code'] ?? null)->toBe('setting.front-page-empty');
+});
+
+it('says nothing of a front page that has content of its own, or that was empty on the old site too', function (): void {
+    $home = addrPublished($this->admin, 'Welcome', 'page');
+    $map = ImportRecords::entry($this->source, $this->run, 'post', '2', 'created', ['teme_type' => 'content', 'teme_id' => $home->id]);
+    ssLeftOut($this->run, $map, 'block.dynamic', 'core/latest-posts');
+    DB::table('content_revisions')->where('id', DB::table('contents')->where('id', $home->id)->value('published_revision_id'))->update(['document' => json_encode(['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Welcome aboard.']]]]])]);
+
+    expect(ssCodes(ssRun($this->source, $this->run, (new OldSite)->options(['show_on_front' => 'page', 'page_on_front' => '2']))))->not->toContain('setting.front-page-empty');
+
+    DB::table('import_messages')->where('map_id', $map)->delete();
+    DB::table('content_revisions')->where('id', DB::table('contents')->where('id', $home->id)->value('published_revision_id'))->update(['document' => json_encode(['type' => 'doc', 'content' => []])]);
+
+    expect(ssCodes(ssRun($this->source, $this->run, (new OldSite)->options(['show_on_front' => 'page', 'page_on_front' => '2']))))->not->toContain('setting.front-page-empty');
 });

@@ -43,6 +43,12 @@ final readonly class SiteSettingsStep implements StepPhase
     /** The map row this step's settings are kept on. */
     public const string OBJECT = 'site-settings';
 
+    /** The codes of blocks the content phase leaves out, each naming its block. */
+    private const array LEFT_OUT = ['block.dynamic', 'block.contents-list'];
+
+    /** The code that says the front page came across empty, which the report shows first. */
+    public const string FRONT_EMPTY = 'setting.front-page-empty';
+
     public function __construct(private ImportMap $map, private SettingsReader $settings) {}
 
     public function key(): string
@@ -133,8 +139,46 @@ final readonly class SiteSettingsStep implements StepPhase
         $wanted = is_numeric($options['page_for_posts'] ?? null) && (int) $options['page_for_posts'] > 0;
         $posts = $wanted ? $this->page($sourceId, $options['page_for_posts'], $pageType) : '';
         $said = $posts === null ? [new ImportMessage('setting.posts-page-missing', 'The old site listed its posts on a page the import didn’t bring, so Teme has no posts page. Choose one in Settings › Reading.')] : [];
+        $empty = $this->emptyFront($sourceId, $front, (int) $options['page_on_front']);
+        $said = $empty === null ? $said : [$empty, ...$said];
 
         return [['front_shows' => AddressSettings::FRONT_PAGE, 'front_page_id' => $front, 'posts_page_id' => $posts ?? ''], $said];
+    }
+
+    /**
+     * An error when the page chosen as the front page shows nothing now,
+     * because all it held was layout the import left out, such as a post
+     * list or a theme's sections: readers would meet only its title. Null
+     * for a page with content of its own, or one that held nothing to leave
+     * out.
+     */
+    private function emptyFront(string $sourceId, string $front, int $wordpressId): ?ImportMessage
+    {
+        $page = DB::table('contents')->where('id', $front)->first(['title', 'published_revision_id']);
+        $document = $page === null ? null : DB::table('content_revisions')->where('id', $page->published_revision_id)->value('document');
+        $document = is_string($document) ? json_decode($document, true) : null;
+        $nodes = is_array($document) && is_array($document['content'] ?? null) ? $document['content'] : [];
+
+        foreach ($nodes as $node) {
+            if (! is_array($node) || ($node['type'] ?? null) !== 'paragraph' || ($node['content'] ?? []) !== []) {
+                return null;
+            }
+        }
+
+        $mapId = DB::table('import_map')->where('source_id', $sourceId)->where('object_type', 'post')->where('object_id', (string) $wordpressId)->value('id');
+        $names = $mapId === null ? [] : DB::table('import_messages')->where('map_id', $mapId)->whereIn('code', self::LEFT_OUT)
+            ->orderBy('created_at')->orderBy('id')->selectRaw("context->>'name' AS name")->pluck('name')->filter(fn (mixed $name): bool => is_string($name) && $name !== '')->unique()->values()->all();
+
+        if ($names === []) {
+            return null;
+        }
+
+        $blocks = count($names) > 3
+            ? implode(', ', array_slice($names, 0, 3)).' and others'
+            : (count($names) === 1 ? $names[0] : implode(', ', array_slice($names, 0, -1)).' and '.end($names));
+        $title = Str::limit((string) $page?->title, 200);
+
+        return ImportMessage::error(self::FRONT_EMPTY, "The front page, {$title}, came across empty: it was built from {$blocks}, layout Teme doesn’t bring. Show your latest posts on the home page in Settings › Reading, or rebuild the page in Teme.", ['item' => $front, 'blocks' => array_slice($names, 0, 10)]);
     }
 
     /**
