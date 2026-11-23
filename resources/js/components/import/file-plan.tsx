@@ -1,6 +1,7 @@
+import type { FormComponentRef } from '@inertiajs/core';
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
 import { SelectField } from '@/components/ui/select-field';
 import { StatusPill } from '@/components/ui/status-pill';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
 import type { FileChoicesForm, ImportPlan, ImportSite } from '@/types/import';
 
 const LEGEND = 'text-body text-ink font-semibold';
@@ -129,6 +130,13 @@ export function FilePlan({
                 title={__('Not in an export file')}
             >
                 <ul className="grid gap-3">
+                    {form?.polylang === true && (
+                        <Missing title={__('Languages')}>
+                            {__(
+                                'This site uses Polylang. An export file doesn’t say which posts are translations of each other, so every post comes across in the site’s default language, and its old address with a language prefix (such as /fr/) redirects to its new one. To keep the languages, connect the live site with Teme Companion instead.',
+                            )}
+                        </Missing>
+                    )}
                     <Missing title={__('Passwords and roles')}>
                         {__(
                             'An export file has neither. People you add get the role you choose below and set a password with “Forgotten your password?” the first time they sign in.',
@@ -146,8 +154,9 @@ export function FilePlan({
                         <Missing title={__('Custom types Teme doesn’t have')}>
                             {missingTypes.map((type) => (
                                 <span key={type.key} className="block">
-                                    {__(
-                                        ':type, :n items: this site has no :type type yet. Add one with a plugin or a types file, then import again.',
+                                    {__n(
+                                        ':type, :n item: this site has no :type type yet. Add one with a plugin or a types file, then import again.|:type, :n items: this site has no :type type yet. Add one with a plugin or a types file, then import again.',
+                                        type.count,
                                         {
                                             type: type.label,
                                             n: type.count.toLocaleString(),
@@ -183,6 +192,7 @@ export function FilePlan({
                     site={site}
                     form={form}
                     answers={plan.oldSiteAnswers ?? false}
+                    resume={plan.resumeStart}
                 />
             </Section>
         </div>
@@ -232,11 +242,23 @@ function FileChoices({
     site,
     form,
     answers,
+    resume,
 }: {
     site: ImportSite;
     form: FileChoicesForm;
     answers: boolean;
+    /** Send the form once at once: a start the password's confirmation interrupted. */
+    resume: boolean;
 }) {
+    const formRef = useRef<FormComponentRef>(null);
+
+    // Carries the start on once the person is back from confirming their password.
+    useEffect(() => {
+        if (resume) {
+            formRef.current?.submit();
+        }
+    }, [resume]);
+
     const [media, setMedia] = useState<string>(answers ? form.media : 'links');
     const [drafts, setDrafts] = useState(form.drafts);
     const [comments, setComments] = useState(form.comments);
@@ -249,6 +271,7 @@ function FileChoices({
 
     return (
         <Form
+            ref={formRef}
             {...ImportRunController.start.form({ source: site.id })}
             className="grid w-full max-w-(--form-max) gap-6"
             data-test="import-file-choices"
@@ -270,11 +293,15 @@ function FileChoices({
                                     label={author.name}
                                     help={
                                         <>
-                                            {__(':login · :email · :n items', {
-                                                login: author.login,
-                                                email: author.email,
-                                                n: author.items.toLocaleString(),
-                                            })}
+                                            {__n(
+                                                ':login · :email · :n item|:login · :email · :n items',
+                                                author.items,
+                                                {
+                                                    login: author.login,
+                                                    email: author.email,
+                                                    n: author.items.toLocaleString(),
+                                                },
+                                            )}
                                             {author.matched !== null && (
                                                 <span className="text-ok-ink block">
                                                     {__(
@@ -511,18 +538,24 @@ function FileChoices({
                             name="category_base"
                             host={host}
                             value={form.categoryBase}
-                            example="news"
+                            example={form.categoryExample}
                             error={errors.category_base}
                             label={__('Category addresses')}
+                            none={__(
+                                'No prefix: category pages sit straight after the site’s address, as Yoast’s “Remove category prefix” makes them.',
+                            )}
                         />
                         <Base
                             id="import-tag-base"
                             name="tag_base"
                             host={host}
                             value={form.tagBase}
-                            example="budget"
+                            example={form.tagExample}
                             error={errors.tag_base}
                             label={__('Tag addresses')}
+                            none={__(
+                                'No prefix: tag pages sit straight after the site’s address, as a plugin can make them.',
+                            )}
                         />
                     </fieldset>
 
@@ -568,6 +601,7 @@ function Base({
     example,
     error,
     label,
+    none,
 }: {
     id: string;
     name: string;
@@ -576,21 +610,41 @@ function Base({
     example: string;
     error?: string;
     label: string;
+    none: string;
 }) {
+    // An empty base is no prefix: the pages sit straight after the site's address.
+    const [bare, setBare] = useState(value === '');
+    const [base, setBase] = useState(value === '' ? '' : value);
+    const slug = example === '' ? '…' : example;
+
     return (
-        <Field htmlFor={id} label={label} error={error}>
-            <div className="text-small flex flex-wrap items-center gap-1 font-mono">
-                <span className="text-ink-2">{host}/</span>
-                <Input
-                    id={id}
-                    name={name}
-                    defaultValue={value}
-                    className="w-40 font-mono"
-                    autoComplete="off"
-                    spellCheck={false}
+        <div className="grid gap-2">
+            <Field htmlFor={id} label={label} error={error}>
+                <div className="text-small flex flex-wrap items-center gap-1 font-mono">
+                    <span className="text-ink-2">{host}/</span>
+                    {!bare && (
+                        <Input
+                            id={id}
+                            value={base}
+                            onChange={(event) => setBase(event.target.value)}
+                            className="w-40 font-mono"
+                            autoComplete="off"
+                            spellCheck={false}
+                        />
+                    )}
+                    <span className="text-ink-2">
+                        {bare ? `${slug}/` : `/${slug}/`}
+                    </span>
+                </div>
+            </Field>
+            <input type="hidden" name={name} value={bare ? '' : base} />
+            <FieldInline htmlFor={`${id}-none`} label={none}>
+                <Checkbox
+                    id={`${id}-none`}
+                    checked={bare}
+                    onCheckedChange={(checked) => setBare(checked === true)}
                 />
-                <span className="text-ink-2">/{example}/</span>
-            </div>
-        </Field>
+            </FieldInline>
+        </div>
     );
 }

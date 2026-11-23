@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Import\File;
 
 use App\Domain\Import\Phases\Addresses\WordPressAddresses;
+use App\Domain\Import\WordPressRecords;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,8 +34,8 @@ final class FileAddresses
     /** The kinds of address a file lists; the home page is answered whole. */
     public const array KINDS = ['post', 'term', 'author', 'attachment_page', 'attachment_file'];
 
-    /** The types that never have an address of their own. */
-    private const array UNADDRESSED = ['wp_block', 'wp_navigation', 'wp_template', 'wp_template_part', 'wp_global_styles', 'nav_menu_item', 'attachment'];
+    /** The types that never have an address of their own, WordPress's own records among them. */
+    private const array UNADDRESSED = ['wp_block', 'wp_navigation', 'nav_menu_item', 'attachment', ...WordPressRecords::TYPES];
 
     /**
      * WordPress's own address structures, from Settings › Permalinks, tried
@@ -160,7 +161,8 @@ final class FileAddresses
                 $parent = (int) ($byId[$parent]['parent'] ?? 0);
             }
 
-            $links[$id] = $home.'/'.trim($base, '/').'/'.implode('/', $slugs).'/';
+            // An empty base is no prefix: the term's page sits straight after the site's address.
+            $links[$id] = $home.'/'.implode('/', array_filter([trim($base, '/'), ...$slugs], fn (string $part): bool => $part !== '')).'/';
         }
 
         return $links;
@@ -169,7 +171,11 @@ final class FileAddresses
     /**
      * The bases the old site most likely put its category and tag pages
      * under: the first part most common among the links in the file's
-     * content to its own categories and tags, else WordPress's own.
+     * content to its own categories and tags, else WordPress's own. For
+     * categories, none (an empty base) when the links reach a category
+     * straight after the site's address, as Yoast's "Remove category
+     * prefix" makes them, and never under a prefix; a slug a post or page
+     * also has doesn't count, since the link may be to it.
      *
      * @return array{category_base: string, tag_base: string}
      */
@@ -186,6 +192,10 @@ final class FileAddresses
         }
 
         $seen = [WordPressAddresses::CATEGORIES => [], WordPressAddresses::TAGS => []];
+        $bare = 0;
+        $items = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::CONTENT)
+            ->selectRaw("lower(payload->>'slug') as slug")->pluck('slug')
+            ->mapWithKeys(fn (mixed $slug): array => [(string) $slug => true])->all();
 
         if ($host !== '') {
             $contents = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::CONTENT)
@@ -210,6 +220,10 @@ final class FileAddresses
                             $seen[$taxonomy][$segments[0]] = ($seen[$taxonomy][$segments[0]] ?? 0) + 1;
                         }
                     }
+
+                    if (count($segments) === 1 && is_string($last) && isset($slugs[WordPressAddresses::CATEGORIES][$last]) && ! isset($items[$last])) {
+                        $bare++;
+                    }
                 }
             }
         }
@@ -221,15 +235,58 @@ final class FileAddresses
         };
 
         return [
-            'category_base' => $common($seen[WordPressAddresses::CATEGORIES], self::CATEGORY_BASE),
+            'category_base' => $bare > 0 && $seen[WordPressAddresses::CATEGORIES] === [] ? '' : $common($seen[WordPressAddresses::CATEGORIES], self::CATEGORY_BASE),
             'tag_base' => $common($seen[WordPressAddresses::TAGS], self::TAG_BASE),
         ];
     }
 
     /**
+     * A real category's and tag's slug from the file, for the examples
+     * under the plan's address boxes: each taxonomy's term the most items
+     * are filed under, else its first by slug; empty when it has none.
+     *
+     * @since next
+     *
+     * @return array{categoryExample: string, tagExample: string}
+     */
+    public static function examples(string $fileId): array
+    {
+        $terms = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::TERMS)
+            ->whereRaw("payload->>'taxonomy' IN ('category', 'post_tag')")
+            ->orderByRaw("payload->>'slug'")
+            ->get([DB::raw("payload->>'id' as id"), DB::raw("payload->>'taxonomy' as taxonomy"), DB::raw("payload->>'slug' as slug")]);
+        $uses = [];
+
+        foreach (DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::CONTENT)->limit(2000)->selectRaw("payload->'terms' as terms")->pluck('terms') as $filed) {
+            foreach ((array) json_decode((string) $filed, true) as $ids) {
+                foreach ((array) $ids as $id) {
+                    $uses[(int) $id] = ($uses[(int) $id] ?? 0) + 1;
+                }
+            }
+        }
+
+        $pick = function (string $taxonomy) use ($terms, $uses): string {
+            $best = null;
+
+            foreach ($terms->where('taxonomy', $taxonomy) as $term) {
+                if ($best === null || ($uses[(int) $term->id] ?? 0) > ($uses[(int) $best->id] ?? 0)) {
+                    $best = $term;
+                }
+            }
+
+            return $best === null ? '' : rawurldecode((string) $best->slug);
+        };
+
+        return ['categoryExample' => $pick(WordPressAddresses::CATEGORIES), 'tagExample' => $pick(WordPressAddresses::TAGS)];
+    }
+
+    /**
      * The first of WordPress's own address structures that every published
-     * post's address in the file follows; empty when none does, or the
-     * file has no published post.
+     * post's address in the file follows, read after a language's prefix
+     * where the site runs Polylang; empty when none does, or the file has no
+     * published post. Only published posts count: WordPress exports an
+     * unpublished draft's address as /?p=123, which says nothing of the
+     * site's structure.
      */
     public static function structure(string $fileId): string
     {
@@ -242,8 +299,17 @@ final class FileAddresses
             return '';
         }
 
+        // Polylang's languages, whose slugs are the prefixes it puts before a post's address.
+        $prefixes = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::OTHER_TERMS)
+            ->whereRaw("payload->>'taxonomy' = 'language'")
+            ->selectRaw("lower(payload->>'slug') as slug")
+            ->pluck('slug')
+            ->map(fn (mixed $slug): string => (string) $slug)
+            ->filter(fn (string $slug): bool => $slug !== '')
+            ->all();
+
         foreach (self::STRUCTURES as $structure) {
-            $fits = $posts->every(fn (object $post): bool => self::follows($structure, (string) $post->permalink, (string) $post->slug, (string) $post->date, (int) $post->id));
+            $fits = $posts->every(fn (object $post): bool => self::follows($structure, self::unprefixed((string) $post->permalink, $prefixes), (string) $post->slug, (string) $post->date, (int) $post->id));
 
             if ($fits) {
                 return $structure;
@@ -251,6 +317,22 @@ final class FileAddresses
         }
 
         return '';
+    }
+
+    /**
+     * A post's address without a language's prefix as its first segment.
+     *
+     * @param  list<string>  $prefixes
+     */
+    private static function unprefixed(string $permalink, array $prefixes): string
+    {
+        $path = parse_url($permalink, PHP_URL_PATH);
+
+        if ($prefixes === [] || ! is_string($path) || preg_match('~^/([^/]+)(/.*)$~', $path, $match) !== 1 || ! in_array(strtolower(rawurldecode($match[1])), $prefixes, true)) {
+            return $permalink;
+        }
+
+        return $match[2];
     }
 
     /**

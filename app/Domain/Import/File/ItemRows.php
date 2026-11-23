@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\File;
 
+use App\Domain\Import\WordPressRecords;
+
 final readonly class ItemRows
 {
     public const string USERS = 'users';
@@ -40,9 +42,6 @@ final readonly class ItemRows
     /** The file's one row of what its report counts as it is read, at ID zero. */
     public const string FACTS = 'file-facts';
 
-    /** Revisions never come across, as the companion never sends them. */
-    private const array LEFT_OUT = ['revision'];
-
     public function __construct(
         private FileLookups $lookups,
         private ContentBlocks $blocks,
@@ -63,7 +62,8 @@ final readonly class ItemRows
         $id = (int) ($item['fields']['wp:post_id'] ?? 0);
         $type = trim($item['fields']['wp:post_type'] ?? 'post');
 
-        if ($id <= 0 || in_array($type, self::LEFT_OUT, true)) {
+        // WordPress's own records, revisions and unsaved drafts among them, never come across.
+        if ($id <= 0 || WordPressRecords::internal($type, trim($item['fields']['wp:status'] ?? ''))) {
             return ['rows' => [], 'facts' => $facts];
         }
 

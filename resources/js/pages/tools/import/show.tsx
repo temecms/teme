@@ -73,6 +73,7 @@ function Plan({
                                 siteId={siteId}
                                 form={plan.form}
                                 remembered={plan.remembered}
+                                resume={plan.resumeStart}
                             />
                         </div>
                     </PanelBody>
