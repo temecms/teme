@@ -331,15 +331,10 @@ function accSteps(): array
 
             return null;
         }],
-        'menu-places' => ['menu-places', function (ImportRun $run): null {
-            $navigation = DB::table('import_map')->where('object_type', 'menu')->where('object_id', '3')->value('teme_id');
-
-            expect(array_values(array_filter(app(ThemeSlotSettings::class)->bound(app(ActiveTheme::class)->get()))))->toBe([$navigation]);
-
-            return null;
-        }],
-        'widgets' => ['widgets', function (ImportRun $run): null {
-            expect(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'widgets.reported')->value('message'))->toContain('sidebar-1')->toContain('text');
+        'unplaced-menus' => ['unplaced-menus', function (ImportRun $run): null {
+            // The menu comes across unplaced, though the run's choices still name a place for it, as an earlier release's did.
+            expect(array_values(array_filter(app(ThemeSlotSettings::class)->bound(app(ActiveTheme::class)->get()))))->toBe([])
+                ->and(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'menus.unplaced')->pluck('message')->all())->toBe(['1 menu came across; place it under Content › Navigation.']);
 
             return null;
         }],
@@ -378,6 +373,8 @@ function accSteps(): array
 
             return null;
         }],
+        // A run of the companion passes over the export file's own step.
+        'file-missing' => ['file-missing', $alone],
         'deleted' => ['deleted', function (ImportRun $run): ImportRun {
             $this->travel(1)->hours();
             $this->site->renameAndDelete();

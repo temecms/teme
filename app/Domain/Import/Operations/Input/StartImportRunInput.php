@@ -27,6 +27,7 @@ final readonly class StartImportRunInput implements OperationInput
         public array $options = [],
         public array $choices = [],
         public ?string $actorId = null,
+        public ?string $fileId = null,
     ) {}
 
     public function actorId(): ?string

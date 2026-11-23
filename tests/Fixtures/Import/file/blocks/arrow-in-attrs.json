@@ -1,0 +1,16 @@
+[
+    {
+        "blockName": "acme/note",
+        "attrs": {
+            "text": "a --> b",
+            "more": {
+                "x": 1
+            }
+        },
+        "innerBlocks": [],
+        "innerHTML": "<p>Note</p>",
+        "innerContent": [
+            "<p>Note</p>"
+        ]
+    }
+]

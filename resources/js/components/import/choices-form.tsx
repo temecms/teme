@@ -1,5 +1,6 @@
+import type { FormComponentRef } from '@inertiajs/core';
 import { Form } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -25,127 +26,39 @@ export function ChoicesForm({
     siteId,
     form,
     remembered,
+    resume = false,
 }: {
     siteId: string;
     form: ChoicesFormView;
     remembered: RememberedChoices | null;
+    /** Send the form once at once: a start the password's confirmation interrupted. */
+    resume?: boolean;
 }) {
     // What starts each choice: the choices kept across the password's
     // confirmation, else the screen's defaults.
-    const location = (key: string, fallback: string): string =>
-        remembered === null ? fallback : (remembered.menu_locations[key] ?? '');
-    const template = (key: string, fallback: string): string =>
-        remembered === null ? fallback : (remembered.templates[key] ?? '');
     const role = (key: string, fallback: string): string =>
         remembered?.roles[key] ?? fallback;
     const [ticked, setTicked] = useState<string[]>(
         remembered?.outside_images ?? [],
     );
 
+    const formRef = useRef<FormComponentRef>(null);
+
+    // Carries the start on once the person is back from confirming their password.
+    useEffect(() => {
+        if (resume) {
+            formRef.current?.submit();
+        }
+    }, [resume]);
+
     return (
         <Form
+            ref={formRef}
             {...ImportRunController.start.form({ source: siteId })}
             className="grid gap-6"
         >
             {({ processing, errors }) => (
                 <>
-                    {form.menuLocations.length > 0 && (
-                        <fieldset
-                            className={GROUP}
-                            aria-describedby="import-menu-locations-error"
-                        >
-                            <legend className={LEGEND}>
-                                {__('Menu locations')}
-                            </legend>
-                            <p className="text-small text-ink-2">
-                                {__(
-                                    'Where each menu goes in this site’s theme.',
-                                )}
-                            </p>
-                            {form.slots.length === 0 && (
-                                <p className="text-body">
-                                    {__(
-                                        'This theme has no places for menus. Menus come across, and you can place them later.',
-                                    )}
-                                </p>
-                            )}
-                            {form.slots.length > 0 &&
-                                form.menuLocations.map((row) => (
-                                    <Field
-                                        key={row.key}
-                                        htmlFor={`import-location-${row.key}`}
-                                        label={row.key}
-                                        error={
-                                            errors[`menu_locations.${row.key}`]
-                                        }
-                                    >
-                                        <SelectField
-                                            id={`import-location-${row.key}`}
-                                            name={`menu_locations[${row.key}]`}
-                                            options={form.slots}
-                                            emptyLabel={__('Don’t place it')}
-                                            defaultValue={location(
-                                                row.key,
-                                                row.value,
-                                            )}
-                                        />
-                                    </Field>
-                                ))}
-                            <InputError
-                                id="import-menu-locations-error"
-                                message={errors.menu_locations}
-                            />
-                        </fieldset>
-                    )}
-
-                    {form.templates.length > 0 && (
-                        <fieldset
-                            className={GROUP}
-                            aria-describedby="import-templates-error"
-                        >
-                            <legend className={LEGEND}>
-                                {__('Page templates')}
-                            </legend>
-                            <p className="text-small text-ink-2">
-                                {__(
-                                    'The template each WordPress page template becomes.',
-                                )}
-                            </p>
-                            {form.templates.map((row) => (
-                                <Field
-                                    key={row.key}
-                                    htmlFor={`import-template-${row.key}`}
-                                    label={__(':template (:pages)', {
-                                        template: row.key,
-                                        pages: __n(
-                                            ':count page|:count pages',
-                                            row.count,
-                                            {
-                                                count: row.count.toLocaleString(),
-                                            },
-                                        ),
-                                    })}
-                                    error={errors[`templates.${row.key}`]}
-                                >
-                                    <SelectField
-                                        id={`import-template-${row.key}`}
-                                        name={`templates[${row.key}]`}
-                                        options={form.themeTemplates}
-                                        emptyLabel={__('The theme’s default')}
-                                        defaultValue={template(
-                                            row.key,
-                                            row.value,
-                                        )}
-                                    />
-                                </Field>
-                            ))}
-                            <InputError
-                                id="import-templates-error"
-                                message={errors.templates}
-                            />
-                        </fieldset>
-                    )}
-
                     {form.roles.length > 0 && (
                         <fieldset
                             className={GROUP}

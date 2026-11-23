@@ -152,7 +152,7 @@ it('shows each language\'s home page at its home', function (): void {
         ->and(addrGet('/es/')->getContent())->toContain('Inicio');
 });
 
-it('imports a menu per language, each switcher a languages item, and shows each in its place in its language', function (): void {
+it('imports a menu per language, each switcher a languages item, and places none, in any language', function (): void {
     $run = $this->site->import($this->source);
     $main = Navigation::query()->where('name', 'Main')->sole();
     $principal = Navigation::query()->where('name', 'Principal')->sole();
@@ -164,7 +164,7 @@ it('imports a menu per language, each switcher a languages item, and shows each 
         ->and($principal->language)->toBe('es')
         ->and($switcher($main)->options)->toBe(['dropdown' => false, 'show_names' => true, 'hide_current' => true])
         ->and($switcher($principal)->options)->toBe(['dropdown' => true, 'show_names' => true, 'hide_current' => false])
-        ->and($translations['es'][ThemeSlotSettings::settingKey((string) $slot)] ?? null)->toBe($principal->id)
+        ->and($translations['es'][ThemeSlotSettings::settingKey((string) $slot)] ?? null)->toBeNull()
         ->and(plCodes($run))->toContain('menu.switcher-options');
 });
 

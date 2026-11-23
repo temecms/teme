@@ -19,6 +19,7 @@ You need:
 
 - **Two servers**, each with Docker and Compose, and a domain name for each.
 - **A copy of a real WordPress site**, with Teme's companion plugin installed on it, and an application password for an administrator there.
+  If the plugin can't be installed there, its export file will do for the content: see *If you import from an export file*, after Stage 2.
 - **A place off the servers for backups**: an S3-compatible bucket or an SFTP server.
 - **Outgoing mail** that works, so Teme can email you.
 - **Cloudflare**, optionally, in front of the first server.
@@ -42,7 +43,13 @@ You need:
 | 2.2 | Look at what the analysis found, and choose what to import. | | |
 | 2.3 | Run the import and wait for it to finish. Note how long it took and how much it brought. | | |
 | 2.4 | Walk every old address: `docker compose exec web php artisan teme:import:walk https://old.example.com`. It must show no address a reader would get a 404 for. | | |
-| 2.5 | Look through the imported site in the browser: pages, posts, images, menus, comments. | | |
+| 2.5 | Look through the imported site in the browser: pages, posts, images, menus, comments. The menus come across unplaced: place them under **Content › Navigation**. Widgets and theme settings don't come across: set them up in Teme's theme. | | |
+
+### If you import from an export file
+
+Where the companion plugin can't be installed, or the old site is gone, use its export file instead. In WordPress, open Tools › Export, choose All content and download the `.xml` file. In Teme, open **Tools › Import**, choose **Upload a file** and drop the file in; it goes up in pieces, so a dropped connection carries on. The file's plan then asks what the file can't say: who each author is here, whether the media files are downloaded from the old site (only while it answers) or kept there as links, where each menu sits, and the category and tag addresses. Steps 2.2 to 2.5 are the same.
+
+The file brings the content and each item's address, but not passwords and roles, site settings, widgets and theme settings, redirects kept by plugins or spam comments; the plan lists them. In Stage 3, bring what changed by exporting the site again and choosing **Upload a newer file** on the report, in place of the catch-up command in step 3.2. When the import is done, choose **Delete the file…** on the report: the file holds drafts, private posts and people's email addresses. Teme deletes it 30 days after the last import from it in any case.
 
 ## Stage 3: Rehearse the cut-over
 

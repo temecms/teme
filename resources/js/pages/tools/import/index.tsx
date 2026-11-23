@@ -1,5 +1,8 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { useState } from 'react';
 import { ConnectForm } from '@/components/import/connect-form';
+import { ImportWays, type ImportWay } from '@/components/import/ways';
+import { UploadForm } from '@/components/import/upload-form';
 import { DataTable } from '@/components/list/data-table';
 import { Button } from '@/components/ui/button';
 import type { Column } from '@/components/list/data-table';
@@ -21,12 +24,15 @@ const TONES: Record<
     finished: 'ok',
 };
 
-/** Tools › Import (I-227): the sites Teme imports from, and the form that connects another. */
+/** Tools › Import: the sites Teme imports from, and the two ways to add another. */
 export default function ImportIndex({
     sites,
     companion,
     siteTimezone,
+    maxFileMb,
 }: ImportIndexPage) {
+    const [way, setWay] = useState<ImportWay>(null);
+
     setLayoutProps({
         breadcrumbs: [
             { title: __('Tools'), href: index() },
@@ -48,9 +54,16 @@ export default function ImportIndex({
                         {row.host}
                     </Link>
                     <span className="text-small text-ink-3">
-                        {__('WordPress · Teme Companion :version', {
-                            version: row.pluginVersion,
-                        })}
+                        {row.kind === 'file' && row.uploadedAt
+                            ? __('WordPress · export file, uploaded :date', {
+                                  date: formatInZone(
+                                      row.uploadedAt,
+                                      siteTimezone,
+                                  ),
+                              })
+                            : __('WordPress · Teme Companion :version', {
+                                  version: row.pluginVersion,
+                              })}
                     </span>
                 </div>
             ),
@@ -121,7 +134,7 @@ export default function ImportIndex({
             <ListPage
                 title={__('Import')}
                 description={__(
-                    'Move a WordPress site into Teme: its posts, pages, media, people, comments and menus. Every old address keeps working.',
+                    'Move a WordPress site into Teme: from the live site, or from its export file. Every old address keeps working.',
                 )}
             >
                 {sites.length > 0 && (
@@ -151,11 +164,17 @@ export default function ImportIndex({
                     </section>
                 )}
 
-                <ConnectForm
-                    address={null}
-                    userName={null}
-                    companion={companion}
-                />
+                <ImportWays open={way} onOpen={setWay} />
+
+                {way === 'connect' && (
+                    <ConnectForm
+                        address={null}
+                        userName={null}
+                        companion={companion}
+                    />
+                )}
+
+                {way === 'upload' && <UploadForm maxFileMb={maxFileMb} />}
             </ListPage>
         </>
     );

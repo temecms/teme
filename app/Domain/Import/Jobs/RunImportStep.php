@@ -25,7 +25,7 @@ use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Queries\ImportRuns;
-use App\Domain\Import\Source\CompanionClients;
+use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Support\Network\AddressRefused;
 use App\Domain\Support\Security\JobActor;
@@ -64,7 +64,7 @@ final class RunImportStep implements ShouldQueue
         public readonly JobActor $actor,
     ) {}
 
-    public function handle(ImportPhases $phases, ImportRuns $runs, CompanionClients $clients, ImportMode $mode, Actors $actors): void
+    public function handle(ImportPhases $phases, ImportRuns $runs, SourceReaders $readers, ImportMode $mode, Actors $actors): void
     {
         $this->actor->bind();
         $run = ImportRun::query()->with('source')->find($this->runId);
@@ -81,7 +81,7 @@ final class RunImportStep implements ShouldQueue
         }
 
         try {
-            $result = $mode->during($this->runId, fn (): StepResult => $phase->run($context, $clients->for($run->source), $this->cursor));
+            $result = $mode->during($this->runId, fn (): StepResult => $phase->run($context, $readers->for($run), $this->cursor));
         } catch (ImportStopped $stop) {
             $actors->forget();
             $this->stopRun($stop->reason, $stop->words, $stop->details);

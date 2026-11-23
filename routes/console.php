@@ -31,6 +31,7 @@ Schedule::command('teme:backup:due')->everyMinute()->withoutOverlapping(10)->onO
 
 Schedule::command('teme:trash:purge')->daily();
 Schedule::command('teme:comments:erase-addresses')->daily();
+Schedule::command('teme:import:prune-files')->daily();
 Schedule::command('teme:content:run-due-publications')->everyMinute()->withoutOverlapping();
 Schedule::command('teme:cache:prune')->everyMinute()->withoutOverlapping();
 Schedule::command('teme:redirects:count')->everyMinute()->withoutOverlapping();

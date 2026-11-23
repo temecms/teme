@@ -35,6 +35,27 @@ final readonly class ImportedTerms
     }
 
     /**
+     * The WordPress ID of the map row an import from this source's export
+     * file made of a term with these facts, or null when it made none.
+     *
+     * @param  array<string, int|string>  $facts
+     *
+     * @since 1.4.0
+     */
+    public function fromFile(string $sourceId, array $facts): ?string
+    {
+        $id = ImportMapEntry::query()
+            ->where('source_id', $sourceId)
+            ->where('object_type', 'term')
+            ->whereRaw("jsonb_exists(facts, 'file_term_id')")
+            ->whereRaw('facts @> ?::jsonb', [json_encode($facts, JSON_THROW_ON_ERROR)])
+            ->orderBy('object_id')
+            ->value('object_id');
+
+        return $id === null ? null : (string) $id;
+    }
+
+    /**
      * Whether this source made the Teme term $termId.
      */
     public function madeBy(string $sourceId, string $termId): bool

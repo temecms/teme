@@ -91,14 +91,16 @@ Every phase has a key, an order and a label. **Core's phases sit at the hundreds
 | 780 | `comment-counts` | Comment counts | step | both | Rebuilds every item's comment counts once, never per comment (I-273) | `Phases/Comments/CommentCountsStep.php:28` |
 | 790 | `comment-pages` | Comment pages | step | both | Redirects WordPress's `/slug/comment-page-N/` to where those comments are now (I-610) | `Phases/Comments/CommentPagesStep.php:47` |
 | 800 | `menus` | Menus | list | both | Each classic menu and published navigation post, its items leading by ID (I-343) | `Phases/Menus/MenusPhase.php:55` |
-| 810 | `menu-places` | Menu places | step | both | Puts the imported menus in the active theme's places, as the choices map them, never over a place a person filled | `Phases/Menus/MenuPlacesStep.php:42` |
-| 890 | `widgets` | Widgets | step | full | Says what the old site's widgets were; writes nothing (I-343) | `Phases/Menus/WidgetsStep.php:38` |
+| 820 | `unplaced-menus` | Unplaced menus | step | both | Says once how many menus this run made (`menus.unplaced`): they come across unplaced, for the person to place under Content › Navigation; writes nothing | `Phases/Menus/UnplacedMenusStep.php` |
 | 900 | `redirects` | Redirects | step | both | The old site's redirect rules, a rule at a time through `ImportOldRedirect` (I-297) | `Phases/Redirects/RedirectsStep.php:44` |
 | 1000 | `settings` | Settings | step | both | Title, tagline, feeds, the search engines' switch, Discussion, the comments module and its page, and the SEO plugin's sitemaps sent on to `/sitemap.xml` (I-342, I-1717) | `Phases/Settings/SiteSettingsStep.php:50` |
 | 1100 | `check` | Address check | step | both | The check, below (I-339) | `Phases/Check/CheckStep.php:51` |
 | 1200 | `fidelity` | Compared with WordPress | step | both | The fidelity check, below (I-337) | `Phases/Finish/FidelityStep.php:55` |
 | 1210 | `recount` | Counts | step | both | Checks once the counts the import kept item by item, and fixes where they drifted (I-141) | `Phases/Finish/RecountStep.php:30` |
 | 1250 | `deleted` | Deleted on WordPress | step | catch-up | Lists what WordPress deleted since it was imported, and counts the failures the catch-up didn't meet (I-345), below | `Phases/Finish/DeletedStep.php:77` |
+| 1260 | `file-missing` | Missing from the file | step | full | On a run of an export file only: lists each item an earlier import of the same site brought that the newer file leaves out, and deletes nothing; *A file as the source*, below | `Phases/Finish/FileMissingStep.php` |
+
+**The new site's structure is the theme's.** The import brings content, not how the old theme was put together: no widgets (`SiteAnalysis` lists them under *Not imported* as "Widgets and theme settings"), no question of which template a WordPress page template becomes (every page takes the active theme's default), and no question of where each menu goes (the menus and their items come across unplaced, and `unplaced-menus` says so once). Choices an earlier release kept for these, `menu_locations` and `templates`, in a run's stored choices or a site's remembered ones, are ignored, never refused. A run that was at a step this release retired (`ImportPhases::RETIRED`: `menu-places` at 810, `widgets` at 890) carries on with the next step after that order (`ImportPhases::resume()`), never from the start.
 
 Paths are under `app/Domain/Import/`. A full run goes through 25 steps; a catch-up through 23. 1.11a's own table had a single `finish` at 1200; 1.11n made it `fidelity` at 1200 and `recount` at 1210 (`docs/superpowers/plans/2026-10-18-phase1-slice11n-second-pass-and-catch-up.md:3880`).
 
@@ -153,6 +155,12 @@ Criterion 6 of the spec asks that every URL be preserved or redirected. Two thin
 | `check.redirect-not-found` | A redirect sends it on to an address that answers "not found" |
 | `check.query` | It differs only by its query string |
 
+One more error holds it up, from the settings step (1000) of a live run: **`setting.front-page-empty`**, when the page the old site showed as its front page shows nothing here, because all it held was layout the content phase left out (`block.dynamic` and `block.contents-list`, such as a post list, a query loop or a theme's sections). The message names those blocks, at most three and then "and others", and the report lists it first (`SiteSettingsStep::emptyFront()`, `ImportScreen::report()`). A page with content of its own, or one that held nothing left out, says nothing. An export file sets no front page, so a file's run never says it.
+
+**The old site's file addresses** (`/wp-content/uploads/…`) are answered by one rule for the whole folder, not a redirect row per file: `RedirectLookup::oldFile()` (`app/Domain/Redirects/RedirectLookup.php`) reads the import map's `file` rows, which the media phase writes for every attachment's original, main file, edited copies and sizes, for a live import and a file's alike. The public fallback asks it after the path table and after every redirect a person made, so neither a live page nor a person's own redirect is hidden; `wp-content` is kept from items and people (`Paths::OLD_FILES`) so none can take those addresses. It answers a permanent redirect: a resized copy (`-{w}x{h}`) to the item's narrowest variant at least as wide, else its widest; any other file of the item to its widest variant (an image's original is private), or a file that isn't an image to its original. While an image's variants are still being made it answers 503 with `Retry-After` and no copy kept, so no page cache holds a "not found". The check counts each such address as handled, in one warning-level line (`check.old-files`, "N old file addresses now redirect to the media library"), counted across its jobs in its cursor; a file the import didn't bring stays `check.not-found`.
+
+**A file's media kept as links** (the `links` choice) are the person's choice, not a problem: the check leaves out the old site's attachment pages and files, and any address below its uploads folder or asking for `?attachment_id=`, and says once, as a warning, how many media files stay on the old host and how many brought posts' featured images with them (`check.media-kept`); the content phase writes no `post.featured-missing` for each post. No error is made, so "Ready to switch" doesn't count them, and since no `file` row is written, the uploads rule doesn't answer for them.
+
 `check.other-status` (another status) and `check.other-host` are warnings. The check works fifty seconds a job (`:34`), and started again from the beginning it clears its earlier messages first (`:66-68`).
 
 **Why the walk exists** (11z's D3): the check never runs the middleware or the theme's template, so an item whose template fails would pass the check and fail a reader. The walk uses the application password Teme already keeps. **It isn't free of effects:** each address that answers 404 becomes a row of the 404 log, each redirect it follows counts a hit, and with the page cache on each page it draws is stored. So run it before the site is public, or expect its 404s and hits in Tools › Redirects; and turn the page cache off for it, or expect a warm cache (`docs/superpowers/plans/2026-10-18-phase1-slice11z-proof-and-tag.md`, D3). 1.13's runbook runs the same command after the cut-over (I-385).
@@ -185,7 +193,7 @@ A site can be imported days or weeks before the switch. A **catch-up** brings on
 - **It needs a finished run.** Its options and choices are the last finished run's (`ImportScreen::catchUpWith()`, `app/Domain/Import/Queries/ImportScreen.php:179-184`).
 - **Since when:** an hour before the last finished run's high-water mark, an hour for clocks that differ, which costs reads, never writes (`app/Domain/Import/Queries/ImportRuns.php:55-72`).
 - **What it fetches by date:** posts and pages, media and outside images ask the companion with `modified_after` (`Phases/Content/ContentPhase.php:125-127`, `Phases/Media/MediaPhase.php:91`, `Phases/Media/OutsideImagesStep.php:79`). People, terms, comments, menus and redirects are read whole, and the hash skips what didn't change.
-- **What it skips:** `content-visibility`, `content-waiting` and `widgets`, which run in full imports only.
+- **What it skips:** `content-visibility` and `content-waiting`, which run in full imports only.
 - **What it adds:** `deleted` at 1250 compares WordPress's lists with the map and lists each person, category, tag, file, post, page, comment and menu WordPress no longer has but Teme still does (`catch-up.deleted`, up to 500 of a kind, then a count). **Nothing is deleted or changed** (`app/Domain/Import/Phases/Finish/DeletedStep.php:20-27`).
 
 **What a catch-up doesn't retry** (#157). Every run, full or catch-up, starts by marking every earlier failure `needs_update` (`StartImportRun.php:111-113`). A **full import** reads every object, so it meets and retries them all. A **catch-up** reads only what changed on WordPress, so a failure whose item didn't change is never met. At its end `deleted` counts them (`ImportMap::failedBefore()`, `app/Domain/Import/Queries/ImportMap.php:88-96`) and says so as an **error**, `catch-up.not-retried`: "N items that failed before weren’t tried again, since a catch-up only fetches what changed on WordPress. Run a full import to retry them." (`DeletedStep.php:370-388`). Being an error, it holds up "Ready to switch" for that run; a full import retries them.
@@ -227,6 +235,29 @@ Teme reads a WordPress site through the **Teme Companion** plugin, in its own re
 
 Every address criterion 6 asks about comes from 0.2.0's `urls`, so the proof stands on 0.2.0.
 
+## A file as the source
+
+The companion is the full path. **An uploaded export file is the second**, for a site's content where the plugin can't be installed, or the site is gone: the `.xml` file from WordPress's Tools › Export (WXR). Spec §5.10 says why it is not the first. The run, its steps, the check and the report are the companion's; only the reader differs.
+
+**Reading.** The upload goes up in pieces, and `ReadImportFile` (`app/Domain/Import/File/Jobs/ReadImportFile.php`) streams it once into `import_file_rows`: one row for each item, term, author, comment and menu, as `(file_id, list, object_id, payload)`, the payload in the shape the companion's route of that list answers. The file is read, never trusted: one that isn't an export or carries a DOCTYPE is refused with a sentence (`app/Domain/Import/File/WxrRefused.php`), and one larger than `teme.import.max_file_mb` (`config/teme.php`) is refused at the upload.
+
+**The reader.** `SourceReaders` hands a run the reader its source needs: `CompanionClient` for a site, `FileReader` (`app/Domain/Import/Source/FileReader.php`) for a file. `FileReader` answers `page()` and `whole()` from the file's rows, so the phases can't tell the two apart. The lists a file can't hold answer as a site without them would: empty, or with the plan's choices in their place. `ImportContext::readsFile()` tells a step which reader it has, and these steps pass over a file's run, saying so on the report: site settings, widgets, redirects, languages and their words, plugin data, the fediverse steps, the fidelity check (there is no rendered page to compare with) and `deleted`.
+
+**What a file can't bring, and what stands in for it.** Each is said on the file's plan, under *Not in an export file*:
+
+| Not in the file | What the run does |
+|---|---|
+| Passwords and roles | Each author is matched by email to a person on this site, credited to a person chosen on the plan, or added with the role chosen there and no password anyone knows; they set one with *Forgotten your password?* (`UsersPhase`). An author with no email in the file is not added, and the report says so |
+| The media files | Downloaded from the old site's addresses in the file, through the same downloader and public-address check as the companion's, while the old site answers; the plan asks it first (`FileDownloader::answers()`). Or kept at the old site as links, and no file is downloaded (`MediaPhase`) |
+| Where each menu sits | The menus come across; the plan places each in a location of this site's theme |
+| The category and tag bases | Read from the terms' links in the file where it can, and shown on the plan to change (`FileAddresses`). Each post's and page's own address is in the file, so it keeps it |
+| Site settings, widgets and theme settings, plugins' redirects, spam comments, revisions | Not imported |
+| WordPress's own records (custom CSS, Customizer changesets, fetched embeds, privacy requests, a block theme's styles, templates, template parts and fonts, revisions, and unsaved drafts) | Never kept from the file, never listed as a custom type, never checked for an address and never brought: one list, `WordPressRecords` (`app/Domain/Import/WordPressRecords.php`), read by the file's reader, its report and addresses, `SiteAnalysis` and the check, for a live import too. Menu items, navigation and reusable blocks come across their own way |
+
+**A newer file of the same site.** A file names its site by its address, so a newer file is a second import of the same source, and the map carries over: what is new or edited since comes across, and what was changed here is left alone, as catch-up does. `file-missing` (1260) lists what the earlier import brought that the newer file leaves out, and deletes nothing. A file's terms carry WordPress's numbers, which may differ from the numbers the companion gave the same terms: an earlier term is matched by taxonomy and number, then by slug (`TermsPhase`, `AdoptImportedTerm`), and a file's number another term already holds in the map is moved apart (`FileReader::apart()`), so the two never meet in one row. Authors and terms a file names only on its items, with no row of their own, take negative numbers.
+
+**Keeping the file.** The file holds drafts, private posts and people's email addresses. The report offers to delete it, and `teme:import:prune-files`, run daily, deletes each file 30 days after the last import from it ended (`app/Console/Commands/PruneImportFiles.php`). Its rows go with it; what was imported, and the report, stay.
+
 ## Where Teme connects: the public-address check
 
 The importer connects only to addresses an administrator gave it, and it checks each one **every time**, since a name can move (`app/Domain/Import/Source/CompanionClients.php:49-58`). `PublicAddresses::check()` (`app/Domain/Support/Network/PublicAddresses.php:48-104`):
@@ -256,4 +287,3 @@ Study V §4 was written before the parts. These are the places the system as bui
 - **Hooks gathered during a run** and fired once at its end (phase 5; `BaseOperation.php:70`).
 - **A database reader** beside the companion, chosen by the source's kind (I-1718; `CompanionClients.php:56`).
 - **A walk the counters skip** (I-1951, draft), parked until a real cut-over shows the counts matter.
-- **Widgets mapped to the theme's regions** (I-348); the `widgets` step only says what they were.

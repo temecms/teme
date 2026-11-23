@@ -27,8 +27,8 @@ For the second way, each role runs the command the recipe gives it:
 |---|---|---|
 | `deploy` | `php artisan teme:deploy` | n/a: it runs once and exits |
 | `web` | the image's own command; leave it empty | n/a |
-| `worker` | `php artisan queue:work --tries=3 --max-time=3600` | 6 minutes |
-| `worker-long` | `php artisan queue:work database-long --queue=long --tries=3 --max-time=3600` | 6 minutes |
+| `worker` | `php artisan queue:work --tries=3 --max-time=3600 --memory=512` | 6 minutes |
+| `worker-long` | `php artisan queue:work database-long --queue=long --tries=3 --max-time=3600 --memory=512` | 6 minutes |
 | `scheduler` | `php artisan schedule:work` | 30 minutes |
 
 Without `worker-long`, nothing works the long queue and long jobs wait for ever.

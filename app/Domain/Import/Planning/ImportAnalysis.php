@@ -17,7 +17,8 @@ namespace App\Domain\Import\Planning;
 
 use App\Domain\Import\Queries\ImportSources;
 use App\Domain\Import\Queries\SuggestedHosts;
-use App\Domain\Import\Source\CompanionClients;
+use App\Domain\Import\Source\FileReader;
+use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Import\Translations\LanguageNotes;
@@ -32,7 +33,7 @@ final readonly class ImportAnalysis
 
     public function __construct(
         private ImportSources $sources,
-        private CompanionClients $clients,
+        private SourceReaders $readers,
         private Repository $cache,
         private SuggestedHosts $suggestedHosts,
     ) {}
@@ -60,7 +61,12 @@ final readonly class ImportAnalysis
         }
 
         $source = $this->sources->find($sourceId) ?? throw new InvalidArgumentException('Teme has no import source ['.$sourceId.'].');
-        $reader = $this->clients->for($source);
+        $reader = $this->readers->forSource($source);
+
+        // A file's report is kept with the file, so nothing is kept here.
+        if ($reader instanceof FileReader) {
+            return self::ofFile($reader);
+        }
         $report = $reader->whole('analyze')['report'] ?? null;
         $analysis = is_array($report) ? SiteAnalysis::fromReport($report) : SiteAnalysis::noReport();
         $languages = app(ImportedLanguages::class)->refresh($sourceId, $reader);
@@ -86,9 +92,25 @@ final readonly class ImportAnalysis
      */
     public function kept(string $sourceId): ?SiteAnalysis
     {
+        $source = $this->sources->find($sourceId);
+        $file = $source === null ? null : $this->readers->fileOf($source);
+
+        if ($file !== null) {
+            return self::ofFile(new FileReader((string) $file->id, $sourceId));
+        }
+
         $stored = $this->cache->get(self::key($sourceId));
 
         return is_array($stored) ? SiteAnalysis::fromArray($stored) : null;
+    }
+
+    /**
+     * The analysis of an export file's report. Its languages only warn: the
+     * file's items come across in this site's own language.
+     */
+    private static function ofFile(FileReader $reader): SiteAnalysis
+    {
+        return SiteAnalysis::fromReport($reader->report());
     }
 
     /**

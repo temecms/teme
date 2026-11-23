@@ -61,7 +61,9 @@ it('passes every old address that answers: a page, an old address, a redirect, a
         ->urls('attachment_file', [['id' => 5, 'files' => ['full' => OldSite::HOME.'/wp-content/uploads/2024/05/photo.jpg', 'medium' => OldSite::HOME.'/wp-content/uploads/2024/05/photo-300x200.jpg']]])
         ->urls('archive', [['id' => 0, 'kind' => 'home', 'url' => OldSite::HOME.'/']]);
 
-    expect(ckRun($this->source, $this->run, $this->token, $site))->toBe([])
+    // The two file addresses are said in one line, counted, not listed.
+    expect(array_map(fn ($message): array => [$message->code, $message->message], ckRun($this->source, $this->run, $this->token, $site)))
+        ->toBe([['check.old-files', '2 old file addresses now redirect to the media library.']])
         ->and($site->urlRequests())->toBe(['post:0', 'term:0', 'author:0', 'attachment_page:0', 'attachment_file:0', 'archive:whole']);
 });
 
@@ -157,4 +159,15 @@ it('runs the old addresses, the redirects, the settings and the check in their o
     expect($run->state)->toBe(ImportRunState::Finished)
         ->and(DB::table('redirects')->where('source', 'old-news')->value('target_kind'))->toBe('content')
         ->and(app(ImportScreen::class)->report($run->id)['ready'] ?? null)->toBeTrue();
+});
+
+it('checks no address of WordPress’s own records, such as a theme’s custom CSS or an unsaved draft, from a live site', function (): void {
+    $site = (new OldSite)->urls('post', [
+        ['id' => 1, 'type' => 'custom_css', 'url' => OldSite::HOME.'/pixwell-child/'],
+        ['id' => 2, 'type' => 'wp_template', 'url' => OldSite::HOME.'/single/'],
+        ['id' => 3, 'type' => 'post', 'status' => 'auto-draft', 'url' => OldSite::HOME.'/?p=3'],
+        ['id' => 4, 'type' => 'post', 'url' => OldSite::HOME.'/never-came/'],
+    ]);
+
+    expect(array_map(fn (ImportMessage $message): string => $message->context['address'] ?? '', ckRun($this->source, $this->run, $this->token, $site)))->toBe(['/never-came/']);
 });

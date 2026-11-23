@@ -96,6 +96,7 @@ use App\Http\Admin\Tools\Backups\RequireFreshPassword;
 use App\Http\Admin\Tools\Backups\RestoredSiteController;
 use App\Http\Admin\Tools\Backups\SftpStepController;
 use App\Http\Admin\Tools\ExportRedirectsController;
+use App\Http\Admin\Tools\Import\ImportFileController;
 use App\Http\Admin\Tools\Import\ImportRunController;
 use App\Http\Admin\Tools\Import\ImportScreenController;
 use App\Http\Admin\Tools\Import\ImportSourceController;
@@ -545,6 +546,13 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::middleware('can:imports.run')->prefix('tools/import')->name('tools.importer.')->group(function (): void {
             Route::get('/', [ImportScreenController::class, 'index'])->name('index');
             Route::post('/', [ImportSourceController::class, 'connect'])->name('connect');
+            // Export-file uploads in pieces: before {source} so "files" is never a site ID.
+            Route::post('files/start', [ImportFileController::class, 'start'])->name('files.start');
+            Route::get('files/{file}', [ImportFileController::class, 'show'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.show');
+            Route::post('files/{file}/pieces', [ImportFileController::class, 'piece'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.piece');
+            Route::post('files/{file}/finish', [ImportFileController::class, 'finish'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.finish');
+            Route::post('files/{file}/cancel', [ImportFileController::class, 'cancel'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.cancel');
+            Route::post('files/{file}/delete', [ImportFileController::class, 'destroy'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.destroy');
             // A site's and a run's IDs are lower case (HasUlids, I-418).
             Route::get('{source}', [ImportScreenController::class, 'show'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('show');
             Route::post('{source}/analyze', [ImportSourceController::class, 'analyze'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('analyze');

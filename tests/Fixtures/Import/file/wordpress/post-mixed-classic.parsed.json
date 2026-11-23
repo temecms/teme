@@ -1,0 +1,65 @@
+[
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "A classic paragraph written before the block editor.\nIt runs over two lines.\n\n",
+        "innerContent": [
+            "A classic paragraph written before the block editor.\nIt runs over two lines.\n\n"
+        ]
+    },
+    {
+        "blockName": "core/paragraph",
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n<p>Then a block was added.</p>\n",
+        "innerContent": [
+            "\n<p>Then a block was added.</p>\n"
+        ]
+    },
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n\nAnd classic text after it, with a [gallery ids=\"4,5\"] shortcode.\n\n",
+        "innerContent": [
+            "\n\nAnd classic text after it, with a [gallery ids=\"4,5\"] shortcode.\n\n"
+        ]
+    },
+    {
+        "blockName": "core/more",
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n<!--more-->\n",
+        "innerContent": [
+            "\n<!--more-->\n"
+        ]
+    },
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n\n",
+        "innerContent": [
+            "\n\n"
+        ]
+    },
+    {
+        "blockName": "core/paragraph",
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n<p>The end.</p>\n",
+        "innerContent": [
+            "\n<p>The end.</p>\n"
+        ]
+    },
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n",
+        "innerContent": [
+            "\n"
+        ]
+    }
+]

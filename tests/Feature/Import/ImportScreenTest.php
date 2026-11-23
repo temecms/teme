@@ -78,6 +78,7 @@ it('shows the connect form, and the plugin Teme expects, while no site is connec
             ->component('tools/import/index')
             ->where('sites', [])
             ->where('companion', ['version' => '0.2.0', 'releases' => null])
+            ->where('maxFileMb', 2048)
             ->has('siteTimezone'));
 });
 
@@ -97,6 +98,8 @@ it('lists the sites Teme knows, with where each stands', function (): void {
             'forgotten' => true,
             'lastImportAt' => $run->started_at->utc()->toIso8601String(),
             'href' => "/admin/tools/import/{$source->id}",
+            'kind' => 'companion',
+            'uploadedAt' => null,
         ]]));
 });
 
@@ -140,7 +143,8 @@ it('opens a site at Analyze and Choose before its first import, its plan deferre
                 ->where('plan.analysis.comes.0.count', 126)
                 ->where('plan.analysis.warning', ['custom' => 500, 'total' => 628])
                 ->where('plan.form.owner', (string) $this->admin->id)
-                ->where('plan.form.menuLocations.0', ['key' => 'primary', 'value' => 'primary'])
+                ->missing('plan.form.menuLocations')
+                ->missing('plan.form.templates')
                 ->where('plan.remembered', null)));
 });
 
@@ -181,8 +185,6 @@ it('starts an import with the choices made once the password is confirmed, sayin
 it('keeps the choices across the password’s confirmation, so nothing is chosen twice', function (): void {
     $source = ($this->site)();
     $kept = [
-        'menu_locations' => ['primary' => 'primary', 'footer_navigation' => null],
-        'templates' => ['template-full-width.php' => 'full-width', 'template-landing.php' => null],
         'roles' => ['wpseo_manager' => 'editor', 'wpseo_editor' => 'author'],
         'owner' => (string) $this->admin->id,
         'outside_images' => [],

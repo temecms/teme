@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Import\ImportRunState;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Models\User;
@@ -67,6 +68,8 @@ it('passes axe on Tools › Import and a site’s first steps, every target 24 p
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-connect"]'));
+    $page->click('[data-test="import-way-connect-button"]');
     tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
     $page->assertSee('Install and activate the Teme Companion plugin')
         ->assertNoAccessibilityIssues(3);
@@ -92,6 +95,8 @@ it('connects a site, reads what comes across, confirms the password and starts t
     Queue::fake();
 
     $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-connect"]'));
+    $page->click('[data-test="import-way-connect-button"]');
     tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
     $page->type('#import-address', FakeCompanion::SITE)
         ->type('#import-user-name', FakeCompanion::USER)
@@ -108,10 +113,7 @@ it('connects a site, reads what comes across, confirms the password and starts t
     $page->type('#password', 'password')
         ->click('[data-test="confirm-password-button"]');
 
-    tiWaitUntil($page, tiPresent('[data-test="import-start"]'));
-    tiWaitUntil($page, 'document.querySelector('.json_encode('#import-host-0').')?.getAttribute("data-state") === "checked"');
-    $page->click('[data-test="import-start"]');
-
+    // Back from the password, the start carries on by itself, with the choices kept: no second Start.
     tiWaitUntil($page, tiPresent('[data-test="import-stop"]'));
     $page->assertSee('Started importing old.example.')
         ->assertSeeIn('[data-test="import-step"]', 'Import');
@@ -123,6 +125,8 @@ it('connects a site, reads what comes across, confirms the password and starts t
 });
 it('marks one current step on a site’s page, Choose once the plan has arrived', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-connect"]'));
+    $page->click('[data-test="import-way-connect-button"]');
     tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
     $page->type('#import-address', FakeCompanion::SITE)
         ->type('#import-user-name', FakeCompanion::USER)
@@ -249,4 +253,82 @@ it('forgets a site after asking, and says to revoke its password in WordPress (I
     $page->assertSee('Teme has forgotten the application password for https://old.example. Revoke it in WordPress too: Users › Profile › Application Passwords.');
 
     expect(ImportSource::query()->findOrFail($source)->credential)->toBeNull();
+});
+
+it('uploads an export file through the page and shows it being read', function (): void {
+    Queue::fake();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-upload"]'));
+    $page->click('[data-test="import-way-upload-button"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-upload"]'));
+    $page->assertSee('Upload an export file')
+        ->attach('[data-test="import-upload-input"]', base_path('tests/Fixtures/Import/wxr/small.xml'));
+
+    tiWaitUntil($page, tiPresent('[data-test="import-upload-reading"]'));
+    $page->assertSee('Reading the file: counting its posts, pages, media and authors…')
+        ->assertNoJavaScriptErrors();
+
+    expect(ImportFile::query()->sole()->state)->toBe('reading');
+});
+
+it('imports a site from its export file, from the upload to the report', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-upload"]'));
+    $page->click('[data-test="import-way-upload-button"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-upload"]'));
+    $page->attach('[data-test="import-upload-input"]', base_path('tests/Fixtures/Import/wxr/small.xml'));
+
+    // Read, the site's plan opens.
+    tiWaitUntil($page, tiPresent('[data-test="import-file-plan"]'));
+    $page->assertSeeIn('[data-test="import-step"]', 'Upload')
+        ->assertSee('Export file small.xml')
+        ->assertSee('What comes across')
+        ->assertSee('Not in an export file')
+        ->assertSee('To bring these too, connect the live site with Teme Companion instead.')
+        ->assertNoAccessibilityIssues(3)
+        ->click('[data-test="import-start"]');
+
+    tiWaitUntil($page, tiPresent('#password'));
+    $page->type('#password', 'password')
+        ->click('[data-test="confirm-password-button"]');
+
+    // Back from the password, the start carries on by itself.
+    tiWaitUntil($page, tiPresent('[data-test="import-upload-newer"]'));
+    $page->assertSeeIn('[data-test="import-step"]', 'Report')
+        ->assertSee('Bring what changed')
+        ->assertSee('Delete the uploaded file')
+        ->assertSee('Teme deletes the uploaded file on')
+        ->assertNoJavaScriptErrors();
+
+    $run = ImportRun::query()->sole();
+
+    // Once more without the start's toast, which fades in over the page.
+    $page->navigate("/admin/tools/import/{$run->source_id}");
+    tiWaitUntil($page, tiPresent('[data-test="import-delete-file"]'));
+    $page->assertNoAccessibilityIssues(3);
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and($run->file_id)->toBe(ImportFile::query()->sole()->id);
+});
+
+it('carries an export file’s start on after the password, and shows the Import step at once', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-upload"]'));
+    $page->click('[data-test="import-way-upload-button"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-upload"]'));
+    $page->attach('[data-test="import-upload-input"]', base_path('tests/Fixtures/Import/wxr/small.xml'));
+    tiWaitUntil($page, tiPresent('[data-test="import-file-plan"]'));
+
+    // The run waits on the queue, as it does on a site with a worker.
+    Queue::fake();
+    $page->click('[data-test="import-start"]');
+    tiWaitUntil($page, tiPresent('#password'));
+    $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
+
+    tiWaitUntil($page, tiPresent('[data-test="import-progress"]'));
+    $page->assertSeeIn('[data-test="import-step"]', 'Import')
+        ->assertNoJavaScriptErrors();
+
+    expect(ImportRun::query()->count())->toBe(1);
 });

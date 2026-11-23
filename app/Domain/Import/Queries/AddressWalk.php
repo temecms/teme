@@ -19,7 +19,7 @@ use App\Domain\Addresses\Paths;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Phases\Addresses\OldSiteUrls;
 use App\Domain\Import\Phases\Check\CheckStep;
-use App\Domain\Import\Source\CompanionClients;
+use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Redirects\RedirectSource;
 use Closure;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -31,7 +31,7 @@ final readonly class AddressWalk
     /** The statuses that send readers on. */
     private const array ONWARD = [301, 302, 307, 308];
 
-    public function __construct(private CompanionClients $clients, private OldSiteUrls $urls) {}
+    public function __construct(private SourceReaders $readers, private OldSiteUrls $urls) {}
 
     /**
      * Asks for every address the source lists, calling $each once for each
@@ -47,7 +47,7 @@ final readonly class AddressWalk
      */
     public function walk(ImportSource $source, Closure $each): array
     {
-        $reader = $this->clients->for($source);
+        $reader = $this->readers->forSource($source);
         $host = OldSiteUrls::hostOf((string) $source->id);
         $counts = ['direct' => 0, 'moved' => 0, 'away' => 0, 'bad' => 0, 'others' => 0];
         $cursor = null;

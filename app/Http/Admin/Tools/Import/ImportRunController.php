@@ -37,6 +37,14 @@ final class ImportRunController extends Controller
     /** The session key the choices are kept under across the password's confirmation, followed by the site's ID. */
     public const string REMEMBERED = 'import.choices.';
 
+    /**
+     * Marks a start the password's confirmation interrupted, by source, so
+     * the plan carries it on once the person is back.
+     *
+     * @since 1.4.0
+     */
+    public const string RESUME = 'import.resume.';
+
     public function start(Request $request, string $source, ImportScreen $screen, ImportAnalysis $analysis, ImportChoices $choices, StartImportRun $start): RedirectResponse
     {
         $site = $screen->site($source);
@@ -47,22 +55,27 @@ final class ImportRunController extends Controller
             return back()->withErrors(['choices' => 'Analyze the site before you start: Teme needs its report.']);
         }
 
-        $chosen = $choices->validated($request->all(), $kept);
+        $fileId = $site['file']['id'] ?? null;
+        $chosen = $fileId === null ? $choices->validated($request->all(), $kept) : $choices->validatedFile($request->all(), $kept, $fileId);
 
         try {
-            $start->execute(new StartImportRunInput($source, ImportRunKind::Full, ['pause_ms' => $chosen['pauseMs']], $chosen['choices'], self::actor($request)));
+            // The site's export file when it reads from one now, else its companion.
+            $start->execute(new StartImportRunInput($source, ImportRunKind::Full, ['pause_ms' => $chosen['pauseMs']], $chosen['choices'], self::actor($request), $fileId));
         } catch (ElevationRequiredException $ask) {
             // Kept across the password's confirmation, so nothing is chosen twice.
             $request->session()->put(self::REMEMBERED.$source, [...$chosen['choices'], 'pause' => $chosen['pauseMs']]);
+            $request->session()->put(self::RESUME.$source, true);
 
             throw $ask;
         } catch (ValidationException $refused) {
             return self::told((string) $refused->validator->errors()->first(), 'error');
         }
 
-        $request->session()->forget(self::REMEMBERED.$source);
+        $request->session()->forget([self::REMEMBERED.$source, self::RESUME.$source]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Started importing {$site['host']}."]);
 
-        return self::told("Started importing {$site['host']}.");
+        // To the site's page by name, whatever page sent the form, so it opens at the Import step at once.
+        return redirect()->route('tools.importer.show', ['source' => $source]);
     }
 
     public function catchUp(Request $request, string $source, ImportScreen $screen, StartImportRun $start): RedirectResponse

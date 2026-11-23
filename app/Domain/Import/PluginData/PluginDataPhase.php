@@ -60,6 +60,11 @@ final readonly class PluginDataPhase implements ListPhase
 
     public function lists(ImportContext $context): array
     {
+        // An export file has none of this (docs/architecture/import.md).
+        if ($context->readsFile()) {
+            return [];
+        }
+
         if (! PluginDataLists::answered($context->sourceId)) {
             return [];
         }

@@ -28,8 +28,8 @@ The same repository holds the compose file for pasting as Raw or reading from Gi
 | `teme-db-setup` | makes the `teme_app` login and both databases, then exits | n/a |
 | `deploy` | `php artisan teme:deploy` | n/a: it runs once and exits |
 | `web` | the image's own command; its health check asks `curl -f http://localhost:8080/up` | n/a |
-| `worker` | `php artisan queue:work --tries=3 --max-time=3600` | 6 minutes |
-| `worker-long` | `php artisan queue:work database-long --queue=long --tries=3 --max-time=3600` | 6 minutes |
+| `worker` | `php artisan queue:work --tries=3 --max-time=3600 --memory=512` | 6 minutes |
+| `worker-long` | `php artisan queue:work database-long --queue=long --tries=3 --max-time=3600 --memory=512` | 6 minutes |
 | `scheduler` | `php artisan schedule:work` | 30 minutes |
 | `installer` | `php artisan teme:installer`, as its own user | 2 minutes |
 | `updater` | `php artisan teme:updater` | 1 minute |

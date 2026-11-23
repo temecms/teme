@@ -103,13 +103,45 @@ final class RedirectLookup
     }
 
     /**
-     * Returns where an old WordPress file address sends readers (I-1851):
-     * for a path below wp-content/uploads/, in any case, of a file an import
-     * brought, any size or edited copy, the file's public address now; null
-     * for any other path, or a file no longer here. Asked after every
-     * redirect, so a person's own wins.
+     * Returns where an old WordPress file address sends readers: for a path
+     * below wp-content/uploads/, in any case, of a file an import brought,
+     * the item's public address now. A resized copy (-{w}x{h} before the
+     * extension) goes to the item's nearest variant at least as wide, else
+     * its widest; any other file of it to its widest variant, or for a file
+     * that isn't an image its original. Null for any other path, a file no
+     * longer here, or an image whose variants aren't made yet. One rule for
+     * the whole folder, read from the import map's file rows, asked after
+     * every redirect, so a person's own wins (docs/architecture/import.md).
      */
     public function oldFile(string $rawPath): ?string
+    {
+        $key = self::uploadsKey($rawPath);
+        $media = $key === null ? null : self::oldFileMedia($key);
+
+        return $media === null ? null : self::fileAddress($media, self::copyWidth($key));
+    }
+
+    /**
+     * Returns the media item an old WordPress file address leads to, by the
+     * import map's file rows of every source, oldest first: its ID, also
+     * while its variants are still being made; null for any other path, or
+     * a file no import brought or no longer here.
+     *
+     * @since 1.4.0
+     */
+    public function oldFileItem(string $rawPath): ?string
+    {
+        $key = self::uploadsKey($rawPath);
+
+        return $key === null ? null : self::oldFileMedia($key);
+    }
+
+    /**
+     * The path below the uploads folder as the file map keys it, from the
+     * raw path: never the normalised one, whose Unicode lower-casing would
+     * miss a key. Null for a path outside the folder.
+     */
+    private static function uploadsKey(string $rawPath): ?string
     {
         $raw = ltrim($rawPath, '/');
 
@@ -117,23 +149,34 @@ final class RedirectLookup
             return null;
         }
 
-        // Keyed from the raw path as the file map keys it: never the normalised one, whose Unicode lower-casing would miss a key.
         $key = ConversionSite::fileKey(substr($raw, strlen(self::UPLOADS)));
 
-        if (! RedirectSource::readable($key)) {
-            return null;
-        }
+        return RedirectSource::readable($key) ? $key : null;
+    }
 
+    /**
+     * The media item behind a file key, from the first source that brought it.
+     */
+    private static function oldFileMedia(string $key): ?string
+    {
         foreach (DB::table('import_sources')->orderBy('created_at')->orderBy('id')->pluck('id') as $source) {
             $media = (new ImportedMedia((string) $source))->file($key);
-            $address = $media === null ? null : self::fileAddress($media);
 
-            if ($address !== null) {
-                return $address;
+            if ($media !== null && Media::query()->whereKey($media)->exists()) {
+                return $media;
             }
         }
 
         return null;
+    }
+
+    /**
+     * The width a resized copy's name asks for, as WordPress names one:
+     * -{w}x{h} before the extension; null for any other file.
+     */
+    private static function copyWidth(string $key): ?int
+    {
+        return preg_match('/-(\d{1,5})x\d{1,5}\.[a-z0-9]+$/', $key, $match) === 1 ? (int) $match[1] : null;
     }
 
     /**
@@ -278,9 +321,10 @@ final class RedirectLookup
     /**
      * The media file's public address now, from the disk's (rule 9): the
      * widest variant of an image, whose original is private, or the original
-     * of anything else; null while it is trashed or has no public file yet.
+     * of anything else, or for a resized copy's width the nearest variant
+     * at least that wide; null while it is trashed or has no public file yet.
      */
-    private static function fileAddress(string $id): ?string
+    private static function fileAddress(string $id, ?int $width = null): ?string
     {
         $media = Media::query()->find($id);
 
@@ -288,6 +332,10 @@ final class RedirectLookup
             return null;
         }
 
-        return $media->isImage() ? MediaUrls::largest($media->variants) : MediaDisks::public()->url($media->original_path);
+        if (! $media->isImage()) {
+            return MediaDisks::public()->url($media->original_path);
+        }
+
+        return $width === null ? MediaUrls::largest($media->variants) : MediaUrls::nearest($media->variants, $width);
     }
 }

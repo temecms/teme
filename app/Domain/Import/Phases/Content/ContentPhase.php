@@ -54,7 +54,6 @@ use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Taxonomy\TermRules;
-use App\Domain\Themes\TemplateChoice;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
@@ -354,24 +353,16 @@ final class ContentPhase implements ListPhase, PreparesObjects
                 $fields[BuiltInFields::FEATURED_IMAGE] = ['id' => $mediaId, 'alt' => null, 'decorative' => false];
             } else {
                 $missing = true;
-                $notes[] = new ImportMessage('post.featured-missing', 'Its featured image isn’t in Teme’s library, so it has none for now. A later import sets it if the image comes across.');
+
+                // A file's media kept on the old site as links: the address check says so once for every post (CheckStep).
+                if (! ($context->readsFile() && $context->choice('media') === 'links')) {
+                    $notes[] = new ImportMessage('post.featured-missing', 'Its featured image isn’t in Teme’s library, so it has none for now. A later import sets it if the image comes across.');
+                }
             }
         }
 
         [$fields, $imageNotes] = self::images($fields);
         $notes = [...$notes, ...$imageNotes];
-
-        if (in_array(BuiltInFields::TEMPLATE, $supported, true)) {
-            [$template, $templateNote] = self::template($item, $type->key, $context);
-
-            if ($template !== '') {
-                $fields[BuiltInFields::TEMPLATE] = $template;
-            }
-
-            if ($templateNote !== null) {
-                $notes[] = $templateNote;
-            }
-        }
 
         if (($item['sticky'] ?? null) === true && in_array(BuiltInFields::STICKY, $supported, true)) {
             $fields[BuiltInFields::STICKY] = true;
@@ -523,7 +514,8 @@ final class ContentPhase implements ListPhase, PreparesObjects
     private function author(array $item, ImportContext $context): array
     {
         $wordpress = self::number($item['author'] ?? null);
-        $mapped = $wordpress > 0 ? $this->map->temeId($context->sourceId, SourceRef::of('user', $wordpress)) : null;
+        // An export file numbers the authors it names only on its items below zero.
+        $mapped = $wordpress !== 0 ? $this->map->temeId($context->sourceId, SourceRef::of('user', $wordpress)) : null;
 
         if ($mapped !== null && User::query()->whereKey($mapped)->exists()) {
             return [$mapped, []];
@@ -578,7 +570,8 @@ final class ContentPhase implements ListPhase, PreparesObjects
             foreach (is_array($sent[$taxonomy->wordpress] ?? null) ? $sent[$taxonomy->wordpress] : [] as $value) {
                 $number = self::number($value);
 
-                if ($number > 0) {
+                // An export file numbers the terms it names only on its items below zero.
+                if ($number !== 0) {
                     $wanted[] = [$taxonomy->wordpress, $number];
                 }
             }
@@ -698,41 +691,6 @@ final class ContentPhase implements ListPhase, PreparesObjects
         }
 
         return null;
-    }
-
-    /**
-     * The template's key through the choices, '' for the theme's default,
-     * and what to say when the choices don't match one the theme offers.
-     *
-     * @param  array<string, mixed>  $item
-     *
-     * @return array{0: string, 1: ImportMessage|null}
-     */
-    private static function template(array $item, string $type, ImportContext $context): array
-    {
-        $file = is_string($item['template'] ?? null) ? trim($item['template']) : '';
-
-        if ($file === '' || $file === 'default') {
-            return ['', null];
-        }
-
-        $choices = $context->choice('templates', []);
-        $choices = is_array($choices) ? $choices : [];
-
-        // The person chose the theme's default for it.
-        if (array_key_exists($file, $choices) && $choices[$file] === null) {
-            return ['', null];
-        }
-
-        $chosen = is_string($choices[$file] ?? null) ? $choices[$file] : '';
-
-        if ($chosen !== '' && array_key_exists($chosen, TemplateChoice::declared($type))) {
-            return [$chosen, null];
-        }
-
-        $shown = mb_substr($file, 0, 100);
-
-        return ['', new ImportMessage('post.template-default', "WordPress drew it with the template {$shown}, which your choices don’t match to one of the theme’s templates, so it uses the theme’s default.", ['template' => $shown])];
     }
 
     /**

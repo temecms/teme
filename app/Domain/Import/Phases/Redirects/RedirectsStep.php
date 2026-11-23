@@ -61,6 +61,11 @@ final readonly class RedirectsStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
+        // An export file has none of this (docs/architecture/import.md).
+        if ($context->readsFile()) {
+            return StepResult::done();
+        }
+
         if ($cursor === null) {
             app(ClearRunMessages::class)->execute(new ClearRunMessagesInput($context->runId, 'redirects.', $context->actorId()));
         }

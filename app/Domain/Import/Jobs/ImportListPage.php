@@ -36,9 +36,9 @@ use App\Domain\Import\Phases\PreparesObjects;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Queries\ImportRuns;
-use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourcePage;
 use App\Domain\Import\Source\SourceReader;
+use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Support\Network\AddressRefused;
 use App\Domain\Support\Security\JobActor;
@@ -91,7 +91,7 @@ final class ImportListPage implements ShouldQueue
         public readonly JobActor $actor,
     ) {}
 
-    public function handle(ImportPhases $phases, ImportRuns $runs, CompanionClients $clients, ImportMap $map, ImportMode $mode, Actors $actors): void
+    public function handle(ImportPhases $phases, ImportRuns $runs, SourceReaders $readers, ImportMap $map, ImportMode $mode, Actors $actors): void
     {
         $deadline = CarbonImmutable::now()->addSeconds(self::SECONDS);
         $this->actor->bind();
@@ -110,7 +110,7 @@ final class ImportListPage implements ShouldQueue
         }
 
         try {
-            $page = $this->read($clients->for($run->source), $list);
+            $page = $this->read($readers->for($run), $list);
         } catch (SourceRefused $refusal) {
             if ($refusal->retryable) {
                 $this->waitForSource($refusal);

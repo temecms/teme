@@ -88,16 +88,21 @@ final readonly class AddressSettingsStep implements StepPhase
         } else {
             $categoryBase = self::text($options['category_base'] ?? '');
             $category = WordPressAddresses::temeTaxonomy(WordPressAddresses::CATEGORIES);
-            $stripped = $category !== null && WordPressAddresses::stripsCategoryBase($this->categoryLink($reader), $structure, $categoryBase);
+            $links = $this->termLinks($reader);
+            $stripped = $category !== null && WordPressAddresses::stripsCategoryBase($links[WordPressAddresses::CATEGORIES] ?? null, $structure, $categoryBase);
+            $tagBase = self::text($options['tag_base'] ?? '');
+            $tag = WordPressAddresses::temeTaxonomy(WordPressAddresses::TAGS);
+            $tagStripped = $tag !== null && WordPressAddresses::stripsBase($links[WordPressAddresses::TAGS] ?? null, $structure, $tagBase, WordPressAddresses::TAG_BASE);
             $plan = WordPressAddresses::plan(
                 $structure,
                 $categoryBase,
-                self::text($options['tag_base'] ?? ''),
+                $tagBase,
                 $stripped,
                 WordPressAddresses::temeType(WordPressAddresses::POSTS),
                 WordPressAddresses::temeType(WordPressAddresses::PAGES),
                 $category?->key,
-                WordPressAddresses::temeTaxonomy(WordPressAddresses::TAGS)?->key,
+                $tag?->key,
+                $tagStripped,
             );
             $values['addresses'] = $plan['values'];
             $messages = [...$messages, ...$plan['messages']];
@@ -126,17 +131,24 @@ final readonly class AddressSettingsStep implements StepPhase
     }
 
     /**
-     * The address of the first category the companion's terms list, or null.
+     * The address of the first category and the first tag the source's
+     * terms list, by WordPress taxonomy, from one page of them.
+     *
+     * @return array<string, string>
      */
-    private function categoryLink(SourceReader $reader): ?string
+    private function termLinks(SourceReader $reader): array
     {
+        $links = [];
+
         foreach ($reader->page('terms', [], 0, 200)->items as $item) {
-            if (($item['taxonomy'] ?? null) === WordPressAddresses::CATEGORIES && is_string($item['link'] ?? null)) {
-                return $item['link'];
+            $taxonomy = $item['taxonomy'] ?? null;
+
+            if (in_array($taxonomy, [WordPressAddresses::CATEGORIES, WordPressAddresses::TAGS], true) && is_string($item['link'] ?? null)) {
+                $links[$taxonomy] ??= $item['link'];
             }
         }
 
-        return null;
+        return $links;
     }
 
     /**

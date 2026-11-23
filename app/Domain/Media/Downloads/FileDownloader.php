@@ -107,6 +107,40 @@ final readonly class FileDownloader
     }
 
     /**
+     * Whether a site answers at this address: one HEAD request, checked and
+     * pinned as a download is, any answer below 500 counting, a redirect
+     * included. An import's plan asks it of an old site before it offers to
+     * download its media files (docs/architecture/import.md).
+     *
+     * @since 1.4.0
+     */
+    public function answers(string $address, int $seconds = 5): bool
+    {
+        $sink = tempnam($this->folder ?? sys_get_temp_dir(), 'teme-answer-');
+
+        if ($sink === false) {
+            return false;
+        }
+
+        try {
+            $checked = $this->check(trim($address));
+            $response = Http::withOptions(self::options($checked, new SizeLimit(1024 * 1024), $sink))
+                ->connectTimeout(max(1, min(self::CONNECT_SECONDS, $seconds)))
+                ->timeout(max(1, $seconds))
+                ->withUserAgent('Teme')
+                ->head(trim($address));
+
+            return $response->status() < 500;
+        } catch (DownloadRefused|ConnectionException|RequestException) {
+            return false;
+        } finally {
+            if (is_file($sink)) {
+                unlink($sink);
+            }
+        }
+    }
+
+    /**
      * A request's options: pinned to the checked address; no proxy, so the
      * pin and the check apply to the host itself; no redirect followed by
      * Guzzle; the bytes as sent, so a compressed answer can't grow on disk;

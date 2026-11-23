@@ -51,6 +51,11 @@ final readonly class PluginOptionsStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
+        // An export file has none of this (docs/architecture/import.md).
+        if ($context->readsFile()) {
+            return StepResult::done();
+        }
+
         $imports = $this->imports->all();
 
         if ($imports === []) {

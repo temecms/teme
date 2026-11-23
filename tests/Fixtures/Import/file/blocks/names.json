@@ -1,0 +1,31 @@
+[
+    {
+        "blockName": "core/paragraph",
+        "attrs": {},
+        "innerBlocks": [],
+        "innerHTML": "<p>Hi</p>",
+        "innerContent": [
+            "<p>Hi</p>"
+        ]
+    },
+    {
+        "blockName": null,
+        "attrs": [],
+        "innerBlocks": [],
+        "innerHTML": "\n\n",
+        "innerContent": [
+            "\n\n"
+        ]
+    },
+    {
+        "blockName": "acme/card",
+        "attrs": {
+            "tone": "warm"
+        },
+        "innerBlocks": [],
+        "innerHTML": "<div>Card</div>",
+        "innerContent": [
+            "<div>Card</div>"
+        ]
+    }
+]

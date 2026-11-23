@@ -145,7 +145,7 @@ it('leaves off a term its type or language can’t use, counting it among those 
         ->and(ContentImports::codes($row))->toContain('post.terms-missing');
 });
 
-it('sets its pin, discussion, excerpt, featured image and template, the template through the choices (I-156, I-443)', function (): void {
+it('sets its pin, discussion, excerpt and featured image, and leaves every page on the theme’s default template, whatever an earlier release’s choices said (I-156)', function (): void {
     $photo = mediaUpload($this->admin, mediaJpeg());
     ContentImports::attachment($this->source->id, $photo, 41, 12);
     // The fixture theme offers pages one template, full-width, as ImportPlanningTest uses it.
@@ -164,9 +164,10 @@ it('sets its pin, discussion, excerpt, featured image and template, the template
         ->and($post->comment_status->value)->toBe('closed')
         ->and($post->fields[BuiltInFields::EXCERPT])->toBe('The ferries & the tide.')
         ->and($post->fields[BuiltInFields::FEATURED_IMAGE])->toBe(['id' => $photo->id, 'alt' => null, 'decorative' => false])
-        ->and(cphItem($this->source->id, 13)->fields[BuiltInFields::TEMPLATE] ?? null)->toBe($template)
+        ->and(cphItem($this->source->id, 13)->fields[BuiltInFields::TEMPLATE] ?? '')->toBe('')
         ->and(cphItem($this->source->id, 14)->fields[BuiltInFields::TEMPLATE] ?? '')->toBe('')
-        ->and(ContentImports::codes(ContentImports::row($this->source->id, 14)))->toContain('post.template-default');
+        ->and(ContentImports::codes(ContentImports::row($this->source->id, 13)))->not->toContain('post.template-default')
+        ->and(ContentImports::codes(ContentImports::row($this->source->id, 14)))->not->toContain('post.template-default');
 });
 
 it('keeps the SEO plugin’s fields, and the canonical by ID or for the second pass, never the old address (I-330)', function (): void {

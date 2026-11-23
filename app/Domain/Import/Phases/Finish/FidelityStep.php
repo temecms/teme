@@ -72,6 +72,11 @@ final readonly class FidelityStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
+        // An export file has none of this (docs/architecture/import.md).
+        if ($context->readsFile()) {
+            return StepResult::done();
+        }
+
         $started = microtime(true);
         $reads = 0;
         $position = $cursor ?? '';
