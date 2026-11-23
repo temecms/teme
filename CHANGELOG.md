@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-11-23
+
 ### Added
 
 - Import a WordPress site from its export file. On Tools › Import, Add a site offers Upload an export file beside Connect the live site: upload the .xml file from WordPress's Tools › Export, and nothing needs installing on the old site. The upload goes up in pieces and carries on after a dropped connection. A large file is read a part at a time, so a site of long posts full of blocks reads within a small worker's memory.

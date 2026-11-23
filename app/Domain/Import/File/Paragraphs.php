@@ -6,7 +6,7 @@
  * block-level elements and shortcodes on their own line stay unwrapped.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

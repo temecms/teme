@@ -5,7 +5,7 @@
  * time, as the person who uploaded it. Dispatched when an upload finishes.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 
@@ -51,7 +51,7 @@ final class ReadImportFile implements ShouldQueue
      * The bytes of row payloads, as JSON, kept together at most: block-heavy
      * items write sooner than ITEMS, so a worker's memory stays small.
      *
-     * @since next
+     * @since 1.4.0
      */
     public const int BYTES = 8 * 1024 * 1024;
 

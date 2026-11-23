@@ -5,7 +5,7 @@
  * delete, and the file’s status for the upload form.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

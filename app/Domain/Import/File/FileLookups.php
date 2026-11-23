@@ -7,7 +7,7 @@
  * its own, so a resumed read gives it the same ID again.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

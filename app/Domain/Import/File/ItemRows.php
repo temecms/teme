@@ -8,7 +8,7 @@
  * what the file's report counts from it.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

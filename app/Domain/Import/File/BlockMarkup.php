@@ -6,7 +6,7 @@
  * published block grammar (developer.wordpress.org, "Block grammar").
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

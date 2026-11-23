@@ -7,7 +7,7 @@
  * file's read stands, or a file no longer being read, writes nothing.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

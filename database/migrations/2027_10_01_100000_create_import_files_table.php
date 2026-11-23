@@ -4,7 +4,7 @@
  * Migration: creates import files, the WordPress export files uploaded to import from.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

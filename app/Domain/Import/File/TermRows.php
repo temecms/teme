@@ -6,7 +6,7 @@
  * term's ID is its term ID; its public address and count come later.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

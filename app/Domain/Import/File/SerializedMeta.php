@@ -7,7 +7,7 @@
  * one that holds an object is dropped; nothing serialized is ever kept.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

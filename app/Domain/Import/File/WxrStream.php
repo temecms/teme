@@ -7,7 +7,7 @@
  * file with a document type declaration is refused whole.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

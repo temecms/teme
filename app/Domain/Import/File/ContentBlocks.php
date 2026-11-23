@@ -6,7 +6,7 @@
  * with visible text given its paragraphs by Paragraphs, under `autop`.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

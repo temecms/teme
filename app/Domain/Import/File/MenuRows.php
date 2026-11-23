@@ -7,7 +7,7 @@
  * from the file. A file doesn't say where menus sit, or a term's address.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

@@ -43,7 +43,7 @@ final readonly class ImportContext
     /**
      * Whether the run reads an uploaded export file rather than the companion.
      *
-     * @since next
+     * @since 1.4.0
      */
     public function readsFile(): bool
     {

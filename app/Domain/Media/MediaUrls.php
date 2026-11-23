@@ -45,7 +45,7 @@ final class MediaUrls
      * The URL of the narrowest width variant at least $width wide, else the
      * widest; null with no width variant yet.
      *
-     * @since next
+     * @since 1.4.0
      *
      * @param  array<string, array{path: string, width: int, height: int, bytes: int}>  $variants
      */

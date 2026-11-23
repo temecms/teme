@@ -6,7 +6,7 @@
  * carries the file's own text.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

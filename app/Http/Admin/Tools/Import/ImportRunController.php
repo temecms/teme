@@ -41,7 +41,7 @@ final class ImportRunController extends Controller
      * Marks a start the password's confirmation interrupted, by source, so
      * the plan carries it on once the person is back.
      *
-     * @since next
+     * @since 1.4.0
      */
     public const string RESUME = 'import.resume.';
 

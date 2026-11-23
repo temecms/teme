@@ -6,7 +6,7 @@
  * counts from them, the channel's facts, and who reads it (null for the operator).
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

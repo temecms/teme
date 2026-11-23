@@ -6,7 +6,7 @@
  * a file's updates the term rather than making it twice.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

@@ -6,7 +6,7 @@
  * streaming read belongs to the reading job.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

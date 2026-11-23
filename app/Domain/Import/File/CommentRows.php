@@ -6,7 +6,7 @@
  * A file has no browser name, so `user_agent` stays empty.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

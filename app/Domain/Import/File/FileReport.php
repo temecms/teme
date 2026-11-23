@@ -7,7 +7,7 @@
  * widgets or where menus sit, is left out rather than guessed.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

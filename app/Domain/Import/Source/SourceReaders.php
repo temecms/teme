@@ -5,7 +5,7 @@
  * companion; for a site's plan, the way it came last.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

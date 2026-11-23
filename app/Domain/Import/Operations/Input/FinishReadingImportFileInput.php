@@ -5,7 +5,7 @@
  * read, and who read it (null for the operator).
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

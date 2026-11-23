@@ -5,7 +5,7 @@
  * map row, and the companion's ID for the same term.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

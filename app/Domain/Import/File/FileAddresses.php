@@ -6,7 +6,7 @@
  * and the address structure its posts' addresses follow.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 
@@ -245,7 +245,7 @@ final class FileAddresses
      * under the plan's address boxes: each taxonomy's term the most items
      * are filed under, else its first by slug; empty when it has none.
      *
-     * @since next
+     * @since 1.4.0
      *
      * @return array{categoryExample: string, tagExample: string}
      */

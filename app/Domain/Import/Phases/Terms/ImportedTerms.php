@@ -40,7 +40,7 @@ final readonly class ImportedTerms
      *
      * @param  array<string, int|string>  $facts
      *
-     * @since next
+     * @since 1.4.0
      */
     public function fromFile(string $sourceId, array $facts): ?string
     {

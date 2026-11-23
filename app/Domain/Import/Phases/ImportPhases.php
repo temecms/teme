@@ -28,7 +28,7 @@ final readonly class ImportPhases
      * order they had: a run that was at one carries on with the next phase
      * after that order, never from the start.
      *
-     * @since next
+     * @since 1.4.0
      *
      * @var array<string, int>
      */
@@ -142,7 +142,7 @@ final readonly class ImportPhases
      * after a phase this release retired, or the first for a run not yet
      * at one or at a key no release knew. Null when nothing is left.
      *
-     * @since next
+     * @since 1.4.0
      */
     public function resume(?string $key, ImportRunKind $kind): ?ImportPhase
     {

@@ -112,7 +112,7 @@ final readonly class FileDownloader
      * included. An import's plan asks it of an old site before it offers to
      * download its media files (docs/architecture/import.md).
      *
-     * @since next
+     * @since 1.4.0
      */
     public function answers(string $address, int $seconds = 5): bool
     {

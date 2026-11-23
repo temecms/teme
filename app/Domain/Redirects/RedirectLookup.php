@@ -127,7 +127,7 @@ final class RedirectLookup
      * while its variants are still being made; null for any other path, or
      * a file no import brought or no longer here.
      *
-     * @since next
+     * @since 1.4.0
      */
     public function oldFileItem(string $rawPath): ?string
     {

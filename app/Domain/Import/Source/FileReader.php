@@ -5,7 +5,7 @@
  * the import's phases can't tell the two apart (docs/architecture/import.md).
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

@@ -5,7 +5,7 @@
  * password, role, biography, website or sign-up date, so those stay empty.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

@@ -6,7 +6,7 @@
  * not copied from WordPress. Writes nothing.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

@@ -6,7 +6,7 @@
  * since a file may leave things out for its own reasons.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

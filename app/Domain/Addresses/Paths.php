@@ -49,7 +49,7 @@ final class Paths
      * may take it, so none hides those addresses; a person's own redirect
      * from it stays allowed.
      *
-     * @since next
+     * @since 1.4.0
      */
     public const string OLD_FILES = 'wp-content';
 

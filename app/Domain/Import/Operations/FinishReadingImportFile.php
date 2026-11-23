@@ -8,7 +8,7 @@
  * may call it; a file no longer being read is left as it is.
  *
  * @package Teme
- * @since   next
+ * @since   1.4.0
  * @license MIT
  */
 

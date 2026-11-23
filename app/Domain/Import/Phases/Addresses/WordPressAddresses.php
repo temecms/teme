@@ -172,7 +172,7 @@ final class WordPressAddresses
      * term's own address: true when it doesn't hold the base, or
      * $default after the structure's front, that WordPress would put there.
      *
-     * @since next
+     * @since 1.4.0
      */
     public static function stripsBase(?string $link, string $structure, string $base, string $default): bool
     {
