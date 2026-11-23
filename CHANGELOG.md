@@ -10,6 +10,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - The plan page of an import from an export file opens quickly however large the file is: its guesses are worked out once, when the file is read. A file uploaded with 1.4.0 can be uploaded again to get this.
 - Import asks the old site again before saying it does not answer, and the warning has a Check again button, so a moment’s delay no longer turns off downloading the media.
 - Saving code in Settings › Site code asks for your password in place when it is needed, keeping what you typed, instead of leaving the page with nothing saved.
+- In the editor, pressing Enter in a new category’s name adds it, as the Add button does.
 
 ## [1.4.0] — 2026-11-23
 

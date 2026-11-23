@@ -1,5 +1,5 @@
 import { http } from '@inertiajs/react';
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import TermController from '@/actions/App/Http/Admin/Taxonomy/TermController';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -68,7 +68,8 @@ function rowsOf(terms: TreeTerm[], checked: string[], query: string): Row[] {
 /**
  * A hierarchical taxonomy's terms as a tree of checkboxes. The list scrolls
  * past 176px, offers a search once there are more than eight terms, lists
- * checked terms first, and ends with + Add for someone who may add terms.
+ * checked terms first, and ends with + Add for someone who may add terms;
+ * Enter in a new term's name adds it and focuses its checked row.
  */
 export function TermTreePicker({
     label,
@@ -94,6 +95,8 @@ export function TermTreePicker({
     const [name, setName] = useState('');
     const [parentId, setParentId] = useState('');
     const [problem, setProblem] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);
+    const [justAdded, setJustAdded] = useState<string | null>(null);
     const id = useId();
     const rows = useMemo(
         () => rowsOf(terms, value, query),
@@ -108,6 +111,11 @@ export function TermTreePicker({
         );
 
     const add = async () => {
+        if (busy || name.trim() === '') {
+            return;
+        }
+
+        setBusy(true);
         setProblem(null);
 
         try {
@@ -121,6 +129,7 @@ export function TermTreePicker({
 
             setTerms((current) => [...current, term]);
             onChange([...value, term.id]);
+            setJustAdded(term.id);
             setName('');
             setParentId('');
             setAdding(false);
@@ -128,8 +137,19 @@ export function TermTreePicker({
             setProblem(
                 __('Couldn’t add it. Check that the name isn’t already used.'),
             );
+        } finally {
+            setBusy(false);
         }
     };
+
+    useEffect(() => {
+        if (justAdded === null) {
+            return;
+        }
+
+        document.getElementById(`${id}-${justAdded}`)?.focus();
+        setJustAdded(null);
+    }, [justAdded, id]);
 
     return (
         <fieldset className="grid gap-2">
@@ -193,6 +213,18 @@ export function TermTreePicker({
                             id={`${id}-name`}
                             value={name}
                             onChange={(event) => setName(event.target.value)}
+                            autoComplete="off"
+                            onKeyDown={(event) => {
+                                event.stopPropagation();
+
+                                if (event.key === 'Enter') {
+                                    event.preventDefault();
+
+                                    if (!event.nativeEvent.isComposing) {
+                                        void add();
+                                    }
+                                }
+                            }}
                             className="h-8"
                         />
                         <Label htmlFor={`${id}-parent`}>{__('Parent')}</Label>
@@ -219,7 +251,7 @@ export function TermTreePicker({
                             <Button
                                 type="button"
                                 size="sm"
-                                disabled={name.trim() === ''}
+                                disabled={name.trim() === '' || busy}
                                 onClick={() => void add()}
                             >
                                 {__('Add')}
