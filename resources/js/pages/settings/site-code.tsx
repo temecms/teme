@@ -1,3 +1,4 @@
+import type { FormComponentRef } from '@inertiajs/core';
 import { Form, Head, router, setLayoutProps } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -7,7 +8,10 @@ import { ConfirmAction } from '@/components/confirm-action';
 import { SettingsPanel } from '@/components/fields/settings-panel';
 import InputError from '@/components/input-error';
 import { EmptyState } from '@/components/list/empty-state';
-import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
+import {
+    FreshPasswordDialog,
+    FreshPasswordInline,
+} from '@/components/patterns/fresh-password';
 import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { Button } from '@/components/ui/button';
@@ -369,10 +373,21 @@ function CodeForm({
         entry?.placement ?? 'head',
     );
     const [on, setOn] = useState(entry === null ? true : entry.on);
+    const formRef = useRef<FormComponentRef | null>(null);
+    const [asking, setAsking] = useState(false);
 
     return (
         <Form
             {...form}
+            ref={formRef}
+            headers={{ 'X-Teme-Ask-In-Place': '1' }}
+            onHttpException={(response) => {
+                if (response.status === 423) {
+                    setAsking(true);
+
+                    return false;
+                }
+            }}
             options={{ preserveScroll: true }}
             onSuccess={onClose}
             className="grid gap-5 px-4 pb-4"
@@ -471,22 +486,34 @@ function CodeForm({
                     </FieldInline>
                     <input type="hidden" name="on" value={on ? '1' : '0'} />
 
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                        <Button
-                            type="button"
-                            variant="neutral"
-                            onClick={onClose}
-                        >
-                            {__('Cancel')}
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={processing}
-                            data-test="site-code-save"
-                        >
-                            {__('Save code')}
-                        </Button>
-                    </div>
+                    <FreshPasswordInline
+                        open={asking}
+                        onOpenChange={setAsking}
+                        title={__('Confirm your password')}
+                        text={__(
+                            'Changing site code asks for your password. What you typed stays here.',
+                        )}
+                        onConfirmed={() => formRef.current?.submit()}
+                    />
+
+                    {!asking && (
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                            <Button
+                                type="button"
+                                variant="neutral"
+                                onClick={onClose}
+                            >
+                                {__('Cancel')}
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                                data-test="site-code-save"
+                            >
+                                {__('Save code')}
+                            </Button>
+                        </div>
+                    )}
                 </>
             )}
         </Form>
