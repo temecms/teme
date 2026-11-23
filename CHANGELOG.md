@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file. Versioning foll
 ### Fixed
 
 - Development mode (`composer run dev`) shows pages again on Windows.
+- The plan page of an import from an export file opens quickly however large the file is: its guesses are worked out once, when the file is read. A file uploaded with 1.4.0 can be uploaded again to get this.
 
 ## [1.4.0] — 2026-11-23
 

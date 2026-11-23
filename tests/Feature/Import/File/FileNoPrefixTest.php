@@ -65,6 +65,46 @@ it('chooses no category prefix when the file’s links reach a category straight
         ->and($form['tagExample'])->toBe('night-day');
 });
 
+it('stores the plan page’s guesses with the file when it is read', function (): void {
+    $file = FileImports::ready('companion-site.xml', $this->admin, npFile('https://old.example/animals/'));
+
+    expect($file->report['file_plan'])->toEqual([
+        'category_base' => '',
+        'tag_base' => 'tag',
+        'category_example' => 'animals',
+        'tag_example' => 'night-day',
+    ])->and(DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'users')->get()
+        ->every(fn (object $row): bool => array_key_exists('items', json_decode((string) $row->payload, true))))->toBeTrue();
+});
+
+it('builds the plan without scanning the file’s items', function (): void {
+    $file = FileImports::ready('companion-site.xml', $this->admin, npFile('https://old.example/animals/'));
+    DB::enableQueryLog();
+    $form = npForm($file->id, (string) $file->source_id, (string) $this->admin->id);
+    $sql = array_map(fn (array $query): string => strtolower($query['query']), DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect(array_values(array_filter($sql, fn (string $query): bool => str_contains($query, 'import_file_rows')
+        && (str_contains($query, ' like ') || str_contains($query, 'group by')))))->toBe([])
+        ->and($form['categoryBase'])->toBe('')
+        ->and($form['categoryExample'])->toBe('animals')
+        ->and($form['postCount'])->toBeGreaterThan(0)
+        ->and(array_sum(array_column($form['authors'], 'items')))->toBeGreaterThan(0);
+});
+
+it('plans a file read before the plan was stored exactly as one read after', function (): void {
+    $file = FileImports::ready('companion-site.xml', $this->admin, npFile('https://old.example/animals/'));
+    $stored = npForm($file->id, (string) $file->source_id, (string) $this->admin->id);
+
+    $report = $file->report;
+    unset($report['file_plan']);
+    DB::table('import_files')->where('id', $file->id)->update(['report' => json_encode($report)]);
+    DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'users')
+        ->update(['payload' => DB::raw("payload - 'items'")]);
+
+    expect(npForm($file->id, (string) $file->source_id, (string) $this->admin->id))->toEqual($stored);
+});
+
 it('keeps today’s guess when a link reaches a category under a prefix', function (): void {
     $file = FileImports::ready('companion-site.xml', $this->admin, npFile('https://old.example/topics/animals/'));
     $form = npForm($file->id, (string) $file->source_id, (string) $this->admin->id);

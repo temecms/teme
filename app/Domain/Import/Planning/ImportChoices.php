@@ -150,7 +150,9 @@ final readonly class ImportChoices
             ];
         }
 
-        $bases = FileAddresses::bases($fileId);
+        $plan = $this->files->plan($fileId);
+        $bases = $plan === null ? FileAddresses::bases($fileId) : ['category_base' => $plan['category_base'], 'tag_base' => $plan['tag_base']];
+        $examples = $plan === null ? FileAddresses::examples($fileId) : ['categoryExample' => $plan['category_example'], 'tagExample' => $plan['tag_example']];
         $kept = fn (string $key, mixed $default): mixed => array_key_exists($key, $last) && get_debug_type($last[$key]) === get_debug_type($default) ? $last[$key] : $default;
         $types = is_array($last['types'] ?? null) ? $last['types'] : [];
 
@@ -165,7 +167,7 @@ final readonly class ImportChoices
             'categoryBase' => (string) $kept('category_base', $bases['category_base']),
             'tagBase' => (string) $kept('tag_base', $bases['tag_base']),
             // A real category's and tag's slug, for the example under each box.
-            ...FileAddresses::examples($fileId),
+            ...$examples,
             // Polylang's languages in the file: everything comes across in the default language, and the plan says so.
             'polylang' => ($analysis->polylangCount() ?? 0) > 0,
             'drafts' => (bool) $kept('drafts', true),

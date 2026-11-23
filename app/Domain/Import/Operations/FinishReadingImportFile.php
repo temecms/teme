@@ -122,21 +122,29 @@ final class FinishReadingImportFile extends BaseOperation
     }
 
     /**
-     * Counts each author's published posts and each term's published items, as WordPress counts them.
+     * Counts each author's items and published posts, and each term's published items as WordPress counts them.
      */
     private function count(string $fileId): void
     {
         DB::update(<<<'SQL'
             UPDATE import_file_rows AS person
-            SET payload = jsonb_set(person.payload, '{published_posts}', to_jsonb(counted.total))
+            SET payload = person.payload || jsonb_build_object('published_posts', counted.published, 'items', counted.total)
             FROM (
-                SELECT (payload->>'author')::bigint AS author, count(*) AS total
+                SELECT (payload->>'author')::bigint AS author,
+                       count(*) AS total,
+                       count(*) FILTER (WHERE payload->>'type' = 'post' AND payload->>'status' = 'publish') AS published
                 FROM import_file_rows
-                WHERE file_id = ? AND list = ? AND payload->>'type' = 'post' AND payload->>'status' = 'publish'
+                WHERE file_id = ? AND list = ?
                 GROUP BY 1
             ) AS counted
             WHERE person.file_id = ? AND person.list = ? AND person.object_id = counted.author
             SQL, [$fileId, ItemRows::CONTENT, $fileId, ItemRows::USERS]);
+
+        DB::update(<<<'SQL'
+            UPDATE import_file_rows
+            SET payload = payload || '{"items": 0, "published_posts": 0}'::jsonb
+            WHERE file_id = ? AND list = ? AND NOT jsonb_exists(payload, 'items')
+            SQL, [$fileId, ItemRows::USERS]);
 
         DB::update(<<<'SQL'
             UPDATE import_file_rows AS term
