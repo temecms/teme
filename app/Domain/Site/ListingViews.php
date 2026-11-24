@@ -22,6 +22,7 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\CardMedia;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Fields\BuiltInFields;
+use App\Domain\Fields\Types\MediaField;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\People\Credit;
 use App\Domain\People\Credits;
@@ -370,9 +371,12 @@ final readonly class ListingViews
                 authors: $authors[(string) $id] ?? [],
                 published: $published,
                 publishedText: SiteDates::show($published, $this->language->of($row->language)),
-                image: ! $protected && is_array($featured) && in_array((string) ($featured['id'] ?? ''), $images, true)
-                    ? new ImageRef((string) $featured['id'], self::text($featured['alt'] ?? null), (bool) ($featured['decorative'] ?? false))
-                    : null,
+                image: match (true) {
+                    $protected => null,
+                    is_array($featured) && in_array((string) ($featured['id'] ?? ''), $images, true) => new ImageRef((string) $featured['id'], self::text($featured['alt'] ?? null), (bool) ($featured['decorative'] ?? false)),
+                    // An outside picture, while an import copies its file (#716).
+                    default => MediaField::outside($featured),
+                },
                 type: (string) $row->type,
                 fieldViews: $views[(string) $id] ?? [],
             );

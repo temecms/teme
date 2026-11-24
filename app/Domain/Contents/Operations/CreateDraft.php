@@ -112,6 +112,7 @@ final class CreateDraft extends BaseOperation
         app(DocumentValidator::class)->validate(DocumentNormaliser::normalise($input->document));
         // An outside picture is the import's to write, never a new item's (#716).
         OutsidePictures::refuseAdded($input->document, []);
+        OutsidePictures::refuseAddedFields($input->fields, []);
     }
 
     protected function perform(OperationInput $input): Content

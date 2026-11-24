@@ -2,8 +2,9 @@
 
 /**
  * The outside pictures a document holds: Image cards at the old site's
- * address, which only an import writes while it brings their files. A
- * person's save may keep one but never add one.
+ * address, and featured images held the same way, which only an import
+ * writes while it brings their files. A person's save may keep one but
+ * never add one.
  *
  * @package Teme
  * @since   next
@@ -19,6 +20,9 @@ use Illuminate\Validation\ValidationException;
 
 final class OutsidePictures
 {
+    /** Why a person's save may not add an outside picture. */
+    private const string REFUSED = 'An image from the old site stays only as the import left it: choose another from the library.';
+
     /**
      * Each outside picture's address in the document, once each.
      *
@@ -52,6 +56,26 @@ final class OutsidePictures
     }
 
     /**
+     * Returns when no field holds an outside picture, a featured image at the
+     * old site's address, that the same field didn't hold before; throws a
+     * ValidationException naming the field otherwise.
+     *
+     * @param  array<string, mixed>  $fields
+     * @param  array<string, mixed>  $kept  the fields saved before, or [] for a new item
+     */
+    public static function refuseAddedFields(array $fields, array $kept): void
+    {
+        foreach ($fields as $key => $value) {
+            $source = is_array($value) && ($value['id'] ?? null) === null ? ($value['source'] ?? null) : null;
+            $before = $kept[$key] ?? null;
+
+            if ($source !== null && (! is_array($before) || ($before['source'] ?? null) !== $source)) {
+                throw ValidationException::withMessages(["fields.{$key}" => self::REFUSED]);
+            }
+        }
+    }
+
+    /**
      * Returns when the document holds no outside picture the kept document
      * didn't; throws a ValidationException naming the document otherwise.
      *
@@ -61,7 +85,7 @@ final class OutsidePictures
     public static function refuseAdded(array $document, array $kept): void
     {
         if (array_diff(self::sources($document), self::sources($kept)) !== []) {
-            throw ValidationException::withMessages(['document' => 'An image from the old site stays only as the import left it: choose another from the library.']);
+            throw ValidationException::withMessages(['document' => self::REFUSED]);
         }
     }
 }

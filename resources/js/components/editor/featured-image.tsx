@@ -41,13 +41,25 @@ function featuredOf(
         : null;
 }
 
+/** An outside picture's address: a featured image an import left on the old site while it copies the file. */
+function outsideOf(value: unknown): string | null {
+    if (value === null || typeof value !== 'object' || !('source' in value)) {
+        return null;
+    }
+
+    const { source } = value as { source: unknown };
+
+    return typeof source === 'string' && source !== '' ? source : null;
+}
+
 /**
  * The image that stands for the article in lists, feeds and social cards,
  * as a compact strip in the writing column (docs/architecture/design-system.md,
  * 4.39): its thumbnail, its name, "Featured image · 2400 × 1600 · alt text
  * set", then Replace, Edit and Remove. Edit holds its alt text for this item
  * and, where the field allows it, Decorative (I-237). With none chosen, one
- * full-width button adds it.
+ * full-width button adds it. An outside picture, which an import left on
+ * the old site while it copies the file, says so, with Replace and Remove.
  */
 export function FeaturedImage({
     field,
@@ -75,6 +87,59 @@ export function FeaturedImage({
                 onChange({ id: ids[0], alt: '', decorative: false });
             },
         });
+
+    const outside = outsideOf(value);
+
+    if (featured === null && outside !== null) {
+        return (
+            <section
+                aria-labelledby="editor-featured-label"
+                data-test="featured-strip"
+                className="bg-surface-2 flex flex-wrap items-center gap-4 rounded-lg p-3"
+            >
+                <img
+                    src={outside}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="h-16 w-24 shrink-0 rounded-md object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                    <p
+                        data-test="featured-outside"
+                        className="text-body truncate font-medium"
+                    >
+                        {__('From the old site, being copied')}
+                    </p>
+                    <p
+                        id="editor-featured-label"
+                        className="text-small text-ink-3"
+                    >
+                        {__('Featured image')}
+                    </p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                    <Button
+                        id="editor-featured-choose"
+                        type="button"
+                        variant="neutral"
+                        size="sm"
+                        onClick={choose}
+                    >
+                        {__('Replace')}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onChange(null)}
+                    >
+                        {__('Remove')}
+                    </Button>
+                </div>
+                {picker}
+            </section>
+        );
+    }
 
     if (featured === null) {
         return (

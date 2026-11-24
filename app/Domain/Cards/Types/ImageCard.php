@@ -24,6 +24,7 @@ use App\Domain\Cards\ChangeList;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Media\ImageMarkup;
+use App\Domain\Media\OutsideImage;
 use Illuminate\Validation\ValidationException;
 
 final class ImageCard implements CardType
@@ -152,11 +153,8 @@ final class ImageCard implements CardType
     private static function outside(string $source, array $attrs): string
     {
         $alt = ($attrs['decorative'] ?? false) ? '' : trim((string) ($attrs['alt'] ?? ''));
-        $size = is_int($attrs['sourceWidth'] ?? null) && is_int($attrs['sourceHeight'] ?? null)
-            ? sprintf(' width="%d" height="%d"', $attrs['sourceWidth'], $attrs['sourceHeight'])
-            : '';
 
-        return sprintf('<img src="%s" alt="%s"%s loading="lazy" decoding="async" referrerpolicy="no-referrer">', e($source), e($alt), $size);
+        return OutsideImage::markup($source, $alt, is_int($attrs['sourceWidth'] ?? null) ? $attrs['sourceWidth'] : null, is_int($attrs['sourceHeight'] ?? null) ? $attrs['sourceHeight'] : null);
     }
 
     /**

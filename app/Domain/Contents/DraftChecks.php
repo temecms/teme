@@ -73,6 +73,7 @@ final class DraftChecks
 
         // An outside picture is the import's to write: a person keeps one, never adds one (#716).
         OutsidePictures::refuseAdded($document, (array) ($working->document ?? []));
+        OutsidePictures::refuseAddedFields($fields, (array) ($working->fields ?? []));
 
         app(FieldValidator::class)->validate($type, $fields, (array) ($working->fields ?? []));
         // Like a term, a template is checked only when newly chosen (I-443).
