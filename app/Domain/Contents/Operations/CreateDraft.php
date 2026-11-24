@@ -21,6 +21,7 @@ namespace App\Domain\Contents\Operations;
 
 use App\Domain\Cards\DocumentNormaliser;
 use App\Domain\Cards\DocumentValidator;
+use App\Domain\Cards\OutsidePictures;
 use App\Domain\Cards\PlainText;
 use App\Domain\Comments\DiscussionSettings;
 use App\Domain\Contents\AuthorSort;
@@ -109,6 +110,8 @@ final class CreateDraft extends BaseOperation
         // A new item's template is a new choice (I-443).
         TemplateChoice::check($input->type, $input->fields, []);
         app(DocumentValidator::class)->validate(DocumentNormaliser::normalise($input->document));
+        // An outside picture is the import's to write, never a new item's (#716).
+        OutsidePictures::refuseAdded($input->document, []);
     }
 
     protected function perform(OperationInput $input): Content

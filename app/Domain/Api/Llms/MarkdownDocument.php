@@ -22,6 +22,7 @@ use App\Domain\Api\Shapes\MediaShape;
 use App\Domain\Cards\CardMedia;
 use App\Domain\Cards\CardRegistry;
 use App\Domain\Cards\DocumentSchema;
+use App\Domain\Cards\Types\ImageCard;
 
 final class MarkdownDocument
 {
@@ -146,7 +147,8 @@ final class MarkdownDocument
     {
         $id = (string) ($attrs['mediaId'] ?? '');
         $file = $this->media[$id] ?? null;
-        $url = $file === null ? null : MediaShape::of([...$file, 'id' => $id])['url'];
+        // An outside picture, while an import copies its file, is at the old site's address (#716).
+        $url = $file === null ? ImageCard::source($attrs) : MediaShape::of([...$file, 'id' => $id])['url'];
 
         if (! is_string($url) || $url === '') {
             return '';

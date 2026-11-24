@@ -3,7 +3,9 @@
 /**
  * One image with its caption, credit and the alt text for this use. The
  * image is held by ID; its address and its sizes are worked out at render
- * time (rule 9).
+ * time (rule 9). While an import brings its file, the card may hold the old
+ * site's address instead, an outside picture, which the import swaps for
+ * the library item once the file is here.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -22,6 +24,7 @@ use App\Domain\Cards\ChangeList;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Media\ImageMarkup;
+use Illuminate\Validation\ValidationException;
 
 final class ImageCard implements CardType
 {
@@ -49,7 +52,11 @@ final class ImageCard implements CardType
     {
         return [
             'id' => new CardAttribute('id', ['required', 'string', 'regex:'.DocumentSchema::NODE_ID]),
-            'mediaId' => new CardAttribute('mediaId', ['required', 'string', 'size:26']),
+            // One of the two: the library item, or the old site's address while an import brings its file (#716).
+            'mediaId' => new CardAttribute('mediaId', ['nullable', 'string', 'size:26']),
+            'source' => new CardAttribute('source', ['nullable', 'string', 'max:2048', 'url:http,https']),
+            'sourceWidth' => new CardAttribute('sourceWidth', ['nullable', 'integer', 'min:1', 'max:100000']),
+            'sourceHeight' => new CardAttribute('sourceHeight', ['nullable', 'integer', 'min:1', 'max:100000']),
             'alt' => new CardAttribute('alt', ['nullable', 'string', 'max:1000']),
             'decorative' => new CardAttribute('decorative', ['boolean'], false),
             'caption' => new CardAttribute('caption', ['nullable', 'string', 'max:2000']),
@@ -66,15 +73,18 @@ final class ImageCard implements CardType
     public function renderHtml(array $attrs, RenderContext $context): string
     {
         $item = $context->media[(string) ($attrs['mediaId'] ?? '')] ?? null;
+        $source = self::source($attrs);
 
-        if ($item === null) {
+        if ($item === null && $source === null) {
             return '';
         }
 
         // Drawn as every image on the site is, in the body's context, and to
         // load first only when it is the page's lead image (I-245).
         $lead = $context->leadNodeId !== null && ($attrs['id'] ?? null) === $context->leadNodeId;
-        $image = app(ImageMarkup::class)->item($item, 'content', $lead, (string) ($attrs['alt'] ?? ''), (bool) ($attrs['decorative'] ?? false));
+        $image = $item !== null
+            ? app(ImageMarkup::class)->item($item, 'content', $lead, (string) ($attrs['alt'] ?? ''), (bool) ($attrs['decorative'] ?? false))
+            : self::outside((string) $source, $attrs);
 
         if ($image === '') {
             return '';
@@ -103,7 +113,51 @@ final class ImageCard implements CardType
         return isset($attrs['mediaId']) ? [CardReference::media((string) $attrs['mediaId'])] : [];
     }
 
-    public function validate(array $attrs): void {}
+    /**
+     * A card holds its image one way: from the library, or, while an import
+     * brings the file, at the old site's address.
+     */
+    public function validate(array $attrs): void
+    {
+        $held = ($attrs['mediaId'] ?? null) !== null;
+        $outside = self::source($attrs) !== null;
+
+        if ($held === $outside) {
+            throw ValidationException::withMessages(['mediaId' => $held
+                ? 'An image comes from the library or from the old site, not both.'
+                : 'Choose an image from the library.']);
+        }
+    }
+
+    /**
+     * The old site's address an outside picture is drawn from, or null for
+     * a card that holds a library item.
+     *
+     * @param  array<string, mixed>  $attrs
+     */
+    public static function source(array $attrs): ?string
+    {
+        $source = $attrs['source'] ?? null;
+
+        return is_string($source) && $source !== '' ? $source : null;
+    }
+
+    /**
+     * An outside picture: the old site's file at its address, with its alt
+     * text and size, until the import swaps in the library item. It sends no
+     * referrer, which spares a site that refuses pictures shown elsewhere.
+     *
+     * @param  array<string, mixed>  $attrs
+     */
+    private static function outside(string $source, array $attrs): string
+    {
+        $alt = ($attrs['decorative'] ?? false) ? '' : trim((string) ($attrs['alt'] ?? ''));
+        $size = is_int($attrs['sourceWidth'] ?? null) && is_int($attrs['sourceHeight'] ?? null)
+            ? sprintf(' width="%d" height="%d"', $attrs['sourceWidth'], $attrs['sourceHeight'])
+            : '';
+
+        return sprintf('<img src="%s" alt="%s"%s loading="lazy" decoding="async" referrerpolicy="no-referrer">', e($source), e($alt), $size);
+    }
 
     /**
      * @param  array<string, mixed>  $before
@@ -113,7 +167,7 @@ final class ImageCard implements CardType
     {
         $parts = [];
 
-        if (ChangeList::differs($before, $after, 'mediaId')) {
+        if (ChangeList::differs($before, $after, 'mediaId') || ChangeList::differs($before, $after, 'source')) {
             $parts[] = 'image replaced';
         }
 
