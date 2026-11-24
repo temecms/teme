@@ -12,6 +12,7 @@ All notable changes to this project are documented in this file. Versioning foll
 
 - Admin pages are named by the breadcrumb: the large repeated heading is visually hidden, and the page's description sits as one quiet line under the crumb beside its controls.
 - A plugin's area may name its own menu icon; the menu marks every plugin entry with a plug, and editor panels and areas share a wider set of Lucide names.
+- A plugin's area header shows its picture (or initials) at 32 pixels beside the title, served to whoever may open the area.
 
 ### Fixed
 

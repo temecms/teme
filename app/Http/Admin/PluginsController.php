@@ -71,12 +71,7 @@ final class PluginsController extends Controller
             abort(404);
         }
 
-        return response()->file($icon['path'], [
-            'Content-Type' => $icon['type'],
-            'X-Content-Type-Options' => 'nosniff',
-            'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-            'Cache-Control' => 'private, max-age=86400',
-        ]);
+        return response()->file($icon['path'], PackagePictures::headers($icon['type']));
     }
 
     /**

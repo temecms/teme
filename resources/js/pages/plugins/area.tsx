@@ -82,7 +82,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
         <>
             <Head title={`${current.label} · ${area.label}`} />
             <PluginAreaPage
-                plugin={{ name: plugin.name }}
+                plugin={{ name: plugin.name, icon: plugin.icon }}
                 title={area.label}
                 showTitle
                 description={area.description || undefined}

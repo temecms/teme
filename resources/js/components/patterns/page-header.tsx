@@ -16,6 +16,7 @@ export function PageHeader({
     actions,
     plugin,
     badge,
+    leading,
     showTitle = false,
     as: Title = 'h1',
 }: {
@@ -26,13 +27,20 @@ export function PageHeader({
     plugin?: string;
     /** Beside the title, outside the heading, so the heading's name stays the title. */
     badge?: ReactNode;
+    /** Ahead of the title block: a plugin's 32px icon, level with the description. */
+    leading?: ReactNode;
     /** Keep the large title when it is not the breadcrumb's last crumb. */
     showTitle?: boolean;
     /** `div` where the page already has its h1, as in the catalogue. */
     as?: 'h1' | 'div';
 }) {
     const marked = plugin !== undefined || badge !== undefined;
-    const bare = !showTitle && !description && !actions && !marked;
+    const bare =
+        !showTitle &&
+        !description &&
+        !actions &&
+        !marked &&
+        leading === undefined;
 
     return (
         <header
@@ -41,11 +49,12 @@ export function PageHeader({
                 bare
                     ? 'contents'
                     : cn(
-                          'mb-6 flex flex-wrap items-end gap-4',
+                          'mb-6 flex flex-wrap items-start gap-3',
                           showTitle ? 'mt-2' : 'mt-0',
                       )
             }
         >
+            {leading}
             <div className="grid min-w-0 flex-1 basis-80 gap-1">
                 <div
                     className={
@@ -80,7 +89,7 @@ export function PageHeader({
                 )}
             </div>
             {actions && (
-                <div className="flex flex-wrap gap-2 max-sm:w-full max-sm:[&>*:first-child]:flex-1">
+                <div className="flex flex-wrap gap-2 self-end max-sm:w-full max-sm:[&>*:first-child]:flex-1">
                     {actions}
                 </div>
             )}

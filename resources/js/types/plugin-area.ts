@@ -1,8 +1,13 @@
 import type { VisibleWhenRule } from '@/lib/visible-when';
 import type { PluginCellValue } from '@/types/plugin-columns';
 
-/** The plugin an area belongs to: its code, and its own name (I-3468). */
-export type AreaPluginRef = { code: string; name: string };
+/** The plugin an area belongs to: its code, its own name, and its picture when it has one (I-3468). */
+export type AreaPluginRef = {
+    code: string;
+    name: string;
+    /** The area-header icon URL, or null when the package has none. */
+    icon?: string | null;
+};
 
 export type AreaFiguresBlock = {
     id: string;

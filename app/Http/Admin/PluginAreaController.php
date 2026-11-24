@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Extensions\PackagePictures;
 use App\Domain\Plugins\Area\AreaEntries;
 use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\CodeScripts;
@@ -24,6 +25,7 @@ use App\Domain\Plugins\Operations\Input\RunPluginActionInput;
 use App\Domain\Plugins\Operations\Input\SavePluginRecordInput;
 use App\Domain\Plugins\Operations\RunPluginAction;
 use App\Domain\Plugins\Operations\SavePluginRecord;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Queries\PluginAreaScreen;
 use App\Domain\Plugins\Queries\PluginRecordForm;
 use App\Domain\Plugins\Queries\PluginSettingsScreen;
@@ -36,6 +38,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class PluginAreaController extends Controller
 {
@@ -70,6 +73,23 @@ final class PluginAreaController extends Controller
             'asks' => $asks,
             ...$data,
         ]);
+    }
+
+    /**
+     * The icon the plugin declares, served to whoever may open its area. An
+     * SVG is sent so that, opened on its own, it can run and fetch nothing.
+     */
+    public function icon(Request $request, string $code, PluginAreaScreen $screen, PluginRegistry $registry): BinaryFileResponse
+    {
+        $plugin = $this->plugin($request, $code, $screen);
+        $found = $registry->find($plugin->name);
+        $icon = $found?->manifest === null ? null : PackagePictures::find($found->path, $found->manifest->icon());
+
+        if ($icon === null) {
+            abort(404);
+        }
+
+        return response()->file($icon['path'], PackagePictures::headers($icon['type']));
     }
 
     /**
