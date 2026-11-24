@@ -28,6 +28,7 @@ use App\Domain\Plugins\Operations\Input\MigratePluginInput;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\Plugins\Operations\RemovePluginData;
+use App\Domain\Plugins\PluginPlaces;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginSentences;
 use App\Domain\Plugins\PluginWords;
@@ -103,7 +104,8 @@ final class PluginsController extends Controller
             return to_route('plugins.index');
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => trim(__(':name enabled. Its contributions appear where they belong.', ['name' => $row->label]).' '.$list->typesReport($row->name))]);
+        $places = app(PluginPlaces::class)->sentence($row->name);
+        Inertia::flash('toast', ['type' => 'success', 'message' => trim(__(':name enabled: :places.', ['name' => $row->label, 'places' => $places]).' '.$list->typesReport($row->name))]);
 
         return to_route('plugins.index');
     }
