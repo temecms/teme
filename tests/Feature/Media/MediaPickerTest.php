@@ -68,14 +68,17 @@ it('filters the picker by kind, month, missing alt text and search, and pages by
     expect($queries)->not->toContain('offset');
 });
 
-it('never offers a trashed or unfinished item', function (): void {
+it('offers pending and ready items, never a trashed or failed one', function (): void {
     $trashed = mediaUpload($this->author, mediaJpeg(), 'gone.jpg');
     DB::table('media')->where('id', $trashed->id)->update(['deleted_at' => now()]);
+    $failed = mediaUpload($this->author, mediaJpeg(399, 300), 'failed.jpg');
+    DB::table('media')->where('id', $failed->id)->update(['processing' => 'failed']);
     $pending = mediaUpload($this->author, mediaJpeg(400, 300), 'pending.jpg');
     DB::table('media')->where('id', $pending->id)->update(['processing' => 'pending']);
     mediaUpload($this->author, mediaJpeg(401, 300), 'ready.jpg');
 
     $rows = $this->actingAs($this->author)->getJson(route('media.picker', ['kinds' => ['image']]))->json('rows');
 
-    expect(array_column($rows, 'title'))->toBe(['ready']);
+    expect(array_column($rows, 'title'))->toBe(['ready', 'pending'])
+        ->and(array_column($rows, 'processing'))->toBe(['ready', 'pending']);
 });

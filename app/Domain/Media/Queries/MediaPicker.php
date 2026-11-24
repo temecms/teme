@@ -1,10 +1,10 @@
 <?php
 
 /**
- * The files an editor can choose from the media modal: live, ready, of an
- * allowed kind, newest first, paged by keyset and searchable — the same row
- * shape MediaLibrary uses, so the modal's grid and the Media screen's share
- * one component. Never a trashed or still-processing item.
+ * The files an editor can choose from the media modal: live, ready or still
+ * pending, of an allowed kind, newest first, paged by keyset and searchable —
+ * the same row shape MediaLibrary uses, so the modal's grid and the Media
+ * screen's share one component. Never a trashed or failed item.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -43,11 +43,11 @@ final class MediaPicker
         $query = DB::table('media')
             ->leftJoin('users', 'users.id', '=', 'media.uploaded_by')
             ->whereNull('media.deleted_at')
-            ->where('media.processing', 'ready')
+            ->whereIn('media.processing', ['ready', 'pending'])
             ->whereIn('media.kind', $kinds)
             ->select([
                 'media.id', 'media.kind', 'media.title', 'media.original_filename', 'media.extension', 'media.width', 'media.height',
-                'media.size_bytes', 'media.variants', 'media.working_uses', 'media.published_uses', 'media.alt', 'media.credit', 'media.licence',
+                'media.size_bytes', 'media.variants', 'media.processing', 'media.working_uses', 'media.published_uses', 'media.alt', 'media.credit', 'media.licence',
                 'media.created_at', 'users.name as uploader_name',
             ]);
 
@@ -79,7 +79,7 @@ final class MediaPicker
                 'height' => $row->height === null ? null : (int) $row->height,
                 'sizeBytes' => (int) $row->size_bytes,
                 'thumbUrl' => MediaUrls::variant((array) json_decode((string) $row->variants, true)),
-                'processing' => 'ready',
+                'processing' => (string) $row->processing,
                 'uses' => (int) $row->working_uses + (int) $row->published_uses,
                 'hasAlt' => trim((string) $row->alt) !== '',
                 'alt' => $row->alt === null ? null : (string) $row->alt,
