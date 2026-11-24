@@ -87,7 +87,7 @@ it('runs each role\'s command, with the health checks the image provides', funct
     expect($services['deploy']['command'])->toBe(['php', 'artisan', 'teme:deploy'])
         ->and($services['deploy']['healthcheck'])->toBe(['disable' => true])
         ->and($services['web'])->not->toHaveKey('command')
-        ->and($services['worker']['command'])->toBe(['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600', '--memory=512'])
+        ->and($services['worker']['command'])->toBe(['/usr/local/lib/teme/queue-workers', 'php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600', '--memory=512'])
         ->and($services['worker']['healthcheck']['test'])->toBe(['CMD', 'healthcheck-queue'])
         ->and($services['scheduler']['command'])->toBe(['php', 'artisan', 'schedule:work'])
         ->and($services['scheduler']['healthcheck']['test'])->toBe(['CMD', 'healthcheck-schedule']);

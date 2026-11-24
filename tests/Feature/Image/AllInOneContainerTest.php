@@ -174,6 +174,23 @@ it('starts every process, each as its own user, and passes its one health check'
         ->and(aioExec($name, 'curl --silent --show-error http://localhost:8080/up'))->toBe('ok');
 });
 
+it('runs as many workers of the default queue as TEME_QUEUE_WORKERS asks, and fails its health check with fewer (#701)', function (): void {
+    $name = ($this->start)(['TEME_QUEUE_WORKERS' => '3']);
+
+    expect(aioWait($name, 'healthy'))->toBe('healthy')
+        ->and(preg_match_all('/^www-data\s+\S*php artisan queue:work --tries=3 --max-time=3600 --memory=512$/m', aioExec($name, 'ps -eo user,args')))->toBe(3);
+
+    // Asked for one more than run, the check fails, saying how many run.
+    expect(aioExec($name, 'TEME_QUEUE_WORKERS=4 teme-healthcheck'))->toContain("3 of the default queue's 4 workers are running.");
+});
+
+it('refuses to start with a number of workers outside 1 to 8 (#701)', function (): void {
+    $name = ($this->start)(['TEME_QUEUE_WORKERS' => '9']);
+
+    expect(aioWait($name, 'stopped', 60))->toBe('stopped')
+        ->and(aioDocker(['logs', $name])->getErrorOutput())->toContain('TEME_QUEUE_WORKERS is "9": set a whole number from 1 to 8.');
+});
+
 it('runs the deploy step, then the installer’s check, before web answers', function (): void {
     $name = ($this->start)();
     aioWait($name, 'healthy');

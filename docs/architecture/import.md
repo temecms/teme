@@ -50,7 +50,7 @@ Four tables, as study V §4.1 designed them, with one change: the application pa
 
 ## A run
 
-**Starting.** `StartImportRun` (`app/Domain/Import/Operations/StartImportRun.php`) starts a **full** run or a **catch-up** (`ImportRunKind`). It refuses a second run of the same site (`:89-91`, and a partial unique index on running runs, `database/migrations/2026_11_21_100100_create_import_runs_table.php:58`), a catch-up before any finished run (`:93-95`), and a site whose password Teme has forgotten. Its one option is the pause between pages, `pause_ms`, 1,000 by default and 0 to 60,000 (`:42`, `:66-70`), to spare the old site. It marks every failure the site has `needs_update` (`:111-113`), records the run's high-water mark, and after commit hands the run to the engine.
+**Starting.** `StartImportRun` (`app/Domain/Import/Operations/StartImportRun.php`) starts a **full** run or a **catch-up** (`ImportRunKind`). It refuses a second run of the same site (`:89-91`, and a partial unique index on running runs, `database/migrations/2026_11_21_100100_create_import_runs_table.php:58`), a catch-up before any finished run (`:93-95`), and a site whose password Teme has forgotten. Its options are the pause between pages, `pause_ms`, 1,000 by default and 0 to 60,000, to spare the old site, and, for an export file, `media_lanes`, the media files fetched at once (below). It marks every failure the site has `needs_update` (`:111-113`), records the run's high-water mark, and after commit hands the run to the engine.
 
 **The engine** (`app/Domain/Import/ImportEngine.php`) runs the phases in their order, **each phase as one `Bus::batch`** of queued jobs (`:132-138`):
 
@@ -66,6 +66,8 @@ Four tables, as study V §4.1 designed them, with one change: the application pa
 **Import mode** (`app/Domain/Import/ImportMode.php`). Each job does its work inside `ImportMode::during()`, which only a running run may enter (`:35-46`). While it is on, every Operation's purge of the page cache is held (`app/Domain/Support/Operations/BaseOperation.php:67-77`), and the run ends with **one purge of everything**, after its last commit, whether it finished or stopped (`app/Domain/Import/Operations/Concerns/TalliesRuns.php:37-40`). The mode is bound scoped, so it ends with the job (`app/Providers/ImportServiceProvider.php:49`). Hooks are not held yet: there is no hook dispatcher until phase 5, and the signpost for gathering them is at `BaseOperation.php:70`.
 
 **Counts** are tallied from the map and the messages when a phase or the run ends, never one object at a time, so parallel workers never queue on the run's row (`TalliesRuns.php:21-32`).
+
+**Media in parallel (#701).** An export file's media list is read in **lanes**: `MediaPhase::lists()` gives one `ImportList` per lane, and lane k of N reads the attachments whose ID leaves k over N (`FileReader::rows()`, `mod(object_id, N) = k`), so the engine's one batch runs N chains side by side with no change to the engine or the page job, and no two lanes share an attachment. Each lane pages in ID order as a single list does, so stopping and carrying on are unchanged: a carried-on run starts every lane again from the start, and the map's hash skips each attachment already brought before any download. N is the media setting *Files fetched at once in an import* (`media.import_downloads`, 4 by default, 1 to 8), frozen into the run's `options.media_lanes` when it starts so a change never moves a running import's lists; a run may ask for fewer, and a run started before 1.5.0 has none and reads one lane. Lanes run at once only when as many queue workers take the default queue: the image starts `TEME_QUEUE_WORKERS` of them (`docker/teme/lib/queue-workers`), one by default, so the lanes go as fast as the fewer of the two allows. Each lane waits the run's pause between its pages, so the old site gets up to N requests in each pause. Identical bytes in two lanes still make one item (`ImportMedia`'s lock on the bytes' hash), and `RecordMediaFiles` inserts an attachment's file addresses sorted, so two lanes never wait on each other's rows. **A live import reads one lane** until the companion can page by ranges (`before_id`, below); the one condition to change then is `$context->readsFile()` in `MediaPhase::lists()`.
 
 ## The step table
 
@@ -230,7 +232,7 @@ Teme reads a WordPress site through the **Teme Companion** plugin, in its own re
 | A trashed item's trash time (Q10) | Today's time instead, so it leaves the trash 30 days after the import, not after its own trashing |
 | The privacy page, the comments' default page and the theme's logo (I-1880) | Not imported |
 | Yoast's hold and block lists (I-1881) | Not imported |
-| A `before_id` for downloads in parallel (I-1850) | Media can't be downloaded in parallel |
+| A `before_id` for downloads in parallel (I-1850) | A live import's media can't be downloaded in parallel; an export file's can, in lanes (#701, above) |
 | Each shortcode's own output (B-841) | Teme has the shortcode, not what WordPress drew from it. The registered shortcodes come from the site report (`app/Domain/Import/Phases/Content/ContentSite.php:85-96`) |
 
 Every address criterion 6 asks about comes from 0.2.0's `urls`, so the proof stands on 0.2.0.
