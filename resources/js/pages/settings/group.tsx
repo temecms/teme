@@ -467,9 +467,12 @@ export default function SettingsGroup({
     notice = null,
     plugin = null,
     readOnly = null,
+    bare = false,
 }: SettingsGroupPage & {
     pluginHosts: PluginHosts | null;
     pluginScripts?: PluginScripts | null;
+    /** Draw only the form body, for a plugin area's Settings tab. */
+    bare?: boolean;
 }) {
     const pluginCode = group.key.startsWith('plugin.')
         ? group.key.slice('plugin.'.length)
@@ -482,15 +485,17 @@ export default function SettingsGroup({
     };
     const people = heading.key === 'people';
 
-    setLayoutProps({
-        breadcrumbs: [
-            { title: __('Settings'), href: settingsIndex() },
-            {
-                title: heading.label,
-                href: showSettings({ group: heading.key }),
-            },
-        ],
-    });
+    if (!bare) {
+        setLayoutProps({
+            breadcrumbs: [
+                { title: __('Settings'), href: settingsIndex() },
+                {
+                    title: heading.label,
+                    href: showSettings({ group: heading.key }),
+                },
+            ],
+        });
+    }
 
     /** Leaves out a lent section that did not change (I-3437): saving the brand colour also drops one drafted in Design. */
     const transform = (
@@ -638,6 +643,159 @@ export default function SettingsGroup({
             : []),
     ];
 
+    const body = (
+        <>
+            {readOnly !== null && (
+                <Notice
+                    tone="info"
+                    role="status"
+                    data-test="settings-view-only"
+                >
+                    <strong className="font-semibold">
+                        {__('You can see these settings, but not change them.')}
+                    </strong>{' '}
+                    {__(
+                        'Changing :page settings needs the “:permission” permission, which :holders hold.',
+                        {
+                            page: heading.label,
+                            permission: readOnly.permission,
+                            holders: readOnly.holders,
+                        },
+                    )}
+                </Notice>
+            )}
+            {notice !== null && (
+                <Notice tone="warn" role="status" data-test="settings-notice">
+                    {notice}
+                </Notice>
+            )}
+            {people && readOnly === null && (
+                <Notice tone="info" data-test="settings-password-banner">
+                    <strong className="font-semibold">
+                        {__(
+                            'Changing a sign-in rule asks you to confirm your password.',
+                        )}
+                    </strong>{' '}
+                    {__('Teme asks once, then not again for 15 minutes.')}
+                </Notice>
+            )}
+            <AreaScriptsProvider value={scripts}>
+                <SettingsForm
+                    action={SettingsController.update.form({
+                        group: group.key,
+                    })}
+                    what={__(':page settings', { page: heading.label })}
+                    askInPlace={group.sensitive || pluginHosts !== null}
+                    transform={transform}
+                    readOnly={readOnly !== null}
+                >
+                    {({ errors }) => (
+                        <>
+                            <input
+                                type="hidden"
+                                name="expected_version"
+                                value={version}
+                            />
+                            <InputError
+                                id="expected-version-error"
+                                message={errors.expected_version}
+                            />
+
+                            {homePage !== null && (
+                                <HomePageSetting
+                                    home={homePage}
+                                    errors={errors}
+                                />
+                            )}
+
+                            <SettingsConditions fields={fields} values={values}>
+                                {(shown) =>
+                                    sections.map((panel, index) => (
+                                        <SettingsPanel
+                                            key={`${index}-${panel.title}`}
+                                            title={
+                                                panel.title !== ''
+                                                    ? panel.title
+                                                    : undefined
+                                            }
+                                            label={
+                                                panel.title === ''
+                                                    ? heading.label
+                                                    : undefined
+                                            }
+                                            description={
+                                                panel.description !== ''
+                                                    ? panel.description
+                                                    : undefined
+                                            }
+                                        >
+                                            {panel.keys.map((key) => {
+                                                const field = fields.find(
+                                                    (candidate) =>
+                                                        candidate.key === key,
+                                                );
+
+                                                return field ===
+                                                    undefined ? null : (
+                                                    <Fragment key={key}>
+                                                        {fieldFor(
+                                                            field,
+                                                            errors,
+                                                            shown,
+                                                        )}
+                                                        {key ===
+                                                            'posts_per_page' &&
+                                                            themeLine}
+                                                    </Fragment>
+                                                );
+                                            })}
+                                        </SettingsPanel>
+                                    ))
+                                }
+                            </SettingsConditions>
+
+                            {imageWidths !== null && (
+                                <ImageWidths widths={imageWidths} />
+                            )}
+
+                            {brandColour !== null && (
+                                <BrandColourSetting
+                                    brand={brandColour}
+                                    error={errors.accent}
+                                />
+                            )}
+
+                            {people && <PeoplesPictures />}
+                        </>
+                    )}
+                </SettingsForm>
+
+                {pluginCode !== null && (
+                    <>
+                        <PluginActionsPanel
+                            code={pluginCode}
+                            actions={pluginActions}
+                        />
+                        <PluginListsPanel lists={pluginLists} />
+                    </>
+                )}
+
+                {words != null && (
+                    <WordsInOtherLanguages group={group.key} words={words} />
+                )}
+            </AreaScriptsProvider>
+        </>
+    );
+
+    if (bare) {
+        return (
+            <>
+                {pluginScripts !== null && approval.password}
+                {body}
+            </>
+        );
+    }
+
     return (
         <>
             <Head title={`${heading.label} settings`} />
@@ -648,158 +806,7 @@ export default function SettingsGroup({
                 description={heading.description}
                 plugin={plugin ?? undefined}
             >
-                {readOnly !== null && (
-                    <Notice
-                        tone="info"
-                        role="status"
-                        data-test="settings-view-only"
-                    >
-                        <strong className="font-semibold">
-                            {__(
-                                'You can see these settings, but not change them.',
-                            )}
-                        </strong>{' '}
-                        {__(
-                            'Changing :page settings needs the “:permission” permission, which :holders hold.',
-                            {
-                                page: heading.label,
-                                permission: readOnly.permission,
-                                holders: readOnly.holders,
-                            },
-                        )}
-                    </Notice>
-                )}
-                {notice !== null && (
-                    <Notice
-                        tone="warn"
-                        role="status"
-                        data-test="settings-notice"
-                    >
-                        {notice}
-                    </Notice>
-                )}
-                {people && readOnly === null && (
-                    <Notice tone="info" data-test="settings-password-banner">
-                        <strong className="font-semibold">
-                            {__(
-                                'Changing a sign-in rule asks you to confirm your password.',
-                            )}
-                        </strong>{' '}
-                        {__('Teme asks once, then not again for 15 minutes.')}
-                    </Notice>
-                )}
-                <AreaScriptsProvider value={scripts}>
-                    <SettingsForm
-                        action={SettingsController.update.form({
-                            group: group.key,
-                        })}
-                        what={__(':page settings', { page: heading.label })}
-                        askInPlace={group.sensitive || pluginHosts !== null}
-                        transform={transform}
-                        readOnly={readOnly !== null}
-                    >
-                        {({ errors }) => (
-                            <>
-                                <input
-                                    type="hidden"
-                                    name="expected_version"
-                                    value={version}
-                                />
-                                <InputError
-                                    id="expected-version-error"
-                                    message={errors.expected_version}
-                                />
-
-                                {homePage !== null && (
-                                    <HomePageSetting
-                                        home={homePage}
-                                        errors={errors}
-                                    />
-                                )}
-
-                                <SettingsConditions
-                                    fields={fields}
-                                    values={values}
-                                >
-                                    {(shown) =>
-                                        sections.map((panel, index) => (
-                                            <SettingsPanel
-                                                key={`${index}-${panel.title}`}
-                                                title={
-                                                    panel.title !== ''
-                                                        ? panel.title
-                                                        : undefined
-                                                }
-                                                label={
-                                                    panel.title === ''
-                                                        ? heading.label
-                                                        : undefined
-                                                }
-                                                description={
-                                                    panel.description !== ''
-                                                        ? panel.description
-                                                        : undefined
-                                                }
-                                            >
-                                                {panel.keys.map((key) => {
-                                                    const field = fields.find(
-                                                        (candidate) =>
-                                                            candidate.key ===
-                                                            key,
-                                                    );
-
-                                                    return field ===
-                                                        undefined ? null : (
-                                                        <Fragment key={key}>
-                                                            {fieldFor(
-                                                                field,
-                                                                errors,
-                                                                shown,
-                                                            )}
-                                                            {key ===
-                                                                'posts_per_page' &&
-                                                                themeLine}
-                                                        </Fragment>
-                                                    );
-                                                })}
-                                            </SettingsPanel>
-                                        ))
-                                    }
-                                </SettingsConditions>
-
-                                {imageWidths !== null && (
-                                    <ImageWidths widths={imageWidths} />
-                                )}
-
-                                {brandColour !== null && (
-                                    <BrandColourSetting
-                                        brand={brandColour}
-                                        error={errors.accent}
-                                    />
-                                )}
-
-                                {people && <PeoplesPictures />}
-                            </>
-                        )}
-                    </SettingsForm>
-
-                    {pluginCode !== null && (
-                        <>
-                            <PluginActionsPanel
-                                code={pluginCode}
-                                actions={pluginActions}
-                            />
-                            <PluginListsPanel lists={pluginLists} />
-                        </>
-                    )}
-
-                    {words != null && (
-                        <WordsInOtherLanguages
-                            group={group.key}
-                            words={words}
-                        />
-                    )}
-                </AreaScriptsProvider>
+                {body}
             </SettingsPage>
         </>
     );

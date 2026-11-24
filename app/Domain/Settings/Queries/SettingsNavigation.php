@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
 
+use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\ManifestText;
 use App\Domain\Settings\SettingsPage;
 use App\Domain\Settings\SettingsPlacement;
@@ -40,15 +41,20 @@ final class SettingsNavigation
      */
     private const array ORDER = ['general', 'writing', 'reading', 'discussion', 'seo', 'addresses', 'media', 'people', 'site-code', 'ai'];
 
-    public function __construct(private readonly SettingsRegistry $registry, private readonly Container $container) {}
+    public function __construct(
+        private readonly SettingsRegistry $registry,
+        private readonly Container $container,
+        private readonly PluginAreas $areas,
+    ) {}
 
     /**
      * The Settings pages this user may open, each with its relative address
      * and its heading: core's under Site, a plugin's group (its key starts
-     * `plugin.`) under From plugins. Sorted by heading, then by ORDER,
+     * `plugin.`) under From plugins. A plugin with an area sets ownPage and
+     * links to that area's Settings tab. Sorted by heading, then by ORDER,
      * then as they registered.
      *
-     * @return list<array{key: string, label: string, href: string, heading: string, plugin: bool}>
+     * @return list<array{key: string, label: string, href: string, heading: string, plugin: bool, ownPage: bool}>
      */
     public function forUser(int|string|null $userId): array
     {
@@ -90,6 +96,8 @@ final class SettingsNavigation
 
         foreach ($found as $position => $item) {
             $plugin = str_starts_with($item['key'], 'plugin.');
+            $code = $plugin ? substr($item['key'], strlen('plugin.')) : '';
+            $ownPage = $plugin && $this->areas->hasSettingsTab($code);
             $place = array_search($item['key'], self::ORDER, true);
 
             $ranked[] = [
@@ -97,9 +105,12 @@ final class SettingsNavigation
                 [
                     'key' => $item['key'],
                     'label' => $item['label'],
-                    'href' => route('settings.show', ['group' => $item['key']], false),
+                    'href' => $ownPage
+                        ? route('plugins.area.settings', ['code' => $code], false)
+                        : route('settings.show', ['group' => $item['key']], false),
                     'heading' => $plugin ? self::PLUGINS : self::SITE,
                     'plugin' => $plugin,
+                    'ownPage' => $ownPage,
                 ],
             ];
         }

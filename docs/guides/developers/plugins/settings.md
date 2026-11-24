@@ -36,7 +36,10 @@ A `code` setting holds markup, up to 65,535 characters, in a monospace box. Decl
 
 ## Where they appear
 
-The settings form one group, keyed `plugin.` followed by the plugin's `code`, so the example plugin's would be `plugin.first-plugin`. Teme lists it in **Settings** under the heading **Plugin settings**, named by the plugin's label. Only people with the plugins.manage permission can open or save it.
+The settings form one group, keyed `plugin.` followed by the plugin's `code`, so the example plugin's would be `plugin.first-plugin`.
+
+- A plugin **with its own area** (`contributes.area`) keeps its settings as the **last tab** of that area, labelled Settings. Settings › From plugins still lists it, as “on its own page”, with a link to that tab. An old bookmark of `/admin/settings/plugin.{code}` redirects there. A Tools card whose `to` is `settings` opens that tab. Opening the tab needs the area's permission and either plugins.manage or settings.view; saving still needs plugins.manage.
+- A plugin **with only settings** stays under Settings › From plugins, named by the plugin's label. Only people with the plugins.manage permission can open or save it.
 
 Each save is an Operation, so it is checked, recorded in the settings history, and announced after it commits. A group with any `secret` setting is sensitive: saving it asks for the person's password again, and the change is written to the security log.
 

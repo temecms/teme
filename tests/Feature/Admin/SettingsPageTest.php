@@ -86,7 +86,7 @@ it('shares the site title and the groups the user may manage', function (): void
 
     $shared = app(HandleInertiaRequests::class)->share($request);
 
-    $entry = fn (string $key, string $label): array => ['key' => $key, 'label' => $label, 'href' => route('settings.show', ['group' => $key], false), 'heading' => 'Site', 'plugin' => false];
+    $entry = fn (string $key, string $label): array => ['key' => $key, 'label' => $label, 'href' => route('settings.show', ['group' => $key], false), 'heading' => 'Site', 'plugin' => false, 'ownPage' => false];
 
     // The Settings menu's order (SettingsNavigation::ORDER), pages that aren't groups among them.
     expect($shared['name'])->toBe('My Teme site')

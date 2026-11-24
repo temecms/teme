@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Added
+
+- A plugin with its own area keeps its settings as that area's Settings tab. Settings › From plugins links there as “on its own page”, and the old settings address redirects.
+
 ### Changed
 
 - Admin pages are named by the breadcrumb: the large repeated heading is visually hidden, and the page's description sits as one quiet line under the crumb beside its controls.

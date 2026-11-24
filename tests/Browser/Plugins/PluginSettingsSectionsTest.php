@@ -52,7 +52,7 @@ beforeEach(function (): void {
     $this->stored = fn (): array => json_decode((string) DB::table('settings')->where('group_key', 'plugin.placard')->value('overrides'), true) ?: [];
     $this->sideways = fn (mixed $page): int => (int) $page->script('() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)');
 
-    $this->actingAs($this->admin)->get('/admin/settings/plugin.placard')->assertOk();
+    $this->actingAs($this->admin)->get('/admin/plugin/placard/settings')->assertOk();
 });
 
 afterEach(function (): void {
@@ -61,7 +61,7 @@ afterEach(function (): void {
 });
 
 it('draws each section as a panel and shows a setting only while its condition holds', function (int $width): void {
-    $page = cmNavigate(cmSignIn($this->admin)->resize($width, 900), '/admin/settings/plugin.placard');
+    $page = cmNavigate(cmSignIn($this->admin)->resize($width, 900), '/admin/plugin/placard/settings');
     cmWaitUntil($page, 'document.querySelector("#field-label_text") !== null');
 
     $page->assertSee('General')
@@ -83,7 +83,7 @@ it('draws each section as a panel and shows a setting only while its condition h
 })->with(['wide' => 1280, 'phone' => 375]);
 
 it('adds an item to a repeater setting, moves it and keeps it', function (): void {
-    $page = cmNavigate(cmSignIn($this->admin)->resize(1280, 900), '/admin/settings/plugin.placard');
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1280, 900), '/admin/plugin/placard/settings');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="repeater-setting"]\') !== null');
 
     $page->click('[data-test="repeater-setting"] [data-test="repeater-add"]');
@@ -102,7 +102,7 @@ it('adds an item to a repeater setting, moves it and keeps it', function (): voi
 it('passes axe with sections, a condition and a repeater, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
-    $page = cmNavigate(cmSignIn($this->admin)->resize(1280, 900), '/admin/settings/plugin.placard');
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1280, 900), '/admin/plugin/placard/settings');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="repeater-setting"]\') !== null');
     $page->click('[data-test="repeater-setting"] [data-test="repeater-add"]');
 

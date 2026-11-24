@@ -55,7 +55,7 @@ afterEach(function (): void {
 it('draws a plugin’s settings in its sections, each field with its condition', function (): void {
     ($this->start)();
 
-    $this->actingAs($this->admin)->get(route('settings.show', ['group' => 'plugin.placard']))
+    $this->actingAs($this->admin)->get(route('plugins.area.settings', ['code' => 'placard']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('panels', [
                 ['title' => 'General', 'description' => 'How ads show everywhere.', 'keys' => ['label_text', 'fallback']],
@@ -71,7 +71,7 @@ it('puts settings without a section in a first panel of their own, with no title
     unset($settings[0]['section']);
     ($this->start)(PluginFixtures::copy('placard', ['contributes' => [...PluginFixtures::manifest('placard')['contributes'], 'settings' => $settings]]));
 
-    $this->actingAs($this->admin)->get(route('settings.show', ['group' => 'plugin.placard']))
+    $this->actingAs($this->admin)->get(route('plugins.area.settings', ['code' => 'placard']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('panels.0', ['title' => '', 'description' => '', 'keys' => ['label_text']])
             ->where('panels.1.title', 'General'));

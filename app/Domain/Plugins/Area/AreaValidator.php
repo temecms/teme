@@ -236,8 +236,8 @@ final class AreaValidator
             }
         }
 
-        if (preg_match(self::ID, is_string($page['id'] ?? null) ? $page['id'] : '') !== 1 || ($page['id'] ?? null) === 'records') {
-            $errors[] = __('A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records.');
+        if (preg_match(self::ID, is_string($page['id'] ?? null) ? $page['id'] : '') !== 1 || in_array($page['id'] ?? null, ['records', 'settings'], true)) {
+            $errors[] = __('A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records or settings.');
         }
 
         if (! $this->text($page['label'] ?? null, 40)) {

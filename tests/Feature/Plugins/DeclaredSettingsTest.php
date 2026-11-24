@@ -81,7 +81,7 @@ it('files the group under From plugins and draws it with the settings form', fun
 
     $listed = collect(app(SettingsNavigation::class)->forUser($admin->id))->firstWhere('key', 'plugin.example-sync');
 
-    expect($listed)->toBe(['key' => 'plugin.example-sync', 'label' => 'Example sync', 'href' => '/admin/settings/plugin.example-sync', 'heading' => 'From plugins', 'plugin' => true])
+    expect($listed)->toBe(['key' => 'plugin.example-sync', 'label' => 'Example sync', 'href' => '/admin/settings/plugin.example-sync', 'heading' => 'From plugins', 'plugin' => true, 'ownPage' => false])
         ->and(array_column(app(SettingsNavigation::class)->forUser($editor->id), 'key'))->not->toContain('plugin.example-sync');
 
     $this->actingAs($admin)->get('/admin/settings/plugin.example-sync')->assertOk()

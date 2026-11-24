@@ -102,7 +102,7 @@ export type AreaTableAsk = {
 export type PluginAreaPageProps = {
     plugin: AreaPluginRef;
     area: { label: string; description: string };
-    tabs: { id: string; label: string; current: boolean }[];
+    tabs: { id: string; label: string; current: boolean; href?: string }[];
     current: { id: string; label: string };
     blocks: AreaBlock[];
     asks: Record<string, AreaTableAsk>;

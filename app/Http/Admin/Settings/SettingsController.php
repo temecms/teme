@@ -20,6 +20,7 @@ use App\Domain\Languages\Operations\Input\SaveSettingsWordsInput;
 use App\Domain\Languages\Operations\SaveSettingsWords;
 use App\Domain\Languages\Queries\SettingsWords;
 use App\Domain\Plugins\Area\CodeScripts;
+use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\Lists\PluginLists;
 use App\Domain\Plugins\PluginRegistry;
@@ -67,7 +68,7 @@ final class SettingsController extends Controller
         'settings.addresses.manage' => 'Manage addresses',
     ];
 
-    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry): Response|RedirectResponse
+    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry, PluginAreas $areas): Response|RedirectResponse
     {
         // A group drawn under another page's name opens on that page, so its
         // own address, such as /admin/settings/content, keeps working.
@@ -96,6 +97,15 @@ final class SettingsController extends Controller
         // goes to it rather than to a form that could never save.
         if ($data['screen'] !== null) {
             return to_route($data['screen']);
+        }
+
+        // A plugin with an area keeps its settings on that area's Settings tab.
+        if (str_starts_with($page, 'plugin.')) {
+            $code = substr($page, strlen('plugin.'));
+
+            if ($areas->hasSettingsTab($code)) {
+                return to_route('plugins.area.settings', ['code' => $code]);
+            }
         }
 
         $ability = $data['ability'];
@@ -169,6 +179,14 @@ final class SettingsController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => $result['recompute']
             ? __('Settings saved. Moving every address in the background.')
             : __('Settings saved.')]);
+
+        if (str_starts_with($page, 'plugin.')) {
+            $code = substr($page, strlen('plugin.'));
+
+            if (app(PluginAreas::class)->hasSettingsTab($code)) {
+                return to_route('plugins.area.settings', ['code' => $code]);
+            }
+        }
 
         return to_route('settings.show', ['group' => $page]);
     }
@@ -301,6 +319,14 @@ final class SettingsController extends Controller
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Saved the words in other languages.')]);
+
+        if (str_starts_with($group, 'plugin.')) {
+            $code = substr($group, strlen('plugin.'));
+
+            if (app(PluginAreas::class)->hasSettingsTab($code)) {
+                return to_route('plugins.area.settings', ['code' => $code]);
+            }
+        }
 
         return back(fallback: route('settings.show', ['group' => $group], false));
     }
