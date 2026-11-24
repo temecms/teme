@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cache\PublicChanges;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
@@ -49,6 +50,21 @@ it('holds an Operation\'s purge while a run\'s work is in hand, and lets it thro
     cacheProbe(new CacheKeysFor(CacheKeysFor::CONTENT, 'harbour', ['content:harbour']))->execute(schedProbeInput());
 
     expect(cacheKept('/ferry/', '/harbour/'))->toBe(['/ferry/']);
+    cacheOff($folder);
+});
+
+it('keeps the tags of the purges it held, for a picture pass to purge its page of posts after (#716)', function (): void {
+    $folder = cacheOn();
+    cacheShown(['/ferry/' => ['content:ferry'], '/harbour/' => ['content:harbour']]);
+    $run = ($this->runIn)(ImportRunState::Running);
+
+    $this->mode->during($run->id, fn () => cacheProbe(new CacheKeysFor(CacheKeysFor::CONTENT, 'ferry', ['content:ferry']))->execute(schedProbeInput()));
+    $held = $this->mode->takeHeld();
+    app(PublicChanges::class)->purge($held);
+
+    expect($held)->toContain('content:ferry')
+        ->and($this->mode->takeHeld())->toBe([])
+        ->and(cacheKept('/ferry/', '/harbour/'))->toBe(['/harbour/']);
     cacheOff($folder);
 });
 

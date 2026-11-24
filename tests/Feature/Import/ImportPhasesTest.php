@@ -157,7 +157,7 @@ it('runs only the picture pass’s phases in a picture pass, and none of them in
     $full = phasesChain(ImportRunKind::Full);
     $pass = phasesChain(ImportRunKind::MediaPass);
 
-    expect($pass)->toBe(['outside-images', 'media-parents', 'second-pass'])
+    expect($pass)->toBe(['media', 'media-rest', 'outside-images', 'media-parents', 'second-pass', 'pictures-left'])
         ->and($full)->toContain('outside-images')
         ->and($full)->toContain('second-pass')
         ->and($full)->toContain('content');

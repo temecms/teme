@@ -22,7 +22,9 @@ use App\Domain\Import\Operations\AdvanceImportRun;
 use App\Domain\Import\Operations\FinishImportRun;
 use App\Domain\Import\Operations\Input\AdvanceImportRunInput;
 use App\Domain\Import\Operations\Input\FinishImportRunInput;
+use App\Domain\Import\Operations\Input\StartMediaPassInput;
 use App\Domain\Import\Operations\Input\StopImportRunInput;
+use App\Domain\Import\Operations\StartMediaPass;
 use App\Domain\Import\Operations\StopImportRun;
 use App\Domain\Import\Phases\ImportPhase;
 use App\Domain\Import\Phases\ImportPhases;
@@ -32,7 +34,9 @@ use App\Domain\Import\Tracking\ImportRunJobs;
 use App\Domain\Support\Security\JobActor;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 final readonly class ImportEngine
 {
@@ -101,7 +105,12 @@ final readonly class ImportEngine
         $next = $this->phases->after($run->phase, $run->kind);
 
         if ($next === null) {
-            app(FinishImportRun::class)->execute(new FinishImportRunInput($runId, $token, $actor->userId));
+            $finished = app(FinishImportRun::class)->execute(new FinishImportRunInput($runId, $token, $actor->userId));
+
+            // The articles came first: the pictures follow in a pass of their own, started here (#716).
+            if ($finished === true && $run->kind !== ImportRunKind::MediaPass && ($run->choices['media'] ?? null) === 'later') {
+                $this->followWithPictures($runId, $actor);
+            }
 
             return;
         }
@@ -111,6 +120,20 @@ final readonly class ImportEngine
         if (app(AdvanceImportRun::class)->execute(new AdvanceImportRunInput($runId, $token, $next->key(), $moved, $actor->userId))) {
             app(ImportRunJobs::class)->report($runId, $actor);
             $this->dispatch($run, $next, $moved, $actor);
+        }
+    }
+
+    /**
+     * Starts the picture pass that follows a finished import; one that can't
+     * start, as when another import of the site began meanwhile, is logged,
+     * and the import screen offers it again.
+     */
+    private function followWithPictures(string $runId, JobActor $actor): void
+    {
+        try {
+            app(StartMediaPass::class)->execute(new StartMediaPassInput($runId, $actor->userId));
+        } catch (ValidationException $refused) {
+            Log::warning('The picture pass after an import didn’t start.', ['run' => $runId, 'reason' => collect($refused->errors())->flatten()->first()]);
         }
     }
 

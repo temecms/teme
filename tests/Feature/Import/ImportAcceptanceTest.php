@@ -26,12 +26,14 @@ use App\Domain\Themes\ActiveTheme;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
 use Teme\Contracts\Settings\SettingsReader;
 use Tests\Fixtures\Import\AcceptanceSite;
 use Tests\Fixtures\Import\FakeCompanion;
+use Tests\Fixtures\Import\FileImports;
 use Tests\Fixtures\Import\MenuImports;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -196,6 +198,24 @@ function accLinks(Content $item): array
 }
 
 /**
+ * The picture pass that follows an export file's import brought the articles
+ * first, its jobs worked as the acceptance run's are (#716).
+ */
+function accPicturePass(): ImportRun
+{
+    Storage::fake('local');
+    $file = FileImports::ready('companion-site.xml', User::factory()->create()->assignRole('administrator'));
+    config(['queue.default' => 'database', 'queue.connections.database-long.driver' => 'database']);
+    $run = FileImports::run($file, ['media' => 'later']);
+
+    for ($jobs = 0; $jobs < 2000 && DB::table('jobs')->exists(); $jobs++) {
+        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'long,default', '--once' => true, '--sleep' => 0]);
+    }
+
+    return ImportRun::query()->where('follows_run_id', $run->id)->sole();
+}
+
+/**
  * One row for each step the app registers, named by its key: the key, and a
  * closure that asserts what that step, and only it, writes on this site,
  * run with the test as $this once a whole import has finished. A step whose
@@ -276,6 +296,9 @@ function accSteps(): array
 
             return null;
         }],
+        // A picture pass (#716): the media posts wait for, then the rest, then a word on what's left on the old site.
+        'media-rest' => ['media-rest', fn (ImportRun $run): ImportRun => accPicturePass()],
+        'pictures-left' => ['pictures-left', fn (ImportRun $run): ImportRun => accPicturePass()],
         'plugin-options' => ['plugin-options', $alone],
         'plugin-data' => ['plugin-data', function (ImportRun $run): ImportRun {
             // A plugin with data to bring, on a companion that sends it, so the phase has lists to read.

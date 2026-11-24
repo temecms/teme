@@ -21,10 +21,12 @@ use App\Domain\Import\Operations\Input\ImportObjectInput;
 use App\Domain\Import\Operations\Input\RecordImportFailureInput;
 use App\Domain\Import\Operations\Input\RecordImportMessagesInput;
 use App\Domain\Import\Operations\Input\StartImportRunInput;
+use App\Domain\Import\Operations\Input\StartMediaPassInput;
 use App\Domain\Import\Operations\Input\StopImportRunInput;
 use App\Domain\Import\Operations\RecordImportFailure;
 use App\Domain\Import\Operations\RecordImportMessages;
 use App\Domain\Import\Operations\StartImportRun;
+use App\Domain\Import\Operations\StartMediaPass;
 use App\Domain\Import\Operations\StopImportRun;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\SourceRef;
@@ -124,6 +126,8 @@ it('writes nothing for anyone who may not import', function (string $operation):
     $context = app(ImportRuns::class)->context($run, JobActor::person($this->editor->id));
     $item = ['id' => 1, 'login' => 'ada', 'display_name' => 'Ada Lovelace', 'roles' => ['administrator']];
     $editor = (string) $this->editor->id;
+    // An import that brought the articles first, finished, for a picture pass to follow.
+    $articles = ImportRun::query()->create(['source_id' => $this->source->id, 'kind' => ImportRunKind::Full, 'state' => ImportRunState::Finished, 'options' => ['pause_ms' => 0], 'choices' => ['media' => 'later'], 'started_at' => now(), 'high_water_at' => now(), 'ended_at' => now()]);
     $before = ($this->tables)();
 
     $act = match ($operation) {
@@ -131,6 +135,7 @@ it('writes nothing for anyone who may not import', function (string $operation):
         'start with lanes' => fn () => scElevated(fn () => ($this->start)($this->editor, ImportRunKind::Full, ['media_lanes' => 3])),
         'continue' => fn () => scElevated(fn () => app(ContinueImportRun::class)->execute(new ContinueImportRunInput($run->id, $editor))),
         'stop' => fn () => app(StopImportRun::class)->execute(new StopImportRunInput($run->id, $editor)),
+        'pass' => fn () => app(StartMediaPass::class)->execute(new StartMediaPassInput((string) $articles->id, $editor)),
         'advance' => fn () => app(AdvanceImportRun::class)->execute(new AdvanceImportRunInput($run->id, $token, 'fixture-notes', strtolower((string) Str::ulid()), $editor)),
         'finish' => fn () => app(FinishImportRun::class)->execute(new FinishImportRunInput($run->id, $token, $editor)),
         'import an object' => fn () => app(ImportObject::class)->execute(new ImportObjectInput($token, 'fixture-people', $context, SourceRef::of('user', 1), $item, ImportMap::hashOf($item), null)),
@@ -145,6 +150,7 @@ it('writes nothing for anyone who may not import', function (string $operation):
     'starting' => ['start'],
     'starting with media lanes (#701)' => ['start with lanes'],
     'carrying on' => ['continue'],
+    'starting a picture pass (#716)' => ['pass'],
     'stopping' => ['stop'],
     'advancing' => ['advance'],
     'finishing' => ['finish'],

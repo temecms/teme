@@ -31,6 +31,7 @@ use App\Domain\Import\Phases\ImportResult;
 use App\Domain\Import\Phases\ListPhase;
 use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\PreparesObjects;
+use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Phases\Terms\WordPressText;
 use App\Domain\Import\Queries\ImportMap;
@@ -50,7 +51,7 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Teme\Contracts\Settings\SettingsReader;
 
-final readonly class MediaPhase implements ListPhase, PreparesObjects
+final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMediaPass
 {
     /** Attachments a page: a page job starts none after ImportListPage::SECONDS and leaves the rest to the next (#254). */
     public const int PAGE = 20;
@@ -99,16 +100,34 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects
      * of N reads the attachments whose ID leaves k over N, each lane a chain
      * of its own in the phase's batch (#701). A live import reads one list
      * until the companion can page by ranges; that is the one condition to
-     * change then (docs/architecture/import.md).
+     * change then (docs/architecture/import.md). A picture pass of an
+     * export file reads here only the attachments posts wait for, and
+     * MediaRestPhase the rest after them (#716).
      */
     public function lists(ImportContext $context): array
     {
+        $pass = $context->kind === ImportRunKind::MediaPass;
+
+        return $this->listsOf($context, $pass && $context->readsFile() ? 'only' : null);
+    }
+
+    /**
+     * The media lists, of the attachments posts wait for ('only'), of the
+     * others ('without'), or of every one (null).
+     *
+     * @return list<ImportList>
+     *
+     * @since next
+     */
+    public function listsOf(ImportContext $context, ?string $waited): array
+    {
         // Kept on the old site, as links or until the picture pass: nothing is downloaded or recorded here (docs/architecture/import.md).
-        if ($context->keepsOldSiteMedia()) {
+        if ($context->keepsOldSiteMedia() && $context->kind !== ImportRunKind::MediaPass) {
             return [];
         }
 
         $query = $context->modifiedAfter === null ? [] : ['modified_after' => $context->modifiedAfter->utc()->format('Y-m-d H:i:s')];
+        $query = $waited === null ? $query : [...$query, 'waited' => $waited];
 
         $lanes = $context->readsFile() ? max(1, min(self::MAX_LANES, $context->mediaLanes)) : 1;
 

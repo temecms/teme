@@ -325,7 +325,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
      * @param  array<string, mixed>  $item
      * @param  array{status: string, visibility: string|null, trashed: bool, dropped: bool}  $state
      *
-     * @return array{0: ImportedItem, 1: list<ImportMessage>, 2: array{pending_canonical: string|null, missing: bool, waiting: list<string>}}
+     * @return array{0: ImportedItem, 1: list<ImportMessage>, 2: array{pending_canonical: string|null, missing: bool, waiting: list<string>, featured: int|null}}
      *
      * @throws ImportFailed when nobody can own it
      */
@@ -359,6 +359,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
 
         $featured = self::number($item['featured_media'] ?? null);
         $waiting = [];
+        $waitingFeatured = null;
 
         if ($featured > 0 && in_array(BuiltInFields::FEATURED_IMAGE, $supported, true)) {
             $mediaId = (new ImportedMedia($context->sourceId))->attachment($featured);
@@ -372,6 +373,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
                 if ($context->bringsMediaLater()) {
                     $outside = self::outsideFeatured($context, $featured);
                     $waiting = ["a:{$featured}", ...($outside['key'] === null ? [] : [$outside['key']])];
+                    $waitingFeatured = $featured;
 
                     if ($outside['value'] !== null) {
                         $fields[BuiltInFields::FEATURED_IMAGE] = $outside['value'];
@@ -436,7 +438,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             language: $language,
         );
 
-        return [$decided, $notes, ['pending_canonical' => $seo['pendingCanonical'], 'missing' => $missing, 'waiting' => $waiting]];
+        return [$decided, $notes, ['pending_canonical' => $seo['pendingCanonical'], 'missing' => $missing, 'waiting' => $waiting, 'featured' => $waitingFeatured]];
     }
 
     /**
@@ -449,7 +451,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
      * @param  array{status: string, visibility: string|null, trashed: bool, dropped: bool}  $state
      * @param  array{written: string, moved: array{from: string, to: string}|null, taken: int, many: bool, clash: array{from: string, holder: string}|null, links: list<array{from: string, to: string|null}>}  $written
      * @param  list<ImportMessage>  $notes
-     * @param  array{pending_canonical: string|null, missing: bool, waiting: list<string>}  $extra
+     * @param  array{pending_canonical: string|null, missing: bool, waiting: list<string>, featured: int|null}  $extra
      */
     private function result(ImportResult $result, array $item, array $state, Conversion $conversion, array $written, array $notes, array $extra): ImportResult
     {
@@ -477,6 +479,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             'missing' => $extra['missing'],
             // What the post's outside pictures wait for: the picture pass swaps them as each file arrives (#716).
             'waiting_media' => array_values(array_unique([...$conversion->waitingMedia, ...$extra['waiting']])),
+            'waiting_featured' => $extra['featured'],
             'visibility' => $state['visibility'],
             'language' => is_string($item['language'] ?? null) ? $item['language'] : null,
             'translations' => is_array($item['translations'] ?? null) ? $item['translations'] : null,
