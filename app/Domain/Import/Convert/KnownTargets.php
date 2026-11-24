@@ -25,6 +25,7 @@ final readonly class KnownTargets implements SourceTargets
      * @param  array<string, string>  $userSlugs  nicename to Teme person ID
      * @param  array<string, string>  $outside  an image's address on another site to its media ID
      * @param  array<string, list<int>>  $attached  `{post ID}:{type}` to the attached files' WordPress IDs
+     * @param  bool  $oldSiteMedia  whether own images without a library file stay as links to the old site
      */
     public function __construct(
         private array $pages = [],
@@ -35,6 +36,7 @@ final readonly class KnownTargets implements SourceTargets
         private array $userSlugs = [],
         private array $outside = [],
         private array $attached = [],
+        private bool $oldSiteMedia = false,
     ) {}
 
     public function page(string $key): ?array
@@ -70,6 +72,11 @@ final readonly class KnownTargets implements SourceTargets
     public function outsideImage(string $address): ?string
     {
         return $this->outside[$address] ?? null;
+    }
+
+    public function keepsOldSiteMedia(): bool
+    {
+        return $this->oldSiteMedia;
     }
 
     public function attached(int $postId, string $type): array

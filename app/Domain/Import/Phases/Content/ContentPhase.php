@@ -162,7 +162,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             $blocks,
             $this->site,
             new ImportedMedia($context->sourceId),
-            new MapTargets($context->sourceId),
+            new MapTargets($context->sourceId, $context->readsFile() && $context->choice('media') === 'links'),
             new ConversionItem((int) $ref->id, self::shortcodes($item)),
         ), $this->site);
     }

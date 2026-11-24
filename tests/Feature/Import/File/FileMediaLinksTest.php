@@ -2,15 +2,20 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Import\ImportRunState;
+use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportMessageRecord;
+use App\Domain\Media\Models\Media;
 use App\Domain\Redirects\RedirectLookup;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
+use Tests\Fixtures\Import\ExportFiles;
 use Tests\Fixtures\Import\FakeCompanion;
 use Tests\Fixtures\Import\FileImports;
 
@@ -43,4 +48,34 @@ it('says once that media kept on the old site stays there, and counts none of it
         ->and($messages->where('code', 'check.media-kept')->map(fn ($m): array => [$m->level->value, $m->message])->values()->all())->toBe([[
             'warning', '2 media files stay on old.example, as chosen, and 1 post’s featured image: their old addresses and the posts’ images point there, and stop working when that site closes. Import the file again and choose Download to bring them.',
         ]]);
+});
+
+it('keeps an own image not in the export’s attachments as a link when media stays on the old site', function (): void {
+    $src = 'https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg';
+    $bytes = (string) preg_replace_callback('~<item>.*?</item>~s', function (array $item) use ($src): string {
+        if (! str_contains($item[0], '<wp:post_id>12</wp:post_id>')) {
+            return $item[0];
+        }
+
+        return (string) preg_replace(
+            '~<content:encoded><!\[CDATA\[.*?\]\]></content:encoded>~s',
+            '<content:encoded><![CDATA[<!-- wp:image --><figure class="wp-block-image"><img src="'.$src.'" alt="Teeth" class="wp-image-99"/></figure><!-- /wp:image -->]]></content:encoded>',
+            $item[0],
+            1,
+        );
+    }, (string) file_get_contents(ExportFiles::path('companion-site.xml')));
+
+    $run = FileImports::run(FileImports::ready('companion-site.xml', $this->admin, $bytes), ['media' => 'links']);
+    $post = ImportMapEntry::query()->where('object_type', 'post')->where('object_id', '12')->sole();
+    $document = ContentRevision::query()->findOrFail(
+        DB::table('contents')->where('id', $post->teme_id)->value('working_revision_id')
+    )->document;
+    $codes = ImportMessageRecord::query()->where('map_id', $post->id)->orderBy('id')->pluck('code')->all();
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(Media::query()->count())->toBe(0)
+        ->and($codes)->toContain('image.outside')
+        ->and($codes)->not->toContain('image.missing')
+        ->and(json_encode($document, JSON_UNESCAPED_SLASHES))->toContain($src)
+        ->and(json_encode($document))->not->toContain('"type":"image"');
 });

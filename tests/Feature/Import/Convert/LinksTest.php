@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Domain\Cards\DocumentSchema;
+use App\Domain\Import\Convert\Conversion;
 use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Convert\KnownTargets;
+use App\Domain\Import\Convert\SourceTargets;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Fixtures\Convert\WordPressContent;
 
@@ -204,6 +206,45 @@ it('links an image from another site that the choices step did not bring in, its
         WordPressContent::image($this->harbour, 'A dog'),
     ])->and(WordPressContent::said($conversion))->toBe([
         ['image.outside', 'Linked to 2 images on other sites instead of showing them: photos.friend.example.', ['count' => 2, 'hosts' => ['photos.friend.example']]],
+    ]);
+});
+
+it('shows an own image the outside step brought, and still leaves one out when it was not brought', function (): void {
+    $src = 'https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg';
+    $image = fn (?SourceTargets $targets = null): Conversion => WordPressContent::convert([
+        WordPressContent::classic('<p>Before.</p>'),
+        wpBlock('core/image', "<figure class=\"wp-block-image\"><img src=\"{$src}\" alt=\"Teeth\" class=\"wp-image-99\"/></figure>", ['id' => 99]),
+    ], $targets);
+
+    $brought = $image(new KnownTargets(outside: [$src => $this->harbour]));
+    wpAccepted($brought->document);
+    $missing = $image();
+    wpAccepted($missing->document);
+
+    expect(wpWithoutIds($brought->document)['content'])->toBe([
+        WordPressContent::p('Before.'),
+        WordPressContent::image($this->harbour, 'Teeth'),
+    ])->and(WordPressContent::said($brought))->toBe([])
+        ->and(wpWithoutIds($missing->document)['content'])->toBe([WordPressContent::p('Before.')])
+        ->and(WordPressContent::said($missing))->toBe([
+            ['image.missing', 'Left out 1 image that isn’t in Teme’s library: Teeth-Whitening.jpg.', ['count' => 1, 'files' => ['Teeth-Whitening.jpg']]],
+        ]);
+});
+
+it('keeps an own image as a link when media stays on the old site', function (): void {
+    $src = 'https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg';
+
+    $conversion = WordPressContent::convert([
+        WordPressContent::classic('<p>Before.</p>'),
+        wpBlock('core/image', "<figure class=\"wp-block-image\"><img src=\"{$src}\" alt=\"Teeth\" class=\"wp-image-99\"/></figure>", ['id' => 99]),
+    ], new KnownTargets(oldSiteMedia: true));
+    wpAccepted($conversion->document);
+
+    expect(wpWithoutIds($conversion->document)['content'])->toBe([
+        WordPressContent::p('Before.'),
+        WordPressContent::linked('Teeth', $src),
+    ])->and(WordPressContent::said($conversion))->toBe([
+        ['image.outside', 'Linked to 1 image on another site instead of showing it: old.example.', ['count' => 1, 'hosts' => ['old.example']]],
     ]);
 });
 
