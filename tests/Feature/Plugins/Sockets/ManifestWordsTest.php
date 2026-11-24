@@ -158,7 +158,7 @@ it('heads a plugin’s list columns in its Spanish words', function (): void {
 it('shows a plugin’s area in its Spanish words: its menu entry, its pages and a record’s form', function (): void {
     PlacardArea::reset();
     PluginFixtures::use(PluginFixtures::copy('placard', files: [
-        'lang/es.json' => json_encode(['Placard' => 'Cartel', 'Overview' => 'Resumen', 'Ad' => 'Anuncio', 'Basics' => 'Lo básico', 'Name' => 'Nombre'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+        'lang/es.json' => json_encode(['Placard' => 'Cartel', 'Overview' => 'Resumen', 'Ads' => 'Anuncios', 'Ad' => 'Anuncio', 'Basics' => 'Lo básico', 'Name' => 'Nombre'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
     ]));
     app()->instance(LoadedPlugins::class, new LoadedPlugins);
     $manifest = app(PluginRegistry::class)->find('tests/placard')?->manifest;
@@ -171,8 +171,8 @@ it('shows a plugin’s area in its Spanish words: its menu entry, its pages and 
     $plugin = $screen->plugin('placard', $this->admin);
     $form = $plugin === null ? null : app(PluginRecordForm::class)->find($plugin, 'ad', null, (string) $this->admin->id);
 
-    expect($entry['label'] ?? null)->toBe('Cartel')
-        ->and(array_column($plugin === null ? [] : ($screen->frame($plugin, null)['tabs'] ?? []), 'label'))->toBe(['Resumen', 'Ads'])
+    expect($entry['label'] ?? null)->toBe('Anuncios')
+        ->and(array_column($plugin === null ? [] : ($screen->frame($plugin, null)['tabs'] ?? []), 'label'))->toBe(['Resumen', 'Anuncios'])
         ->and($form['record']['label'] ?? null)->toBe('Anuncio')
         ->and($form['sections'][0]['label'] ?? null)->toBe('Lo básico')
         ->and($form['sections'][0]['fields'][0]['label'] ?? null)->toBe('Nombre');
