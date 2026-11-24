@@ -62,6 +62,13 @@ interface SourceTargets
     public function outsideImage(string $address): ?string;
 
     /**
+     * Whether a file import keeps the old site's media at their old
+     * addresses as links, so an own image Teme has no file for stays a
+     * link to that address instead of being left out.
+     */
+    public function keepsOldSiteMedia(): bool;
+
+    /**
      * The WordPress IDs of the files of this type (image, audio, video)
      * attached to this post, in WordPress's order.
      *

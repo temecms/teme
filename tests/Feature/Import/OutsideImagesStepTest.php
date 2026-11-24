@@ -111,11 +111,33 @@ function oisAsked(string $host): int
     return Http::recorded(fn (ApiRequest $request): bool => parse_url($request->url(), PHP_URL_HOST) === $host)->count();
 }
 
-it('does nothing when no outside site is ticked', function (): void {
+it('doesn’t bring another site’s images when none is ticked', function (): void {
     oisRun($this->companion, $this->source, [oisItem(20, '<img src="https://cdn.partner.example/photos/harbour.jpg">')], []);
 
-    expect($this->companion->requestsTo('content'))->toBe([])
-        ->and(Media::query()->count())->toBe(0);
+    expect(Media::query()->count())->toBe(0)
+        ->and(oisAsked('cdn.partner.example'))->toBe(0)
+        ->and(ImportMapEntry::query()->where('object_type', 'outside-image')->count())->toBe(0);
+});
+
+it('brings an own image that isn’t in the media list, with no outside site ticked', function (): void {
+    $this->files['old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg'] = $this->harbour;
+
+    oisRun($this->companion, $this->source, [
+        oisItem(20, '<p><img src="https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg" alt="Teeth"></p>'),
+    ], []);
+    $row = ImportMapEntry::query()->where('object_type', 'outside-image')->sole();
+    $media = Media::query()->sole();
+
+    expect([$row->object_id, $row->outcome, $row->teme_id, $row->facts])->toBe([
+        'old.example/wp-content/uploads/2024/05/teeth-whitening.jpg',
+        ImportOutcome::Created,
+        $media->id,
+        ['host' => 'old.example'],
+    ])
+        ->and([$media->title, $media->alt, $media->source_url])->toBe(['Teeth-Whitening', 'Teeth', 'https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg'])
+        ->and((new ImportedMedia($this->source->id))->outside('https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg?w=640'))->toBe($media->id)
+        ->and(Http::recorded(fn (ApiRequest $request): bool => str_contains($request->url(), 'Teeth-Whitening.jpg'))->count())->toBe(1)
+        ->and(oisSaid())->toBe([]);
 });
 
 it('brings each image from a ticked site once, keyed by its address, and leaves other sites’ images alone (I-1703)', function (): void {

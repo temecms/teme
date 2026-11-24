@@ -53,9 +53,10 @@ function Failed({ line }: { line: string }) {
 
 /**
  * A plugin's own area (docs/plans/plugin-sockets-2.md, A9): headed by the
- * plugin's own name (I-3468), its pages as in-page navigation, then each
- * block top to bottom, each loading on its own. The top bar names only
- * its parent, Tools for an area placed there, so it repeats nothing.
+ * area's own label, with the plugin's name in the badge beside it, its
+ * pages as in-page navigation, then each block top to bottom, each loading
+ * on its own. The top bar names only its parent, Tools for an area placed
+ * there, so it repeats nothing.
  */
 export default function PluginArea(props: PluginAreaPageProps) {
     const { plugin, area, tabs, current, blocks, asks, parent } = props;
@@ -79,10 +80,10 @@ export default function PluginArea(props: PluginAreaPageProps) {
 
     return (
         <>
-            <Head title={`${current.label} · ${plugin.name}`} />
+            <Head title={`${current.label} · ${area.label}`} />
             <PluginAreaPage
                 plugin={{ name: plugin.name }}
-                title={plugin.name}
+                title={area.label}
                 description={area.description || undefined}
                 pages={tabs.map((one) => ({
                     href: PluginAreaController.show.url({

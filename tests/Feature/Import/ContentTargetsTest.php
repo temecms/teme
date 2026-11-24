@@ -119,7 +119,9 @@ it('finds outside images and a postâ€™s attached files through the media importâ
 
     expect($this->targets->attached(12, 'image'))->toBe([41])
         ->and($this->targets->attached(12, 'video'))->toBe([])
-        ->and($this->targets->outsideImage('https://www.cdn.partner.example/photos/harbour.jpg'))->toBe($photo->id);
+        ->and($this->targets->outsideImage('https://www.cdn.partner.example/photos/harbour.jpg'))->toBe($photo->id)
+        ->and($this->targets->keepsOldSiteMedia())->toBeFalse()
+        ->and((new MapTargets($this->sourceId, true))->keepsOldSiteMedia())->toBeTrue();
 });
 
 it('answers each lookup with at most two statements, never reading the whole map', function (): void {

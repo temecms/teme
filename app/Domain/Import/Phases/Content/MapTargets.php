@@ -36,7 +36,7 @@ final readonly class MapTargets implements SourceTargets
     /** The path table's targets an old page can lead to: the kinds of Paths::KINDS but a type's archive page. */
     private const array KINDS = ['content', 'term', 'user'];
 
-    public function __construct(private string $sourceId) {}
+    public function __construct(private string $sourceId, private bool $oldSiteMedia = false) {}
 
     /**
      * Returns what the old page at this key became: an item out of the
@@ -148,6 +148,14 @@ final readonly class MapTargets implements SourceTargets
     public function outsideImage(string $address): ?string
     {
         return (new ImportedMedia($this->sourceId))->outside($address);
+    }
+
+    /**
+     * Returns whether this file import keeps the old site's media as links.
+     */
+    public function keepsOldSiteMedia(): bool
+    {
+        return $this->oldSiteMedia;
     }
 
     /**

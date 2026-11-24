@@ -2,10 +2,11 @@
 
 /**
  * Where plugins' areas show in the admin's menu (docs/plans/plugin-sockets-2.md,
- * A2; I-216, I-3401): one entry each, under the plugin's own name (I-3468),
- * in the task section it names, at most five site-wide in the order they
- * were enabled; an area that asks for Tools, or comes sixth or later, is a
- * card on the Tools hub. Budgets place entries; they never refuse a plugin.
+ * A2; I-216, I-3401): one entry each, under the area's own label, in the task
+ * section it names, at most five site-wide in the order they were enabled; an
+ * area that asks for Tools, or comes sixth or later, is a card on the Tools
+ * hub (area label, plugin name as the badge). Budgets place entries; they
+ * never refuse a plugin.
  *
  * @package Teme
  * @since   1.0.0
@@ -42,7 +43,7 @@ final readonly class AreaEntries
         foreach ($this->placed()['menu'] as $index => $plugin) {
             $entries[] = new NavEntry(
                 key: "plugin.{$plugin->code}",
-                label: $plugin->label,
+                label: $this->areaLabel($plugin),
                 icon: 'plug',
                 section: $plugin->area->menu === 'content' ? NavSection::Content : NavSection::Site,
                 order: self::ORDER + $index,
@@ -58,7 +59,8 @@ final readonly class AreaEntries
 
     /**
      * The Tools hub's cards for the areas that aren't in the menu, those
-     * this person may open, by the plugin's name.
+     * this person may open, by the area's label with the plugin's name as
+     * the badge.
      *
      * @return list<array{key: string, label: string, icon: string, description: string, href: string, external: bool, plugin: string}>
      */
@@ -73,18 +75,32 @@ final readonly class AreaEntries
 
             $cards[] = [
                 'key' => "plugin.{$plugin->code}.area",
-                'label' => $plugin->label,
+                'label' => $this->areaLabel($plugin),
                 'icon' => 'plug',
-                'description' => AreaWords::text($plugin->code, $plugin->area->description !== '' ? $plugin->area->description : $plugin->area->label),
+                'description' => $plugin->area->description !== ''
+                    ? AreaWords::text($plugin->code, $plugin->area->description)
+                    : $this->areaLabel($plugin),
                 'href' => route('plugins.area.show', ['code' => $plugin->code], false),
                 'external' => false,
                 'plugin' => $plugin->label,
             ];
         }
 
-        usort($cards, fn (array $a, array $b): int => strnatcasecmp($a['label'], $b['label']));
+        usort($cards, function (array $a, array $b): int {
+            $byLabel = strnatcasecmp($a['label'], $b['label']);
+
+            return $byLabel !== 0 ? $byLabel : strnatcasecmp($a['plugin'], $b['plugin']);
+        });
 
         return $cards;
+    }
+
+    /**
+     * The area's label as the person reads it.
+     */
+    private function areaLabel(AreaPlugin $plugin): string
+    {
+        return AreaWords::text($plugin->code, $plugin->area->label);
     }
 
     /**
