@@ -9,7 +9,7 @@ import { ListPage } from '@/components/patterns/list-page';
 import { StatusPill } from '@/components/ui/status-pill';
 import { TermChips } from '@/components/ui/term-chips';
 import { useSectionCrumb } from '@/lib/crumbs';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
 import { edit as editContent } from '@/routes/content';
 import { index as regionsIndex } from '@/routes/regions';
 import type {
@@ -154,12 +154,23 @@ export default function RegionsIndex({
             id: 'theme',
             owner: 'core',
             header: 'Theme',
-            cell: (row) =>
-                row.themeName ?? (
-                    <span className="text-ink-2">
-                        Theme no longer installed
-                    </span>
-                ),
+            cell: (row) => (
+                <span className="grid gap-0.5">
+                    {row.themeName ?? (
+                        <span className="text-ink-2">
+                            Theme no longer installed
+                        </span>
+                    )}
+                    {row.themeCards > 0 && (
+                        <span className="text-ink-2 text-small">
+                            {__n(
+                                ':count theme card kept|:count theme cards kept',
+                                row.themeCards,
+                            )}
+                        </span>
+                    )}
+                </span>
+            ),
         },
         {
             id: 'state',

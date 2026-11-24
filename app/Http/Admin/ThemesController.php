@@ -32,8 +32,10 @@ use App\Domain\Extensions\ExtensionsAccess;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Regions\Queries\RegionScreens;
 use App\Domain\Regions\RegionWords;
+use App\Domain\Themes\ActiveTheme;
 use App\Domain\Themes\Theme;
 use App\Domain\Themes\ThemeRegistry;
+use App\Domain\Themes\ThemeSwitchNotes;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -46,16 +48,19 @@ use Teme\Contracts\Settings\Setting;
 
 final class ThemesController extends Controller
 {
-    public function index(Request $request, DesignScreen $screen, RegionScreens $regions, ThemeRegistry $themes, ExtensionsScreen $extensions): Response
+    public function index(Request $request, DesignScreen $screen, RegionScreens $regions, ThemeRegistry $themes, ExtensionsScreen $extensions, ActiveTheme $active, ThemeSwitchNotes $notes): Response
     {
         $data = $screen->data();
         $previewed = $data['preview'] === null ? null : $themes->find($data['preview']['code']);
+        $current = $active->get();
 
         return Inertia::render('themes/index', [
             ...$data,
             'regions' => $regions->index(),
             'previewRegions' => $previewed === null ? null : $regions->forTheme($previewed),
             'canEditRegions' => $request->user()?->can('regions.manage') === true,
+            // What a switch away from the active theme hides: its own cards, which draw only while it is active.
+            'hiddenCards' => $current === null ? [] : $notes->hiddenByLeaving($current),
             // Installing from the admin (I-211), for whoever may.
             'extensions' => $request->user()?->can(ExtensionsAccess::INSTALL) === true ? $extensions->data() : null,
         ]);
@@ -123,11 +128,16 @@ final class ThemesController extends Controller
      */
     public function activate(Request $request, string $code, ActivateTheme $activate, RegionScreens $regions): RedirectResponse
     {
+        $leaving = app(ActiveTheme::class)->get();
+        $hidden = $leaving === null || $leaving->code === $code ? [] : app(ThemeSwitchNotes::class)->hiddenByLeaving($leaving);
+
         /** @var Theme $theme */
         $theme = $activate->execute(new ActivateThemeInput($code, (string) $request->user()?->getAuthIdentifier()));
         $empty = array_filter($regions->forTheme($theme)['regions'], fn (array $region): bool => $region['state'] === 'empty');
+        $kept = array_sum(array_column($hidden, 'regions'));
+        $message = RegionWords::live($theme->manifest?->name() ?? $theme->code, count($empty));
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => RegionWords::live($theme->manifest?->name() ?? $theme->code, count($empty))]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => $kept === 0 ? $message : $message.' '.RegionWords::keptCards($kept)]);
 
         return to_route('themes.index');
     }

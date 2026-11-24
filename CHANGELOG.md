@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file. Versioning foll
 ### Added
 
 - Plugins can offer cards for a theme's regions, such as an ad slot or a sign-up form. Editors add them from the region's Add card list, fill in their settings and publish them with the region. A disabled plugin's cards stay in the region, show nothing on the site, and come back when it is enabled again.
+- Themes can bring their own cards for their regions, such as an author bio. Editors add them from Add card under the theme's name. A theme's cards show only while that theme is in use; on a switch they are kept with its regions, counted under Regions › Other themes, and Themes says before the switch which cards it hides.
 
 ### Changed
 

@@ -1,6 +1,6 @@
 import { useHttp } from '@inertiajs/react';
 import type { ReactNodeViewProps } from '@tiptap/react';
-import { Plug } from 'lucide-react';
+import { Palette, Plug } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import PluginCardChoicesController from '@/actions/App/Http/Admin/Contents/PluginCardChoicesController';
@@ -10,7 +10,7 @@ import type { ComboboxOption } from '@/components/ui/combobox';
 import { IconTile } from '@/components/ui/icon-tile';
 import { Label } from '@/components/ui/label';
 import { __ } from '@/lib/i18n';
-import type { FieldDefinition, PluginCardEntry } from '@/types';
+import type { FieldDefinition, PluginCardEntry, ThemeCardEntry } from '@/types';
 import { CardFrame } from './card-frame';
 import { useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
@@ -159,7 +159,6 @@ export function PluginCardSettings({ attrs, update }: CardSettingsProps) {
     const key = (attrs.card as string | null) ?? '';
     const card = usePluginCard(key);
     const values = valuesOf(attrs);
-    const form = useRef<HTMLFormElement>(null);
 
     if (card === null) {
         return (
@@ -171,6 +170,34 @@ export function PluginCardSettings({ attrs, update }: CardSettingsProps) {
         );
     }
 
+    return (
+        <CardFields
+            cardKey={key}
+            fields={card.fields}
+            values={values}
+            update={update}
+        />
+    );
+}
+
+/**
+ * A plugin's or theme's card's fields, drawn as plugin settings are: the
+ * controls write into a form, and after each change the card keeps what the
+ * form holds; a choice field writes its own value.
+ */
+function CardFields({
+    cardKey,
+    fields,
+    values,
+    update,
+}: {
+    cardKey: string;
+    fields: CardField[];
+    values: Record<string, unknown>;
+    update: CardSettingsProps['update'];
+}) {
+    const form = useRef<HTMLFormElement>(null);
+
     // Controls write into the form; after each change, the card keeps what the form holds.
     const sync = (): void => {
         window.setTimeout(() => {
@@ -181,7 +208,7 @@ export function PluginCardSettings({ attrs, update }: CardSettingsProps) {
             const data = new FormData(form.current);
             const next: Record<string, unknown> = {};
 
-            for (const field of card.fields) {
+            for (const field of fields) {
                 const value =
                     field.type === 'choice'
                         ? values[field.key]
@@ -206,11 +233,11 @@ export function PluginCardSettings({ attrs, update }: CardSettingsProps) {
             onClickCapture={sync}
             onKeyUpCapture={sync}
         >
-            {card.fields.map((field) =>
+            {fields.map((field) =>
                 field.type === 'choice' ? (
                     <ChoiceField
                         key={field.key}
-                        card={key}
+                        card={cardKey}
                         field={field}
                         value={
                             typeof values[field.key] === 'string'
@@ -334,5 +361,116 @@ function ChoiceField({
                 </p>
             )}
         </div>
+    );
+}
+
+/** The theme's card this node holds, from the manifest; null once its theme isn't installed. */
+function useThemeCard(key: string): ThemeCardEntry | null {
+    return (
+        useCardEnvironment().manifest.themeCards.find(
+            (card) => card.key === key,
+        ) ?? null
+    );
+}
+
+/**
+ * A theme's own card in one of its regions (docs/guides/developers/themes/regions.md):
+ * its theme's name and its fields, drawn as plugin settings are. Once its
+ * theme isn't installed, the card is kept, greyed, read-only, and can be
+ * removed.
+ */
+export function ThemeCardView({
+    node,
+    selected,
+    updateAttributes,
+    deleteNode,
+}: ReactNodeViewProps) {
+    const key = (node.attrs.card as string | null) ?? '';
+    const card = useThemeCard(key);
+    const values = valuesOf(node.attrs);
+    const first = card?.fields.find(
+        (field) =>
+            typeof values[field.key] === 'string' && values[field.key] !== '',
+    );
+    const settings = (
+        <ThemeCardSettings attrs={node.attrs} update={updateAttributes} />
+    );
+
+    if (card === null) {
+        return (
+            <CardFrame
+                label={__('Theme card')}
+                selected={selected}
+                onRemove={deleteNode}
+                settings={settings}
+            >
+                <div
+                    data-test="theme-card-off"
+                    className="flex min-w-0 items-start gap-3 opacity-60"
+                >
+                    <IconTile icon={Palette} />
+                    <p className="text-ink-2 text-small min-w-0">
+                        {__(
+                            'From the :theme theme, which isn’t installed. Kept here; it shows nothing on the site.',
+                            { theme: codeOf(key) },
+                        )}
+                    </p>
+                </div>
+            </CardFrame>
+        );
+    }
+
+    return (
+        <CardFrame
+            label={card.label}
+            selected={selected}
+            onRemove={deleteNode}
+            defaultOpen={
+                Object.keys(values).length === 0 && card.fields.length > 0
+            }
+            preview={
+                first === undefined ? undefined : String(values[first.key])
+            }
+            settings={settings}
+        >
+            <div className="flex min-w-0 items-start gap-3">
+                <IconTile icon={Palette} />
+                <div className="grid min-w-0 gap-1">
+                    <p className="text-ink truncate font-semibold">
+                        {first === undefined
+                            ? card.label
+                            : String(values[first.key])}
+                    </p>
+                    <p className="text-ink-2 text-small">
+                        {__('From the :theme theme', { theme: card.themeName })}
+                    </p>
+                </div>
+            </div>
+        </CardFrame>
+    );
+}
+
+/** A theme card's fields, in the card's panel or the rail's inspector. */
+export function ThemeCardSettings({ attrs, update }: CardSettingsProps) {
+    const key = (attrs.card as string | null) ?? '';
+    const card = useThemeCard(key);
+
+    if (card === null) {
+        return (
+            <p className="text-ink-2 text-small">
+                {__(
+                    'Its theme isn’t installed, so its settings can’t be changed here. Remove the card, or install the theme again.',
+                )}
+            </p>
+        );
+    }
+
+    return (
+        <CardFields
+            cardKey={key}
+            fields={card.fields}
+            values={valuesOf(attrs)}
+            update={update}
+        />
     );
 }

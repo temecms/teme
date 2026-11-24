@@ -367,12 +367,43 @@
         },
         "cards": {
             "type": "object",
-            "description": "Cards the theme styles itself.",
+            "description": "Cards the theme styles itself, and cards it brings for its own regions.",
             "properties": {
                 "replaces": {
                     "type": "array",
                     "items": { "type": "string" },
                     "description": "Registered card names whose core stylesheets the theme replaces with its own."
+                },
+                "provides": {
+                    "type": "object",
+                    "maxProperties": 12,
+                    "propertyNames": { "pattern": "^[a-z][a-z0-9-]{1,40}$" },
+                    "description": "Cards the theme brings for its own regions, by id, at most 12. Each is drawn by views/cards/own/{id}.blade.php while the theme is active; its key is code:id, and a region's cards name it by its id.",
+                    "additionalProperties": {
+                        "type": "object",
+                        "required": ["label", "description"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "label": { "type": "string", "minLength": 1, "maxLength": 40, "description": "The card's name in Add card." },
+                            "description": { "type": "string", "minLength": 1, "maxLength": 160, "description": "One sentence on what the card shows." },
+                            "icon": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,40}$", "description": "A Lucide icon's name; a square when it isn't one the editor knows." },
+                            "keywords": { "type": "array", "maxItems": 10, "items": { "type": "string", "minLength": 1, "maxLength": 40 }, "description": "Words Add card also finds the card by." },
+                            "fields": {
+                                "type": "array",
+                                "maxItems": 20,
+                                "description": "The card's fields, declared as a plugin card's are, without choice.",
+                                "items": {
+                                    "type": "object",
+                                    "required": ["key", "type", "label"],
+                                    "properties": {
+                                        "key": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,40}$", "description": "The field's key." },
+                                        "type": { "enum": ["text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "color", "person", "term", "type"] },
+                                        "label": { "type": "string", "description": "The name people see." }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },

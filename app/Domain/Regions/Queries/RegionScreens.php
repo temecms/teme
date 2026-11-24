@@ -18,6 +18,7 @@ namespace App\Domain\Regions\Queries;
 
 use App\Domain\Cards\CardRegistry;
 use App\Domain\Cards\Plugin\PluginCards;
+use App\Domain\Cards\Theme\ThemeCards;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Regions\RegionWords;
 use App\Domain\Themes\ActiveTheme;
@@ -39,7 +40,7 @@ final readonly class RegionScreens
      * The index: the active theme's regions in its manifest's order, and the
      * regions kept from other themes.
      *
-     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, cards: list<string>, cardLabels: list<string>, max: int, limit: string, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null}>}
+     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, cards: list<string>, cardLabels: list<string>, max: int, limit: string, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null, themeCards: int}>}
      */
     public function index(): array
     {
@@ -52,7 +53,7 @@ final readonly class RegionScreens
      * every other theme's rows, or every row with no theme. Site › Themes
      * reads it for a theme being previewed, whose rows were kept (I-228).
      *
-     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, cards: list<string>, cardLabels: list<string>, max: int, limit: string, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null}>}
+     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, cards: list<string>, cardLabels: list<string>, max: int, limit: string, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null, themeCards: int}>}
      */
     public function forTheme(?Theme $theme): array
     {
@@ -68,7 +69,7 @@ final readonly class RegionScreens
 
         foreach ($declared as $key => $region) {
             $row = $rows->pull(RegionDeclarations::slug($theme->code, $key));
-            $names = RegionDeclarations::names($region['cards']);
+            $names = RegionDeclarations::names($region['cards'], $theme->code);
 
             $regions[] = [
                 'key' => $key,
@@ -84,9 +85,11 @@ final readonly class RegionScreens
         }
 
         $others = [];
+        $documents = DB::table('content_revisions')->whereIn('id', $rows->pluck('working_revision_id')->filter()->all())->pluck('document', 'id');
 
         foreach ($rows as $slug => $row) {
             $owner = $this->owner((string) $slug);
+            $document = json_decode((string) ($documents[$row->working_revision_id] ?? 'null'), true);
 
             $others[] = [
                 'slug' => (string) $slug,
@@ -94,6 +97,8 @@ final readonly class RegionScreens
                 'themeName' => $owner?->manifest?->name(),
                 'state' => self::state($row),
                 'editedAt' => (string) $row->updated_at,
+                // The theme's own cards it keeps, shown again when the theme is (docs/guides/developers/themes/regions.md).
+                'themeCards' => $owner === null || ! is_array($document) ? 0 : count(ThemeCards::placedIn($document, $owner->code)),
             ];
         }
 
@@ -128,7 +133,7 @@ final readonly class RegionScreens
             return null;
         }
 
-        $names = RegionDeclarations::names($declared['cards']);
+        $names = RegionDeclarations::names($declared['cards'], $owner->code);
 
         return [
             'label' => $declared['label'],
@@ -171,7 +176,9 @@ final readonly class RegionScreens
     {
         $plugins = app(PluginCards::class);
 
-        return array_map(fn (string $name): string => $this->cards->find($name)?->label() ?? $plugins->find($name)->label ?? $name, $names);
+        $themes = app(ThemeCards::class);
+
+        return array_map(fn (string $name): string => $this->cards->find($name)?->label() ?? $plugins->find($name)->label ?? $themes->find($name)->label ?? $name, $names);
     }
 
     /**

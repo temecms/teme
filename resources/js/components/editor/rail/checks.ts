@@ -614,9 +614,10 @@ export function regionFacts(input: RegionChecksInput): RegionFacts {
     );
     const refused: string[] = [];
     const walk = (node: Node) => {
-        // A plugin's card is known by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
+        // A plugin's or theme's card is known by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
         const type =
-            node.type === 'plugin-card' && typeof node.attrs?.card === 'string'
+            (node.type === 'plugin-card' || node.type === 'theme-card') &&
+            typeof node.attrs?.card === 'string'
                 ? node.attrs.card
                 : (node.type ?? '');
 

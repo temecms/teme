@@ -26,6 +26,8 @@ export type OtherRegionRow = {
     themeName: string | null;
     state: RegionState;
     editedAt: string | null;
+    /** How many of its theme's own cards it keeps, which come back with that theme. */
+    themeCards: number;
 };
 
 export type RegionsIndexPage = {

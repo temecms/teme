@@ -100,6 +100,8 @@ export type DesignPage = {
     previewRegions: RegionsIndexPage | null;
     /** Whether the viewer may edit regions, so each links to where it is edited. */
     canEditRegions: boolean;
+    /** The active theme's own cards its regions hold, which a switch away hides. */
+    hiddenCards: HiddenThemeCard[];
     /** Installing from the admin; null for anyone who may not install. */
     extensions: ExtensionsData | null;
 };
@@ -107,5 +109,18 @@ export type DesignPage = {
 /** A theme's own settings page: what Themes sends, without the regions. */
 export type DesignSettingsPage = Omit<
     DesignPage,
-    'regions' | 'previewRegions' | 'canEditRegions' | 'extensions'
+    | 'regions'
+    | 'previewRegions'
+    | 'canEditRegions'
+    | 'hiddenCards'
+    | 'extensions'
 >;
+
+/** One of the active theme's own cards that a switch hides (ThemeSwitchNotes::hiddenByLeaving). */
+export type HiddenThemeCard = {
+    /** "{theme}:{id}". */
+    card: string;
+    label: string;
+    /** How many of the theme's regions hold it. */
+    regions: number;
+};

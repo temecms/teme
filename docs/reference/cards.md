@@ -227,3 +227,17 @@ Since 1.5.0. Registered by `core`.
 
 Refers to: nothing.
 
+## `theme-card` — Theme card
+
+A card a theme brings for its own regions, filled in with the fields the theme declares and drawn by the theme.
+
+Since 1.5.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `card` | required, string, regex:/^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{1,40}$/ | — |
+| `values` | array, max:40 | `[]` |
+
+Refers to: nothing.
+

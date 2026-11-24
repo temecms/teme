@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
+import { __n } from '@/lib/i18n';
 import { edit as editContent } from '@/routes/content';
 import { index as regionsIndex } from '@/routes/regions';
 import type { RegionState, RegionsIndexPage } from '@/types';
@@ -170,6 +171,8 @@ export function ThemeRegions({
                                         ? 'Theme no longer installed'
                                         : `From ${row.themeName}`}{' '}
                                     · {STATES[row.state]}
+                                    {row.themeCards > 0 &&
+                                        ` · ${__n(':count theme card kept|:count theme cards kept', row.themeCards)}`}
                                 </span>
                             </li>
                         ))}

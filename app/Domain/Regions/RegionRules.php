@@ -3,8 +3,8 @@
 /**
  * What a region's document may hold, from its theme's declaration: only the
  * cards the region allows, at any depth, every card the menus offer when it
- * doesn't narrow them, a plugin's card by its key, and at most `max`
- * top-level blocks.
+ * doesn't narrow them, a plugin's or the theme's own card by its key, and
+ * at most `max` top-level blocks.
  * Prose is always allowed. DocumentValidator applies it when a region is
  * saved, and PublishRevision again when it's published, against the
  * declaration as it is then.
@@ -22,6 +22,7 @@ use App\Domain\Cards\CardRegistry;
 use App\Domain\Cards\CardType;
 use App\Domain\Cards\Exceptions\InvalidDocumentException;
 use App\Domain\Cards\Plugin\PluginCardNode;
+use App\Domain\Cards\Theme\ThemeCardNode;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Types\CoreTypes;
@@ -31,11 +32,13 @@ final readonly class RegionRules
     /**
      * @param  '*'|list<string>  $cards  "*" for every card
      * @param  bool  $publishing  says a refusal comes from a declaration narrowed since the save
+     * @param  string|null  $theme  the region's theme's code, whose own cards alone it takes
      */
     public function __construct(
         public string|array $cards,
         public int $max,
         public bool $publishing = false,
+        public ?string $theme = null,
     ) {}
 
     /**
@@ -66,7 +69,7 @@ final readonly class RegionRules
             $declared = $declarations->for($theme)[substr($slug, strlen($prefix))] ?? null;
 
             if ($declared !== null) {
-                return new self($declared['cards'], $declared['max'], $publishing);
+                return new self($declared['cards'], $declared['max'], $publishing, $theme->code);
             }
         }
 
@@ -96,12 +99,18 @@ final readonly class RegionRules
 
     /**
      * Whether the region takes this card: by its name, or for "*" any card
-     * the menus offer and any plugin's card.
+     * the menus offer, any plugin's card and any card its own theme brings.
+     * Another theme's card never; one that names no card yet is left to
+     * its attributes' rules.
      */
     private function allows(CardType $card, string $name): bool
     {
+        if ($card instanceof ThemeCardNode && $name !== '' && ($this->theme === null || ! str_starts_with($name, $this->theme.':'))) {
+            return false;
+        }
+
         if ($this->cards === RegionDeclarations::EVERY) {
-            return $card instanceof PluginCardNode || $card->menu()->inMenus;
+            return $card instanceof PluginCardNode || $card instanceof ThemeCardNode || $card->menu()->inMenus;
         }
 
         return in_array($name, $this->cards, true);
@@ -119,8 +128,8 @@ final readonly class RegionRules
 
             $type = (string) ($node['type'] ?? '');
             $card = $cards->find($type);
-            // A plugin's card is allowed by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
-            $name = $card instanceof PluginCardNode && is_array($node['attrs'] ?? null) ? (string) ($node['attrs']['card'] ?? '') : $type;
+            // A plugin's or a theme's card is allowed by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
+            $name = ($card instanceof PluginCardNode || $card instanceof ThemeCardNode) && is_array($node['attrs'] ?? null) ? (string) ($node['attrs']['card'] ?? '') : $type;
 
             if ($card !== null && ! $this->allows($card, $name)) {
                 throw InvalidDocumentException::at("{$path}.{$index}", $this->publishing

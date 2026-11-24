@@ -39,6 +39,23 @@ export type CardManifest = {
     imageSizes: Record<string, string>;
     /** The running plugins' cards for a theme's regions, each stored as a plugin-card node. */
     pluginCards: PluginCardEntry[];
+    /** Every installed theme's own cards, each stored as a theme-card node and offered only in its theme's regions. */
+    themeCards: ThemeCardEntry[];
+};
+
+/** One card a theme brings for its regions (CardManifest::forBrowser, docs/guides/developers/themes/regions.md). */
+export type ThemeCardEntry = {
+    /** "{theme}:{id}", as the theme-card node's `card` holds it. */
+    key: string;
+    theme: string;
+    /** The theme's name. */
+    themeName: string;
+    label: string;
+    description: string;
+    icon: string;
+    keywords: string[];
+    /** Drawn as plugin settings are. */
+    fields: FieldDefinition[];
 };
 
 /** One card a running plugin offers (CardManifest::forBrowser, docs/guides/developers/plugins/cards.md). */

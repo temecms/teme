@@ -81,8 +81,8 @@ it('marks the region cards, and only them, as region cards for the editor', func
     $cards = collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->pluck('regionOnly', 'name')->all();
     $regionOnly = array_keys(array_filter($cards));
 
-    expect($regionOnly)->toEqualCanonicalizing(['site-code', 'featured-posts', 'plugin-card'])
-        ->and(array_filter(app(CardRegistry::class)->all(), fn ($card): bool => $card instanceof RegionCard))->toHaveCount(3)
+    expect($regionOnly)->toEqualCanonicalizing(['site-code', 'featured-posts', 'plugin-card', 'theme-card'])
+        ->and(array_filter(app(CardRegistry::class)->all(), fn ($card): bool => $card instanceof RegionCard))->toHaveCount(4)
         ->and(collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->firstWhere('name', 'featured-posts'))
         ->toMatchArray(['label' => 'Featured posts', 'menuLabel' => 'Featured posts', 'icon' => 'list', 'inMenus' => true])
         ->and(collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->firstWhere('name', 'site-code'))

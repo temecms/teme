@@ -356,9 +356,15 @@ final class ContributionsValidator implements ContributionsCheck
     }
 
     /**
+     * What's wrong with a card's fields, as a plugin's or a theme's manifest
+     * declares them; a theme's can't be a choice, which only a plugin's
+     * class can offer the options of.
+     *
      * @return list<string>
+     *
+     * @since next
      */
-    private function cardFieldErrors(mixed $fields, string $version): array
+    public function cardFieldErrors(mixed $fields, string $version, bool $choice = true): array
     {
         if (! is_array($fields) || ! array_is_list($fields) || count($fields) > self::MOST_CARD_FIELDS) {
             return [__('A card’s fields are a list of at most 20.')];
@@ -371,7 +377,7 @@ final class ContributionsValidator implements ContributionsCheck
             $field = is_array($field) ? $field : [];
             $key = is_string($field['key'] ?? null) ? $field['key'] : null;
 
-            if (! in_array($field['type'] ?? null, self::CARD_FIELD_TYPES, true)) {
+            if (! in_array($field['type'] ?? null, self::CARD_FIELD_TYPES, true) || (! $choice && $field['type'] === 'choice')) {
                 $errors[] = __('A card’s field can’t be of the type :type.', ['type' => is_scalar($field['type'] ?? null) ? (string) $field['type'] : '']);
 
                 continue;

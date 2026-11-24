@@ -10,6 +10,7 @@ import type {
     CardManifestEntry,
     EditorDocument,
     PluginCardEntry,
+    ThemeCardEntry,
 } from '@/types';
 import { blockName } from './block-actions';
 import type { TopBlock } from './block-actions';
@@ -123,6 +124,7 @@ export function ProseEditor({
     cards,
     menuCards,
     menuPluginCards,
+    menuThemeCards = [],
     contentType,
     status,
     permissions,
@@ -142,6 +144,8 @@ export function ProseEditor({
     menuCards?: CardManifestEntry[];
     /** The plugins' cards the menus offer, when fewer than every one: a narrowed theme region's. */
     menuPluginCards?: PluginCardEntry[];
+    /** The region's theme's own cards the menus offer: none outside a theme's region. */
+    menuThemeCards?: ThemeCardEntry[];
     contentType: string;
     status: string;
     permissions: Record<string, boolean>;
@@ -248,6 +252,7 @@ export function ProseEditor({
                 editor={editor}
                 cards={shown}
                 pluginCards={menuPluginCards ?? pluginCards}
+                themeCards={menuThemeCards}
                 context={context}
                 request={picker}
                 onClose={closePicker}

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Cards;
 
 use App\Domain\Cards\Plugin\PluginCards;
+use App\Domain\Cards\Theme\ThemeCards;
 use App\Domain\Plugins\ManifestText;
 use App\Domain\Settings\Queries\SettingsForm;
 use App\Domain\Themes\ActiveTheme;
@@ -29,6 +30,7 @@ final class CardManifest
      *     embedProviders: list<array{name: string, match: string, frame: string, kind: string}>,
      *     imageSizes: array<string, string>,
      *     pluginCards: list<array{key: string, code: string, plugin: string, label: string, description: string, icon: string, keywords: list<string>, fields: list<array<string, mixed>>}>,
+     *     themeCards: list<array{key: string, theme: string, themeName: string, label: string, description: string, icon: string, keywords: list<string>, fields: list<array<string, mixed>>}>,
      * }
      */
     public static function forBrowser(CardRegistry $registry): array
@@ -74,7 +76,7 @@ final class CardManifest
         // the sizes the site's do (I-245).
         $imageSizes = app(ActiveTheme::class)->get()?->manifest?->images() ?? [];
 
-        return ['cards' => $cards, 'embedProviders' => $providers, 'imageSizes' => $imageSizes, 'pluginCards' => self::pluginCards()];
+        return ['cards' => $cards, 'embedProviders' => $providers, 'imageSizes' => $imageSizes, 'pluginCards' => self::pluginCards(), 'themeCards' => self::themeCards()];
     }
 
     /**
@@ -115,6 +117,34 @@ final class CardManifest
                 'icon' => $definition->icon,
                 'keywords' => $definition->keywords,
                 'fields' => $fields,
+            ];
+        }
+
+        return $cards;
+    }
+
+    /**
+     * Every installed theme's cards, each with its theme's name and its
+     * fields as the settings form draws them, so a region kept from another
+     * theme still shows what it holds (docs/guides/developers/themes/regions.md).
+     *
+     * @return list<array{key: string, theme: string, themeName: string, label: string, description: string, icon: string, keywords: list<string>, fields: list<array<string, mixed>>}>
+     */
+    private static function themeCards(): array
+    {
+        $form = app(SettingsForm::class);
+        $cards = [];
+
+        foreach (app(ThemeCards::class)->all() as $definition) {
+            $cards[] = [
+                'key' => $definition->key(),
+                'theme' => $definition->theme,
+                'themeName' => $definition->themeName,
+                'label' => $definition->label,
+                'description' => $definition->description,
+                'icon' => $definition->icon,
+                'keywords' => $definition->keywords,
+                'fields' => array_map($form->fieldOf(...), $definition->fields),
             ];
         }
 

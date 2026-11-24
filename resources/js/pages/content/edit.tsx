@@ -158,6 +158,13 @@ export default function ContentEdit(page: ContentEditPage) {
             : page.manifest.pluginCards.filter((card) =>
                   allowed.includes(card.key),
               );
+    // A theme's own card, by its key, only in that theme's regions (docs/guides/developers/themes/regions.md).
+    const menuThemeCards =
+        allowed === null
+            ? []
+            : page.manifest.themeCards.filter((card) =>
+                  allowed.includes(card.key),
+              );
 
     const [title, setTitle] = useState(session.title);
     // A canonical naming an item gone from the site is let go as the editor
@@ -938,6 +945,10 @@ export default function ContentEdit(page: ContentEditPage) {
                               card.key,
                               card.label,
                           ]),
+                          ...page.manifest.themeCards.map((card) => [
+                              card.key,
+                              card.label,
+                          ]),
                       ]),
                   }),
         [
@@ -947,6 +958,7 @@ export default function ContentEdit(page: ContentEditPage) {
             allowed,
             page.manifest.cards,
             page.manifest.pluginCards,
+            page.manifest.themeCards,
         ],
     );
 
@@ -1607,6 +1619,7 @@ export default function ContentEdit(page: ContentEditPage) {
                                     cards={page.manifest.cards}
                                     menuCards={menuCards}
                                     menuPluginCards={menuPluginCards}
+                                    menuThemeCards={menuThemeCards}
                                     contentType={session.type}
                                     status={status}
                                     permissions={session.can}

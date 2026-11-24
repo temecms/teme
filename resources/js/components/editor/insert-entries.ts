@@ -1,6 +1,10 @@
 import type { Editor } from '@tiptap/core';
 import { ulid } from '@/lib/ulid';
-import type { CardManifestEntry, PluginCardEntry } from '@/types';
+import type {
+    CardManifestEntry,
+    PluginCardEntry,
+    ThemeCardEntry,
+} from '@/types';
 import type { RegionEntry } from './region-entry';
 
 /** The theme region's type, the only one a region card is offered in. */
@@ -58,17 +62,18 @@ export function cardEntries(cards: CardManifestEntry[]): RegionEntry[] {
         }));
 }
 
-/** Inserts a new plugin card of this kind, with a fresh ID and no values yet, and selects it. */
-export function insertPluginCard(editor: Editor, card: PluginCardEntry): void {
+/** Inserts a new plugin's or theme's card of this kind, with a fresh ID and no values yet, and selects it. */
+export function insertDeclaredCard(
+    editor: Editor,
+    type: 'plugin-card' | 'theme-card',
+    key: string,
+): void {
     const id = ulid();
 
     editor
         .chain()
         .focus()
-        .insertContent({
-            type: 'plugin-card',
-            attrs: { id, card: card.key, values: {} },
-        })
+        .insertContent({ type, attrs: { id, card: key, values: {} } })
         .run();
 
     editor.state.doc.descendants((node, pos) => {
@@ -95,6 +100,26 @@ export function pluginCardEntries(cards: PluginCardEntry[]): RegionEntry[] {
         order: 500 + index,
         keywords: [...card.keywords, card.plugin],
         when: (context) => context.contentType === REGION,
-        run: ({ editor }) => insertPluginCard(editor, card),
+        run: ({ editor }) =>
+            insertDeclaredCard(editor, 'plugin-card', card.key),
+    }));
+}
+
+/**
+ * The region's theme's own cards, offered only in a theme's region, under
+ * the theme (docs/guides/developers/themes/regions.md).
+ */
+export function themeCardEntries(cards: ThemeCardEntry[]): RegionEntry[] {
+    return cards.map((card, index): RegionEntry => ({
+        id: `theme-card:${card.key}`,
+        owner: `theme:${card.theme}`,
+        label: card.label,
+        description: card.description,
+        icon: card.icon,
+        group: card.themeName,
+        order: 400 + index,
+        keywords: [...card.keywords, card.themeName],
+        when: (context) => context.contentType === REGION,
+        run: ({ editor }) => insertDeclaredCard(editor, 'theme-card', card.key),
     }));
 }

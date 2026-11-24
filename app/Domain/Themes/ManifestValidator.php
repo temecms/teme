@@ -18,8 +18,10 @@ namespace App\Domain\Themes;
 
 use App\Domain\Cards\CardRegistry;
 use App\Domain\Cards\Plugin\PluginCardNode;
+use App\Domain\Cards\Theme\ThemeCardNode;
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Menus\ThemeSlotSettings;
+use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Site\Policy\PagePolicy;
@@ -43,6 +45,9 @@ final class ManifestValidator
 
     /** A template, navigation or region slug, or a content type's key. */
     public const string SLUG = '/^[a-z0-9-]+$/';
+
+    /** The most cards a theme brings for its regions (docs/guides/developers/themes/regions.md). */
+    public const int MOST_PROVIDED_CARDS = 12;
 
     /** A composer's class name, with its delimiters, as the schema's pattern says it. */
     public const string CLASS_NAME = '/^\\\\?[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$/';
@@ -146,7 +151,7 @@ final class ManifestValidator
         }
 
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
-        array_push($errors, ...$this->cards($manifest));
+        array_push($errors, ...$this->cards($manifest, $themePath));
 
         $composers = $manifest['composers'] ?? [];
 
@@ -286,7 +291,8 @@ final class ManifestValidator
         }
 
         $errors = [];
-        $known = array_values(array_diff($this->cards->names(), ['plugin-card']));
+        $known = array_values(array_diff($this->cards->names(), ['plugin-card', 'theme-card']));
+        $provided = is_array($manifest['cards'] ?? null) && is_array($manifest['cards']['provides'] ?? null) ? array_map(strval(...), array_keys($manifest['cards']['provides'])) : [];
 
         foreach ($regions as $slug => $region) {
             if (! is_string($slug) || preg_match(self::SLUG, $slug) !== 1 || ! is_array($region)) {
@@ -311,7 +317,7 @@ final class ManifestValidator
                     // A plugin's card by its key: the plugin may not be installed when the theme is checked.
                     $plugin = is_string($card) && preg_match(PluginCardNode::KEY, $card) === 1;
 
-                    if (! $plugin && (! is_string($card) || ! in_array($card, $known, true))) {
+                    if (! $plugin && (! is_string($card) || ! in_array($card, [...$known, ...$provided], true))) {
                         $errors[] = "The region \"{$slug}\" allows \"{$this->show($card)}\", which isn't a registered card.";
                     }
                 }
@@ -801,7 +807,7 @@ final class ManifestValidator
      *
      * @return list<string>
      */
-    private function cards(array $manifest): array
+    private function cards(array $manifest, string $themePath): array
     {
         if (! array_key_exists('cards', $manifest)) {
             return [];
@@ -819,6 +825,78 @@ final class ManifestValidator
         foreach ($replaces as $card) {
             if (! is_string($card) || ! in_array($card, $known, true)) {
                 $errors[] = "cards.replaces names \"{$this->show($card)}\", which isn't a registered card.";
+            }
+        }
+
+        $version = is_string($manifest['version'] ?? null) ? $manifest['version'] : '0.0.0';
+
+        return [...$errors, ...$this->providedCards($manifest['cards']['provides'] ?? [], $themePath, $version, $known)];
+    }
+
+    /**
+     * The cards the theme brings (docs/guides/developers/themes/regions.md):
+     * by id, each with its words, icon and fields as a plugin's card has
+     * them, without choice, and its own view.
+     *
+     * @param  list<string>  $known  the registered cards' names, which an id can't take
+     *
+     * @return list<string>
+     */
+    private function providedCards(mixed $provides, string $themePath, string $version, array $known): array
+    {
+        if (! is_array($provides) || (array_is_list($provides) && $provides !== [])) {
+            return ['cards.provides must map each card\'s id to its label, description and fields.'];
+        }
+
+        $errors = count($provides) > self::MOST_PROVIDED_CARDS ? ['A theme can bring at most '.self::MOST_PROVIDED_CARDS.' cards.'] : [];
+
+        foreach ($provides as $id => $card) {
+            $id = (string) $id;
+
+            if (preg_match(ThemeCardNode::ID, $id) !== 1) {
+                $errors[] = "cards.provides.{$id} needs an id of 2 to 41 lower-case letters, digits and hyphens, starting with a letter.";
+
+                continue;
+            }
+
+            if (in_array($id, $known, true)) {
+                $errors[] = "cards.provides.{$id} has the name of one of Teme's cards, which a region's list would mean instead.";
+            }
+
+            if (! is_array($card)) {
+                $errors[] = "cards.provides.{$id} needs a label, a description and its fields.";
+
+                continue;
+            }
+
+            foreach (array_keys($card) as $key) {
+                if (! in_array($key, ['label', 'description', 'icon', 'keywords', 'fields'], true)) {
+                    $errors[] = "cards.provides.{$id} can't have {$key}.";
+                }
+            }
+
+            if (! is_string($card['label'] ?? null) || trim($card['label']) === '' || mb_strlen($card['label']) > 40) {
+                $errors[] = "cards.provides.{$id} needs a label of 1 to 40 characters.";
+            }
+
+            if (! is_string($card['description'] ?? null) || trim($card['description']) === '' || mb_strlen($card['description']) > 160) {
+                $errors[] = "cards.provides.{$id} needs a description of 1 to 160 characters.";
+            }
+
+            if (array_key_exists('icon', $card) && (! is_string($card['icon']) || preg_match(ThemeCardNode::ID, $card['icon']) !== 1)) {
+                $errors[] = "cards.provides.{$id} names its icon in lower-case letters, digits and hyphens.";
+            }
+
+            if (array_key_exists('keywords', $card) && (! is_array($card['keywords']) || ! array_is_list($card['keywords']) || count($card['keywords']) > 10 || array_any($card['keywords'], fn (mixed $word): bool => ! is_string($word) || trim($word) === '' || mb_strlen($word) > 40))) {
+                $errors[] = "cards.provides.{$id} has at most 10 keywords of 1 to 40 characters.";
+            }
+
+            foreach (app(ContributionsValidator::class)->cardFieldErrors($card['fields'] ?? [], $version, choice: false) as $error) {
+                $errors[] = "cards.provides.{$id}: {$error}";
+            }
+
+            if (! is_file("{$themePath}/views/cards/own/{$id}.blade.php")) {
+                $errors[] = "cards.provides.{$id} needs views/cards/own/{$id}.blade.php.";
             }
         }
 

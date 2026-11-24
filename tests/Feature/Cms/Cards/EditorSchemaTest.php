@@ -31,7 +31,7 @@ function editorSchemaRules(array $document): ?RegionRules
             $types[] = $value;
         }
     });
-    // A plugin's card is named in a region by its key (docs/guides/developers/plugins/cards.md).
+    // A plugin's or theme's card is named in a region by its key (docs/guides/developers/plugins/cards.md); the theme's is the open fixture's.
     array_walk_recursive($document, function (mixed $value, mixed $key) use (&$keys): void {
         if ($key === 'card' && (is_string($value) || $value === null)) {
             $keys[] = (string) $value;
@@ -40,7 +40,7 @@ function editorSchemaRules(array $document): ?RegionRules
 
     return array_intersect($types, $regionCards) === []
         ? null
-        : new RegionRules([...array_map(fn (CardType $card): string => $card->name(), app(CardRegistry::class)->all()), ...$keys], PHP_INT_MAX);
+        : new RegionRules([...array_map(fn (CardType $card): string => $card->name(), app(CardRegistry::class)->all()), ...$keys], PHP_INT_MAX, theme: 'open');
 }
 
 /*

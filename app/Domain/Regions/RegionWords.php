@@ -65,6 +65,17 @@ final class RegionWords
     }
 
     /**
+     * Said when a switch leaves the theme's own cards behind: how many are
+     * kept, and where.
+     *
+     * @since next
+     */
+    public static function keptCards(int $cards): string
+    {
+        return trans_choice('Kept: :count theme card, under Regions › Other themes.|Kept: :count theme cards, under Regions › Other themes.', $cards);
+    }
+
+    /**
      * Two or more words as a sentence lists them: "A and B", "A, B and C".
      *
      * @param  list<string>  $words

@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace App\Domain\Regions;
 
 use App\Domain\Cards\CardRegistry;
-use App\Domain\Cards\Plugin\PluginCardNode;
 use App\Domain\Cards\Plugin\PluginCards;
+use App\Domain\Cards\Theme\ThemeCards;
 use App\Domain\Themes\ActiveTheme;
 use App\Domain\Themes\Theme;
 use Teme\Contracts\Cards\CardRegion;
@@ -38,13 +38,15 @@ final readonly class RegionDeclarations
     /**
      * This theme's regions, slug => declaration, in its manifest's order:
      * `cards` is "*" for a region that takes every card, else the cards it
-     * names, core cards by name and plugins' as "{code}:{id}".
+     * names, core cards by name, plugins' as "{code}:{id}" and the theme's
+     * own, which the manifest names by id, as "{theme}:{id}".
      *
      * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null}>
      */
     public function for(Theme $theme): array
     {
         $declared = [];
+        $own = array_keys($theme->manifest?->providedCards() ?? []);
 
         foreach ($theme->manifest?->regions() ?? [] as $slug => $region) {
             $cards = $region['cards'] ?? self::EVERY;
@@ -52,7 +54,9 @@ final readonly class RegionDeclarations
 
             $declared[(string) $slug] = [
                 'label' => is_string($region['label'] ?? null) ? $region['label'] : (string) $slug,
-                'cards' => is_array($cards) ? array_values(array_filter($cards, 'is_string')) : self::EVERY,
+                'cards' => is_array($cards)
+                    ? array_values(array_map(fn (string $card): string => in_array($card, $own, true) ? "{$theme->code}:{$card}" : $card, array_filter($cards, 'is_string')))
+                    : self::EVERY,
                 'max' => is_int($region['max'] ?? null) ? $region['max'] : self::MAX,
                 'size' => is_string($size) && preg_match(self::SIZE, $size) === 1 ? $size : null,
             ];
@@ -63,14 +67,16 @@ final readonly class RegionDeclarations
 
     /**
      * The cards a region takes now, by the name the editor offers them
-     * under: for "*", every core card the menus offer and every running
-     * plugin's card by its key; else the cards it names.
+     * under: for "*", every core card the menus offer, every running
+     * plugin's card and every card the region's theme brings, by its key;
+     * else the cards it names.
      *
      * @param  '*'|list<string>  $cards  a declaration's `cards`
+     * @param  string|null  $theme  the region's theme's code
      *
      * @return list<string>
      */
-    public static function names(string|array $cards): array
+    public static function names(string|array $cards, ?string $theme = null): array
     {
         if (is_array($cards)) {
             return $cards;
@@ -79,12 +85,14 @@ final readonly class RegionDeclarations
         $names = [];
 
         foreach (app(CardRegistry::class)->all() as $card) {
-            if ($card->menu()->inMenus && ! $card instanceof PluginCardNode) {
+            if ($card->menu()->inMenus) {
                 $names[] = $card->name();
             }
         }
 
-        return [...$names, ...array_keys(app(PluginCards::class)->all())];
+        $own = $theme === null ? [] : array_keys(app(ThemeCards::class)->forTheme($theme));
+
+        return [...$names, ...$own, ...array_keys(app(PluginCards::class)->all())];
     }
 
     /**
