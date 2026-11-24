@@ -127,7 +127,7 @@ final class FileReport
     /**
      * Returns the address guesses the plan page needs, worked out once while the file is read.
      *
-     * @since next
+     * @since 1.4.1
      *
      * @return array{category_base: string, tag_base: string, category_example: string, tag_example: string}
      */
