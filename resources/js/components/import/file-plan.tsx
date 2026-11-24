@@ -1,5 +1,5 @@
 import type { FormComponentRef } from '@inertiajs/core';
-import { Form } from '@inertiajs/react';
+import { Form, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
@@ -74,6 +74,7 @@ export function FilePlan({
 }) {
     const { analysis, problem } = plan;
     const form = plan.fileForm;
+    const [checking, setChecking] = useState(false);
 
     if (problem !== null || analysis === null || form === null) {
         return (
@@ -193,6 +194,14 @@ export function FilePlan({
                     form={form}
                     answers={plan.oldSiteAnswers ?? false}
                     resume={plan.resumeStart}
+                    onCheckAgain={() =>
+                        router.reload({
+                            only: ['plan'],
+                            onStart: () => setChecking(true),
+                            onFinish: () => setChecking(false),
+                        })
+                    }
+                    checking={checking}
                 />
             </Section>
         </div>
@@ -243,12 +252,16 @@ function FileChoices({
     form,
     answers,
     resume,
+    onCheckAgain,
+    checking,
 }: {
     site: ImportSite;
     form: FileChoicesForm;
     answers: boolean;
     /** Send the form once at once: a start the password's confirmation interrupted. */
     resume: boolean;
+    onCheckAgain: () => void;
+    checking: boolean;
 }) {
     const formRef = useRef<FormComponentRef>(null);
 
@@ -260,6 +273,13 @@ function FileChoices({
     }, [resume]);
 
     const [media, setMedia] = useState<string>(answers ? form.media : 'links');
+
+    useEffect(() => {
+        if (answers) {
+            setMedia(form.media);
+        }
+    }, [answers, form.media]);
+
     const [drafts, setDrafts] = useState(form.drafts);
     const [comments, setComments] = useState(form.comments);
     const [types, setTypes] = useState<string[]>(
@@ -433,6 +453,20 @@ function FileChoices({
                             <Notice
                                 tone="warn"
                                 data-test="import-old-site-silent"
+                                action={
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={checking}
+                                        onClick={onCheckAgain}
+                                        data-test="import-old-site-check-again"
+                                    >
+                                        {checking
+                                            ? __('Checking…')
+                                            : __('Check again')}
+                                    </Button>
+                                }
                             >
                                 {__(
                                     ':host doesn’t answer. Teme can’t download the media files from it. Bring the site back for the import, or keep them as links and add them later.',

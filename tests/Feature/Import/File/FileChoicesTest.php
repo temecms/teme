@@ -10,6 +10,7 @@ use App\Domain\Import\Queries\ImportFiles;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -157,6 +158,30 @@ it('asks a file’s choices on its plan, refuses ones that don’t fit, and star
     expect($run->file_id)->toBe($file->id)
         ->and($run->choices['authors'])->toMatchArray(['ada' => 'new:editor', 'harbour' => 'to:'.$this->admin->id])
         ->and($run->choices['media'])->toBe('download');
+});
+
+it('checks the old site again on a second plan reload', function (): void {
+    $file = FileImports::ready('companion-site.xml', $this->admin);
+    $show = '/admin/tools/import/'.$file->source_id;
+    Http::swap(new HttpFactory);
+    dlServe(
+        [FakeCompanion::HOST => [FakeCompanion::IP]],
+        [FakeCompanion::HOST.'*' => Http::response('', 503)],
+    );
+
+    $this->actingAs($this->admin)->get($show)
+        ->assertInertia(fn (Assert $page) => $page->loadDeferredProps(fn (Assert $reload) => $reload
+            ->where('plan.oldSiteAnswers', false)));
+
+    Http::swap(new HttpFactory);
+    dlServe(
+        [FakeCompanion::HOST => [FakeCompanion::IP]],
+        [FakeCompanion::HOST.'*' => Http::response('', 200)],
+    );
+
+    $this->get($show)
+        ->assertInertia(fn (Assert $page) => $page->loadDeferredProps(fn (Assert $reload) => $reload
+            ->where('plan.oldSiteAnswers', true)));
 });
 
 it('deletes the uploaded file from its report, and goes back to it saying so', function (): void {

@@ -46,6 +46,12 @@ final readonly class FileDownloader
     /** The seconds waited before the second and the third try. */
     private const array WAITS = [1, 3];
 
+    /** The most seconds answers() may spend in all, its tries and waits included. */
+    private const int ANSWER_BUDGET = 12;
+
+    /** The seconds waited before the second and the third try. */
+    private const array ANSWER_WAITS = [1, 2];
+
     /** The most seconds a connection may take to open. */
     private const int CONNECT_SECONDS = 10;
 
@@ -107,14 +113,42 @@ final readonly class FileDownloader
     }
 
     /**
-     * Whether a site answers at this address: one HEAD request, checked and
-     * pinned as a download is, any answer below 500 counting, a redirect
-     * included. An import's plan asks it of an old site before it offers to
-     * download its media files (docs/architecture/import.md).
+     * Whether a site answers at this address: up to three HEAD requests
+     * within 12 seconds, checked and pinned as a download is, any answer
+     * below 500 counting, a redirect included. An import's plan asks it of
+     * an old site before it offers to download its media files
+     * (docs/architecture/import.md).
      *
      * @since 1.4.0
      */
     public function answers(string $address, int $seconds = 5): bool
+    {
+        $deadline = (int) hrtime(true) + self::ANSWER_BUDGET * 1_000_000_000;
+
+        for ($try = 0; ; $try++) {
+            $left = (int) floor(self::secondsLeft($deadline));
+            $verdict = $this->askOnce($address, max(1, min($seconds, $left)));
+
+            if ($verdict !== null) {
+                return $verdict;
+            }
+
+            $wait = self::ANSWER_WAITS[$try] ?? null;
+
+            if ($wait === null || self::secondsLeft($deadline) < $wait + 1) {
+                return false;
+            }
+
+            Sleep::for($wait)->seconds();
+        }
+    }
+
+    /**
+     * One HEAD request: true when the site answered below 500, false when Teme
+     * won't ask it (a refused address), null when it was busy or silent, so
+     * asking again may help.
+     */
+    private function askOnce(string $address, int $seconds): ?bool
     {
         $sink = tempnam($this->folder ?? sys_get_temp_dir(), 'teme-answer-');
 
@@ -126,13 +160,15 @@ final readonly class FileDownloader
             $checked = $this->check(trim($address));
             $response = Http::withOptions(self::options($checked, new SizeLimit(1024 * 1024), $sink))
                 ->connectTimeout(max(1, min(self::CONNECT_SECONDS, $seconds)))
-                ->timeout(max(1, $seconds))
+                ->timeout($seconds)
                 ->withUserAgent('Teme')
                 ->head(trim($address));
 
-            return $response->status() < 500;
-        } catch (DownloadRefused|ConnectionException|RequestException) {
-            return false;
+            return $response->status() < 500 ? true : null;
+        } catch (DownloadRefused $refusal) {
+            return $refusal->retryable ? null : false;
+        } catch (ConnectionException|RequestException) {
+            return null;
         } finally {
             if (is_file($sink)) {
                 unlink($sink);

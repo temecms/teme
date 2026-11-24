@@ -116,10 +116,31 @@ final class FileReport
             'include_examples' => false,
             'started_at' => $madeAt?->toIso8601String(),
             'generated_at' => $madeAt?->toIso8601String(),
+            'file_plan' => self::plan($fileId),
             'sections' => $sections,
             'errors' => (int) ($facts['dropped_count'] ?? 0) > 0
                 ? ['serialized' => ['dropped' => (int) $facts['dropped_count'], 'items' => is_array($facts['dropped'] ?? null) ? $facts['dropped'] : []]]
                 : [],
+        ];
+    }
+
+    /**
+     * Returns the address guesses the plan page needs, worked out once while the file is read.
+     *
+     * @since next
+     *
+     * @return array{category_base: string, tag_base: string, category_example: string, tag_example: string}
+     */
+    public static function plan(string $fileId): array
+    {
+        $bases = FileAddresses::bases($fileId);
+        $examples = FileAddresses::examples($fileId);
+
+        return [
+            'category_base' => $bases['category_base'],
+            'tag_base' => $bases['tag_base'],
+            'category_example' => $examples['categoryExample'],
+            'tag_example' => $examples['tagExample'],
         ];
     }
 }

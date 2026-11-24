@@ -51,6 +51,44 @@ it('passes axe on Settings › Site code, every target 24 pixels or more, in the
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
+it('saves code with a wildcard host when the password is fresh', function (): void {
+    $code = '<script data-test="pasted">window.a = 1 && 2;</script>';
+    $page = cmSignIn($this->admin)
+        ->navigate(route('password.confirm', [], false))
+        ->type('#password', 'password')
+        ->click('[data-test="confirm-password-button"]');
+    cmWaitUntil($page, "location.pathname === '/admin'");
+
+    $page->navigate('/admin/settings/site-code')
+        ->click('[data-test="site-code-add"]')
+        ->type('#site-code-name', 'Visitor analytics')
+        ->type('#site-code-code', $code)
+        ->type('#site-code-origins', '*.example.org')
+        ->click('[data-test="site-code-save"]');
+
+    ($this->textShown)($page, 'Code added. Every public page includes “Visitor analytics” in the head.');
+
+    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.example.org']);
+});
+
+it('asks for a lapsed password in place and keeps the wildcard host', function (): void {
+    $code = '<script data-test="pasted">window.a = 1 && 2;</script>';
+    $page = cmSignIn($this->admin)
+        ->navigate('/admin/settings/site-code')
+        ->click('[data-test="site-code-add"]')
+        ->type('#site-code-name', 'Visitor analytics')
+        ->type('#site-code-code', $code)
+        ->type('#site-code-origins', '*.example.org')
+        ->click('[data-test="site-code-save"]');
+
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="fresh-password-input"]\') !== null');
+    $page->type('[data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="fresh-password-confirm"]');
+    ($this->textShown)($page, 'Code added. Every public page includes “Visitor analytics” in the head.');
+
+    expect(SiteCodeEntry::query()->sole()->origins)->toBe(['*.example.org']);
+});
+
 it('adds code once the password is confirmed, switches it off and deletes it, each step saying so (I-864)', function (): void {
     $code = '<script data-test="pasted">window.a = 1 && 2;</script>';
 
@@ -59,18 +97,10 @@ it('adds code once the password is confirmed, switches it off and deletes it, ea
         ->click('[data-test="site-code-add"]')
         ->type('#site-code-name', 'Visitor analytics')
         ->type('#site-code-code', $code)
-        ->click('[data-test="site-code-save"]')
-        // The password screen is another page; type() and click() wait for its field and button.
-        ->type('#password', 'password')
-        ->click('[data-test="confirm-password-button"]');
-
-    // Back on the settings page, not still on the password screen, which has no add button.
-    cmWaitUntil($page, "location.pathname === '/admin/settings/site-code' && document.querySelector('[data-test=\"site-code-add\"]') !== null");
-
-    $page->click('[data-test="site-code-add"]')
-        ->type('#site-code-name', 'Visitor analytics')
-        ->type('#site-code-code', $code)
         ->click('[data-test="site-code-save"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="fresh-password-input"]\') !== null');
+    $page->type('[data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="fresh-password-confirm"]');
 
     ($this->textShown)($page, 'Code added. Every public page includes “Visitor analytics” in the head.');
 
@@ -97,12 +127,10 @@ it('saves the hosts the code also connects to, shows what it found, and shows a 
     $page = cmSignIn($this->admin)->navigate('/admin/settings/site-code');
     $add($page)
         ->assertNotPresent('[data-test="site-code-found"]')
-        ->click('[data-test="site-code-save"]')
-        ->type('#password', 'password')
-        ->click('[data-test="confirm-password-button"]');
-    cmWaitUntil($page, "location.pathname === '/admin/settings/site-code' && document.querySelector('[data-test=\"site-code-add\"]') !== null");
-
-    $add($page)->click('[data-test="site-code-save"]');
+        ->click('[data-test="site-code-save"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="fresh-password-input"]\') !== null');
+    $page->type('[data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="fresh-password-confirm"]');
     ($this->textShown)($page, 'Code added. Every public page includes “Visitor analytics” in the head.');
 
     // The panel has closed after saving before Edit opens it again.
