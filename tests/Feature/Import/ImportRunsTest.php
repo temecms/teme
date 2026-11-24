@@ -101,7 +101,7 @@ it('refuses what a run can\'t start from', function (string $case, string $field
         $this->admin,
         $case === 'catch-up' ? ImportRunKind::CatchUp : ImportRunKind::Full,
         match ($case) {
-            'pause' => ['pause_ms' => 60001], 'option' => ['speed' => 'fast'], default => []
+            'pause' => ['pause_ms' => 60001], 'option' => ['speed' => 'fast'], 'lanes' => ['media_lanes' => 5], 'no lanes' => ['media_lanes' => 0], default => []
         },
     ));
 
@@ -114,6 +114,8 @@ it('refuses what a run can\'t start from', function (string $case, string $field
     'a site whose password Teme forgot' => ['forgotten', 'source', 'Teme has forgotten this site’s application password. Connect the site again first.'],
     'a pause longer than a minute' => ['pause', 'options.pause_ms', 'Choose a pause from 0 to 60,000 milliseconds.'],
     'an option Teme doesn\'t have' => ['option', 'options', 'Teme has no import option called speed.'],
+    'more files at once than the media setting allows (#701)' => ['lanes', 'options.media_lanes', 'Choose from 1 to 4 files at once.'],
+    'no files at once (#701)' => ['no lanes', 'options.media_lanes', 'Choose from 1 to 4 files at once.'],
 ]);
 
 it('writes nothing for anyone who may not import', function (string $operation): void {
@@ -126,6 +128,7 @@ it('writes nothing for anyone who may not import', function (string $operation):
 
     $act = match ($operation) {
         'start' => fn () => scElevated(fn () => ($this->start)($this->editor)),
+        'start with lanes' => fn () => scElevated(fn () => ($this->start)($this->editor, ImportRunKind::Full, ['media_lanes' => 3])),
         'continue' => fn () => scElevated(fn () => app(ContinueImportRun::class)->execute(new ContinueImportRunInput($run->id, $editor))),
         'stop' => fn () => app(StopImportRun::class)->execute(new StopImportRunInput($run->id, $editor)),
         'advance' => fn () => app(AdvanceImportRun::class)->execute(new AdvanceImportRunInput($run->id, $token, 'fixture-notes', strtolower((string) Str::ulid()), $editor)),
@@ -140,6 +143,7 @@ it('writes nothing for anyone who may not import', function (string $operation):
         ->and(DB::table('fixture_people')->count())->toBe(0);
 })->with([
     'starting' => ['start'],
+    'starting with media lanes (#701)' => ['start with lanes'],
     'carrying on' => ['continue'],
     'stopping' => ['stop'],
     'advancing' => ['advance'],

@@ -216,6 +216,7 @@ Changing these requires `settings.media.manage`. Since 0.1.0.
 |---|---|---|---|---|
 | `media.max_upload_mb` | number | `64` | The biggest file, in megabytes, anyone can upload. Your server’s own upload limit must be at least this large. | 0.1.0 |
 | `media.max_megapixels` | number | `50` | The most megapixels an uploaded image may have. It stops a small file that would expand to gigabytes in memory. | 0.1.0 |
+| `media.import_downloads` | number | `4` | The most media files an import from an export file downloads at the same time. It goes only as fast as the queue workers allow: each worker fetches one file, so set the server’s workers to match. The old site gets that many requests at once. | 1.5.0 |
 
 ## AI
 

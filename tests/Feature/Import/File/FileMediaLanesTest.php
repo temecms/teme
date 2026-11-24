@@ -3,9 +3,13 @@
 declare(strict_types=1);
 
 use App\Domain\Import\File\ContentBlocks;
+use App\Domain\Import\ImportEngine;
+use App\Domain\Import\Jobs\ImportListPage;
 use App\Domain\Import\Source\FileReader;
+use App\Domain\Support\Security\JobActor;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Bus\PendingBatch;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -61,3 +65,19 @@ it('refuses a lane that is not one of the lanes (#701)', function (array $query)
     'below the first' => [['lane' => -1, 'lanes' => 3]],
     'no lanes' => [['lane' => 0, 'lanes' => 0]],
 ]);
+
+it('starts a file run’s media phase as one chain per lane, each from the start (#701)', function (): void {
+    $run = FileImports::run($this->file, [], ['media_lanes' => 3]);
+    $run->forceFill(['phase' => 'media'])->save();
+
+    app(ImportEngine::class)->begin($run->id, (string) $run->phase_token, JobActor::person($this->admin->id));
+
+    Bus::assertBatched(fn (PendingBatch $batch): bool => $batch->name === "import:{$run->id}:media"
+        && collect($batch->jobs)->map(fn (ImportListPage $page): array => [$page->phase, $page->list, $page->afterId])->all() === [['media', 0, 0], ['media', 1, 0], ['media', 2, 0]]);
+});
+
+it('stores the downloads setting as a file run’s lanes (#701)', function (): void {
+    $run = FileImports::run($this->file);
+
+    expect($run->options)->toBe(['pause_ms' => 0, 'media_lanes' => 4]);
+});

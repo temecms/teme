@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Added
+
+- An import from an export file downloads several media files at once, 4 by default: Settings › Media › Imports › Files fetched at once, from 1 to 8. It goes only as fast as the server's queue workers allow, each taking one file at a time; the Docker image starts more of them with `TEME_QUEUE_WORKERS`. An import already started, or carried on, keeps fetching one at a time. The import from a live site still fetches one at a time.
+
 ### Fixed
 
 - An import from an export file that stopped can be carried on: Carry on no longer asks for an application password the site never had. It needs the uploaded file instead, and says so once the file is gone.
