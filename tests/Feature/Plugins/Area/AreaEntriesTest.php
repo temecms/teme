@@ -41,6 +41,7 @@ beforeEach(function (): void {
             $letter = chr(ord('a') + $index);
             $manifest = PluginFixtures::manifest('placard');
             $manifest['contributes']['area']['menu'] = $menu;
+            $manifest['contributes']['area']['label'] = 'Area '.strtoupper($letter);
             $folder = PluginFixtures::copy('placard', [
                 'name' => "tests/placard-{$letter}",
                 'code' => "placard{$letter}",
@@ -81,17 +82,17 @@ afterEach(function (): void {
     PluginFixtures::forget();
 });
 
-it('gives five areas a menu entry each, under the plugin’s own name in the section it names, and the sixth a Tools card', function (): void {
+it('gives five areas a menu entry each, under the area’s own label in the section it names, and the sixth a Tools card', function (): void {
     ($this->areas)(['site', 'content', 'site', 'site', 'site', 'content']);
 
     $menu = ($this->menu)($this->editor);
 
-    expect(array_column($menu, 'label'))->toEqualCanonicalizing(['Placard A', 'Placard B', 'Placard C', 'Placard D', 'Placard E'])
-        ->and(array_column(array_filter($menu, fn (array $entry): bool => $entry['label'] === 'Placard B'), 'section'))->toBe(['content'])
-        ->and(array_column(array_filter($menu, fn (array $entry): bool => $entry['label'] === 'Placard A'), 'href'))->toBe(['/admin/plugin/placarda'])
+    expect(array_column($menu, 'label'))->toEqualCanonicalizing(['Area A', 'Area B', 'Area C', 'Area D', 'Area E'])
+        ->and(array_column(array_filter($menu, fn (array $entry): bool => $entry['label'] === 'Area B'), 'section'))->toBe(['content'])
+        ->and(array_column(array_filter($menu, fn (array $entry): bool => $entry['label'] === 'Area A'), 'href'))->toBe(['/admin/plugin/placarda'])
         ->and(($this->cards)($this->editor))->toBe([[
             'key' => 'plugin.placardf.area',
-            'label' => 'Placard F',
+            'label' => 'Area F',
             'icon' => 'plug',
             'description' => 'Ads placed in articles and around the site, and how they do.',
             'href' => '/admin/plugin/placardf',
@@ -103,8 +104,9 @@ it('gives five areas a menu entry each, under the plugin’s own name in the sec
 it('puts an area that asks for Tools on the Tools hub, leaving its menu place to the next', function (): void {
     ($this->areas)(['tools', 'site']);
 
-    expect(array_column(($this->menu)($this->editor), 'label'))->toBe(['Placard B'])
-        ->and(array_column(($this->cards)($this->editor), 'label'))->toBe(['Placard A']);
+    expect(array_column(($this->menu)($this->editor), 'label'))->toBe(['Area B'])
+        ->and(array_column(($this->cards)($this->editor), 'label'))->toBe(['Area A'])
+        ->and(array_column(($this->cards)($this->editor), 'plugin'))->toBe(['Placard A']);
 });
 
 it('names Tools as the parent of an area placed there, and no parent for one in the menu', function (): void {
