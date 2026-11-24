@@ -27,7 +27,7 @@ foreach (glob(dirname(__DIR__, 2).'/Fixtures/plugins/placard/src/*.php') ?: [] a
 
 /*
  * A plugin's own area (docs/plans/plugin-sockets-2.md, A9), as an editor who
- * holds its permission sees it: the menu entry under the plugin's own name,
+ * holds its permission sees it: the menu entry under the area's own label,
  * the pages, each block, the table's search, filter, sort, pages, row menu
  * and bulk actions, and a record's form with a condition and a repeater.
  */
@@ -96,15 +96,17 @@ it('opens the area from its menu entry, switches pages in place, and draws each 
 
     cmWaitUntil($page, 'document.querySelector(\'[data-test="area-figures"]\') !== null && document.querySelector(\'[data-test="area-chart"]\') !== null');
 
-    // Headed by the plugin's own name; the top bar repeats nothing (I-3468).
-    $page->assertScript('document.querySelector(\'[data-test="pattern-title"]\')?.textContent', 'Placard')
+    // Headed by the area's own label; the plugin's name sits in the badge beside it.
+    $page->assertScript('document.querySelector(\'[data-test="pattern-title"]\')?.textContent', 'Ads')
+        ->assertSeeIn('[data-slot="plugin-mark"]', 'Placard')
         ->assertSeeIn('[data-test="area-figures"]', '250')
         ->assertSeeIn('[data-test="area-figures"]', '3.1%')
         ->assertSee('Ads show to readers once they are active.')
         ->assertScript('document.querySelectorAll(\'[data-test="area-chart-table"] [role="row"]\').length', 4)
         ->assertScript('document.querySelector(\'[data-test="area-chart-table"] [role="row"]:nth-child(2) [role="cell"]\')?.textContent', '10');
 
-    $page->click('nav a:has-text("Ads")');
+    // Area label and the Ads page share the word; open the page by its href.
+    $page->click('nav a[href="/admin/plugin/placard/ads"]');
     cmWaitUntil($page, "{$this->rows} === 20");
     expect($page->script('() => location.pathname'))->toBe('/admin/plugin/placard/ads')
         ->and(($this->sideways)($page))->toBe(0);
