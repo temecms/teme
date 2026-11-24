@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.4.2] — 2026-11-24
+
 ### Fixed
 
 - Import into a site that already has content, from a second WordPress site for example, no longer stops at its first step. As WordPress's importer does: a category or tag Teme already has at the same address is the one the imported posts are filed under, left as it is; a post, page or author whose address is taken here gets the next free one (`-2`, `-3`); and a published post Teme already has, with the same title and publication time, isn't brought twice. The report says each time.
