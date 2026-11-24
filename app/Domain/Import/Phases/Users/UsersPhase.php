@@ -22,7 +22,6 @@ use App\Domain\Import\Phases\ImportFailed;
 use App\Domain\Import\Phases\ImportList;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\ImportResult;
-use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Phases\ListPhase;
 use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\SourceRef;
@@ -221,12 +220,8 @@ final readonly class UsersPhase implements ListPhase
 
         $holder = User::query()->where('slug', $slug)->value('id');
 
+        // Someone here has the address already: the person from WordPress takes the next free one, as WordPress's importer does.
         if ($holder !== null) {
-            // An author page the old site lists is an address both sites claim (I-1706).
-            if ((int) ($item['published_posts'] ?? 0) > 0 && ! $this->people->madeBy($context->sourceId, (string) $holder)) {
-                throw ImportStopped::because('address-clash', "Teme already has a person whose author address ends in {$slug}, and {$name} from WordPress needs it too, so the import stopped. Change one of the two, then carry on the import.");
-            }
-
             $slug = self::nextFree($slug);
         }
 

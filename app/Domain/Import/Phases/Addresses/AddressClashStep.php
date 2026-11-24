@@ -3,8 +3,12 @@
 /**
  * Before anything is written (I-1706): each address of the old site's
  * posts, pages, categories and tags that Teme already gives something this
- * import didn't make, listed, and the run stopped when there is any. Read a
- * page at a time from the companion's urls, fifty seconds a job.
+ * import didn't make, listed. As WordPress's importer does, the run carries
+ * on: a category or tag files its posts under the one Teme has at its
+ * address, and a post or page takes the next free one, each a warning. A
+ * category or tag whose address something else holds stops the run, since
+ * its address follows its base. Read a page at a time from the companion's
+ * urls, fifty seconds a job.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -17,6 +21,7 @@ namespace App\Domain\Import\Phases\Addresses;
 
 use App\Domain\Addresses\Paths;
 use App\Domain\Addresses\PublicRequestPath;
+use App\Domain\Import\ImportMessageLevel;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Operations\ClearRunMessages;
 use App\Domain\Import\Operations\Input\ClearRunMessagesInput;
@@ -39,9 +44,9 @@ final readonly class AddressClashStep implements StepPhase
     /** The kinds of the old site's addresses an import writes paths for. */
     private const array KINDS = ['post', 'term'];
 
-    private const string ONE = 'One address of the old site already belongs to something else in Teme, so the import stopped before writing anything. The report names it: rename or delete what Teme has there, then carry on the import.';
+    private const string ONE = 'A category or tag of the old site has an address something else in Teme already has, which Teme can’t move it from, so the import stopped before writing anything. The report names it: rename or delete what Teme has there, then carry on the import.';
 
-    private const string MORE = '%s addresses of the old site already belong to something else in Teme, so the import stopped before writing anything. The report lists them: rename or delete what Teme has at each, then carry on the import.';
+    private const string MORE = '%s categories and tags of the old site have addresses something else in Teme already has, which Teme can’t move them from, so the import stopped before writing anything. The report lists them: rename or delete what Teme has at each, then carry on the import.';
 
     public function __construct(private OldSiteUrls $urls, private ContentTypeRegistry $types) {}
 
@@ -82,14 +87,14 @@ final readonly class AddressClashStep implements StepPhase
             $position = $page['cursor'];
         } while ($position !== null && microtime(true) - $started < self::BUDGET);
 
-        $found += count($messages);
+        $found += count(array_filter($messages, fn (ImportMessage $message): bool => $message->level === ImportMessageLevel::Error));
 
         if ($position !== null) {
             return StepResult::continueAt("{$found}|{$position}", $messages);
         }
 
         if ($found === 0) {
-            return StepResult::done();
+            return StepResult::done($messages);
         }
 
         throw ImportStopped::because('address-clash', $found === 1 ? self::ONE : sprintf(self::MORE, number_format($found)), $messages);
@@ -111,7 +116,9 @@ final readonly class AddressClashStep implements StepPhase
 
     /**
      * This page's addresses that Teme already gives something this source
-     * didn't make, as error-level messages: one query for the page.
+     * didn't make, the same category or tag at its own address aside: a
+     * warning for a post or page, an error for a category or tag. One query
+     * for the page.
      *
      * @param  list<array<string, mixed>>  $items
      *
@@ -133,7 +140,8 @@ final readonly class AddressClashStep implements StepPhase
 
             // An address in words is cut short: a message holds at most 1,000 characters.
             if ($path !== '') {
-                $wanted[] = ['path' => $path, 'shown' => Str::limit($own['path'], 300), 'what' => (string) $what, 'id' => (int) ($item['id'] ?? 0)];
+                $taxonomy = $kind === 'term' ? WordPressAddresses::temeTaxonomy((string) ($item['taxonomy'] ?? ''))?->key : null;
+                $wanted[] = ['path' => $path, 'shown' => Str::limit($own['path'], 300), 'what' => (string) $what, 'id' => (int) ($item['id'] ?? 0), 'taxonomy' => $taxonomy];
             }
         }
 
@@ -153,8 +161,13 @@ final readonly class AddressClashStep implements StepPhase
         // Keyed apart from PHP's integer keys: a path may be digits, /2024/.
         $holders = [];
 
+        $taxonomies = DB::table('terms')->whereIn('id', $held->where('target_type', 'term')->pluck('target_id')->all())->pluck('taxonomy', 'id');
+
         foreach ($held as $row) {
-            $holders['#'.$row->path] = Paths::describe((string) $row->target_type, (string) $row->target_id);
+            $holders['#'.$row->path] = [
+                'what' => Paths::describe((string) $row->target_type, (string) $row->target_id),
+                'taxonomy' => $row->target_type === 'term' ? (string) ($taxonomies[$row->target_id] ?? '') : null,
+            ];
         }
 
         $messages = [];
@@ -162,13 +175,17 @@ final readonly class AddressClashStep implements StepPhase
         foreach ($wanted as $entry) {
             $holder = $holders['#'.$entry['path']] ?? null;
 
-            if ($holder !== null) {
-                $messages[] = ImportMessage::error('clash.address', "{$entry['shown']} is {$holder} here, and the old site has {$entry['what']} there.", [
-                    'address' => mb_substr($entry['shown'], 0, 500),
-                    'kind' => $kind,
-                    'id' => $entry['id'],
-                ]);
+            // A term of the same taxonomy at a term's address is that category or tag, which the terms phase files posts under and reports.
+            if ($holder === null || ($entry['taxonomy'] !== null && $holder['taxonomy'] === $entry['taxonomy'])) {
+                continue;
             }
+
+            $context = ['address' => mb_substr($entry['shown'], 0, 500), 'kind' => $kind, 'id' => $entry['id']];
+
+            // A post, page or person takes the next free address; a term's address follows its base, so another holder stops the run.
+            $messages[] = $kind === 'term'
+                ? ImportMessage::error('clash.address', "{$entry['shown']} is {$holder['what']} in Teme, and the old site has {$entry['what']} there.", $context)
+                : new ImportMessage('clash.address', "{$entry['shown']} is {$holder['what']} in Teme, so {$entry['what']} from the old site gets another address.", $context);
         }
 
         return $messages;

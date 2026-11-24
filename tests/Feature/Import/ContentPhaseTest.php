@@ -330,7 +330,7 @@ it('keeps WordPress’s dated address and an old slug’s answering when the day
         ->and(addrLocation(addrGet('/2019/05/04/harbor-news/')->assertStatus(301)))->toBe('/2019/05/03/harbour-news/');
 });
 
-it('records an error when WordPress’s own address is another item’s here, so the check can’t pass a wrong page', function (): void {
+it('says when WordPress’s own address is another item’s here, which that old address leads to', function (): void {
     pageArticle($this->author, 'Old news');
 
     ContentImports::run($this->companion, $this->source, [ContentImports::wpItem(12, ['permalink' => 'https://old.example/old-news/'])]);
@@ -338,8 +338,8 @@ it('records an error when WordPress’s own address is another item’s here, so
     $taken = ImportMessageRecord::query()->where('map_id', $row?->id)->where('code', 'post.address-taken')->first();
 
     expect($row?->status)->toBe(ImportStatus::Imported)
-        ->and($taken?->level->value)->toBe('error')
-        ->and($taken?->message)->toContain('/old-news/, which leads to the post "Old news" here');
+        ->and($taken?->level->value)->toBe('warning')
+        ->and($taken?->message)->toContain('/old-news/, which is the post "Old news" here, so that old address leads there');
 });
 
 it('gives the second of two items wanting one address the next free one, saying so', function (): void {
@@ -355,15 +355,37 @@ it('gives the second of two items wanting one address the next free one, saying 
         ->and(addrLocation(addrGet('/news-page/')->assertStatus(301)))->toBe('/news-2/');
 });
 
-it('stops the run for an address an item this source didn’t make already has (I-1706)', function (): void {
-    addrPublished($this->admin, 'Harbour news', 'page');
+it('gives an item the next free address when one this source didn’t make has its own, as WordPress does (#704)', function (): void {
+    $theirs = addrPublished($this->admin, 'Harbour news', 'page');
 
     $run = ContentImports::run($this->companion, $this->source, [ContentImports::wpItem(12)]);
+    $row = ContentImports::row($this->source->id, 12);
 
-    expect($run->refresh()->state)->toBe(ImportRunState::Stopped)
-        ->and($run->stop_reason)->toBe('address-clash')
-        ->and($run->stop_message)->toContain('Teme already has the page "Harbour news" at /harbour-news/, and “Harbour news” from WordPress needs that address too')
-        ->and(Content::query()->where('type', 'post')->count())->toBe(0);
+    expect($run->refresh()->state)->toBe(ImportRunState::Finished)
+        ->and($row?->status)->toBe(ImportStatus::Imported)
+        ->and(cphItem($this->source->id, 12)->slug)->toBe('harbour-news-2')
+        ->and(ContentImports::codes($row))->toContain('post.slug-changed')
+        ->and(addrCurrent('content', $theirs->id))->toBe('harbour-news');
+});
+
+it('brings a post Teme already has, with the same title and publication time, only once, and never changes the one here (#704)', function (): void {
+    $here = addrPublished($this->admin, 'Harbour news');
+    Content::query()->whereKey($here->id)->update(['published_at' => '2019-05-03 22:30:00+00']);
+    $before = Content::query()->whereKey($here->id)->value('working_revision_id');
+
+    $run = ContentImports::run($this->companion, $this->source, [ContentImports::wpItem(12)]);
+    $row = ContentImports::row($this->source->id, 12);
+
+    expect($run->refresh()->state)->toBe(ImportRunState::Finished)
+        ->and($row?->teme_id)->toBe($here->id)
+        ->and(ContentImports::codes($row))->toContain('post.already-here')
+        ->and(Content::query()->where('type', 'post')->count())->toBe(1)
+        ->and(Content::query()->whereKey($here->id)->value('working_revision_id'))->toBe($before);
+
+    ContentImports::run($this->companion, $this->source, [ContentImports::wpItem(12, ['content' => '<p>Changed on WordPress.</p>'])]);
+
+    expect(Content::query()->where('type', 'post')->count())->toBe(1)
+        ->and(Content::query()->whereKey($here->id)->value('working_revision_id'))->toBe($before);
 });
 
 it('keeps a reusable block’s content for the second pass, and the references and links items leave for it (I-333)', function (): void {

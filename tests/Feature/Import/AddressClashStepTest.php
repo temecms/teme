@@ -22,45 +22,56 @@ beforeEach(function (): void {
 });
 
 /**
- * The clash step walked to its end as the operator; the stop it made, or null.
+ * The clash step walked to its end as the operator: what it said. It never stops the run.
+ *
+ * @return list<ImportMessage>
  */
-function acsStop(string $source, string $run, OldSite $site, ?string $token = null): ?ImportStopped
+function acsSaid(string $source, string $run, OldSite $site, ?string $token = null): array
 {
-    try {
-        scElevated(fn (): array => OldSite::walk(app(AddressClashStep::class), OldSite::context($source, $run), $site, $token));
-    } catch (ImportStopped $stop) {
-        return $stop;
-    }
-
-    return null;
+    return scElevated(fn (): array => OldSite::walk(app(AddressClashStep::class), OldSite::context($source, $run), $site, $token));
 }
 
-it('stops the run before anything is written, listing every address Teme already gives something else (I-1706)', function (): void {
+it('lists, as warnings, each address of a post or page Teme already gives something else, and carries on (I-1706, #704)', function (): void {
+    [$source, $run] = OldSite::running('address-clash');
+    addrPublished($this->admin, 'About', 'page');
+    $site = (new OldSite)->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/about/'], ['id' => 3, 'type' => 'post', 'url' => OldSite::HOME.'/fresh/']]);
+
+    expect(array_map(fn (ImportMessage $message): array => [$message->code, $message->level, $message->message, $message->context], acsSaid($source, $run, $site)))->toBe([
+        ['clash.address', ImportMessageLevel::Warning, '/about/ is the page "About" in Teme, so a page from the old site gets another address.', ['address' => '/about/', 'kind' => 'post', 'id' => 2]],
+    ])
+        ->and(DB::table('settings_changes')->count())->toBe(0);
+});
+
+it('stops the run for a category or tag whose address something else holds, which Teme can’t move it from (I-1706)', function (): void {
     [$source, $run] = OldSite::running('address-clash');
     addrPublished($this->admin, 'About', 'page');
     DB::table('paths')->insert(['path' => 'news', 'target_type' => 'term', 'target_id' => taxonomyTerm('category', 'News')->id, 'is_current' => true]);
     $site = (new OldSite)
-        ->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/about/'], ['id' => 3, 'type' => 'post', 'url' => OldSite::HOME.'/fresh/']])
+        ->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/about/']])
         ->urls('term', [['id' => 5, 'taxonomy' => 'post_tag', 'url' => OldSite::HOME.'/news/']]);
 
-    $stop = acsStop($source, $run, $site);
+    $stop = null;
+
+    try {
+        acsSaid($source, $run, $site);
+    } catch (ImportStopped $caught) {
+        $stop = $caught;
+    }
 
     expect($stop?->reason)->toBe('address-clash')
-        ->and($stop?->words)->toBe('2 addresses of the old site already belong to something else in Teme, so the import stopped before writing anything. The report lists them: rename or delete what Teme has at each, then carry on the import.')
-        ->and(array_map(fn (ImportMessage $message): array => [$message->code, $message->level, $message->message, $message->context], $stop?->details ?? []))->toBe([
-            ['clash.address', ImportMessageLevel::Error, '/about/ is the page "About" here, and the old site has a page there.', ['address' => '/about/', 'kind' => 'post', 'id' => 2]],
-            ['clash.address', ImportMessageLevel::Error, '/news/ is the category "News" here, and the old site has the tag there.', ['address' => '/news/', 'kind' => 'term', 'id' => 5]],
-        ])
-        ->and(DB::table('settings_changes')->count())->toBe(0);
+        ->and($stop?->words)->toBe('A category or tag of the old site has an address something else in Teme already has, which Teme can’t move it from, so the import stopped before writing anything. The report names it: rename or delete what Teme has there, then carry on the import.')
+        ->and(array_map(fn (ImportMessage $message): array => [$message->level, $message->message], $stop?->details ?? []))->toBe([
+            [ImportMessageLevel::Warning, '/about/ is the page "About" in Teme, so a page from the old site gets another address.'],
+            [ImportMessageLevel::Error, '/news/ is the category "News" in Teme, and the old site has the tag there.'],
+        ]);
 });
 
-it('says one address in words of its own', function (): void {
+it('says nothing of a category Teme already has at the same address, which the import files its posts under (#704)', function (): void {
     [$source, $run] = OldSite::running('address-clash');
-    addrPublished($this->admin, 'About', 'page');
+    DB::table('paths')->insert(['path' => 'category/health', 'target_type' => 'term', 'target_id' => taxonomyTerm('category', 'Health')->id, 'is_current' => true]);
+    $site = (new OldSite)->urls('term', [['id' => 7, 'taxonomy' => 'category', 'url' => OldSite::HOME.'/category/health/']]);
 
-    $stop = acsStop($source, $run, (new OldSite)->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/about/']]));
-
-    expect($stop?->words)->toBe('One address of the old site already belongs to something else in Teme, so the import stopped before writing anything. The report names it: rename or delete what Teme has there, then carry on the import.');
+    expect(acsSaid($source, $run, $site))->toBe([]);
 });
 
 it('leaves out what this import made, what it doesn’t bring, other hosts and addresses with a query', function (): void {
@@ -77,7 +88,7 @@ it('leaves out what this import made, what it doesn’t bring, other hosts and a
         ])
         ->urls('term', [['id' => 4, 'taxonomy' => 'post_format', 'url' => 'https://www.old.example/ferry-fares/']]);
 
-    expect(acsStop($source, $run, $site))->toBeNull()
+    expect(acsSaid($source, $run, $site))->toBe([])
         ->and($site->urlRequests())->toBe(['post:0', 'term:0']);
 });
 
@@ -86,32 +97,25 @@ it('starts again from the beginning with its own earlier messages cleared', func
     ImportRecords::message($run, null, 'clash.address', 'An earlier attempt’s clash.', 'error');
     ImportRecords::message($run, null, 'check.not-found', 'Another step’s.', 'error');
 
-    $stop = acsStop($source, $run, (new OldSite)->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/about/']]), $token);
-
-    expect($stop)->toBeNull()
+    expect(acsSaid($source, $run, (new OldSite)->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/about/']]), $token))->toBe([])
         ->and(DB::table('import_messages')->pluck('message')->all())->toBe(['Another step’s.']);
 });
 
-it('reads the old site a page at a time, and carries on at its cursor with what it found so far', function (): void {
+it('reads the old site a page at a time, and carries on at its cursor', function (): void {
     [$source, $run] = OldSite::running('address-clash');
     $posts = array_map(fn (int $id): array => ['id' => $id, 'type' => 'post', 'url' => OldSite::HOME."/post-{$id}/"], range(1, 501));
     $site = (new OldSite)->urls('post', $posts)->urls('term', [['id' => 1, 'taxonomy' => 'category', 'url' => OldSite::HOME.'/category/one/']]);
 
-    expect(acsStop($source, $run, $site))->toBeNull()
+    expect(acsSaid($source, $run, $site))->toBe([])
         ->and($site->urlRequests())->toBe(['post:0', 'post:500', 'term:0']);
 
+    // The cursor keeps how many clashes stop the run so far, in front.
     $later = new OldSite;
-    $stop = null;
-
-    try {
-        scElevated(fn () => app(AddressClashStep::class)->run(OldSite::context($source, $run), $later, '2|term:0'));
-    } catch (ImportStopped $caught) {
-        $stop = $caught;
-    }
+    $result = scElevated(fn () => app(AddressClashStep::class)->run(OldSite::context($source, $run), $later, '0|term:0'));
 
     expect($later->urlRequests())->toBe(['term:0'])
-        ->and($stop?->words)->toStartWith('2 addresses of the old site')
-        ->and($stop?->details)->toBe([]);
+        ->and($result->cursor)->toBeNull()
+        ->and($result->messages)->toBe([]);
 });
 
 it('names an address of a kind this release doesn’t know in words, never failing', function (): void {
@@ -119,8 +123,6 @@ it('names an address of a kind this release doesn’t know in words, never faili
     // A kind a later release adds, with a ULID.
     DB::table('paths')->insert(['path' => 'author/jane-roe', 'target_type' => 'gadget', 'target_id' => '01kv7m3q9x2c5r8t1w4y6z0b3d', 'is_current' => true]);
 
-    $stop = acsStop($source, $run, (new OldSite)->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/author/jane-roe/']]));
-
-    expect(array_map(fn (ImportMessage $message): string => $message->message, $stop?->details ?? []))
-        ->toBe(['/author/jane-roe/ is something this version of Teme doesn’t know (gadget) here, and the old site has a page there.']);
+    expect(array_map(fn (ImportMessage $message): string => $message->message, acsSaid($source, $run, (new OldSite)->urls('post', [['id' => 2, 'type' => 'page', 'url' => OldSite::HOME.'/author/jane-roe/']]))))
+        ->toBe(['/author/jane-roe/ is something this version of Teme doesn’t know (gadget) in Teme, so a page from the old site gets another address.']);
 });

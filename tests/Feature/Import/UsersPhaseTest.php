@@ -272,15 +272,15 @@ it('makes an author address Teme can use from one it can not, saying so', functi
         ->and(iupWords($this->source, 1, 'user.slug-changed'))->toBe('Their author address on WordPress ended in night_owl, which Teme can’t give them here, so theirs ends in night-owl.');
 });
 
-it('stops the run when a Teme person has the author address of a WordPress author with posts', function (): void {
+it('gives a WordPress author with posts the next free author address when a Teme person has theirs (#704)', function (): void {
     User::factory()->create(['name' => 'Grace', 'email' => 'grace@teme.example']);
 
     $run = iupRun($this->companion, $this->source, [iupAccount(1, ['nicename' => 'grace', 'display_name' => 'Grace Hopper', 'published_posts' => 4])]);
 
-    expect($run->state)->toBe(ImportRunState::Stopped)
-        ->and($run->stop_reason)->toBe('address-clash')
-        ->and($run->stop_message)->toBe('Teme already has a person whose author address ends in grace, and Grace Hopper from WordPress needs it too, so the import stopped. Change one of the two, then carry on the import.')
-        ->and(User::query()->count())->toBe(1);
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(iupPerson($this->source, 1)->slug)->toBe('grace-2')
+        ->and(iupWords($this->source, 1, 'user.slug-changed'))->toBe('Their author address on WordPress ended in grace, which Teme can’t give them here, so theirs ends in grace-2.')
+        ->and(User::query()->count())->toBe(2);
 });
 
 it('gives a WordPress person without posts the next free author address instead, in their own script', function (): void {

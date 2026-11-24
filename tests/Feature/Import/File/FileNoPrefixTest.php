@@ -145,5 +145,5 @@ it('stops at the address clash when a category without a prefix lands on a page 
 
     expect($run->state)->toBe(ImportRunState::Stopped)
         ->and(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'clash.address')->pluck('message')->all())
-        ->toContain('/animals/ is the page "Animals" here, and the old site has the category there.');
+        ->toContain('/animals/ is the page "Animals" in Teme, and the old site has the category there.');
 });
