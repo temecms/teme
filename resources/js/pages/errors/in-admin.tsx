@@ -73,7 +73,7 @@ export default function InAdminError({ status, site, role, reason }: Props) {
     return (
         <>
             <Head title={label} />
-            <ListPage title={title} description={description}>
+            <ListPage title={title} description={description} showTitle>
                 <Panel data-test={`error-${status}-in-admin`}>
                     <EmptyState
                         kind="nothing-yet"

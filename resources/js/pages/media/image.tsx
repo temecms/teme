@@ -95,6 +95,7 @@ export default function MediaImage({ item, place }: ImagePage) {
             <Head title={title} />
             <DetailPage
                 title={title}
+                showTitle
                 description={
                     item.width !== null && item.height !== null
                         ? __(

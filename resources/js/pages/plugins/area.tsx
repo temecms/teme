@@ -84,6 +84,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
             <PluginAreaPage
                 plugin={{ name: plugin.name }}
                 title={area.label}
+                showTitle
                 description={area.description || undefined}
                 pages={tabs.map((one) => ({
                     href: PluginAreaController.show.url({

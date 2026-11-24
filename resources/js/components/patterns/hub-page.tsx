@@ -99,6 +99,7 @@ export function HubPage({
     sections = [],
     pluginCards = [],
     titleAs,
+    showTitle,
 }: {
     title: string;
     description?: ReactNode;
@@ -106,10 +107,17 @@ export function HubPage({
     sections?: HubSection[];
     pluginCards?: ReactNode[];
     titleAs?: 'h1' | 'div';
+    /** Keep the large title when it is not the breadcrumb's last crumb. */
+    showTitle?: boolean;
 }) {
     return (
         <Page>
-            <PageHeader title={title} description={description} as={titleAs} />
+            <PageHeader
+                title={title}
+                description={description}
+                as={titleAs}
+                showTitle={showTitle}
+            />
             {cards.length > 0 && (
                 <ul className="grid grid-cols-(--hub-cols) gap-4" style={GRID}>
                     {cards.map((card, index) => (

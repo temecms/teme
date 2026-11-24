@@ -24,6 +24,7 @@ export function DashboardPage({
                 title={title}
                 description={description}
                 actions={actions}
+                showTitle
             />
             {children}
         </Page>

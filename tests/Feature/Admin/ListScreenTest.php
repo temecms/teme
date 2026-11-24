@@ -43,6 +43,18 @@ it('gives every list screen exactly one h1', function (string $name, array $para
     'users' => ['users.index', [], 'users/index'],
 ]);
 
+it('keeps the page name as a visually hidden h1 and shows it only when showTitle says so', function (): void {
+    $header = uiComponent('components/patterns/page-header.tsx');
+    $dashboard = uiComponent('components/patterns/dashboard-page.tsx');
+
+    expect($header)->toContain("as: Title = 'h1'")
+        ->and($header)->toContain('showTitle')
+        ->and($header)->toContain('sr-only')
+        ->and($header)->toContain('text-title text-ink font-semibold tracking-[-0.01em]')
+        ->and($header)->toContain('text-small text-ink-2')
+        ->and($dashboard)->toContain('showTitle');
+});
+
 it('shows each row\'s status on a pill in its Status column, no longer after its title', function (): void {
     lifecycleDraft($this->admin, 'Drafted');
     $this->travel(1)->minutes();

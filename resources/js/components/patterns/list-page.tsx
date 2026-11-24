@@ -14,6 +14,7 @@ export function ListPage({
     plugin,
     badge,
     titleAs,
+    showTitle,
     children,
 }: {
     title: string;
@@ -23,6 +24,8 @@ export function ListPage({
     /** Beside the title, such as a Soon tag. */
     badge?: ReactNode;
     titleAs?: 'h1' | 'div';
+    /** Keep the large title when it is not the breadcrumb's last crumb. */
+    showTitle?: boolean;
     children: ReactNode;
 }) {
     return (
@@ -33,6 +36,7 @@ export function ListPage({
                 actions={actions}
                 plugin={plugin}
                 badge={badge}
+                showTitle={showTitle}
                 as={titleAs}
             />
             <div className="grid gap-4">{children}</div>

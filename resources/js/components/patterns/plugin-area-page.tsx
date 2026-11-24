@@ -24,6 +24,8 @@ export type PluginAreaPageProps = {
     }[];
     /** `div` where the page already has its h1, as in the catalogue. */
     titleAs?: 'h1' | 'div';
+    /** Keep the large title when it is not the breadcrumb's last crumb. */
+    showTitle?: boolean;
     children: ReactNode;
 };
 
@@ -72,6 +74,7 @@ export function PluginAreaPage({
     actions,
     pages = [],
     titleAs,
+    showTitle,
     children,
 }: PluginAreaPageProps) {
     // A new page of the area starts afresh, so a failure doesn't follow it.
@@ -92,6 +95,7 @@ export function PluginAreaPage({
                         description={description}
                         actions={actions}
                         plugin={plugin.name}
+                        showTitle={showTitle}
                         as={titleAs}
                     />
                 </div>

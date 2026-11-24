@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Changed
+
+- Admin pages are named by the breadcrumb: the large repeated heading is visually hidden, and the page's description sits as one quiet line under the crumb beside its controls.
+
 ### Fixed
 
 - An import from an export file that stopped can be carried on: Carry on no longer asks for an application password the site never had. It needs the uploaded file instead, and says so once the file is gone.
