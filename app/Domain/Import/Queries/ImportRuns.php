@@ -74,6 +74,8 @@ final class ImportRuns
             (int) ($run->options['pause_ms'] ?? 1000),
             $run->choices,
             $run->file_id === null ? null : (string) $run->file_id,
+            // A run started before #701 holds no lanes, and reads its media in one.
+            (int) ($run->options['media_lanes'] ?? 1),
         );
     }
 }

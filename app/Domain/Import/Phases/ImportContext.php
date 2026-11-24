@@ -1,7 +1,7 @@
 <?php
 
 /**
- * What every phase of one run is given: the run, its kind and actor, a catch-up's starting time, the pause between pages, the choices made before it began (Tools › Import's choices step), and the export file it reads, if any.
+ * What every phase of one run is given: the run, its kind and actor, a catch-up's starting time, the pause between pages, the choices made before it began (Tools › Import's choices step), the export file it reads, if any, and how many lanes its media list is read in.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -30,6 +30,7 @@ final readonly class ImportContext
         public int $pauseMs,
         public array $choices,
         public ?string $fileId = null,
+        public int $mediaLanes = 1,
     ) {}
 
     /**
