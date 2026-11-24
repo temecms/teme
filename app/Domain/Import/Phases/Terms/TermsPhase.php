@@ -22,7 +22,6 @@ use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportList;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\ImportResult;
-use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Phases\ListPhase;
 use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\SourceRef;
@@ -97,6 +96,11 @@ final readonly class TermsPhase implements ListPhase
             return ImportResult::skipped(new ImportMessage('term.deleted-here', 'It was imported before and has since been deleted in Teme, so it wasn’t imported again.'));
         }
 
+        // A term Teme already had, which this import files its posts under, is never changed by it.
+        if ($termId !== null && ($this->map->entry($context->sourceId, $ref)?->facts['shared'] ?? false) === true) {
+            return ImportResult::updated('term', $termId)->withFacts(self::shared($this->facts($item, $wordpressTaxonomy, (int) ($item['parent'] ?? 0))));
+        }
+
         // A new term is made in its language, its slug kept exactly, suffix and all (I-3446).
         $language = $termId === null
             ? app(ImportedLanguages::class)->stored($context->sourceId, $item['language'] ?? null, app(SiteLanguages::class)->translatesTaxonomy($taxonomy->key))
@@ -122,11 +126,14 @@ final readonly class TermsPhase implements ListPhase
             ->value('id');
 
         if ($holder !== null) {
-            // A Teme term's address is one both sites claim (I-1706); another of this source's takes the next one free.
-            if (! $this->terms->madeBy($context->sourceId, (string) $holder)) {
+            // A term Teme already has at this address, in this taxonomy and language, is the old site's term too, as
+            // WordPress's importer takes it: its posts are filed under it, and it stays as Teme has it.
+            if ($termId === null && ! $this->terms->madeBy($context->sourceId, (string) $holder)) {
                 $singular = mb_strtolower($taxonomy->singular);
 
-                throw ImportStopped::because('address-clash', "Teme already has a {$singular} whose address ends in {$slug}, and “{$name}” from WordPress needs it too, so the import stopped. Change one of the two addresses, then carry on the import.");
+                return ImportResult::updated('term', (string) $holder)
+                    ->withWarning(new ImportMessage('term.shared', "Teme already has a {$singular} at this address, ending in {$slug}, so the posts in it are filed under that one, left as it is.", ['slug' => $slug]))
+                    ->withFacts(self::shared($this->facts($item, $wordpressTaxonomy, (int) ($item['parent'] ?? 0))));
             }
 
             $slug = TermSlugs::unique($taxonomy->key, $slug, $termId, $language);
@@ -219,6 +226,19 @@ final readonly class TermsPhase implements ListPhase
         }
 
         return null;
+    }
+
+    /**
+     * A term's facts when it is one Teme already had: marked shared, with no
+     * parent for the parents step to give it, since the import never changes it.
+     *
+     * @param  array<string, mixed>  $facts
+     *
+     * @return array<string, mixed>
+     */
+    private static function shared(array $facts): array
+    {
+        return [...$facts, 'parent' => 0, 'shared' => true];
     }
 
     /**

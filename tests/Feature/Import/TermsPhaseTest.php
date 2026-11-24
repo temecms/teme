@@ -151,15 +151,32 @@ it('keeps WordPress\'s term ID, taxonomy, parent and address in the map, and a t
         ->and($translations)->toBe(['en' => 103, 'fr' => 104]);
 });
 
-it('stops the run when Teme already has a term at the address an imported one needs', function (): void {
-    taxonomyTerm('category', 'Animals');
+it('files a WordPress term under the one Teme already has at its address, leaving that one as it is, run after run (#704)', function (): void {
+    $ours = taxonomyTerm('category', 'Animals');
+    Term::query()->whereKey($ours->id)->update(['description' => 'Ours, from another site.']);
+    $terms = [
+        tpsItem(2, ['name' => 'Animals', 'slug' => 'animals', 'description' => 'Theirs.']),
+        tpsItem(3, ['name' => 'Owls', 'slug' => 'owls', 'parent' => 102, 'link' => 'https://old.example/category/animals/owls/']),
+    ];
 
-    $run = tpsRun($this->companion, $this->source);
+    $run = tpsRun($this->companion, $this->source, $terms);
+    $facts = tpsRow($this->source, 2)->facts;
 
-    expect($run->state)->toBe(ImportRunState::Stopped)
-        ->and($run->stop_reason)->toBe('address-clash')
-        ->and($run->stop_message)->toBe('Teme already has a category whose address ends in animals, and “Animals” from WordPress needs it too, so the import stopped. Change one of the two addresses, then carry on the import.')
-        ->and(Term::query()->where('slug', 'animals')->count())->toBe(1);
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(tpsRow($this->source, 2)->teme_id)->toBe($ours->id)
+        ->and(Term::query()->where('taxonomy', 'category')->where('slug', 'animals')->count())->toBe(1)
+        ->and(Term::query()->whereKey($ours->id)->value('description'))->toBe('Ours, from another site.')
+        ->and(tpsCodes($this->source, 2))->toContain('term.shared')
+        ->and(tpsWords($this->source, 2, 'term.shared'))->toBe('Teme already has a category at this address, ending in animals, so the posts in it are filed under that one, left as it is.')
+        ->and([$facts['shared'] ?? null, $facts['parent'] ?? null, $facts['term_id'] ?? null])->toBe([true, 0, 102])
+        ->and(tpsTerm($this->source, 3)->parent_id)->toBe($ours->id);
+
+    $again = tpsRun($this->companion, $this->source, $terms);
+
+    expect($again->state)->toBe(ImportRunState::Finished)
+        ->and(tpsRow($this->source, 2)->teme_id)->toBe($ours->id)
+        ->and(Term::query()->whereKey($ours->id)->value('description'))->toBe('Ours, from another site.')
+        ->and(Term::query()->where('taxonomy', 'category')->count())->toBe(2);
 });
 
 it('gives two WordPress terms that need one address the next free one, saying so', function (): void {

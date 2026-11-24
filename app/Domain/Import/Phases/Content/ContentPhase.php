@@ -44,7 +44,6 @@ use App\Domain\Import\Phases\ImportFailed;
 use App\Domain\Import\Phases\ImportList;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\ImportResult;
-use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Phases\ListPhase;
 use App\Domain\Import\Phases\Media\ImportedMedia;
 use App\Domain\Import\Phases\PreparedObject;
@@ -59,6 +58,7 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use LogicException;
@@ -220,6 +220,16 @@ final class ContentPhase implements ListPhase, PreparesObjects
         }
 
         [$decided, $notes, $extra] = $this->decide($ref, $item, $type, $state, $conversion, $site, $context, $language);
+        $same = $this->sameHere($decided, $context->sourceId);
+
+        // Teme already has this post, with its title and publication time, from elsewhere: it isn't brought twice,
+        // as WordPress's importer doesn't, and the import never changes it (no fingerprint, so it reads as changed here).
+        if ($same !== null) {
+            return ImportResult::updated('content', $same)
+                ->withWarning(new ImportMessage('post.already-here', 'Teme already has it, with the same title and publication time, so it wasn’t brought twice. The import leaves the one here as it is.'))
+                ->withFacts(['written' => null, 'path' => WordPressPost::path($item), 'shared' => true]);
+        }
+
         [$decided, $slugNotes] = $this->freeSlug($decided, $id, $context);
         $written = app(ImportContent::class)->execute(new ImportContentInput($id, $decided, $context->actorId()));
 
@@ -460,13 +470,11 @@ final class ContentPhase implements ListPhase, PreparesObjects
     /**
      * The item under a slug and an address free for it: its own, else the
      * next free one, {slug}-2 to {slug}-20, while the slug is taken in its
-     * type or its address is the site's own or another's. Only an address
-     * both sites claim stops the run (I-1706): WordPress's own address, which
-     * Teme's pattern gives it too, held by something this source didn't make.
+     * type or its address is the site's own or another's, as WordPress does
+     * for a post whose address is taken, whoever holds it.
      *
      * @return array{0: ImportedItem, 1: list<ImportMessage>}
      *
-     * @throws ImportStopped
      * @throws ImportFailed
      */
     private function freeSlug(ImportedItem $item, string $contentId, ImportContext $context): array
@@ -479,13 +487,6 @@ final class ContentPhase implements ListPhase, PreparesObjects
             $address = ImportedContents::address($contentId, $candidate);
             $holder = $address === null ? null : DB::table('paths')->where('path', $address)->where('is_current', true)->first(['target_type', 'target_id']);
             $mine = $holder !== null && $holder->target_type === 'content' && (string) $holder->target_id === $contentId;
-            $here = $holder !== null && ! $mine && $this->madeHere($context->sourceId, (string) $holder->target_type, (string) $holder->target_id);
-
-            if ($try === 1 && $holder !== null && ! $mine && ! $here && $address === $item->wordpressPath) {
-                $what = Paths::describe((string) $holder->target_type, (string) $holder->target_id);
-
-                throw ImportStopped::because('address-clash', "Teme already has {$what} at /{$address}/, and “{$item->title}” from WordPress needs that address too, so the import stopped. Change one of the two addresses, then carry on the import.");
-            }
 
             $slugFree = $candidate->trashedAt !== null || Slugs::isAvailable($candidate->type, $candidate->slug, $contentId, $candidate->language);
             // Another language's address is checked after its prefix (I-3360).
@@ -672,9 +673,31 @@ final class ContentPhase implements ListPhase, PreparesObjects
     /**
      * Whether this source made the item, term or person at an address.
      */
-    private function madeHere(string $sourceId, string $type, string $id): bool
+    /**
+     * Returns the ID of a published item of the same type, title and
+     * publication time that this source didn't make, or null when there is
+     * none or the item isn't published.
+     */
+    private function sameHere(ImportedItem $item, string $sourceId): ?string
     {
-        return ImportMapEntry::query()->where('teme_type', $type)->where('teme_id', $id)->where('source_id', $sourceId)->exists();
+        if ($item->publishedAt === null) {
+            return null;
+        }
+
+        $id = DB::table('contents')
+            ->join('content_revisions', 'content_revisions.id', '=', 'contents.working_revision_id')
+            ->where('contents.type', $item->type)
+            ->where('contents.published_at', $item->publishedAt)
+            ->where('content_revisions.title', $item->title)
+            ->whereNull('contents.deleted_at')
+            ->whereNotExists(fn (Builder $query): Builder => $query->select(DB::raw(1))->from('import_map')
+                ->where('import_map.source_id', $sourceId)
+                ->where('import_map.teme_type', 'content')
+                ->whereColumn('import_map.teme_id', 'contents.id'))
+            ->orderBy('contents.id')
+            ->value('contents.id');
+
+        return $id === null ? null : (string) $id;
     }
 
     /**
@@ -794,7 +817,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
         if ($written['clash'] !== null) {
             $from = mb_substr($written['clash']['from'], 0, 300);
             $holder = mb_substr($written['clash']['holder'], 0, 300);
-            $notes[] = ImportMessage::error('post.address-taken', "WordPress had it at /{$from}/, which leads to {$holder} here, so links to that old address reach the wrong page. Change one of the two addresses, then run the import again.", ['from' => $from]);
+            $notes[] = new ImportMessage('post.address-taken', "WordPress had it at /{$from}/, which is {$holder} here, so that old address leads there and this one has the address above.", ['from' => $from]);
         }
 
         if ($written['taken'] > 0) {
