@@ -241,3 +241,18 @@ it('gives a catch-up what changed since an hour before the last finished import 
         ->and($context->pauseMs)->toBe(1000)
         ->and($context->actorId())->toBe((string) $this->admin->id);
 });
+
+it('leaves a picture pass out of the latest and the last finished import, so catch-up and the report read the import it follows (#716)', function (): void {
+    $run = ($this->started)();
+    DB::table('import_runs')->where('id', $run->id)->update(['state' => 'finished', 'phase' => null, 'phase_token' => null, 'ended_at' => now()]);
+    $pass = ImportRun::query()->create([
+        'source_id' => $this->source->id, 'kind' => ImportRunKind::MediaPass, 'state' => 'finished', 'follows_run_id' => $run->id,
+        'high_water_at' => now(), 'started_at' => now()->addMinute(), 'ended_at' => now()->addMinutes(2),
+    ]);
+    $runs = app(ImportRuns::class);
+
+    expect($runs->latest($this->source->id)?->id)->toBe($run->id)
+        ->and($runs->lastFinished($this->source->id)?->id)->toBe($run->id)
+        ->and($runs->passOf($run->id)?->id)->toBe($pass->id)
+        ->and(ImportRunKind::MediaPass->label())->toBe('Pictures');
+});

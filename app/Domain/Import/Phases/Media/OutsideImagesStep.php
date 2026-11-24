@@ -28,6 +28,7 @@ use App\Domain\Import\Operations\RecordOutsideImage;
 use App\Domain\Import\Phases\Content\ContentSite;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
+use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
@@ -41,7 +42,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-final readonly class OutsideImagesStep implements StepPhase
+final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
 {
     /** Content items a read. */
     public const int PAGE = 50;

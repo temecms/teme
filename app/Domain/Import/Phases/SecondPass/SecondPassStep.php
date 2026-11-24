@@ -31,6 +31,7 @@ use App\Domain\Import\Phases\Content\ContentSite;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\Media\ImportedMedia;
+use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
@@ -39,7 +40,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-final readonly class SecondPassStep implements StepPhase
+final readonly class SecondPassStep implements RunsInMediaPass, StepPhase
 {
     /** Seconds a job works before it hands on to the next. */
     public const int BUDGET = 50;

@@ -127,3 +127,15 @@ it('keeps an object\'s map row when its run is deleted, and removes everything w
 
     expect(DB::table('import_map')->count())->toBe(0);
 });
+
+it('keeps a picture pass beside the run it follows, and forgets which once that run is deleted (#716)', function (): void {
+    $run = ($this->run)(['state' => ImportRunState::Finished, 'phase' => null, 'phase_token' => null, 'ended_at' => now()]);
+    $pass = ($this->run)(['kind' => ImportRunKind::MediaPass, 'follows_run_id' => $run->id]);
+
+    expect($pass->fresh()->kind)->toBe(ImportRunKind::MediaPass)
+        ->and($pass->fresh()->follows_run_id)->toBe($run->id);
+
+    DB::table('import_runs')->where('id', $run->id)->delete();
+
+    expect($pass->fresh()->follows_run_id)->toBeNull();
+});
