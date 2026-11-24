@@ -7,7 +7,9 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -208,6 +210,28 @@ it('uploads in the Upload tab and chooses the finished file', function (): void 
         ->attach('[data-test="media-modal-upload-input"]', mediaJpeg(640, 480));
     cmWaitUntil($page, "document.querySelector('[role=\"dialog\"] [role=\"progressbar\"]') !== null");
     cmWaitUntil($page, mpTray()." === '{$quay->id}' && document.querySelector('[data-test=\"media-modal-status\"]').textContent === 'Uploaded 1 file. Add its alt text.'");
+});
+
+it('waits for a pending upload before setting the featured image', function (): void {
+    // No queue worker: the upload stays pending until the test marks it ready.
+    Queue::fake();
+    $page = mpOpen(mpCatalogue($this->editor), 'featured');
+
+    $quay = mediaUpload($this->editor, mediaJpeg(800, 600), 'quay.jpg')->refresh();
+    expect($quay->processing)->toBe('pending');
+
+    $page->script(($this->fakeUploads)($quay));
+    $page->click('[role="dialog"] [role="tab"]:text-is("Upload")');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"media-modal-drop-zone\"]') !== null")
+        ->attach('[data-test="media-modal-upload-input"]', mediaJpeg(640, 480));
+    cmWaitUntil($page, mpTray()." === '{$quay->id}' && document.querySelector('[data-test=\"media-modal-status\"]').textContent === 'Waiting for the image to be prepared…'");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"media-modal-use\"]').disabled === true");
+
+    DB::table('media')->where('id', $quay->id)->update(['processing' => 'ready']);
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"media-modal-use\"]').disabled === false && document.querySelector('[data-test=\"media-modal-status\"]').textContent !== 'Waiting for the image to be prepared…'")
+        ->click('[data-test="media-modal-use"]');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"dialog-content\"]') === null && ".mpChosen()." === '{$quay->id}'");
 });
 
 it('edits alt text in the side, saved when left, and the library shows it', function (): void {
