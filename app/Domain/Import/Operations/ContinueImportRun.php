@@ -18,6 +18,7 @@ namespace App\Domain\Import\Operations;
 use App\Domain\Import\ImportEngine;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\ImportStatus;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
@@ -74,7 +75,14 @@ final class ContinueImportRun extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['run' => 'Only an import that stopped can be carried on.']);
         }
 
-        if ($source->credential === null) {
+        // A run that reads an export file needs the file, never the site's password; a live one needs the password.
+        if ($run->file_id !== null) {
+            $file = ImportFile::query()->whereKey($run->file_id)->first();
+
+            if ($file === null || $file->state !== 'ready' || $file->deleted_at !== null) {
+                throw ValidationException::withMessages(['run' => 'Teme no longer has that export file. Upload it again.']);
+            }
+        } elseif ($source->credential === null) {
             throw ValidationException::withMessages(['run' => 'Teme has forgotten this site’s application password. Connect the site again first.']);
         }
 

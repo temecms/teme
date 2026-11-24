@@ -7,6 +7,7 @@ use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\ImportStatus;
 use App\Domain\Import\Jobs\ImportListPage;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Operations\AdvanceImportRun;
@@ -169,6 +170,28 @@ it('stops a running import by hand, and carries it on from the phase it stopped 
         ->and($carried->stop_reason)->toBeNull()
         ->and(Queue::pushed(ImportListPage::class)->last()?->token)->toBe($carried->phase_token)
         ->and(DB::table('security_events')->where('type', 'import.started')->where('context->continued', true)->count())->toBe(1);
+});
+
+it('carries on an import from an export file without a password, and refuses once the file is gone', function (): void {
+    $run = ($this->started)();
+    app(StopImportRun::class)->execute(new StopImportRunInput($run->id, (string) $this->admin->id));
+    $file = ImportFile::query()->create([
+        'source_id' => $this->source->id, 'uploaded_by' => $this->admin->id, 'name' => 'site.xml',
+        'size_bytes' => 10, 'received_bytes' => 10, 'state' => 'ready',
+    ]);
+    DB::table('import_runs')->where('id', $run->id)->update(['file_id' => $file->id]);
+    DB::table('import_sources')->update(['credential' => null, 'forgotten_at' => now()]);
+    $continue = fn () => scElevated(fn () => app(ContinueImportRun::class)->execute(new ContinueImportRunInput($run->id, (string) $this->admin->id)));
+
+    $continue();
+
+    expect($run->fresh()->state)->toBe(ImportRunState::Running);
+
+    app(StopImportRun::class)->execute(new StopImportRunInput($run->id, (string) $this->admin->id));
+    DB::table('import_files')->where('id', $file->id)->update(['deleted_at' => now()]);
+
+    expect($continue)->toThrow(ValidationException::class, 'Teme no longer has that export file. Upload it again.')
+        ->and($run->fresh()->state)->toBe(ImportRunState::Stopped);
 });
 
 it('refuses to carry on an import that didn\'t stop, or to stop one that isn\'t running', function (): void {

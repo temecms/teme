@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Fixed
+
+- An import from an export file that stopped can be carried on: Carry on no longer asks for an application password the site never had. It needs the uploaded file instead, and says so once the file is gone.
+
 ## [1.4.2] — 2026-11-24
 
 ### Fixed
