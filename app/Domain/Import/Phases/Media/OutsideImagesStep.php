@@ -82,7 +82,8 @@ final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
         $hosts = self::hosts($context->choice('outside_images', []));
-        $own = ! ($context->readsFile() && $context->choice('media') === 'links');
+        // The old site's own images come with its media files: never as links, and in the picture pass when that brings them (#716).
+        $own = ! $context->keepsOldSiteMedia() || $context->kind === ImportRunKind::MediaPass;
 
         if ($hosts === [] && ! $own) {
             return StepResult::done();

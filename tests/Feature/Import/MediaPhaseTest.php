@@ -614,3 +614,17 @@ it('gives a file import one media list per lane, eight at most, and none when me
         ->and($phase->lists($file(99)))->toHaveCount(8)
         ->and($phase->lists($file(4, ['media' => 'links'])))->toBe([]);
 });
+
+it('reads no media list when the articles come first, live or from a file, and keeps the old site’s media only then (#716)', function (): void {
+    $context = fn (array $choices, ?string $file): ImportContext => new ImportContext('run', $this->source->id, ImportRunKind::Full, JobActor::person(1), null, 0, $choices, $file, 4);
+
+    expect(app(MediaPhase::class)->lists($context(['media' => 'later'], null)))->toBe([])
+        ->and(app(MediaPhase::class)->lists($context(['media' => 'later'], 'file-1')))->toBe([])
+        ->and($context(['media' => 'later'], null)->keepsOldSiteMedia())->toBeTrue()
+        ->and($context(['media' => 'later'], null)->bringsMediaLater())->toBeTrue()
+        ->and($context(['media' => 'links'], 'file-1')->keepsOldSiteMedia())->toBeTrue()
+        ->and($context(['media' => 'links'], 'file-1')->bringsMediaLater())->toBeFalse()
+        ->and($context(['media' => 'links'], null)->keepsOldSiteMedia())->toBeFalse()
+        ->and($context(['media' => 'download'], 'file-1')->keepsOldSiteMedia())->toBeFalse()
+        ->and($context([], null)->keepsOldSiteMedia())->toBeFalse();
+});

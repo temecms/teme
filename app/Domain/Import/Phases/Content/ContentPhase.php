@@ -162,7 +162,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             $blocks,
             $this->site,
             new ImportedMedia($context->sourceId),
-            new MapTargets($context->sourceId, $context->readsFile() && $context->choice('media') === 'links'),
+            new MapTargets($context->sourceId, $context->keepsOldSiteMedia()),
             new ConversionItem((int) $ref->id, self::shortcodes($item)),
         ), $this->site);
     }
@@ -364,8 +364,8 @@ final class ContentPhase implements ListPhase, PreparesObjects
             } else {
                 $missing = true;
 
-                // A file's media kept on the old site as links: the address check says so once for every post (CheckStep).
-                if (! ($context->readsFile() && $context->choice('media') === 'links')) {
+                // Media kept on the old site, as links or until the picture pass: the address check says so once for every post (CheckStep).
+                if (! $context->keepsOldSiteMedia()) {
                     $notes[] = new ImportMessage('post.featured-missing', 'Its featured image isn’t in Teme’s library, so it has none for now. A later import sets it if the image comes across.');
                 }
             }

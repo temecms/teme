@@ -79,3 +79,17 @@ it('keeps an own image not in the export’s attachments as a link when media st
         ->and(json_encode($document, JSON_UNESCAPED_SLASHES))->toContain($src)
         ->and(json_encode($document))->not->toContain('"type":"image"');
 });
+
+it('brings the articles first without a download, and says the pictures follow from the old site (#716)', function (): void {
+    $run = FileImports::run(FileImports::ready('companion-site.xml', $this->admin), ['media' => 'later']);
+    $messages = ImportMessageRecord::query()->where('run_id', $run->id)->orderBy('id')->get(['code', 'level', 'message']);
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(ImportMapEntry::query()->where('object_type', 'attachment')->where('run_id', $run->id)->count())->toBe(0)
+        ->and($messages->where('code', 'post.featured-missing')->count())->toBe(0)
+        ->and($messages->where('code', 'check.old-files')->count())->toBe(0)
+        ->and($messages->where('code', 'check.media-kept')->count())->toBe(0)
+        ->and($messages->where('code', 'check.media-later')->map(fn ($m): array => [$m->level->value, $m->message])->values()->all())->toBe([[
+            'warning', 'The media files come after the articles, in the background: until each one is copied here, posts show it from old.example. Keep that site up until the pictures are done.',
+        ]]);
+});

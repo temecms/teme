@@ -114,6 +114,8 @@ export type ChoicesForm = {
     people: { value: string; label: string }[];
     outsideHosts: { host: string; count: number }[];
     pause: number;
+    /** download, or later: the articles first, then the pictures in the background. */
+    media: string;
     pauses: { value: number; label: string }[];
 };
 
@@ -162,6 +164,7 @@ export type RememberedChoices = {
     roles: Record<string, string>;
     owner: string;
     outside_images: string[];
+    media?: string;
     pause: number;
 };
 

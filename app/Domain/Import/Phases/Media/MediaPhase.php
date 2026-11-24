@@ -103,8 +103,8 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects
      */
     public function lists(ImportContext $context): array
     {
-        // Kept on the old site as links: nothing is downloaded or recorded (docs/architecture/import.md).
-        if ($context->readsFile() && $context->choice('media') === 'links') {
+        // Kept on the old site, as links or until the picture pass: nothing is downloaded or recorded here (docs/architecture/import.md).
+        if ($context->keepsOldSiteMedia()) {
             return [];
         }
 

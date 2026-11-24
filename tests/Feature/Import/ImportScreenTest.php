@@ -188,6 +188,7 @@ it('keeps the choices across the password’s confirmation, so nothing is chosen
         'roles' => ['wpseo_manager' => 'editor', 'wpseo_editor' => 'author'],
         'owner' => (string) $this->admin->id,
         'outside_images' => [],
+        'media' => 'download',
         'pause' => 1000,
     ];
 
