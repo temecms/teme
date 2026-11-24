@@ -127,6 +127,21 @@ function GroupHeading({
     );
 }
 
+/** A plug mark naming the plugin for screen readers. */
+function FromPlugin({ name }: { name: string }) {
+    return (
+        <>
+            <Plug
+                aria-hidden="true"
+                className="text-ink-3 ms-auto size-3.5 shrink-0"
+            />
+            <span className="sr-only">
+                {__('From :name', { name })}
+            </span>
+        </>
+    );
+}
+
 /** One entry, 38 tall: its icon, its label and its count, or its Soon tag. */
 function EntryButton({
     item,
@@ -162,7 +177,10 @@ function EntryButton({
             >
                 <Link href={item.href} prefetch>
                     <Icon />
-                    <span>{item.label}</span>
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    {item.plugin !== undefined && (
+                        <FromPlugin name={item.plugin} />
+                    )}
                 </Link>
             </SidebarMenuButton>
             <NavBadge count={item.badge} />
@@ -196,19 +214,11 @@ function SubEntry({
                 <>
                     <SidebarMenuSubButton asChild isActive={isActive}>
                         <Link href={item.href} prefetch>
-                            {item.label}
+                            <span className="min-w-0 flex-1 truncate">
+                                {item.label}
+                            </span>
                             {item.plugin !== undefined && (
-                                <>
-                                    <Plug
-                                        aria-hidden="true"
-                                        className="text-ink-3 ms-auto size-3.5"
-                                    />
-                                    <span className="sr-only">
-                                        {__('From :name', {
-                                            name: item.plugin,
-                                        })}
-                                    </span>
-                                </>
+                                <FromPlugin name={item.plugin} />
                             )}
                         </Link>
                     </SidebarMenuSubButton>

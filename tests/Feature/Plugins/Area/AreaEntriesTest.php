@@ -125,3 +125,34 @@ it('shows neither the entry nor the card to a person without the area’s permis
     expect(($this->menu)($author))->toBe([])
         ->and(($this->cards)($author))->toBe([]);
 });
+
+it('puts the area’s own icon on its menu entry and names the plugin for the plug mark', function (): void {
+    $manifest = PluginFixtures::manifest('placard');
+    $manifest['contributes']['area']['icon'] = 'send';
+    $folder = PluginFixtures::copy('placard', [
+        'name' => 'tests/placard-icon',
+        'code' => 'placardicon',
+        'label' => 'Placard Icon',
+        'owns' => ['tables' => []],
+        'contributes' => $manifest['contributes'],
+    ], ['name' => 'tests/placard-icon']);
+    (new Filesystem)->deleteDirectory($folder.'/database');
+    PluginFixtures::use($folder);
+    $found = app(PluginRegistry::class)->find('tests/placard-icon');
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/placard-icon',
+        $found?->manifest->version() ?? '1.0.0',
+        $found?->manifest->capabilities() ?? [],
+        $found?->manifest->hosts() ?? [],
+        $found?->manifest->hooks() ?? [],
+        null,
+    ));
+    app(PluginLoader::class)->load();
+
+    $entry = ($this->menu)($this->editor)[0] ?? null;
+
+    expect($entry)->not->toBeNull()
+        ->and($entry['icon'])->toBe('send')
+        ->and($entry['plugin'])->toBe('Placard Icon')
+        ->and($entry['label'])->toBe('Ads');
+});

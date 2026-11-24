@@ -44,13 +44,14 @@ final readonly class AreaEntries
             $entries[] = new NavEntry(
                 key: "plugin.{$plugin->code}",
                 label: $this->areaLabel($plugin),
-                icon: 'plug',
+                icon: $plugin->area->icon,
                 section: $plugin->area->menu === 'content' ? NavSection::Content : NavSection::Site,
                 order: self::ORDER + $index,
                 route: 'plugins.area.show',
                 routeParameters: ['code' => $plugin->code],
                 ability: $plugin->ability(),
                 owner: $plugin->name,
+                pluginLabel: $plugin->label,
             );
         }
 
@@ -76,7 +77,7 @@ final readonly class AreaEntries
             $cards[] = [
                 'key' => "plugin.{$plugin->code}.area",
                 'label' => $this->areaLabel($plugin),
-                'icon' => 'plug',
+                'icon' => $plugin->area->icon,
                 'description' => $plugin->area->description !== ''
                     ? AreaWords::text($plugin->code, $plugin->area->description)
                     : $this->areaLabel($plugin),

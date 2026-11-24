@@ -887,7 +887,15 @@
                                     "chart-line",
                                     "sparkles",
                                     "pen-line",
-                                    "list-checks"
+                                    "list-checks",
+                                    "mail",
+                                    "inbox",
+                                    "layout",
+                                    "list",
+                                    "user",
+                                    "globe",
+                                    "code",
+                                    "grid"
                                 ],
                                 "description": "The tool's icon."
                             },
@@ -1346,6 +1354,31 @@
                         "menu": {
                             "enum": ["content", "site", "tools"],
                             "description": "Where its entry goes."
+                        },
+                        "icon": {
+                            "enum": [
+                                "plug",
+                                "link",
+                                "external-link",
+                                "settings",
+                                "send",
+                                "bell",
+                                "refresh-cw",
+                                "chart-line",
+                                "sparkles",
+                                "pen-line",
+                                "list-checks",
+                                "mail",
+                                "inbox",
+                                "layout",
+                                "list",
+                                "user",
+                                "globe",
+                                "code",
+                                "grid"
+                            ],
+                            "$comment": "@since next",
+                            "description": "The menu and Tools-card icon; plug when absent."
                         },
                         "purges": {
                             "type": "array",

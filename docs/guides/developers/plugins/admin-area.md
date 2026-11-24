@@ -31,11 +31,12 @@ Put the area under `contributes.area`:
 - `label` and `description`, shown on its Tools card when it has one;
 - `permission`, the id of one of your permissions;
 - `menu`, the menu section its entry sits in: `content`, `site` or `tools`;
+- `icon`, optional: the Lucide name for the menu entry and Tools card (`plug` when absent); the same set editor panels may use;
 - `purges`, the page-cache tags a write clears after it commits: `insertions`, `page-insertions`, or neither;
 - `pages`, one to eight, each with an `id`, a `label` and up to eight `blocks` (the ids `records` and `settings` are reserved);
 - `records`, up to three kinds of thing the area keeps, each with a form.
 
-The menu entry and the area's heading show the plugin's own label. The admin menu holds five plugin entries at most, in the order the plugins were enabled; a sixth area, and any area whose `menu` is `tools`, gets a card on the Tools page instead.
+The menu entry and the area's heading show the area's own label, with the plugin's name as a plug mark beside it. The admin menu holds five plugin entries at most, in the order the plugins were enabled; a sixth area, and any area whose `menu` is `tools`, gets a card on the Tools page instead.
 
 When the plugin also declares settings, Teme adds a **Settings** tab as the last tab of the area and draws the settings form there; see [Plugin settings and secrets](settings.md#where-they-appear).
 

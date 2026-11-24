@@ -39,8 +39,8 @@ final class PanelValidator
     /** A field's key. */
     public const string FIELD_KEY = '/^[a-z][a-z0-9_]{0,31}$/D';
 
-    /** The icons a panel may use beyond a Tools link's. */
-    public const array MORE_ICONS = ['sparkles', 'pen-line', 'list-checks'];
+    /** The icons a panel or area may use beyond a Tools link's. */
+    public const array MORE_ICONS = ['sparkles', 'pen-line', 'list-checks', 'mail', 'inbox', 'layout', 'list', 'user', 'globe', 'code', 'grid'];
 
     /** The kinds of field an action's form may hold, and the longest text each takes. */
     public const array FIELD_TYPES = ['text' => 500, 'textarea' => 2_000, 'select' => null, 'boolean' => null, 'number' => null];
