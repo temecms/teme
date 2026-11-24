@@ -146,7 +146,7 @@ final readonly class ImportFiles
     /**
      * Returns the address guesses stored when the file was read, or null for a file read before they were stored.
      *
-     * @since next
+     * @since 1.4.1
      *
      * @return array{category_base: string, tag_base: string, category_example: string, tag_example: string}|null
      */
