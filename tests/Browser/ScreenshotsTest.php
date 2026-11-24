@@ -42,6 +42,9 @@ beforeEach(function (): void {
     $this->withVite();
     $this->seed(RoleSeeder::class);
 
+    // The guides' screens freeze the clock in the past, so a dated session cookie is already expired in the real browser; a session cookie has no date.
+    config(['session.expire_on_close' => true]);
+
     // Each request starts afresh, as on a real server.
     Event::listen(RequestHandled::class, function (): void {
         app()->forgetScopedInstances();
