@@ -30,6 +30,7 @@ use App\Domain\Import\Convert\Media\PlayerCards;
 use App\Domain\Import\Convert\Shortcodes\ShortcodeMappings;
 use App\Domain\Import\Convert\Shortcodes\ShortcodePass;
 use App\Domain\Import\Phases\SourceRef;
+use App\Domain\Media\OutsideImage;
 use Dom\Element;
 use Dom\Node;
 use Dom\Text;
@@ -54,6 +55,9 @@ final class BlockContext
 
     /** @var list<list<array<string, mixed>>> */
     private array $held = [];
+
+    /** @var array<string, true> what this conversion's outside pictures wait for (#716) */
+    private array $waiting = [];
 
     public function __construct(
         private readonly BlockMappings $mappings,
@@ -344,6 +348,15 @@ final class BlockContext
             $found['mediaId'] = $this->targets->outsideImage(ImageTrace::source($img));
         }
 
+        // The pictures come after the articles: shown from the old site until the picture pass brings the file (#716).
+        if ($found['mediaId'] === null && $found['own'] && $this->targets->drawsOldSiteImages()) {
+            $outside = $this->outsideCard($img, $attachmentId, $caption, $width, $decorative, $captionId);
+
+            if ($outside !== null) {
+                return $outside;
+            }
+        }
+
         if ($found['mediaId'] === null) {
             if ($found['own'] && $this->targets->keepsOldSiteMedia()) {
                 $this->report->count('image.outside', '', $this->site->hostOf(ImageTrace::source($img)));
@@ -412,6 +425,56 @@ final class BlockContext
         $words = HtmlFragment::text($caption);
 
         return $words === '' ? null : $words;
+    }
+
+    /**
+     * What this conversion's outside pictures wait for, by
+     * ImageTrace::waitingKeys(), once each (#716).
+     *
+     * @return list<string>
+     */
+    public function waitingMedia(): array
+    {
+        return array_keys($this->waiting);
+    }
+
+    /**
+     * An Image card at the old site's address, an outside picture, while the
+     * picture pass brings the file; null for an address no page could draw.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function outsideCard(Element $img, ?int $attachmentId, ?string $caption, string $width, bool $decorative, ?int $captionId): ?array
+    {
+        $source = $this->site->absolute(ImageTrace::source($img));
+
+        if ($source === null || ! OutsideImage::isWebAddress($source)) {
+            return null;
+        }
+
+        foreach (ImageTrace::waitingKeys($img, $this->site, $attachmentId, $captionId) as $key) {
+            $this->waiting[$key] = true;
+        }
+
+        $size = fn (string $name): ?int => ctype_digit(trim((string) $img->getAttribute($name))) && (int) $img->getAttribute($name) > 0 && (int) $img->getAttribute($name) <= 100000 ? (int) $img->getAttribute($name) : null;
+        $alt = $decorative ? '' : mb_substr(HtmlFragment::words((string) $img->getAttribute('alt')), 0, self::ALT);
+        $long = $caption !== null && mb_strlen($caption) > self::CAPTION;
+        [$sourceWidth, $sourceHeight] = [$size('width'), $size('height')];
+
+        $card = ['type' => 'image', 'attrs' => [
+            'id' => $this->newId(),
+            'mediaId' => null,
+            'source' => $source,
+            'sourceWidth' => $sourceWidth !== null && $sourceHeight !== null ? $sourceWidth : null,
+            'sourceHeight' => $sourceWidth !== null && $sourceHeight !== null ? $sourceHeight : null,
+            'alt' => $alt === '' ? null : $alt,
+            'decorative' => $decorative,
+            'caption' => $long ? null : $caption,
+            'credit' => null,
+            'width' => $width,
+        ]];
+
+        return $long ? [$card, Nodes::paragraph([['type' => 'text', 'text' => (string) $caption]])] : [$card];
     }
 
     /**

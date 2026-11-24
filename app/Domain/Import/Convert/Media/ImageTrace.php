@@ -113,6 +113,36 @@ final class ImageTrace
     }
 
     /**
+     * What an outside picture waits for: each attachment ID the image names
+     * (`a:{id}`), and the original file below the uploads folder
+     * (`f:{key}`), so the picture pass finds the posts a file it brings
+     * belongs in (#716).
+     *
+     * @return list<string>
+     *
+     * @since next
+     */
+    public static function waitingKeys(Element $img, ConversionSite $site, ?int $attachmentId = null, ?int $captionId = null): array
+    {
+        $dataId = filter_var($img->getAttribute('data-id'), FILTER_VALIDATE_INT);
+        $keys = [];
+
+        foreach ([$attachmentId, self::classId($img), is_int($dataId) ? $dataId : null, $captionId] as $id) {
+            if ($id !== null && $id > 0) {
+                $keys[] = "a:{$id}";
+            }
+        }
+
+        $key = $site->uploadsKey(self::source($img));
+
+        if ($key !== null) {
+            $keys[] = 'f:'.self::original($key);
+        }
+
+        return array_values(array_unique($keys));
+    }
+
+    /**
      * The original file's key for a size or an edited copy: without a
      * `-{w}x{h}` size, then without `-scaled` or `-rotated`.
      */

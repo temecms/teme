@@ -139,3 +139,11 @@ it('keeps a picture pass beside the run it follows, and forgets which once that 
 
     expect($pass->fresh()->follows_run_id)->toBeNull();
 });
+
+it('finds the posts waiting for a file by what they wait for, from an index of only those (#716)', function (): void {
+    $index = (string) DB::table('pg_indexes')->where('tablename', 'import_map')->where('indexname', 'import_map_waiting_media')->value('indexdef');
+
+    expect($index)->toContain('USING gin')
+        ->toContain("(facts -> 'waiting_media'::text)")
+        ->toContain("WHERE ((facts -> 'waiting_media'::text) <> '[]'::jsonb)");
+});

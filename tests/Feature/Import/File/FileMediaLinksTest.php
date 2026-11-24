@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Contents\Models\ContentRevision;
+use App\Domain\Fields\BuiltInFields;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportMessageRecord;
@@ -92,4 +93,36 @@ it('brings the articles first without a download, and says the pictures follow f
         ->and($messages->where('code', 'check.media-later')->map(fn ($m): array => [$m->level->value, $m->message])->values()->all())->toBe([[
             'warning', 'The media files come after the articles, in the background: until each one is copied here, posts show it from old.example. Keep that site up until the pictures are done.',
         ]]);
+});
+
+it('shows a post\'s pictures from the old site while they wait, and keeps what each waits for (#716)', function (): void {
+    $src = 'https://old.example/wp-content/uploads/2024/05/Harbour-1024x683.jpg';
+    $bytes = (string) preg_replace_callback('~<item>.*?</item>~s', function (array $item) use ($src): string {
+        if (! str_contains($item[0], '<wp:post_id>12</wp:post_id>') || str_contains($item[0], 'attachment')) {
+            return $item[0];
+        }
+
+        $item[0] = str_replace('<wp:meta_value><![CDATA[41]]></wp:meta_value>', '<wp:meta_value><![CDATA[12]]></wp:meta_value>', $item[0]);
+
+        return (string) preg_replace(
+            '~<content:encoded><!\[CDATA\[.*?\]\]></content:encoded>~s',
+            '<content:encoded><![CDATA[<!-- wp:image {"id":12} --><figure class="wp-block-image"><img src="'.$src.'" alt="Boats" width="1024" height="683" class="wp-image-12"/></figure><!-- /wp:image -->]]></content:encoded>',
+            $item[0],
+            1,
+        );
+    }, (string) file_get_contents(ExportFiles::path('companion-site.xml')));
+
+    $run = FileImports::run(FileImports::ready('companion-site.xml', $this->admin, $bytes), ['media' => 'later']);
+    $post = ImportMapEntry::query()->where('object_type', 'post')->where('object_id', '12')->sole();
+    $revision = ContentRevision::query()->findOrFail(DB::table('contents')->where('id', $post->teme_id)->value('working_revision_id'));
+    $card = collect($revision->document['content'])->firstWhere('type', 'image');
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(Media::query()->count())->toBe(0)
+        ->and($card['attrs'])->toMatchArray(['mediaId' => null, 'source' => $src, 'sourceWidth' => 1024, 'sourceHeight' => 683, 'alt' => 'Boats'])
+        ->and($revision->fields[BuiltInFields::FEATURED_IMAGE] ?? null)->toEqualCanonicalizing([
+            'source' => 'https://old.example/wp-content/uploads/2024/05/Harbour-scaled.jpg', 'width' => 2560, 'height' => 1707, 'alt' => 'Boats moored in a grey harbour', 'decorative' => false,
+        ])
+        ->and($post->facts['waiting_media'])->toBe(['a:12', 'f:2024/05/harbour.jpg'])
+        ->and(ImportMessageRecord::query()->where('map_id', $post->id)->pluck('code')->all())->not->toContain('image.outside');
 });

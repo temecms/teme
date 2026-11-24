@@ -69,6 +69,15 @@ interface SourceTargets
     public function keepsOldSiteMedia(): bool;
 
     /**
+     * Whether the import brings the articles first and the pictures after,
+     * so an own image Teme has no file for yet is shown from the old site,
+     * an outside picture, until the picture pass swaps in the library item.
+     *
+     * @since next
+     */
+    public function drawsOldSiteImages(): bool;
+
+    /**
      * The WordPress IDs of the files of this type (image, audio, video)
      * attached to this post, in WordPress's order.
      *

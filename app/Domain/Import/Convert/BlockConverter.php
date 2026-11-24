@@ -41,6 +41,6 @@ final readonly class BlockConverter
         $parsed = array_values(array_map(fn (mixed $block): ParsedBlock => ParsedBlock::from(is_array($block) ? $block : []), $blocks));
         $fitted = DocumentFit::fit($context->blocks($parsed), $report);
 
-        return new Conversion(['type' => 'doc', 'content' => BlockIds::fill($fitted['content'], $context->newId(...))], $report->messages(), $fitted['references'], $context->links->pending());
+        return new Conversion(['type' => 'doc', 'content' => BlockIds::fill($fitted['content'], $context->newId(...))], $report->messages(), $fitted['references'], $context->links->pending(), $context->waitingMedia());
     }
 }

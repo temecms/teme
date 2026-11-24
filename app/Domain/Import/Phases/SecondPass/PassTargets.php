@@ -90,6 +90,11 @@ final readonly class PassTargets implements SourceTargets
         return false;
     }
 
+    public function drawsOldSiteImages(): bool
+    {
+        return false;
+    }
+
     /**
      * Returns the WordPress IDs of this kind of file attached to this post.
      */
