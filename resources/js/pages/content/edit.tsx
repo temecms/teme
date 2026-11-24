@@ -1526,7 +1526,7 @@ export default function ContentEdit(page: ContentEditPage) {
                                     onChange={(event) =>
                                         setTitle(event.target.value)
                                     }
-                                    className="text-display field-sizing-content resize-none border-0 bg-transparent px-0 py-0 font-serif font-semibold text-balance focus-visible:outline-0"
+                                    className="text-display field-sizing-content resize-none overflow-hidden border-0 bg-transparent px-0 py-0 font-serif font-semibold text-balance focus-visible:outline-0"
                                 />
                                 <InputError id="editor-title-error" />
                             </div>

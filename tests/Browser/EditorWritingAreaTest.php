@@ -139,3 +139,28 @@ it('lets paragraphs give way on a narrow screen, as wide as the writing column a
         ->and($at['paragraphLeft'])->toEqualWithDelta($at['titleLeft'], 1)
         ->and($at['scrollsSideways'])->toBeFalse();
 });
+
+it('grows the title with its lines and never gives it a scrollbar', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1024, 768), $this->edit));
+    ($this->drawn)($page);
+
+    $page->fill('#editor-title', 'How Much Does It Cost to Build a House in Hawaii? A Full Cost Breakdown for Every Island, Every Budget, and Every Kind of Buyer Who Is Planning Ahead');
+    cmWaitUntil($page, "document.querySelector('#editor-title').value.length > 100");
+
+    $at = cmScriptArray($page, <<<'JS'
+        () => {
+            const title = document.querySelector('#editor-title');
+            const line = parseFloat(getComputedStyle(title).lineHeight);
+
+            return {
+                overflowY: getComputedStyle(title).overflowY,
+                lines: Math.round(title.clientHeight / line),
+                clipped: title.scrollHeight - title.clientHeight,
+            };
+        }
+        JS);
+
+    expect($at['lines'])->toBeGreaterThanOrEqual(2)
+        ->and($at['overflowY'])->toBe('hidden')
+        ->and($at['clipped'])->toBeLessThanOrEqual(2);
+});
