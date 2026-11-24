@@ -7,6 +7,11 @@ All notable changes to this project are documented in this file. Versioning foll
 ### Fixed
 
 - An import from an export file that stopped can be carried on: Carry on no longer asks for an application password the site never had. It needs the uploaded file instead, and says so once the file is gone.
+- Import: images in posts that come from the old site's uploads but weren't among the media brought are kept: downloaded into the library, or, when media stays on the old site, kept pointing at it, instead of being left out.
+- A plugin's area is named by its own label in the menu, on the Tools page and as its page's title, with the plugin's name beside it.
+- Choose an image: a new upload can be chosen straight away; Set featured image waits, saying so, until the image is prepared, then works.
+- Editor: a title of two or more lines grows with its text and no longer shows a scrollbar.
+- Editor: the side panel's fields and buttons fit the panel for a post with a long address, instead of running past the edge of the window.
 
 ## [1.4.2] — 2026-11-24
 
