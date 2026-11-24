@@ -282,7 +282,72 @@ export function MediaPickerDialog({
         uploadedFor: uploadedFor?.id ?? null,
     });
 
+    const waiting = chosen.some((id) => known[id]?.processing !== 'ready');
+    // Chosen ids still preparing, sorted for a stable effect key.
+    const pendingKey = chosen
+        .filter((id) => known[id]?.processing !== 'ready')
+        .toSorted()
+        .join(',');
+    // Start of the current wait: stalled is derived from elapsed time (no setState for it).
+    const waitStartedAt = useRef<number | null>(null);
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        if (!open || !waiting) {
+            waitStartedAt.current = null;
+
+            return;
+        }
+
+        if (waitStartedAt.current === null) {
+            waitStartedAt.current = Date.now();
+        }
+
+        const ids = pendingKey === '' ? [] : pendingKey.split(',');
+
+        const poll = async (): Promise<void> => {
+            setNow(Date.now());
+
+            await Promise.all(
+                ids.map(async (id) => {
+                    try {
+                        const row = (await submit(
+                            showMedia({ media: id }),
+                        )) as MediaRow;
+                        remember([row]);
+                        setRows((current) =>
+                            current.map((each) =>
+                                each.id === row.id
+                                    ? {
+                                          ...each,
+                                          processing: row.processing,
+                                          thumbUrl: row.thumbUrl,
+                                      }
+                                    : each,
+                            ),
+                        );
+                    } catch {
+                        // Gone or not allowed: leave the choice; waiting stays.
+                    }
+                }),
+            );
+        };
+
+        const interval = setInterval(() => void poll(), 3000);
+
+        return () => clearInterval(interval);
+    }, [open, waiting, pendingKey, submit, remember]);
+
+    const stalled =
+        waiting &&
+        waitStartedAt.current !== null &&
+        now - waitStartedAt.current >= 60_000;
+
     const insert = (ids: string[]) => {
+        if (ids.some((id) => known[id]?.processing !== 'ready')) {
+            return;
+        }
+
         const picked = ids.filter((id) => known[id] !== undefined);
 
         if (picked.length === 0) {
@@ -325,7 +390,28 @@ export function MediaPickerDialog({
 
         // Enter, or a double-click in a single choice: chosen and inserted at once.
         if (multi && how === 'enter') {
-            insert(chosen.length > 0 ? chosen : [id]);
+            const ids = chosen.length > 0 ? chosen : [id];
+
+            if (ids.some((each) => known[each]?.processing !== 'ready')) {
+                if (chosen.length === 0) {
+                    setChosen([id]);
+                    setSideId(id);
+                    setUploaded(null);
+                }
+
+                return;
+            }
+
+            insert(ids);
+
+            return;
+        }
+
+        // Still preparing: choose only, do not insert.
+        if (known[id]?.processing !== 'ready') {
+            setChosen([id]);
+            setSideId(id);
+            setUploaded(null);
 
             return;
         }
@@ -340,15 +426,24 @@ export function MediaPickerDialog({
     const status =
         uploads.pending > 0
             ? __n('Uploading 1 file…|Uploading :count files…', uploads.pending)
-            : uploaded !== null
-              ? uploaded
-              : chosen.length > 0
-                ? __n('1 file selected|:count files selected', chosen.length)
-                : multi
-                  ? __(
-                        'Select one or more files. Space selects; Enter confirms.',
-                    )
-                  : __('Select a file. Space selects; Enter confirms.');
+            : stalled
+              ? __(
+                    'Images are prepared in the background, and nothing on this site is running that: ask whoever runs the server.',
+                )
+              : waiting
+                ? __('Waiting for the image to be prepared…')
+                : uploaded !== null
+                  ? uploaded
+                  : chosen.length > 0
+                    ? __n(
+                          '1 file selected|:count files selected',
+                          chosen.length,
+                      )
+                    : multi
+                      ? __(
+                            'Select one or more files. Space selects; Enter confirms.',
+                        )
+                      : __('Select a file. Space selects; Enter confirms.');
 
     const side =
         sideId !== null && chosen.includes(sideId)
@@ -618,6 +713,7 @@ export function MediaPickerDialog({
                             </ul>
                         )}
                         <span
+                            id="media-modal-status"
                             role="status"
                             data-test="media-modal-status"
                             className="text-small text-ink-2"
@@ -649,7 +745,8 @@ export function MediaPickerDialog({
                     </Button>
                     <Button
                         type="button"
-                        disabled={chosen.length === 0}
+                        disabled={chosen.length === 0 || waiting}
+                        aria-describedby="media-modal-status"
                         onClick={() => insert(chosen)}
                         data-test="media-modal-use"
                     >
