@@ -97,6 +97,35 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get($this->edit)->assertOk();
 });
 
+it('keeps the side panel and everything in it inside the window for a published post with a long address (#718)', function (int $width, int $height): void {
+    $post = addrPublished($this->editor, 'Tennis Shots Explained: 18 Techniques to Improve Your Game and Win More Points Every Season');
+    $this->actingAs($this->editor)->get("/admin/content/{$post->id}/edit")->assertOk();
+
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize($width, $height), "/admin/content/{$post->id}/edit"));
+    cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"] [data-test=\"publish-section\"]') !== null");
+
+    $at = cmScriptArray($page, <<<'JS'
+        () => {
+            const aside = document.querySelector('aside[aria-label="Post settings"]');
+            const parts = [...aside.querySelectorAll('button, input, [role="combobox"], a')].filter((element) => element.getClientRects().length > 0);
+
+            return {
+                window: document.documentElement.clientWidth,
+                aside: aside.getBoundingClientRect().right,
+                widest: Math.max(...parts.map((element) => element.getBoundingClientRect().right)),
+                overflows: aside.scrollWidth > aside.clientWidth + 1,
+            };
+        }
+        JS);
+
+    expect($at['aside'])->toBeLessThanOrEqual($at['window'] + 0.5)
+        ->and($at['widest'])->toBeLessThanOrEqual($at['aside'] + 0.5)
+        ->and($at['overflows'])->toBeFalse();
+})->with([
+    '1440 × 900' => [1440, 900],
+    '1920 × 928' => [1920, 928],
+]);
+
 it('keeps one writing column at the reading measure, the title, the toolbar and the text on one left edge, whether the menu or the side panel is open', function (int $width, int $height): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize($width, $height), $this->edit));
     ($this->drawn)($page);

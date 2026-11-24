@@ -95,7 +95,7 @@ export function Row({
     children: ReactNode;
 }) {
     return (
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-3">
             <dt className="text-small text-ink-3 flex min-h-8 w-24 shrink-0 items-center">
                 {htmlFor === undefined ? (
                     label
