@@ -85,6 +85,11 @@ final readonly class PassTargets implements SourceTargets
         return $this->map->outsideImage($address);
     }
 
+    public function keepsOldSiteMedia(): bool
+    {
+        return false;
+    }
+
     /**
      * Returns the WordPress IDs of this kind of file attached to this post.
      */

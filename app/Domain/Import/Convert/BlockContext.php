@@ -345,6 +345,12 @@ final class BlockContext
         }
 
         if ($found['mediaId'] === null) {
+            if ($found['own'] && $this->targets->keepsOldSiteMedia()) {
+                $this->report->count('image.outside', '', $this->site->hostOf(ImageTrace::source($img)));
+
+                return $this->outsideLink($img);
+            }
+
             if ($found['own']) {
                 $this->report->count('image.missing', '', $found['file']);
 
@@ -564,11 +570,15 @@ final class BlockContext
             $img->setAttribute('src', $src);
             $found = ImageTrace::find($img, $this->site, $this->media);
 
-            if ($found['mediaId'] !== null || $found['own'] || $this->targets->outsideImage($src) !== null) {
+            if ($found['mediaId'] !== null || $this->targets->outsideImage($src) !== null) {
                 continue;
             }
 
-            $this->report->count('image.outside', '', $found['host']);
+            if ($found['own'] && ! $this->targets->keepsOldSiteMedia()) {
+                continue;
+            }
+
+            $this->report->count('image.outside', '', $found['host'] ?? $this->site->hostOf($src));
             $words = HtmlFragment::words((string) $img->getAttribute('alt'));
             $words = $words !== '' ? $words : (basename(rawurldecode((string) parse_url($src, PHP_URL_PATH))) ?: $src);
 
@@ -596,6 +606,7 @@ final class BlockContext
 
                 return $found['mediaId'] === null
                     && $found['own']
+                    && ! $this->targets->keepsOldSiteMedia()
                     && $this->targets->outsideImage(ImageTrace::source($img)) === null;
             });
 
@@ -626,6 +637,12 @@ final class BlockContext
         }
 
         if (! $traced['own']) {
+            return null;
+        }
+
+        if ($this->targets->keepsOldSiteMedia()) {
+            $this->report->count('image.outside', '', $this->site->hostOf($src));
+
             return null;
         }
 

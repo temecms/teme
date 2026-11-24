@@ -231,6 +231,23 @@ it('shows an own image the outside step brought, and still leaves one out when i
         ]);
 });
 
+it('keeps an own image as a link when media stays on the old site', function (): void {
+    $src = 'https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg';
+
+    $conversion = WordPressContent::convert([
+        WordPressContent::classic('<p>Before.</p>'),
+        wpBlock('core/image', "<figure class=\"wp-block-image\"><img src=\"{$src}\" alt=\"Teeth\" class=\"wp-image-99\"/></figure>", ['id' => 99]),
+    ], new KnownTargets(oldSiteMedia: true));
+    wpAccepted($conversion->document);
+
+    expect(wpWithoutIds($conversion->document)['content'])->toBe([
+        WordPressContent::p('Before.'),
+        WordPressContent::linked('Teeth', $src),
+    ])->and(WordPressContent::said($conversion))->toBe([
+        ['image.outside', 'Linked to 1 image on another site instead of showing it: old.example.', ['count' => 1, 'hosts' => ['old.example']]],
+    ]);
+});
+
 it('keeps the link to an image from another site after the gallery it was in', function (): void {
     $media = [1 => '01K5Z9P2QH7N3X4C8V6B0M1M01', 2 => '01K5Z9P2QH7N3X4C8V6B0M1M02'];
     $own = fn (int $id): array => wpBlock('core/image', "<figure class=\"wp-block-image\"><img src=\"https://old.example/wp-content/uploads/i{$id}.jpg\" class=\"wp-image-{$id}\"/></figure>", ['id' => $id]);
