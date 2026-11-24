@@ -1,11 +1,12 @@
 <?php
 
 /**
- * Images from the outside sites the person ticked (I-1703), brought into
- * the library before posts convert: the content list read for each <img>
- * on a ticked host, each address downloaded once through the safe
- * downloader, stored by its bytes and recorded in the map. A job spends at
- * most fifty seconds, then carries on at the last item it finished.
+ * Images brought into the library before posts convert (I-1703): each
+ * <img> on a host the person ticked, and each of the old site's own that
+ * the media list didn't bring when downloads are wanted. Each address is
+ * downloaded once through the safe downloader, stored by its bytes and
+ * recorded in the map. A job spends at most fifty seconds, then carries
+ * on at the last item it finished.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -16,6 +17,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Media;
 
+use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Convert\Html\HtmlFragment;
 use App\Domain\Import\Convert\Media\ImageTrace;
 use App\Domain\Import\ImportOutcome;
@@ -23,6 +25,7 @@ use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportStatus;
 use App\Domain\Import\Operations\Input\RecordOutsideImageInput;
 use App\Domain\Import\Operations\RecordOutsideImage;
+use App\Domain\Import\Phases\Content\ContentSite;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\SourceRef;
@@ -49,7 +52,11 @@ final readonly class OutsideImagesStep implements StepPhase
     /** The most seconds one download may take. */
     public const int SECONDS = 20;
 
-    public function __construct(private ImportMap $map, private FileDownloader $downloader) {}
+    public function __construct(
+        private ImportMap $map,
+        private FileDownloader $downloader,
+        private ContentSite $sites,
+    ) {}
 
     public function key(): string
     {
@@ -74,11 +81,14 @@ final readonly class OutsideImagesStep implements StepPhase
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
         $hosts = self::hosts($context->choice('outside_images', []));
+        $own = ! ($context->readsFile() && $context->choice('media') === 'links');
 
-        if ($hosts === []) {
+        if ($hosts === [] && ! $own) {
             return StepResult::done();
         }
 
+        $site = $this->sites->for($context->sourceId);
+        $media = new ImportedMedia($context->sourceId);
         $started = CarbonImmutable::now();
         $after = max(0, (int) $cursor);
         $query = $context->modifiedAfter === null ? [] : ['modified_after' => $context->modifiedAfter->utc()->format('Y-m-d H:i:s')];
@@ -91,7 +101,7 @@ final readonly class OutsideImagesStep implements StepPhase
             // Said once the item is finished: a job that stops inside it leaves them to the job that finishes it.
             $unkeyed = [];
 
-            foreach (isset($item['error']) ? [] : self::images($item, $hosts) as $image) {
+            foreach (isset($item['error']) ? [] : $this->images($item, $hosts, $site, $media, $own) as $image) {
                 if ($image['key'] === null) {
                     $unkeyed[] = is_string(parse_url($image['address'], PHP_URL_USER))
                         ? new ImportMessage('outside-image.credentials', "An image address from {$image['host']} carries a user name, so Teme won’t download it, and posts link to it instead.", ['host' => $image['host']])
@@ -215,16 +225,16 @@ final readonly class OutsideImagesStep implements StepPhase
     }
 
     /**
-     * The images on ticked hosts an item's content shows, each address
-     * once: the address, its key (null when too long to keep), its host,
-     * and the first alt text one of them carries.
+     * The images an item's content shows that this step should bring: each
+     * on a ticked host, and each of the old site's own that Teme has no
+     * media for yet when downloads are wanted, each address once.
      *
      * @param  array<int|string, mixed>  $item
      * @param  list<string>  $hosts
      *
      * @return list<array{address: string, key: string|null, host: string, alt: string|null}>
      */
-    private static function images(array $item, array $hosts): array
+    private function images(array $item, array $hosts, ConversionSite $site, ImportedMedia $media, bool $own): array
     {
         $html = (string) ($item['content'] ?? '');
 
@@ -236,11 +246,25 @@ final readonly class OutsideImagesStep implements StepPhase
 
         foreach (iterator_to_array(HtmlFragment::body($html)->querySelectorAll('img')) as $img) {
             $src = trim(ImageTrace::source($img));
-            $address = str_starts_with($src, '//') ? 'https:'.$src : $src;
-            $host = (string) preg_replace('/^www\./', '', strtolower((string) parse_url($address, PHP_URL_HOST)));
+            $address = $site->absolute($src);
 
-            if (preg_match('#^https?://#i', $address) !== 1 || ! in_array($host, $hosts, true)) {
+            if ($address === null || preg_match('#^https?://#i', $address) !== 1) {
                 continue;
+            }
+
+            $host = (string) preg_replace('/^www\./', '', strtolower((string) parse_url($address, PHP_URL_HOST)));
+            $ticked = in_array($host, $hosts, true);
+
+            if (! $ticked) {
+                if (! $own) {
+                    continue;
+                }
+
+                $traced = ImageTrace::find($img, $site, $media);
+
+                if (! $traced['own'] || $traced['mediaId'] !== null) {
+                    continue;
+                }
             }
 
             $key = ImportedMedia::outsideKey($address);

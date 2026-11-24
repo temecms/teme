@@ -340,7 +340,7 @@ final class BlockContext
     ): array {
         $found = ImageTrace::find($img, $this->site, $this->media, $attachmentId, $captionId);
 
-        if ($found['mediaId'] === null && ! $found['own']) {
+        if ($found['mediaId'] === null) {
             $found['mediaId'] = $this->targets->outsideImage(ImageTrace::source($img));
         }
 
@@ -594,7 +594,9 @@ final class BlockContext
             $lost = array_filter($images, function (Element $img): bool {
                 $found = ImageTrace::find($img, $this->site, $this->media);
 
-                return $found['mediaId'] === null && $found['own'];
+                return $found['mediaId'] === null
+                    && $found['own']
+                    && $this->targets->outsideImage(ImageTrace::source($img)) === null;
             });
 
             if (count($lost) === count($images)) {
@@ -617,8 +619,14 @@ final class BlockContext
             return $traced['mediaId'];
         }
 
+        $outside = $this->targets->outsideImage($src);
+
+        if ($outside !== null) {
+            return $outside;
+        }
+
         if (! $traced['own']) {
-            return $this->targets->outsideImage($src);
+            return null;
         }
 
         $this->report->count('image.missing', '', $traced['file']);
