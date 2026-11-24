@@ -16,6 +16,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Cards;
 
+use App\Domain\Cards\Plugin\PluginCards;
+use App\Domain\Plugins\ManifestText;
+use App\Domain\Settings\Queries\SettingsForm;
 use App\Domain\Themes\ActiveTheme;
 
 final class CardManifest
@@ -25,6 +28,7 @@ final class CardManifest
      *     cards: list<array{name: string, label: string, description: string, menuLabel: string, group: string, keywords: list<string>, icon: string, inMenus: bool, regionOnly: bool, attributes: list<array{name: string, default: mixed, options: list<string>|null}>}>,
      *     embedProviders: list<array{name: string, match: string, frame: string, kind: string}>,
      *     imageSizes: array<string, string>,
+     *     pluginCards: list<array{key: string, code: string, plugin: string, label: string, description: string, icon: string, keywords: list<string>, fields: list<array<string, mixed>>}>,
      * }
      */
     public static function forBrowser(CardRegistry $registry): array
@@ -70,7 +74,51 @@ final class CardManifest
         // the sizes the site's do (I-245).
         $imageSizes = app(ActiveTheme::class)->get()?->manifest?->images() ?? [];
 
-        return ['cards' => $cards, 'embedProviders' => $providers, 'imageSizes' => $imageSizes];
+        return ['cards' => $cards, 'embedProviders' => $providers, 'imageSizes' => $imageSizes, 'pluginCards' => self::pluginCards()];
+    }
+
+    /**
+     * The running plugins' cards, each with its fields as the settings form
+     * draws them, a choice field as type "choice", and its plugin's words in
+     * the current locale (docs/guides/developers/plugins/cards.md).
+     *
+     * @return list<array{key: string, code: string, plugin: string, label: string, description: string, icon: string, keywords: list<string>, fields: list<array<string, mixed>>}>
+     */
+    private static function pluginCards(): array
+    {
+        $form = app(SettingsForm::class);
+        $locale = app()->getLocale();
+        $cards = [];
+
+        foreach (app(PluginCards::class)->all() as $definition) {
+            $words = ManifestText::for($definition->code);
+            $fields = [];
+
+            foreach ($definition->fields as $field) {
+                $shaped = $form->fieldOf($field);
+                $shaped['label'] = $words->text($field->label, $locale);
+                $shaped['description'] = $words->text($field->description, $locale);
+
+                if (in_array($field->key, $definition->choiceKeys, true)) {
+                    $shaped['type'] = 'choice';
+                }
+
+                $fields[] = $shaped;
+            }
+
+            $cards[] = [
+                'key' => $definition->key(),
+                'code' => $definition->code,
+                'plugin' => $words->text($definition->plugin, $locale),
+                'label' => $words->text($definition->label, $locale),
+                'description' => $words->text($definition->description, $locale),
+                'icon' => $definition->icon,
+                'keywords' => $definition->keywords,
+                'fields' => $fields,
+            ];
+        }
+
+        return $cards;
     }
 
     /**

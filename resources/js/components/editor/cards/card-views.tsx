@@ -20,6 +20,7 @@ import {
     ImportedContentCard,
     ImportedContentSettings,
 } from './imported-content-card';
+import { PluginCardSettings, PluginCardView } from './plugin-card';
 import { SiteCodeCard, SiteCodeSettings } from './site-code-card';
 import { StepsCard, StepsSettings } from './steps-card';
 import { VideoCard, VideoSettings } from './video-card';
@@ -44,6 +45,7 @@ export const cardViews: Record<string, ComponentType<ReactNodeViewProps>> = {
     'featured-posts': FeaturedPostsCard,
     faq: FaqCard,
     steps: StepsCard,
+    'plugin-card': PluginCardView,
 };
 
 /**
@@ -64,6 +66,7 @@ export const cardSettings: Record<string, ComponentType<CardSettingsProps>> = {
     'featured-posts': FeaturedPostsSettings,
     faq: FaqSettings,
     steps: StepsSettings,
+    'plugin-card': PluginCardSettings,
 };
 
 export function UnknownCard({ node, selected }: ReactNodeViewProps) {

@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Seams;
 
 use Teme\Contracts\Ai\SiteAi;
+use Teme\Contracts\Cards\CardsChanged;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\HtmlToDocument;
@@ -38,7 +39,7 @@ use Teme\Contracts\Site\SiteInfo;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class, HookSender::class, Notices::class, HtmlToDocument::class, VerifiedDirectory::class, Submissions::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class, HookSender::class, Notices::class, HtmlToDocument::class, VerifiedDirectory::class, Submissions::class, CardsChanged::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

@@ -138,6 +138,35 @@ final class ContributionsValidator implements ContributionsCheck
      */
     public const int DEFAULT_LIST_ROWS = 20;
 
+    /**
+     * A card's id (docs/guides/developers/plugins/cards.md).
+     *
+     * @since next
+     */
+    public const string CARD_ID = '/^[a-z][a-z0-9-]{1,40}$/D';
+
+    /**
+     * The types a card's field may take: a setting's, without secret, code
+     * and repeater, and with choice.
+     *
+     * @since next
+     */
+    public const array CARD_FIELD_TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'color', 'person', 'term', 'type', 'choice'];
+
+    /**
+     * At most this many cards per plugin.
+     *
+     * @since next
+     */
+    public const int MOST_CARDS = 20;
+
+    /**
+     * At most this many fields per card.
+     *
+     * @since next
+     */
+    public const int MOST_CARD_FIELDS = 20;
+
     /** The code the settings are checked under; the real group takes the plugin's. */
     private const string CHECKED_CODE = 'settings';
 
@@ -177,6 +206,13 @@ final class ContributionsValidator implements ContributionsCheck
                 if ($problem !== null) {
                     $errors[] = $problem;
                 }
+            } elseif ($surface === 'cards') {
+                // Cards for a theme's regions, drawn on every kind of page (docs/guides/developers/plugins/cards.md).
+                if ($capabilities !== null && ! in_array(Capability::PagesInsert->value, $capabilities, true)) {
+                    $errors[] = __('A plugin’s cards need pages.insert.');
+                }
+
+                array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
             } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
@@ -258,6 +294,109 @@ final class ContributionsValidator implements ContributionsCheck
 
         // What it declares for search engines (docs/guides/developers/plugins/seo.md).
         $errors = [...$errors, ...app(SeoValidator::class)->errors($contributes, $capabilities)];
+
+        return $errors;
+    }
+
+    /**
+     * Cards: at most 20, each with an id, a label, a description and up to
+     * 20 fields declared as settings are, which Teme can build.
+     *
+     * @return list<string>
+     */
+    private function cardErrors(mixed $cards, string $version): array
+    {
+        if (! is_array($cards) || ! array_is_list($cards)) {
+            return [__('cards must list the plugin’s cards.')];
+        }
+
+        $errors = count($cards) > self::MOST_CARDS ? [__('A plugin can offer at most 20 cards.')] : [];
+        $ids = [];
+
+        foreach ($cards as $card) {
+            $card = is_array($card) ? $card : [];
+            $id = is_string($card['id'] ?? null) ? $card['id'] : null;
+
+            foreach (array_keys($card) as $key) {
+                if (! in_array($key, ['id', 'label', 'description', 'icon', 'keywords', 'fields'], true)) {
+                    $errors[] = __('A card can’t have :key.', ['key' => (string) $key]);
+                }
+            }
+
+            if (preg_match(self::CARD_ID, $id ?? '') !== 1) {
+                $errors[] = __('A card’s id must be 2 to 41 lower-case letters, digits and hyphens, starting with a letter.');
+            }
+
+            if (! is_string($card['label'] ?? null) || trim($card['label']) === '' || mb_strlen($card['label']) > 40) {
+                $errors[] = __('A card needs a label of 1 to 40 characters.');
+            }
+
+            if (! is_string($card['description'] ?? null) || trim($card['description']) === '' || mb_strlen($card['description']) > 160) {
+                $errors[] = __('A card needs a description of 1 to 160 characters.');
+            }
+
+            if (array_key_exists('icon', $card) && (! is_string($card['icon']) || preg_match(self::CARD_ID, $card['icon']) !== 1)) {
+                $errors[] = __('A card’s icon is the name of an icon, in lower-case letters, digits and hyphens.');
+            }
+
+            if (array_key_exists('keywords', $card) && (! is_array($card['keywords']) || ! array_is_list($card['keywords']) || count($card['keywords']) > 10 || array_any($card['keywords'], fn (mixed $word): bool => ! is_string($word) || trim($word) === '' || mb_strlen($word) > 40))) {
+                $errors[] = __('A card’s keywords are at most 10 words of 1 to 40 characters.');
+            }
+
+            array_push($errors, ...$this->cardFieldErrors($card['fields'] ?? [], $version));
+
+            if ($id !== null && in_array($id, $ids, true)) {
+                $errors[] = __('Two cards can’t share the id :id.', ['id' => $id]);
+            }
+
+            $ids[] = $id;
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function cardFieldErrors(mixed $fields, string $version): array
+    {
+        if (! is_array($fields) || ! array_is_list($fields) || count($fields) > self::MOST_CARD_FIELDS) {
+            return [__('A card’s fields are a list of at most 20.')];
+        }
+
+        $errors = [];
+        $keys = [];
+
+        foreach ($fields as $field) {
+            $field = is_array($field) ? $field : [];
+            $key = is_string($field['key'] ?? null) ? $field['key'] : null;
+
+            if (! in_array($field['type'] ?? null, self::CARD_FIELD_TYPES, true)) {
+                $errors[] = __('A card’s field can’t be of the type :type.', ['type' => is_scalar($field['type'] ?? null) ? (string) $field['type'] : '']);
+
+                continue;
+            }
+
+            if (! is_string($field['label'] ?? null) || trim($field['label']) === '') {
+                $errors[] = __('A card’s field needs a label.');
+            }
+
+            if (array_key_exists('section', $field) || array_key_exists('visibleWhen', $field)) {
+                $errors[] = __('A card’s field has no section or condition.');
+            }
+
+            try {
+                DeclaredSettings::cardField([...$field, 'description' => is_string($field['description'] ?? null) ? $field['description'] : ''], $version);
+            } catch (InvalidArgumentException $refused) {
+                $errors[] = __('A card’s field can’t be used: :error', ['error' => $refused->getMessage()]);
+            }
+
+            if ($key !== null && in_array($key, $keys, true)) {
+                $errors[] = __('Two of a card’s fields can’t share the key :key.', ['key' => $key]);
+            }
+
+            $keys[] = $key;
+        }
 
         return $errors;
     }

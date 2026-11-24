@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "code": "open",
+    "name": "Fixture Open",
+    "version": "0.1.0",
+    "description": "A usable theme with a region that takes every card, sized, and one narrowed to the button.",
+    "requires": { "teme": "^0.1" },
+    "regions": {
+        "sidebar": { "label": "Sidebar", "size": "300x600" },
+        "narrow": { "label": "Narrow", "cards": ["button"] }
+    }
+}

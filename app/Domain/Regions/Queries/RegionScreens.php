@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Regions\Queries;
 
 use App\Domain\Cards\CardRegistry;
+use App\Domain\Cards\Plugin\PluginCards;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Regions\RegionWords;
 use App\Domain\Themes\ActiveTheme;
@@ -67,12 +68,13 @@ final readonly class RegionScreens
 
         foreach ($declared as $key => $region) {
             $row = $rows->pull(RegionDeclarations::slug($theme->code, $key));
+            $names = RegionDeclarations::names($region['cards']);
 
             $regions[] = [
                 'key' => $key,
                 'label' => $region['label'],
-                'cards' => $region['cards'],
-                'cardLabels' => $this->labels($region['cards']),
+                'cards' => $names,
+                'cardLabels' => $this->labels($names),
                 'max' => $region['max'],
                 'limit' => RegionWords::limit($region['max']),
                 'state' => self::state($row),
@@ -109,7 +111,7 @@ final readonly class RegionScreens
      * takes; null for an item that isn't a region, or a region no installed
      * theme declares any more.
      *
-     * @return array{label: string, themeName: string, inUse: bool, cards: list<string>, cardLabels: list<string>, max: int, takes: string}|null
+     * @return array{label: string, themeName: string, inUse: bool, cards: list<string>, cardLabels: list<string>, max: int, size: string|null, takes: string}|null
      */
     public function editorMode(string $contentId): ?array
     {
@@ -126,14 +128,17 @@ final readonly class RegionScreens
             return null;
         }
 
+        $names = RegionDeclarations::names($declared['cards']);
+
         return [
             'label' => $declared['label'],
             'themeName' => $owner->manifest?->name() ?? $owner->code,
             'inUse' => $this->active->get()?->code === $owner->code,
-            'cards' => $declared['cards'],
-            'cardLabels' => $this->labels($declared['cards']),
+            'cards' => $names,
+            'cardLabels' => $this->labels($names),
             'max' => $declared['max'],
-            'takes' => RegionWords::takes($this->labels($declared['cards']), $declared['max']),
+            'size' => $declared['size'],
+            'takes' => $declared['cards'] === RegionDeclarations::EVERY ? RegionWords::takesAny($declared['max']) : RegionWords::takes($this->labels($names), $declared['max']),
         ];
     }
 
@@ -155,8 +160,8 @@ final readonly class RegionScreens
     }
 
     /**
-     * The cards' labels, in their order; a name no card is registered under
-     * is shown as itself.
+     * The cards' labels, in their order: a plugin's card by its own label;
+     * a name no card is registered under is shown as itself.
      *
      * @param  list<string>  $names
      *
@@ -164,7 +169,9 @@ final readonly class RegionScreens
      */
     private function labels(array $names): array
     {
-        return array_map(fn (string $name): string => $this->cards->find($name)?->label() ?? $name, $names);
+        $plugins = app(PluginCards::class);
+
+        return array_map(fn (string $name): string => $this->cards->find($name)?->label() ?? $plugins->find($name)->label ?? $name, $names);
     }
 
     /**

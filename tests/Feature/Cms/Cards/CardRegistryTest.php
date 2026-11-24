@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('registers the six cards of slice 1.5, by name', function (): void {
-    expect(app(CardRegistry::class)->names())->toBe(['image', 'gallery', 'embed', 'callout', 'snippet', 'button', 'audio', 'video', 'imported', 'site-code', 'featured-posts', 'faq', 'steps']);
+    expect(app(CardRegistry::class)->names())->toBe(['image', 'gallery', 'embed', 'callout', 'snippet', 'button', 'audio', 'video', 'imported', 'site-code', 'featured-posts', 'faq', 'steps', 'plugin-card']);
 });
 
 it('records who registered each card', function (): void {

@@ -103,14 +103,25 @@
         },
         "regions": {
             "type": "object",
-            "description": "The places the theme puts the site's own content: slug, then label, cards and max. Every card named must be a registered card: only Teme's registry can say which are.",
+            "description": "The places the theme puts the site's own content: slug, then label, cards, max and size. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are.",
             "propertyNames": { "pattern": "^[a-z0-9-]+$" },
             "additionalProperties": {
                 "type": "object",
                 "required": ["label"],
                 "properties": {
                     "label": { "type": "string", "minLength": 1 },
-                    "cards": { "type": "array", "items": { "type": "string" } },
+                    "cards": {
+                        "description": "\"*\" or absent for every card; else the cards the region takes.",
+                        "oneOf": [
+                            { "const": "*" },
+                            { "type": "array", "items": { "type": "string" } }
+                        ]
+                    },
+                    "size": {
+                        "type": "string",
+                        "pattern": "^[1-9]\\d{1,4}x[1-9]\\d{1,4}$",
+                        "description": "The region's size in pixels, width x height, told to its cards; advice only."
+                    },
                     "max": {
                         "type": "integer",
                         "minimum": 1,

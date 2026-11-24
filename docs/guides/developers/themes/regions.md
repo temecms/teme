@@ -16,19 +16,22 @@ A region is a spot your theme sets aside for the site's own content, such as a b
 
 ### Declare a region
 
-Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-case letters, digits and hyphens. The default theme declares one: `"after-content": {"label": "After the article", "cards": ["callout", "button"], "max": 5}`.
+Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-case letters, digits and hyphens. The default theme declares one: `"after-content": {"label": "After the article", "max": 5}`.
 
 - `label` is the name editors see. It is required.
-- `cards` lists the cards the region allows beside text. Text is always allowed. Each name must be a card Teme registers, such as `image`, `gallery`, `embed`, `callout`, `snippet`, `button`, `audio` or `video`.
+- `cards` is optional. Leave it out, or give `"*"`, and the region takes every card, as a WordPress widget area takes any widget: Teme's own, and every card an enabled plugin offers, which your theme never needs to know about. Give a list only where your design needs it, such as a front-page slot built for one Featured posts card: then the region takes text and the cards named. Name Teme's cards by name, such as `image`, `callout`, `button`, `site-code` or `featured-posts`, and a plugin's by its key, `code:id`, such as `ads:ad-slot`.
 - `max` is the most top-level blocks the region holds, 1 to 50; 50 when you leave it out.
+- `size` is optional: the space the region gives, width x height in pixels, such as `"300x600"` for a sidebar. Teme tells it to the cards placed there and never refuses a card for it; an ad plugin's card may list that size's ads first.
 
-`php artisan teme:theme:check` refuses a region without a label, a card Teme doesn't know, or a `max` outside that range. Teme holds a region's document to its declaration when it is saved and again when it is published, against the declaration as it is then.
+`php artisan teme:theme:check` refuses a region without a label, a card Teme doesn't know, a `max` outside that range, or a `size` that isn't two numbers joined by `x`. A plugin's key is checked by its shape only, since the plugin may not be installed where the theme is checked. Teme holds a region's document to its declaration when it is saved and again when it is published, against the declaration as it is then.
 
 ### Draw a region
 
 Place the component where the region belongs, naming its slug, as the default theme's single template does: `<x-teme::region name="after-content" />`.
 
 It draws the region's published content with the same renderer as an article, and records its cards for the page's head. It draws nothing for a region that is empty or unpublished, so don't wrap it in markup that would show empty. Outside production it draws a note when you name a region your manifest doesn't declare. See [the region component](../../../reference/theme.md#x-temeregion) in the generated reference.
+
+A plugin's card is drawn inside `<div class="card-plugin card-plugin-{code}-{id}" data-plugin-card="{code}:{id}">`. Plugins load no stylesheet of their own yet, so style the cards your theme expects, by those classes. See [Cards for a theme's regions](../plugins/cards.md).
 
 Each theme's regions are its own. When the site switches themes, the old theme's regions are kept, read-only, and show again if it switches back.
 

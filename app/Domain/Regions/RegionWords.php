@@ -43,6 +43,15 @@ final class RegionWords
     }
 
     /**
+     * The line under a region's heading for a region that takes every card:
+     * "Takes text and any card.", then the most blocks it holds.
+     */
+    public static function takesAny(int $max): string
+    {
+        return __('Takes text and any card.').' '.self::limit($max).'.';
+    }
+
+    /**
      * What Site › Themes says once a theme is activated: "{theme} is live.",
      * then, while some of its regions hold nothing, how many wait to be filled.
      */

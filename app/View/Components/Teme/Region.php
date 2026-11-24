@@ -61,9 +61,10 @@ final class Region extends Component
         string $name,
     ) {
         $theme = $active->get();
-        $declared = $theme !== null && array_key_exists($name, $declarations->for($theme));
+        $declaration = $theme === null ? null : ($declarations->for($theme)[$name] ?? null);
+        $declared = $declaration !== null;
         $document = $declared ? $regions->published($theme->code, $name) : null;
-        $html = $document === null ? '' : $renderer->html($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class)));
+        $html = $document === null ? '' : $renderer->html($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), region: RegionDeclarations::cardRegion($theme->code, $name, $declaration)));
 
         $this->name = $name;
         $this->html = trim($html) === '' ? null : $html;

@@ -137,7 +137,7 @@ it('sends the card manifest to the browser, so the editor does not restate it', 
     $this->actingAs($this->author)
         ->get("/admin/content/{$content->id}/edit")
         ->assertInertia(fn (Assert $page) => $page
-            ->has('manifest.cards', 13)
+            ->has('manifest.cards', 14)
             ->has('manifest.cards.0', fn (Assert $card) => $card
                 ->hasAll(['name', 'label', 'group', 'keywords', 'icon', 'attributes'])
                 ->etc())

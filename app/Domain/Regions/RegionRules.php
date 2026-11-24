@@ -2,7 +2,9 @@
 
 /**
  * What a region's document may hold, from its theme's declaration: only the
- * cards the region allows, at any depth, and at most `max` top-level blocks.
+ * cards the region allows, at any depth, every card the menus offer when it
+ * doesn't narrow them, a plugin's card by its key, and at most `max`
+ * top-level blocks.
  * Prose is always allowed. DocumentValidator applies it when a region is
  * saved, and PublishRevision again when it's published, against the
  * declaration as it is then.
@@ -17,7 +19,9 @@ declare(strict_types=1);
 namespace App\Domain\Regions;
 
 use App\Domain\Cards\CardRegistry;
+use App\Domain\Cards\CardType;
 use App\Domain\Cards\Exceptions\InvalidDocumentException;
+use App\Domain\Cards\Plugin\PluginCardNode;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Types\CoreTypes;
@@ -25,11 +29,11 @@ use App\Domain\Types\CoreTypes;
 final readonly class RegionRules
 {
     /**
-     * @param  list<string>  $cards
+     * @param  '*'|list<string>  $cards  "*" for every card
      * @param  bool  $publishing  says a refusal comes from a declaration narrowed since the save
      */
     public function __construct(
-        public array $cards,
+        public string|array $cards,
         public int $max,
         public bool $publishing = false,
     ) {}
@@ -91,6 +95,19 @@ final readonly class RegionRules
     }
 
     /**
+     * Whether the region takes this card: by its name, or for "*" any card
+     * the menus offer and any plugin's card.
+     */
+    private function allows(CardType $card, string $name): bool
+    {
+        if ($this->cards === RegionDeclarations::EVERY) {
+            return $card instanceof PluginCardNode || $card->menu()->inMenus;
+        }
+
+        return in_array($name, $this->cards, true);
+    }
+
+    /**
      * @param  array<mixed>  $nodes
      */
     private function cardsIn(array $nodes, string $path, CardRegistry $cards): void
@@ -101,11 +118,14 @@ final readonly class RegionRules
             }
 
             $type = (string) ($node['type'] ?? '');
+            $card = $cards->find($type);
+            // A plugin's card is allowed by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
+            $name = $card instanceof PluginCardNode && is_array($node['attrs'] ?? null) ? (string) ($node['attrs']['card'] ?? '') : $type;
 
-            if ($cards->find($type) !== null && ! in_array($type, $this->cards, true)) {
+            if ($card !== null && ! $this->allows($card, $name)) {
                 throw InvalidDocumentException::at("{$path}.{$index}", $this->publishing
-                    ? "This region now doesn't allow the \"{$type}\" card."
-                    : "The card \"{$type}\" can't be used in this region.");
+                    ? "This region now doesn't allow the \"{$name}\" card."
+                    : "The card \"{$name}\" can't be used in this region.");
             }
 
             if (is_array($node['content'] ?? null)) {

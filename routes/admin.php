@@ -46,6 +46,7 @@ use App\Http\Admin\Contents\EditorPanelController;
 use App\Http\Admin\Contents\LinkChoicesController;
 use App\Http\Admin\Contents\LinkedContentController;
 use App\Http\Admin\Contents\LinkTargetsController;
+use App\Http\Admin\Contents\PluginCardChoicesController;
 use App\Http\Admin\Contents\PluginChecksController;
 use App\Http\Admin\Contents\PreviewLinkController;
 use App\Http\Admin\Contents\ReviewController;
@@ -453,6 +454,11 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->middleware('can:content.create')
             ->name('content.card-media');
         Route::get('content/{content}/edit', [ContentEditorController::class, 'edit'])->name('content.edit');
+        // A plugin card's choice field: the options its plugin gives (docs/guides/developers/plugins/cards.md).
+        Route::get('content/{content}/card-choices/{card}/{field}', PluginCardChoicesController::class)
+            ->middleware('can:regions.manage')
+            ->where(['card' => '[a-z0-9][a-z0-9-]*:[a-z][a-z0-9-]*', 'field' => '[a-z][a-z0-9_]*'])
+            ->name('content.card-choices');
         // A plugin's panel in the editor: what it shows, its actions, and the person's use of its suggestions.
         Route::get('content/{content}/panels/{code}/{panel}', [EditorPanelController::class, 'show'])->name('content.panels.show');
         Route::post('content/{content}/panels/{code}/{panel}/actions/{action}', [EditorPanelController::class, 'action'])->middleware('throttle:editor-panels')->name('content.panels.actions');

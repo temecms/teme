@@ -6,7 +6,7 @@
  * plugins granted pages.insert in plugin code order, each key's first kept.
  * Each contributor has a time budget, and so has the page; one that throws
  * or runs over is recorded as its plugin's fault and skipped (I-3353).
- * What is drawn is cleaned here, and its origins, approved scripts and
+ * What is drawn is cleaned by PluginMarkup, and its origins, approved scripts and
  * declared hosts join the page's policy.
  *
  * @package Teme
@@ -24,8 +24,6 @@ use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\PluginRecords;
-use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
-use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Themes\ComposerRegistry;
 use App\Domain\Themes\ViewIntent;
@@ -75,7 +73,6 @@ final class PageInsertions
         private readonly LoadedPlugins $loaded,
         private readonly PluginRecords $records,
         private readonly ColumnClock $clock,
-        private readonly InsertionOrigins $origins,
     ) {}
 
     /**
@@ -168,25 +165,15 @@ final class PageInsertions
      */
     public function draw(array $entry, bool $head = false): string
     {
-        $approved = $entry['code'] === null ? [] : ApprovedScripts::for($entry['code']);
-        $cleaned = $head ? HeadCleaner::clean($entry['insertion']->html, $approved) : InsertionCleaner::clean($entry['insertion']->html, $approved);
-        $policy = $this->container->make(PagePolicy::class);
+        $code = $entry['code'];
+        $hosts = $code !== null && ! isset($this->hosted[$code]);
+        $html = $this->container->make(PluginMarkup::class)->clean($code, $entry['insertion']->html, $head, $hosts);
 
-        foreach ($cleaned['origins'] as $directive => $origins) {
-            $policy->allowOrigins($directive, $origins);
+        if ($hosts && trim($html) !== '') {
+            $this->hosted[$code] = true;
         }
 
-        $policy->allowScriptHashes($cleaned['scripts']);
-
-        if ($entry['code'] !== null && ! isset($this->hosted[$entry['code']]) && trim($cleaned['html']) !== '') {
-            $this->hosted[$entry['code']] = true;
-
-            foreach ($this->origins->declared($entry['code']) as $directive => $origins) {
-                $policy->allowOrigins($directive, $origins);
-            }
-        }
-
-        return $cleaned['html'];
+        return $html;
     }
 
     /**

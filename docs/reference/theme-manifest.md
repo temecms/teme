@@ -18,9 +18,10 @@
 | `license` | string | no | Shown to people only; Teme reads nothing from it. |  |
 | `templates` | object | no | Content type, then template slug, then label. Every slug but default needs views/templates/single-{type}-{slug}.blade.php: only the theme's files can say whether it exists. |  |
 | `navigations` | object | no | The places the theme draws a menu: slot, then label. |  |
-| `regions` | object | no | The places the theme puts the site's own content: slug, then label, cards and max. Every card named must be a registered card: only Teme's registry can say which are. |  |
+| `regions` | object | no | The places the theme puts the site's own content: slug, then label, cards, max and size. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are. |  |
 | `regions.*.label` | string | yes |  |  |
-| `regions.*.cards` | array | no |  |  |
+| `regions.*.cards` |  | no | "*" or absent for every card; else the cards the region takes. |  |
+| `regions.*.size` | string | no | The region's size in pixels, width x height, told to its cards; advice only. | ^[1-9]\d{1,4}x[1-9]\d{1,4}$ |
 | `regions.*.max` | integer | no | How many cards the region holds; 50 when absent. |  |
 | `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. |  |
 | `settings[].key` | string | yes | 2 to 41 lower-case letters, digits and underscores, starting with a letter; never starting with nav_. | ^[a-z][a-z0-9_]{1,40}$ |

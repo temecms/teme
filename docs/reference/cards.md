@@ -213,3 +213,17 @@ Since 1.1.0. Registered by `core`.
 
 Refers to: nothing.
 
+## `plugin-card` — Plugin card
+
+A card a plugin offers for a theme’s regions, filled in with the fields the plugin declares and drawn by the plugin.
+
+Since 1.5.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `card` | required, string, regex:/^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{1,40}$/ | — |
+| `values` | array, max:40 | `[]` |
+
+Refers to: nothing.
+

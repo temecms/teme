@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Added
+
+- Plugins can offer cards for a theme's regions, such as an ad slot or a sign-up form. Editors add them from the region's Add card list, fill in their settings and publish them with the region. A disabled plugin's cards stay in the region, show nothing on the site, and come back when it is enabled again.
+
+### Changed
+
+- A theme's region now takes every card unless its theme names the ones it takes, so a plugin's cards fit regions their theme never heard of. The default theme's After the article region takes every card. A theme may also tell its region's cards the space they have, such as 300x600.
+
 ### Fixed
 
 - An import from an export file that stopped can be carried on: Carry on no longer asks for an application password the site never had. It needs the uploaded file instead, and says so once the file is gone.

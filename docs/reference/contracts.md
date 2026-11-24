@@ -30,6 +30,7 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Content\HtmlToDocument` | always | 1.3.0 |
 | `Teme\Contracts\Directory\VerifiedDirectory` | granted `directory.read` | 1.3.0 |
 | `Teme\Contracts\Content\Submissions` | granted `content.submissions` | 1.3.0 |
+| `Teme\Contracts\Cards\CardsChanged` | granted `pages.insert` | next |
 
 ## Teme\Contracts\Admin
 
@@ -178,6 +179,64 @@ A change to something the public site shows, as the page cache is told of it: wh
 - `SETTINGS` — A settings group, by its key. Since 0.1.0.
 - `SITE` — The whole site, as a repair of what every list counts on changes it; its ID is `*`. Since 0.1.0.
 - `__construct(string $subject, string $id, array $keys)`. Since 0.1.0.
+
+## Teme\Contracts\Cards
+
+### CardChoice
+
+`Teme\Contracts\Cards\CardChoice`, class. Since next.
+
+One option of a plugin card's choice field: the value stored, at most 191 characters, the label shown, a short hint, and whether it fits the region's size, null when that doesn't apply.
+
+- `__construct(string $value, string $label, ?string $hint = null, ?bool $fits = null)`. Since next.
+
+### CardInstance
+
+`Teme\Contracts\Cards\CardInstance`, class. Since next.
+
+One placed plugin card: its node's ID, the values of its fields as stored, the region it is in, and the page's language. Never anything about the visitor: the page is cached whole for everyone.
+
+- `__construct(string $id, array $values, CardRegion $region, string $language)`. Since next.
+
+### CardRegion
+
+`Teme\Contracts\Cards\CardRegion`, class. Since next.
+
+The theme's region a card is placed in. Its size is the theme's advice, such as 300x600 for a sidebar ad: a card may read it, to list that size's ads first, and core never refuses a card for it.
+
+- `__construct(string $slug, string $theme, ?string $size = null, ?int $width = null, ?int $height = null)`. Since next.
+
+### CardsChanged
+
+`Teme\Contracts\Cards\CardsChanged`, interface. Since next.
+
+Tells Teme that what a plugin's cards draw changed, so the pages that drew them are purged after the Operation commits. Offered to a plugin granted pages.insert. Call it only inside an Operation's perform().
+
+- `notify(): void` — Notes that this plugin's cards changed, for the page cache to purge after commit. Since next.
+
+### HasCards
+
+`Teme\Contracts\Cards\HasCards`, interface. Since next.
+
+A plugin that offers cards editors place in a theme's regions. Teme asks it once as the plugin starts; its keys must be the ids the manifest declares under contributes.cards, no more and no fewer. Asked only of a plugin granted pages.insert.
+
+- `cards(): array` — Its cards, by the id the manifest declares. Since next.
+
+### OffersCardChoices
+
+`Teme\Contracts\Cards\OffersCardChoices`, interface. Since next.
+
+A plugin card whose `choice` fields list options the plugin gives while an editor fills the card in. Asked in the admin, within a time budget; one that throws or runs over gives no options.
+
+- `choices(string $field, CardRegion $region, string $search = ''): array` — The options for one choice field, at most 50, best first. Since next.
+
+### PluginCard
+
+`Teme\Contracts\Cards\PluginCard`, interface. Since next.
+
+One card a plugin offers. Core draws its fields in the editor from the manifest, keeps its values in the region's document, and asks render() only on a public web page, within a time budget. What it returns is cleaned as a page insertion is, and wrapped in an element carrying the card's key, which the theme styles.
+
+- `render(CardInstance $card): string` — The card's markup, or '' to draw nothing, as for a choice that no longer exists. Since next.
 
 ## Teme\Contracts\Comments
 

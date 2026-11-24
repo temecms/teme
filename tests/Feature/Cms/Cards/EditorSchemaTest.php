@@ -25,15 +25,22 @@ function editorSchemaRules(array $document): ?RegionRules
 {
     $regionCards = array_map(fn (CardType $card): string => $card->name(), array_filter(app(CardRegistry::class)->all(), fn (CardType $card): bool => $card instanceof RegionCard));
     $types = [];
+    $keys = [];
     array_walk_recursive($document, function (mixed $value, mixed $key) use (&$types): void {
         if ($key === 'type' && is_string($value)) {
             $types[] = $value;
         }
     });
+    // A plugin's card is named in a region by its key (docs/guides/developers/plugins/cards.md).
+    array_walk_recursive($document, function (mixed $value, mixed $key) use (&$keys): void {
+        if ($key === 'card' && (is_string($value) || $value === null)) {
+            $keys[] = (string) $value;
+        }
+    });
 
     return array_intersect($types, $regionCards) === []
         ? null
-        : new RegionRules(array_map(fn (CardType $card): string => $card->name(), app(CardRegistry::class)->all()), PHP_INT_MAX);
+        : new RegionRules([...array_map(fn (CardType $card): string => $card->name(), app(CardRegistry::class)->all()), ...$keys], PHP_INT_MAX);
 }
 
 /*

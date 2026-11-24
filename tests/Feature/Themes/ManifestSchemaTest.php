@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Themes\ManifestValidator;
 use Teme\Contracts\Settings\Setting;
 
@@ -61,6 +62,7 @@ it('states the validator’s patterns, word for word', function (): void {
         ->and($p['templates']['additionalProperties']['propertyNames']['pattern'])->toBe($slug)
         ->and($p['navigations']['propertyNames']['pattern'])->toBe($slug)
         ->and($p['regions']['propertyNames']['pattern'])->toBe($slug)
+        ->and($p['regions']['additionalProperties']['properties']['size']['pattern'])->toBe(regexBetweenDelimiters(RegionDeclarations::SIZE))
         ->and($p['settings']['items']['properties']['key']['pattern'])->toBe(regexBetweenDelimiters(ManifestValidator::SETTING_KEY))
         ->and($p['composers']['items']['pattern'])->toBe(regexBetweenDelimiters(ManifestValidator::CLASS_NAME));
 

@@ -151,6 +151,13 @@ export default function ContentEdit(page: ContentEditPage) {
         allowed === null
             ? undefined
             : page.manifest.cards.filter((card) => allowed.includes(card.name));
+    // A plugin's card is allowed by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
+    const menuPluginCards =
+        allowed === null
+            ? undefined
+            : page.manifest.pluginCards.filter((card) =>
+                  allowed.includes(card.key),
+              );
 
     const [title, setTitle] = useState(session.title);
     // A canonical naming an item gone from the site is let go as the editor
@@ -922,14 +929,25 @@ export default function ContentEdit(page: ContentEditPage) {
                       media,
                       max: themeRegion.max,
                       allowed: allowed ?? [],
-                      cardLabels: Object.fromEntries(
-                          page.manifest.cards.map((card) => [
+                      cardLabels: Object.fromEntries([
+                          ...page.manifest.cards.map((card) => [
                               card.name,
                               card.label,
                           ]),
-                      ),
+                          ...page.manifest.pluginCards.map((card) => [
+                              card.key,
+                              card.label,
+                          ]),
+                      ]),
                   }),
-        [themeRegion, body, media, allowed, page.manifest.cards],
+        [
+            themeRegion,
+            body,
+            media,
+            allowed,
+            page.manifest.cards,
+            page.manifest.pluginCards,
+        ],
     );
 
     // A new draft opens with the cursor in its empty title (I-425).
@@ -1588,6 +1606,7 @@ export default function ContentEdit(page: ContentEditPage) {
                                     document={session.document}
                                     cards={page.manifest.cards}
                                     menuCards={menuCards}
+                                    menuPluginCards={menuPluginCards}
                                     contentType={session.type}
                                     status={status}
                                     permissions={session.can}

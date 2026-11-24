@@ -17,9 +17,11 @@ declare(strict_types=1);
 namespace App\Domain\Themes;
 
 use App\Domain\Cards\CardRegistry;
+use App\Domain\Cards\Plugin\PluginCardNode;
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Plugins\HostPattern;
+use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Site\Policy\PagePolicy;
 use Composer\Semver\Semver;
 use Teme\Contracts\Settings\Setting;
@@ -284,7 +286,7 @@ final class ManifestValidator
         }
 
         $errors = [];
-        $known = $this->cards->names();
+        $known = array_values(array_diff($this->cards->names(), ['plugin-card']));
 
         foreach ($regions as $slug => $region) {
             if (! is_string($slug) || preg_match(self::SLUG, $slug) !== 1 || ! is_array($region)) {
@@ -297,16 +299,26 @@ final class ManifestValidator
                 $errors[] = "The region \"{$slug}\" needs a label.";
             }
 
-            $cards = $region['cards'] ?? [];
+            // Omitted or "*", every card; a list narrows it (docs/guides/developers/themes/regions.md).
+            $cards = $region['cards'] ?? RegionDeclarations::EVERY;
 
-            if (! is_array($cards) || ! array_is_list($cards)) {
-                $errors[] = "The region \"{$slug}\" must list the cards it allows.";
+            if ($cards === RegionDeclarations::EVERY) {
+                // Every card.
+            } elseif (! is_array($cards) || ! array_is_list($cards)) {
+                $errors[] = "The region \"{$slug}\" must list the cards it allows, or say \"*\" for every card.";
             } else {
                 foreach ($cards as $card) {
-                    if (! is_string($card) || ! in_array($card, $known, true)) {
+                    // A plugin's card by its key: the plugin may not be installed when the theme is checked.
+                    $plugin = is_string($card) && preg_match(PluginCardNode::KEY, $card) === 1;
+
+                    if (! $plugin && (! is_string($card) || ! in_array($card, $known, true))) {
                         $errors[] = "The region \"{$slug}\" allows \"{$this->show($card)}\", which isn't a registered card.";
                     }
                 }
+            }
+
+            if (array_key_exists('size', $region) && (! is_string($region['size']) || preg_match(RegionDeclarations::SIZE, $region['size']) !== 1)) {
+                $errors[] = "The region \"{$slug}\" gives its size as width x height in pixels, such as 300x600.";
             }
 
             if (array_key_exists('max', $region) && (! is_int($region['max']) || $region['max'] < 1 || $region['max'] > 50)) {

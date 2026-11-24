@@ -154,7 +154,7 @@ it('is never offered by + Insert or the slash menu, while every other card is (I
     $cards = collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->keyBy('name');
 
     expect($cards['imported']['inMenus'])->toBeFalse()
-        ->and($cards->except('imported')->pluck('inMenus')->unique()->values()->all())->toBe([true])
+        ->and($cards->except(['imported', 'plugin-card'])->pluck('inMenus')->unique()->values()->all())->toBe([true])
         ->and(app(CardRegistry::class)->find('imported')?->menu()->inMenus)->toBeFalse();
 });
 

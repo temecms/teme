@@ -43,8 +43,8 @@ import { Kbd } from '@/components/ui/kbd';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import type { CardManifestEntry } from '@/types';
-import { cardEntries } from './insert-entries';
+import type { CardManifestEntry, PluginCardEntry } from '@/types';
+import { cardEntries, pluginCardEntries } from './insert-entries';
 import type { EditorContext, RegionEntry } from './region-entry';
 import { visibleEntries } from './region-entry';
 
@@ -311,12 +311,15 @@ function placed(anchor: DOMRect): CSSProperties {
 export function BlockPicker({
     editor,
     cards,
+    pluginCards = [],
     context,
     request,
     onClose,
 }: {
     editor: Editor;
     cards: CardManifestEntry[];
+    /** The plugins' cards, offered in a theme's region (docs/guides/developers/plugins/cards.md). */
+    pluginCards?: PluginCardEntry[];
     context: EditorContext;
     request: PickerRequest | null;
     onClose: () => void;
@@ -353,7 +356,11 @@ export function BlockPicker({
         }
 
         const all = visibleEntries(
-            [...textEntries(), ...cardEntries(cards)],
+            [
+                ...textEntries(),
+                ...cardEntries(cards),
+                ...pluginCardEntries(pluginCards),
+            ],
             context,
         ).filter((entry) =>
             matchesEveryWord(
@@ -373,7 +380,7 @@ export function BlockPicker({
         return groups().flatMap((group) =>
             all.filter((entry) => groupOf(entry) === group.id),
         );
-    }, [open, cards, context, query]);
+    }, [open, cards, pluginCards, context, query]);
 
     const close = useCallback(
         (returnFocus: boolean) => {
