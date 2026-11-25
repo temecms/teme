@@ -28,7 +28,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { IconTile } from '@/components/ui/icon-tile';
-import { __, __n } from '@/lib/i18n';
+import { __ } from '@/lib/i18n';
 import { lucideIcon } from '@/lib/lucide-icons';
 import { cn } from '@/lib/utils';
 import { edit as editContent } from '@/routes/content';
@@ -324,17 +324,7 @@ export function RegionPanel({
         <CardEnvironmentContext value={environment}>
             {elevated.password}
             <div className="@container grid gap-4" data-test="region-panel">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p
-                        className="text-small text-ink-2"
-                        data-test="region-fill"
-                    >
-                        {__n(
-                            ':count of :max slot used|:count of :max slots used',
-                            rows.length,
-                            { max: region.max },
-                        )}
-                    </p>
+                <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button
                         type="button"
                         size="sm"

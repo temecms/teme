@@ -220,18 +220,16 @@ function ChosenPanel({
                     </StatusPill>
                 )}
                 <p className="text-small text-ink-2">{region.limit}</p>
-                {(region.session === null || region.contentId === null) && (
-                    <p
-                        className="text-small text-ink-2 tabular-nums"
-                        data-test="region-fill"
-                    >
-                        {__n(
-                            ':count of :max slot used|:count of :max slots used',
-                            region.used,
-                            { max: region.max },
-                        )}
-                    </p>
-                )}
+                <p
+                    className="text-small text-ink-2 tabular-nums"
+                    data-test="region-fill"
+                >
+                    {__n(
+                        ':count of :max slot used|:count of :max slots used',
+                        region.used,
+                        { max: region.max },
+                    )}
+                </p>
                 <div className="border-line border-b" />
             </div>
             {!region.every && region.cardLabels.length > 0 && (
@@ -354,10 +352,10 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
             description={
                 theme === null
                     ? __(
-                          'Your own content in the spots the active theme sets aside, such as a box after each article.',
+                          'Your own content in the spots the active theme sets aside. Each region takes only the cards its theme allows.',
                       )
                     : __(
-                          'Your own content in the spots the active theme, :theme, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.',
+                          'Your own content in the spots :theme sets aside. Each region takes only the cards its theme allows.',
                           { theme: theme.name },
                       )
             }
