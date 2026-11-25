@@ -62,20 +62,25 @@ export default function PluginArea(props: PluginAreaPageProps) {
     const { plugin, area, tabs, current, blocks, asks } = props;
     const areaHome =
         tabs[0]?.href ?? PluginAreaController.show.url({ code: plugin.code });
+    // The area's home page is the area alone; other pages add the tab after it.
+    const onHome =
+        tabs[0] !== undefined && (tabs[0].current || current.id === tabs[0].id);
 
     setLayoutProps({
-        breadcrumbs: [
-            { title: area.label, href: areaHome },
-            {
-                title: current.label,
-                href:
-                    tabs.find((one) => one.current)?.href ??
-                    PluginAreaController.show.url({
-                        code: plugin.code,
-                        page: current.id,
-                    }),
-            },
-        ],
+        breadcrumbs: onHome
+            ? [{ title: area.label, href: areaHome }]
+            : [
+                  { title: area.label, href: areaHome },
+                  {
+                      title: current.label,
+                      href:
+                          tabs.find((one) => one.current)?.href ??
+                          PluginAreaController.show.url({
+                              code: plugin.code,
+                              page: current.id,
+                          }),
+                  },
+              ],
     });
 
     const ask = (block: string, next: AreaTableAsk) =>

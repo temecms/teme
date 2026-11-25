@@ -1,13 +1,13 @@
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
-import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
+import { useState, type ReactNode } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-    Dialog,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
@@ -21,20 +21,20 @@ const headings: Record<AdminNavEntry['section'], string> = {
 };
 
 /**
- * Customise menu: small ticks show or hide entries and apply at once.
- * No move, pin, reset or save; pinned entries are gone. Hidden entries
- * stay in the command palette.
+ * Customise menu: a small menu of ticks that show or hide entries and apply
+ * at once. No move, pin, reset or save. Hidden entries stay in the command
+ * palette. Existing pins are left alone.
  */
 export function PersonaliseMenuDialog({
     nav,
     open,
     onOpenChange,
+    trigger,
 }: {
     nav: AdminNavEntry[];
-    pinned: string[];
-    storedOrder: string[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    trigger: ReactNode;
 }) {
     const sections = (
         Object.keys(headings) as AdminNavEntry['section'][]
@@ -50,15 +50,15 @@ export function PersonaliseMenuDialog({
         setHidden(next);
         setSaving(true);
         setProblem(null);
+        // Only touch nav.hidden; leave nav.pinned as the person left it.
         const saved = await savePreferences({
             'nav.hidden': next,
-            'nav.pinned': [],
         });
         setSaving(false);
 
         if (!saved) {
             setHidden(previous);
-            setProblem("Couldn't save your menu. Try again in a moment.");
+            setProblem(__("Couldn't save your menu. Try again in a moment."));
 
             return;
         }
@@ -67,28 +67,37 @@ export function PersonaliseMenuDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <ResponsiveDialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{__('Customise menu')}</DialogTitle>
-                    <DialogDescription>
-                        {__(
-                            'Only you see these changes. The command palette still finds hidden entries.',
-                        )}
-                    </DialogDescription>
-                </DialogHeader>
+        <DropdownMenu open={open} onOpenChange={onOpenChange}>
+            <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+            <DropdownMenuContent
+                align="start"
+                side="top"
+                className="max-h-[min(28rem,70vh)] w-72 overflow-y-auto p-2"
+                data-test="personalise-menu-panel"
+            >
+                <DropdownMenuLabel className="text-body text-ink font-semibold">
+                    {__('Customise menu')}
+                </DropdownMenuLabel>
+                <p className="text-caption text-ink-2 px-2 pb-2">
+                    {__(
+                        'Only you see these changes. The command palette still finds hidden entries.',
+                    )}
+                </p>
 
                 {problem !== null && (
-                    <p role="alert" className="text-danger-ink text-small">
+                    <p
+                        role="alert"
+                        className="text-danger-ink text-small px-2 pb-2"
+                    >
                         {problem}
                     </p>
                 )}
 
                 {sections.map((section) => (
-                    <fieldset key={section} className="grid gap-1">
-                        <legend className="text-caption text-ink-3 mb-1 font-semibold tracking-[0.04em] uppercase">
+                    <DropdownMenuGroup key={section} className="grid gap-1 p-1">
+                        <DropdownMenuLabel className="text-caption text-ink-3 font-semibold tracking-[0.04em] uppercase">
                             {headings[section]}
-                        </legend>
+                        </DropdownMenuLabel>
                         <ul className="grid">
                             {nav
                                 .filter((entry) => entry.section === section)
@@ -99,7 +108,8 @@ export function PersonaliseMenuDialog({
                                     return (
                                         <li
                                             key={entry.key}
-                                            className="border-line flex items-center gap-2 border-b py-1 last:border-b-0"
+                                            className="flex items-center gap-2 px-1 py-1"
+                                            data-test={`personalise-${entry.key}`}
                                         >
                                             <Checkbox
                                                 id={`show-${entry.key}`}
@@ -134,9 +144,9 @@ export function PersonaliseMenuDialog({
                                     );
                                 })}
                         </ul>
-                    </fieldset>
+                    </DropdownMenuGroup>
                 ))}
-            </ResponsiveDialogContent>
-        </Dialog>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }

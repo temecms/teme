@@ -7,35 +7,33 @@ import type { StatusBanner } from '@/types/status';
 type Row = {
     key: string;
     ok: string;
-    labels: string[];
+    /** Check keys this row owns; empty means every other problem. */
+    keys: string[];
 };
 
-/** The three summary lines Home shows, matched to top-bar site status labels. */
-const ROWS: Row[] = [
-    {
-        key: 'all',
-        ok: __('All checks pass'),
-        labels: [],
-    },
-    {
-        key: 'backups',
-        ok: __('Backups are current'),
-        labels: ['Backups'],
-    },
-    {
-        key: 'cache',
-        ok: __('Page cache is on'),
-        labels: ['Page cache'],
-    },
-];
+/** Rows whose keys are claimed by a dedicated summary line. */
+const CLAIMED = ['backups', 'page-cache'] as const;
 
-/** The worst banner among those whose label is in the list, or null. */
-function match(banners: StatusBanner[], labels: string[]): StatusBanner | null {
-    if (labels.length === 0) {
-        return banners[0] ?? null;
-    }
+/** The worst banner among those whose key is in the list, or null. */
+function matchKeys(
+    banners: StatusBanner[],
+    keys: string[],
+): StatusBanner | null {
+    const found = banners.filter((banner) => keys.includes(banner.key));
 
-    const found = banners.filter((banner) => labels.includes(banner.label));
+    return (
+        found.find((banner) => banner.level === 'error') ??
+        found.find((banner) => banner.level === 'warning') ??
+        found[0] ??
+        null
+    );
+}
+
+/** Problems that are not already covered by Backups or Page cache. */
+function matchOthers(banners: StatusBanner[]): StatusBanner | null {
+    const found = banners.filter(
+        (banner) => !CLAIMED.includes(banner.key as (typeof CLAIMED)[number]),
+    );
 
     return (
         found.find((banner) => banner.level === 'error') ??
@@ -47,15 +45,46 @@ function match(banners: StatusBanner[], labels: string[]): StatusBanner | null {
 
 /**
  * Home's Site status panel: the same checks as the top-bar site status,
- * summarised as three lines with a tick or a problem and link.
+ * summarised as three lines with a tick or a problem and link. People who
+ * cannot act on any check see one quiet line instead of false claims.
  */
 export function SiteStatusPanel() {
-    const { siteStatus } = usePage().props;
+    const { siteStatus, siteStatusCanAct } = usePage().props;
+
+    // Built while drawing so __() runs after the page's words arrive.
+    const rows: Row[] = [
+        {
+            key: 'all',
+            ok: __('All checks pass'),
+            keys: [],
+        },
+        {
+            key: 'backups',
+            ok: __('Backups are current'),
+            keys: ['backups'],
+        },
+        {
+            key: 'cache',
+            ok: __('Page cache is on'),
+            keys: ['page-cache'],
+        },
+    ];
+
+    if (!siteStatusCanAct) {
+        return (
+            <p className="text-body text-ink-2" data-test="home-site-status">
+                {__('Nothing here for you to act on')}
+            </p>
+        );
+    }
 
     return (
         <ul className="grid gap-2" data-test="home-site-status">
-            {ROWS.map((row) => {
-                const problem = match(siteStatus, row.labels);
+            {rows.map((row) => {
+                const problem =
+                    row.key === 'all'
+                        ? matchOthers(siteStatus)
+                        : matchKeys(siteStatus, row.keys);
                 const ok = problem === null;
                 const Icon = ok
                     ? Check

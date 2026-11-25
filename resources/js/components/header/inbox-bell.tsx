@@ -53,7 +53,7 @@ export function InboxBell({ counts }: { counts: HeaderCounts | null }) {
                     {unread > 0 && (
                         <span
                             aria-hidden="true"
-                            className="text-small font-semibold tabular-nums"
+                            className="text-small font-medium tabular-nums"
                         >
                             {unread >= 100 ? '99+' : unread}
                         </span>

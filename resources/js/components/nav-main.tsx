@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Plug } from 'lucide-react';
 import { useState } from 'react';
 import { showToast } from '@/components/flash-toast';
@@ -178,8 +178,6 @@ function EntryButton({
     onHubToggle?: () => void;
 }) {
     const Icon = navIcon(item.icon);
-    // Own icon at the start; a second plug at the end only when the icon is not already plug.
-    const showPluginMark = item.plugin !== undefined && item.icon !== 'plug';
 
     if (item.soon) {
         return (
@@ -192,6 +190,11 @@ function EntryButton({
             >
                 <Icon />
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {item.plugin !== undefined && (
+                    <span className="sr-only">
+                        {__('From :name', { name: item.plugin })}
+                    </span>
+                )}
                 <SoonTag className="group-data-[collapsible=icon]:hidden" />
             </SidebarMenuButton>
         );
@@ -203,16 +206,23 @@ function EntryButton({
                 <SidebarMenuButton
                     asChild
                     isActive={isActive}
+                    data-test={`nav-${item.key}`}
                     tooltip={{ children: item.label }}
                     className={hubChevron === true ? 'pe-9' : undefined}
                 >
-                    <Link href={item.href} prefetch>
+                    <Link
+                        href={item.href}
+                        prefetch
+                        aria-current={isActive ? 'page' : undefined}
+                    >
                         <Icon />
                         <span className="min-w-0 flex-1 truncate">
                             {item.label}
                         </span>
-                        {showPluginMark && item.plugin !== undefined && (
-                            <FromPlugin name={item.plugin} />
+                        {item.plugin !== undefined && (
+                            <span className="sr-only">
+                                {__('From :name', { name: item.plugin })}
+                            </span>
                         )}
                     </Link>
                 </SidebarMenuButton>
@@ -290,6 +300,7 @@ function SubEntry({
  */
 export function NavMain({ items: all }: { items: AdminNavEntry[] }) {
     const { currentUrl } = useCurrentUrl();
+    const { contentTypes } = usePage().props;
     // A page is within an entry when it is the entry's page or under its address.
     const within = (href: string): boolean =>
         href !== '' &&
@@ -328,30 +339,11 @@ export function NavMain({ items: all }: { items: AdminNavEntry[] }) {
 
     // A content list for a stored type has no menu entry of its own: Types is current.
     const topSegment = currentUrl.match(/^\/admin\/([^/?#]+)/)?.[1];
-    const knownKeys = new Set(
-        items.flatMap((item) => [
-            item.key,
-            ...item.children.map((child) => child.key),
-        ]),
+    const storedSegments = new Set(
+        contentTypes.filter((type) => type.stored).map((type) => type.segment),
     );
-    const shellTops = new Set([
-        'account',
-        'inbox',
-        'login',
-        'plugin',
-        'tools',
-        'settings',
-        'types',
-        'taxonomies',
-        'themes',
-        'plugins',
-        'users',
-        'dashboard',
-    ]);
     const customTypeUnderTypes =
-        topSegment !== undefined &&
-        !knownKeys.has(topSegment) &&
-        !shellTops.has(topSegment);
+        topSegment !== undefined && storedSegments.has(topSegment);
 
     const entry = (item: AdminNavEntry) => {
         if (item.soon) {

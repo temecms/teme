@@ -16,15 +16,18 @@ const shown = (n: number): string => (n >= 100 ? '99+' : String(n));
 /** The button's name, which says the counts in words. */
 function nameOf(running: number, failed: number): string {
     if (running > 0 && failed > 0) {
-        return `Jobs, ${shown(running)} running, ${shown(failed)} failed`;
+        return __('Jobs, :running running, :failed failed', {
+            running: shown(running),
+            failed: shown(failed),
+        });
     }
 
     if (running > 0) {
-        return `Jobs, ${shown(running)} running`;
+        return __('Jobs, :count running', { count: shown(running) });
     }
 
     if (failed > 0) {
-        return `Jobs, ${shown(failed)} failed`;
+        return __('Jobs, :count failed', { count: shown(failed) });
     }
 
     return __('No jobs running');
@@ -147,7 +150,7 @@ export function JobsPanelBody({
                 <div className="text-small px-4 py-3">
                     <p className="font-medium">{__('No jobs running')}</p>
                     <p className="text-ink-2">
-                        Long tasks you start show their progress here.
+                        {__('Long tasks you start show their progress here.')}
                     </p>
                 </div>
             )}

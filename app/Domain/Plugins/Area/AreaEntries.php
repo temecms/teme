@@ -52,6 +52,8 @@ final readonly class AreaEntries
                 route: 'plugins.area.show',
                 routeParameters: ['code' => $plugin->code],
                 ability: $plugin->ability(),
+                // Plugin name for screen readers; the menu draws no second plug mark.
+                pluginLabel: $plugin->label,
                 owner: $plugin->name,
             );
         }

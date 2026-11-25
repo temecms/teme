@@ -72,8 +72,9 @@ final readonly class AdminNavigation
         $visible = [];
 
         foreach ($this->sorted([...$this->registry->all(), ...$this->typeEntries(), ...app(AreaEntries::class)->navEntries()]) as $entry) {
-            // An entry of a module that is switched off isn't there (I-077).
-            if ($entry->module !== null && ! Modules::on($entry->module)) {
+            // An entry of a module that is switched off isn't there (I-077),
+            // except Comments: it stays so people can still find it.
+            if ($entry->module !== null && ! Modules::on($entry->module) && $entry->key !== 'comments') {
                 continue;
             }
 

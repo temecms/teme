@@ -14,6 +14,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Status;
 
+use App\Domain\Status\Checks\BackupsSafe;
+use App\Domain\Status\Checks\PageCacheCdnPurges;
+use App\Domain\Status\Checks\PageCacheFolderShared;
 use App\Models\User;
 
 final class StatusChecks
@@ -81,13 +84,45 @@ final class StatusChecks
             $banner = $check->banner();
 
             if ($banner !== null) {
-                $banners[] = $banner->labelled($check->label(), $owner === 'core' ? null : $check->label());
+                $banners[] = $banner->labelled(
+                    $check->label(),
+                    $owner === 'core' ? null : $check->label(),
+                    $this->keyOf($check),
+                );
             }
         }
 
         usort($banners, fn (StatusBanner $a, StatusBanner $b): int => $b->priority <=> $a->priority);
 
         return $banners;
+    }
+
+    /**
+     * Whether this person holds the ability for any registered status check.
+     */
+    public function canAct(User $user): bool
+    {
+        foreach ($this->checks as ['check' => $registered]) {
+            $check = $registered instanceof StatusCheck ? $registered : app($registered);
+
+            if ($user->can($check->ability())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A stable key for matching Home's summary rows, not the translated label.
+     */
+    private function keyOf(StatusCheck $check): string
+    {
+        return match ($check::class) {
+            BackupsSafe::class => 'backups',
+            PageCacheCdnPurges::class, PageCacheFolderShared::class => 'page-cache',
+            default => strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', class_basename($check))),
+        };
     }
 
     /**

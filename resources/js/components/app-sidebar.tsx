@@ -109,7 +109,7 @@ function SearchButton() {
 export function AppSidebar() {
     // The menu comes from the server's registry, already filtered to what
     // this person may open and sorted (NavigationServiceProvider).
-    const { nav, navPinned, preferences } = usePage().props;
+    const { nav } = usePage().props;
     const { width } = useSidebar();
     const [personalising, setPersonalising] = useState(false);
 
@@ -149,16 +149,24 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton
-                            type="button"
-                            className={footRow}
-                            tooltip={{ children: __('Customise menu') }}
-                            data-test="personalise-menu"
-                            onClick={() => setPersonalising(true)}
-                        >
-                            <SlidersHorizontal />
-                            <span>{__('Customise menu')}</span>
-                        </SidebarMenuButton>
+                        <PersonaliseMenuDialog
+                            nav={nav}
+                            open={personalising}
+                            onOpenChange={setPersonalising}
+                            trigger={
+                                <SidebarMenuButton
+                                    type="button"
+                                    className={footRow}
+                                    tooltip={{
+                                        children: __('Customise menu'),
+                                    }}
+                                    data-test="personalise-menu"
+                                >
+                                    <SlidersHorizontal />
+                                    <span>{__('Customise menu')}</span>
+                                </SidebarMenuButton>
+                            }
+                        />
                     </SidebarMenuItem>
                     {width === 'wide' && (
                         <SidebarMenuItem>
@@ -171,15 +179,6 @@ export function AppSidebar() {
                         </SidebarMenuItem>
                     )}
                 </SidebarMenu>
-                {personalising && (
-                    <PersonaliseMenuDialog
-                        nav={nav}
-                        pinned={navPinned}
-                        storedOrder={preferences['nav.order'] ?? []}
-                        open
-                        onOpenChange={setPersonalising}
-                    />
-                )}
             </SidebarFooter>
         </Sidebar>
     );

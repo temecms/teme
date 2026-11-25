@@ -1,5 +1,5 @@
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
-import { LayoutDashboard } from 'lucide-react';
+import { FileText, LayoutDashboard, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ContentListController from '@/actions/App/Http/Admin/Contents/ContentListController';
 import { CustomizeBar } from '@/components/dashboard/customize-bar';
@@ -110,6 +110,7 @@ export default function Dashboard({
                     variant={index === 0 ? 'default' : 'neutral'}
                     disabled={processing}
                 >
+                    <FileText aria-hidden="true" />
                     {__('+ :singular', { singular: type.singular })}
                 </Button>
             )}
@@ -343,7 +344,10 @@ export default function Dashboard({
             {create}
             {canUpload && (
                 <Button variant="neutral" asChild>
-                    <Link href={mediaIndex()}>{__('Upload media')}</Link>
+                    <Link href={mediaIndex()}>
+                        <Upload aria-hidden="true" />
+                        {__('Upload media')}
+                    </Link>
                 </Button>
             )}
             <Button
