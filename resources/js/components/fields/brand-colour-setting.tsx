@@ -106,9 +106,9 @@ export function BrandColourSetting({
         <div data-test="brand-colour" className="contents">
             <SettingsPanel
                 as="section"
-                title={__('Brand color')}
+                title={__('Brand colour')}
                 description={__(
-                    'One color for the public site’s links and buttons.',
+                    'One colour for the public site’s links and buttons.',
                 )}
             >
                 <div data-slot="settings-field" className="grid gap-1">
@@ -118,11 +118,11 @@ export function BrandColourSetting({
                         value={brand.version}
                         disabled={locked}
                     />
-                    <Label htmlFor="field-accent">{__('Brand color')}</Label>
+                    <Label htmlFor="field-accent">{__('Brand colour')}</Label>
                     <div className="flex flex-wrap items-center gap-3">
                         <input
                             type="color"
-                            aria-label={__('Brand color, color picker')}
+                            aria-label={__('Brand colour, colour picker')}
                             value={colour ?? onColors[1]}
                             disabled={locked}
                             onChange={(event) => setText(event.target.value)}
@@ -153,7 +153,7 @@ export function BrandColourSetting({
                                         aria-hidden="true"
                                         className="size-3.5"
                                     />
-                                    {__('Not a color yet')}
+                                    {__('Not a colour yet')}
                                 </>
                             ) : onRatio !== null ? (
                                 <>
@@ -186,7 +186,7 @@ export function BrandColourSetting({
                         className="text-caption text-ink-3 text-pretty"
                     >
                         {__(
-                            'The color of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme. Empty uses the theme’s own.',
+                            'The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme. Empty uses the theme’s own.',
                         )}
                     </p>
                     {problems.length > 0 && (
@@ -216,7 +216,7 @@ export function BrandColourSetting({
                                 <Lock aria-hidden="true" className="size-3.5" />
                             </span>
                             {__(
-                                'Only someone who may change the site’s design can change the brand color.',
+                                'Only someone who may change the site’s design can change the brand colour.',
                             )}
                         </p>
                     )}

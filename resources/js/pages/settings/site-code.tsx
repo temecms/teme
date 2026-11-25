@@ -432,7 +432,7 @@ function CodeForm({
                             onValueChange={setPlacement}
                             aria-labelledby="site-code-placement-label"
                             aria-describedby="site-code-placement-error"
-                            className="sm:grid-cols-2"
+                            className="grid-cols-1"
                         >
                             {places.map((place) => (
                                 <RadioGroupCard
