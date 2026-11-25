@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Seo\SocketAnswerRefused;
+use App\Domain\Seo\SearchAndSocial;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,11 +38,11 @@ afterEach(function (): void {
 it('adds the plugin’s tags to the head, name or property and content only, escaped', function (): void {
     seokitEnabled();
     headPost($this->author, 'Harbour news');
-    Seokit::$meta = fn (HeadPage $page): array => [HeadMeta::name('robots', 'noindex, "follow"'), HeadMeta::property('og:locale:alternate', 'pt_BR')];
+    Seokit::$meta = fn (HeadPage $page): array => [HeadMeta::name('description', 'Boats, "nets" and more'), HeadMeta::property('og:locale:alternate', 'pt_BR')];
 
     $dom = headDom('/harbour-news/');
 
-    expect(headValue($dom, '//head/meta[@name="robots"]/@content'))->toBe('noindex, "follow"')
+    expect(headValue($dom, '//head/meta[@name="description"]/@content'))->toBe('Boats, "nets" and more')
         ->and(headValue($dom, '//head/meta[@property="og:locale:alternate"]/@content'))->toBe('pt_BR')
         ->and((string) addrGet('/harbour-news/')->getContent())->not->toContain('<script>');
 });
@@ -107,3 +109,48 @@ it('draws the page without the plugin’s part when the plugin throws, and recor
     expect(headValue(headDom('/harbour-news/'), '//head/title'))->not->toBe('')
         ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/seokit#head-meta']);
 });
+
+it('lets the plugin make an item more private with its robots value, kept with core’s other directives', function (): void {
+    ['faults' => $faults] = seokitEnabled();
+    headPost($this->author, 'Harbour news');
+    Seokit::$meta = fn (HeadPage $page): array => [HeadMeta::name('robots', 'noindex, nofollow, noarchive, max-image-preview:standard')];
+
+    $dom = headDom('/harbour-news/');
+
+    expect(headValue($dom, '//head/meta[@name="robots"]/@content'))->toBe('noindex, nofollow, max-snippet:-1, max-image-preview:standard, max-video-preview:-1, noarchive')
+        ->and((int) $dom->evaluate('count(//head/meta[@name="robots"])'))->toBe(1)
+        ->and($faults->seen)->toBe([]);
+});
+
+it('keeps an item core hides from search noindex, whatever the plugin’s robots value says', function (): void {
+    seokitEnabled();
+    headPost($this->author, 'Harbour news');
+    cmSettings(['hide_type_post' => true], SearchAndSocial::KEY);
+    Seokit::$meta = fn (HeadPage $page): array => [HeadMeta::name('robots', 'index, follow, max-image-preview:large')];
+
+    expect(headValue(headDom('/harbour-news/'), '//head/meta[@name="robots"]/@content'))->toBe('noindex, follow, max-image-preview:large');
+});
+
+it('never loosens core’s own directives: a nofollow stays, a larger image preview stays core’s', function (): void {
+    seokitEnabled();
+    headPost($this->author, 'Harbour news');
+    Seokit::$meta = fn (HeadPage $page): array => [HeadMeta::name('robots', 'index, follow')];
+
+    expect(headValue(headDom('/harbour-news/'), '//head/meta[@name="robots"]/@content'))->toBe('max-snippet:-1, max-image-preview:large, max-video-preview:-1');
+});
+
+it('refuses a robots value outside the directives a plugin may give, records it, and keeps core’s', function (string $answer): void {
+    ['faults' => $faults] = seokitEnabled();
+    headPost($this->author, 'Harbour news');
+    Seokit::$meta = fn (HeadPage $page): array => [HeadMeta::name('robots', $answer)];
+
+    expect(headValue(headDom('/harbour-news/'), '//head/meta[@name="robots"]/@content'))->toBe('max-snippet:-1, max-image-preview:large, max-video-preview:-1')
+        ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/seokit#head-meta'])
+        ->and($faults->seen[0][3])->toBeInstanceOf(SocketAnswerRefused::class);
+})->with([
+    'an unknown directive' => ['noindex, unavailable_after: 2027-01-01'],
+    'a snippet length' => ['max-snippet:20'],
+    'an image preview that isn’t one' => ['max-image-preview:huge'],
+    'quotes' => ['noindex, "follow"'],
+    'nothing' => [' , '],
+]);

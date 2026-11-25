@@ -4,7 +4,8 @@
  * Plugins' head tags and structured data on public pages
  * (docs/guides/developers/plugins/seo.md), at the plugin's precedence: each
  * enabled plugin granted pages.head is asked within 100 ms for its `<meta>`
- * tags and its graph nodes. A node is kept only with an @id on this site
+ * tags and its graph nodes. Its robots value only ever tightens core's
+ * (PluginRobots). A node is kept only with an @id on this site
  * and only schema.org terms on the graph's list or the plugin's own; core's
  * graph rules then merge and tidy it. A plugin that fails is recorded as a
  * fault, and the page draws without what it would have given.
@@ -81,6 +82,7 @@ final readonly class PluginHead implements HeadContributor
             return [];
         }
 
+        $robots = $this->heads->for($page)->robots;
         $entries = [];
 
         foreach ($asked as $plugin) {
@@ -89,7 +91,7 @@ final readonly class PluginHead implements HeadContributor
             $seen = $facts($plugin);
 
             if ($plugin->running instanceof HasHeadMeta) {
-                array_push($entries, ...$this->meta($plugin, $plugin->running, $seen));
+                array_push($entries, ...$this->meta($plugin, $plugin->running, $seen, $robots));
             }
 
             if ($plugin->running instanceof HasStructuredData) {
@@ -145,9 +147,14 @@ final readonly class PluginHead implements HeadContributor
     }
 
     /**
+     * The plugin's tags, its robots value laid over core's directives
+     * rather than replacing them (PluginRobots).
+     *
+     * @param  list<string>  $robots  core's robots directives for the page
+     *
      * @return list<MetaTag>
      */
-    private function meta(SeoPlugin $plugin, HasHeadMeta $running, HeadPage $page): array
+    private function meta(SeoPlugin $plugin, HasHeadMeta $running, HeadPage $page, array $robots): array
     {
         $given = $this->plugins->ask($plugin, 'head-meta', HasHeadMeta::class, self::CALL_BUDGET_MS, fn (): array => $running->headMeta($page));
         $tags = [];
@@ -155,6 +162,16 @@ final readonly class PluginHead implements HeadContributor
         foreach (is_array($given) ? array_slice($given, 0, self::MOST_TAGS) : [] as $tag) {
             if (! $tag instanceof HeadMeta) {
                 $this->plugins->fault($plugin, 'head-meta', HasHeadMeta::class, new SocketAnswerRefused('A head tag isn’t a HeadMeta.'));
+
+                continue;
+            }
+
+            if ($tag->attribute === 'name' && strtolower($tag->key) === 'robots') {
+                try {
+                    $tags[] = MetaTag::name('robots', implode(', ', PluginRobots::over($robots, $tag->content)));
+                } catch (SocketAnswerRefused $refused) {
+                    $this->plugins->fault($plugin, 'head-meta', HasHeadMeta::class, $refused);
+                }
 
                 continue;
             }

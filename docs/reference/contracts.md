@@ -719,7 +719,7 @@ A hook: its parameters are in the [hooks reference](hooks.md#feedschanged).
 
 `Teme\Contracts\Head\HasHeadMeta`, interface. Since 1.1.0.
 
-A plugin granted pages.head that adds `<meta>` tags to public pages' heads. Core escapes and draws them; a plugin's tag wins over core's own with the same name or property.
+A plugin granted pages.head that adds `<meta>` tags to public pages' heads. Core escapes and draws them; a plugin's tag wins over core's own with the same name or property, except `robots`, which is laid over core's and can only make the page more private.
 
 - `headMeta(HeadPage $page): array` — Its tags for this page, at most 20, answered within 100 ms; none where it adds nothing. Since 1.1.0.
 

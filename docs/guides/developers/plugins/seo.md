@@ -82,6 +82,8 @@ A plugin that asks for `pages.head` and implements `HasHeadMeta` adds tags to th
 
 A tag is a `HeadMeta`, made with `HeadMeta::name()` or `HeadMeta::property()`: a name or property and its content, nothing else. Core escapes both and never writes a script. A key is letters and digits, with `:`, `.`, `_` or `-` between them, at most 100 characters, and the content is at most 1,000 bytes. Give at most 20 tags a page. A plugin's tag replaces core's tag of the same name or property.
 
+The `robots` tag is the exception: it is laid over core's, and can only make the page more private. Give any of `index`, `noindex`, `follow`, `nofollow`, `noarchive`, `nosnippet` and `max-image-preview:` with `none`, `standard` or `large`. Your `noindex`, `nofollow`, `noarchive` and `nosnippet` are added to core's directives, and your image preview is kept where it is smaller than core's. Your `index` and `follow` change nothing, so a page core keeps out of search, such as an item of a type hidden from search, stays `noindex`. A value with any other directive is refused and recorded, and core's stands.
+
 `HeadPage` says which page is drawn: its `kind` (`article`, `home`, `latest`, `archive`, `term`, `author`, `date` or `search`), its path and full address, the site's address in `home`, its language, and for an article its type, ID, title, the plugin's own values, and its FAQ and Steps cards. Later pages of a list carry their `pageNumber`.
 
 ## Structured data
