@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -173,7 +174,78 @@ it('takes the active theme\'s card to its settings page, headed by its name, wit
     $page->assertScript("document.querySelector('main h1')?.textContent === 'Fixture Good settings'")
         ->assertSeeIn('[data-test="design-menus"]', 'A menu you choose here shows once you publish')
         ->assertScript("!document.body.innerText.includes('Appearance')")
-        ->assertSeeIn('[data-test="theme-settings-regions-list"]', 'Open Regions');
+        ->assertSeeIn('[data-test="theme-settings-regions-list"]', 'Open Regions')
+        ->assertScript("document.querySelector('[data-test=\"theme-settings-back\"]') !== null");
+});
+
+it('draws the active theme card at 1440 with a 24px name, 3:2 pictures, four across, and Preview the site', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/themes');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-good\"] [data-test=\"theme-preview-site\"]') !== null");
+
+    $layout = $page->script(<<<'JS'
+        () => {
+            const active = document.querySelector('[data-test="theme-good"]');
+            const name = active?.querySelector('#active-theme-heading');
+            const cards = [...document.querySelectorAll('[data-test="theme-list"] > li')];
+            const picture = cards[0]?.querySelector('img, [aria-hidden="true"]');
+            const box = picture?.getBoundingClientRect();
+            const tracks = getComputedStyle(document.querySelector('[data-test="theme-list"]'))
+                .gridTemplateColumns.split(' ')
+                .filter(Boolean).length;
+
+            return {
+                nameSize: name ? Math.round(parseFloat(getComputedStyle(name).fontSize)) : null,
+                aspect: box && box.height > 0 ? Math.round((box.width / box.height) * 100) / 100 : null,
+                columns: tracks,
+                previewSite: active?.querySelector('[data-test="theme-preview-site"]') !== null,
+                pillOverPicture: (() => {
+                    const pill = cards[0]?.querySelector('[data-test="theme-state"]');
+                    const img = cards[0]?.querySelector('img');
+                    if (!pill || !img) return false;
+                    const p = pill.getBoundingClientRect();
+                    const i = img.getBoundingClientRect();
+                    return p.top >= i.top && p.bottom <= i.bottom;
+                })(),
+            };
+        }
+        JS);
+
+    expect($layout['nameSize'])->toBe(24)
+        ->and($layout['aspect'])->toBeGreaterThan(1.4)
+        ->and($layout['aspect'])->toBeLessThan(1.6)
+        ->and($layout['columns'])->toBeGreaterThanOrEqual(4)
+        ->and($layout['previewSite'])->toBeTrue()
+        ->and($layout['pillOverPicture'])->toBeFalse();
+});
+
+it('asks before activating another theme from its settings when the switch would hide cards', function (): void {
+    config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/open'), base_path('tests/Fixtures/themes/good')]]);
+    themeActivate('open');
+    DB::table('settings')->where('group_key', 'design')->update(['version' => 1]);
+
+    $about = [
+        'type' => 'theme-card',
+        'attrs' => [
+            'id' => (string) Str::ulid(),
+            'card' => 'open:about-me',
+            'values' => ['heading' => 'Hello'],
+        ],
+    ];
+    regionSave(regionCreate($this->admin, 'open', 'own'), $this->admin, [$about]);
+
+    // Settings only open for the chosen theme (previewed, else live).
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['theme' => 'good']], (string) $this->admin->id));
+
+    $this->actingAs($this->admin)->get('/admin/themes/good/settings')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/themes/good/settings');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-activate\"]') !== null");
+    $page->click('[data-test="theme-activate"]');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"switch-warning\"]') !== null");
+    $page->assertScript("document.querySelector('[data-test=\"switch-warning\"]').innerText.includes('About me')");
 });
 
 it('keeps Themes inside the page at 375 pixels: one column of cards, nothing scrolling sideways, every target 24 pixels or more', function (): void {

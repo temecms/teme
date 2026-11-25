@@ -181,7 +181,8 @@ it('draws the theme in use\'s settings at its own address, and refuses it to any
         ->component('themes/settings')
         ->where('themeGroup', 'theme.good')
         ->has('slots', 2)
-        ->has('regions'));
+        ->has('regions')
+        ->has('hiddenCards'));
     $this->actingAs($this->admin)->get('/admin/themes')->assertInertia(fn (Assert $page) => $page
         ->component('themes/index')
         ->where('themeGroup', 'theme.good')
