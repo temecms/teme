@@ -17,6 +17,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 use Teme\Contracts\Settings\SettingsReader;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -145,4 +146,52 @@ it('knows when a plugin has a Settings tab', function (): void {
 
     expect(app(PluginAreas::class)->hasSettingsTab('placard'))->toBeTrue()
         ->and(app(PluginAreas::class)->hasSettingsTab('missing'))->toBeFalse();
+});
+
+it('sends a person who manages plugins but may not open the area to the settings group after saving', function (): void {
+    ($this->start)();
+    $version = (int) DB::table('settings')->where('group_key', 'plugin.placard')->value('version');
+    $manager = User::factory()->create();
+    $manager->givePermissionTo(Permission::findOrCreate('plugins.manage'));
+
+    expect($manager->can('plugin.placard.manage'))->toBeFalse();
+
+    $this->actingAs($manager)
+        ->put(route('settings.update', ['group' => 'plugin.placard']), [
+            'values' => ['label_text' => 'Sponsored', 'fallback' => '', 'provider' => 'none', 'publisher_id' => '', 'slots' => []],
+            'expected_version' => $version,
+        ])
+        ->assertRedirect(route('settings.show', ['group' => 'plugin.placard']));
+
+    expect(app(SettingsReader::class)->get('plugin.placard', 'label_text'))->toBe('Sponsored');
+});
+
+it('shows the Settings tab read-only, with no secret value, to a person who may only view settings', function (): void {
+    $contributes = PluginFixtures::manifest('placard')['contributes'];
+    $contributes['settings'][] = ['key' => 'api_key', 'type' => 'secret', 'label' => 'API key', 'description' => 'The ad network’s key.', 'section' => 'network'];
+    ($this->start)(PluginFixtures::copy('placard', ['contributes' => $contributes]));
+
+    $version = (int) DB::table('settings')->where('group_key', 'plugin.placard')->value('version');
+    $this->actingAs($this->admin)
+        ->put(route('settings.update', ['group' => 'plugin.placard']), [
+            'values' => ['label_text' => 'Sponsored', 'fallback' => '', 'provider' => 'none', 'publisher_id' => '', 'slots' => []],
+            'secrets' => ['api_key' => 'sk-live-do-not-show'],
+            'expected_version' => $version,
+        ])
+        ->assertRedirect();
+
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo(Permission::findOrCreate('settings.view'), Permission::findOrCreate('plugin.placard.manage'));
+
+    expect($viewer->can('plugins.manage'))->toBeFalse();
+
+    $response = $this->actingAs($viewer)->get(route('plugins.area.settings', ['code' => 'placard']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('plugins/settings')
+            ->where('readOnly.permission', fn ($name): bool => is_string($name) && $name !== '')
+            ->where('secrets.api_key.isSet', true)
+            ->missing('values.api_key'));
+
+    expect($response->getContent())->not->toContain('sk-live-do-not-show');
 });
