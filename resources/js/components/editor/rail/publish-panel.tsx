@@ -604,6 +604,7 @@ export function PublishPanel({
                                     collisionPadding={16}
                                     className="w-80 max-w-(--radix-popover-content-available-width) p-0"
                                     data-test="address-popover"
+                                    aria-labelledby="editor-address-title"
                                     onOpenAutoFocus={(event) => {
                                         event.preventDefault();
                                         document
@@ -612,7 +613,10 @@ export function PublishPanel({
                                     }}
                                 >
                                     <div className="border-line flex items-center justify-between gap-2 border-b px-3 py-2">
-                                        <p className="text-body font-semibold">
+                                        <p
+                                            id="editor-address-title"
+                                            className="text-body font-semibold"
+                                        >
                                             {__('Address')}
                                         </p>
                                         <Button

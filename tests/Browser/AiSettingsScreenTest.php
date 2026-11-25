@@ -47,6 +47,7 @@ it('passes axe on Settings › AI, every target 24 pixels or more, in the light 
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)
+        ->resize(1440, 900)
         ->navigate('/admin/settings/ai')
         ->assertSee('AI services')
         ->assertSee('Text you ask AI about is sent to Anthropic. The key is kept encrypted and never shown again.')
@@ -57,6 +58,18 @@ it('passes axe on Settings › AI, every target 24 pixels or more, in the light 
         ->assertSee('$0.0014')
         ->assertSee('Spent this month')
         ->assertNoAccessibilityIssues(3);
+
+    // Model and fallback sit side by side at the same level on a wide screen.
+    $page->assertScript(<<<'JS'
+        (() => {
+            const row = document.querySelector('[data-test="ai-task-fixture"]');
+            if (row === null) {
+                return false;
+            }
+            const style = getComputedStyle(row);
+            return style.display === 'grid' && style.gridTemplateColumns.split(' ').length >= 2;
+        })()
+        JS);
 
     $targets = cmSmallTargets($page);
 
