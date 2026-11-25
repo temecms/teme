@@ -4,7 +4,8 @@
  * Plugins' sitemaps in the site's sitemap index, after core's
  * (docs/guides/developers/plugins/seo.md): each one an enabled plugin
  * granted sitemaps declares, named `plugin-{code}-{id}` so it never meets
- * one of core's names, cached and tagged as
+ * one of core's names, its items listed only where core's sitemap would
+ * list them, cached and tagged as
  * core's are and tagged with the plugin too. Each call has 2 seconds; a
  * plugin that fails is recorded as a fault, and the sitemap answers with
  * no entries, or no pages after its first.
@@ -21,6 +22,7 @@ namespace App\Domain\Plugins\Seo;
 use App\Domain\Addresses\Addresses;
 use App\Domain\Addresses\PublicRequestPath;
 use App\Domain\Cache\PageTags;
+use App\Domain\Seo\TitlesAndListing;
 use App\Domain\Sitemaps\Queries\ListedItems;
 use App\Domain\Sitemaps\SitemapAddress;
 use App\Domain\Sitemaps\SitemapPage;
@@ -79,7 +81,7 @@ final readonly class PluginSitemaps implements SitemapProvider
         foreach ($entries as $entry) {
             if ($entry->path !== null) {
                 $addresses[] = new SitemapAddress($root.PublicRequestPath::encode($entry->path), $entry->lastModified === null ? null : CarbonImmutable::instance($entry->lastModified));
-            } elseif ($entry->itemId !== null && isset($items[$entry->itemId])) {
+            } elseif ($entry->itemId !== null && isset($items[$entry->itemId]) && $this->lists($items[$entry->itemId]['type'])) {
                 $item = $items[$entry->itemId];
                 $addresses[] = new SitemapAddress($root.PublicRequestPath::encode(Addresses::toUrl($item['path'], $item['type'])), CarbonImmutable::parse($item['changed_at']));
                 $tags[PageTags::content($entry->itemId)] = true;
@@ -95,6 +97,15 @@ final readonly class PluginSitemaps implements SitemapProvider
 
         // Any item's change may change what it lists, as a type's change does core's.
         return $plugin === null ? [] : ['plugin:'.$plugin->code, ...array_map(fn (ContentType $type): string => PageTags::listOf($type->key), array_values(array_filter($this->types->all(), fn (ContentType $type): bool => $type->public)))];
+    }
+
+    /**
+     * Whether core's sitemap lists items of this type: a public type not
+     * hidden from search, the rule ItemsSitemap keeps.
+     */
+    private function lists(string $type): bool
+    {
+        return $this->types->has($type) && $this->types->get($type)->public && ! TitlesAndListing::hidesType($type);
     }
 
     /**

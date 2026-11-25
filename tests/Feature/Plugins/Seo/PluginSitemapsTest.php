@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Seo\SearchAndSocial;
 use App\Domain\Sitemaps\SitemapAddress;
 use App\Domain\Sitemaps\Sitemaps;
 use App\Models\User;
@@ -71,3 +72,14 @@ it('serves the sitemap at its address', function (): void {
 
     $this->get('/sitemap-plugin-seokit-news.xml')->assertOk()->assertSee('<loc>http://localhost/news/</loc>', false);
 });
+
+it('leaves out an item of a type hidden from search, as core’s sitemap does, and keeps one of a public type', function (): void {
+    seokitEnabled();
+    $post = headPost($this->author, 'Harbour news');
+    $page = addrPublished(User::factory()->create()->assignRole('editor'), 'About the harbour', 'page');
+    cmSettings(['hide_type_post' => true], SearchAndSocial::KEY);
+    NewsSitemap::$entries = fn (?string $from): array => [SitemapEntry::item($post->id), SitemapEntry::item($page->id)];
+
+    expect(($this->locs)('plugin-seokit-news'))->toBe(['http://localhost/about-the-harbour/']);
+});
+

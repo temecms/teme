@@ -131,7 +131,7 @@ A plugin that asks for `sitemaps` declares each sitemap, at most four, and imple
 Core lists each in the sitemap index as `sitemap-plugin-{code}-{id}.xml`. `starts()` returns the key each later page starts at, if the sitemap has more than one page, and each is listed as `sitemap-plugin-{code}-{id}.{key}.xml`. A key is 1 to 26 lower-case letters and digits. `entries()` is asked for the page that starts at a key, or at the beginning for null, and returns at most 1,000 `SitemapEntry`:
 
 - `SitemapEntry::path()`, a path on this site and, optionally, when it last changed;
-- `SitemapEntry::item()`, an item by ID, listed at its address only while it is published and listed, with its own last change.
+- `SitemapEntry::item()`, an item by ID, listed at its address only while it is published and listed, with its own last change. As in core's sitemaps, an item of a type hidden from search, or of a type that isn't public, is left out.
 
 Each call has two seconds. Pages are cached and purged as core's are: when a listed item changes, when the plugin is turned on or off, and when its settings are saved.
 
