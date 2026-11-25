@@ -73,6 +73,8 @@ it('limits a pass to one plugin with --plugin', function (): void {
 });
 
 it('says when each schedule is next due, as nextDue() does', function (): void {
+    // One clock for the run and the expectation: a second ticking between them is no failure.
+    $this->freezeSecond();
     $due = app(DueSchedules::class);
     $record = fn (): PluginRecord => PluginRecord::query()->where('name', 'tests/jobs')->sole();
 
