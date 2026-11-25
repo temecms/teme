@@ -7,8 +7,9 @@ import {
     useHttp,
     usePage,
 } from '@inertiajs/react';
-import { Plus, X } from 'lucide-react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import BulkContentController from '@/actions/App/Http/Admin/Contents/BulkContentController';
 import BulkMatchingController from '@/actions/App/Http/Admin/Contents/BulkMatchingController';
 import ContentActionController from '@/actions/App/Http/Admin/Contents/ContentActionController';
@@ -26,6 +27,7 @@ import { DataTable } from '@/components/list/data-table';
 import type { Column, SortDirection } from '@/components/list/data-table';
 import { DateFilter } from '@/components/list/date-filter';
 import { EmptyState } from '@/components/list/empty-state';
+import { ListPanel } from '@/components/list/filter-button';
 import {
     ChoiceFilter,
     FilterRow,
@@ -410,7 +412,7 @@ function listTabs(tabs: ContentTab[], current: string): ContentTab[] {
     return open === undefined ? shown : [...shown, open];
 }
 
-/** The line under a list's name: Posts' and Pages' own, by the core type's key, and a plain one for a type made here. */
+/** The line under a list's name: Posts' and Pages' own, by the core type's key, and a type's own words otherwise. */
 const DESCRIPTIONS: Record<string, () => string> = {
     post: () => __('Articles for the site.'),
     page: () =>
@@ -419,8 +421,15 @@ const DESCRIPTIONS: Record<string, () => string> = {
         ),
 };
 
-const describe = (typeKey: string): string =>
-    DESCRIPTIONS[typeKey]?.() ?? __('Everything of this kind on the site.');
+const describe = (
+    typeKey: string,
+    labels: { singular: string; plural: string },
+): string =>
+    DESCRIPTIONS[typeKey]?.() ??
+    __(':plural on the site.', { plural: labels.plural });
+
+/** How many filters sit on the row before the rest fold under More filters (4.26). */
+const FILTERS_ON_ROW = 4;
 
 /** A row's title for a sentence: "Untitled" when it has none. */
 const titleOf = (row: ContentRow): string => row.title.trim() || __('Untitled');
@@ -632,18 +641,17 @@ function menuActions(row: ContentRow, page: ContentIndexPage): RowAction[] {
 
 /**
  * When the row happened, or will, and a second line saying which date it
- * is. A scheduled item says when it publishes, on the site's clock with the
- * zone named, and why its schedule cannot run when it cannot; an item in
- * review says who submitted it and when.
+ * is. A scheduled item and one in review show the day like every other
+ * date cell, with the full time and zone in the title; the second line
+ * names the state, or why a schedule cannot run when it cannot.
  */
 function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
     if (row.status === 'scheduled' && row.scheduledFor !== null) {
+        const when = `${formatInZone(row.scheduledFor, page.siteTimezone)} (${page.siteTimezone})`;
+
         return (
-            <span className="grid">
-                <span>
-                    {formatInZone(row.scheduledFor, page.siteTimezone)} (
-                    {page.siteTimezone})
-                </span>
+            <span className="grid" title={when}>
+                <span>{formatDate(row.scheduledFor, page.siteTimezone)}</span>
                 <span
                     className={
                         row.scheduleIssue === 'failed'
@@ -662,21 +670,18 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
     }
 
     if (row.review !== null) {
+        const when = `${formatInZone(row.review.submittedAt, page.siteTimezone)} (${page.siteTimezone})`;
+        const by = row.review.submittedBy ?? __('a removed account');
+
         return (
-            <span className="grid">
+            <span
+                className="grid"
+                title={__('Submitted :when by :name', { when, name: by })}
+            >
                 <span>
-                    {__('Submitted :date', {
-                        date: formatInZone(
-                            row.review.submittedAt,
-                            page.siteTimezone,
-                        ),
-                    })}
+                    {formatDate(row.review.submittedAt, page.siteTimezone)}
                 </span>
-                <span className="text-small text-ink-3">
-                    {__('by :name', {
-                        name: row.review.submittedBy ?? __('a removed account'),
-                    })}
-                </span>
+                <span className="text-small text-ink-3">{__('In review')}</span>
             </span>
         );
     }
@@ -715,6 +720,7 @@ export default function ContentIndex(page: ContentIndexPage) {
     const shownColumns = preferences[`lists.${typeKey}.columns`];
     const perPage = preferences['lists.per_page'];
     const [selected, setSelected] = useState<string[]>([]);
+    const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
     // The row ticked last, for Shift+click to tick the rows between.
     const lastTicked = useRef<string | null>(null);
     const shiftHeld = useRef(false);
@@ -1023,6 +1029,10 @@ export default function ContentIndex(page: ContentIndexPage) {
     };
     const thumbnails =
         Array.isArray(shownColumns) && shownColumns.includes('featured');
+    // A type made here always shows a thumbnail (or its empty mark) beside
+    // the title; Posts and Pages keep the Columns preference.
+    const coreList = typeKey === 'post' || typeKey === 'page';
+    const showThumbs = thumbnails || !coreList;
 
     const select: Column<ContentRow> = {
         id: 'select',
@@ -1074,7 +1084,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                     row.trashed || !row.canEdit ? null : contentEdit(row.id).url
                 }
                 thumbnail={
-                    thumbnails
+                    showThumbs
                         ? (row.featuredImage?.thumbUrl ?? null)
                         : undefined
                 }
@@ -1369,7 +1379,7 @@ export default function ContentIndex(page: ContentIndexPage) {
     return (
         <ListPage
             title={title}
-            description={describe(typeKey)}
+            description={describe(typeKey, page.labels)}
             actions={
                 page.canAdd && (
                     <Form
@@ -1476,9 +1486,10 @@ export default function ContentIndex(page: ContentIndexPage) {
                         )}
                     </form>
                 }
-                filters={
-                    <>
+                filters={(() => {
+                    const all: ReactNode[] = [
                         <ChoiceFilter
+                            key="author"
                             testId="filter-author"
                             label={__('Author')}
                             allLabel={__('All authors')}
@@ -1488,8 +1499,8 @@ export default function ContentIndex(page: ContentIndexPage) {
                             }))}
                             value={page.filters.author}
                             onChange={(value) => filterTo({ author: value })}
-                        />
-                        {nesting.map((taxonomy) => (
+                        />,
+                        ...nesting.map((taxonomy) => (
                             <ChoiceFilter
                                 key={taxonomy.key}
                                 testId={`filter-${taxonomy.key}`}
@@ -1503,8 +1514,8 @@ export default function ContentIndex(page: ContentIndexPage) {
                                     filterTo({ [taxonomy.key]: value })
                                 }
                             />
-                        ))}
-                        {flat.map((taxonomy) => (
+                        )),
+                        ...flat.map((taxonomy) => (
                             <TermSearchFilter
                                 key={taxonomy.key}
                                 testId={`filter-${taxonomy.key}`}
@@ -1519,34 +1530,38 @@ export default function ContentIndex(page: ContentIndexPage) {
                                     filterTo({ [taxonomy.key]: value })
                                 }
                             />
-                        ))}
-                        {siteLanguages.length > 0 && (
-                            <ChoiceFilter
-                                testId="filter-language"
-                                label={__('Language')}
-                                allLabel={__('All languages')}
-                                options={[
-                                    ...siteLanguages.map((language) => ({
-                                        value: language.tag,
-                                        label: language.name,
-                                    })),
-                                    ...siteLanguages.map((language) => ({
-                                        value: `missing:${language.tag}`,
-                                        label: __(
-                                            'Missing a version in :language',
-                                            {
-                                                language: language.name,
-                                            },
-                                        ),
-                                    })),
-                                ]}
-                                value={page.filters.language}
-                                onChange={(value) =>
-                                    filterTo({ language: value })
-                                }
-                            />
-                        )}
+                        )),
+                        ...(siteLanguages.length > 0
+                            ? [
+                                  <ChoiceFilter
+                                      key="language"
+                                      testId="filter-language"
+                                      label={__('Language')}
+                                      allLabel={__('All languages')}
+                                      options={[
+                                          ...siteLanguages.map((language) => ({
+                                              value: language.tag,
+                                              label: language.name,
+                                          })),
+                                          ...siteLanguages.map((language) => ({
+                                              value: `missing:${language.tag}`,
+                                              label: __(
+                                                  'Missing a version in :language',
+                                                  {
+                                                      language: language.name,
+                                                  },
+                                              ),
+                                          })),
+                                      ]}
+                                      value={page.filters.language}
+                                      onChange={(value) =>
+                                          filterTo({ language: value })
+                                      }
+                                  />,
+                              ]
+                            : []),
                         <DateFilter
+                            key="date"
                             dates={page.dates}
                             filters={page.filters}
                             tabCount={
@@ -1557,9 +1572,37 @@ export default function ContentIndex(page: ContentIndexPage) {
                             hrefFor={hrefFor}
                             open={dateOpen}
                             onOpenChange={setDateOpen}
-                        />
-                    </>
-                }
+                        />,
+                    ];
+                    const shown = all.slice(0, FILTERS_ON_ROW);
+                    const more = all.slice(FILTERS_ON_ROW);
+
+                    return (
+                        <>
+                            {shown}
+                            {more.length > 0 && (
+                                <ListPanel
+                                    label={__('More filters')}
+                                    testId="more-filters"
+                                    open={moreFiltersOpen}
+                                    onOpenChange={setMoreFiltersOpen}
+                                    trigger={
+                                        <Button
+                                            type="button"
+                                            variant="neutral"
+                                            data-test="more-filters"
+                                        >
+                                            {__('More filters')}
+                                            <ChevronDown aria-hidden="true" />
+                                        </Button>
+                                    }
+                                >
+                                    <div className="grid gap-3 p-1">{more}</div>
+                                </ListPanel>
+                            )}
+                        </>
+                    );
+                })()}
                 clear={
                     <Button asChild variant="ghost" className="shrink-0">
                         <Link href={clearHref} data-test="clear-filters">
