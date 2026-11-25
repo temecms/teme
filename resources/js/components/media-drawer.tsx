@@ -695,7 +695,7 @@ function DetailBody({
                     item.previewUrl &&
                     item.can.edit &&
                     !item.trashed && (
-                        <Button asChild variant="primary" size="sm">
+                        <Button asChild variant="neutral" size="sm">
                             <Link
                                 href={editImage({ media: item.id }).url}
                                 data-test="media-edit-image"

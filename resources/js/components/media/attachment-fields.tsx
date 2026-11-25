@@ -208,10 +208,10 @@ type Props = {
 type FieldGroup = 'all' | 'primary' | 'secondary';
 
 /**
- * Alt text, caption and credit first (primary); title and license after the
- * detail panel's actions (secondary). Each is saved as it is left
- * (docs/architecture/design-system.md, section 4.36); the detail panel and
- * the picker's side draw the same fields.
+ * Title, alt text, caption, credit and license, each saved as it is left
+ * (docs/architecture/design-system.md, section 4.36). The picker's side keeps
+ * Title first (`all`); the library detail panel splits primary (Alt, Caption,
+ * Credit) from secondary (Title, License) around its actions.
  */
 export function MediaFields({
     item,
@@ -220,7 +220,7 @@ export function MediaFields({
     onAltTextUsed,
     group = 'all',
 }: Props & {
-    /** Primary = Alt, Caption, Credit; secondary = Title, License; all = both. */
+    /** `all` = picker order; primary / secondary = library detail panel. */
     group?: FieldGroup;
 }) {
     const altField = useRef<HTMLTextAreaElement | null>(null);
@@ -233,65 +233,90 @@ export function MediaFields({
         onBlur: saver.saveNow,
     });
     const missingAlt = (item.alt ?? '').trim() === '';
-    const primary = group === 'all' || group === 'primary';
-    const secondary = group === 'all' || group === 'secondary';
+    const showTitle = group === 'all' || group === 'secondary';
+    const showPrimary = group === 'all' || group === 'primary';
+    const showLicence = group === 'all' || group === 'secondary';
+    // Picker keeps Title before Alt; the library panel's secondary block puts Title with License.
+    const titleFirst = group === 'all';
+
+    const titleField = showTitle && (
+        <div className="grid gap-1">
+            <Label htmlFor={`attachment-${item.id}-title`}>
+                {__('Title')}
+            </Label>
+            <Input
+                {...field('title')}
+                id={`attachment-${item.id}-title`}
+                aria-describedby={`attachment-${item.id}-title-error`}
+                defaultValue={item.title}
+                key={`${item.id}-title`}
+            />
+            <InputError
+                id={`attachment-${item.id}-title-error`}
+                message={saver.errors.title}
+            />
+        </div>
+    );
+
+    const altFieldNode = showPrimary && item.kind === 'image' && (
+        <div className="grid gap-1">
+            <Label
+                htmlFor={`attachment-${item.id}-alt`}
+                className="flex items-center gap-2"
+            >
+                {__('Alt text')}
+                {missingAlt && (
+                    <span className="text-warn-ink text-caption inline-flex items-center gap-1 font-normal">
+                        <TriangleAlert
+                            aria-hidden="true"
+                            className="size-3.5"
+                        />
+                        {__('missing')}
+                    </span>
+                )}
+            </Label>
+            {/* A new stored alt text, such as a suggestion used, redraws the field with it. */}
+            <Textarea
+                {...field('alt')}
+                id={`attachment-${item.id}-alt`}
+                ref={altField}
+                aria-describedby={`attachment-${item.id}-alt-help attachment-${item.id}-alt-error`}
+                rows={2}
+                defaultValue={item.alt ?? ''}
+                key={`${item.id}-alt-${item.alt ?? ''}`}
+            />
+            <p
+                id={`attachment-${item.id}-alt-help`}
+                className="text-ink-3 text-small"
+            >
+                {__('Used wherever an article does not give its own.')}
+            </p>
+            <InputError
+                id={`attachment-${item.id}-alt-error`}
+                message={saver.errors.alt}
+            />
+            {item.altText !== null && onAltTextUsed !== undefined && (
+                <AltTextSuggestion
+                    key={item.id}
+                    item={item}
+                    offer={item.altText}
+                    currentAlt={() =>
+                        altField.current?.value ?? item.alt ?? ''
+                    }
+                    onUsed={(details) => {
+                        saver.accept(details);
+                        onAltTextUsed(details);
+                    }}
+                />
+            )}
+        </div>
+    );
 
     return (
         <div className="grid gap-4">
-            {primary && item.kind === 'image' && (
-                <div className="grid gap-1">
-                    <Label
-                        htmlFor={`attachment-${item.id}-alt`}
-                        className="flex items-center gap-2"
-                    >
-                        {__('Alt text')}
-                        {missingAlt && (
-                            <span className="text-warn-ink text-caption inline-flex items-center gap-1 font-normal">
-                                <TriangleAlert
-                                    aria-hidden="true"
-                                    className="size-3.5"
-                                />
-                                {__('missing')}
-                            </span>
-                        )}
-                    </Label>
-                    {/* A new stored alt text, such as a suggestion used, redraws the field with it. */}
-                    <Textarea
-                        {...field('alt')}
-                        id={`attachment-${item.id}-alt`}
-                        ref={altField}
-                        aria-describedby={`attachment-${item.id}-alt-help attachment-${item.id}-alt-error`}
-                        rows={2}
-                        defaultValue={item.alt ?? ''}
-                        key={`${item.id}-alt-${item.alt ?? ''}`}
-                    />
-                    <p
-                        id={`attachment-${item.id}-alt-help`}
-                        className="text-ink-3 text-small"
-                    >
-                        {__('Used wherever an article does not give its own.')}
-                    </p>
-                    <InputError
-                        id={`attachment-${item.id}-alt-error`}
-                        message={saver.errors.alt}
-                    />
-                    {item.altText !== null && onAltTextUsed !== undefined && (
-                        <AltTextSuggestion
-                            key={item.id}
-                            item={item}
-                            offer={item.altText}
-                            currentAlt={() =>
-                                altField.current?.value ?? item.alt ?? ''
-                            }
-                            onUsed={(details) => {
-                                saver.accept(details);
-                                onAltTextUsed(details);
-                            }}
-                        />
-                    )}
-                </div>
-            )}
-            {primary && (
+            {titleFirst && titleField}
+            {altFieldNode}
+            {showPrimary && (
                 <>
                     <div className="grid gap-1">
                         <Label htmlFor={`attachment-${item.id}-caption`}>
@@ -328,41 +353,24 @@ export function MediaFields({
                     </div>
                 </>
             )}
-            {secondary && (
-                <>
-                    <div className="grid gap-1">
-                        <Label htmlFor={`attachment-${item.id}-title`}>
-                            {__('Title')}
-                        </Label>
-                        <Input
-                            {...field('title')}
-                            id={`attachment-${item.id}-title`}
-                            aria-describedby={`attachment-${item.id}-title-error`}
-                            defaultValue={item.title}
-                            key={`${item.id}-title`}
-                        />
-                        <InputError
-                            id={`attachment-${item.id}-title-error`}
-                            message={saver.errors.title}
-                        />
-                    </div>
-                    <div className="grid gap-1">
-                        <Label htmlFor={`attachment-${item.id}-licence`}>
-                            {__('License')}
-                        </Label>
-                        <Input
-                            {...field('licence')}
-                            id={`attachment-${item.id}-licence`}
-                            aria-describedby={`attachment-${item.id}-licence-error`}
-                            defaultValue={item.licence ?? ''}
-                            key={`${item.id}-licence`}
-                        />
-                        <InputError
-                            id={`attachment-${item.id}-licence-error`}
-                            message={saver.errors.licence}
-                        />
-                    </div>
-                </>
+            {!titleFirst && titleField}
+            {showLicence && (
+                <div className="grid gap-1">
+                    <Label htmlFor={`attachment-${item.id}-licence`}>
+                        {__('License')}
+                    </Label>
+                    <Input
+                        {...field('licence')}
+                        id={`attachment-${item.id}-licence`}
+                        aria-describedby={`attachment-${item.id}-licence-error`}
+                        defaultValue={item.licence ?? ''}
+                        key={`${item.id}-licence`}
+                    />
+                    <InputError
+                        id={`attachment-${item.id}-licence-error`}
+                        message={saver.errors.licence}
+                    />
+                </div>
             )}
         </div>
     );
