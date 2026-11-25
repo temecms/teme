@@ -288,7 +288,7 @@ export default function NavigationEdit({
                 >
                     <FormPanel>
                         <div className="flex flex-wrap items-center justify-between gap-3">
-                            <h2 className="text-lead text-ink flex items-baseline gap-2 font-semibold">
+                            <h2 className="text-body text-ink flex items-baseline gap-2 font-semibold">
                                 {__('Items')}
                                 <span className="text-small text-ink-3 font-normal tabular-nums">
                                     {countOf(tree).toLocaleString()}
@@ -388,7 +388,7 @@ export default function NavigationEdit({
                             confirmLabel={__('Delete menu')}
                         >
                             <Button
-                                variant="danger"
+                                variant="danger-quiet"
                                 size="sm"
                                 data-test="menu-delete"
                             >
