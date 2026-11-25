@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Taxonomy\Models\Term;
+use App\Domain\Taxonomy\Queries\TermPicker;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -111,4 +112,19 @@ it('lets anyone who writes content search terms by name prefix, 20 at most', fun
         ->assertOk()
         ->assertJsonCount(20)
         ->assertJsonPath('0.name', 'Football 1');
+});
+
+it('lists the most used terms first when nothing is typed, then by name, 20 at most', function (): void {
+    foreach (range(1, 22) as $n) {
+        taxonomyTerm('tag', sprintf('Tag %02d', $n));
+    }
+    taxonomyTerm('tag', 'Zebra')->forceFill(['published_count' => 9])->save();
+    taxonomyTerm('tag', 'Yak')->forceFill(['published_count' => 9])->save();
+    taxonomyTerm('tag', 'Mid')->forceFill(['published_count' => 3])->save();
+
+    $names = array_column(app(TermPicker::class)->search('tag', ''), 'name');
+
+    expect($names)->toHaveCount(20)
+        ->and(array_slice($names, 0, 5))->toBe(['Yak', 'Zebra', 'Mid', 'Tag 01', 'Tag 02'])
+        ->and(array_column(app(TermPicker::class)->search('tag', 'ta'), 'name')[0])->toBe('Tag 01');
 });
