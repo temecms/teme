@@ -439,11 +439,11 @@ export function SearchPanel({
         <section
             aria-labelledby="editor-search-label"
             data-test="search-section"
-            className="grid grid-cols-1"
+            className="-mx-4 grid grid-cols-1 sm:-mx-10"
         >
             <div
                 data-test="search-strip"
-                className="bg-chrome border-line flex min-h-13 items-center gap-3 border-y pr-4 pl-6"
+                className="bg-chrome border-line flex min-h-13 w-full items-center gap-3 border-y pr-4 pl-6"
             >
                 <h2
                     id="editor-search-label"
@@ -635,11 +635,21 @@ export function SearchPanel({
                                             )
                                         }
                                         id="editor-seo-title"
-                                        describedBy="editor-seo-title-count"
+                                        describedBy="editor-seo-title-count editor-seo-title-hint"
                                         rows={2}
                                         className={`${textareaClass} resize-none`}
                                         placeholder={search.title.text}
                                     />
+                                    {titleText.trim() === '' && (
+                                        <p
+                                            id="editor-seo-title-hint"
+                                            className="text-caption text-ink-3"
+                                        >
+                                            {__(
+                                                'Leave empty to use the title from the template.',
+                                            )}
+                                        </p>
+                                    )}
                                     <MetadataProposal
                                         handle="seo_title"
                                         label={seoTitle.label}
@@ -691,11 +701,23 @@ export function SearchPanel({
                                             onChange(metaDescription.key, next)
                                         }
                                         id="editor-seo-description"
-                                        describedBy="editor-seo-description-count"
+                                        describedBy="editor-seo-description-count editor-seo-description-hint"
                                         rows={3}
                                         className={`${textareaClass} resize-y`}
                                         placeholder={descriptionPlaceholder}
                                     />
+                                    {textOf(
+                                        values[metaDescription.key],
+                                    ).trim() === '' && (
+                                        <p
+                                            id="editor-seo-description-hint"
+                                            className="text-caption text-ink-3"
+                                        >
+                                            {__(
+                                                'Leave empty to use the excerpt, or let search engines choose.',
+                                            )}
+                                        </p>
+                                    )}
                                     <MetadataProposal
                                         handle="meta_description"
                                         label={metaDescription.label}

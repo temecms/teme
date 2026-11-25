@@ -49,12 +49,13 @@ it('keeps the toolbar on one line, folding what does not fit into More', functio
  * Bold, italic, link and + Insert never fold, so everything else must, or a
  * phone-width row clips More itself and the folded controls with it (B-138).
  */
-it('lets every control but bold, italic, link and Insert fold into More', function (): void {
+it('lets every control but bold, italic, link, Quote and Insert fold into More', function (): void {
     preg_match('/const FOLD_ORDER = \[(.*?)\]/s', file_get_contents(resource_path('js/components/editor/toolbar.tsx')), $match);
 
     expect($match[1] ?? '')->toContain("'undo'")
         ->toContain("'redo'")
-        ->toContain("'text'");
+        ->toContain("'text'")
+        ->not->toContain("'blockquote'");
 });
 
 it('pins every tiptap package to one exact version', function (): void {

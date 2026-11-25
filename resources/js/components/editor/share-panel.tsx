@@ -1,9 +1,19 @@
 import { http, useHttp } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import PreviewLinkController from '@/actions/App/Http/Admin/Contents/PreviewLinkController';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
 import { __ } from '@/lib/i18n';
 import type { CreatedPreviewLink, PreviewLinkRow } from '@/types';
 import { post, reasonOf } from './editor-http';
@@ -64,6 +74,7 @@ export function SharePane({
     const [copied, setCopied] = useState(false);
     const [problem, setProblem] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    const [revoking, setRevoking] = useState<PreviewLinkRow | null>(null);
     const SHARE_WORDS = shareWords();
 
     const load = useCallback(async () => {
@@ -114,7 +125,7 @@ export function SharePane({
         }
     };
 
-    const revoke = async (id: string) => {
+    const revoke = async (link: PreviewLinkRow) => {
         setProblem(null);
 
         try {
@@ -122,11 +133,13 @@ export function SharePane({
                 method: 'delete',
                 url: PreviewLinkController.destroy({
                     content: contentId,
-                    link: id,
+                    link: link.id,
                 }).url,
                 headers: { Accept: 'application/json' },
             });
+            setRevoking(null);
             await load();
+            toast.success(__('Preview link revoked'));
         } catch {
             setProblem(SHARE_WORDS.revokeFailed);
         }
@@ -219,7 +232,8 @@ export function SharePane({
                                     variant="ghost"
                                     size="sm"
                                     className="text-danger-ink"
-                                    onClick={() => void revoke(link.id)}
+                                    data-test="share-revoke"
+                                    onClick={() => setRevoking(link)}
                                 >
                                     {__('Revoke')}
                                     <span className="sr-only">
@@ -234,6 +248,46 @@ export function SharePane({
                     ))}
                 </ul>
             )}
+            <Dialog
+                open={revoking !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setRevoking(null);
+                    }
+                }}
+            >
+                <ResponsiveDialogContent phone="foot">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {__('Revoke this preview link?')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {__(
+                                'Anyone with the link will no longer be able to open this version.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">
+                                {__('Cancel')}
+                            </Button>
+                        </DialogClose>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            data-test="share-revoke-confirm"
+                            onClick={() => {
+                                if (revoking !== null) {
+                                    void revoke(revoking);
+                                }
+                            }}
+                        >
+                            {__('Revoke')}
+                        </Button>
+                    </DialogFooter>
+                </ResponsiveDialogContent>
+            </Dialog>
         </div>
     );
 }

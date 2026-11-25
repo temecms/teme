@@ -184,7 +184,7 @@ export default function Compare({
                                                     {`${version.author ?? __('Someone')} · ${noteOf(version, first)}`}
                                                 </span>
                                             </span>
-                                            <span className="flex gap-1">
+                                            <span className="flex flex-wrap items-center gap-1">
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
@@ -201,6 +201,17 @@ export default function Compare({
                                                         {`: ${name}`}
                                                     </span>
                                                 </Button>
+                                                {version.id !==
+                                                    workingRevisionId && (
+                                                    <RestoreButton
+                                                        contentId={contentId}
+                                                        revisionId={version.id}
+                                                        createdAt={
+                                                            version.createdAt
+                                                        }
+                                                        label={__('Restore')}
+                                                    />
+                                                )}
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
