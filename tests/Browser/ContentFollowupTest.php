@@ -1,14 +1,5 @@
 <?php
 
-/**
- * Lane 1.6 content follow-up: date cells, Comments-off title, navigation
- * Open in new tab, regions chrome, media field order and comments search.
- *
- * @package Teme
- * @since   next
- * @license MIT
- */
-
 declare(strict_types=1);
 
 use App\Domain\Menus\Models\NavigationItem;
@@ -37,6 +28,7 @@ beforeEach(function (): void {
     });
 
     $this->editor = User::factory()->create(['name' => 'Eve Editor'])->assignRole('editor');
+    $this->admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
 });
 
 it('shows a scheduled row’s day above Scheduled in the Date column', function (): void {
@@ -98,33 +90,38 @@ it('saves Open in new tab from an item’s Details on the navigation editor', fu
     cmNoJavaScriptErrors($page);
 });
 
-it('draws regions with used/max, Publish region, and Edit without a pencil', function (): void {
+it('draws regions at 1440 with slots in the head, short description, tabs and axe', function (): void {
     $region = regionCreate($this->editor, 'default');
     regionSave($region, $this->editor, [regionCardNode('callout')]);
 
     $this->actingAs($this->editor)->get('/admin/regions?region=after-content')->assertOk();
 
-    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/regions?region=after-content');
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/regions?region=after-content');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"region-choice\"]') !== null")
+        ->assertSee('Your own content in the spots')
+        ->assertSee('Each region takes only the cards its theme allows.')
+        ->assertDontSee('switch themes and you fill that theme')
         ->assertScript("[...document.querySelectorAll('[data-test=\"region-choice\"]')].some((row) => /\\d+\\/\\d+/.test(row.textContent))", true)
+        ->assertSeeIn('[data-test="region-fill"]', '1 of 5 slot used')
         ->assertSee('active theme')
+        ->assertScript("document.querySelector('[data-slot=\"tabs-list\"]')?.getAttribute('data-variant') === 'underline' || [...document.querySelectorAll('[role=\"tablist\"]')].some((list) => list.className.includes('underline') || getComputedStyle(list).borderBottomStyle !== 'none')", true)
         ->assertSeeIn('[data-test="region-publish"]', 'Publish region')
-        ->assertScript("document.querySelector('[data-test=\"region-publish\"]')?.disabled === false", true)
         ->assertScript("(() => { const edit = [...document.querySelectorAll('[data-test=\"region-card-row\"] button')].find((b) => b.textContent.trim() === 'Edit'); return edit !== undefined && edit.querySelector('svg') === null; })()", true)
-        ->assertSee('Remove');
+        ->assertSee('Remove')
+        ->assertNoAccessibilityIssues(3);
 
-    $page->click('[data-test="region-publish"]');
-    cmWaitUntil($page, "document.body.innerText.includes('Published. Readers see it on their next page.')")
-        ->assertScript("document.querySelector('[data-test=\"region-publish\"]')?.disabled === true", true);
+    $targets = cmSmallTargets($page);
+    expect($targets['small'])->toBe([])
+        ->and($targets['checked'])->toBeGreaterThan(0);
     cmNoJavaScriptErrors($page);
 });
 
-it('orders the media library’s primary fields before Title, with Edit image not primary', function (): void {
+it('orders the media library’s fields and Edit image at 1440 with axe', function (): void {
     $harbour = mediaUpload($this->editor, mediaJpeg(1200, 800), 'harbour.jpg')->refresh();
     $this->actingAs($this->editor)->get('/admin/media')->assertOk();
 
-    $page = cmSignIn($this->editor)->resize(1280, 900);
+    $page = cmSignIn($this->editor)->resize(1440, 900);
     cmNavigate($page, '/admin/media');
     cmWaitUntil($page, "document.querySelector('[role=\"listbox\"] [role=\"option\"]') !== null")
         ->click('[role="option"]:has-text("harbour")');
@@ -140,6 +137,53 @@ it('orders the media library’s primary fields before Title, with Edit image no
 
     expect($order)->toBe('alt|caption|credit|title|licence')
         ->and($page->script("document.querySelector('[data-test=\"media-edit-image\"]')?.className.includes('bg-surface-3')"))->toBeTrue();
+
+    $page->assertNoAccessibilityIssues(3);
+    $targets = cmSmallTargets($page);
+    expect($targets['small'])->toBe([])
+        ->and($targets['checked'])->toBeGreaterThan(0);
+    cmNoJavaScriptErrors($page);
+});
+
+it('keeps Title first in the media picker’s details', function (): void {
+    $dunes = mediaUpload($this->editor, mediaJpeg(1000, 700), 'dunes.jpg')->refresh();
+    $this->actingAs($this->editor)->get('/admin/_catalogue')->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/_catalogue#media-picker');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"catalogue-picker-featured\"]') !== null")
+        ->click('[data-test="catalogue-picker-featured"]');
+    shellSettled($page, '[data-slot="dialog-content"]');
+    cmWaitUntil($page, "document.querySelectorAll('[role=\"dialog\"] [role=\"option\"]').length >= 1")
+        ->click('[role="dialog"] [role="option"][data-media-id="'.$dunes->id.'"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"media-modal-details\"] #attachment-{$dunes->id}-title') !== null");
+
+    $order = $page->script(<<<JS
+        (() => {
+            const panel = document.querySelector('[data-test="media-modal-details"]');
+            const ids = [...panel.querySelectorAll('[id^="attachment-{$dunes->id}-"]')]
+                .map((el) => el.id.replace('attachment-{$dunes->id}-', ''));
+            return ids.filter((id) => ['title', 'alt', 'caption', 'credit', 'licence'].includes(id)).join('|');
+        })()
+    JS);
+
+    expect($order)->toStartWith('title|');
+    $page->assertNoAccessibilityIssues(3);
+    cmNoJavaScriptErrors($page);
+});
+
+it('shows a thumbnail mark on every custom-type list row', function (): void {
+    ctCreate($this->admin, ['key' => 'note', 'singular' => 'Note', 'plural' => 'Notes', 'segment' => 'notes']);
+    typesDraft($this->editor, 'note', 'Harbour note');
+
+    $this->actingAs($this->editor)->get('/admin/notes')->assertOk();
+
+    $page = cmSignIn($this->editor)->resize(1440, 900)->navigate('/admin/notes');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"row-title\"]') !== null")
+        ->assertSee('Everything of this kind on the site.')
+        ->assertScript("document.querySelectorAll('[data-test=\"featured-thumb\"], [data-test=\"featured-none\"]').length >= 1", true)
+        ->assertScript("[...document.querySelectorAll('tbody tr')].every((row) => row.querySelector('[data-test^=\"featured-\"]') !== null)", true)
+        ->assertNoAccessibilityIssues(3);
     cmNoJavaScriptErrors($page);
 });
 

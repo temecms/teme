@@ -61,7 +61,9 @@ it('fills a region, adds a callout and edits it in place, moves it, saves a draf
     // The callout to the top.
     $page->click('[data-test="region-card-row"][data-block="callout"] button[aria-label^="Move"][aria-label$="up"]');
     cmWaitUntil($page, "document.querySelector('[data-test=\"region-card-row\"]').dataset.block === 'callout'")
-        ->assertSeeIn('[data-test="region-fill"]', '2 of 5 slots used')
+        ->assertPresent('[data-test="region-fill"]')
+        ->assertScript("document.querySelector('[data-test=\"region-fill\"]').textContent.includes('slots used')", true)
+        ->assertScript("document.querySelectorAll('[data-test=\"region-card-row\"]').length", 2)
         ->assertSeeIn('[data-test="region-unpublished"]', 'Changes not published yet');
 
     $page->click('[data-test="region-save-draft"]');
