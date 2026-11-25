@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cache\PageTags;
+use App\Domain\Cache\PurgeTimes;
+use App\Domain\Cards\LinkResolver;
+use App\Domain\Cards\RenderContext;
+use App\Domain\Cards\Types\SiteCodeCard;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Contents\Operations\Input\SaveAutosaveInput;
@@ -18,6 +23,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -38,7 +44,7 @@ beforeEach(function (): void {
     $this->editor = User::factory()->create()->assignRole('editor');
     $this->id = (string) Str::ulid();
     $this->region = regionCreate($this->admin, 'default');
-    $this->card = fn (?string $code, array $origins = [], bool $on = true): array => docWith(['type' => 'site-code', 'attrs' => ['id' => $this->id, 'code' => $code, 'origins' => $origins, 'on' => $on]]);
+    $this->card = fn (?string $code, array $origins = []): array => docWith(['type' => 'site-code', 'attrs' => ['id' => $this->id, 'code' => $code, 'origins' => $origins]]);
     $this->held = fn (): array => RegionCode::of((array) ContentRevision::query()->whereKey($this->region->fresh()->working_revision_id)->value('document'));
     $this->ad = fn (): null => scElevated(function (): null {
         docSave($this->region, $this->admin, ($this->card)('<b>ad</b>', ['ads.example.com']));
@@ -83,7 +89,7 @@ it('writes nothing when an editor tries to add or change a card’s code', funct
         ->and(scLog())->toHaveCount($events);
 })->with(['adding' => [null], 'changing' => ['<b>ad</b>']]);
 
-it('writes nothing when an editor tries to change a card’s hosts or switch it', function (array $attrs): void {
+it('writes nothing when an editor tries to change a card’s hosts', function (array $attrs): void {
     ($this->ad)();
     $revisions = ContentRevision::query()->count();
 
@@ -92,8 +98,41 @@ it('writes nothing when an editor tries to change a card’s hosts or switch it'
         ->and(ContentRevision::query()->count())->toBe($revisions);
 })->with([
     'hosts' => [['origins' => ['evil.example.com']]],
-    'off' => [['origins' => [], 'on' => false]],
 ]);
+
+it('drops an on attribute sent by anyone, since a card has no switch', function (User $who): void {
+    ($this->ad)();
+    $document = docWith(['type' => 'site-code', 'attrs' => ['id' => $this->id, 'code' => null, 'origins' => [], 'on' => false]]);
+
+    scElevated(fn (): Content => docSave($this->region, $who === $this->admin ? $this->admin : $this->editor, $document));
+
+    $saved = ContentRevision::query()->findOrFail($this->region->fresh()->working_revision_id)->document;
+
+    expect($saved['content'][0]['attrs'])->not->toHaveKey('on');
+})->with([
+    'an editor' => [fn () => $this->editor],
+    'an administrator' => [fn () => $this->admin],
+]);
+
+it('refuses a repeated card ID from an editor, and writes nothing', function (): void {
+    ($this->ad)();
+    $revisions = ContentRevision::query()->count();
+    $events = count(scLog());
+    $node = ['type' => 'site-code', 'attrs' => ['id' => $this->id, 'code' => null, 'origins' => []]];
+
+    expect(fn () => docSave($this->region, $this->editor, docWith($node, $node)))
+        ->toThrow(AuthorizationException::class, 'Not permitted to change site code.')
+        ->and(ContentRevision::query()->count())->toBe($revisions)
+        ->and(scLog())->toHaveCount($events);
+});
+
+it('keeps a card’s worked-out policy for a limited time', function (): void {
+    $key = 'region-code:'.hash('sha256', "<b>ad</b>\0ads.example.com");
+
+    Cache::shouldReceive('remember')->once()->withArgs(fn (string $name, mixed $ttl): bool => $name === $key && $ttl instanceof DateTimeInterface && $ttl > now()->addDays(29))->andReturn(['scripts' => [], 'handlers' => [], 'origins' => []]);
+
+    (new SiteCodeCard)->renderHtml(['code' => '<b>ad</b>', 'origins' => ['ads.example.com']], new RenderContext(app(LinkResolver::class)));
+});
 
 it('lets an editor move a card, keeping its code, and never shows the code to them', function (): void {
     ($this->ad)();
@@ -104,7 +143,7 @@ it('lets an editor move a card, keeping its code, and never shows the code to th
     // The editor saves what they were shown, the card below a new paragraph.
     docSave($this->region, $this->editor, docWith(docText('Above'), ...$session->document['content']));
 
-    expect(($this->held)()[$this->id])->toBe(['code' => '<b>ad</b>', 'origins' => ['ads.example.com'], 'on' => true])
+    expect(($this->held)()[$this->id])->toBe(['code' => '<b>ad</b>', 'origins' => ['ads.example.com']])
         ->and(scLog())->toHaveCount(1);
 });
 
@@ -226,14 +265,74 @@ it('moves code placed with a card into the cards on upgrade, and removes the pla
     $held = array_values(($this->held)());
 
     expect($held)->toBe([
-        ['code' => '<b>on</b>', 'origins' => ['ads.example.com'], 'on' => true],
-        ['code' => '<b>off</b>', 'origins' => [], 'on' => false],
-        ['code' => '', 'origins' => [], 'on' => true],
-        ['code' => '', 'origins' => [], 'on' => true],
+        ['code' => '<b>on</b>', 'origins' => ['ads.example.com']],
+        ['code' => '<b>off</b>', 'origins' => []],
+        ['code' => '', 'origins' => []],
+        ['code' => '', 'origins' => []],
     ])
         ->and(json_encode(ContentRevision::query()->findOrFail($this->region->working_revision_id)->document, JSON_UNESCAPED_SLASHES))->not->toContain('entryId')
         ->and(DB::table('site_code_entries')->pluck('id')->all())->toBe([$head->id])
         ->and(collect(scLog())->firstWhere('type', 'site_code.moved_to_cards')['context'])->toMatchArray(['moved' => 1, 'moved_off' => 1, 'left_empty' => 2, 'entries' => 2])
         ->and(collect(scLog())->where('type', 'site_code.deleted')->pluck('context.before_code')->sort()->values()->all())->toBe(['<b>off</b>', '<b>on</b>'])
         ->and(fn () => DB::table('site_code_entries')->where('id', $head->id)->update(['placement' => 'placed']))->toThrow(QueryException::class);
+});
+
+it('removes the cards that were switched off, in place, and leaves the rest', function (): void {
+    $migration = require base_path('database/migrations/2027_11_15_100000_remove_switched_off_site_code_cards.php');
+    $off = 'A'.substr((string) Str::ulid(), 1);
+    $on = 'B'.substr((string) Str::ulid(), 1);
+    $card = fn (string $id, bool $isOn, string $code): array => ['type' => 'site-code', 'attrs' => ['id' => $id, 'code' => $code, 'origins' => ['ads.example.com'], 'on' => $isOn]];
+    $older = (string) $this->region->fresh()->working_revision_id;
+    $document = docWith(docText('Above'), $card($off, false, '<b>off</b>'), $card($on, true, '<b>on</b>'));
+
+    // The published and the working revision are the one revision, then the older one is set aside.
+    DB::table('content_revisions')->where('id', $older)->update(['document' => json_encode($document)]);
+    DB::table('contents')->where('id', $this->region->id)->update(['published_revision_id' => $older]);
+    $history = (string) Str::ulid();
+    DB::table('content_revisions')->insert([...(array) DB::table('content_revisions')->where('id', $older)->first(), 'id' => $history]);
+    $revisions = DB::table('content_revisions')->count();
+
+    $migration->up();
+
+    $ids = fn (string $revision): array => array_column(array_column((array) json_decode((string) DB::table('content_revisions')->where('id', $revision)->value('document'), true)['content'], 'attrs'), 'id');
+    $removed = collect(scLog())->where('type', 'site_code.removed_off');
+
+    expect($ids($older))->toBe([$on])
+        ->and($ids($history))->toBe([$off, $on])
+        ->and(DB::table('content_revisions')->count())->toBe($revisions)
+        ->and(app(PurgeTimes::class)->since([PageTags::region((string) $this->region->slug)], 0))->toBeTrue()
+        ->and($removed)->toHaveCount(1)
+        ->and($removed->first()['context'])->toMatchArray(['card' => $off, 'region' => $this->region->slug, 'before_code' => '<b>off</b>', 'before_origins' => 'ads.example.com']);
+});
+
+it('removes a switched-off card from an editor’s autosave too, so a later save can’t put it back, logging it once', function (): void {
+    $migration = require base_path('database/migrations/2027_11_15_100000_remove_switched_off_site_code_cards.php');
+    $off = 'A'.substr((string) Str::ulid(), 1);
+    $card = ['type' => 'site-code', 'attrs' => ['id' => $off, 'code' => '<b>off</b>', 'origins' => [], 'on' => false]];
+    $working = (string) $this->region->fresh()->working_revision_id;
+    DB::table('content_revisions')->where('id', $working)->update(['document' => json_encode(docWith($card))]);
+    DB::table('content_autosaves')->insert([
+        'id' => (string) Str::ulid(),
+        'content_id' => $this->region->id,
+        'user_id' => $this->admin->id,
+        'title' => 'Region',
+        'document' => json_encode(docWith(docText('Being written'), $card)),
+        'fields' => '{}',
+        'terms' => '{}',
+        'based_on_revision_id' => $working,
+        'saved_at' => now(),
+    ]);
+
+    $migration->up();
+
+    $autosave = (string) DB::table('content_autosaves')->where('content_id', $this->region->id)->value('document');
+
+    expect($autosave)->not->toContain('<b>off</b>')->toContain('Being written')
+        ->and(collect(scLog())->where('type', 'site_code.removed_off'))->toHaveCount(1);
+});
+
+it('says a rollback can’t put the removed cards back', function (): void {
+    $migration = require base_path('database/migrations/2027_11_15_100000_remove_switched_off_site_code_cards.php');
+
+    expect(fn () => $migration->down())->toThrow(RuntimeException::class, 'can’t be undone');
 });

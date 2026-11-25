@@ -102,7 +102,7 @@ it('places Featured posts and Custom HTML after the article, asks for the passwo
         ->click('[role="toolbar"] button:has-text("Insert")')
         ->click('[data-test="block-picker"] [role="option"]:has-text("Custom HTML")')
         ->assertNotPresent('[data-test="block-picker"]')
-        ->type('.ProseMirror textarea[aria-label="Code"]', $this->code);
+        ->type('.ProseMirror textarea', $this->code);
     cmWaitUntil($page, "(document.querySelector('.teme-prose')?.innerText ?? '').includes('Readers see it here, drawn exactly as it was pasted.')");
 
     // The rail shows the chosen card's settings; back to the region's, where Publish is.
@@ -184,12 +184,31 @@ it('passes axe with both cards\' panels open at :dataset', function (int $width,
     '375, dark' => [375, 'dark'],
 ]);
 
+it('gives a Custom HTML card a labelled Code field, no switch, and its hosts folded away until asked for', function (): void {
+    scElevated(fn () => regionSave($this->region, $this->admin, [['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'code' => $this->code, 'origins' => []]]]));
+
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->admin)->resize(1280, 900), $this->edit));
+    cmWaitUntil($page, "(document.querySelector('.teme-prose')?.innerText ?? '').includes('Readers see it here')");
+    ($this->openSettings)($page, 'Custom HTML');
+    cmWaitUntil($page, "document.querySelector('.ProseMirror').innerText.includes('More: hosts this code loads from')");
+
+    $page->assertScript("document.querySelector('.ProseMirror label[for]')?.innerText.trim() === 'Code'", true)
+        ->assertScript("document.querySelector('.ProseMirror textarea')?.getAttribute('placeholder') === null", true)
+        ->assertScript("document.querySelector('.ProseMirror').innerText.includes('Paste the ad unit or embed code exactly as the service gives it.')", true)
+        ->assertNotPresent('.ProseMirror [role="switch"]')
+        ->assertScript("document.querySelector('.ProseMirror').innerText.includes('Hosts it connects to')", false)
+        ->assertScript("document.querySelector('.ProseMirror').innerText.includes('This code is off')", false)
+        ->click('.ProseMirror button:has-text("More: hosts this code loads from")');
+    cmWaitUntil($page, "document.querySelector('.ProseMirror').innerText.includes('Hosts it connects to')");
+    cmNoJavaScriptErrors($page);
+});
+
 it('shows an editor a Custom HTML card without its code, and offers them none to add', function (): void {
     scElevated(fn () => regionSave($this->region, $this->admin, [['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'code' => $this->code]]]));
 
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit));
     cmWaitUntil($page, "(document.querySelector('.teme-prose')?.innerText ?? '').includes('Only administrators can read or change this code.')")
-        ->assertNotPresent('.ProseMirror textarea[aria-label="Code"]')
+        ->assertNotPresent('.ProseMirror textarea')
         ->assertScript("document.documentElement.innerHTML.includes('Fresh bread')", false)
         ->click('[role="toolbar"] button:has-text("Insert")');
     cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"] [role=\"option\"]') !== null")

@@ -1,11 +1,17 @@
 import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import RegionsController from '@/actions/App/Http/Admin/RegionsController';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
 import { ListPage } from '@/components/patterns/list-page';
 import { RegionPanel } from '@/components/regions/region-panel';
+import {
+    changesRegion,
+    chooseRegion,
+    HOVER_MS,
+    prefetchRegion,
+} from '@/components/regions/region-visits';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusPill } from '@/components/ui/status-pill';
@@ -47,12 +53,85 @@ function edited(at: string | null): string {
     return at === null ? '—' : formatDateTime(at);
 }
 
-/** Shows another region, keeping the page as it is around it. */
-function choose(key: string): void {
-    router.get(
-        regionsIndex({ query: { region: key } }).url,
-        {},
-        { preserveScroll: true, preserveState: true, only: ['chosen'] },
+/**
+ * Fetches a region's visit ahead when the pointer rests on its row, or the
+ * row takes focus or a touch, so choosing it shows it at once. The region
+ * already shown is never fetched again.
+ */
+function useAhead(key: string, shown: boolean) {
+    const timer = useRef<number | null>(null);
+    const stop = () => {
+        if (timer.current !== null) {
+            window.clearTimeout(timer.current);
+            timer.current = null;
+        }
+    };
+
+    useEffect(() => stop, []);
+
+    const now = () => {
+        stop();
+
+        if (!shown) {
+            prefetchRegion(key);
+        }
+    };
+
+    return {
+        onMouseEnter: () => {
+            stop();
+            timer.current = window.setTimeout(now, HOVER_MS);
+        },
+        onMouseLeave: stop,
+        onFocus: now,
+        onTouchStart: now,
+    };
+}
+
+/** One region's row: choosing it shows the region, and resting on it fetches it ahead. */
+function RegionRow({
+    region,
+    shown,
+}: {
+    region: WorkspaceRegion;
+    shown: boolean;
+}) {
+    const ahead = useAhead(region.key, shown);
+
+    return (
+        <Button
+            type="button"
+            variant="ghost"
+            data-test="region-choice"
+            data-region={region.key}
+            aria-current={shown ? 'page' : undefined}
+            onClick={() => chooseRegion(region.key)}
+            {...ahead}
+            className={cn(
+                'h-auto min-h-9 w-full min-w-0 items-start justify-start gap-2 px-2 py-2 text-left whitespace-normal',
+                shown && 'bg-surface-3 text-ink font-semibold',
+            )}
+        >
+            <span className="text-ink min-w-0 flex-1 break-words">
+                {region.label}
+            </span>
+            {region.dirty && (
+                <span
+                    className="bg-warn size-2 shrink-0 rounded-full"
+                    title={__('Changes not published yet')}
+                >
+                    <span className="sr-only">
+                        {__('Changes not published yet')}
+                    </span>
+                </span>
+            )}
+            <span className="text-small text-ink-2 shrink-0 tabular-nums">
+                {__(':used/:max', {
+                    used: region.used,
+                    max: region.max,
+                })}
+            </span>
+        </Button>
     );
 }
 
@@ -70,7 +149,10 @@ function RegionList({
     const many = groups.reduce((all, group) => all + group.regions.length, 0);
 
     return (
-        <nav aria-label={__('Regions')} className="grid content-start gap-4">
+        <nav
+            aria-label={__('Regions')}
+            className="grid min-w-0 content-start gap-4"
+        >
             {many > 6 && (
                 <Input
                     type="search"
@@ -84,54 +166,17 @@ function RegionList({
                 const shown = group.regions.filter(found);
 
                 return shown.length === 0 ? null : (
-                    <section key={group.group} className="grid gap-1">
+                    <section key={group.group} className="grid min-w-0 gap-1">
                         <h2 className="text-caption text-ink-3 px-2 font-semibold uppercase">
                             {group.group}
                         </h2>
-                        <ul className="grid gap-0.5">
+                        <ul className="grid min-w-0 gap-0.5">
                             {shown.map((region) => (
-                                <li key={region.key}>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        data-test="region-choice"
-                                        data-region={region.key}
-                                        aria-current={
-                                            region.key === chosen
-                                                ? 'page'
-                                                : undefined
-                                        }
-                                        onClick={() => choose(region.key)}
-                                        className={cn(
-                                            'w-full min-w-0 justify-start gap-2 px-2 text-left',
-                                            region.key === chosen &&
-                                                'bg-surface-3 text-ink font-semibold',
-                                        )}
-                                    >
-                                        <span className="text-ink min-w-0 flex-1 truncate">
-                                            {region.label}
-                                        </span>
-                                        {region.dirty && (
-                                            <span
-                                                className="bg-warn size-2 shrink-0 rounded-full"
-                                                title={__(
-                                                    'Changes not published yet',
-                                                )}
-                                            >
-                                                <span className="sr-only">
-                                                    {__(
-                                                        'Changes not published yet',
-                                                    )}
-                                                </span>
-                                            </span>
-                                        )}
-                                        <span className="text-small text-ink-2 shrink-0 tabular-nums">
-                                            {__(':used/:max', {
-                                                used: region.used,
-                                                max: region.max,
-                                            })}
-                                        </span>
-                                    </Button>
+                                <li key={region.key} className="min-w-0">
+                                    <RegionRow
+                                        region={region}
+                                        shown={region.key === chosen}
+                                    />
                                 </li>
                             ))}
                         </ul>
@@ -186,10 +231,14 @@ function ChosenPanel({
                             type="button"
                             data-test="region-create"
                             onClick={() =>
-                                router.post(RegionsController.store.url(), {
-                                    theme: page.theme?.code ?? '',
-                                    region: region.key,
-                                })
+                                router.post(
+                                    RegionsController.store.url(),
+                                    {
+                                        theme: page.theme?.code ?? '',
+                                        region: region.key,
+                                    },
+                                    changesRegion(region.key),
+                                )
                             }
                         >
                             {__('Fill this region')}
@@ -315,7 +364,7 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
                 <TabsContent value="active">
                     {chosen !== null && (
                         <div className="grid gap-6 lg:flex lg:items-start">
-                            <div className="lg:w-(--side-w) lg:shrink-0">
+                            <div className="min-w-0 lg:w-(--side-w) lg:shrink-0">
                                 <RegionList
                                     groups={groups}
                                     chosen={chosen.key}
