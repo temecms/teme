@@ -72,7 +72,7 @@ final class ThemesController extends Controller
      *
      * @since 0.8.0-alpha.1
      */
-    public function settings(string $code, Request $request, DesignScreen $screen, ThemeRegistry $themes, RegionScreens $regions): Response|RedirectResponse
+    public function settings(string $code, Request $request, DesignScreen $screen, ThemeRegistry $themes, RegionScreens $regions, ActiveTheme $active, ThemeSwitchNotes $notes): Response|RedirectResponse
     {
         $theme = $themes->find($code) ?? abort(404);
         $data = $screen->data();
@@ -81,10 +81,14 @@ final class ThemesController extends Controller
             return to_route('themes.index');
         }
 
+        $current = $active->get();
+
         return Inertia::render('themes/settings', [
             ...$data,
             'regions' => $regions->forTheme($theme),
             'canEditRegions' => $request->user()?->can('regions.manage') === true,
+            // What a switch away from the active theme hides: its own cards.
+            'hiddenCards' => $current === null ? [] : $notes->hiddenByLeaving($current),
         ]);
     }
 

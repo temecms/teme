@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PluginIcon } from '@/components/ui/plugin-icon';
 import { StatusPill } from '@/components/ui/status-pill';
+import { TextButton } from '@/components/ui/text-button';
 import { formatCost } from '@/lib/ai-cost';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,15 @@ const REASON_INK = {
     warn: 'text-warn-ink',
     danger: 'text-danger-ink',
 } as const;
+
+/**
+ * The short name from a "Needs …, which must stay enabled." consent line.
+ */
+function requireLabel(words: string): string {
+    const match = /^Needs (.+), which must stay enabled\.$/.exec(words);
+
+    return match?.[1] ?? words;
+}
 
 /** The one button a row offers: Enable, Review, Run database changes, or Disable. */
 function RowAction({
@@ -226,14 +236,13 @@ function RowMenu({
 }
 
 /**
- * One plugin on the Plugins screen as a table row: tick, 56px icon, name at
- * 18px, By · Version, Update pill, state, action and ⋯. Composer package
- * name stays in Details only. Requires / Required by sit under the row.
+ * One plugin on the Plugins screen as a table row: 56px icon, name at
+ * text-lead, By · Version (with author link), state, action and ⋯.
+ * Composer package name stays in Details only. Requires / Required by sit
+ * under the row as short names.
  */
 export function PluginRow({
     plugin,
-    selected,
-    onSelect,
     onAsk,
     onDisable,
     onDetails,
@@ -244,8 +253,6 @@ export function PluginRow({
     onShowPlugin,
 }: {
     plugin: PluginRowPage;
-    selected: boolean;
-    onSelect: (plugin: PluginRowPage, checked: boolean) => void;
     onAsk: (plugin: PluginRowPage, opener: HTMLElement) => void;
     onDisable: (plugin: PluginRowPage) => void;
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
@@ -258,8 +265,6 @@ export function PluginRow({
     onShowPlugin?: (label: string) => void;
 }) {
     const tone = TONES[plugin.state];
-    const updateAvailable =
-        onChange !== undefined && plugin.origin === 'extensions';
 
     return (
         <li
@@ -267,53 +272,37 @@ export function PluginRow({
             className="border-line hover:bg-surface-2 border-b last:border-b-0"
         >
             <div className="flex flex-wrap items-start gap-x-4 gap-y-3 px-4 py-3 md:flex-nowrap">
-                <label className="grid size-12 shrink-0 place-items-center">
-                    <span className="sr-only">
-                        {__('Select :name', { name: plugin.label })}
-                    </span>
-                    <input
-                        type="checkbox"
-                        className="size-4"
-                        checked={selected}
-                        data-test="plugin-tick"
-                        onChange={(event) =>
-                            onSelect(plugin, event.target.checked)
-                        }
-                    />
-                </label>
                 <PluginIcon size={56} name={plugin.label} src={plugin.icon} />
                 <div className="grid min-w-0 flex-1 basis-0 gap-1">
-                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="text-ink text-[18px] leading-[1.35] font-semibold">
-                            {plugin.label}
-                        </span>
-                        {updateAvailable && (
-                            <StatusPill
-                                tone="info"
-                                flat
-                                data-test="plugin-update-pill"
-                            >
-                                {__('Update')}
-                            </StatusPill>
-                        )}
+                    <p className="text-lead text-ink font-semibold">
+                        {plugin.label}
                     </p>
                     <p className="text-small text-ink-3">
-                        {plugin.author !== '' ? (
-                            <>
-                                {__('By :author', { author: plugin.author })}
-                                {plugin.version !== '' && (
-                                    <>
-                                        {' · '}
-                                        {__('Version :version', {
-                                            version: plugin.version,
-                                        })}
-                                    </>
-                                )}
-                            </>
-                        ) : (
-                            plugin.version !== '' &&
-                            __('Version :version', { version: plugin.version })
+                        {plugin.author !== '' &&
+                            (plugin.authorUrl !== '' ? (
+                                <>
+                                    {__('By')}{' '}
+                                    <TextButton asChild>
+                                        <a
+                                            href={plugin.authorUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            data-test="plugin-author-link"
+                                        >
+                                            {plugin.author}
+                                        </a>
+                                    </TextButton>
+                                </>
+                            ) : (
+                                __('By :author', { author: plugin.author })
+                            ))}
+                        {plugin.author !== '' && plugin.version !== '' && (
+                            <>{' · '}</>
                         )}
+                        {plugin.version !== '' &&
+                            __('Version :version', {
+                                version: plugin.version,
+                            })}
                     </p>
                     {plugin.description !== '' && (
                         <p className="text-small text-ink-2">
@@ -365,8 +354,8 @@ export function PluginRow({
                                     {__('Requires')}
                                     {': '}
                                     {plugin.requires
-                                        .map((line) => line.words)
-                                        .join('; ')}
+                                        .map((line) => requireLabel(line.words))
+                                        .join(', ')}
                                 </p>
                             )}
                             {plugin.requiredBy.length > 0 && (
@@ -377,15 +366,14 @@ export function PluginRow({
                                         <span key={label}>
                                             {index > 0 && ', '}
                                             {onShowPlugin !== undefined ? (
-                                                <button
+                                                <TextButton
                                                     type="button"
-                                                    className="text-accent-ink font-medium underline"
                                                     onClick={() =>
                                                         onShowPlugin(label)
                                                     }
                                                 >
                                                     {label}
-                                                </button>
+                                                </TextButton>
                                             ) : (
                                                 label
                                             )}
@@ -396,12 +384,15 @@ export function PluginRow({
                         </div>
                     )}
                 </div>
-                <div className="shrink-0 max-md:w-full max-md:ps-16">
+                <div
+                    className="w-28 shrink-0 max-md:w-full max-md:ps-16"
+                    data-test="plugin-state-cell"
+                >
                     <StatusPill tone={tone} data-test="plugin-state">
                         {plugin.badge}
                     </StatusPill>
                 </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-2 max-md:w-full max-md:ps-16">
+                <div className="flex w-40 shrink-0 flex-wrap items-center justify-end gap-2 max-md:w-full max-md:justify-start max-md:ps-16">
                     <RowAction
                         plugin={plugin}
                         onAsk={onAsk}

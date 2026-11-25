@@ -109,7 +109,7 @@ export type DesignPage = {
 /** A theme's own settings page: the chosen theme's fields, with its regions as chips. */
 export type DesignSettingsPage = Omit<
     DesignPage,
-    'previewRegions' | 'hiddenCards' | 'extensions'
+    'previewRegions' | 'extensions'
 >;
 
 /** One of the active theme's own cards that a switch hides (ThemeSwitchNotes::hiddenByLeaving). */

@@ -180,6 +180,17 @@ export function ConsentDialog({
                         </section>
                     )}
 
+                    {plugin.shown.capabilities.includes('ai') && (
+                        <p
+                            data-test="consent-ai-controls"
+                            className="text-small text-ink-2"
+                        >
+                            {__(
+                                'It spends the site’s AI budget and the site’s hourly request limit. An administrator can switch it off, give it its own budget, or change its limits in Settings › AI.',
+                            )}
+                        </p>
+                    )}
+
                     {plugin.adds.length > 0 && (
                         <section
                             aria-labelledby="consent-adds"
@@ -189,7 +200,7 @@ export function ConsentDialog({
                                 id="consent-adds"
                                 className="text-small font-semibold"
                             >
-                                {__('What it adds')}
+                                {__('What it adds to the admin')}
                             </h3>
                             <ul
                                 data-test="consent-adds"

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Panel } from '@/components/ui/panel';
 import { StatusPill } from '@/components/ui/status-pill';
+import { TextButton } from '@/components/ui/text-button';
 import { __, __n } from '@/lib/i18n';
 import { index as navigationIndex } from '@/routes/navigation';
 import { index as regionsIndex } from '@/routes/regions';
@@ -91,19 +92,31 @@ function ThemeMenu({
     );
 }
 
-/** Version and product line on every card. */
-function VersionLine({ version }: { version: string }) {
+/** Version and maker line on every card, from the theme's manifest. */
+function VersionLine({ version, author }: { version: string; author: string }) {
+    if (version === '' && author === '') {
+        return null;
+    }
+
     if (version === '') {
         return (
             <p className="text-caption text-ink-3" data-test="theme-origin">
-                {__('Teme')}
+                {author}
+            </p>
+        );
+    }
+
+    if (author === '') {
+        return (
+            <p className="text-caption text-ink-3" data-test="theme-origin">
+                {__('Version :version', { version })}
             </p>
         );
     }
 
     return (
         <p className="text-caption text-ink-3" data-test="theme-origin">
-            {__('Version :version · Teme', { version })}
+            {__('Version :version · :maker', { version, maker: author })}
         </p>
     );
 }
@@ -161,22 +174,19 @@ function OtherCard({
     return (
         <li data-test={`theme-${theme.code}`}>
             <Panel className="flex h-full flex-col overflow-hidden p-0">
-                <div className="relative">
-                    <ThemePicture theme={theme} />
-                    <div className="absolute end-2 top-2">
+                <ThemePicture theme={theme} />
+                <div className="text-small grid min-w-0 flex-1 content-start gap-1 p-4">
+                    <p className="flex flex-wrap items-center gap-2">
+                        <span className="text-body min-w-0 flex-1 font-semibold">
+                            {theme.name}
+                        </span>
                         <StatusPill
                             tone={STATES[theme.state].tone}
                             data-test="theme-state"
+                            className="ms-auto"
                         >
                             {STATES[theme.state].label}
                         </StatusPill>
-                    </div>
-                </div>
-                <div className="text-small grid min-w-0 flex-1 content-start gap-1 p-4">
-                    <p className="flex flex-wrap items-center gap-2">
-                        <span className="text-body font-semibold">
-                            {theme.name}
-                        </span>
                         {onChange !== undefined &&
                             theme.origin === 'extensions' &&
                             theme.package !== null && (
@@ -187,7 +197,10 @@ function OtherCard({
                                 />
                             )}
                     </p>
-                    <VersionLine version={theme.version} />
+                    <VersionLine
+                        version={theme.version}
+                        author={theme.author}
+                    />
                     {theme.description !== '' && <p>{theme.description}</p>}
                     {(theme.author !== '' || theme.homepage !== '') && (
                         <p className="text-caption text-ink-3 flex flex-wrap gap-x-2">
@@ -195,15 +208,16 @@ function OtherCard({
                                 (theme.authorUrl !== '' ? (
                                     <span>
                                         {__('By')}{' '}
-                                        <a
-                                            href={theme.authorUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="underline"
-                                            data-test="theme-author-link"
-                                        >
-                                            {theme.author}
-                                        </a>
+                                        <TextButton asChild>
+                                            <a
+                                                href={theme.authorUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                data-test="theme-author-link"
+                                            >
+                                                {theme.author}
+                                            </a>
+                                        </TextButton>
                                     </span>
                                 ) : (
                                     <span>
@@ -213,15 +227,16 @@ function OtherCard({
                                     </span>
                                 ))}
                             {theme.homepage !== '' && (
-                                <a
-                                    href={theme.homepage}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="underline"
-                                    data-test="theme-homepage-link"
-                                >
-                                    {__('Homepage')}
-                                </a>
+                                <TextButton asChild>
+                                    <a
+                                        href={theme.homepage}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        data-test="theme-homepage-link"
+                                    >
+                                        {__('Homepage')}
+                                    </a>
+                                </TextButton>
                             )}
                         </p>
                     )}
@@ -242,16 +257,17 @@ function OtherCard({
                     {error?.code === theme.code && (
                         <div role="alert" className="grid gap-1">
                             <InputError message={error.message} />
-                            <Link
-                                href={showSettings({
-                                    group: 'general',
-                                })}
-                                className="underline"
-                            >
-                                {__(
-                                    'Change the brand colour in Settings › General',
-                                )}
-                            </Link>
+                            <TextButton asChild>
+                                <Link
+                                    href={showSettings({
+                                        group: 'general',
+                                    })}
+                                >
+                                    {__(
+                                        'Change the brand colour in Settings › General',
+                                    )}
+                                </Link>
+                            </TextButton>
                         </div>
                     )}
                 </div>
@@ -382,7 +398,10 @@ export function ThemeList({
                                                 />
                                             )}
                                     </div>
-                                    <VersionLine version={active.version} />
+                                    <VersionLine
+                                        version={active.version}
+                                        author={active.author}
+                                    />
                                     {(active.author !== '' ||
                                         active.homepage !== '') && (
                                         <p className="text-small text-ink-3 flex flex-wrap gap-x-2">
@@ -390,17 +409,18 @@ export function ThemeList({
                                                 (active.authorUrl !== '' ? (
                                                     <span>
                                                         {__('By')}{' '}
-                                                        <a
-                                                            href={
-                                                                active.authorUrl
-                                                            }
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="underline"
-                                                            data-test="theme-author-link"
-                                                        >
-                                                            {active.author}
-                                                        </a>
+                                                        <TextButton asChild>
+                                                            <a
+                                                                href={
+                                                                    active.authorUrl
+                                                                }
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                data-test="theme-author-link"
+                                                            >
+                                                                {active.author}
+                                                            </a>
+                                                        </TextButton>
                                                     </span>
                                                 ) : (
                                                     <span>
@@ -410,15 +430,16 @@ export function ThemeList({
                                                     </span>
                                                 ))}
                                             {active.homepage !== '' && (
-                                                <a
-                                                    href={active.homepage}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="underline"
-                                                    data-test="theme-homepage-link"
-                                                >
-                                                    {__('Homepage')}
-                                                </a>
+                                                <TextButton asChild>
+                                                    <a
+                                                        href={active.homepage}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        data-test="theme-homepage-link"
+                                                    >
+                                                        {__('Homepage')}
+                                                    </a>
+                                                </TextButton>
                                             )}
                                         </p>
                                     )}
@@ -460,29 +481,31 @@ export function ThemeList({
                                     </Button>
                                 </div>
                                 <p className="text-small text-ink-2">
-                                    <Link
-                                        href={regionsIndex().url}
-                                        className="underline"
-                                        data-test="theme-regions-link"
-                                    >
-                                        {__n(
-                                            ':count region|:count regions',
-                                            regionCount,
-                                        )}
-                                    </Link>
+                                    <TextButton asChild>
+                                        <Link
+                                            href={regionsIndex().url}
+                                            data-test="theme-regions-link"
+                                        >
+                                            {__n(
+                                                ':count region|:count regions',
+                                                regionCount,
+                                            )}
+                                        </Link>
+                                    </TextButton>
                                     {menuCount !== null && (
                                         <>
                                             {' · '}
-                                            <Link
-                                                href={navigationIndex()}
-                                                className="underline"
-                                                data-test="theme-menus-link"
-                                            >
-                                                {__n(
-                                                    ':count menu place|:count menu places',
-                                                    menuCount,
-                                                )}
-                                            </Link>
+                                            <TextButton asChild>
+                                                <Link
+                                                    href={navigationIndex()}
+                                                    data-test="theme-menus-link"
+                                                >
+                                                    {__n(
+                                                        ':count menu place|:count menu places',
+                                                        menuCount,
+                                                    )}
+                                                </Link>
+                                            </TextButton>
                                         </>
                                     )}
                                 </p>

@@ -1,13 +1,14 @@
 import { Head, Link, setLayoutProps, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
+import ThemesController from '@/actions/App/Http/Admin/ThemesController';
 import { FormPage } from '@/components/patterns/form-page';
 import { DesignDraftBar } from '@/components/themes/design-draft-bar';
+import { SwitchWarning } from '@/components/themes/switch-warning';
 import { ThemePreviewPanel } from '@/components/themes/theme-preview-panel';
 import { ThemeSettings } from '@/components/themes/theme-settings';
 import { useDesignDraft } from '@/components/themes/use-design-draft';
 import { Button } from '@/components/ui/button';
-import ThemesController from '@/actions/App/Http/Admin/ThemesController';
 import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import { index as themesIndex } from '@/routes/themes';
@@ -26,7 +27,12 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
     const design = useDesignDraft(page);
     const theme = page.themes.find((row) => row.code === page.theme);
     const name = theme?.name ?? page.theme;
+    const active = page.themes.find((row) => row.state === 'active');
     const siteCrumb = useSectionCrumb('site');
+    const [switching, setSwitching] = useState<{
+        code: string;
+        name: string;
+    } | null>(null);
 
     setLayoutProps({
         breadcrumbs: [
@@ -58,6 +64,7 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
     }
     nav.push({ id: 'theme-settings-regions', label: __('Regions') });
 
+    const navIds = nav.map((section) => section.id).join(' ');
     const [current, setCurrent] = useState(nav[0]?.id ?? '');
 
     useEffect(() => {
@@ -81,8 +88,8 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
             { rootMargin: '0px 0px -66% 0px' },
         );
 
-        for (const section of nav) {
-            const element = document.getElementById(section.id);
+        for (const id of navIds.split(' ').filter(Boolean)) {
+            const element = document.getElementById(id);
 
             if (element !== null) {
                 observer.observe(element);
@@ -90,12 +97,28 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
         }
 
         return () => observer.disconnect();
-    }, [nav.map((section) => section.id).join(' ')]);
+    }, [navIds]);
 
     const jump = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
         event.preventDefault();
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
         setCurrent(id);
+    };
+
+    const activate = (code: string) => {
+        const target = page.themes.find((row) => row.code === code);
+
+        if (
+            page.hiddenCards.length > 0 &&
+            target !== undefined &&
+            target.code !== active?.code
+        ) {
+            setSwitching({ code: target.code, name: target.name });
+
+            return;
+        }
+
+        void design.activateTheme(code);
     };
 
     return (
@@ -130,10 +153,7 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
             {page.preview !== null && (
                 <ThemePreviewPanel
                     preview={page.preview}
-                    activeName={
-                        page.themes.find((row) => row.state === 'active')
-                            ?.name ?? null
-                    }
+                    activeName={active?.name ?? null}
                     unbound={design.unbound}
                     onOpenSite={() => void design.preview('site')}
                     onStop={() =>
@@ -141,8 +161,7 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
                         design.stopPreview(page.preview.code)
                     }
                     onActivate={() =>
-                        page.preview !== null &&
-                        void design.activateTheme(page.preview.code)
+                        page.preview !== null && activate(page.preview.code)
                     }
                     busy={design.activating}
                     colourError={
@@ -202,6 +221,17 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
                     onDiscard={() => design.finish('discard')}
                 />
             )}
+
+            <SwitchWarning
+                hidden={page.hiddenCards}
+                leaving={active?.name ?? ''}
+                target={switching}
+                onCancel={() => setSwitching(null)}
+                onConfirm={(code) => {
+                    setSwitching(null);
+                    void design.activateTheme(code);
+                }}
+            />
         </FormPage>
     );
 }

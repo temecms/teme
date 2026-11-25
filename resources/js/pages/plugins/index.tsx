@@ -211,7 +211,6 @@ export default function Plugins({
         plugin: PluginRowPage;
         dependents: PluginRowPage[];
     } | null>(null);
-    const [selected, setSelected] = useState<Set<string>>(() => new Set());
     // What opened a dialog, so closing it puts focus back there.
     const [opener, setOpener] = useState<HTMLElement | null>(null);
 
@@ -368,18 +367,49 @@ export default function Plugins({
     };
 
     const showPlugin = (label: string) => {
-        const row = plugins.find((plugin) => plugin.label === label);
-        const code =
-            row?.code === '' || row === undefined ? row?.name : row.code;
-        const target =
-            code === undefined
-                ? null
-                : document.querySelector<HTMLElement>(
-                      `[data-test="plugin-${code}"]`,
-                  );
+        // Dependents may sit on another tab; All always holds them.
+        if (tab !== 'all') {
+            setTab('all');
+        }
 
-        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        target?.querySelector<HTMLElement>('button, a, input')?.focus();
+        requestAnimationFrame(() => {
+            const row = plugins.find((plugin) => plugin.label === label);
+            const code =
+                row?.code === '' || row === undefined ? row?.name : row.code;
+            const target =
+                code === undefined
+                    ? null
+                    : document.querySelector<HTMLElement>(
+                          `[data-test="plugin-${code}"]`,
+                      );
+
+            target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target?.querySelector<HTMLElement>('button, a')?.focus();
+        });
+    };
+
+    /** Whole translated phrases for one or several dependents. */
+    const blockedCopy = (
+        plugin: PluginRowPage,
+        dependents: PluginRowPage[],
+    ): { title: string; body: string } => {
+        const title = __('Cannot disable :name', { name: plugin.label });
+
+        if (dependents.length === 1) {
+            const name = dependents[0].label;
+
+            return {
+                title,
+                body: __(':name needs it. Disable :name first.', { name }),
+            };
+        }
+
+        return {
+            title,
+            body: __(':names need it. Disable them first.', {
+                names: dependents.map((row) => row.label).join(', '),
+            }),
+        };
     };
 
     const onAsk = (row: PluginRowPage, button: HTMLElement) => {
@@ -488,52 +518,26 @@ export default function Plugins({
                                         ) : (
                                             <>
                                                 <div className="bg-surface text-small text-ink-3 sticky top-0 z-10 flex h-11 items-center gap-4 px-4 font-medium">
-                                                    <span className="w-12 shrink-0" />
+                                                    <span
+                                                        className="size-14 shrink-0"
+                                                        aria-hidden="true"
+                                                    />
                                                     <span className="min-w-0 flex-1">
                                                         {__('Plugin')}
                                                     </span>
                                                     <span className="w-28 shrink-0 max-md:hidden">
                                                         {__('State')}
                                                     </span>
-                                                    <span className="w-40 shrink-0 max-md:hidden" />
+                                                    <span
+                                                        className="w-40 shrink-0 max-md:hidden"
+                                                        aria-hidden="true"
+                                                    />
                                                 </div>
                                                 <ul data-test="plugins-list">
                                                     {shown.map((plugin) => (
                                                         <PluginRow
                                                             key={plugin.name}
                                                             plugin={plugin}
-                                                            selected={selected.has(
-                                                                plugin.name,
-                                                            )}
-                                                            onSelect={(
-                                                                row,
-                                                                checked,
-                                                            ) => {
-                                                                setSelected(
-                                                                    (
-                                                                        before,
-                                                                    ) => {
-                                                                        const next =
-                                                                            new Set(
-                                                                                before,
-                                                                            );
-
-                                                                        if (
-                                                                            checked
-                                                                        ) {
-                                                                            next.add(
-                                                                                row.name,
-                                                                            );
-                                                                        } else {
-                                                                            next.delete(
-                                                                                row.name,
-                                                                            );
-                                                                        }
-
-                                                                        return next;
-                                                                    },
-                                                                );
-                                                            }}
                                                             onAsk={onAsk}
                                                             onDisable={disable}
                                                             onDetails={
@@ -609,19 +613,20 @@ export default function Plugins({
                         >
                             <DialogHeader>
                                 <DialogTitle>
-                                    {__('Cannot disable :name', {
-                                        name: blocked.plugin.label,
-                                    })}
+                                    {
+                                        blockedCopy(
+                                            blocked.plugin,
+                                            blocked.dependents,
+                                        ).title
+                                    }
                                 </DialogTitle>
                                 <DialogDescription>
-                                    {__(
-                                        ':dependents needs it. Disable :dependents first.',
-                                        {
-                                            dependents: blocked.dependents
-                                                .map((row) => row.label)
-                                                .join(', '),
-                                        },
-                                    )}
+                                    {
+                                        blockedCopy(
+                                            blocked.plugin,
+                                            blocked.dependents,
+                                        ).body
+                                    }
                                 </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
