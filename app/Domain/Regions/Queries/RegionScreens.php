@@ -19,6 +19,7 @@ namespace App\Domain\Regions\Queries;
 use App\Domain\Cards\CardRegistry;
 use App\Domain\Cards\Plugin\PluginCards;
 use App\Domain\Cards\Theme\ThemeCards;
+use App\Domain\Contents\Queries\EditorSession;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Regions\RegionWords;
 use App\Domain\Themes\ActiveTheme;
@@ -26,6 +27,7 @@ use App\Domain\Themes\Theme;
 use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Types\CoreTypes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final readonly class RegionScreens
 {
@@ -40,7 +42,7 @@ final readonly class RegionScreens
      * The index: the active theme's regions in its manifest's order, and the
      * regions kept from other themes.
      *
-     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, cards: list<string>, cardLabels: list<string>, max: int, limit: string, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null, themeCards: int}>}
+     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, group: string|null, every: bool, cards: list<string>, cardLabels: list<string>, max: int, limit: string, used: int, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null, themeCards: int}>}
      */
     public function index(): array
     {
@@ -53,7 +55,7 @@ final readonly class RegionScreens
      * every other theme's rows, or every row with no theme. Site › Themes
      * reads it for a theme being previewed, whose rows were kept (I-228).
      *
-     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, cards: list<string>, cardLabels: list<string>, max: int, limit: string, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null, themeCards: int}>}
+     * @return array{theme: array{code: string, name: string}|null, regions: list<array{key: string, label: string, group: string|null, every: bool, cards: list<string>, cardLabels: list<string>, max: int, limit: string, used: int, state: string, contentId: string|null, editedAt: string|null}>, others: list<array{slug: string, label: string, themeName: string|null, state: string, editedAt: string|null, themeCards: int}>}
      */
     public function forTheme(?Theme $theme): array
     {
@@ -66,6 +68,11 @@ final readonly class RegionScreens
             ->keyBy('slug');
 
         $regions = [];
+        // Each declared row's blocks, counted in one query.
+        $used = DB::table('content_revisions')
+            ->whereIn('id', $rows->only(array_map(fn (string $key): string => RegionDeclarations::slug($theme === null ? '' : $theme->code, $key), array_keys($declared)))->pluck('working_revision_id')->filter()->all())
+            ->selectRaw("id, coalesce(jsonb_array_length(document->'content'), 0) as blocks")
+            ->pluck('blocks', 'id');
 
         foreach ($declared as $key => $region) {
             $row = $rows->pull(RegionDeclarations::slug($theme->code, $key));
@@ -74,10 +81,14 @@ final readonly class RegionScreens
             $regions[] = [
                 'key' => $key,
                 'label' => $region['label'],
+                'group' => $region['group'],
+                // Whether it takes every card rather than the ones it names.
+                'every' => $region['cards'] === RegionDeclarations::EVERY,
                 'cards' => $names,
                 'cardLabels' => $this->labels($names),
                 'max' => $region['max'],
                 'limit' => RegionWords::limit($region['max']),
+                'used' => $row === null ? 0 : (int) ($used[$row->working_revision_id] ?? 0),
                 'state' => self::state($row),
                 'contentId' => $row === null ? null : (string) $row->id,
                 'editedAt' => $row === null ? null : (string) $row->updated_at,
@@ -107,6 +118,76 @@ final readonly class RegionScreens
             'regions' => $regions,
             'others' => $others,
         ];
+    }
+
+    /**
+     * Content › Regions as one screen: the index, its regions in their
+     * groups, each one saying whether it has changes this person hasn't
+     * published, and the chosen region, by its key or else the first, with
+     * what the panel needs to edit it: what it takes and its document as
+     * this person's editor would open it.
+     *
+     * @return array{theme: array{code: string, name: string}|null, regions: list<array<string, mixed>>, others: list<array<string, mixed>>, groups: list<array{group: string, regions: list<array<string, mixed>>}>, chosen: array<string, mixed>|null}
+     *
+     * @since next
+     */
+    public function workspace(?string $key, string $userId): array
+    {
+        $index = $this->index();
+        $ids = array_values(array_filter(array_column($index['regions'], 'contentId')));
+        $autosaved = DB::table('content_autosaves')->where('user_id', (int) $userId)->whereIn('content_id', $ids)->pluck('content_id')->map(strval(...))->all();
+        $groups = [];
+
+        foreach ($index['regions'] as $at => $region) {
+            // Unpublished: never published with something in it, a newer working revision, or this person's autosave.
+            $region['dirty'] = in_array($region['contentId'], $autosaved, true) || $region['state'] === 'changed' || ($region['state'] === 'draft' && $region['used'] > 0);
+            $index['regions'][$at] = $region;
+            $groups[$region['group'] ?? ''][] = $region;
+        }
+
+        $chosen = collect($index['regions'])->firstWhere('key', $key) ?? ($index['regions'][0] ?? null);
+
+        return [
+            ...$index,
+            // The groups in the order the theme first names them; regions in none under "Regions".
+            'groups' => array_map(
+                fn (string|int $group, array $regions): array => ['group' => $group === '' ? __('Regions') : (string) $group, 'regions' => $regions],
+                array_keys($groups),
+                $groups,
+            ),
+            'chosen' => $chosen === null ? null : $this->chosen($chosen, $userId),
+        ];
+    }
+
+    /**
+     * One region as the workspace's panel edits it.
+     *
+     * @param  array<string, mixed>  $region
+     *
+     * @return array<string, mixed>
+     */
+    private function chosen(array $region, string $userId): array
+    {
+        $mode = is_string($region['contentId']) ? $this->editorMode($region['contentId']) : null;
+        $session = is_string($region['contentId']) ? EditorSession::for($region['contentId'], $userId) : null;
+
+        return [
+            ...$region,
+            'takes' => $mode['takes'] ?? null,
+            'size' => $mode['size'] ?? null,
+            'session' => $session,
+        ];
+    }
+
+    /**
+     * Returns the key a region is chosen by on Content › Regions (its slug
+     * after the theme's code), or null for an item that isn't a region.
+     */
+    public function keyOf(string $contentId): ?string
+    {
+        $slug = DB::table('contents')->where('id', $contentId)->where('type', CoreTypes::REGION)->value('slug');
+
+        return is_string($slug) ? Str::after($slug, '--') : null;
     }
 
     /**

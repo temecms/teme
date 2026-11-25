@@ -323,6 +323,10 @@ final class ManifestValidator
                 }
             }
 
+            if (array_key_exists('group', $region) && (! is_string($region['group']) || trim($region['group']) === '' || mb_strlen($region['group']) > RegionDeclarations::GROUP_LENGTH)) {
+                $errors[] = "The region \"{$slug}\" gives its group as a name of 1 to ".RegionDeclarations::GROUP_LENGTH.' characters, such as "Ad placements".';
+            }
+
             if (array_key_exists('size', $region) && (! is_string($region['size']) || preg_match(RegionDeclarations::SIZE, $region['size']) !== 1)) {
                 $errors[] = "The region \"{$slug}\" gives its size as width x height in pixels, such as 300x600.";
             }

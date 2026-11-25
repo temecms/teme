@@ -27,7 +27,7 @@ The default theme's source is `themes/default` in this repository, installed thr
 | `requires.teme` | a constraint Teme's own version (`config('teme.version')`) satisfies, through `composer/semver` | validator |
 | `templates` | content type → slug → label; every slug but `default` has `views/templates/single-{type}-{slug}.blade.php` | validator |
 | `navigations` | slot → label, such as `"primary": "Header"`: the places the theme draws a menu (**Navigation**, below); a slot is `^[a-z0-9-]+$` | validator |
-| `regions` | slug → `label`, `cards` (registered card names) and `max` (1–50; 50 when absent): the places the theme puts the site's own content (**Regions**, below) | validator |
+| `regions` | slug → `label`, `group` (optional, up to 40 characters), `cards` (registered card names) and `max` (1–50; 50 when absent): the places the theme puts the site's own content (**Regions**, below) | validator |
 | `settings` | a list of the theme's own settings, each `{key, type, label, description?, fieldset, options?, default, visible_when?}` (**Settings**, below) | validator |
 | `assets` | `manifest`, a relative path inside the theme; `entries`, the Vite entries its pages load | validator |
 | `composers` | class names; each a `ViewComposer` asking only for `Teme\Contracts` interfaces | validator; registry |
@@ -310,6 +310,8 @@ A theme declares **regions** in its manifest's `regions`: places such as "after 
 ```
 
 It draws nothing for a region that's empty or unpublished, and, outside production, a note for a name the theme's manifest doesn't declare. `Regions` reads each published region once per page, and is emptied by `start()` beside `SlotMenus` in both public controllers (B-227). The document shell's `cardStyles()` is a method its view calls when it draws the head, after the template's markup has rendered, so a card first drawn in a region still gets its stylesheet.
+
+**Content › Regions** is one screen (`RegionScreens::workspace()`): the active theme's regions in their groups (a region's optional `group`, else "Regions"), each with how many blocks it holds of its `max` and whether it has changes not yet published (a newer working revision, a draft with something in it, or this person's autosave), and the chosen region's panel. The panel lists the region's top-level blocks as rows, read from the document the editor would open (`EditorSession`), and changes that document in the browser: Add card, Edit (the card's own form in a one-block editor, in a dialog), move up and down or drag, and remove; the changes are autosaved as the editor's are. Save draft makes a revision (`CheckpointDraft`), Publish saves then publishes it (`PublishRevision`), and Discard changes (`DiscardRegionChanges`) drops this person's autosave and moves the working revision back to the published one, or, for a region never published, to the empty one `CreateRegion` made; it writes no revision, so the region's state reads as before. The full editor stays, for history and comparing, linked from the panel.
 
 **Across theme switches**, a region's row stays: Content › Regions shows the active theme's regions, and the rows kept from other themes underneath, read-only, until their theme returns.
 

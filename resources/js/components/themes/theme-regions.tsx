@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { __n } from '@/lib/i18n';
-import { edit as editContent } from '@/routes/content';
 import { index as regionsIndex } from '@/routes/regions';
 import type { RegionState, RegionsIndexPage } from '@/types';
 
@@ -117,11 +116,11 @@ export function ThemeRegions({
                                         >
                                             <Link
                                                 href={
-                                                    region.contentId === null
-                                                        ? regionsIndex().url
-                                                        : editContent(
-                                                              region.contentId,
-                                                          ).url
+                                                    regionsIndex({
+                                                        query: {
+                                                            region: region.key,
+                                                        },
+                                                    }).url
                                                 }
                                             >
                                                 Edit in Regions

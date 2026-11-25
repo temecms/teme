@@ -12,6 +12,7 @@ sources:
   - resources/js/pages/terms
   - resources/js/pages/navigation
   - resources/js/pages/regions
+  - resources/js/components/regions
   - resources/js/components/themes/theme-regions.tsx
   - resources/js/components/navigation
   - resources/js/components/patterns/save-bar.tsx
@@ -75,8 +76,13 @@ A region is a spot the active theme sets aside for your own content, such as a b
 
 Regions come from whichever theme is active, not only the default theme. Switch themes and the list changes to match.
 
-1. Choose **Edit** under a region's name (or **Create** if it has no content yet).
-2. Write in the editor as you would for any item, using only the cards that region takes.
-3. Publish it as you would an item.
+Every region is on one screen, listed under the groups the theme gives them, each with how many blocks it holds of the most it takes. A dot beside a region means it has changes not published yet.
 
-The regions of themes you aren't using are kept, and listed under **From other themes**. They can be read but not changed. Each shows again if you switch back to its theme.
+1. Choose the region in the list. If it has no content yet, choose **Fill this region**.
+2. Choose **Add card** and pick a card; the list shows only the cards that region takes, grouped by where they come from: Teme, the theme, or a plugin. The card opens on its form: fill it in and choose **Done**.
+3. Choose **Edit** on a row to change that card in place, the arrows to move it up or down (or drag the row), and the bin to remove it.
+4. Your changes are saved as you go. **Save draft** keeps a version in the region's history; **Publish region** puts it on the site. **Discard changes** goes back to what readers see now, or to empty for a region never published.
+
+For the region's history, or to compare versions, choose **Open in the full editor**.
+
+The regions of themes you aren't using are kept, and listed under **Other themes**, in the section **From other themes**. They can be read but not changed. Each shows again if you switch back to its theme.

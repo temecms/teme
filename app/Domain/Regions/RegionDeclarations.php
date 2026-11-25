@@ -4,7 +4,8 @@
  * The regions a theme declares in its manifest (study B §3e): each one's
  * label, the cards it allows, every card when the manifest doesn't narrow
  * it, the most top-level blocks it holds, 50 when the manifest doesn't say,
- * the most ManifestValidator allows, and the size it tells its cards.
+ * the most ManifestValidator allows, the size it tells its cards, and the
+ * group Content › Regions lists it under.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -30,6 +31,13 @@ final readonly class RegionDeclarations
     /** A region's `cards` when it takes every card. */
     public const string EVERY = '*';
 
+    /**
+     * The longest name of the group a region is listed under.
+     *
+     * @since next
+     */
+    public const int GROUP_LENGTH = 40;
+
     /** A region's size: width x height in pixels (docs/guides/developers/themes/regions.md). */
     public const string SIZE = '/^[1-9]\d{1,4}x[1-9]\d{1,4}$/';
 
@@ -41,7 +49,7 @@ final readonly class RegionDeclarations
      * names, core cards by name, plugins' as "{code}:{id}" and the theme's
      * own, which the manifest names by id, as "{theme}:{id}".
      *
-     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null}>
+     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null, group: string|null}>
      */
     public function for(Theme $theme): array
     {
@@ -51,6 +59,7 @@ final readonly class RegionDeclarations
         foreach ($theme->manifest?->regions() ?? [] as $slug => $region) {
             $cards = $region['cards'] ?? self::EVERY;
             $size = $region['size'] ?? null;
+            $group = is_string($region['group'] ?? null) ? trim($region['group']) : '';
 
             $declared[(string) $slug] = [
                 'label' => is_string($region['label'] ?? null) ? $region['label'] : (string) $slug,
@@ -59,6 +68,7 @@ final readonly class RegionDeclarations
                     : self::EVERY,
                 'max' => is_int($region['max'] ?? null) ? $region['max'] : self::MAX,
                 'size' => is_string($size) && preg_match(self::SIZE, $size) === 1 ? $size : null,
+                'group' => $group === '' ? null : $group,
             ];
         }
 
@@ -111,7 +121,7 @@ final readonly class RegionDeclarations
     /**
      * The active theme's regions, or none when no theme is usable.
      *
-     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null}>
+     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null, group: string|null}>
      */
     public function forActive(): array
     {

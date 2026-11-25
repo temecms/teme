@@ -528,13 +528,14 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::delete('{id}', [NavigationController::class, 'destroy'])->name('destroy');
             });
 
-        // Content › Regions (I-395). A region is edited in the content editor.
+        // Content › Regions (I-395): the regions on one screen; a region's full editor is the content editor.
         Route::middleware('can:regions.manage')
             ->prefix('regions')
             ->name('regions.')
             ->group(function (): void {
                 Route::get('/', [RegionsController::class, 'index'])->name('index');
                 Route::post('/', [RegionsController::class, 'store'])->name('store');
+                Route::post('{content}/discard', [RegionsController::class, 'discard'])->whereUlid('content')->name('discard');
             });
 
         // Asking AI for a suggestion, collecting it, putting it aside and using it (I-317).
