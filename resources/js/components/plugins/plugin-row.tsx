@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
 import type { Change } from '@/components/extensions/installer';
-import { originLabel } from '@/components/extensions/words';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -18,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { show as showSettings } from '@/routes/settings';
 import type { PluginRowPage, PluginState } from '@/types';
 
-/** A state's tone; the word is the server's, so color is never alone. */
+/** A state's tone; the word is the server's, so colour is never alone. */
 const TONES: Record<PluginState, 'ok' | 'neutral' | 'warn' | 'danger'> = {
     enabled: 'ok',
     not_enabled: 'neutral',
@@ -107,7 +106,7 @@ function RowAction({
 
 /**
  * The ⋯ menu: Details and access, Settings, Remove its data… and Forget…
- * when allowed, and Update… and Remove… for a plugin installed here (I-211).
+ * when allowed, and Update… and Remove… for a plugin installed here.
  */
 function RowMenu({
     plugin,
@@ -227,12 +226,14 @@ function RowMenu({
 }
 
 /**
- * One plugin on the Plugins screen: its icon, its name, version and what it
- * does, who made it and its package, its state as a status pill with the
- * reason, then its one action and its ⋯ menu. Under 768px it stacks.
+ * One plugin on the Plugins screen as a table row: tick, 56px icon, name at
+ * 18px, By · Version, Update pill, state, action and ⋯. Composer package
+ * name stays in Details only. Requires / Required by sit under the row.
  */
 export function PluginRow({
     plugin,
+    selected,
+    onSelect,
     onAsk,
     onDisable,
     onDetails,
@@ -240,8 +241,11 @@ export function PluginRow({
     onRemoveData,
     onChange,
     onForget,
+    onShowPlugin,
 }: {
     plugin: PluginRowPage;
+    selected: boolean;
+    onSelect: (plugin: PluginRowPage, checked: boolean) => void;
     onAsk: (plugin: PluginRowPage, opener: HTMLElement) => void;
     onDisable: (plugin: PluginRowPage) => void;
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
@@ -250,110 +254,168 @@ export function PluginRow({
     /** Asks for an update or a removal; only for someone who may install. */
     onChange?: (change: Change) => void;
     onForget: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
+    /** Scrolls to a dependent plugin named under the row. */
+    onShowPlugin?: (label: string) => void;
 }) {
     const tone = TONES[plugin.state];
+    const updateAvailable =
+        onChange !== undefined && plugin.origin === 'extensions';
 
     return (
         <li
             data-test={`plugin-${plugin.code === '' ? plugin.name : plugin.code}`}
-            className="border-line flex flex-wrap items-start gap-x-4 gap-y-3 rounded-md border-b px-3 py-3 last:border-b-0 md:flex-nowrap"
+            className="border-line hover:bg-surface-2 border-b last:border-b-0"
         >
-            {/* Later (I-3405): the picture, once the manifest can declare one. */}
-            <PluginIcon size={32} name={plugin.label} src={plugin.icon} />
-            <div className="grid min-w-0 flex-1 basis-0 gap-1">
-                <p className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-body text-ink font-semibold">
-                        {plugin.label}
+            <div className="flex flex-wrap items-start gap-x-4 gap-y-3 px-4 py-3 md:flex-nowrap">
+                <label className="grid size-12 shrink-0 place-items-center">
+                    <span className="sr-only">
+                        {__('Select :name', { name: plugin.label })}
                     </span>
-                    {plugin.version !== '' && (
-                        <span className="text-small text-ink-3 tabular-nums">
-                            {plugin.version}
+                    <input
+                        type="checkbox"
+                        className="size-4"
+                        checked={selected}
+                        data-test="plugin-tick"
+                        onChange={(event) =>
+                            onSelect(plugin, event.target.checked)
+                        }
+                    />
+                </label>
+                <PluginIcon size={56} name={plugin.label} src={plugin.icon} />
+                <div className="grid min-w-0 flex-1 basis-0 gap-1">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="text-ink text-[18px] leading-[1.35] font-semibold">
+                            {plugin.label}
                         </span>
-                    )}
-                </p>
-                <p
-                    className="text-caption text-ink-2"
-                    data-test="plugin-origin"
-                >
-                    {originLabel(plugin.origin, plugin.source)}
-                </p>
-                {plugin.description !== '' && (
-                    <p className="text-small text-ink-2">
-                        {plugin.description}
+                        {updateAvailable && (
+                            <StatusPill
+                                tone="info"
+                                flat
+                                data-test="plugin-update-pill"
+                            >
+                                {__('Update')}
+                            </StatusPill>
+                        )}
                     </p>
-                )}
-                <p className="text-caption text-ink-3 flex flex-wrap gap-x-2">
-                    {plugin.author !== '' &&
-                        (plugin.authorUrl !== '' ? (
-                            <span>
-                                {__('By')}{' '}
-                                <a
-                                    href={plugin.authorUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="underline"
-                                    data-test="plugin-author-link"
-                                >
-                                    {plugin.author}
-                                </a>
-                            </span>
-                        ) : (
-                            <span>
+                    <p className="text-small text-ink-3">
+                        {plugin.author !== '' ? (
+                            <>
                                 {__('By :author', { author: plugin.author })}
-                            </span>
-                        ))}
-                    <span className="font-mono break-all">{plugin.name}</span>
-                </p>
-                {plugin.ai !== null && (
-                    <p data-test="plugin-ai" className="text-small text-ink-2">
-                        {plugin.ai.budgetMicrounits === null
-                            ? __('AI this month: :cost', {
-                                  cost: formatCost(plugin.ai.costMicrounits),
-                              })
-                            : __('AI this month: :cost of :budget', {
-                                  cost: formatCost(plugin.ai.costMicrounits),
-                                  budget: formatCost(
-                                      plugin.ai.budgetMicrounits,
-                                  ),
-                              })}
+                                {plugin.version !== '' && (
+                                    <>
+                                        {' · '}
+                                        {__('Version :version', {
+                                            version: plugin.version,
+                                        })}
+                                    </>
+                                )}
+                            </>
+                        ) : (
+                            plugin.version !== '' &&
+                            __('Version :version', { version: plugin.version })
+                        )}
                     </p>
-                )}
-                {plugin.reason !== '' && (
-                    <p
-                        data-test="plugin-reason"
-                        className={cn('text-small', REASON_INK[tone])}
-                    >
-                        {plugin.reason}
-                    </p>
-                )}
-                {plugin.schedules !== null && (
-                    <p
-                        data-test="plugin-schedules"
-                        className="text-small text-warn-ink"
-                    >
-                        {plugin.schedules}
-                    </p>
-                )}
-            </div>
-            <div className="shrink-0 max-md:w-full max-md:ps-12">
-                <StatusPill tone={tone} data-test="plugin-state">
-                    {plugin.badge}
-                </StatusPill>
-            </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-2 max-md:w-full max-md:ps-12">
-                <RowAction
-                    plugin={plugin}
-                    onAsk={onAsk}
-                    onDisable={onDisable}
-                    onMigrate={onMigrate}
-                />
-                <RowMenu
-                    plugin={plugin}
-                    onDetails={onDetails}
-                    onRemoveData={onRemoveData}
-                    onChange={onChange}
-                    onForget={onForget}
-                />
+                    {plugin.description !== '' && (
+                        <p className="text-small text-ink-2">
+                            {plugin.description}
+                        </p>
+                    )}
+                    {plugin.ai !== null && (
+                        <p
+                            data-test="plugin-ai"
+                            className="text-small text-ink-2"
+                        >
+                            {plugin.ai.budgetMicrounits === null
+                                ? __('AI this month: :cost', {
+                                      cost: formatCost(
+                                          plugin.ai.costMicrounits,
+                                      ),
+                                  })
+                                : __('AI this month: :cost of :budget', {
+                                      cost: formatCost(
+                                          plugin.ai.costMicrounits,
+                                      ),
+                                      budget: formatCost(
+                                          plugin.ai.budgetMicrounits,
+                                      ),
+                                  })}
+                        </p>
+                    )}
+                    {plugin.reason !== '' && (
+                        <p
+                            data-test="plugin-reason"
+                            className={cn('text-small', REASON_INK[tone])}
+                        >
+                            {plugin.reason}
+                        </p>
+                    )}
+                    {plugin.schedules !== null && (
+                        <p
+                            data-test="plugin-schedules"
+                            className="text-small text-warn-ink"
+                        >
+                            {plugin.schedules}
+                        </p>
+                    )}
+                    {(plugin.requires.length > 0 ||
+                        plugin.requiredBy.length > 0) && (
+                        <div className="text-small text-ink-2 grid gap-1 pt-1">
+                            {plugin.requires.length > 0 && (
+                                <p data-test="plugin-requires">
+                                    {__('Requires')}
+                                    {': '}
+                                    {plugin.requires
+                                        .map((line) => line.words)
+                                        .join('; ')}
+                                </p>
+                            )}
+                            {plugin.requiredBy.length > 0 && (
+                                <p data-test="plugin-required-by">
+                                    {__('Required by')}
+                                    {': '}
+                                    {plugin.requiredBy.map((label, index) => (
+                                        <span key={label}>
+                                            {index > 0 && ', '}
+                                            {onShowPlugin !== undefined ? (
+                                                <button
+                                                    type="button"
+                                                    className="text-accent-ink font-medium underline"
+                                                    onClick={() =>
+                                                        onShowPlugin(label)
+                                                    }
+                                                >
+                                                    {label}
+                                                </button>
+                                            ) : (
+                                                label
+                                            )}
+                                        </span>
+                                    ))}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+                <div className="shrink-0 max-md:w-full max-md:ps-16">
+                    <StatusPill tone={tone} data-test="plugin-state">
+                        {plugin.badge}
+                    </StatusPill>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-2 max-md:w-full max-md:ps-16">
+                    <RowAction
+                        plugin={plugin}
+                        onAsk={onAsk}
+                        onDisable={onDisable}
+                        onMigrate={onMigrate}
+                    />
+                    <RowMenu
+                        plugin={plugin}
+                        onDetails={onDetails}
+                        onRemoveData={onRemoveData}
+                        onChange={onChange}
+                        onForget={onForget}
+                    />
+                </div>
             </div>
         </li>
     );

@@ -274,7 +274,7 @@ it('shows the empty state', function (): void {
     expect(cmAxeViolations($page))->toBe([]);
 });
 
-it('shows each plugin’s icon, its initials at 32 pixels, beside its name', function (): void {
+it('shows each plugin’s icon, its initials at 56 pixels, beside its name', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/plugins');
     ($this->seen)($page, 'Installed, not enabled yet.');
 
@@ -297,7 +297,7 @@ it('shows each plugin’s icon, its initials at 32 pixels, beside its name', fun
     expect($icon)->toBe([
         'count' => 1,
         'initials' => 'H',
-        'size' => [32, 32],
+        'size' => [56, 56],
         'hidden' => 'true',
         'rows' => 2,
         'everyRow' => true,
