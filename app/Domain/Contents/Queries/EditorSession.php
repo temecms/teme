@@ -30,9 +30,12 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Media\Queries\MediaCredits;
+use App\Domain\SiteCode\RegionCode;
+use App\Domain\SiteCode\SiteCode;
 use App\Domain\Taxonomy\Queries\TermPicker;
 use App\Domain\Themes\TemplateChoice;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\CoreTypes;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
@@ -124,6 +127,12 @@ final readonly class EditorSession
 
         $title = $autosave !== null ? $autosave->title : (string) ($revision->title ?? $content->title);
         $document = $autosave !== null ? $autosave->document : (array) ($revision->document ?? ['type' => 'doc', 'content' => []]);
+
+        // A region's Custom HTML code reaches only those who may manage site code (docs/architecture/security.md).
+        if ($content->type === CoreTypes::REGION && ! $viewer->can(SiteCode::ABILITY)) {
+            $document = RegionCode::redact($document);
+        }
+
         $fields = $autosave !== null ? $autosave->fields : (array) ($revision->fields ?? []);
         $termIds = $autosave !== null ? $autosave->terms : (array) ($revision->terms ?? []);
 

@@ -87,7 +87,6 @@
     "regions": {
         "after-content": {
             "label": "After the article",
-            "cards": ["callout", "button", "site-code", "featured-posts"],
             "max": 5
         }
     },

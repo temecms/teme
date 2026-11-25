@@ -220,15 +220,10 @@ it('gives Site code a tab for whoever holds site-code.manage, even alone, openin
         ->assertInertia(fn (Assert $page) => $page->component('settings/site-code'));
 });
 
-it('offers a fourth place, for code a card puts in a theme region, with its words (I-3127)', function (): void {
-    scAdd($this->admin, 'Sidebar ad', 'placed', '<div>Ad</div>');
-
+it('offers the three places on every page, and no place for a card, which holds its own code', function (): void {
     $this->actingAs($this->admin)->get('/admin/settings/site-code')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('places', 4)
-            ->where('places.3.key', 'placed')
-            ->where('places.3.label', 'Placed with a card')
-            ->where('places.3.where', 'Nowhere by itself. Editors place it in a theme region with the Custom HTML card.')
-            ->where('places.3.entries.0.name', 'Sidebar ad'));
+            ->has('places', 3)
+            ->where('places.2.key', 'body-end'));
 });

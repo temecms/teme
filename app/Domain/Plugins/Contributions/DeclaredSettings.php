@@ -31,12 +31,12 @@ final class DeclaredSettings
      * the pages that asked it when its settings are saved, one with root files the stored
      * "not found" pages at root-file addresses, and one that adds links to
      * the feeds every stored feed, and one that adds head tags, structured
-     * data or sitemaps every page that asked it. Throws InvalidArgumentException for a
+     * data or sitemaps, or offers cards, every page that asked it or drew one. Throws InvalidArgumentException for a
      * setting Teme can't build.
      *
      * @param  list<mixed>  $settings  as the manifest declares them
      */
-    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false, bool $insertsOnPages = false, bool $rootFiles = false, bool $feedLinks = false, bool $searchEngines = false): SettingsGroup
+    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false, bool $insertsOnPages = false, bool $rootFiles = false, bool $feedLinks = false, bool $searchEngines = false, bool $cards = false): SettingsGroup
     {
         $key = "plugin.{$code}";
         $built = [];
@@ -63,7 +63,8 @@ final class DeclaredSettings
                 // Its settings may name the links it adds to the feeds (docs/plans/plugin-sockets-1.md, A3).
                 ...($feedLinks ? [PageTags::FEED_LINKS] : []),
                 // Its settings may change its head tags, structured data and sitemaps (docs/guides/developers/plugins/seo.md).
-                ...($searchEngines ? ['plugin:'.$code] : []),
+                // Its settings may change what its cards draw (docs/guides/developers/plugins/cards.md).
+                ...($searchEngines || $cards ? ['plugin:'.$code] : []),
             ],
         );
     }
@@ -103,6 +104,33 @@ final class DeclaredSettings
         }
 
         return $form;
+    }
+
+    /**
+     * One field of a plugin's card, declared as a setting is (docs/guides/developers/plugins/cards.md):
+     * a choice is a text of at most 191 characters, whose options the
+     * plugin gives while the card is filled in; secret, code and repeater
+     * are refused. Throws InvalidArgumentException for a field Teme can't build.
+     *
+     * @param  array<array-key, mixed>  $declared
+     *
+     * @since next
+     */
+    public static function cardField(array $declared, string $version): Setting
+    {
+        $type = self::text($declared, 'type');
+
+        if (in_array($type, ['secret', 'code', 'repeater'], true)) {
+            throw new InvalidArgumentException("A card's field can't be a {$type}.");
+        }
+
+        if ($type !== 'choice') {
+            return self::setting('card', $declared, $version);
+        }
+
+        $setting = self::setting('card', [...$declared, 'type' => 'text'], $version);
+
+        return $setting->maxLength(min($setting->maxLength ?? 191, 191));
     }
 
     /** @param  array<array-key, mixed>  $declared */

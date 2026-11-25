@@ -19,7 +19,7 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $feedLink = $contributes['feedLinks']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'aiTasks', 'notices', 'hooks', 'permissions', 'settingsSections', 'area', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'types'])
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'aiTasks', 'notices', 'hooks', 'permissions', 'settingsSections', 'area', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'types', 'cards'])
         ->and($contributes['types']['pattern'])->toBe($between(PluginTypesFile::PATH))
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
         ->and($link['surface']['enum'])->toBe(ContributionsValidator::SURFACES)
@@ -44,5 +44,10 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
         ->and($contributes['aiTasks']['maxItems'])->toBe(PluginAiTasks::MOST)
         ->and($contributes['aiTasks']['items']['properties']['needs']['items']['enum'])->toBe(PluginAiTasks::NEEDS)
         ->and($contributes['aiTasks']['items']['properties']['sends']['enum'])->toBe(PluginAiTasks::SENDS)
-        ->and('/'.$contributes['aiTasks']['items']['properties']['id']['pattern'].'/')->toBe(AiKeys::PATTERN);
+        ->and('/'.$contributes['aiTasks']['items']['properties']['id']['pattern'].'/')->toBe(AiKeys::PATTERN)
+        ->and($contributes['cards']['maxItems'])->toBe(ContributionsValidator::MOST_CARDS)
+        ->and($contributes['cards']['items']['properties']['id']['pattern'])->toBe($between(ContributionsValidator::CARD_ID))
+        ->and($contributes['cards']['items']['properties']['fields']['maxItems'])->toBe(ContributionsValidator::MOST_CARD_FIELDS)
+        ->and($contributes['cards']['items']['properties']['fields']['items']['properties']['type']['enum'])->toBe(ContributionsValidator::CARD_FIELD_TYPES)
+        ->and($contributes['cards']['items']['properties']['fields']['items']['properties']['key']['pattern'])->toBe($between(ContributionsValidator::KEY));
 });

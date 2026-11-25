@@ -21,8 +21,8 @@ use Illuminate\Support\Facades\Cache;
 
 final class SiteCodeEntries
 {
-    /** The second shape, with each entry's policy: a value cached in the first is never read. */
-    public const string CACHE_KEY = 'site-code:on:2';
+    /** The third: with each entry's policy, and no longer any placed with a card, so a value cached before is never read. */
+    public const string CACHE_KEY = 'site-code:on:3';
 
     /**
      * The entries that are on, keyed by placement; a placement with none is

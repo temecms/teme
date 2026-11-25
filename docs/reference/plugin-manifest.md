@@ -87,6 +87,17 @@
 | `contributes.settings[].itemLabel` | string | no | What one of a repeater's items is called, as its Add button names it. |  |
 | `contributes.settings[].itemTitle` | string | no | The key of the field whose value titles a collapsed item. |  |
 | `contributes.settings[].scripts` | boolean | no | A code setting whose inline scripts wait for an administrator's approval. |  |
+| `contributes.cards` | array | no | Cards the plugin offers for a theme's regions, each drawn by the class its HasCards::cards() gives under the same id. Needs pages.insert. |  |
+| `contributes.cards[].id` | string | yes | The card's id, unique in the plugin; the card's key is code:id. | ^[a-z][a-z0-9-]{1,40}$ |
+| `contributes.cards[].label` | string | yes | The card's name in Add card. |  |
+| `contributes.cards[].description` | string | yes | One sentence on what the card shows. |  |
+| `contributes.cards[].icon` | string | no | A Lucide icon's name, as core's cards use; a square when it isn't one the editor knows. | ^[a-z][a-z0-9-]{1,40}$ |
+| `contributes.cards[].keywords` | array | no | Words Add card also finds the card by. |  |
+| `contributes.cards[].fields` | array | no | The card's fields, declared as settings are, without secret, code and repeater, and with choice: options the plugin's OffersCardChoices gives while the card is filled in. |  |
+| `contributes.cards[].fields[].key` | string | yes | The field's key. | ^[a-z][a-z0-9_]{1,40}$ |
+| `contributes.cards[].fields[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "color", "person", "term", "type", "choice" |
+| `contributes.cards[].fields[].label` | string | yes | The name people see. |  |
+| `contributes.cards[].fields[].description` | string | no | What the field is for. |  |
 | `contributes.admin` | array | no | Entries the plugin adds to the admin. |  |
 | `contributes.admin[].surface` | enum | yes |  | "tools" |
 | `contributes.admin[].id` | string | yes | The entry's id. | ^[a-z][a-z0-9-]{1,39}$ |

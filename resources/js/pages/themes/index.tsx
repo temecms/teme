@@ -1,8 +1,10 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useInstaller } from '@/components/extensions/installer';
 import { ListPage } from '@/components/patterns/list-page';
 import { DesignDraftBar } from '@/components/themes/design-draft-bar';
+import { SwitchWarning } from '@/components/themes/switch-warning';
 import { ThemeList } from '@/components/themes/theme-list';
 import { ThemePreviewPanel } from '@/components/themes/theme-preview-panel';
 import { ThemeRegions } from '@/components/themes/theme-regions';
@@ -29,6 +31,26 @@ export default function Design(page: DesignPage) {
     // The theme the draft or the live value names: the previewed one, else the active one.
     const chosen = page.themes.find((theme) => theme.code === page.theme);
     const previewError = pageErrors['groups.design.theme'];
+    // A switch that hides the active theme's own cards asks first (docs/guides/developers/themes/regions.md).
+    const [switching, setSwitching] = useState<{
+        code: string;
+        name: string;
+    } | null>(null);
+    const activate = (code: string) => {
+        const target = page.themes.find((theme) => theme.code === code);
+
+        if (
+            page.hiddenCards.length > 0 &&
+            target !== undefined &&
+            target.code !== active?.code
+        ) {
+            setSwitching({ code: target.code, name: target.name });
+
+            return;
+        }
+
+        void design.activateTheme(code);
+    };
     const installer = useInstaller(
         page.extensions,
         'theme',
@@ -109,8 +131,7 @@ export default function Design(page: DesignPage) {
                         design.stopPreview(page.preview.code)
                     }
                     onActivate={() =>
-                        page.preview !== null &&
-                        void design.activateTheme(page.preview.code)
+                        page.preview !== null && activate(page.preview.code)
                     }
                     busy={design.activating}
                     colourError={
@@ -146,7 +167,7 @@ export default function Design(page: DesignPage) {
                         : null
                 }
                 onPreview={(code) => void design.previewTheme(code)}
-                onActivate={(code) => void design.activateTheme(code)}
+                onActivate={activate}
                 activating={design.activating}
                 onChange={
                     page.extensions === null ? undefined : installer.openChange
@@ -164,6 +185,17 @@ export default function Design(page: DesignPage) {
             {chosen !== undefined && chosen.usable && (
                 <ThemeSettings page={page} design={design} name={chosen.name} />
             )}
+
+            <SwitchWarning
+                hidden={page.hiddenCards}
+                leaving={active?.name ?? ''}
+                target={switching}
+                onCancel={() => setSwitching(null)}
+                onConfirm={(code) => {
+                    setSwitching(null);
+                    void design.activateTheme(code);
+                }}
+            />
 
             {design.draft !== null && page.preview === null && (
                 <DesignDraftBar

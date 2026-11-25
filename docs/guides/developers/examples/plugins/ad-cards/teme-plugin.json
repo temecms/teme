@@ -1,0 +1,28 @@
+{
+    "manifest": 1,
+    "name": "teme-examples/ad-cards",
+    "code": "ad-cards",
+    "label": "Ad cards",
+    "description": "The handbook's cards example: an ad slot editors place in a theme's regions.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^1.5"
+    },
+    "plugin": "TemeExamples\\AdCards\\Ads",
+    "capabilities": ["pages.insert"],
+    "contributes": {
+        "cards": [
+            {
+                "id": "ad-slot",
+                "label": "Ad",
+                "description": "One ad from your list.",
+                "icon": "megaphone",
+                "keywords": ["ad", "banner"],
+                "fields": [
+                    { "key": "ad", "type": "choice", "label": "Ad", "description": "The ad to show.", "required": true },
+                    { "key": "label", "type": "text", "label": "Label", "description": "Shown above the ad.", "maxLength": 24 }
+                ]
+            }
+        ]
+    }
+}

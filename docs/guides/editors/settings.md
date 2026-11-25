@@ -22,6 +22,7 @@ sources:
   - app/Domain/Seo
   - app/Domain/Addresses
   - app/Domain/SiteCode
+  - resources/js/components/editor/cards/site-code-card.tsx
   - app/Domain/Ai
   - app/Providers/SettingsServiceProvider.php
 ---
@@ -77,6 +78,8 @@ Open **Settings › Site code**. Use it for code that belongs on every public pa
 3. Leave **Switched on** on to add it to every page, and choose **Save code**.
 
 Each piece of code is a card saying where it goes and whether it is on; **Switch off** keeps it without adding it to any page. Saving asks for your password. A plugin's script waits under **Scripts from plugins** until someone who may change site code approves it. Every change is logged, with what it was before. If the host has switched site code off, the page says so; nothing is added to any page and nothing here can be changed.
+
+Code for one spot, such as an ad in a sidebar, goes in a theme region instead: open the region under **Content › Regions**, add a **Custom HTML** card and paste the code into it, with the hosts it connects to in its settings. Only administrators see or change that code, and saving or publishing a change asks for your password again.
 
 ## To choose the theme
 

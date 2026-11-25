@@ -8,7 +8,14 @@ import {
     Replace,
     Trash2,
 } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useId,
+    useRef,
+    useState,
+} from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +33,12 @@ import { cn } from '@/lib/utils';
 
 /** The event the block menu sends a card's frame to collapse it, or open it again. */
 export const TOGGLE_CARD = 'teme:toggle-card';
+
+/**
+ * Whether every card's settings open with it: true where one card is
+ * edited on its own, as in Content › Regions' Edit dialog.
+ */
+export const CardSettingsOpen = createContext(false);
 
 /**
  * What every card shares in the editor (docs/architecture/design-system.md,
@@ -61,7 +74,8 @@ export function CardFrame({
     preview?: string;
     children: ReactNode;
 }) {
-    const [open, setOpen] = useState(defaultOpen);
+    const settingsOpen = useContext(CardSettingsOpen);
+    const [open, setOpen] = useState(defaultOpen || settingsOpen);
     const [collapsed, setCollapsed] = useState(false);
     const frame = useRef<HTMLDivElement>(null);
     const panel = useId();

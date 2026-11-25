@@ -23,7 +23,9 @@ use App\Domain\Contents\Models\ScheduledPublication;
 use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Fields\RequiredFields;
 use App\Domain\Hooks\Payloads;
+use App\Domain\SiteCode\RegionCode;
 use App\Domain\Support\Operations\BaseOperation;
+use App\Domain\Types\CoreTypes;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -70,6 +72,17 @@ final class SchedulePublication extends BaseOperation
         }
 
         $type = (string) Content::query()->whereKey($input->contentId)->value('type');
+
+        // Code goes live with a password asked at that moment, which a schedule can't ask (docs/architecture/security.md).
+        if ($type === CoreTypes::REGION) {
+            $content = Content::query()->findOrFail($input->contentId);
+            $live = $content->status === 'published' && $content->published_revision_id !== null ? ContentRevision::query()->whereKey($content->published_revision_id)->value('document') : [];
+
+            if (RegionCode::changes((array) ($live ?? []), (array) (ContentRevision::query()->whereKey($input->revisionId)->value('document') ?? [])) !== []) {
+                throw ValidationException::withMessages(['runAt' => __('A change to Custom HTML code is published now, not on a schedule.')]);
+            }
+        }
+
         RequiredFields::check($type, (array) ContentRevision::query()->whereKey($input->revisionId)->value('fields'), RequiredFields::noun($type));
     }
 

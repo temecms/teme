@@ -55,10 +55,12 @@ A card is a block that is more than text. Insert one with **Insert** on the tool
 - **Steps**: how to do something, as numbered steps, each with a title, its text and an optional image, after an optional summary, the total time and what it needs.
 - **Imported content**: markup the importer could not turn into cards, kept as it came. Only an import adds one; you can read it, move it or delete it.
 
-Two cards go only in a theme's region, under **Content › Regions**, and only in a region whose theme lists them:
+These cards go only in a theme's region, under **Content › Regions**:
 
-- **Custom HTML**: code an administrator keeps in Settings › Site code and marks as placed with a card. You choose it by name; you never see or change the code, and the site draws it exactly as written.
+- **Custom HTML**: code of its own, such as one ad unit, which only an administrator pastes, reads or changes, with their password asked again when they save or publish it. You see the card and may move or remove it; you never see its code, and the site draws it exactly as pasted.
 - **Featured posts**: a short list of posts, either the latest of a type, optionally only those filed under one category or tag, or posts you choose by hand, up to 12, in the order you set.
+- **Plugin card**: a card a plugin offers, such as an ad slot or a sign-up form, listed in Add card under the plugin's own name. You fill in the fields the plugin asks for, and the plugin draws it on the site. While its plugin is disabled the card is kept, greyed, and shows nothing.
+- **Theme card**: a card the site's theme brings for its own regions, such as an author bio, listed in Add card under the theme's name. You fill in its fields, and the theme draws it. While another theme is in use the card is kept with its region and shows nothing; it comes back with its theme.
 
 ## To link to another item
 

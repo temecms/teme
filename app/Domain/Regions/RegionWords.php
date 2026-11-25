@@ -43,6 +43,15 @@ final class RegionWords
     }
 
     /**
+     * The line under a region's heading for a region that takes every card:
+     * "Takes text and any card.", then the most blocks it holds.
+     */
+    public static function takesAny(int $max): string
+    {
+        return __('Takes text and any card.').' '.self::limit($max).'.';
+    }
+
+    /**
      * What Site › Themes says once a theme is activated: "{theme} is live.",
      * then, while some of its regions hold nothing, how many wait to be filled.
      */
@@ -53,6 +62,17 @@ final class RegionWords
         return $empty === 0
             ? $live
             : $live.' '.trans_choice(':count region stays empty until you fill it in Content › Regions.|:count regions stay empty until you fill them in Content › Regions.', $empty);
+    }
+
+    /**
+     * Said when a switch leaves the theme's own cards behind: how many are
+     * kept, and where.
+     *
+     * @since next
+     */
+    public static function keptCards(int $cards): string
+    {
+        return trans_choice('Kept: :count theme card, under Regions › Other themes.|Kept: :count theme cards, under Regions › Other themes.', $cards);
     }
 
     /**

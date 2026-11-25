@@ -31,6 +31,7 @@ use Composer\Semver\Semver;
 use Composer\Semver\VersionParser;
 use ReflectionClass;
 use Teme\Contracts\Ai\SiteAi;
+use Teme\Contracts\Cards\CardsChanged;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\HookSender;
@@ -414,6 +415,8 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for jobs, but the plugin doesn’t ask for jobs.";
             } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! self::inserts($read)) {
                 $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
+            } elseif (strtolower((string) $type) === strtolower(CardsChanged::class) && ! in_array(Capability::PagesInsert->value, $read->capabilities(), true)) {
+                $errors[] = __(':class asks for CardsChanged, but the plugin doesn’t ask for pages.insert.', ['class' => $class]);
             } elseif (strtolower((string) $type) === strtolower(InlineScripts::class) && ! self::inserts($read)) {
                 $errors[] = "{$class} asks for InlineScripts, but the plugin doesn’t ask for content.insert or pages.insert.";
             } elseif (strtolower((string) $type) === strtolower(SiteAi::class) && ! in_array(Capability::Ai->value, $read->capabilities(), true)) {
