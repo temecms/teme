@@ -1,9 +1,10 @@
 import type { RequestPayload } from '@inertiajs/core';
-import { Head, router, setLayoutProps, usePage } from '@inertiajs/react';
+import { Head, Link, router, setLayoutProps, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
-import { FormPage, FormPanel } from '@/components/patterns/form-page';
+import { FormPanel } from '@/components/patterns/form-page';
+import { PluginAreaPage } from '@/components/patterns/plugin-area-page';
 import { SaveBar } from '@/components/patterns/save-bar';
 import { SectionTabs } from '@/components/patterns/section-tabs';
 import {
@@ -27,9 +28,11 @@ import type { PluginRecordPageProps } from '@/types/plugin-area';
 
 /**
  * A record's form in a plugin's area (docs/plans/plugin-sockets-2.md, A9):
- * its sections as panels, a field shown only while its condition holds,
- * and the one save bar. The top bar names only the parent, the plugin's
- * own name (I-3468); the record's title heads the page.
+ * the area header with the plugin's icon and mark, All … back to the list,
+ * its sections as panels, a field shown only while its condition holds, and
+ * the one save bar. Delete sits as danger-quiet at the foot of the last
+ * panel (design-system §5 Form), confirmed. The top bar names only the
+ * parent, the plugin's own name.
  */
 export default function PluginRecord(props: PluginRecordPageProps) {
     const { plugin, back, record, id, title, sections, failed, deletable } =
@@ -50,6 +53,10 @@ export default function PluginRecord(props: PluginRecordPageProps) {
             : title !== ''
               ? title
               : record.label;
+    const visibleSections = sections.filter((section) =>
+        section.fields.some((field) => shown.has(field.key)),
+    );
+    const lastSectionId = visibleSections.at(-1)?.id ?? null;
 
     const approval = useScriptApproval(plugin.code);
     const scripts = {
@@ -93,7 +100,20 @@ export default function PluginRecord(props: PluginRecordPageProps) {
         );
 
     return (
-        <FormPage title={heading} showTitle>
+        <PluginAreaPage
+            plugin={{ name: plugin.name, icon: plugin.icon }}
+            title={heading}
+            showTitle
+            actions={
+                <Button asChild variant="neutral">
+                    <Link href={back} data-test="record-all">
+                        {__('All :plural', {
+                            plural: record.plural.toLowerCase(),
+                        })}
+                    </Link>
+                </Button>
+            }
+        >
             <Head title={`${heading} · ${plugin.name}`} />
             {sections.length > 3 && (
                 <SectionTabs
@@ -116,14 +136,11 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                             {errors.record ?? failed}
                         </Notice>
                     )}
-                    {sections.map((section) => {
+                    {visibleSections.map((section) => {
                         const visible = section.fields.filter((field) =>
                             shown.has(field.key),
                         );
-
-                        if (visible.length === 0) {
-                            return null;
-                        }
+                        const isLast = section.id === lastSectionId;
 
                         return (
                             <div
@@ -160,28 +177,44 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                                             path={`values.${field.key}`}
                                         />
                                     ))}
+                                    {isLast && id !== null && deletable && (
+                                        <div className="pt-2">
+                                            <Button
+                                                type="button"
+                                                variant="danger-quiet"
+                                                size="sm"
+                                                data-test="record-delete"
+                                                onClick={() =>
+                                                    setDeleting(true)
+                                                }
+                                            >
+                                                {__('Delete :item', {
+                                                    item: record.label.toLowerCase(),
+                                                })}
+                                            </Button>
+                                        </div>
+                                    )}
                                 </FormPanel>
                             </div>
                         );
                     })}
-                    {id !== null && deletable && (
-                        <FormPanel
-                            title={__('Delete this :item', {
-                                item: record.label.toLowerCase(),
-                            })}
-                        >
-                            <div>
+                    {visibleSections.length === 0 &&
+                        id !== null &&
+                        deletable && (
+                            <FormPanel>
                                 <Button
                                     type="button"
-                                    variant="danger"
+                                    variant="danger-quiet"
+                                    size="sm"
                                     data-test="record-delete"
                                     onClick={() => setDeleting(true)}
                                 >
-                                    {__('Delete')}
+                                    {__('Delete :item', {
+                                        item: record.label.toLowerCase(),
+                                    })}
                                 </Button>
-                            </div>
-                        </FormPanel>
-                    )}
+                            </FormPanel>
+                        )}
                     <SaveBar
                         dirty={dirty}
                         processing={processing}
@@ -224,6 +257,6 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </FormPage>
+        </PluginAreaPage>
     );
 }
