@@ -22,11 +22,11 @@ import { NumberedPager } from '@/components/list/numbered-pager';
 import type { RowAction } from '@/components/list/row-actions';
 import { RowLine } from '@/components/list/row-line';
 import { RowMenu } from '@/components/list/row-menu';
+import { SearchField } from '@/components/list/search-field';
 import { InPageNav } from '@/components/patterns/in-page-nav';
 import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import { StatusPill } from '@/components/ui/status-pill';
 import { TextButton } from '@/components/ui/text-button';
@@ -343,12 +343,14 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                     {row.item.editable ? (
                         <Link
                             href={edit(row.item.id)}
-                            className="focus-visible:outline-ring rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            className="focus-visible:outline-ring rounded-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
                         >
                             {shownTitle(row.item.title)}
                         </Link>
                     ) : (
-                        shownTitle(row.item.title)
+                        <span className="font-semibold">
+                            {shownTitle(row.item.title)}
+                        </span>
                     )}
                     {item === null && (
                         <TextButton
@@ -507,7 +509,7 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                             });
                         }}
                     >
-                        <Input
+                        <SearchField
                             key={filters.search ?? ''}
                             name="search"
                             defaultValue={filters.search ?? ''}
