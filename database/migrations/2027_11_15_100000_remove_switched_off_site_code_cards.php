@@ -4,7 +4,7 @@
  * Migration: removes the Custom HTML cards that were switched off.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.1
  * @license MIT
  */
 
