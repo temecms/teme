@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Laravel\Fortify\Features;
 use LogicException;
+use Teme\Testing\TestDatabaseGuard;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -46,6 +47,19 @@ abstract class TestCase extends BaseTestCase
         Http::preventStrayRequests();
 
         $this->refuseTheDatabaseWithoutATrait();
+    }
+
+    /**
+     * Stops the run before the first database refresh when the database
+     * isn't a test database (issue 754).
+     *
+     * @return array<class-string, class-string>
+     */
+    protected function setUpTraits()
+    {
+        TestDatabaseGuard::enforce($this->app);
+
+        return parent::setUpTraits();
     }
 
     /**

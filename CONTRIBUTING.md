@@ -22,7 +22,7 @@ Open an issue with the **Feature request** form, and start with the problem rath
    - content is stored as editor JSON, never HTML;
    - write the failing test first.
 4. **Keep each pull request to one thing.** Fill in the template: what changes, why, and how it was tested.
-5. **Run `composer check`** before you push. It runs the formatter, static analysis, the type checks and the tests.
+5. **Run `composer check`** before you push. It runs the formatter, static analysis, the type checks and the tests. The tests stop before touching a database when Laravel's configuration is cached or the database's name doesn't end in `_test`, because refreshing the wrong one drops every table of your site; `php artisan config:clear` fixes the first.
 6. **Write commits as [Conventional Commits](https://www.conventionalcommits.org/)**: `fix(editor): …`, `feat(media): …`, `docs(guides): …`.
 
 A check comments on issues and pull requests that are missing what the forms ask for. Fill in the missing parts and it clears itself.
