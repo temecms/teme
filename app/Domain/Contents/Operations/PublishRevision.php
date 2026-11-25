@@ -91,7 +91,7 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
      * What publishing this revision of a region does to the code on the
      * site, card by card; none for any other item, or a revision not its own.
      *
-     * @return list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>, on: bool}, after: array{code: string, origins: list<string>, on: bool}}>
+     * @return list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>}, after: array{code: string, origins: list<string>}}>
      */
     private static function codeChanges(Content $content, string $revisionId): array
     {

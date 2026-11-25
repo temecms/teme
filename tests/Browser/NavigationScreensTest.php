@@ -140,7 +140,7 @@ it('sends nothing when a place is ticked, writes the items and the place togethe
         ->and(app(SettingsReader::class)->string('theme.good', 'nav_primary'))->not->toBe($this->menu->id);
 
     // A tick alone is a change the page asks about before it is left.
-    $page->click('[data-test="crumbs"] a');
+    $page->click('[data-test="crumbs"] a[href$="/admin/navigation"]');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="leave-guard"]\') !== null');
     shellSettled($page, '[data-test="leave-guard"]');
     $page->click('[data-test="leave-guard-stay"]');

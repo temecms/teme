@@ -172,13 +172,14 @@ it('shows the Settings tab read-only, with no secret value, to a person who may 
     ($this->start)(PluginFixtures::copy('placard', ['contributes' => $contributes]));
 
     $version = (int) DB::table('settings')->where('group_key', 'plugin.placard')->value('version');
-    $this->actingAs($this->admin)
+    // Saving a secret asks for the password again: confirmed just now.
+    $this->actingAs($this->admin)->withSession(scConfirmed())
         ->put(route('settings.update', ['group' => 'plugin.placard']), [
             'values' => ['label_text' => 'Sponsored', 'fallback' => '', 'provider' => 'none', 'publisher_id' => '', 'slots' => []],
             'secrets' => ['api_key' => 'sk-live-do-not-show'],
             'expected_version' => $version,
         ])
-        ->assertRedirect();
+        ->assertRedirect(route('plugins.area.settings', ['code' => 'placard']));
 
     $viewer = User::factory()->create();
     $viewer->givePermissionTo(Permission::findOrCreate('settings.view'), Permission::findOrCreate('plugin.placard.manage'));
