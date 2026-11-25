@@ -119,3 +119,89 @@ it('stacks a card row’s buttons under its name in a narrow panel, and passes a
         ->and(cmAxeViolations($page))->toBe([]);
     cmNoJavaScriptErrors($page);
 });
+
+/**
+ * Two regions of the theme `open`, each holding a button, saved and not yet published.
+ *
+ * @return array{0: Content, 1: Content}
+ */
+function regionsPair(User $editor): array
+{
+    config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/open')]]);
+    themeActivate('open');
+
+    $sidebar = regionCreate($editor, 'open', 'sidebar');
+    regionSave($sidebar, $editor, [regionCardNode('button')]);
+    $narrow = regionCreate($editor, 'open', 'narrow');
+    regionSave($narrow, $editor, [regionCardNode('button')]);
+
+    return [$sidebar, $narrow];
+}
+
+/** The number of requests the page has made for one region's visit since its timings were last cleared. */
+function regionRequests(mixed $page, string $key): int
+{
+    return (int) cmAnswer($page, "performance.getEntriesByType('resource').filter((entry) => entry.name.includes('region={$key}')).length", 'regionRequests');
+}
+
+it('fetches a region while the pointer rests on it, so choosing it asks the server for nothing', function (): void {
+    regionsPair($this->editor);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/regions?region=sidebar');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"region-card-row\"]') !== null");
+
+    $page->hover('[data-test="region-choice"][data-region="narrow"]');
+    cmWaitUntil($page, "performance.getEntriesByType('resource').some((entry) => entry.name.includes('region=narrow'))");
+    cmAnswer($page, 'performance.clearResourceTimings()', 'regionRequests');
+
+    $page->click('[data-test="region-choice"][data-region="narrow"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"region-choice\"][data-region=\"narrow\"]').getAttribute('aria-current') === 'page' && document.querySelector('[data-test=\"region-card-row\"]') !== null");
+    cmWaitUntil($page, "document.querySelector('#chosen-region').innerText === 'Narrow'");
+
+    expect(regionRequests($page, 'narrow'))->toBe(0);
+    cmNoJavaScriptErrors($page);
+});
+
+it('keeps a region already opened, so going back to it asks the server for nothing', function (): void {
+    regionsPair($this->editor);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/regions?region=sidebar');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"region-card-row\"]') !== null");
+
+    $page->click('[data-test="region-choice"][data-region="narrow"]');
+    cmWaitUntil($page, "document.querySelector('#chosen-region').innerText === 'Narrow'");
+    $page->click('[data-test="region-choice"][data-region="sidebar"]');
+    cmWaitUntil($page, "document.querySelector('#chosen-region').innerText === 'Sidebar'");
+    cmAnswer($page, 'performance.clearResourceTimings()', 'regionRequests');
+
+    $page->click('[data-test="region-choice"][data-region="narrow"]');
+    cmWaitUntil($page, "document.querySelector('#chosen-region').innerText === 'Narrow'");
+
+    expect(regionRequests($page, 'narrow'))->toBe(0);
+});
+
+it('shows a region as published when it is chosen again after publishing it', function (): void {
+    regionsPair($this->editor);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/regions?region=sidebar');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"region-card-row\"]') !== null");
+
+    // Looked at, so its visit is kept with its changes still unpublished.
+    $page->hover('[data-test="region-choice"][data-region="narrow"]');
+    cmWaitUntil($page, "performance.getEntriesByType('resource').some((entry) => entry.name.includes('region=narrow'))");
+
+    $page->click('[data-test="region-choice"][data-region="narrow"]');
+    cmWaitUntil($page, "document.querySelector('#chosen-region').innerText === 'Narrow' && document.querySelector('[data-test=\"region-unpublished\"]') !== null");
+    $page->click('[data-test="region-publish"]');
+    cmWaitUntil($page, "document.body.innerText.includes('Published. Readers see it on their next page.')");
+
+    $page->click('[data-test="region-choice"][data-region="sidebar"]');
+    cmWaitUntil($page, "document.querySelector('#chosen-region').innerText === 'Sidebar'");
+    $page->click('[data-test="region-choice"][data-region="narrow"]');
+    cmWaitUntil($page, "document.querySelector('#chosen-region').innerText === 'Narrow' && document.querySelector('[data-test=\"region-panel\"]') !== null");
+
+    $page->assertSeeIn('#chosen-region', 'Narrow')
+        ->assertNotPresent('[data-test="region-unpublished"]');
+    expect(cmAnswer($page, "document.querySelector('section[aria-labelledby=\"chosen-region\"]').innerText.includes('Published')", 'regionRequests'))->toBeTrue();
+    cmNoJavaScriptErrors($page);
+});
