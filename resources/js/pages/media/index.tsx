@@ -649,7 +649,7 @@ export default function MediaIndex(page: MediaIndexPage) {
                         aria-describedby={undefined}
                         className="gap-0 p-0"
                         onOpenAutoFocus={(event) => {
-                            // The sheet itself, not its first button: Next's tooltip would open by itself (#741).
+                            // The sheet itself, not its first button: Next's tooltip would open by itself.
                             event.preventDefault();
                             (
                                 event.currentTarget as HTMLElement | null
