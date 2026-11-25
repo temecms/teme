@@ -38,7 +38,11 @@ import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import type { MenuItem, NavigationEditPage } from '@/types';
 
-/** How many items the menu holds, at every level. */
+/** A place ticked or unticked on the page and not yet saved. */
+type PendingPlace = { slot: string; language: string; checked: boolean };
+
+const pendingKey = (language: string, slot: string) => `${language}:${slot}`;
+
 /** "Header", or "Header and Footer". */
 function placesOf(slots: { label: string }[]): string {
     const labels = slots.map((slot) => slot.label);
@@ -74,6 +78,10 @@ export default function NavigationEdit({
 }: NavigationEditPage) {
     const [tree, setTree] = useState<EditorItem[]>(() => withKeys(items));
     const [dirty, setDirty] = useState(false);
+    // Places ticked or unticked since the last save, by language and place;
+    // Save writes them after the items.
+    const [pending, setPending] = useState<Record<string, PendingPlace>>({});
+    const [placeError, setPlaceError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [adding, setAdding] = useState(false);
     const [renaming, setRenaming] = useState(false);
@@ -93,25 +101,115 @@ export default function NavigationEdit({
             ? slot.navigationId
             : (readers?.bindings[readersOf]?.[slot.slot] ?? null);
 
+    const languageOfPlaces = readersOf === defaultLanguage ? '' : readersOf;
+
     const change = (next: EditorItem[]) => {
         setTree(next);
         setDirty(true);
         setShowErrors(false);
     };
 
+    const placeChanges = Object.values(pending);
+    const unsaved = dirty || placeChanges.length > 0;
+
+    /** Tick or untick a place on the page; nothing is sent until Save. */
+    const tick = (slot: string, language: string, checked: boolean) => {
+        const key = pendingKey(language, slot);
+        const holder =
+            language === ''
+                ? (slots.find((place) => place.slot === slot)?.navigationId ??
+                  null)
+                : (readers?.bindings[language]?.[slot] ?? null);
+
+        setPending((current) => {
+            const next = { ...current };
+
+            if ((holder === navigation.id) === checked) {
+                delete next[key];
+            } else {
+                next[key] = { slot, language, checked };
+            }
+
+            return next;
+        });
+        setPlaceError(null);
+    };
+
+    /** Binds the changed places one after another, stopping at the first the server refuses. */
+    const savePlaces = (queue: PendingPlace[]) => {
+        const [place, ...rest] = queue;
+
+        if (place === undefined) {
+            setSaving(false);
+            setShowErrors(true);
+
+            return;
+        }
+
+        router.put(
+            NavigationController.updateSlots.url({ id: navigation.id }),
+            {
+                theme: themeCode ?? '',
+                slot: place.slot,
+                navigation_id: place.checked ? navigation.id : '',
+                language: place.language,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    setPending((current) => {
+                        const next = { ...current };
+                        delete next[pendingKey(place.language, place.slot)];
+
+                        return next;
+                    });
+                    savePlaces(rest);
+                },
+                onError: (found) => {
+                    const label =
+                        slots.find((slot) => slot.slot === place.slot)?.label ??
+                        place.slot;
+                    setPlaceError(
+                        __(':place was not saved: :reason', {
+                            place: label,
+                            reason: found.slot ?? found.navigation ?? '',
+                        }),
+                    );
+                    setSaving(false);
+                },
+            },
+        );
+    };
+
     const save = () => {
+        const places = Object.values(pending);
+
         setSaving(true);
+        setPlaceError(null);
+
+        if (!dirty) {
+            savePlaces(places);
+
+            return;
+        }
+
         router.put(
             NavigationController.updateItems.url({ id: navigation.id }),
-            { tree: toPayload(tree) },
+            {
+                tree: toPayload(tree),
+                // The places' own message follows, so this one stays quiet.
+                then_places: places.length > 0,
+            },
             {
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: (page) => {
                     setTree(withKeys(page.props.items as MenuItem[]));
                     setDirty(false);
+                    savePlaces(places);
                 },
-                onFinish: () => {
+                onError: () => {
                     setSaving(false);
                     setShowErrors(true);
                 },
@@ -128,18 +226,6 @@ export default function NavigationEdit({
             { preserveState: true, preserveScroll: true },
         );
     };
-
-    const bind = (slot: string, navigationId: string) =>
-        router.put(
-            NavigationController.updateSlots.url({ id: navigation.id }),
-            {
-                theme: themeCode ?? '',
-                slot,
-                navigation_id: navigationId,
-                language: readersOf === defaultLanguage ? '' : readersOf,
-            },
-            { preserveState: true, preserveScroll: true },
-        );
 
     const contentCrumb = useSectionCrumb('content');
 
@@ -241,6 +327,12 @@ export default function NavigationEdit({
                                             <Checkbox
                                                 id={`slot-${slot.slot}`}
                                                 checked={
+                                                    pending[
+                                                        pendingKey(
+                                                            languageOfPlaces,
+                                                            slot.slot,
+                                                        )
+                                                    ]?.checked ??
                                                     holder === navigation.id
                                                 }
                                                 aria-describedby={
@@ -249,11 +341,10 @@ export default function NavigationEdit({
                                                         : `slot-${slot.slot}-holder`
                                                 }
                                                 onCheckedChange={(checked) =>
-                                                    bind(
+                                                    tick(
                                                         slot.slot,
-                                                        checked === true
-                                                            ? navigation.id
-                                                            : '',
+                                                        languageOfPlaces,
+                                                        checked === true,
                                                     )
                                                 }
                                             />
@@ -275,7 +366,9 @@ export default function NavigationEdit({
                             })}
                         </div>
                         <InputError
-                            message={errors.slot ?? errors.navigation}
+                            message={
+                                placeError ?? errors.slot ?? errors.navigation
+                            }
                         />
                     </FormPanel>
                 )}
@@ -343,7 +436,7 @@ export default function NavigationEdit({
                         </p>
                     </FormPanel>
                     <SaveBar
-                        dirty={dirty}
+                        dirty={unsaved}
                         processing={saving}
                         saveLabel={__('Save menu')}
                         testId="menu-save"
@@ -351,6 +444,8 @@ export default function NavigationEdit({
                         onDiscard={() => {
                             setTree(withKeys(items));
                             setDirty(false);
+                            setPending({});
+                            setPlaceError(null);
                             setShowErrors(true);
                         }}
                     />

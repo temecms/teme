@@ -14,7 +14,7 @@ uses(RefreshDatabase::class);
 /*
  * The Custom HTML card's code on the public site: drawn exactly as written,
  * its scripts and hosts given to the page's policy, and nothing while it is
- * off, the host disallows site code, or the preview withholds it.
+ * empty, the host disallows site code, or the preview withholds it.
  */
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
@@ -28,9 +28,9 @@ beforeEach(function (): void {
     $this->id = (string) Str::ulid();
 
     // The default theme's region after the article, published by an administrator with one Custom HTML card holding this code.
-    $this->place = function (string $code, array $origins = [], bool $on = true): void {
-        scElevated(function () use ($code, $origins, $on): void {
-            regionSave($this->region, $this->admin, [['type' => 'site-code', 'attrs' => ['id' => $this->id, 'code' => $code, 'origins' => $origins, 'on' => $on]]]);
+    $this->place = function (string $code, array $origins = []): void {
+        scElevated(function () use ($code, $origins): void {
+            regionSave($this->region, $this->admin, [['type' => 'site-code', 'attrs' => ['id' => $this->id, 'code' => $code, 'origins' => $origins]]]);
             listsPublish($this->region, $this->admin);
         });
     };
@@ -55,17 +55,14 @@ it('draws the card’s code exactly as written, and gives the page its hashes an
         ->and($policy)->toContain('cdn.ads.example');
 });
 
-it('draws nothing, and fails nothing, for a card that is off or holds no code', function (string $code, bool $on): void {
-    ($this->place)($code, [], $on);
+it('draws nothing, and fails nothing, for a card that holds no code', function (): void {
+    ($this->place)('');
 
     $response = addrGet('/a-story/')->assertOk();
 
     expect((string) $response->getContent())->not->toContain('card-site-code')->not->toContain('window.x=1')
         ->and(PolicyHeaders::of($response))->not->toContain(PagePolicy::hash('window.x=1'))->not->toContain('https://ads.example');
-})->with([
-    'off' => [fn (): string => test()->ad, false],
-    'empty' => ['', true],
-]);
+});
 
 it('draws nothing while the host disallows site code', function (): void {
     ($this->place)($this->ad);
@@ -99,12 +96,15 @@ it('keeps the hashes on the page served again from the page cache', function ():
         ->and(PolicyHeaders::sources(PolicyHeaders::of($hit), 'script-src'))->toContain(PagePolicy::hash('window.x=1'), 'https://ads.example');
 });
 
-it('removes the stored page when a published change switches the card off', function (): void {
+it('removes the stored page when a published change removes the card', function (): void {
     ($this->place)($this->ad);
     $this->folder = cacheOn();
     addrGet('/a-story/')->assertOk()->assertHeader('X-Teme-Cache', 'MISS');
 
-    ($this->place)($this->ad, [], false);
+    scElevated(function (): void {
+        regionSave($this->region, $this->admin, []);
+        listsPublish($this->region, $this->admin);
+    });
 
     expect(cacheKept('/a-story/'))->toBe([])
         ->and((string) addrGet('/a-story/')->getContent())->not->toContain('window.x=1');

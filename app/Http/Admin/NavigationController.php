@@ -76,6 +76,11 @@ final class NavigationController extends Controller
 
         $navigation = $saveNavigationItems->execute(new SaveNavigationItemsInput($id, is_array($tree) ? $tree : [], $this->actor($request)));
 
+        // Save sends the places next and they say what was saved, so one save shows one message.
+        if ($request->boolean('then_places')) {
+            return to_route('navigation.edit', ['id' => $id]);
+        }
+
         return $this->done('navigation.edit', ['id' => $id], __('Saved “:name”.', ['name' => (string) $navigation->name]));
     }
 
