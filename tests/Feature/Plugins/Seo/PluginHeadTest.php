@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Plugins\Seo\SocketAnswerRefused;
+use App\Domain\Plugins\Seo\SocketTooSlow;
 use App\Domain\Seo\SearchAndSocial;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -154,3 +155,47 @@ it('refuses a robots value outside the directives a plugin may give, records it,
     'quotes' => ['noindex, "follow"'],
     'nothing' => [' , '],
 ]);
+
+it('drops head tags that come back over their budget, records it once, and asks that plugin no more in the request', function (): void {
+    ['faults' => $faults, 'clock' => $clock] = seokitEnabled();
+    headPost($this->author, 'Harbour news');
+    $asked = 0;
+    Seokit::$meta = function (HeadPage $page) use ($clock, &$asked): array {
+        $asked++;
+        // Sleeps past the 100 ms budget on the clock core reads.
+        $clock->now += 150_000_000;
+
+        return [HeadMeta::name('seokit', 'late')];
+    };
+
+    $first = headDom('/harbour-news/');
+    $second = headDom('/harbour-news/');
+
+    expect((int) $first->evaluate('count(//head/meta[@name="seokit"])'))->toBe(0)
+        ->and(headValue($first, '//head/title'))->not->toBe('')
+        ->and((int) $second->evaluate('count(//head/meta[@name="seokit"])'))->toBe(0)
+        ->and($asked)->toBe(1)
+        ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/seokit#head-meta'])
+        ->and($faults->seen[0][3])->toBeInstanceOf(SocketTooSlow::class);
+});
+
+it('drops structured data that comes back over its budget, records it once, and keeps the plugin’s head tags', function (): void {
+    ['faults' => $faults, 'clock' => $clock] = seokitEnabled();
+    headPost($this->author, 'Harbour news');
+    $asked = 0;
+    Seokit::$nodes = function (HeadPage $page) use ($clock, &$asked): array {
+        $asked++;
+        $clock->now += 150_000_000;
+
+        return [new GraphNode(['@id' => $page->address.'#faq', '@type' => 'FAQPage'])];
+    };
+
+    $graph = sdGraph('/harbour-news/');
+    sdGraph('/harbour-news/');
+
+    expect(sdNode($graph, 'http://localhost/harbour-news/#faq'))->toBeNull()
+        ->and(sdNode($graph, 'http://localhost/harbour-news/'))->not->toBeNull()
+        ->and(headValue(headDom('/harbour-news/'), '//head/meta[@name="seokit"]/@content'))->toBe('on')
+        ->and($asked)->toBe(1)
+        ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/seokit#structured-data']);
+});

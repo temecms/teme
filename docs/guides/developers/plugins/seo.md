@@ -15,7 +15,7 @@ Core already writes a page's title, description, social tags, canonical address,
 - tags and structured data in the head of public pages, from `HasHeadMeta` and `HasStructuredData`;
 - sitemaps in the site's sitemap index, from `HasSitemaps`.
 
-Each socket is asked within a time budget, only reads, and fails safe. A plugin that throws, answers too late or answers out of bounds never stops anyone typing, saving or loading a page. Its part is left out, and the failure is recorded as a fault under the plugin, where the plugin's row on the Plugins screen shows it.
+Each socket is asked within a time budget, only reads, and fails safe. A plugin that throws, answers too late or answers out of bounds never stops anyone typing, saving or loading a page. Its part is left out, and the failure is recorded as a fault under the plugin, where the plugin's row on the Plugins screen shows it. A call is never stopped part way: core times it, and drops an answer that came back late. A plugin that runs over the budget for a page's tags, its structured data or a sitemap is asked nothing more on that socket for the rest of the request, so the page or sitemap never waits on it twice, and the fault is recorded once.
 
 The handbook's example plugin answers all four, in `docs/guides/developers/examples/plugins/seo-sockets`.
 

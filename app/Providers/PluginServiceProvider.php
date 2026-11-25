@@ -36,6 +36,7 @@ use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\Seo\PluginHead;
 use App\Domain\Plugins\Seo\PluginSitemaps;
+use App\Domain\Plugins\Seo\SlowSockets;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Sitemaps\SitemapProvider;
@@ -54,6 +55,8 @@ final class PluginServiceProvider extends ServiceProvider
         // Scoped: the compiled list changes when a plugin is enabled or
         // disabled in this request; Octane and the queue forget it between.
         $this->app->scoped(PublicRouteRegistry::class);
+        // Scoped: which plugins ran over a search socket's budget in this request or job.
+        $this->app->scoped(SlowSockets::class);
 
         $this->app->singleton(HookSubscriptions::class, DispatcherSubscriptions::class);
 
