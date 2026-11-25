@@ -150,9 +150,9 @@ export default function TypeFields(page: FieldsPage) {
                         it in Details at once.
                     </p>
                 ) : (
-                    <table className="text-body w-full">
+                    <table className="text-small w-full">
                         <thead>
-                            <tr className="text-left">
+                            <tr className="border-line border-b text-left">
                                 <Th className="w-8">
                                     <span className="sr-only">Order</span>
                                 </Th>
@@ -204,7 +204,7 @@ export default function TypeFields(page: FieldsPage) {
                                         }
                                     }}
                                     className={cn(
-                                        'align-top',
+                                        'border-line border-b align-top last:border-b-0',
                                         dragging === row.key && 'opacity-50',
                                     )}
                                 >
