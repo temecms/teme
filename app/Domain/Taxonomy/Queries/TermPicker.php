@@ -24,7 +24,9 @@ final class TermPicker
 
     /**
      * Up to 20 terms whose names start with $prefix, case-insensitively, in
-     * name order, each with its path.
+     * name order, each with its path. With an empty $prefix, the 20 most used
+     * first (most published items, then name), so a picker has something to
+     * list before anything is typed.
      *
      * @return list<array{id: string, name: string, path: string}>
      */
@@ -33,6 +35,7 @@ final class TermPicker
         $rows = DB::table('terms')
             ->where('taxonomy', $taxonomy)
             ->whereRaw('lower(name) LIKE ?', [addcslashes(mb_strtolower($prefix), '%_\\').'%'])
+            ->when($prefix === '', fn ($query) => $query->orderByDesc('published_count'))
             ->orderByRaw('lower(name)')
             ->orderBy('id')
             ->limit(self::LIMIT)

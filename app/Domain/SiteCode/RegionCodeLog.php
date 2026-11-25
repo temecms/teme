@@ -26,7 +26,7 @@ final class RegionCodeLog
     /**
      * Logs each change saved into a revision: added, changed or removed.
      *
-     * @param  list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>, on: bool}, after: array{code: string, origins: list<string>, on: bool}}>  $changes
+     * @param  list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>}, after: array{code: string, origins: list<string>}}>  $changes
      */
     public static function saved(array $changes, int|string|null $actorId, string $contentId, string $region, string $revisionId): void
     {
@@ -44,7 +44,7 @@ final class RegionCodeLog
     /**
      * Logs each change a publish puts on the site.
      *
-     * @param  list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>, on: bool}, after: array{code: string, origins: list<string>, on: bool}}>  $changes
+     * @param  list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>}, after: array{code: string, origins: list<string>}}>  $changes
      */
     public static function published(array $changes, int|string|null $actorId, string $contentId, string $region, string $revisionId): void
     {
@@ -54,7 +54,7 @@ final class RegionCodeLog
     }
 
     /**
-     * @param  array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>, on: bool}, after: array{code: string, origins: list<string>, on: bool}}  $change
+     * @param  array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>}, after: array{code: string, origins: list<string>}}  $change
      */
     private static function record(SecurityEventType $type, array $change, int|string|null $actorId, string $contentId, string $region, string $revisionId): void
     {
@@ -68,8 +68,6 @@ final class RegionCodeLog
             'after_code' => $change['after']['code'],
             'before_origins' => implode(' ', $change['before']['origins']),
             'after_origins' => implode(' ', $change['after']['origins']),
-            'before_on' => $change['before']['on'],
-            'after_on' => $change['after']['on'],
         ]);
     }
 }

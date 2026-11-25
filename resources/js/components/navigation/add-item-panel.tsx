@@ -95,6 +95,8 @@ export function AddItemPanel({
     const [contentQuery, setContentQuery] = useState('');
     const [termQuery, setTermQuery] = useState('');
     const [terms, setTerms] = useState<Record<string, FoundTerm[]>>({});
+    // Whether the server has answered for the current search, so "Nothing found." is not said while it is still asked.
+    const [termsLoaded, setTermsLoaded] = useState(false);
     const [url, setUrl] = useState('');
     const [label, setLabel] = useState('');
     const [urlError, setUrlError] = useState<string | undefined>();
@@ -106,8 +108,9 @@ export function AddItemPanel({
     const targets = useLinkTargets(contentQuery, open && tab === 'content');
 
     useEffect(() => {
-        if (!open || tab !== 'terms' || termQuery.trim() === '') {
+        if (!open || tab !== 'terms') {
             setTerms({});
+            setTermsLoaded(false);
 
             return;
         }
@@ -118,11 +121,17 @@ export function AddItemPanel({
                     taxonomy.key,
                     (await submit(
                         searchTerms({
-                            query: { taxonomy: taxonomy.key, q: termQuery },
+                            query: {
+                                taxonomy: taxonomy.key,
+                                q: termQuery.trim(),
+                            },
                         }),
                     )) as FoundTerm[],
                 ]),
-            ).then((found) => setTerms(Object.fromEntries(found)));
+            ).then((found) => {
+                setTerms(Object.fromEntries(found));
+                setTermsLoaded(true);
+            });
         }, 200);
 
         return () => window.clearTimeout(timer);
@@ -455,7 +464,7 @@ export function AddItemPanel({
                                     placeholder="Find by name"
                                     aria-label="Find by name"
                                 />
-                                {termQuery.trim() !== '' &&
+                                {termsLoaded &&
                                     (termGroups.length === 0 ? (
                                         <p className="text-ink-2 text-small">
                                             Nothing found.

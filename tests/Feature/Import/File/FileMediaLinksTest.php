@@ -126,3 +126,29 @@ it('shows a post\'s pictures from the old site while they wait, and keeps what e
         ->and($post->facts['waiting_media'])->toBe(['a:12', 'f:2024/05/harbour.jpg'])
         ->and(ImportMessageRecord::query()->where('map_id', $post->id)->pluck('code')->all())->not->toContain('image.outside');
 });
+
+it('keeps an outside featured image only at the old site\'s own addresses, not at another host\'s (issue 737)', function (string $address, bool $shown, ?array $otherHosts): void {
+    // The post's featured image is the harbour attachment, at the address under test.
+    $bytes = str_replace(
+        ['https://old.example/wp-content/uploads/2024/05/Harbour-scaled.jpg', '<wp:meta_value><![CDATA[41]]></wp:meta_value>'],
+        [$address, '<wp:meta_value><![CDATA[12]]></wp:meta_value>'],
+        (string) file_get_contents(ExportFiles::path('companion-site.xml')),
+    );
+    $file = FileImports::ready('companion-site.xml', $this->admin, $bytes);
+
+    if ($otherHosts !== null) {
+        FileImports::site($file)->forceFill(['other_hosts' => $otherHosts])->save();
+    }
+
+    FileImports::run($file, ['media' => 'later']);
+    $post = ImportMapEntry::query()->where('object_type', 'post')->where('object_id', '12')->sole();
+    $revision = ContentRevision::query()->findOrFail(DB::table('contents')->where('id', $post->teme_id)->value('working_revision_id'));
+    $featured = $revision->fields[BuiltInFields::FEATURED_IMAGE] ?? null;
+
+    expect(is_array($featured) && isset($featured['source']))->toBe($shown)
+        ->and($post->facts['waiting_media'])->toContain('a:12');
+})->with([
+    'the old site\'s own address' => ['https://old.example/wp-content/uploads/2024/05/Harbour-scaled.jpg', true, null],
+    'another host' => ['https://cdn.partner.example/photos/Harbour-scaled.jpg', false, null],
+    'one of its other hosts' => ['https://staging.old.example/wp-content/uploads/2024/05/Harbour-scaled.jpg', true, ['staging.old.example']],
+]);

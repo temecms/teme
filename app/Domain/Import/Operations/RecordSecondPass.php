@@ -100,6 +100,11 @@ final class RecordSecondPass extends BaseOperation
                 $entry->forceFill(['facts' => [...$entry->facts, 'passed' => [...self::passed($input->passed), 'to' => $working]]])->save();
             }
 
+            // What its outside pictures still wait for, when the pass found a person's save had replaced some (issue 736).
+            if ($input->waiting !== null) {
+                $entry->forceFill(['facts' => [...$entry->facts, 'waiting_media' => array_values(array_filter($input->waiting, is_string(...)))]])->save();
+            }
+
             $this->noteMessages($entry, $run->id, self::PREFIX, $input->messages);
 
             return self::SAID;

@@ -79,7 +79,7 @@ Open **Settings › Site code**. Use it for code that belongs on every public pa
 
 Each piece of code is a card saying where it goes and whether it is on; **Switch off** keeps it without adding it to any page. Saving asks for your password. A plugin's script waits under **Scripts from plugins** until someone who may change site code approves it. Every change is logged, with what it was before. If the host has switched site code off, the page says so; nothing is added to any page and nothing here can be changed.
 
-Code for one spot, such as an ad in a sidebar, goes in a theme region instead: open the region under **Content › Regions**, add a **Custom HTML** card and paste the code into it, with the hosts it connects to in its settings. Only administrators see or change that code, and saving or publishing a change asks for your password again.
+Code for one spot, such as an ad in a sidebar, goes in a theme region instead: open the region under **Content › Regions**, add a **Custom HTML** card and paste the code into its **Code** box. If the code loads from hosts it doesn't name itself, add them under **More: hosts this code loads from** in the card's settings. Only administrators see or change that code, and saving or publishing a change asks for your password again. The card has no switch: to take the code off the site, remove the card and publish, and the region's history brings it back.
 
 ## To choose the theme
 
