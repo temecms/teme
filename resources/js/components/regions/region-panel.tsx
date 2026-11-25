@@ -6,7 +6,7 @@ import {
     GripVertical,
     Plus,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import ContentEditorController from '@/actions/App/Http/Admin/Contents/ContentEditorController';
 import { CardEnvironmentContext } from '@/components/editor/cards/card-environment';
@@ -41,6 +41,7 @@ import type {
 } from '@/types';
 import { AddCardDialog, regionChoices } from './add-card-dialog';
 import { EditCardDialog } from './edit-card-dialog';
+import { changesRegion, forgetRegion } from './region-visits';
 import { appended, moved, replaced, rowsOf } from './region-rows';
 import type { RegionRowItem } from './region-rows';
 
@@ -176,9 +177,14 @@ export function RegionPanel({
     page: RegionsWorkspacePage;
 }) {
     const manifest: CardManifest = page.manifest;
-    const [document, setDocument] = useState<JSONContent>(
+    const [document, putDocument] = useState<JSONContent>(
         session.document as JSONContent,
     );
+    const edited = useRef(false);
+    const setDocument = (next: JSONContent) => {
+        edited.current = true;
+        putDocument(next);
+    };
     const [unpublished, setUnpublished] = useState(region.dirty);
     const [adding, setAdding] = useState(false);
     const [editing, setEditing] = useState<{
@@ -192,6 +198,16 @@ export function RegionPanel({
     const [busy, setBusy] = useState(false);
     const elevated = useElevated();
     const { media, loading, addMedia } = useCardMedia(session.media);
+
+    // An edited region's autosave lands as the panel goes, behind any visit kept of it: leaving drops that one, so coming back asks the server. A region only looked at keeps its visit.
+    useEffect(
+        () => () => {
+            if (edited.current) {
+                forgetRegion(region.key);
+            }
+        },
+        [region.key],
+    );
 
     const saving = useAutosave({
         contentId: session.id,
@@ -250,6 +266,7 @@ export function RegionPanel({
 
         try {
             if ((await saving.checkpoint()) !== null) {
+                forgetRegion(region.key);
                 toast.success(__('Draft saved.'));
             }
         } finally {
@@ -285,6 +302,7 @@ export function RegionPanel({
             }
 
             setUnpublished(answer.body.unpublishedChanges === true);
+            forgetRegion(region.key);
             toast.success(__('Published. Readers see it on their next page.'));
             router.reload({ only: ['groups', 'regions'] });
         } finally {
@@ -298,7 +316,7 @@ export function RegionPanel({
         router.post(
             discardRoute(session.id).url,
             { working_revision_id: saving.workingRevisionId() },
-            { preserveScroll: true },
+            { preserveScroll: true, ...changesRegion(region.key) },
         );
     };
 

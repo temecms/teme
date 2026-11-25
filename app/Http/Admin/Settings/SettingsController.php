@@ -24,6 +24,8 @@ use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\Lists\PluginLists;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Queries\PluginAreaScreen;
+use App\Domain\Plugins\Queries\PluginSettingsScreen;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\Settings\Exceptions\StaleSettingsException;
 use App\Domain\Settings\Operations\Input\SaveSettingsPageInput;
@@ -68,7 +70,7 @@ final class SettingsController extends Controller
         'settings.addresses.manage' => 'Manage addresses',
     ];
 
-    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry, PluginAreas $areas): Response|RedirectResponse
+    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry): Response|RedirectResponse
     {
         // A group drawn under another page's name opens on that page, so its
         // own address, such as /admin/settings/content, keeps working.
@@ -103,7 +105,7 @@ final class SettingsController extends Controller
         if (str_starts_with($page, 'plugin.')) {
             $code = substr($page, strlen('plugin.'));
 
-            if ($areas->hasSettingsTab($code)) {
+            if ($this->mayOpenAreaSettings($request, $code)) {
                 return to_route('plugins.area.settings', ['code' => $code]);
             }
         }
@@ -183,12 +185,28 @@ final class SettingsController extends Controller
         if (str_starts_with($page, 'plugin.')) {
             $code = substr($page, strlen('plugin.'));
 
-            if (app(PluginAreas::class)->hasSettingsTab($code)) {
+            if ($this->mayOpenAreaSettings($request, $code)) {
                 return to_route('plugins.area.settings', ['code' => $code]);
             }
         }
 
         return to_route('settings.show', ['group' => $page]);
+    }
+
+    /**
+     * Whether this person may open the plugin's own Settings tab: the plugin
+     * has one, they hold the area's permission, and they may see settings
+     * there. Otherwise a save sends them to the settings group, never to a
+     * page that would refuse them.
+     */
+    private function mayOpenAreaSettings(Request $request, string $code): bool
+    {
+        $user = $request->user();
+
+        return $user !== null
+            && app(PluginAreas::class)->hasSettingsTab($code)
+            && app(PluginAreaScreen::class)->plugin($code, $user) !== null
+            && app(PluginSettingsScreen::class)->maySee($user);
     }
 
     /**
@@ -323,7 +341,7 @@ final class SettingsController extends Controller
         if (str_starts_with($group, 'plugin.')) {
             $code = substr($group, strlen('plugin.'));
 
-            if (app(PluginAreas::class)->hasSettingsTab($code)) {
+            if ($this->mayOpenAreaSettings($request, $code)) {
                 return to_route('plugins.area.settings', ['code' => $code]);
             }
         }
