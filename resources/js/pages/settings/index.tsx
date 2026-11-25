@@ -49,8 +49,14 @@ export default function SettingsIndex({ cards }: { cards: SettingsCard[] }) {
                                 key={card.key}
                                 href={card.href}
                                 icon={navIcon(card.icon)}
-                                title={card.label}
-                                description={card.line}
+                                title={
+                                    card.plugin !== null
+                                        ? card.line
+                                        : card.label
+                                }
+                                description={
+                                    card.plugin !== null ? null : card.line
+                                }
                                 plugin={card.plugin ?? undefined}
                                 testId={`settings-card-${card.key}`}
                             />
