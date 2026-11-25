@@ -511,6 +511,7 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                     >
                         <SearchField
                             key={filters.search ?? ''}
+                            data-test="list-search"
                             name="search"
                             defaultValue={filters.search ?? ''}
                             placeholder={

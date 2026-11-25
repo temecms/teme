@@ -268,7 +268,9 @@ it('filters by author and by a tag through the Combobox by keyboard alone', func
     cmWaitUntil($page, "new URLSearchParams(location.search).get('author') === '{$this->author->id}'");
 
     ($this->drawn)($page->navigate('/admin/posts'));
-    $page->keys('[data-test="filter-tag"] [data-slot="combobox-trigger"]', 'Enter');
+    $page->click('[data-test="list-filters"] [data-test="more-filters"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"more-filters\"] [data-test=\"filter-tag\"]') !== null");
+    $page->keys('[data-test="more-filters"] [data-test="filter-tag"] [data-slot="combobox-trigger"]', 'Enter');
     cmWaitUntil($page, "document.activeElement?.getAttribute('placeholder') === 'Search tag'");
     $page->keys(':focus', ['R', 'a']);
     cmWaitUntil($page, "[...document.querySelectorAll('[role=\"option\"]')].some((option) => option.textContent.includes('Rain')) && !document.body.textContent.includes('Searching…')");

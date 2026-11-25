@@ -69,7 +69,9 @@ it('puts New in the page header and Columns at the end of the filter line, every
         ->assertScript("document.querySelectorAll('input[type=\"month\"], input[type=\"date\"]').length", 0)
         ->assertScript("document.querySelector('[data-test=\"clear-filters\"]') === null");
 
-    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Tag: All tags|Date: All dates');
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Date: All dates')
+        ->and($page->script("document.querySelector('[data-test=\"list-filters\"] [data-test=\"more-filters\"]')?.textContent.trim().startsWith('More filters')"))->toBeTrue()
+        ->and($page->script("document.querySelector('[data-test=\"list-filters\"] [data-test=\"filter-tag\"]') === null"))->toBeTrue();
 });
 
 it('applies a category the moment it is chosen, names it on its button, and clears it with Clear filters (#120)', function (): void {
@@ -80,7 +82,7 @@ it('applies a category the moment it is chosen, names it on its button, and clea
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('category') === '{$this->roads->id}' && document.querySelector('[data-test=\"clear-filters\"]') !== null");
 
-    expect(($this->buttons)($page))->toBe('Author: All authors|Category: Roads|Tag: All tags|Date: All dates')
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: Roads|Date: All dates')
         ->and(($this->titles)($page))->toBe('Market day');
 
     $page->click('[data-test="clear-filters"]');
@@ -98,7 +100,7 @@ it('applies an author at once, keeping the category in force', function (): void
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('author') === '{$this->editor->id}' && new URLSearchParams(window.location.search).get('category') === '{$this->transport->id}'");
 
-    expect(($this->buttons)($page))->toBe('Author: Eve Editor|Category: Transport|Tag: All tags|Date: All dates')
+    expect(($this->buttons)($page))->toBe('Author: Eve Editor|Category: Transport|Date: All dates')
         ->and(($this->titles)($page))->toBe('Harbour news');
 });
 
@@ -116,7 +118,7 @@ it('lists the months that hold posts, newest first with their counts, and filter
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('month') === '2026-10' && document.querySelectorAll('[data-test=\"row-title\"]').length === 2");
 
-    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Tag: All tags|Date: October 2026')
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Date: October 2026')
         ->and(($this->titles)($page))->toBe('Ferry fares|Market day');
 });
 
@@ -148,8 +150,19 @@ it('chooses an exact range with labelled From and To, goes back to the months, a
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('from') === '2026-09-01' && new URLSearchParams(window.location.search).get('to') === '2026-09-30' && document.querySelectorAll('[data-test=\"row-title\"]').length === 1");
 
-    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Tag: All tags|Date: 1–30 Sep 2026')
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Date: 1–30 Sep 2026')
         ->and(($this->titles)($page))->toBe('Harbour news');
+});
+
+it('keeps Tag under More filters until it is applied, then shows it on the row', function (): void {
+    $harbour = taxonomyTerm('tag', 'Harbour');
+
+    $page = cmSignIn($this->editor)->navigate("/admin/posts?tag={$harbour->id}");
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"list-filters\"] [data-test=\"filter-tag\"]') !== null");
+
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Date: All dates|Tag: Harbour')
+        ->and($page->script("document.querySelector('[data-test=\"list-filters\"] [data-test=\"more-filters\"]') === null"))->toBeTrue();
 });
 
 it('searches on Enter, and searches the text at once when In text is chosen with words typed', function (): void {
