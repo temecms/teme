@@ -34,6 +34,7 @@ export default function CommentsOff({ canSwitch }: Props) {
     return (
         <ListPage
             title={title}
+            showTitle
             description={__(
                 'This site takes no comments, so there’s nothing to moderate. Comments already stored are kept.',
             )}
