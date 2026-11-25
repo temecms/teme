@@ -21,7 +21,7 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\LinkResolver;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\Rules\CanonicalChoice;
-use App\Domain\Media\MediaDisks;
+use App\Domain\Plugins\Images\ImageServices;
 use App\Domain\Seo\SocialCards;
 use App\Domain\Seo\TitlesAndListing;
 use App\Domain\Site\Document\DocumentPage;
@@ -358,11 +358,13 @@ final class PageHead
         $variants = (array) json_decode((string) $media->variants, true);
         $card = is_array($variants['social'] ?? null);
         $variant = $card ? $variants['social'] : null;
+        $key = 'social';
 
         if ($variant === null) {
             $widths = array_filter($variants, fn (mixed $file, string|int $key): bool => is_array($file) && preg_match('/^w\d+$/', (string) $key) === 1, ARRAY_FILTER_USE_BOTH);
             uasort($widths, fn (array $a, array $b): int => (int) ($b['width'] ?? 0) <=> (int) ($a['width'] ?? 0));
             $variant = $widths === [] ? null : reset($widths);
+            $key = (string) array_key_first($widths);
         }
 
         if (! is_array($variant) || ! is_string($variant['path'] ?? null)) {
@@ -371,7 +373,7 @@ final class PageHead
 
         return new SocialImage(
             (string) $media->id,
-            url(MediaDisks::public()->url($variant['path'])),
+            url(app(ImageServices::class)->address((string) $media->id, $key, $variant['path'])),
             (int) $variant['width'],
             (int) $variant['height'],
             $alt ?? self::text($media->alt),

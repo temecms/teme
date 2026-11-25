@@ -25,6 +25,7 @@ use App\Domain\Plugins\Contributions\RecordedStatusFaults;
 use App\Domain\Plugins\Contributions\StatusFaults;
 use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Doors\PluginDoors;
+use App\Domain\Plugins\Images\ImageServices;
 use App\Domain\Plugins\Jobs\PluginJobKind;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\PluginLoader;
@@ -57,6 +58,8 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->scoped(PublicRouteRegistry::class);
         // Scoped: which plugins ran over a search socket's budget in this request or job.
         $this->app->scoped(SlowSockets::class);
+        // Scoped: finds the image service's driver once a request or job.
+        $this->app->scoped(ImageServices::class);
 
         $this->app->singleton(HookSubscriptions::class, DispatcherSubscriptions::class);
 

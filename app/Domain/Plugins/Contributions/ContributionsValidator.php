@@ -19,6 +19,7 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\AreaValidator;
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
+use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seo\SeoValidator;
@@ -213,7 +214,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -294,6 +295,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         // What it declares for search engines (docs/guides/developers/plugins/seo.md).
         $errors = [...$errors, ...app(SeoValidator::class)->errors($contributes, $capabilities)];
+
+        // Its image service (docs/guides/developers/plugins/image-service.md).
+        $errors = [...$errors, ...ImageServiceDeclaration::errors($contributes, $capabilities)];
 
         return $errors;
     }

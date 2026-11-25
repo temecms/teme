@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "tests/imagery",
+    "code": "imagery",
+    "label": "Imagery",
+    "description": "A plugin the tests enable, which gives images' addresses from an outside image service.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Imagery\\Imagery",
+    "capabilities": ["media.read"],
+    "contributes": {
+        "imageService": { "label": "Imagery CDN", "host": "images.example.com" }
+    }
+}

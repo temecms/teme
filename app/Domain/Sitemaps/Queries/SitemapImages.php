@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Sitemaps\Queries;
 
-use App\Domain\Media\MediaDisks;
+use App\Domain\Plugins\Images\ImageServices;
 use Illuminate\Support\Facades\DB;
 
 final class SitemapImages
@@ -47,11 +47,11 @@ final class SitemapImages
             ->whereNull('media.deleted_at')
             ->orderBy('media_usages.content_id')
             ->orderBy('media_usages.ref')
-            ->get(['media_usages.content_id', 'media.variants']);
+            ->get(['media_usages.content_id', 'media.id as media_id', 'media.variants']);
 
         foreach ($rows as $row) {
             $id = (string) $row->content_id;
-            $url = self::widest((array) json_decode((string) $row->variants, true));
+            $url = self::widest((string) $row->media_id, (array) json_decode((string) $row->variants, true));
             $held = $images[$id] ?? [];
 
             if ($url !== null && count($held) < self::MOST && ! in_array($url, $held, true)) {
@@ -68,18 +68,20 @@ final class SitemapImages
      *
      * @param  array<mixed>  $variants
      */
-    private static function widest(array $variants): ?string
+    private static function widest(string $mediaId, array $variants): ?string
     {
         $widest = null;
+        $widestKey = '';
         $width = 0;
 
         foreach ($variants as $key => $variant) {
             if (preg_match('/^w\d+$/', (string) $key) === 1 && is_array($variant) && is_string($variant['path'] ?? null) && (int) ($variant['width'] ?? 0) > $width) {
                 $widest = $variant['path'];
+                $widestKey = (string) $key;
                 $width = (int) $variant['width'];
             }
         }
 
-        return $widest === null ? null : url(MediaDisks::public()->url($widest));
+        return $widest === null ? null : url(app(ImageServices::class)->address($mediaId, $widestKey, $widest));
     }
 }

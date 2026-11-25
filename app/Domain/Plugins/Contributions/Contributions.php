@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Plugins\Editor\PanelValidator;
+use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seo\SeoValidator;
 use App\Domain\PublicRoutes\RootFileNames;
@@ -70,6 +71,7 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
         array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
         array_push($errors, ...app(SeoValidator::class)->startErrors($contributes, $plugin));
+        array_push($errors, ...ImageServiceDeclaration::startErrors($contributes, $plugin));
 
         if ($errors !== []) {
             return $errors;

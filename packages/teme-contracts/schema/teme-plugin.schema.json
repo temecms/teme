@@ -1280,6 +1280,25 @@
                         }
                     }
                 },
+                "imageService": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["label", "host"],
+                    "description": "An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService.",
+                    "properties": {
+                        "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "description": "The service's name, as the consent names it."
+                        },
+                        "host": {
+                            "type": "string",
+                            "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$",
+                            "description": "The host its addresses are on, served over https, which joins the img-src of the content security policy."
+                        }
+                    }
+                },
                 "notices": {
                     "type": "array",
                     "maxItems": 5,
