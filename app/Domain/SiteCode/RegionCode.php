@@ -19,8 +19,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 /**
  * The code a region's Custom HTML cards hold (docs/architecture/security.md).
- * Each card keeps its own `code`, the `origins` it connects to and whether
- * it is `on`; only someone who may manage site code adds or changes them.
+ * Each card keeps its own `code` and the `origins` it connects to; only someone who may manage site code adds or changes them.
  * Everyone else's documents come in with the code hidden, as null, and
  * leave with the code each card had before; a card new to the region holds
  * none.
@@ -31,7 +30,7 @@ final class RegionCode
     public const string CARD = 'site-code';
 
     /** What a card holds when it holds no code. */
-    private const array NONE = ['code' => '', 'origins' => [], 'on' => true];
+    private const array NONE = ['code' => '', 'origins' => []];
 
     /**
      * Whether this person may add or change a card's code now: they manage
@@ -43,12 +42,12 @@ final class RegionCode
     }
 
     /**
-     * Each card's code, origins and on, by its node ID; a card without an ID
+     * Each card's code and origins, by its node ID; a card without an ID
      * by "new:N", so it counts as added.
      *
      * @param  array<mixed>  $document
      *
-     * @return array<string, array{code: string, origins: list<string>, on: bool}>
+     * @return array<string, array{code: string, origins: list<string>}>
      */
     public static function of(array $document): array
     {
@@ -75,7 +74,7 @@ final class RegionCode
      * @param  array<mixed>  $before
      * @param  array<mixed>  $after
      *
-     * @return list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>, on: bool}, after: array{code: string, origins: list<string>, on: bool}}>
+     * @return list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>}, after: array{code: string, origins: list<string>}}>
      */
     public static function changes(array $before, array $after): array
     {
@@ -105,7 +104,7 @@ final class RegionCode
     /**
      * The changes that put code on the site or alter it, without removals.
      *
-     * @param  list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>, on: bool}, after: array{code: string, origins: list<string>, on: bool}}>  $changes
+     * @param  list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>}, after: array{code: string, origins: list<string>}}>  $changes
      */
     public static function addsOrChanges(array $changes): bool
     {
@@ -114,7 +113,7 @@ final class RegionCode
 
     /**
      * The document with every card's code and origins hidden, for whoever
-     * may not read them; `on` stays, as it says nothing of the code.
+     * may not read them.
      *
      * @param  array<mixed>  $document
      *
@@ -133,7 +132,7 @@ final class RegionCode
      * The document of someone who may not change code, each card given the
      * code it had in $base, by its ID, and a card new to the region none.
      * Hidden values, null or empty, are taken as "keep"; any other value
-     * that differs is refused.
+     * that differs is refused, and so are two cards with one ID.
      *
      * @param  array<mixed>  $document
      * @param  array<mixed>  $base
@@ -145,24 +144,32 @@ final class RegionCode
     public static function carry(array $document, array $base, string $refusal = 'Not permitted to change site code.'): array
     {
         $kept = self::of($base);
+        $seen = [];
 
-        return self::walk($document, function (array $node) use ($kept, $refusal): array {
+        return self::walk($document, function (array $node) use ($kept, $refusal, &$seen): array {
             $attrs = is_array($node['attrs'] ?? null) ? $node['attrs'] : [];
             $id = is_string($attrs['id'] ?? null) ? $attrs['id'] : '';
+
+            // Two cards with one ID would both take the first one's code.
+            if ($id !== '' && isset($seen[$id])) {
+                throw new AuthorizationException($refusal);
+            }
+
+            $seen[$id] = true;
             $was = $kept[$id] ?? self::NONE;
             $code = $attrs['code'] ?? null;
             $origins = $attrs['origins'] ?? null;
-            $on = $attrs['on'] ?? null;
 
             if ((is_string($code) && $code !== '' && $code !== $was['code'])
                 || (! is_string($code) && $code !== null)
                 || (is_array($origins) && $origins !== [] && self::origins($origins) !== $was['origins'])
-                || ($origins !== null && ! is_array($origins))
-                || ($on !== null && $on !== $was['on'])) {
+                || ($origins !== null && ! is_array($origins))) {
                 throw new AuthorizationException($refusal);
             }
 
-            $node['attrs'] = [...$attrs, 'code' => $was['code'] === '' ? null : $was['code'], 'origins' => $was['origins'], 'on' => $was['on']];
+            // A card no longer has an on or off, so one that is sent is dropped.
+            unset($attrs['on']);
+            $node['attrs'] = [...$attrs, 'code' => $was['code'] === '' ? null : $was['code'], 'origins' => $was['origins']];
 
             return $node;
         });
@@ -187,19 +194,18 @@ final class RegionCode
     /**
      * @param  array<mixed>  $attrs
      *
-     * @return array{code: string, origins: list<string>, on: bool}
+     * @return array{code: string, origins: list<string>}
      */
     private static function held(array $attrs): array
     {
         return [
             'code' => is_string($attrs['code'] ?? null) ? $attrs['code'] : '',
             'origins' => self::origins($attrs['origins'] ?? []),
-            'on' => ($attrs['on'] ?? true) !== false,
         ];
     }
 
     /**
-     * @param  array{code: string, origins: list<string>, on: bool}  $held
+     * @param  array{code: string, origins: list<string>}  $held
      */
     private static function empty(array $held): bool
     {
