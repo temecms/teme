@@ -106,7 +106,7 @@ export default function PageCache({
                             <PanelHeader>
                                 <h2
                                     id="page-cache-now"
-                                    className="text-lead font-semibold"
+                                    className="text-body font-semibold"
                                 >
                                     {__('Now')}
                                 </h2>

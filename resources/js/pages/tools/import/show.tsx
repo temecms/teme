@@ -210,6 +210,7 @@ export default function ImportShow({
         breadcrumbs: [
             { title: __('Tools'), href: index() },
             { title: __('Import'), href: importerIndex() },
+            { title: site.host },
         ],
     });
 

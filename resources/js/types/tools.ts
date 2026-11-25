@@ -176,6 +176,10 @@ export type AiActivityPage = {
     rows: AiActivityRow[];
     newer: string | null;
     older: string | null;
+    /** Where this page's rows sit in the filtered list; null when the list is empty. */
+    from: number | null;
+    to: number | null;
+    total: number;
     filters: {
         person: number | null;
         task: string | null;

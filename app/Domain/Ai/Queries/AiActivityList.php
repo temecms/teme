@@ -63,9 +63,10 @@ final readonly class AiActivityList
      * Returns a page of the record, newest first, at most the request's page
      * size (1 to 200), narrowed by its person, task, month and plugin; with the cursor
      * that opens the page of newer rows, or null at the first page, and the
-     * one that opens the page of older rows, or null at the last.
+     * one that opens the page of older rows, or null at the last; and where
+     * the rows sit in the filtered list ("1 to 10 of N").
      *
-     * @return array{rows: list<ActivityRow>, newer: string|null, older: string|null}
+     * @return array{rows: list<ActivityRow>, newer: string|null, older: string|null, from: int|null, to: int|null, total: int}
      */
     public function page(AiActivityRequest $request): array
     {
@@ -74,13 +75,10 @@ final readonly class AiActivityList
         $backwards = $before !== null;
         $cursor = $before ?? self::cursor($request->after);
 
-        $query = DB::table('ai_activity as a')
-            ->select(self::COLUMNS)
-            ->when($request->person !== null, fn (Builder $found): Builder => $found->where('a.user_id', $request->person))
-            ->when($request->task !== null, fn (Builder $found): Builder => $found->where('a.task', $request->task))
-            ->when($request->month !== null, fn (Builder $found): Builder => self::within($found, (string) $request->month))
-            ->when($request->plugin === self::TEME, fn (Builder $found): Builder => $found->whereNull('a.plugin'))
-            ->when($request->plugin !== null && $request->plugin !== self::TEME, fn (Builder $found): Builder => $found->where('a.plugin', $request->plugin));
+        $filtered = $this->filtered($request);
+        $total = (int) (clone $filtered)->count();
+
+        $query = (clone $filtered)->select(self::COLUMNS);
 
         if ($cursor !== null) {
             // One row comparison, so the index on the moment and the ID answers it.
@@ -98,12 +96,43 @@ final readonly class AiActivityList
 
         $first = $found->first();
         $last = $found->last();
+        $count = $found->count();
+        $from = null;
+        $to = null;
+
+        if ($count > 0 && $first !== null) {
+            // How many newer rows sit before this page: none when there is no cursor.
+            $ahead = $cursor === null
+                ? 0
+                : (int) (clone $filtered)
+                    ->whereRaw('(a.created_at, a.id) > (?::timestamptz, ?)', [(string) $first->created_at, (string) $first->id])
+                    ->count();
+            $from = $ahead + 1;
+            $to = $ahead + $count;
+        }
 
         return [
             'rows' => $this->shown($found),
             'newer' => $first !== null && ($backwards ? $more : $cursor !== null) ? self::cursorAt($first) : null,
             'older' => $last !== null && ($backwards || $more) ? self::cursorAt($last) : null,
+            'from' => $from,
+            'to' => $to,
+            'total' => $total,
         ];
+    }
+
+    /**
+     * The record narrowed by the request's person, task, month and plugin,
+     * with no order or limit: for the page's rows and for its total.
+     */
+    private function filtered(AiActivityRequest $request): Builder
+    {
+        return DB::table('ai_activity as a')
+            ->when($request->person !== null, fn (Builder $found): Builder => $found->where('a.user_id', $request->person))
+            ->when($request->task !== null, fn (Builder $found): Builder => $found->where('a.task', $request->task))
+            ->when($request->month !== null, fn (Builder $found): Builder => self::within($found, (string) $request->month))
+            ->when($request->plugin === self::TEME, fn (Builder $found): Builder => $found->whereNull('a.plugin'))
+            ->when($request->plugin !== null && $request->plugin !== self::TEME, fn (Builder $found): Builder => $found->where('a.plugin', $request->plugin));
     }
 
     /**

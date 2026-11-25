@@ -30,6 +30,7 @@ export function ImportWays({
                         'Needs the Teme Companion plugin on the WordPress site.',
                     )}
                     testId="import-way-connect"
+                    primary
                     items={[
                         __(
                             'Everything: posts, pages, media, people with their roles and passwords, comments, menus in their places',
@@ -72,6 +73,7 @@ function WayCard({
     onOpen,
     openLabel,
     testId,
+    primary = false,
 }: {
     title: string;
     items: string[];
@@ -80,6 +82,8 @@ function WayCard({
     onOpen: () => void;
     openLabel: string;
     testId: string;
+    /** The preferred way in: primary when closed, outline when open so Close stays readable. */
+    primary?: boolean;
 }) {
     return (
         <div
@@ -101,7 +105,9 @@ function WayCard({
             <div>
                 <Button
                     type="button"
-                    variant="default"
+                    variant={
+                        open ? 'outline' : primary ? 'default' : 'secondary'
+                    }
                     onClick={onOpen}
                     data-test={`${testId}-button`}
                 >

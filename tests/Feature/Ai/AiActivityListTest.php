@@ -35,10 +35,10 @@ beforeEach(function (): void {
     $this->list = fn (array $request = []): array => app(AiActivityList::class)->page(new AiActivityRequest(...$request));
     $this->ids = fn (array $page): array => array_column($page['rows'], 'id');
 
-    // The plan PostgreSQL makes for a page's rows, with the rival plans ruled out, so a few hundred rows show whether an index can answer it.
+    // The plan PostgreSQL makes for a page's rows, with the rival plans ruled out, so a few hundred rows show whether an index can answer it. Skip the count that names the range.
     $this->plan = function (array $request): string {
         $statement = collect(planStatements(fn () => ($this->list)($request)))
-            ->first(fn (array $entry): bool => str_contains($entry['query'], 'from "ai_activity" as "a"'));
+            ->first(fn (array $entry): bool => str_contains($entry['query'], 'from "ai_activity" as "a"') && str_contains(strtolower($entry['query']), 'order by'));
 
         expect($statement)->not->toBeNull();
 
@@ -66,6 +66,9 @@ it('shows a request as one row: who, which task and option, which item, how it e
     $page = ($this->list)();
 
     expect($page['rows'])->toHaveCount(1)
+        ->and($page['from'])->toBe(1)
+        ->and($page['to'])->toBe(1)
+        ->and($page['total'])->toBe(1)
         ->and($page['rows'][0])->toBe([
             'id' => $id,
             'at' => '2026-11-12T14:03:22+00:00',
@@ -121,7 +124,10 @@ it('pages by keyset, forward and back, with no gap and no overlap (I-140)', func
         ->and(($this->ids)($backTwo))->toBe(($this->ids)($two))
         ->and($backTwo['older'])->not->toBeNull()
         ->and(($this->ids)($backOne))->toBe(($this->ids)($one))
-        ->and($backOne['newer'])->toBeNull();
+        ->and($backOne['newer'])->toBeNull()
+        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 3, 7])
+        ->and([$two['from'], $two['to'], $two['total']])->toBe([4, 6, 7])
+        ->and([$three['from'], $three['to'], $three['total']])->toBe([7, 7, 7]);
 });
 
 it('ignores a cursor that doesn\'t read as a moment and a row, and shows the newest page', function (string $case): void {
@@ -289,7 +295,7 @@ it('finds one request by its ID, though it is far from the first page, and none 
         ->and(app(AiActivityList::class)->find('not an id'))->toBeNull();
 });
 
-it('reads the same number of statements for every page, with no offset and no count', function (): void {
+it('pages with no offset, counting only for the range the screen names', function (): void {
     $image = mediaUpload($this->eze, mediaJpeg(), 'Harbour.jpg');
 
     foreach (range(1, 30) as $n) {
@@ -310,10 +316,11 @@ it('reads the same number of statements for every page, with no offset and no co
     $sql = strtolower(implode("\n", array_column([...$first, ...$second], 'query')));
 
     expect($one['rows'])->toHaveCount(20)
-        ->and(count($first))->toBe(4)
-        ->and(count($second))->toBe(count($first))
+        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 20, 30])
+        ->and(count($first))->toBe(5)
+        ->and(count($second))->toBe(6)
         ->and($sql)->not->toContain('offset')
-        ->and($sql)->not->toContain('count(');
+        ->and(substr_count($sql, 'count('))->toBe(3);
 });
 
 it('answers a page by the index on the moment and the ID, with no sort, after a cursor too (I-140)', function (): void {
