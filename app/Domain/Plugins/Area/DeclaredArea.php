@@ -37,7 +37,7 @@ final readonly class DeclaredArea
         public array $purges,
         public array $pages,
         public array $records,
-        /** The menu icon; plug when the area names none. @since next */
+        /** The menu icon; plug when the area names none. @since 1.5.0 */
         public string $icon = 'plug',
     ) {}
 

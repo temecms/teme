@@ -6,7 +6,7 @@
  * plugin's approved scripts and the hosts the plugin declared.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

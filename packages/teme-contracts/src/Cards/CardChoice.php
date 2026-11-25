@@ -5,7 +5,7 @@
  * shown, a hint, and whether it fits the region's size.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 
@@ -18,12 +18,12 @@ namespace Teme\Contracts\Cards;
  * 191 characters, the label shown, a short hint, and whether it fits the
  * region's size, null when that doesn't apply.
  *
- * @since next
+ * @since 1.5.0
  */
 final readonly class CardChoice
 {
     /**
-     * @since next
+     * @since 1.5.0
      */
     public function __construct(
         public string $value,

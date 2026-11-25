@@ -5,7 +5,7 @@
  * the editor while someone who may manage regions fills the card in.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

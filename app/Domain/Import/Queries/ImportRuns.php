@@ -43,7 +43,7 @@ final class ImportRuns
     /**
      * The latest picture pass that follows this run, or null when it has none.
      *
-     * @since next
+     * @since 1.5.0
      */
     public function passOf(string $runId): ?ImportRun
     {

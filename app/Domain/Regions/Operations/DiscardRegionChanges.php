@@ -6,7 +6,7 @@
  * a region never published, to the empty one it was made with.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

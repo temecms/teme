@@ -141,7 +141,7 @@ final class ContributionsValidator implements ContributionsCheck
     /**
      * A card's id (docs/guides/developers/plugins/cards.md).
      *
-     * @since next
+     * @since 1.5.0
      */
     public const string CARD_ID = '/^[a-z][a-z0-9-]{1,40}$/D';
 
@@ -149,21 +149,21 @@ final class ContributionsValidator implements ContributionsCheck
      * The types a card's field may take: a setting's, without secret, code
      * and repeater, and with choice.
      *
-     * @since next
+     * @since 1.5.0
      */
     public const array CARD_FIELD_TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'color', 'person', 'term', 'type', 'choice'];
 
     /**
      * At most this many cards per plugin.
      *
-     * @since next
+     * @since 1.5.0
      */
     public const int MOST_CARDS = 20;
 
     /**
      * At most this many fields per card.
      *
-     * @since next
+     * @since 1.5.0
      */
     public const int MOST_CARD_FIELDS = 20;
 
@@ -362,7 +362,7 @@ final class ContributionsValidator implements ContributionsCheck
      *
      * @return list<string>
      *
-     * @since next
+     * @since 1.5.0
      */
     public function cardFieldErrors(mixed $fields, string $version, bool $choice = true): array
     {

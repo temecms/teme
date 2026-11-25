@@ -31,6 +31,8 @@ fi
 stopping=
 
 stop_all() {
+    # Once: a second signal doesn't cut the workers' jobs short.
+    [ -n "$stopping" ] && return
     stopping=1
     kill -TERM $(jobs -p) 2> /dev/null
 }
@@ -52,9 +54,12 @@ while [ -z "$stopping" ]; do
     "$@" &
 done
 
-# Each worker finishes the job it has; a second signal doesn't cut this short.
-while [ -n "$(jobs -p)" ]; do
+# Each worker finishes the job it has. A plain wait returns 0 once every
+# worker has ended, or above 128 when a signal interrupts it; asking jobs -p
+# instead can go on listing workers already gone, and never end.
+while :; do
     wait
+    [ "$?" -gt 128 ] || break
 done
 
 exit 0

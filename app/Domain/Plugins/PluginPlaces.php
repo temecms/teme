@@ -5,7 +5,7 @@
  * translatable phrases from its contributions, for the enable toast.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

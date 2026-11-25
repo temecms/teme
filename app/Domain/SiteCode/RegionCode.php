@@ -6,7 +6,7 @@
  * the revision before for whoever may not change it.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

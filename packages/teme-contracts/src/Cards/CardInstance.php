@@ -5,7 +5,7 @@
  * of its fields, the region it is in and the page's language.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 
@@ -18,7 +18,7 @@ namespace Teme\Contracts\Cards;
  * stored, the region it is in, and the page's language. Never anything
  * about the visitor: the page is cached whole for everyone.
  *
- * @since next
+ * @since 1.5.0
  */
 final readonly class CardInstance
 {
@@ -26,7 +26,7 @@ final readonly class CardInstance
      * @param  string  $id  the card's node ID, the same in every revision of the region
      * @param  array<string, mixed>  $values  by field key; a field never filled in is missing
      *
-     * @since next
+     * @since 1.5.0
      */
     public function __construct(
         public string $id,

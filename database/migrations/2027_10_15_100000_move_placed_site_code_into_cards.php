@@ -4,7 +4,7 @@
  * Migration: moves site code placed with a card into the cards themselves.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

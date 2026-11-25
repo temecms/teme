@@ -68,7 +68,7 @@ final class RegionWords
      * Said when a switch leaves the theme's own cards behind: how many are
      * kept, and where.
      *
-     * @since next
+     * @since 1.5.0
      */
     public static function keptCards(int $cards): string
     {

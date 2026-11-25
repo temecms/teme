@@ -5,7 +5,7 @@
  * with the code and hosts before and after, as site code's changes are.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

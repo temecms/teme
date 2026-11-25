@@ -55,7 +55,7 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
      * default: the media files fetched at once, the media setting's when
      * none is given (#701).
      *
-     * @since next
+     * @since 1.5.0
      */
     public const array FILE_OPTIONS = ['media_lanes'];
 

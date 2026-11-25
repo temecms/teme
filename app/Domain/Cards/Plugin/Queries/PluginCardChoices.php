@@ -5,7 +5,7 @@
  * in one region, as the editor asks while the card is filled in.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

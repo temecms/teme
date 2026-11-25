@@ -5,7 +5,7 @@
  * person saw, and who is asking.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

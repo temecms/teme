@@ -5,7 +5,7 @@
  * drawing on a public page within a time budget.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

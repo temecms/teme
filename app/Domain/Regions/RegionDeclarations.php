@@ -34,7 +34,7 @@ final readonly class RegionDeclarations
     /**
      * The longest name of the group a region is listed under.
      *
-     * @since next
+     * @since 1.5.0
      */
     public const int GROUP_LENGTH = 40;
 

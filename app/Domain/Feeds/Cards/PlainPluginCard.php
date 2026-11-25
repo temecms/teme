@@ -5,7 +5,7 @@
  * no feed carries, so this version exists only so every card has one.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

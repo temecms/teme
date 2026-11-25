@@ -1463,7 +1463,7 @@
                                 "code",
                                 "grid"
                             ],
-                            "$comment": "@since next",
+                            "$comment": "@since 1.5.0",
                             "description": "The menu and Tools-card icon; plug when absent."
                         },
                         "purges": {

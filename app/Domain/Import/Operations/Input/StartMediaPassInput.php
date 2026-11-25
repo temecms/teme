@@ -4,7 +4,7 @@
  * What `StartMediaPass` needs: the finished import whose pictures it brings, and who starts it (null for the operator).
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

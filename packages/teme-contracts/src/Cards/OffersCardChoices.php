@@ -5,7 +5,7 @@
  * an editor fills the card in, such as the ads it keeps.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 
@@ -18,7 +18,7 @@ namespace Teme\Contracts\Cards;
  * an editor fills the card in. Asked in the admin, within a time budget;
  * one that throws or runs over gives no options.
  *
- * @since next
+ * @since 1.5.0
  */
 interface OffersCardChoices
 {
@@ -31,7 +31,7 @@ interface OffersCardChoices
      *
      * @return list<CardChoice>
      *
-     * @since next
+     * @since 1.5.0
      */
     public function choices(string $field, CardRegion $region, string $search = ''): array;
 }

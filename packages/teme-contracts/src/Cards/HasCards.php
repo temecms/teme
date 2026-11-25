@@ -5,7 +5,7 @@
  * object for each card its manifest declares under contributes.cards.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 
@@ -19,7 +19,7 @@ namespace Teme\Contracts\Cards;
  * declares under contributes.cards, no more and no fewer. Asked only of a
  * plugin granted pages.insert.
  *
- * @since next
+ * @since 1.5.0
  */
 interface HasCards
 {
@@ -28,7 +28,7 @@ interface HasCards
      *
      * @return array<string, PluginCard>
      *
-     * @since next
+     * @since 1.5.0
      */
     public function cards(): array;
 }
