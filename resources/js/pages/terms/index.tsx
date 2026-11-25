@@ -11,7 +11,6 @@ import type { RowAction } from '@/components/list/row-actions';
 import { LanguageMarks } from '@/components/list/language-marks';
 import { RowLine } from '@/components/list/row-line';
 import { SearchField } from '@/components/list/search-field';
-import { InPageNav } from '@/components/patterns/in-page-nav';
 import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -264,13 +263,11 @@ function pageLine(row: TermRow, uses: Use[]): string {
 export default function TermsIndex({
     taxonomy,
     declared,
-    tabs,
     types,
     rows,
     paging,
     search,
     tree,
-    setup,
     languages = [],
     versions = null,
 }: TermsIndexPage) {
@@ -478,33 +475,8 @@ export default function TermsIndex({
     ];
 
     return (
-        <ListPage
-            title={heading}
-            description={description}
-            actions={
-                setup !== null && (
-                    <Button variant="neutral" asChild>
-                        <Link href={setup} data-test="term-setup">
-                            {__('Set up :plural', { plural: declared.plural })}
-                        </Link>
-                    </Button>
-                )
-            }
-        >
+        <ListPage title={heading} description={description}>
             <Head title={declared.plural} />
-
-            {tabs.length > 1 && (
-                <InPageNav
-                    label={__('Taxonomies')}
-                    shown={tabs.length}
-                    items={tabs.map((tab) => ({
-                        label: tab.label,
-                        count: tab.count,
-                        current: tab.segment === taxonomy,
-                        href: termsIndex({ taxonomy: tab.segment }).url,
-                    }))}
-                />
-            )}
 
             <div className="flex flex-col items-start gap-6 lg:flex-row">
                 <Panel

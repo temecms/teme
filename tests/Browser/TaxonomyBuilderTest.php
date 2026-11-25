@@ -65,8 +65,9 @@ it('makes Studios from the form, used by Films, and the menu files them under Fi
 
     $page->navigate('/admin/studios');
     cmWaitUntil($page, 'document.querySelector(\'nav a[href="/admin/studios"]\') !== null');
-    cmWaitUntil($page, 'document.querySelector(\'[data-test="term-setup"]\') !== null');
-    $page->click('[data-test="term-setup"]');
+    expect($page->script('() => document.querySelector("[data-test=\"term-setup\"]")'))->toBeNull();
+
+    $page->navigate('/admin/taxonomies/studio');
     cmWaitUntil($page, 'location.pathname === "/admin/taxonomies/studio"');
     ($this->seen)($page, 'Made here on');
 });
@@ -168,12 +169,13 @@ it('shows the lock’s notice, and only View, while types are locked', function 
     expect($page->script('() => document.querySelectorAll("main form").length'))->toBe(0);
 });
 
-it('shows Set up Genres to an administrator, and names a genre’s page in its edit sheet', function (): void {
+it('offers no Set up on Genres, and names a genre’s page in its edit sheet', function (): void {
     ($this->site)();
 
     $page = cmSignIn($this->admin)->navigate('/admin/genres');
-    cmWaitUntil($page, 'document.querySelector(\'[data-test="term-setup"]\') !== null');
-    ($this->seen)($page, 'Set up Genres');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="term-name"]\') !== null');
+    expect($page->script('() => document.querySelector("[data-test=\"term-setup\"]")'))->toBeNull()
+        ->and($page->script('() => document.querySelector(\'nav[aria-label="Taxonomies"]\')'))->toBeNull();
 
     $page->click('[aria-label="Actions for Action"] >> text="Edit"');
     cmWaitUntil($page, 'document.querySelector(\'[role="menu"]\') === null');
