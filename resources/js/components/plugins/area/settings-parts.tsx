@@ -281,13 +281,16 @@ export function PluginActionsPanel({
                         key={action.id}
                         className="flex flex-wrap items-center justify-between gap-3 px-6 py-4"
                     >
-                        <div className="grid gap-0.5">
-                            <span className="text-body font-medium">
-                                {action.label}
-                            </span>
-                            {action.description !== null && (
+                        <div className="grid min-w-0 flex-1 gap-0.5">
+                            {action.description !== null ? (
                                 <span className="text-small text-ink-2">
                                     {action.description}
+                                </span>
+                            ) : (
+                                <span className="text-body text-ink-2">
+                                    {__('Runs :action for this plugin.', {
+                                        action: action.label.toLowerCase(),
+                                    })}
                                 </span>
                             )}
                         </div>
