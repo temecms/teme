@@ -29,6 +29,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { IconTile } from '@/components/ui/icon-tile';
 import { __, __n } from '@/lib/i18n';
 import { lucideIcon } from '@/lib/lucide-icons';
 import { cn } from '@/lib/utils';
@@ -89,7 +90,7 @@ function CardRow({
                 onDrop();
             }}
             className={cn(
-                'border-line bg-surface flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-md border px-2 py-2 @max-lg:flex-col @max-lg:items-stretch',
+                'bg-surface flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-md px-2 py-2 @max-lg:flex-col @max-lg:items-stretch',
                 dragging && 'opacity-50',
                 row.off && 'bg-surface-2',
             )}
@@ -99,9 +100,7 @@ function CardRow({
                     aria-hidden
                     className="text-ink-3 size-4 shrink-0 cursor-grab"
                 />
-                {Icon !== undefined && (
-                    <Icon aria-hidden className="text-ink-2 size-4 shrink-0" />
-                )}
+                {Icon !== undefined && <IconTile icon={Icon} size="sm" />}
                 <div className="grid min-w-0 gap-0.5">
                     <span className="text-ink truncate font-semibold">
                         {row.title !== '' ? row.title : row.label}
@@ -117,17 +116,6 @@ function CardRow({
                 </div>
             </div>
             <div className="flex shrink-0 items-center gap-0.5 @max-lg:justify-end">
-                {!row.off && (
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="xs"
-                        onClick={onEdit}
-                    >
-                        <Pencil />
-                        {__('Edit')}
-                    </Button>
-                )}
                 <Button
                     type="button"
                     variant="ghost"
@@ -150,6 +138,17 @@ function CardRow({
                 >
                     <ChevronDown />
                 </Button>
+                {!row.off && (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        onClick={onEdit}
+                    >
+                        <Pencil />
+                        {__('Edit')}
+                    </Button>
+                )}
                 <Button
                     type="button"
                     variant="ghost"
@@ -391,31 +390,38 @@ export function RegionPanel({
                     <p className="text-small text-ink-3">{region.takes}</p>
                 )}
 
-                <div className="border-line flex flex-wrap items-center gap-3 border-t pt-3">
-                    <SaveState
-                        state={saving.state}
-                        pending={saving.pending}
-                        savedAt={saving.savedAt}
-                        failure={saving.failure}
-                    />
-                    {unpublished && (
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                    {unpublished ? (
                         <span
                             className="text-small text-warn-ink"
                             data-test="region-unpublished"
                         >
                             {__('Changes not published yet')}
                         </span>
+                    ) : (
+                        <span
+                            className="text-small text-ink-3"
+                            data-test="region-published"
+                        >
+                            {__('No unpublished changes')}
+                        </span>
                     )}
+                    <SaveState
+                        state={saving.state}
+                        pending={saving.pending}
+                        savedAt={saving.savedAt}
+                        failure={saving.failure}
+                    />
                     <div className="ml-auto flex flex-wrap items-center gap-2">
                         <Link
                             href={editContent(session.id).url}
-                            className="text-small text-accent underline"
+                            className="text-small text-accent-ink underline"
                         >
                             {__('Open in the full editor')}
                         </Link>
                         <Button
                             type="button"
-                            variant="neutral"
+                            variant="ghost"
                             size="sm"
                             disabled={busy || !unpublished}
                             onClick={() => setDiscarding(true)}
@@ -424,7 +430,7 @@ export function RegionPanel({
                         </Button>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="neutral"
                             size="sm"
                             disabled={busy}
                             data-test="region-save-draft"
@@ -434,12 +440,13 @@ export function RegionPanel({
                         </Button>
                         <Button
                             type="button"
+                            variant={unpublished ? 'primary' : 'ghost'}
                             size="sm"
                             disabled={busy || !unpublished}
                             data-test="region-publish"
                             onClick={() => void publish()}
                         >
-                            {__('Publish region')}
+                            {__('Publish')}
                         </Button>
                     </div>
                 </div>
