@@ -22,6 +22,15 @@ function shown(item: Item): string {
         : item.value;
 }
 
+/** The label's coloured dot from the change's direction. */
+function dotClass(change: number | null): string {
+    if (change === null) {
+        return 'bg-neutral-dot';
+    }
+
+    return change >= 0 ? 'bg-ok' : 'bg-danger';
+}
+
 /** A change as an arrow and a percentage, said in words for screen readers. */
 function Change({ change }: { change: number }) {
     const up = change >= 0;
@@ -51,9 +60,9 @@ function Change({ change }: { change: number }) {
 }
 
 /**
- * A plugin's figures (docs/plans/plugin-sockets-2.md, A9): up to four tiles
- * as the dashboard's site figures draw them, the value large, its label
- * beneath and its change beside, every value plain text.
+ * A plugin's figures (docs/plans/plugin-sockets-2.md, A9; design-system
+ * §4.28 figure tile): the value large, its label beneath with a coloured
+ * dot, and its change on its own line.
  */
 export function AreaFigures({
     data,
@@ -74,15 +83,17 @@ export function AreaFigures({
                     data-figure={item.id}
                     className="bg-surface shadow-raised flex flex-col gap-1 rounded-lg px-5 py-4"
                 >
-                    <span className="flex items-baseline gap-2">
-                        <span className="text-title font-semibold tabular-nums">
-                            {shown(item)}
-                        </span>
-                        {item.change !== null && (
-                            <Change change={item.change} />
-                        )}
+                    <span className="text-title font-semibold tabular-nums">
+                        {shown(item)}
                     </span>
-                    <span className="text-small text-ink-2">{item.label}</span>
+                    <span className="text-small text-ink-2 flex items-center gap-2">
+                        <span
+                            aria-hidden="true"
+                            className={`size-2 shrink-0 rounded-full ${dotClass(item.change)}`}
+                        />
+                        {item.label}
+                    </span>
+                    {item.change !== null && <Change change={item.change} />}
                 </div>
             ))}
         </section>
