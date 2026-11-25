@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Domain\Ai\AiSettings;
+use App\Domain\Ai\UsageLimits;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
@@ -38,8 +41,17 @@ it('says which plugins a plugin needs and which need it, by their own names', fu
 
     $rows = ($this->rows)();
 
-    expect($rows['tests/relay-pro']['requires'])->toBe([['words' => 'Needs Relay, which must stay enabled.', 'new' => false]])
+    expect($rows['tests/relay-pro']['requires'])->toBe([['words' => 'Relay', 'new' => false]])
         ->and($rows['tests/relay-pro']['requiredBy'])->toBe([])
         ->and($rows['tests/relay']['requires'])->toBe([])
         ->and($rows['tests/relay']['requiredBy'])->toBe(['Relay Pro']);
+});
+
+it('sends the site’s AI budget and hourly limit for the consent dialog', function (): void {
+    cmSettings([UsageLimits::BUDGET => 50, UsageLimits::HOURLY => 30], AiSettings::KEY);
+
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('aiSite.budgetMicrounits', 50_000_000)
+            ->where('aiSite.hourlyLimit', 30));
 });

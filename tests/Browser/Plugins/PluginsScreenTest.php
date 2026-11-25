@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Ai\AiSettings;
+use App\Domain\Ai\UsageLimits;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -606,8 +608,8 @@ it('lists Requires and Required by as short names, and Shows a dependent from th
     $page = cmSignIn($this->admin)->navigate('/admin/plugins');
     ($this->seen)($page, 'Relay Pro');
 
-    $page->assertSeeIn('[data-test="plugin-relay-pro"] [data-test="plugin-requires"]', 'Requires: Relay')
-        ->assertSeeIn('[data-test="plugin-relay"] [data-test="plugin-required-by"]', 'Required by: Relay Pro');
+    $page->assertSeeIn('[data-test="plugin-relay-pro"] [data-test="plugin-requires"]', 'Requires Relay')
+        ->assertSeeIn('[data-test="plugin-relay"] [data-test="plugin-required-by"]', 'Required by Relay Pro');
 
     $page->click('[data-test="plugin-relay"] [data-test="plugin-disable"]');
     cmWaitUntil($page, $this->settled);
@@ -617,4 +619,37 @@ it('lists Requires and Required by as short names, and Shows a dependent from th
         ->click('[data-test="plugin-show-dependent"]');
 
     cmWaitUntil($page, "document.activeElement?.closest('[data-test=\"plugin-relay-pro\"]') !== null");
+});
+
+it('names the site’s AI budget and hourly limit as figures in the consent dialog', function (): void {
+    PluginFixtures::forget();
+    PluginFixtures::use('scribe');
+    cmSettings([UsageLimits::BUDGET => 50, UsageLimits::HOURLY => 30], AiSettings::KEY);
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Scribe');
+
+    $page->click('[data-test="plugin-scribe"] [data-test="plugin-enable"]');
+    cmWaitUntil($page, $this->settled);
+
+    $page->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]') !== null")
+        ->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]').innerText.includes('$50.00 a month')")
+        ->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]').innerText.includes('30 requests an hour')")
+        ->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]').innerText.includes('Settings › AI')");
+});
+
+it('has no accessibility issue on Plugins at 1440', function (): void {
+    ($this->site)();
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Review access for 1.1.0');
+
+    expect(cmAxeViolations($page))->toBe([])
+        ->and(cmSmallTargets($page)['small'])->toBe([]);
+
+    $page->click('[data-test="plugin-widened"] [data-test="plugin-enable"]');
+    cmWaitUntil($page, $this->settled);
+    expect(cmAxeViolations($page))->toBe([]);
 });
