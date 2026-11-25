@@ -166,10 +166,7 @@ function RegionList({
                 const shown = group.regions.filter(found);
 
                 return shown.length === 0 ? null : (
-                    <section
-                        key={group.group}
-                        className="grid min-w-0 gap-1"
-                    >
+                    <section key={group.group} className="grid min-w-0 gap-1">
                         <h2 className="text-caption text-ink-3 px-2 font-semibold uppercase">
                             {group.group}
                         </h2>

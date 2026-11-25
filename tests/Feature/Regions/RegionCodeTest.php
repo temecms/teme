@@ -305,6 +305,32 @@ it('removes the cards that were switched off, in place, and leaves the rest', fu
         ->and($removed->first()['context'])->toMatchArray(['card' => $off, 'region' => $this->region->slug, 'before_code' => '<b>off</b>', 'before_origins' => 'ads.example.com']);
 });
 
+it('removes a switched-off card from an editor’s autosave too, so a later save can’t put it back, logging it once', function (): void {
+    $migration = require base_path('database/migrations/2027_11_15_100000_remove_switched_off_site_code_cards.php');
+    $off = 'A'.substr((string) Str::ulid(), 1);
+    $card = ['type' => 'site-code', 'attrs' => ['id' => $off, 'code' => '<b>off</b>', 'origins' => [], 'on' => false]];
+    $working = (string) $this->region->fresh()->working_revision_id;
+    DB::table('content_revisions')->where('id', $working)->update(['document' => json_encode(docWith($card))]);
+    DB::table('content_autosaves')->insert([
+        'id' => (string) Str::ulid(),
+        'content_id' => $this->region->id,
+        'user_id' => $this->admin->id,
+        'title' => 'Region',
+        'document' => json_encode(docWith(docText('Being written'), $card)),
+        'fields' => '{}',
+        'terms' => '{}',
+        'based_on_revision_id' => $working,
+        'saved_at' => now(),
+    ]);
+
+    $migration->up();
+
+    $autosave = (string) DB::table('content_autosaves')->where('content_id', $this->region->id)->value('document');
+
+    expect($autosave)->not->toContain('<b>off</b>')->toContain('Being written')
+        ->and(collect(scLog())->where('type', 'site_code.removed_off'))->toHaveCount(1);
+});
+
 it('says a rollback can’t put the removed cards back', function (): void {
     $migration = require base_path('database/migrations/2027_11_15_100000_remove_switched_off_site_code_cards.php');
 

@@ -62,6 +62,34 @@ return new class extends Migration
                 }
             });
 
+        // An editor still open on a region holds it in an autosave, which a save or a publish would put back, now with no switch to keep it off.
+        DB::table('content_autosaves')
+            ->select(['content_autosaves.id', 'content_autosaves.document', 'contents.id as content', 'contents.slug'])
+            ->join('contents', 'contents.id', '=', 'content_autosaves.content_id')
+            ->where('contents.type', 'region')
+            ->chunkById(100, function ($autosaves) use (&$removed, &$regions): void {
+                foreach ($autosaves as $autosave) {
+                    $document = json_decode((string) $autosave->document, true);
+
+                    if (! is_array($document)) {
+                        continue;
+                    }
+
+                    $found = [];
+                    $document = $this->without($document, $found);
+
+                    if ($found === []) {
+                        continue;
+                    }
+
+                    DB::update('UPDATE content_autosaves SET document = CAST(? AS jsonb) WHERE id = ?', [json_encode($document, JSON_THROW_ON_ERROR), $autosave->id]);
+
+                    foreach ($found as $card => $held) {
+                        $removed[(string) $autosave->content.'|'.$card] ??= [...$held, 'region' => (string) $autosave->slug, 'content' => (string) $autosave->content, 'card' => $card];
+                    }
+                }
+            }, 'content_autosaves.id', 'id');
+
         $now = now();
 
         foreach ($removed as $card) {

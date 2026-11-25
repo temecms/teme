@@ -8,6 +8,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
 
 uses(RefreshDatabase::class);
 
@@ -122,8 +123,10 @@ it('stacks a card row’s buttons under its name in a narrow panel, and passes a
 
 it('keeps long region names inside the list, wrapped, clear of the chosen region', function (): void {
     // The good theme, with regions named as a real theme names them.
-    $folder = sys_get_temp_dir().'/teme-long-regions-'.bin2hex(random_bytes(4));
-    Illuminate\Support\Facades\File::copyDirectory(base_path('tests/Fixtures/themes/good'), $folder);
+    // A theme's code is its folder's name, so the copy keeps the name good, in a folder of its own.
+    $parent = sys_get_temp_dir().'/teme-long-regions-'.bin2hex(random_bytes(4));
+    $folder = $parent.'/good';
+    File::copyDirectory(base_path('tests/Fixtures/themes/good'), $folder);
     $manifest = json_decode((string) file_get_contents($folder.'/teme-theme.json'), true);
     $manifest['regions'] = [
         'after-content' => ['label' => 'After the article', 'max' => 5],
@@ -160,8 +163,9 @@ it('keeps long region names inside the list, wrapped, clear of the chosen region
             ->and($at['listRight'])->toBeLessThanOrEqual($at['panelLeft'])
             ->and($at['wrapped'])->toBeTrue();
     } finally {
-        Illuminate\Support\Facades\File::deleteDirectory($folder);
+        File::deleteDirectory($parent);
     }
+});
 
 /**
  * Two regions of the theme `open`, each holding a button, saved and not yet published.
