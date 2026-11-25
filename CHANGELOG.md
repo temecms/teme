@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Changed
+
+- Regions: a Custom HTML card has no on/off switch any more. Remove the card to take its code off the site; the region's history brings it back. The update removes the cards that were switched off from their regions (and from any editor's unsaved changes), logging each with its code in the security log; older versions of the region keep them.
+- Regions: a Custom HTML card's code box is labelled **Code**, with a hint under it, and the hosts its code loads from are folded under **More: hosts this code loads from**.
+- Navigation: a menu's **Show in** places save with **Save**, together with its items, and the page warns before you leave with a place changed.
+
+### Fixed
+
+- Regions: long region names wrap inside the list instead of running under the chosen region.
+- Regions: switching between regions is instant for a region you have just looked at.
+- Regions: an editor's save is no longer refused over a Custom HTML card's switch; saving a region with two Custom HTML cards that share an id is refused for people who may not manage site code; the page policy worked out for a card is kept for 30 days, not for ever.
+- Navigation: the Categories and Tags tab of **Add an item** lists the most used ones as soon as it opens.
+- Import: a post edited while its pictures were being brought over no longer counts as waiting once its old-site pictures were replaced or removed.
+- Import: an old-site featured image is shown from the old site only when it is on the old site's own addresses.
+- Plugins: saving a plugin's settings no longer sends a person to a page they cannot open.
+
 ## [1.5.0] — 2026-11-25
 
 ### Added

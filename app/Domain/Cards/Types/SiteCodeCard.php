@@ -62,7 +62,6 @@ final class SiteCodeCard implements CardType, RegionCard
             // Null where it is hidden from someone who may not read it.
             'code' => new CardAttribute('code', ['nullable', 'string', 'max:'.SiteCode::MAX_LENGTH, self::storable(...)]),
             'origins' => new CardAttribute('origins', ['array', 'max:20'], []),
-            'on' => new CardAttribute('on', ['boolean'], true),
         ];
     }
 
@@ -72,7 +71,7 @@ final class SiteCodeCard implements CardType, RegionCard
     }
 
     /**
-     * The card's code, exactly as written, when it is on and site code may
+     * The card's code, exactly as written, when it holds code and site code may
      * be drawn on this page; nothing otherwise, and never an error. Its
      * scripts' hashes and its hosts join the page's policy.
      */
@@ -80,13 +79,13 @@ final class SiteCodeCard implements CardType, RegionCard
     {
         $code = is_string($attrs['code'] ?? null) ? $attrs['code'] : '';
 
-        if ($context->target !== 'web' || $code === '' || ($attrs['on'] ?? true) === false || SiteCode::disallowed() || app(SiteCodeWithheld::class)->isWithheld()) {
+        if ($context->target !== 'web' || $code === '' || SiteCode::disallowed() || app(SiteCodeWithheld::class)->isWithheld()) {
             return '';
         }
 
         $origins = RegionCode::origins($attrs['origins'] ?? []);
-        // The same code and hosts always give the same policy, so it is kept by them.
-        $found = Cache::rememberForever('region-code:'.hash('sha256', $code."\0".implode(' ', $origins)), fn (): array => SiteCodePolicy::of($code, $origins));
+        // The same code and hosts always give the same policy, so it is kept by them, for a month.
+        $found = Cache::remember('region-code:'.hash('sha256', $code."\0".implode(' ', $origins)), now()->addDays(30), fn (): array => SiteCodePolicy::of($code, $origins));
 
         $policy = app(PagePolicy::class);
         $policy->allowScriptHashes($found['scripts']);
@@ -138,10 +137,6 @@ final class SiteCodeCard implements CardType, RegionCard
 
         if (ChangeList::differs($before, $after, 'origins')) {
             $changes[] = 'hosts changed';
-        }
-
-        if (ChangeList::differs($before, $after, 'on')) {
-            $changes[] = ($after['on'] ?? true) === false ? 'switched off' : 'switched on';
         }
 
         return ChangeList::line($this->label(), $changes);

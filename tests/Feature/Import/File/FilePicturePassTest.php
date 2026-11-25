@@ -181,3 +181,35 @@ it('shows the picture pass under the import, and brings the pictures again from 
     expect(app(ImportScreen::class)->run((string) $run->id)['picturePass'])->toMatchArray(['files' => 2, 'waiting' => 0, 'again' => false])
         ->and(collect(ppPost()->document['content'])->firstWhere('type', 'image')['attrs']['source'])->toBeNull();
 });
+
+it('stops counting a post whose outside pictures a person replaced here, and does not offer them again (issue 736)', function (): void {
+    $this->oldFilesGone = true;
+    $run = FileImports::run(FileImports::ready('companion-site.xml', $this->admin, $this->bytes), ['media' => 'later']);
+    $first = ImportRun::query()->where('follows_run_id', $run->id)->sole();
+
+    // A person replaces the post's pictures here, then the old site answers again.
+    $revision = ppPost();
+    docSave(Content::query()->findOrFail($revision->content_id), $this->admin, docWith(docText('Written afresh.')), collect((array) $revision->fields)->except(BuiltInFields::FEATURED_IMAGE)->all());
+    $this->oldFilesGone = false;
+    $again = app(StartMediaPass::class)->execute(new StartMediaPassInput((string) $run->id, (string) $this->admin->id));
+    $post = ImportMapEntry::query()->where('object_type', 'post')->where('object_id', '12')->sole();
+
+    expect($first->state)->toBe(ImportRunState::Finished)
+        ->and($post->facts['waiting_media'])->toBe([])
+        ->and(ImportMessageRecord::query()->where('map_id', $post->id)->where('run_id', $again['runId'])->pluck('code')->all())->toBe([])
+        ->and(app(ImportScreen::class)->run((string) $run->id)['picturePass'])->toMatchArray(['waiting' => 0, 'again' => false]);
+});
+
+it('keeps counting a post edited elsewhere that still shows an outside picture, and says so once (issue 736)', function (): void {
+    $this->oldFilesGone = true;
+    $run = FileImports::run(FileImports::ready('companion-site.xml', $this->admin, $this->bytes), ['media' => 'later']);
+
+    $this->oldFilesGone = false;
+    $revision = ppPost();
+    docSave(Content::query()->findOrFail($revision->content_id), $this->admin, docWith(...[...$revision->document['content'], docText('Edited here.')]));
+    $again = app(StartMediaPass::class)->execute(new StartMediaPassInput((string) $run->id, (string) $this->admin->id));
+    $post = ImportMapEntry::query()->where('object_type', 'post')->where('object_id', '12')->sole();
+
+    expect($post->facts['waiting_media'])->not->toBe([])
+        ->and(ImportMessageRecord::query()->where('map_id', $post->id)->where('run_id', $again['runId'])->pluck('code')->all())->toBe(['second-pass.pictures-changed-here']);
+});
