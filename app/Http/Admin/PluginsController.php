@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Ai\UsageLimits;
 use App\Domain\Extensions\ExtensionsAccess;
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
@@ -54,6 +55,11 @@ final class PluginsController extends Controller
         return app(PluginSentences::class)->coreOnly(fn (): Response => Inertia::render('plugins/index', [
             'plugins' => $screen->rows(),
             'settingHosts' => $this->settingHosts($registry, $hosts),
+            // Site AI limits the consent dialog names as figures (I-320).
+            'aiSite' => [
+                'budgetMicrounits' => UsageLimits::budgetMicrounits(),
+                'hourlyLimit' => UsageLimits::hourly(),
+            ],
             // Installing from the admin (I-211), for whoever may.
             'extensions' => $request->user()?->can(ExtensionsAccess::INSTALL) === true ? $extensions->data() : null,
         ]));

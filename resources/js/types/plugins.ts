@@ -65,7 +65,7 @@ export type PluginRowPage = {
     agreed: PluginAccessLine[];
     asks: PluginAccessLine[];
     listensFor: string[];
-    /** The sentences naming the plugins it needs, each with whether it is new (docs/plans/plugin-sockets-3.md). */
+    /** The plugins it needs, by their own names, each with whether it is new (docs/plans/plugin-sockets-3.md). */
     requires: PluginAccessLine[];
     /** The plugins that need it, by their own names. */
     requiredBy: string[];
@@ -83,9 +83,17 @@ export type PluginRowPage = {
     ai: { costMicrounits: number; budgetMicrounits: number | null } | null;
 };
 
+/** The site’s AI budget and hourly limit, for the consent dialog’s figures. */
+export type PluginAiSite = {
+    /** Monthly budget in micro-dollars, or null when none is set. */
+    budgetMicrounits: number | null;
+    hourlyLimit: number;
+};
+
 export type PluginsPage = {
     plugins: PluginRowPage[];
     settingHosts: Record<string, PluginSettingHosts>;
+    aiSite: PluginAiSite;
     /** Installing from the admin; null for anyone who may not install. */
     extensions: ExtensionsData | null;
 };

@@ -189,6 +189,7 @@ function pendingUrl(pending: Pending): string {
 export default function Plugins({
     plugins,
     settingHosts,
+    aiSite,
     extensions,
 }: PluginsPage) {
     const [tab, setTab] = useState<Tab>(() => firstTab(extensions !== null));
@@ -584,6 +585,7 @@ export default function Plugins({
                             ? null
                             : (settingHosts[asking.name] ?? null)
                     }
+                    aiSite={aiSite}
                     onClose={() => setAsking(null)}
                     onConfirm={enable}
                 />

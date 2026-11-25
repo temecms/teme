@@ -92,31 +92,15 @@ function ThemeMenu({
     );
 }
 
-/** Version and maker line on every card, from the theme's manifest. */
-function VersionLine({ version, author }: { version: string; author: string }) {
-    if (version === '' && author === '') {
-        return null;
-    }
-
+/** Version line on every card; the maker is named once under By … below. */
+function VersionLine({ version }: { version: string }) {
     if (version === '') {
-        return (
-            <p className="text-caption text-ink-3" data-test="theme-origin">
-                {author}
-            </p>
-        );
-    }
-
-    if (author === '') {
-        return (
-            <p className="text-caption text-ink-3" data-test="theme-origin">
-                {__('Version :version', { version })}
-            </p>
-        );
+        return null;
     }
 
     return (
         <p className="text-caption text-ink-3" data-test="theme-origin">
-            {__('Version :version · :maker', { version, maker: author })}
+            {__('Version :version', { version })}
         </p>
     );
 }
@@ -197,10 +181,7 @@ function OtherCard({
                                 />
                             )}
                     </p>
-                    <VersionLine
-                        version={theme.version}
-                        author={theme.author}
-                    />
+                    <VersionLine version={theme.version} />
                     {theme.description !== '' && <p>{theme.description}</p>}
                     {(theme.author !== '' || theme.homepage !== '') && (
                         <p className="text-caption text-ink-3 flex flex-wrap gap-x-2">
@@ -398,10 +379,7 @@ export function ThemeList({
                                                 />
                                             )}
                                     </div>
-                                    <VersionLine
-                                        version={active.version}
-                                        author={active.author}
-                                    />
+                                    <VersionLine version={active.version} />
                                     {(active.author !== '' ||
                                         active.homepage !== '') && (
                                         <p className="text-small text-ink-3 flex flex-wrap gap-x-2">

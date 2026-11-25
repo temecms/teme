@@ -39,15 +39,6 @@ const REASON_INK = {
     danger: 'text-danger-ink',
 } as const;
 
-/**
- * The short name from a "Needs …, which must stay enabled." consent line.
- */
-function requireLabel(words: string): string {
-    const match = /^Needs (.+), which must stay enabled\.$/.exec(words);
-
-    return match?.[1] ?? words;
-}
-
 /** The one button a row offers: Enable, Review, Run database changes, or Disable. */
 function RowAction({
     plugin,
@@ -351,17 +342,16 @@ export function PluginRow({
                         <div className="text-small text-ink-2 grid gap-1 pt-1">
                             {plugin.requires.length > 0 && (
                                 <p data-test="plugin-requires">
-                                    {__('Requires')}
-                                    {': '}
-                                    {plugin.requires
-                                        .map((line) => requireLabel(line.words))
-                                        .join(', ')}
+                                    {__('Requires :names', {
+                                        names: plugin.requires
+                                            .map((line) => line.words)
+                                            .join(', '),
+                                    })}
                                 </p>
                             )}
                             {plugin.requiredBy.length > 0 && (
                                 <p data-test="plugin-required-by">
-                                    {__('Required by')}
-                                    {': '}
+                                    {__('Required by')}{' '}
                                     {plugin.requiredBy.map((label, index) => (
                                         <span key={label}>
                                             {index > 0 && ', '}

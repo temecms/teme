@@ -12,9 +12,11 @@ import {
 import { Notice } from '@/components/ui/notice';
 import { PluginIcon } from '@/components/ui/plugin-icon';
 import { StatusPill } from '@/components/ui/status-pill';
+import { formatCost } from '@/lib/ai-cost';
 import { __ } from '@/lib/i18n';
 import type {
     PluginAccessLine,
+    PluginAiSite,
     PluginRowPage,
     PluginSettingHosts,
 } from '@/types';
@@ -79,11 +81,13 @@ function AccessLine({
 export function ConsentDialog({
     plugin,
     settingHosts = null,
+    aiSite,
     onClose,
     onConfirm,
 }: {
     plugin: PluginRowPage | null;
     settingHosts?: PluginSettingHosts | null;
+    aiSite: PluginAiSite;
     onClose: () => void;
     onConfirm: (plugin: PluginRowPage) => void;
 }) {
@@ -186,7 +190,16 @@ export function ConsentDialog({
                             className="text-small text-ink-2"
                         >
                             {__(
-                                'It spends the site’s AI budget and the site’s hourly request limit. An administrator can switch it off, give it its own budget, or change its limits in Settings › AI.',
+                                'It spends the site’s AI budget (:budget a month) and the site’s hourly request limit (:limit requests an hour). An administrator can switch it off, give it its own budget, or change its limits in Settings › AI.',
+                                {
+                                    budget:
+                                        aiSite.budgetMicrounits === null
+                                            ? __('none set')
+                                            : formatCost(
+                                                  aiSite.budgetMicrounits,
+                                              ),
+                                    limit: String(aiSite.hourlyLimit),
+                                },
                             )}
                         </p>
                     )}
