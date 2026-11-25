@@ -11,14 +11,18 @@ type Props = {
     status: 403 | 404;
     /** The site's name, for "ask an administrator of …". */
     site: string | null;
+    /** Your name, for a refusal that names who is signed in. */
+    name?: string | null;
     /** Your role's label, for a refusal. */
     role: string | null;
     /** A policy's own reason for refusing, when it gave one. */
     reason: string | null;
     /** A short name for the page that was refused. */
     page?: string | null;
-    /** The permission the route asked for, when the route names one. */
+    /** The permission the route asked for, in plain words. */
     permission?: string | null;
+    /** The roles that hold that permission, in words. */
+    holders?: string | null;
 };
 
 /**
@@ -28,10 +32,12 @@ type Props = {
 export default function InAdminError({
     status,
     site,
+    name = null,
     role,
     reason,
     page = null,
     permission = null,
+    holders = null,
 }: Props) {
     const refused = status === 403;
     const title = refused
@@ -41,24 +47,38 @@ export default function InAdminError({
         : __('We can’t find that page');
     const description = refused
         ? (reason ??
-          (permission !== null
-              ? site === null
+          (page !== null && holders !== null && name !== null && role !== null
+              ? [
+                    __(
+                        ':page is for :roles. You’re signed in as :name, an :role.',
+                        { page, roles: holders, name, role },
+                    ),
+                    permission !== null
+                        ? __('It needs the :permission permission.', {
+                              permission,
+                          })
+                        : null,
+                ]
+                    .filter((line): line is string => line !== null)
+                    .join(' ')
+              : permission !== null
+                ? site === null
+                    ? __(
+                          'This page needs the :permission permission. If you need it, ask an administrator to change your role.',
+                          { permission },
+                      )
+                    : __(
+                          'This page needs the :permission permission. If you need it, ask an administrator of :site to change your role.',
+                          { permission, site },
+                      )
+                : site === null
                   ? __(
-                        'This page needs the :permission permission. If you need it, ask an administrator to change your role.',
-                        { permission },
+                        'Your account doesn’t have permission to do that. If you need it, ask an administrator to change your role.',
                     )
                   : __(
-                        'This page needs the :permission permission. If you need it, ask an administrator of :site to change your role.',
-                        { permission, site },
-                    )
-              : site === null
-                ? __(
-                      'Your account doesn’t have permission to do that. If you need it, ask an administrator to change your role.',
-                  )
-                : __(
-                      'Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.',
-                      { site },
-                  )))
+                        'Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.',
+                        { site },
+                    )))
         : __(
               'The address may be mistyped, or the item may have moved to the Trash. Search the admin to find it.',
           );
@@ -104,9 +124,7 @@ export default function InAdminError({
                         title={label}
                         description={
                             refused
-                                ? role === null
-                                    ? undefined
-                                    : __('Your role is :role.', { role })
+                                ? undefined
                                 : __('Nothing is at this address.')
                         }
                         action={

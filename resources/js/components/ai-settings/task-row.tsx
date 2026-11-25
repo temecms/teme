@@ -121,8 +121,8 @@ function stored(values: Record<string, unknown>, field: string): string {
 }
 
 /**
- * One task on Settings › AI (I-1308): the model select, then its fallback
- * at the same level under it, each full width with its hint.
+ * One task on Settings › AI (I-1308): the model select and its fallback
+ * side by side at the same level, each with its hint (v10 settings-ai).
  */
 export function TaskRow({ task, values, errors, note = null }: RowProps) {
     const [model, setModel] = useState(stored(values, task.modelField));
@@ -133,7 +133,7 @@ export function TaskRow({ task, values, errors, note = null }: RowProps) {
     return (
         <div
             data-test={`ai-task-${task.key}`}
-            className="col-span-full grid gap-4"
+            className="col-span-full grid gap-4 sm:grid-cols-2 sm:items-start"
         >
             <ModelSelect
                 id={`ai-model-${task.key}`}

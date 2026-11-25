@@ -201,17 +201,6 @@ export default function Compare({
                                                         {`: ${name}`}
                                                     </span>
                                                 </Button>
-                                                {version.id !==
-                                                    workingRevisionId && (
-                                                    <RestoreButton
-                                                        contentId={contentId}
-                                                        revisionId={version.id}
-                                                        createdAt={
-                                                            version.createdAt
-                                                        }
-                                                        label={__('Restore')}
-                                                    />
-                                                )}
                                                 <Button
                                                     type="button"
                                                     variant="ghost"

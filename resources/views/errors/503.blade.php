@@ -13,16 +13,21 @@
 
     $total = count(\App\Domain\Updates\Requests\UpdateStep::cases());
     $done = 0;
+    $current = null;
 
     if ($update !== null) {
         foreach (\App\Domain\Updates\Requests\UpdateStep::cases() as $step) {
             if ($update->state($step) === \App\Domain\Updates\Requests\UpdateStep::DONE) {
                 $done++;
+            } elseif ($current === null) {
+                $current = $step;
             }
         }
     }
 
     $percent = (int) round($done / max($total, 1) * 100);
+    $stepNumber = min($done + 1, $total);
+    $stepName = $current?->label() ?? __('Finishing');
 @endphp
 <x-teme::standalone :title="__('Down for maintenance')" :error="503" :brand="$brand" :refresh-seconds="$refresh">
 @if ($update !== null)
@@ -33,7 +38,7 @@
     <p class="sa-quiet">{{ __(':site is being updated to Teme :version. This usually takes a few minutes. Nothing you saved is affected.', ['site' => $site, 'version' => $update->to]) }}</p>
     <div>
         <div class="sa-bar" role="progressbar" aria-label="{{ __('Update progress') }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $percent }}"><i style="width: {{ $percent }}%"></i></div>
-        <p class="sa-bar-note">{{ __('Step :step of :total…', ['step' => min($done + 1, $total), 'total' => $total]) }}</p>
+        <p class="sa-bar-note">{{ __('Step :step of :total: :name…', ['step' => $stepNumber, 'total' => $total, 'name' => $stepName]) }}</p>
     </div>
 @else
     <p class="sa-quiet">{{ __(':site is being updated. This usually takes a few minutes. Nothing you saved is affected.', ['site' => $site]) }}</p>

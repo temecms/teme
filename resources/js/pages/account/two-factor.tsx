@@ -123,7 +123,7 @@ function SetUpSteps() {
     const at = { scan: 0, code: 1, codes: 2 }[step];
 
     return (
-        <>
+        <div className="grid w-full gap-4">
             <StepBar
                 steps={steps}
                 current={at}
@@ -187,7 +187,7 @@ function SetUpSteps() {
                     </div>
                 </FormPanel>
             )}
-        </>
+        </div>
     );
 }
 

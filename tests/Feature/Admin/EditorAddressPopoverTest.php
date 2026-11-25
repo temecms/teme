@@ -5,7 +5,6 @@
  * the popover's own words, and the address travelling only with a real save.
  *
  * @package Teme
- * @since   next
  * @license MIT
  */
 

@@ -15,16 +15,31 @@ declare(strict_types=1);
 namespace App\Http\Admin;
 
 use App\Domain\Users\Queries\CurrentUserData;
+use App\Domain\Users\Roles;
 use App\Http\Standalone\StandalonePage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 final class AdminErrorPage
 {
+    /**
+     * The words for permissions that are not "Manage {group} settings".
+     *
+     * @var array<string, string>
+     */
+    private const array PERMISSION_NAMES = [
+        'settings.security.manage' => 'Manage sign-in rules',
+        'settings.addresses.manage' => 'Manage addresses',
+        'settings.ai.manage' => 'Manage AI settings',
+    ];
+
     /**
      * The page for a 403 or 404 under /admin, opened as a page by someone
      * signed in; null for any other error or request, which the standalone
@@ -53,16 +68,20 @@ final class AdminErrorPage
         $site = app(StandalonePage::class)->brand()['name'];
         $reason = $status === 403 ? self::reason($exception) : null;
         $page = $status === 403 ? self::pageName($request) : null;
-        $permission = $status === 403 ? self::permissionName($request) : null;
+        $ability = $status === 403 ? self::routeAbility($request) : null;
+        $permission = $ability === null ? null : self::permissionLabel($ability);
+        $holders = $ability === null ? null : self::holders($ability);
 
         return Inertia::render('errors/in-admin', [
             'status' => $status,
             'site' => $site,
+            'name' => $user['name'] ?? null,
             'role' => $user['role'] ?? null,
             'reason' => $reason,
             'page' => $page,
             'permission' => $permission,
-        ])->withViewData(['fallback' => self::words($status, $site, $reason, $page, $permission)])
+            'holders' => $holders,
+        ])->withViewData(['fallback' => self::words($status, $site, $reason, $page, $permission, $holders, $user['name'] ?? null, $user['role'] ?? null)])
             ->toResponse($request)
             ->setStatusCode($status);
     }
@@ -73,7 +92,7 @@ final class AdminErrorPage
      *
      * @return array{title: string, text: string}
      */
-    private static function words(int $status, ?string $site, ?string $reason, ?string $page = null, ?string $permission = null): array
+    private static function words(int $status, ?string $site, ?string $reason, ?string $page, ?string $permission, ?string $holders, ?string $name, ?string $role): array
     {
         if ($status === 404) {
             return [
@@ -88,6 +107,17 @@ final class AdminErrorPage
 
         if ($reason !== null) {
             $text = $reason;
+        } elseif ($page !== null && $holders !== null && $name !== null && $role !== null) {
+            $text = __(':page is for :roles. You’re signed in as :name, an :role.', [
+                'page' => $page,
+                'roles' => $holders,
+                'name' => $name,
+                'role' => $role,
+            ]);
+
+            if ($permission !== null) {
+                $text .= ' '.__('It needs the :permission permission.', ['permission' => $permission]);
+            }
         } elseif ($permission !== null) {
             $text = $site === null
                 ? __('This page needs the :permission permission. If you need it, ask an administrator to change your role.', ['permission' => $permission])
@@ -135,14 +165,14 @@ final class AdminErrorPage
             'comments' => __('Comments'),
             'account' => __('Your account'),
             'content' => __('Content'),
-            default => str_replace('-', ' ', $segment),
+            default => __(Str::title(str_replace('-', ' ', $segment))),
         };
     }
 
     /**
-     * The can: permission on the refused route, when the route names one.
+     * The can: ability on the refused route, when the route names one.
      */
-    private static function permissionName(Request $request): ?string
+    private static function routeAbility(Request $request): ?string
     {
         $route = $request->route();
 
@@ -163,6 +193,41 @@ final class AdminErrorPage
         }
 
         return null;
+    }
+
+    /**
+     * A permission in plain words, such as "Manage AI settings".
+     */
+    private static function permissionLabel(string $ability): string
+    {
+        if (isset(self::PERMISSION_NAMES[$ability])) {
+            return __(self::PERMISSION_NAMES[$ability]);
+        }
+
+        if (preg_match('/^settings\.([a-z-]+)\.manage$/', $ability, $match) === 1) {
+            return __('Manage :group settings', ['group' => str_replace('-', ' ', $match[1])]);
+        }
+
+        return __(Str::title(str_replace(['.', '_', '-'], ' ', $ability)));
+    }
+
+    /**
+     * The roles that hold a permission, in words and in the core roles'
+     * order, such as "Administrators" or "Administrators and Editors".
+     */
+    private static function holders(string $ability): string
+    {
+        $names = [];
+
+        foreach (Roles::LABELS as $role => $label) {
+            $found = Role::query()->where('name', $role)->first();
+
+            if ($found !== null && $found->hasPermissionTo($ability)) {
+                $names[] = __(Str::plural($label));
+            }
+        }
+
+        return $names === [] ? __('no role') : Arr::join($names, ', ', ' '.__('and').' ');
     }
 
     /**

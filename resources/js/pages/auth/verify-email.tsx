@@ -25,13 +25,10 @@ export default function VerifyEmail({ status }: { status?: string }) {
                     className="bg-info-soft text-info-ink rounded-full"
                 />
             }
-            lead={
-                <>
-                    {__('We sent a link to')}{' '}
-                    <strong className="font-semibold">{auth.user.email}</strong>
-                    {__('. Open it to confirm that this address is yours.')}
-                </>
-            }
+            lead={__(
+                'We sent a link to :email. Open it to confirm that this address is yours.',
+                { email: auth.user.email },
+            )}
             notices={
                 status === 'verification-link-sent' && (
                     <Notice tone="ok">

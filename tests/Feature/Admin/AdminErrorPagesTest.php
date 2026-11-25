@@ -52,8 +52,8 @@ it('draws a refusal inside the admin with the policy\'s own reason', function ()
         );
 });
 
-it('names the page and permission on a refused settings address', function (): void {
-    $author = User::factory()->create()->assignRole('author');
+it('names the page, roles and permission on a refused settings address', function (): void {
+    $author = User::factory()->create(['name' => 'Ada Author'])->assignRole('author');
 
     $this->actingAs($author)
         ->get('/admin/settings/ai')
@@ -62,7 +62,10 @@ it('names the page and permission on a refused settings address', function (): v
             ->component('errors/in-admin')
             ->where('status', 403)
             ->where('page', 'Settings')
-            ->where('permission', 'settings.ai.manage'),
+            ->where('name', 'Ada Author')
+            ->where('role', 'Author')
+            ->where('permission', 'Manage AI settings')
+            ->where('holders', 'Administrators'),
         );
 });
 

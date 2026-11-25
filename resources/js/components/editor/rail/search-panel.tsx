@@ -331,7 +331,6 @@ export function SearchPanel({
     const socialTitle = field('social_title');
     const socialDescription = field('social_description');
     const socialImage = field('social_image');
-    const hasExcerpt = field('excerpt') !== undefined;
     const home = seo.kind === 'home';
     const proposes =
         metadata.offered &&
@@ -426,14 +425,14 @@ export function SearchPanel({
     const date = seo.kind === 'item' ? (seo.tokens.date ?? null) : null;
     const descriptionPlaceholder =
         description.from === 'excerpt' && description.text !== null
-            ? description.text
+            ? __('Using the excerpt: :excerpt', {
+                  excerpt: description.text,
+              })
             : description.from === 'tagline' && description.text !== null
               ? description.text
-              : hasExcerpt
-                ? __(
-                      'No excerpt either: search engines will choose text from the page',
-                  )
-                : __('Search engines will choose text from the page');
+              : __(
+                    'No excerpt either: search engines will choose text from the page',
+                );
 
     return (
         <section
@@ -635,21 +634,14 @@ export function SearchPanel({
                                             )
                                         }
                                         id="editor-seo-title"
-                                        describedBy="editor-seo-title-count editor-seo-title-hint"
+                                        describedBy="editor-seo-title-count"
                                         rows={2}
                                         className={`${textareaClass} resize-none`}
-                                        placeholder={search.title.text}
+                                        placeholder={__(
+                                            'Using the title template: :title',
+                                            { title: search.title.text },
+                                        )}
                                     />
-                                    {titleText.trim() === '' && (
-                                        <p
-                                            id="editor-seo-title-hint"
-                                            className="text-caption text-ink-3"
-                                        >
-                                            {__(
-                                                'Leave empty to use the title from the template.',
-                                            )}
-                                        </p>
-                                    )}
                                     <MetadataProposal
                                         handle="seo_title"
                                         label={seoTitle.label}
@@ -701,23 +693,11 @@ export function SearchPanel({
                                             onChange(metaDescription.key, next)
                                         }
                                         id="editor-seo-description"
-                                        describedBy="editor-seo-description-count editor-seo-description-hint"
+                                        describedBy="editor-seo-description-count"
                                         rows={3}
                                         className={`${textareaClass} resize-y`}
                                         placeholder={descriptionPlaceholder}
                                     />
-                                    {textOf(
-                                        values[metaDescription.key],
-                                    ).trim() === '' && (
-                                        <p
-                                            id="editor-seo-description-hint"
-                                            className="text-caption text-ink-3"
-                                        >
-                                            {__(
-                                                'Leave empty to use the excerpt, or let search engines choose.',
-                                            )}
-                                        </p>
-                                    )}
                                     <MetadataProposal
                                         handle="meta_description"
                                         label={metaDescription.label}

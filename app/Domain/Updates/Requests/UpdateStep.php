@@ -22,6 +22,20 @@ enum UpdateStep: string
     case Check = 'check';
     case Updater = 'updater';
 
+    /** The step's short name for the maintenance page. */
+    public function label(): string
+    {
+        return match ($this) {
+            self::Deploy => __('Deploying'),
+            self::Web => __('Updating the web process'),
+            self::Worker => __('Updating the worker'),
+            self::WorkerLong => __('Updating the long worker'),
+            self::Scheduler => __('Updating the scheduler'),
+            self::Check => __('Checking the update'),
+            self::Updater => __('Updating the updater'),
+        };
+    }
+
     public const string PENDING = 'pending';
 
     public const string STARTED = 'started';

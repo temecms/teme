@@ -263,14 +263,14 @@ export function SharePane({
                         </DialogTitle>
                         <DialogDescription>
                             {__(
-                                'Anyone with the link will no longer be able to open this version.',
+                                "Anyone who has it can no longer open the preview. This can't be undone.",
                             )}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button type="button" variant="outline">
-                                {__('Cancel')}
+                                {__('Keep it')}
                             </Button>
                         </DialogClose>
                         <Button
@@ -283,7 +283,7 @@ export function SharePane({
                                 }
                             }}
                         >
-                            {__('Revoke')}
+                            {__('Revoke link')}
                         </Button>
                     </DialogFooter>
                 </ResponsiveDialogContent>

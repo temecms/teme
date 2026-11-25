@@ -4,7 +4,6 @@
  * full link keeps only its path.
  *
  * @package Teme
- * @since next
  */
 
 /**
