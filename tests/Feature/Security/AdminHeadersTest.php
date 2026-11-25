@@ -75,3 +75,15 @@ it('keeps the admin policy off the public site', function (string $mode): void {
             ->and((string) $response->headers->get($header))->not->toContain("frame-ancestors 'none'");
     }
 })->with(['off', 'report-only', 'enforce']);
+
+it('lets the editor show an import\'s pictures from the old site while it copies them, and nothing that could change the policy (#716)', function (): void {
+    App\Domain\Import\Models\ImportSource::query()->forceCreate(['address' => 'https://old.example.org', 'other_hosts' => ['I0.wp.com', "evil.example; script-src *"]]);
+
+    $policy = (string) $this->get('/admin/login')->headers->get('Content-Security-Policy');
+    preg_match('/img-src ([^;]*)/', $policy, $images);
+
+    expect($images[1] ?? '')->toContain('old.example.org')
+        ->and($images[1] ?? '')->toContain('i0.wp.com')
+        ->and($policy)->not->toContain('evil.example')
+        ->and($policy)->not->toContain('script-src *');
+});

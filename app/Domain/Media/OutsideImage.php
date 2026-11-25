@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Media;
 
+use App\Domain\Site\Policy\PagePolicy;
+
 final class OutsideImage
 {
     /** What begins an outside picture's image ID, never a library item's. */
@@ -58,10 +60,17 @@ final class OutsideImage
 
     /**
      * The `<img>` for an outside picture, sending no referrer, which spares a
-     * site that refuses pictures shown elsewhere.
+     * site that refuses pictures shown elsewhere. Its origin joins the page's
+     * img-src as it is drawn, or the public policy would block it.
      */
     public static function markup(string $source, string $alt, ?int $width, ?int $height, bool $priority = false, string $class = ''): string
     {
+        $origin = self::origin($source);
+
+        if ($origin !== null) {
+            app(PagePolicy::class)->allowOrigins('img-src', [$origin]);
+        }
+
         $attributes = ['src="'.e($source).'"', 'alt="'.e($alt).'"'];
 
         if ($width !== null && $height !== null) {
@@ -76,6 +85,24 @@ final class OutsideImage
         $attributes[] = 'referrerpolicy="no-referrer"';
 
         return '<img '.implode(' ', $attributes).'>';
+    }
+
+    /**
+     * An address's scheme, host and port, as a policy names an origin, or null.
+     */
+    public static function origin(string $address): ?string
+    {
+        if (! self::isWebAddress($address)) {
+            return null;
+        }
+
+        $parts = parse_url($address);
+
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
+            return null;
+        }
+
+        return strtolower($parts['scheme']).'://'.strtolower($parts['host']).(isset($parts['port']) ? ':'.$parts['port'] : '');
     }
 
     /**

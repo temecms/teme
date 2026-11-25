@@ -23,6 +23,7 @@ All notable changes to this project are documented in this file. Versioning foll
 - A plugin's area may name its own menu icon; the menu marks every plugin entry with a plug, and editor panels and areas share a wider set of Lucide names.
 - A plugin's area header shows its picture (or initials) at 32 pixels beside the title, served to whoever may open the area.
 - Enabling a plugin says where its parts appear (area, settings, editor panels, Tools), or that it runs in the background.
+- A plugin's area page can no longer have the id `settings`, which its Settings tab now uses, as `records` was already taken. A plugin whose area names a page `settings` gives it another id.
 
 ## [1.4.3] — 2026-11-25
 

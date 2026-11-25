@@ -8,6 +8,7 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\Media\ImageMarkup;
 use App\Domain\Site\ArticleViews;
 use App\Domain\Site\ListingViews;
+use App\Domain\Site\Policy\PagePolicy;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,4 +76,15 @@ it('keeps the outside featured image when a person saves, and refuses one they a
     expect(fn () => docSave($post, $this->author, $document, [...(array) $post->fields, BuiltInFields::FEATURED_IMAGE => [...$this->outside, 'source' => 'https://elsewhere.example/cat.jpg']]))
         ->toThrow(ValidationException::class, 'An image from the old site stays only as the import left it: choose another from the library.')
         ->and(ContentRevision::query()->count())->toBe($revisions);
+});
+
+it('names the old site in the page policy as it draws its picture, so a visitor sees it (#716)', function (): void {
+    $policy = app(PagePolicy::class);
+    $policy->start();
+    $view = app(ArticleViews::class)->published(ofPost($this->author, $this->outside));
+
+    app(ImageMarkup::class)->render((string) $view->lead?->id, 'content', true, $view->lead?->alt);
+    preg_match('/img-src ([^;]*)/', $policy->header('https://teme.test'), $images);
+
+    expect($images[1] ?? '')->toContain('https://old.example.org');
 });
