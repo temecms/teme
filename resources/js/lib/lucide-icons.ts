@@ -1,5 +1,5 @@
-import { icons } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { icons } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // The whole Lucide set in one object, so the bundler keeps it in one lazy
 // file instead of one file an icon (I-3311). Import this only from modules
@@ -11,14 +11,14 @@ import type { LucideIcon } from "lucide-react";
  */
 function storedName(key: string): string {
     return key
-        .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-        .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
         .toLowerCase();
 }
 
 /** A name with its hyphens dropped and in lower case, the form names are looked up by. */
 export function squashedName(name: string): string {
-    return name.replaceAll("-", "").toLowerCase();
+    return name.replaceAll('-', '').toLowerCase();
 }
 
 const byName = new Map<string, LucideIcon>(
@@ -37,13 +37,13 @@ export const lucideIcons: readonly { name: string; Icon: LucideIcon }[] =
  * insert menu draws them; the Lucide icon each of those names stands for.
  */
 const CARD_ICONS: Record<string, string> = {
-    audio: "music",
-    button: "mouse-pointer-click",
-    callout: "message-square",
-    embed: "globe",
-    faq: "circle-help",
-    gallery: "images",
-    steps: "footprints",
+    audio: 'music',
+    button: 'mouse-pointer-click',
+    callout: 'message-square',
+    embed: 'globe',
+    faq: 'circle-help',
+    gallery: 'images',
+    steps: 'footprints',
 };
 
 /**

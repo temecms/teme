@@ -135,9 +135,7 @@ function FromPlugin({ name }: { name: string }) {
                 aria-hidden="true"
                 className="text-ink-3 ms-auto size-3.5 shrink-0"
             />
-            <span className="sr-only">
-                {__('From :name', { name })}
-            </span>
+            <span className="sr-only">{__('From :name', { name })}</span>
         </>
     );
 }
@@ -177,7 +175,9 @@ function EntryButton({
             >
                 <Link href={item.href} prefetch>
                     <Icon />
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                        {item.label}
+                    </span>
                     {item.plugin !== undefined && (
                         <FromPlugin name={item.plugin} />
                     )}

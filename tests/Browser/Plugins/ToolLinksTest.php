@@ -97,7 +97,7 @@ it('marks a plugin’s page in the menu’s Tools entry, named for screen reader
             return {
                 hidden: [...link.querySelectorAll('.sr-only')].map((span) => span.textContent),
                 plug: plug?.getAttribute('aria-hidden') ?? null,
-                plugAfterLabel: plug !== null && link.firstChild?.nodeType === Node.TEXT_NODE,
+                plugAfterLabel: plug !== null && link.firstElementChild?.textContent === 'Sync settings' && (link.firstElementChild.compareDocumentPosition(plug) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
                 stops: link.querySelectorAll('a, button, [tabindex]').length,
             };
         }

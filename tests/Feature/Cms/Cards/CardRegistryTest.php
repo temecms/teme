@@ -33,8 +33,8 @@ it('gives every card a label, a description, a version and a menu entry', functi
 it('declares every attribute a card stores, with its rules', function (): void {
     $image = app(CardRegistry::class)->find('image');
 
-    expect(array_keys($image->attributes()))->toBe(['id', 'mediaId', 'alt', 'decorative', 'caption', 'credit', 'width'])
-        ->and($image->attributes()['mediaId']->rules)->toContain('required');
+    expect(array_keys($image->attributes()))->toBe(['id', 'mediaId', 'source', 'sourceWidth', 'sourceHeight', 'alt', 'decorative', 'caption', 'credit', 'width'])
+        ->and($image->attributes()['mediaId']->rules)->toContain('size:26');
 });
 
 it('reports what a card refers to', function (): void {

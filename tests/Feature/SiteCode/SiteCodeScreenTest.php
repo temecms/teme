@@ -208,7 +208,7 @@ it('gives Site code a tab for whoever holds site-code.manage, even alone, openin
     $tabs = fn (User $user): array => app(SettingsNavigation::class)->forUser($user->id);
     $adminTabs = $tabs($this->admin);
 
-    $siteCode = ['key' => 'site-code', 'label' => 'Site code', 'href' => '/admin/settings/site-code', 'heading' => 'Site', 'plugin' => false];
+    $siteCode = ['key' => 'site-code', 'label' => 'Site code', 'href' => '/admin/settings/site-code', 'heading' => 'Site', 'plugin' => false, 'ownPage' => false];
 
     expect($adminTabs)->toContain($siteCode)
         ->and($tabs($keeper))->toBe([$siteCode])
