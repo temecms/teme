@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import AutosaveController from '@/actions/App/Http/Admin/Contents/AutosaveController';
 import ContentEditorController from '@/actions/App/Http/Admin/Contents/ContentEditorController';
 import { guardHistory } from '@/lib/history-guard';
+import { __ } from '@/lib/i18n';
 import type { EditorPerson } from '@/types';
 import { post, reasonOf } from './editor-http';
 import type { LinkChange } from './link-changes';
@@ -78,6 +79,7 @@ export function useAutosave({
     hasAutosave,
     onLinksChanged,
     onSlug,
+    askPassword,
 }: Draft & {
     contentId: string;
     basedOn: string | null;
@@ -91,6 +93,8 @@ export function useAutosave({
     onLinksChanged?: (changes: LinkChange[]) => void;
     /** The address a checkpoint's answer gives the draft, which a first title may have changed (I-425). */
     onSlug?: (slug: string) => void;
+    /** Asks for the password in place when a save answers 423 (a change to Custom HTML code); true once confirmed. */
+    askPassword?: () => Promise<boolean>;
 }) {
     const [state, setState] = useState<AutosaveState>('idle');
     const [savedAt, setSavedAt] = useState<string | null>(initialSavedAt);
@@ -110,6 +114,7 @@ export function useAutosave({
     const autosaved = useRef(hasAutosave);
     const linksChanged = useRef(onLinksChanged);
     const slugChanged = useRef(onSlug);
+    const passwordAsked = useRef(askPassword);
     const lastRevisionAt = useRef(Date.now());
     const backoff = useRef(1000);
     const idleTimer = useRef<number | null>(null);
@@ -133,6 +138,7 @@ export function useAutosave({
     draft.current = { title, document: body, fields, terms };
     linksChanged.current = onLinksChanged;
     slugChanged.current = onSlug;
+    passwordAsked.current = askPassword;
 
     const clearTimers = () => {
         for (const timer of [idleTimer, maxTimer, retryTimer]) {
@@ -168,42 +174,75 @@ export function useAutosave({
         setState('stale');
     }, []);
 
-    /** Writes the autosave into a revision; the new revision's ID, or null. */
-    const checkpointNow = useCallback(async (): Promise<string | null> => {
-        const answer = await post(
-            ContentEditorController.checkpoint(contentId).url,
-        );
+    /**
+     * Writes the autosave into a revision; the new revision's ID, or null.
+     * A save the person asked for asks for the password when the server
+     * wants it, then tries once more; a timed one leaves the autosave as it
+     * is, holding the latest text.
+     */
+    const checkpointNow = useCallback(
+        async (asked = false): Promise<string | null> => {
+            let answer = await post(
+                ContentEditorController.checkpoint(contentId).url,
+            );
 
-        if (answer.status === 409) {
-            markStale(answer.body);
+            if (answer.status === 423) {
+                if (!asked) {
+                    return null;
+                }
 
-            return null;
-        }
+                const confirmed = (await passwordAsked.current?.()) === true;
 
-        // Only the version was refused: the autosave holds the latest text.
-        // Its reason is shown as today, with no notice, and nothing retries.
-        if (answer.status >= 400) {
-            setFailure(versionRefused(reasonOf(answer.body)));
-            setState('refused');
+                if (!confirmed) {
+                    setFailure(
+                        versionRefused(
+                            __(
+                                'Your password is needed to save a change to Custom HTML code.',
+                            ),
+                        ),
+                    );
+                    setState('refused');
 
-            return null;
-        }
+                    return null;
+                }
 
-        const revisionId = answer.body.revisionId as string;
+                answer = await post(
+                    ContentEditorController.checkpoint(contentId).url,
+                );
+            }
 
-        if (typeof answer.body.slug === 'string') {
-            slugChanged.current?.(answer.body.slug);
-        }
+            if (answer.status === 409) {
+                markStale(answer.body);
 
-        based.current = revisionId;
-        autosaved.current = false;
-        lastRevisionAt.current = Date.now();
-        setSavedAt(new Date().toISOString());
-        setFailure(null);
-        setState('saved');
+                return null;
+            }
 
-        return revisionId;
-    }, [contentId, markStale]);
+            // Only the version was refused: the autosave holds the latest text.
+            // Its reason is shown as today, with no notice, and nothing retries.
+            if (answer.status >= 400) {
+                setFailure(versionRefused(reasonOf(answer.body)));
+                setState('refused');
+
+                return null;
+            }
+
+            const revisionId = answer.body.revisionId as string;
+
+            if (typeof answer.body.slug === 'string') {
+                slugChanged.current?.(answer.body.slug);
+            }
+
+            based.current = revisionId;
+            autosaved.current = false;
+            lastRevisionAt.current = Date.now();
+            setSavedAt(new Date().toISOString());
+            setFailure(null);
+            setState('saved');
+
+            return revisionId;
+        },
+        [contentId, markStale],
+    );
 
     /**
      * An autosave the server didn't keep, or no answer at all: shown, then
@@ -707,7 +746,7 @@ export function useAutosave({
 
         // On its way like any save, so a save after it waits for its answer
         // and is sent on the revision it writes.
-        const writing = checkpointNow();
+        const writing = checkpointNow(true);
         const done = writing.then(
             () => undefined,
             () => undefined,

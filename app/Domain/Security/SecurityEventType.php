@@ -51,6 +51,11 @@ enum SecurityEventType: string
     case SiteCodeSwitchedOn = 'site_code.switched_on';
     case SiteCodeSwitchedOff = 'site_code.switched_off';
     case SiteCodeDeleted = 'site_code.deleted';
+    case SiteCodeCardAdded = 'site_code.card_added';
+    case SiteCodeCardChanged = 'site_code.card_changed';
+    case SiteCodeCardRemoved = 'site_code.card_removed';
+    case SiteCodeCardPublished = 'site_code.card_published';
+    case SiteCodeMovedToCards = 'site_code.moved_to_cards';
     case ExportMade = 'export.made';
     case PageCacheCleared = 'page_cache.cleared';
     case BackupsSetUp = 'backup.set_up';

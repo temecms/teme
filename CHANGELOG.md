@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ### Changed
 
+- A region's Custom HTML card now holds its own code, such as one ad unit, instead of naming code kept in Settings › Site code. Only administrators paste, see or change it, and saving or publishing a change asks for their password again; editors see the card and may move or remove it. Every change is logged. Editors can't publish an administrator's unpublished change to it, and it is never published on a schedule. On upgrade, code placed with a card moves into the cards that placed it, kept on or off as it was, and Settings › Site code no longer offers “Placed with a card”.
 - A theme's region now takes every card unless its theme names the ones it takes, so a plugin's cards fit regions their theme never heard of. The default theme's After the article region takes every card. A theme may also tell its region's cards the space they have, such as 300x600.
 
 ### Fixed

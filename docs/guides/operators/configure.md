@@ -152,7 +152,7 @@ A key set here replaces the stored one, and nobody can change it in the admin.
 
 | Variable | Default | What it does |
 |---|---|---|
-| `TEME_DISALLOW_SITE_CODE` | `false` | Set it to `true` on a host that forbids code added from the admin: no page draws the entries in **Settings › Site code**, and nobody can change them. A deploy clears the page cache, so you need only deploy after changing it. |
+| `TEME_DISALLOW_SITE_CODE` | `false` | Set it to `true` on a host that forbids code added from the admin: no page draws the entries in **Settings › Site code** or the code in a region's Custom HTML cards, and nobody can change them; a card can still be removed. A deploy clears the page cache, so you need only deploy after changing it. |
 | `TEME_PUBLIC_CSP` | `report-only` | The public site's content security policy. `report-only` blocks nothing and sends what it would block to the site, which `php artisan teme:csp:reports` lists; `enforce` blocks it; `off` sends no policy at all, as an escape hatch. A deploy clears the page cache, so you need only deploy after changing it. |
 
 ## Plugins

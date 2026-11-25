@@ -19,9 +19,6 @@ export type CardManifestEntry = {
     attributes: { name: string; default: unknown; options: string[] | null }[];
 };
 
-/** A site code entry the Custom HTML card may place: its name and whether it is on, never its code (I-3127). */
-export type PlacedCode = { id: string; name: string; on: boolean };
-
 /** A provider an embed card may frame, from config/embeds.php. */
 export type EmbedProvider = {
     name: string;
@@ -326,8 +323,8 @@ export type ContentEditPage = {
         size: string | null;
         takes: string;
     } | null;
-    /** The code the Custom HTML card may place, by name; null for any item that isn't a theme region. */
-    placedCode: PlacedCode[] | null;
+    /** Whether this person may read and change a Custom HTML card's code; null for any item that isn't a theme region. */
+    canManageSiteCode: boolean | null;
     /** Whether the host has switched site code off; null for any item that isn't a theme region. */
     siteCodeLocked: boolean | null;
     siteUrl: string;

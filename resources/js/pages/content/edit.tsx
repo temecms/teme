@@ -61,6 +61,7 @@ import { StaleDialog } from '@/components/editor/stale-dialog';
 import { LanguageChip } from '@/components/editor/language-chip';
 import { StatusChip } from '@/components/editor/status-chip';
 import { useAutosave } from '@/components/editor/use-autosave';
+import { useElevated } from '@/components/editor/use-elevated';
 import { usePresence } from '@/components/editor/use-presence';
 import { useCardMedia } from '@/components/editor/use-card-media';
 import { useLinkedContent } from '@/components/editor/use-linked-content';
@@ -147,10 +148,17 @@ export default function ContentEdit(page: ContentEditPage) {
     // "theme region" here, apart from the editor's own regions (region-entry.ts).
     const themeRegion = page.kind === 'region' ? page.themeRegion : null;
     const allowed = page.allowedCards;
+    // Custom HTML is offered only to someone who may write its code.
     const menuCards =
         allowed === null
             ? undefined
-            : page.manifest.cards.filter((card) => allowed.includes(card.name));
+            : page.manifest.cards.filter(
+                  (card) =>
+                      allowed.includes(card.name) &&
+                      (card.name !== 'site-code' ||
+                          (page.canManageSiteCode === true &&
+                              page.siteCodeLocked !== true)),
+              );
     // A plugin's card is allowed by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
     const menuPluginCards =
         allowed === null
@@ -279,8 +287,11 @@ export default function ContentEdit(page: ContentEditPage) {
         return () => document.documentElement.classList.remove('editor-focus');
     }, [focus]);
 
+    // A change to Custom HTML code asks for the password in place, on a save and on a publish.
+    const elevated = useElevated();
     const saving = useAutosave({
         contentId: session.id,
+        askPassword: elevated.ask,
         title,
         document: body,
         fields: values,
@@ -536,7 +547,11 @@ export default function ContentEdit(page: ContentEditPage) {
         setNotice(null);
 
         try {
-            const answer = await send(route, data);
+            let answer = await send(route, data);
+
+            if (answer.status === 423 && (await elevated.ask())) {
+                answer = await send(route, data);
+            }
 
             if (answer.status >= 400) {
                 setNotice(`${refused}: ${reasonOf(answer.body)}`);
@@ -1303,6 +1318,7 @@ export default function ContentEdit(page: ContentEditPage) {
 
     return (
         <>
+            {elevated.password}
             <Head
                 title={
                     themeRegion !== null

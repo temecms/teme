@@ -153,14 +153,16 @@ Refers to: nothing.
 
 ## `site-code` — Custom HTML
 
-HTML an administrator keeps in Settings › Site code, placed here by name. Editors choose it; only administrators write or change it.
+HTML of its own, such as one ad unit, with the hosts it connects to. Only administrators add, read or change its code; editors may move or remove it.
 
 Since 1.0.0. Registered by `core`.
 
 | Attribute | Rules | Default |
 |---|---|---|
 | `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
-| `entryId` | required, string, regex:/^[0-9a-hjkmnp-tv-z]{26}$/ | — |
+| `code` | nullable, string, max:65535, Closure | — |
+| `origins` | array, max:20 | `[]` |
+| `on` | boolean | `true` |
 
 Refers to: nothing.
 
