@@ -238,6 +238,49 @@ it('shows under a code field which scripts wait, and lets a person who may chang
     cmNoJavaScriptErrors($page);
 });
 
+it('puts Add in the header, Edit and Duplicate under the name, and a pager that reaches page 2', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, "{$this->rows} === 20");
+
+    $page->assertPresent('[data-test="area-table-add"]')
+        ->assertScript(
+            'document.querySelector(\'[data-test="area-table"] tbody [data-action="edit"]\') !== null && document.querySelector(\'[data-test="area-table"] tbody [data-action="duplicate"]\') !== null',
+            true,
+        )
+        ->assertScript(
+            '[...document.querySelectorAll(\'[data-test="area-table"] nav[aria-label="Pages"] button\')].some((button) => button.textContent.trim() === "2")',
+            true,
+        );
+});
+
+it('toggles the chart between legend and table', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-chart-legend"]\') !== null');
+
+    $page->assertPresent('[data-test="area-chart-legend"]')
+        ->assertSeeIn('[data-test="area-chart-table-toggle"]', 'Show as table')
+        ->click('[data-test="area-chart-table-toggle"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-chart-table-toggle"]\')?.textContent.includes("Show as chart")');
+    $page->assertNotPresent('[data-test="area-chart-legend"]')
+        ->assertPresent('[data-test="area-chart-table"]');
+});
+
+it('shows Move up, Move down and Remove as words on a repeater, with the count line', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, "{$this->rows} === 20");
+    $page->click('[data-test="area-table-add"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="record-form"]\') !== null');
+
+    $repeater = '[data-field="versions"]';
+    $page->click("{$repeater} [data-test=\"repeater-add\"]");
+    cmWaitUntil($page, "document.querySelector('{$repeater} [data-test=\"repeater-item\"]') !== null");
+
+    $page->assertSeeIn($repeater, 'Move up')
+        ->assertSeeIn($repeater, 'Move down')
+        ->assertSeeIn($repeater, 'Remove')
+        ->assertSeeIn('[data-test="repeater-count"]', 'of at most');
+});
+
 it('passes axe on the overview, the table and the form, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
     $id = ($this->id)('Ad 02');
