@@ -133,7 +133,7 @@ function RegionList({
                                                     : 'text-ink-2',
                                             )}
                                         >
-                                            {__(':used of :max slots', {
+                                            {__(':used/:max', {
                                                 used: region.used,
                                                 max: region.max,
                                             })}
@@ -162,11 +162,34 @@ function ChosenPanel({
             aria-labelledby="chosen-region"
             className="bg-surface shadow-raised grid content-start gap-4 rounded-lg p-4"
         >
-            <div className="flex flex-wrap items-center gap-2">
-                <h2 id="chosen-region" className="text-lead font-semibold">
-                    {region.label}
-                </h2>
-                <StatePill state={region.state} />
+            <div className="grid gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <h2 id="chosen-region" className="text-lead font-semibold">
+                        {region.label}
+                    </h2>
+                    <StatePill state={region.state} />
+                </div>
+                {page.theme !== null && (
+                    <StatusPill tone="neutral" flat>
+                        {__(':theme · active theme', {
+                            theme: page.theme.name,
+                        })}
+                    </StatusPill>
+                )}
+                <p className="text-small text-ink-2">{region.limit}</p>
+                {(region.session === null || region.contentId === null) && (
+                    <p
+                        className="text-small text-ink-2 tabular-nums"
+                        data-test="region-fill"
+                    >
+                        {__n(
+                            ':count of :max slot used|:count of :max slots used',
+                            region.used,
+                            { max: region.max },
+                        )}
+                    </p>
+                )}
+                <div className="border-line border-b" />
             </div>
             {!region.every && region.cardLabels.length > 0 && (
                 <div data-test="region-cards" className="min-w-0">

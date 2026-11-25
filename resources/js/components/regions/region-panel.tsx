@@ -4,9 +4,7 @@ import {
     ChevronDown,
     ChevronUp,
     GripVertical,
-    Pencil,
     Plus,
-    Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -141,23 +139,21 @@ function CardRow({
                 {!row.off && (
                     <Button
                         type="button"
-                        variant="ghost"
+                        variant="neutral"
                         size="xs"
                         onClick={onEdit}
                     >
-                        <Pencil />
                         {__('Edit')}
                     </Button>
                 )}
                 <Button
                     type="button"
                     variant="ghost"
-                    size="icon-xs"
+                    size="xs"
                     aria-label={__('Remove :card', { card: row.label })}
-                    title={__('Remove')}
                     onClick={onRemove}
                 >
-                    <Trash2 />
+                    {__('Remove')}
                 </Button>
             </div>
         </li>
@@ -316,7 +312,7 @@ export function RegionPanel({
                         data-test="region-fill"
                     >
                         {__n(
-                            ':count of :max block used|:count of :max blocks used',
+                            ':count of :max slot used|:count of :max slots used',
                             rows.length,
                             { max: region.max },
                         )}
@@ -440,13 +436,13 @@ export function RegionPanel({
                         </Button>
                         <Button
                             type="button"
-                            variant={unpublished ? 'primary' : 'ghost'}
+                            variant="primary"
                             size="sm"
                             disabled={busy || !unpublished}
                             data-test="region-publish"
                             onClick={() => void publish()}
                         >
-                            {__('Publish')}
+                            {__('Publish region')}
                         </Button>
                     </div>
                 </div>
