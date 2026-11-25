@@ -117,13 +117,7 @@ export default function Notifications({
                     </div>
                 </FormPanel>
 
-                {notices.length === 0 && pluginNotices.length === 0 ? (
-                    <FormPanel title={__('Email')}>
-                        <p className="text-body text-ink-2">
-                            {__('There are no emails to choose here.')}
-                        </p>
-                    </FormPanel>
-                ) : (
+                {(notices.length > 0 || pluginNotices.length > 0) && (
                     <Form
                         {...NotificationsController.update.form()}
                         options={{ preserveScroll: true }}

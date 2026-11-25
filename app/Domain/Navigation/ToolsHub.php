@@ -96,6 +96,23 @@ final readonly class ToolsHub implements NavHub
     }
 
     /**
+     * The crumb an inbox item shows for this tools route ("Tools › Backups"),
+     * or null when the route is not one of the hub's pages.
+     */
+    public function placeFor(string $route): ?string
+    {
+        foreach ($this->pages() as $page) {
+            $stem = preg_replace('/\.[^.]+$/', '', $page['route']) ?? $page['route'];
+
+            if ($page['route'] === $route || str_starts_with($route, $stem.'.')) {
+                return __('Tools › :page', ['page' => $page['label']]);
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Core's tools, in the order the hub lists them.
      *
      * @return list<array{key: string, label: string, icon: string, description: string, route: string, ability: string}>

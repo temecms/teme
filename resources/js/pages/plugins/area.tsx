@@ -116,16 +116,40 @@ export default function PluginArea(props: PluginAreaPageProps) {
                         </Button>
                     ) : undefined
                 }
-                pages={tabs.map((one) => ({
-                    href:
-                        one.href ??
-                        PluginAreaController.show.url({
-                            code: plugin.code,
-                            page: one.id,
-                        }),
-                    label: one.label,
-                    current: one.current,
-                }))}
+                pages={tabs.map((one) => {
+                    let count = one.count;
+                    // The current page's first table total fills the tab when the server sent none.
+                    if (count === undefined && one.current) {
+                        const table = blocks.find(
+                            (block): block is AreaTableBlock =>
+                                block.type === 'table',
+                        );
+                        const data =
+                            table === undefined
+                                ? undefined
+                                : (props[
+                                      `block_${table.id}` as `block_${string}`
+                                  ] as AreaRowsData | undefined);
+                        if (
+                            data !== undefined &&
+                            typeof data.total === 'number'
+                        ) {
+                            count = data.total;
+                        }
+                    }
+
+                    return {
+                        href:
+                            one.href ??
+                            PluginAreaController.show.url({
+                                code: plugin.code,
+                                page: one.id,
+                            }),
+                        label: one.label,
+                        current: one.current,
+                        count,
+                    };
+                })}
             >
                 <div className="grid gap-6" data-test="area-blocks">
                     {blocks.map((block) => {

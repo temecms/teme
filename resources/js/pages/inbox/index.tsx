@@ -1,10 +1,9 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import InboxController from '@/actions/App/Http/Admin/InboxController';
 import { InboxList } from '@/components/inbox/inbox-list';
 import { Pager } from '@/components/list/pager';
 import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
-import { Notice } from '@/components/ui/notice';
 import { __ } from '@/lib/i18n';
 import { index } from '@/routes/inbox';
 import type { InboxPage } from '@/types/jobs';
@@ -17,13 +16,13 @@ export default function Inbox({
     unread,
     siteTimezone,
 }: InboxPage) {
-    const fromPlugins = rows.some((row) => row.plugin !== null);
+    setLayoutProps({ breadcrumbs: [{ title: __('Inbox'), href: index() }] });
 
     return (
         <ListPage
             title={__('Inbox')}
             description={__(
-                'Results of background work you started, such as imports. Each is kept for 90 days.',
+                'Results of background work you started, such as imports, and notices from plugins. Each is kept for 90 days.',
             )}
             actions={
                 unread > 0 && (
@@ -57,13 +56,6 @@ export default function Inbox({
             <Head title={__('Inbox')} />
 
             <div className="grid gap-4">
-                {fromPlugins && (
-                    <Notice tone="info" data-test="inbox-plugin-notice">
-                        {__(
-                            'Notices from plugins also arrive here, marked with the plugin’s name.',
-                        )}
-                    </Notice>
-                )}
                 <InboxList rows={rows} siteTimezone={siteTimezone} />
 
                 {rows.length > 0 && <Pager newer={newer} older={older} />}
@@ -71,7 +63,3 @@ export default function Inbox({
         </ListPage>
     );
 }
-
-Inbox.layout = {
-    breadcrumbs: [{ title: 'Inbox', href: index() }],
-};

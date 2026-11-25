@@ -39,7 +39,7 @@ it('passes axe on the inbox, every target 24 pixels or more, in the light and da
 
     $page = cmSignIn($this->admin)
         ->navigate('/admin/inbox')
-        ->assertSee('Results of background work you started, such as imports. Each is kept for 90 days.')
+        ->assertSee('Results of background work you started, such as imports, and notices from plugins. Each is kept for 90 days.')
         ->assertSee('2 unread')
         ->assertNoAccessibilityIssues(3);
 

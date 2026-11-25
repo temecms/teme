@@ -14,14 +14,13 @@ import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
 import { formatRecent } from '@/lib/dates';
 import { cn } from '@/lib/utils';
-import type { InboxRow } from '@/types/jobs';
+import type { InboxResult, InboxRow } from '@/types/jobs';
 
-/** A kind icon from how the title is worded, until the inbox sends a kind. */
-function KindIcon({ title }: { title: string }) {
-    const lower = title.toLowerCase();
+/** A coloured kind icon from the item's result, not from English title words. */
+function KindIcon({ result }: { result: InboxResult | null }) {
     const className = 'size-5 shrink-0';
 
-    if (lower.startsWith('failed:') || lower.includes('failed')) {
+    if (result === 'failed') {
         return (
             <OctagonAlertIcon
                 aria-hidden="true"
@@ -30,7 +29,7 @@ function KindIcon({ title }: { title: string }) {
         );
     }
 
-    if (lower.startsWith('finished:') || lower.includes('finished')) {
+    if (result === 'finished') {
         return (
             <CheckCircle2Icon
                 aria-hidden="true"
@@ -39,7 +38,7 @@ function KindIcon({ title }: { title: string }) {
         );
     }
 
-    if (lower.includes('warning') || lower.includes('needs')) {
+    if (result === 'warning') {
         return (
             <CircleAlertIcon
                 aria-hidden="true"
@@ -56,7 +55,8 @@ function KindIcon({ title }: { title: string }) {
 /**
  * A person's inbox items, newest first: a coloured kind icon, an accent
  * unread dot, the title with the plugin mark after it, a Failed pill when
- * the result failed, Mark as read at the end, and when it arrived.
+ * the result failed, Mark as read at the end, and when it arrived with its
+ * place.
  */
 export function InboxList({
     rows,
@@ -83,9 +83,6 @@ export function InboxList({
     const list = (
         <ul aria-label={__('Inbox items')} className="divide-line divide-y">
             {rows.map((row) => {
-                const failed =
-                    row.title.toLowerCase().startsWith('failed:') ||
-                    row.title.toLowerCase().includes(' failed');
                 const when = formatRecent(
                     row.at,
                     {
@@ -95,12 +92,16 @@ export function InboxList({
                     Date.now(),
                     siteTimezone,
                 );
+                const meta =
+                    row.place !== null ? `${when} · ${row.place}` : when;
 
                 return (
                     <li
                         key={row.id}
                         data-test="inbox-item"
                         data-read={row.read ? 'true' : 'false'}
+                        data-result={row.result ?? undefined}
+                        data-kind={row.kind}
                         className="text-body flex gap-3 px-4 py-3"
                     >
                         <span className="flex h-(--ctl-h-sm) shrink-0 items-center gap-2">
@@ -111,7 +112,7 @@ export function InboxList({
                                     !row.read && 'bg-accent',
                                 )}
                             />
-                            <KindIcon title={row.title} />
+                            <KindIcon result={row.result} />
                         </span>
                         <div className="grid min-w-0 flex-1 gap-1">
                             <span className="flex min-h-(--ctl-h-sm) flex-wrap items-center gap-2 font-medium">
@@ -148,7 +149,7 @@ export function InboxList({
                                         name={row.plugin}
                                     />
                                 )}
-                                {failed && (
+                                {row.result === 'failed' && (
                                     <StatusPill tone="danger">
                                         {__('Failed')}
                                     </StatusPill>
@@ -159,8 +160,11 @@ export function InboxList({
                                     {row.text}
                                 </span>
                             )}
-                            <span className="text-ink-3 text-small">
-                                {when}
+                            <span
+                                className="text-ink-3 text-small"
+                                data-test="inbox-meta"
+                            >
+                                {meta}
                             </span>
                         </div>
                         {!row.read && (

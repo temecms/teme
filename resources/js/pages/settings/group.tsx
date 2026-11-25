@@ -772,10 +772,13 @@ export default function SettingsGroup({
 
                 {pluginCode !== null && (
                     <>
-                        <PluginActionsPanel
-                            code={pluginCode}
-                            actions={pluginActions}
-                        />
+                        {/* On an area Settings tab the Overview already draws these actions. */}
+                        {!bare && (
+                            <PluginActionsPanel
+                                code={pluginCode}
+                                actions={pluginActions}
+                            />
+                        )}
                         <PluginListsPanel lists={pluginLists} />
                     </>
                 )}

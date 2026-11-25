@@ -29,11 +29,30 @@ it('shows a person their own inbox, newest first, with how many are unread (I-22
             ->has('rows', 2)
             ->where('rows.0.title', 'Failed: Rebuild the link index')
             ->where('rows.0.read', false)
+            ->where('rows.0.kind', 'job.finished')
+            ->where('rows.0.result', 'finished')
             ->where('rows.1.read', true)
             ->where('unread', 1)
             ->where('newer', null)
             ->where('older', null)
             ->has('siteTimezone'));
+});
+
+it('sends kind, result and place from the server, not from the title’s English words', function (): void {
+    JobsFixtures::inboxItem($this->ada->id, [
+        'kind' => 'job.failed',
+        'body' => [
+            'title' => 'Something went wrong',
+            'text' => null,
+            'link' => ['route' => 'tools.backups.index', 'parameters' => [], 'ability' => 'backups.manage'],
+        ],
+    ]);
+
+    $this->actingAs($this->ada)->get('/admin/inbox')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('rows.0.kind', 'job.failed')
+            ->where('rows.0.result', 'failed')
+            ->where('rows.0.place', 'Tools › Backups'));
 });
 
 it('pages the inbox by the reader’s page size, with addresses for the pages either side (I-140)', function (): void {

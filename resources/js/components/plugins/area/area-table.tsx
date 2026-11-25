@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { BulkBar } from '@/components/list/bulk-bar';
@@ -7,6 +7,7 @@ import { ConfirmItems } from '@/components/list/confirm-items';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
+import { numbersFor } from '@/components/list/numbered-pager';
 import { PluginCell } from '@/components/list/plugin-cell';
 import type { RowAction } from '@/components/list/row-actions';
 import { RowLine } from '@/components/list/row-line';
@@ -266,11 +267,6 @@ export function AreaTable({
         data.rows.length === 0 ? 0 : (pageNumber - 1) * block.perPage + 1;
     const to = from === 0 ? 0 : from + data.rows.length - 1;
 
-    const addHref = PluginAreaController.create.url({
-        code: plugin.code,
-        record: record.id,
-    });
-
     return (
         <section
             aria-label={record.plural}
@@ -396,16 +392,6 @@ export function AreaTable({
                             title={__('No :plural yet.', {
                                 plural: record.plural.toLowerCase(),
                             })}
-                            action={
-                                <Button asChild variant="primary">
-                                    <Link href={addHref}>
-                                        <Plus aria-hidden="true" />
-                                        {__('Add :item', {
-                                            item: record.label.toLowerCase(),
-                                        })}
-                                    </Link>
-                                </Button>
-                            }
                         />
                     )
                 }
@@ -443,12 +429,17 @@ export function AreaTable({
                                         <ChevronLeft aria-hidden="true" />
                                     </Button>
                                     {pages !== null &&
-                                        Array.from(
-                                            { length: Math.min(pages, 7) },
-                                            (_, index) => {
-                                                const number = index + 1;
-
-                                                return (
+                                        numbersFor(pageNumber, pages).map(
+                                            (number, at) =>
+                                                number === null ? (
+                                                    <span
+                                                        key={`gap-${at}`}
+                                                        className="text-ink-3 px-1 tabular-nums"
+                                                        aria-hidden="true"
+                                                    >
+                                                        …
+                                                    </span>
+                                                ) : (
                                                     <Button
                                                         key={number}
                                                         type="button"
@@ -472,8 +463,7 @@ export function AreaTable({
                                                     >
                                                         {number}
                                                     </Button>
-                                                );
-                                            },
+                                                ),
                                         )}
                                     <Button
                                         type="button"

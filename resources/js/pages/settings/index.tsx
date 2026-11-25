@@ -51,7 +51,9 @@ export default function SettingsIndex({ cards }: { cards: SettingsCard[] }) {
                                 icon={navIcon(card.icon)}
                                 title={
                                     card.plugin !== null
-                                        ? card.line
+                                        ? card.line !== ''
+                                            ? card.line
+                                            : card.label
                                         : card.label
                                 }
                                 description={

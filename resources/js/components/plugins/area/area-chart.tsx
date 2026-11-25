@@ -12,12 +12,23 @@ import {
     YAxis,
 } from 'recharts';
 import { Panel } from '@/components/ui/panel';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { TextButton } from '@/components/ui/text-button';
+import { adminLocale } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import type { AreaChartBlock, AreaChartData } from '@/types/plugin-area';
 
 /** The series' colours, from the design tokens, in order. */
 const COLOURS = ['var(--chart-1)', 'var(--chart-2)', 'var(--ink-3)'];
+
+/** Legend swatch fills as Tailwind token classes (no inline colour styles). */
+const SWATCH = ['bg-chart-1', 'bg-chart-2', 'bg-ink-3'] as const;
+const SWATCH_BORDER = [
+    'border-chart-1',
+    'border-chart-2',
+    'border-ink-3',
+] as const;
 
 /** A chart label as people read a day: "18 Oct", else the label as given. */
 function dayLabel(label: string): string {
@@ -31,7 +42,7 @@ function dayLabel(label: string): string {
         Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])),
     );
 
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(adminLocale(), {
         day: 'numeric',
         month: 'short',
         timeZone: 'UTC',
@@ -123,52 +134,58 @@ export function AreaChart({
                     </TextButton>
                 </div>
                 {asTable ? (
-                    <div
-                        role="table"
-                        aria-label={block.label}
+                    <ScrollArea
+                        axis="x"
+                        label={block.label}
                         data-test="area-chart-table"
-                        className="text-small overflow-x-auto"
+                        className="text-small"
                     >
-                        <div
-                            role="row"
-                            className="text-ink-3 border-line grid gap-2 border-b py-2 font-medium"
-                            style={{
-                                gridTemplateColumns: `minmax(6rem,1fr) repeat(${data.series.length}, minmax(4rem,1fr))`,
-                            }}
-                        >
-                            <span role="columnheader">{__('Point')}</span>
-                            {data.series.map((series) => (
-                                <span
-                                    key={series.id}
-                                    role="columnheader"
-                                    className="text-end"
-                                >
-                                    {series.label}
-                                </span>
-                            ))}
-                        </div>
-                        {rows.map((row) => (
+                        <div role="table" aria-label={block.label}>
                             <div
-                                key={row.raw}
                                 role="row"
-                                className="border-line grid gap-2 border-b py-2 last:border-0"
-                                style={{
-                                    gridTemplateColumns: `minmax(6rem,1fr) repeat(${data.series.length}, minmax(4rem,1fr))`,
-                                }}
+                                className="text-ink-3 border-line flex gap-2 border-b py-2 font-medium"
                             >
-                                <span role="rowheader">{row.label}</span>
+                                <span
+                                    role="columnheader"
+                                    className="min-w-24 flex-1"
+                                >
+                                    {__('Point')}
+                                </span>
                                 {data.series.map((series) => (
                                     <span
                                         key={series.id}
-                                        role="cell"
-                                        className="text-end tabular-nums"
+                                        role="columnheader"
+                                        className="min-w-16 flex-1 text-end"
                                     >
-                                        {row[series.id] ?? 0}
+                                        {series.label}
                                     </span>
                                 ))}
                             </div>
-                        ))}
-                    </div>
+                            {rows.map((row) => (
+                                <div
+                                    key={row.raw}
+                                    role="row"
+                                    className="border-line flex gap-2 border-b py-2 last:border-0"
+                                >
+                                    <span
+                                        role="rowheader"
+                                        className="min-w-24 flex-1"
+                                    >
+                                        {row.label}
+                                    </span>
+                                    {data.series.map((series) => (
+                                        <span
+                                            key={series.id}
+                                            role="cell"
+                                            className="min-w-16 flex-1 text-end tabular-nums"
+                                        >
+                                            {row[series.id] ?? 0}
+                                        </span>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
                 ) : (
                     <>
                         <ul
@@ -176,40 +193,35 @@ export function AreaChart({
                             className="text-small text-ink-2 flex flex-wrap gap-4"
                             data-test="area-chart-legend"
                         >
-                            {data.series.map((series, index) => (
-                                <li
-                                    key={series.id}
-                                    className="inline-flex items-center gap-2"
-                                >
-                                    <span
-                                        className="inline-block h-0.5 w-4"
-                                        style={{
-                                            background:
-                                                COLOURS[index % COLOURS.length],
-                                            borderTop: isEarlier(
-                                                series,
-                                                index,
-                                                data.series.length,
-                                            )
-                                                ? '2px dashed currentColor'
-                                                : undefined,
-                                            backgroundColor: isEarlier(
-                                                series,
-                                                index,
-                                                data.series.length,
-                                            )
-                                                ? 'transparent'
-                                                : COLOURS[
-                                                      index % COLOURS.length
-                                                  ],
-                                            color: COLOURS[
-                                                index % COLOURS.length
-                                            ],
-                                        }}
-                                    />
-                                    {series.label}
-                                </li>
-                            ))}
+                            {data.series.map((series, index) => {
+                                const earlier = isEarlier(
+                                    series,
+                                    index,
+                                    data.series.length,
+                                );
+                                const at = index % SWATCH.length;
+
+                                return (
+                                    <li
+                                        key={series.id}
+                                        className="inline-flex items-center gap-2"
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className={cn(
+                                                'inline-block h-0.5 w-4',
+                                                earlier
+                                                    ? cn(
+                                                          'border-t-2 border-dashed bg-transparent',
+                                                          SWATCH_BORDER[at],
+                                                      )
+                                                    : SWATCH[at],
+                                            )}
+                                        />
+                                        {series.label}
+                                    </li>
+                                );
+                            })}
                         </ul>
                         <div aria-hidden="true" className="h-64 w-full">
                             <ResponsiveContainer width="100%" height="100%">

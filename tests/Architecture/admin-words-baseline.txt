@@ -109,10 +109,6 @@ components/header/jobs-button.tsx	Started
 components/header/jobs-button.tsx	Your jobs
 components/header/jobs-button.tsx	Your jobs
 components/header/jobs-button.tsx	Your jobs couldn’t be loaded. Try again in a moment.
-components/inbox/inbox-list.tsx	(unread)
-components/inbox/inbox-list.tsx	Inbox items
-components/inbox/inbox-list.tsx	Nothing new
-components/inbox/inbox-list.tsx	Results of imports and other background work arrive here.
 components/list/bulk-edit-dialog.tsx	A dash means some of them have it. Click to add it to all, again to remove it from all, and again to leave each as it was.
 components/list/bulk-edit-dialog.tsx	Added to every item. The ones they have stay.
 components/list/bulk-edit-dialog.tsx	Apply to
@@ -281,12 +277,6 @@ lib/discussion.ts	Closed
 lib/discussion.ts	Hidden
 lib/discussion.ts	Open
 pages/dashboard.tsx	Home
-pages/inbox/index.tsx	Inbox
-pages/inbox/index.tsx	Inbox
-pages/inbox/index.tsx	Inbox
-pages/inbox/index.tsx	Mark all as read
-pages/inbox/index.tsx	Results of background work you started, such as imports. Each is kept for 90 days.
-pages/inbox/index.tsx	unread
 pages/navigation/edit.tsx	Add an item
 pages/navigation/edit.tsx	Add the home page, pages, posts, categories, tags or any address.
 pages/navigation/edit.tsx	Cancel
