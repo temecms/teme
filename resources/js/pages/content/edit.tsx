@@ -194,6 +194,8 @@ export default function ContentEdit(page: ContentEditPage) {
         session.addressPattern,
     );
     const [slug, setSlug] = useState(session.slug);
+    const [savedSlug, setSavedSlug] = useState(session.slug);
+    const [slugProblem, setSlugProblem] = useState<string | null>(null);
     const [discussion, setDiscussion] = useState(page.discussion);
     const [visibility, setVisibility] = useState(session.visibility);
     const [readerPassword, setReaderPassword] = useState(
@@ -303,8 +305,13 @@ export default function ContentEdit(page: ContentEditPage) {
         initialSavedAt: session.savedAt,
         initialOthers: session.otherEditors,
         hasAutosave: session.fromAutosave,
+        sidePending: slug !== savedSlug,
         // A first title may have given the draft its address (I-425).
-        onSlug: setSlug,
+        onSlug: (next) => {
+            setSlug(next);
+            setSavedSlug(next);
+            setSlugProblem(null);
+        },
         // The server stored some links differently (I-452): the editor
         // shows what is saved, and says which links it removed.
         onLinksChanged: (changes) => {
@@ -324,7 +331,25 @@ export default function ContentEdit(page: ContentEditPage) {
             }
         },
     });
-    const { setOtherEditors, checkpoint, workingRevisionId } = saving;
+    const {
+        setOtherEditors,
+        checkpoint: checkpointOnly,
+        workingRevisionId,
+    } = saving;
+
+    /** Saves a pending address with the post, then writes a revision. */
+    const checkpoint = async (): Promise<string | null> => {
+        const addressError = await saveAddressIfNeeded();
+
+        if (addressError !== null) {
+            setSlugProblem(addressError);
+            toast.error(addressError);
+
+            return null;
+        }
+
+        return checkpointOnly();
+    };
 
     // A failed autosave stays on screen as one notice until a save succeeds.
     // One the person closed comes back only for a different failure.
@@ -710,12 +735,28 @@ export default function ContentEdit(page: ContentEditPage) {
               : submitRevision(revisionId));
     };
 
+    /**
+     * Commits a tidied address into unsaved changes. The address is saved
+     * with Save draft or Update, not at once.
+     */
     const changeSlug = async (next: string): Promise<string | null> => {
+        setSlug(next);
+        setSlugProblem(null);
+
+        return null;
+    };
+
+    /** Writes a pending address before a checkpoint or publish. */
+    const saveAddressIfNeeded = async (): Promise<string | null> => {
+        if (slug === savedSlug) {
+            return null;
+        }
+
         try {
             const answer = await post(
                 ContentEditorController.address(session.id).url,
                 {
-                    slug: next,
+                    slug,
                     expected_revision_id: workingRevisionId(),
                 },
             );
@@ -725,10 +766,21 @@ export default function ContentEdit(page: ContentEditPage) {
             }
 
             if (answer.status >= 400) {
-                return reasonOf(answer.body);
+                const reason = reasonOf(answer.body);
+
+                if (/already uses this address/i.test(reason)) {
+                    return __(
+                        'Another post already uses this address. Add a word to make it its own.',
+                    );
+                }
+
+                return reason;
             }
 
-            setSlug((answer.body.slug as string) ?? next);
+            const written = (answer.body.slug as string) ?? slug;
+            setSlug(written);
+            setSavedSlug(written);
+            setSlugProblem(null);
 
             return null;
         } catch {
@@ -1430,7 +1482,9 @@ export default function ContentEdit(page: ContentEditPage) {
                             status={status}
                             publishedAt={publishedAt}
                             slug={slug}
+                            title={title}
                             onChangeSlug={changeSlug}
+                            slugProblem={slugProblem}
                             saveDisabled={saving.state === 'stale'}
                             onSave={() => void checkpoint()}
                             onPreview={

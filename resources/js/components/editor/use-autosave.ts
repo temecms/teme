@@ -80,6 +80,7 @@ export function useAutosave({
     onLinksChanged,
     onSlug,
     askPassword,
+    sidePending = false,
 }: Draft & {
     contentId: string;
     basedOn: string | null;
@@ -95,6 +96,11 @@ export function useAutosave({
     onSlug?: (slug: string) => void;
     /** Asks for the password in place when a save answers 423 (a change to Custom HTML code); true once confirmed. */
     askPassword?: () => Promise<boolean>;
+    /**
+     * Extra unsaved work outside the autosave draft (the address), so leaving
+     * asks and the save bar shows pending until it is saved with the post.
+     */
+    sidePending?: boolean;
 }) {
     const [state, setState] = useState<AutosaveState>('idle');
     const [savedAt, setSavedAt] = useState<string | null>(initialSavedAt);
@@ -513,6 +519,9 @@ export function useAutosave({
         setAsking(false);
     }, []);
 
+    const sidePendingRef = useRef(sidePending);
+    sidePendingRef.current = sidePending;
+
     /**
      * Holds a way out: at once to the leave dialog while the latest work is
      * stored nowhere, and otherwise after an ordinary save, after any on
@@ -527,7 +536,7 @@ export function useAutosave({
             return;
         }
 
-        if (atRisk.current) {
+        if (atRisk.current || sidePendingRef.current) {
             setAsking(true);
 
             return;
@@ -548,7 +557,7 @@ export function useAutosave({
                 return;
             }
 
-            if (atRisk.current) {
+            if (atRisk.current || sidePendingRef.current) {
                 setAsking(true);
 
                 return;
@@ -565,6 +574,7 @@ export function useAutosave({
     const unsent = useCallback(
         () =>
             atRisk.current ||
+            sidePendingRef.current ||
             (!stopped.current &&
                 (version.current !== savedVersion.current ||
                     inFlight.current !== null)),
@@ -786,7 +796,7 @@ export function useAutosave({
         savedAt,
         otherEditors,
         setOtherEditors,
-        pending,
+        pending: pending || sidePending,
         stale,
         failure,
         release,

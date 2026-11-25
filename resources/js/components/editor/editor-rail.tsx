@@ -765,7 +765,9 @@ export function EditorRail({
     status,
     publishedAt,
     slug,
+    title,
     onChangeSlug,
+    slugProblem = null,
     saveDisabled,
     onSave,
     onPreview,
@@ -812,7 +814,11 @@ export function EditorRail({
     status: string;
     publishedAt: string | null;
     slug: string;
+    /** The working title, for an emptied address field. */
+    title: string;
     onChangeSlug: (slug: string) => Promise<string | null>;
+    /** A taken-address message from a refused save. */
+    slugProblem?: string | null;
     saveDisabled: boolean;
     onSave: () => void;
     /** Saves, then opens the latest saved version in its own tab; null for a theme region, which has no page. */
@@ -928,6 +934,7 @@ export function EditorRail({
                     review={review}
                     publishedAt={publishedAt}
                     slug={slug}
+                    title={title}
                     addressPattern={addressPattern}
                     siteUrl={siteUrl}
                     templates={session.templates}
@@ -941,6 +948,7 @@ export function EditorRail({
                     revisionCount={session.revisionCount}
                     canEdit={session.can.edit}
                     onChangeSlug={onChangeSlug}
+                    slugProblem={slugProblem}
                     onOpenHistory={onOpenHistory}
                     schedule={schedule}
                     siteTimezone={siteTimezone}
