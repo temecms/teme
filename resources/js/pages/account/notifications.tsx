@@ -76,7 +76,7 @@ export default function Notifications({
                   ],
               ] as [string, string][])
             : []),
-        ...(auth.user.capabilities.includes('backups.alert')
+        ...(auth.user.capabilities.includes('backups.manage')
             ? ([
                   [
                       __('Backup alerts'),
@@ -131,42 +131,48 @@ export default function Notifications({
                     >
                         {({ processing, errors, isDirty, reset }) => (
                             <>
-                                {notices.length > 0 && (
-                                    <FormPanel
-                                        title={__('Email')}
-                                        description={
-                                            <span id="notifications-hint">
-                                                {__(
-                                                    'Here you turn these off for yourself. Some can also be turned off for everyone, in Settings.',
-                                                )}
-                                            </span>
-                                        }
-                                    >
+                                <FormPanel
+                                    title={__('Email')}
+                                    description={
+                                        <span id="notifications-hint">
+                                            {__(
+                                                'Here you turn these off for yourself. Some can also be turned off for everyone, in Settings.',
+                                            )}
+                                        </span>
+                                    }
+                                >
+                                    {notices.length > 0 && (
                                         <Choices
                                             legend={__('Email')}
                                             hint="notifications-hint"
                                             notices={notices}
                                             errors={errors}
                                         />
-                                    </FormPanel>
-                                )}
+                                    )}
 
-                                {/* Each plugin's kinds after core's, named once, by the plugin's own name with its mark. */}
-                                {pluginNotices.map((group) => (
-                                    <FormPanel key={group.name}>
-                                        <h2 data-test="plugin-notices">
-                                            <PluginMark
-                                                name={group.plugin}
-                                                className="text-lead text-ink gap-2 font-semibold"
+                                    {/* Each plugin's kinds under Email, named once with its mark at body size. */}
+                                    {pluginNotices.map((group) => (
+                                        <div
+                                            key={group.name}
+                                            className="grid gap-3 [&:not(:first-child)]:mt-6"
+                                        >
+                                            <h3
+                                                data-test="plugin-notices"
+                                                className="text-body text-ink"
+                                            >
+                                                <PluginMark
+                                                    name={group.plugin}
+                                                    className="text-body text-ink gap-2 font-medium"
+                                                />
+                                            </h3>
+                                            <Choices
+                                                legend={group.plugin}
+                                                notices={group.notices}
+                                                errors={errors}
                                             />
-                                        </h2>
-                                        <Choices
-                                            legend={group.plugin}
-                                            notices={group.notices}
-                                            errors={errors}
-                                        />
-                                    </FormPanel>
-                                ))}
+                                        </div>
+                                    ))}
+                                </FormPanel>
 
                                 {/* A form of disabled rows sends nothing to save. */}
                                 {[
@@ -307,6 +313,11 @@ function NoticeRow({
                     className="text-caption text-ink-3"
                 >
                     {notice.switchedOff}
+                </p>
+            )}
+            {notice.channels.some((channel) => channel.key === 'inbox') && (
+                <p className="text-caption text-ink-3">
+                    {__('It also arrives in your inbox.')}
                 </p>
             )}
             <InputError message={error} />
