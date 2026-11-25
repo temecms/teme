@@ -288,9 +288,9 @@ export default function NavigationEdit({
                 >
                     <FormPanel>
                         <div className="flex flex-wrap items-center justify-between gap-3">
-                            <h2 className="text-body text-ink flex items-baseline gap-2 font-semibold">
+                            <h2 className="text-lead text-ink flex items-baseline gap-2 font-semibold">
                                 {__('Items')}
-                                <span className="text-small text-ink-3 font-normal tabular-nums">
+                                <span className="text-ink-3 font-normal tabular-nums">
                                     {countOf(tree).toLocaleString()}
                                 </span>
                             </h2>

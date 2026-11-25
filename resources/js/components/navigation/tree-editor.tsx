@@ -21,9 +21,14 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
@@ -652,6 +657,7 @@ export function TreeEditor({
                                                     'More actions for :name',
                                                     { name },
                                                 )}
+                                                className="sm:hidden"
                                             >
                                                 <MoreHorizontal aria-hidden />
                                             </Button>
@@ -688,7 +694,7 @@ export function TreeEditor({
                                                             disabled={
                                                                 reason !== null
                                                             }
-                                                            className="h-auto min-h-(--ctl-h) items-start py-2 sm:hidden"
+                                                            className="h-auto min-h-(--ctl-h) items-start py-2"
                                                             onSelect={() => {
                                                                 movedFromMenu.current =
                                                                     apply(
@@ -711,28 +717,6 @@ export function TreeEditor({
                                                         </DropdownMenuItem>
                                                     );
                                                 },
-                                            )}
-                                            {!heading && (
-                                                <>
-                                                    <DropdownMenuSeparator className="sm:hidden" />
-                                                    <DropdownMenuCheckboxItem
-                                                        data-control="new-tab"
-                                                        checked={
-                                                            item.opensNewTab
-                                                        }
-                                                        onCheckedChange={(
-                                                            checked,
-                                                        ) =>
-                                                            update(path, {
-                                                                opensNewTab:
-                                                                    checked ===
-                                                                    true,
-                                                            })
-                                                        }
-                                                    >
-                                                        {__('Open in new tab')}
-                                                    </DropdownMenuCheckboxItem>
-                                                </>
                                             )}
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
@@ -772,6 +756,44 @@ export function TreeEditor({
                             )}
                             {warning && (
                                 <StatusPill tone="warn">{warning}</StatusPill>
+                            )}
+                            {!heading && (
+                                <Collapsible className="basis-full sm:basis-auto">
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="xs"
+                                            data-control="details"
+                                            className="group"
+                                            aria-label={__(
+                                                'Details for :name',
+                                                { name },
+                                            )}
+                                        >
+                                            {__('Details')}
+                                            <ChevronRight
+                                                aria-hidden
+                                                className="size-3.5 transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
+                                            />
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="pt-1">
+                                        <label className="text-small flex items-center gap-2">
+                                            <Checkbox
+                                                data-control="new-tab"
+                                                checked={item.opensNewTab}
+                                                onCheckedChange={(checked) =>
+                                                    update(path, {
+                                                        opensNewTab:
+                                                            checked === true,
+                                                    })
+                                                }
+                                            />
+                                            {__('Open in new tab')}
+                                        </label>
+                                    </CollapsibleContent>
+                                </Collapsible>
                             )}
                             <div
                                 role="group"
