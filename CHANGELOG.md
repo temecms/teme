@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.5.1] — 2026-11-25
+
 ### Changed
 
 - Regions: a Custom HTML card has no on/off switch any more. Remove the card to take its code off the site; the region's history brings it back. The update removes the cards that were switched off from their regions (and from any editor's unsaved changes), logging each with its code in the security log; older versions of the region keep them.
