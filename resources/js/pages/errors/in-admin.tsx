@@ -15,27 +15,50 @@ type Props = {
     role: string | null;
     /** A policy's own reason for refusing, when it gave one. */
     reason: string | null;
+    /** A short name for the page that was refused. */
+    page?: string | null;
+    /** The permission the route asked for, when the route names one. */
+    permission?: string | null;
 };
 
 /**
  * A refused or missing admin page drawn inside the admin, the menu and top
  * bar kept: the title and what happened, then a panel with the way on.
  */
-export default function InAdminError({ status, site, role, reason }: Props) {
+export default function InAdminError({
+    status,
+    site,
+    role,
+    reason,
+    page = null,
+    permission = null,
+}: Props) {
     const refused = status === 403;
     const title = refused
-        ? __('You can’t open this page')
+        ? page === null
+            ? __('You can’t open this page')
+            : __('You can’t open :page', { page })
         : __('We can’t find that page');
     const description = refused
         ? (reason ??
-          (site === null
-              ? __(
-                    'Your account doesn’t have permission to do that. If you need it, ask an administrator to change your role.',
-                )
-              : __(
-                    'Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.',
-                    { site },
-                )))
+          (permission !== null
+              ? site === null
+                  ? __(
+                        'This page needs the :permission permission. If you need it, ask an administrator to change your role.',
+                        { permission },
+                    )
+                  : __(
+                        'This page needs the :permission permission. If you need it, ask an administrator of :site to change your role.',
+                        { permission, site },
+                    )
+              : site === null
+                ? __(
+                      'Your account doesn’t have permission to do that. If you need it, ask an administrator to change your role.',
+                  )
+                : __(
+                      'Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.',
+                      { site },
+                  )))
         : __(
               'The address may be mistyped, or the item may have moved to the Trash. Search the admin to find it.',
           );

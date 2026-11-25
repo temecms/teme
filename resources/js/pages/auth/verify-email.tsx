@@ -22,13 +22,16 @@ export default function VerifyEmail({ status }: { status?: string }) {
                 <IconTile
                     icon={Mail}
                     size="lg"
-                    className="bg-info-soft text-info-ink"
+                    className="bg-info-soft text-info-ink rounded-full"
                 />
             }
-            lead={__(
-                'We sent a link to :email. Open it to confirm that this address is yours.',
-                { email: auth.user.email },
-            )}
+            lead={
+                <>
+                    {__('We sent a link to')}{' '}
+                    <strong className="font-semibold">{auth.user.email}</strong>
+                    {__('. Open it to confirm that this address is yours.')}
+                </>
+            }
             notices={
                 status === 'verification-link-sent' && (
                     <Notice tone="ok">

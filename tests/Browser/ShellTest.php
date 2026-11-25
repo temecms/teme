@@ -183,7 +183,7 @@ it('frames Account with one h1 and the segmented Colors control, passing axe and
     $page = cmSignIn($this->admin)
         ->navigate('/admin/account/preferences')
         ->assertSee('How the admin looks and behaves for you. Each choice saves as you make it.')
-        ->assertSeeIn('#appearance-mode-label', 'Colors')
+        ->assertSeeIn('#appearance-mode-label', 'Colours')
         ->assertVisible('[data-test="appearance-mode"] >> text="Match my computer"')
         ->assertNoAccessibilityIssues(3);
 

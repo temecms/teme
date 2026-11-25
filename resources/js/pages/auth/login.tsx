@@ -157,9 +157,8 @@ export default function Login({
                 type="button"
                 variant="neutral"
                 className="w-full"
-                aria-disabled="true"
+                disabled
                 data-test="passkey-soon"
-                onClick={(event) => event.preventDefault()}
             >
                 {__('Use a passkey')}
                 <SoonTag className="ms-0" />

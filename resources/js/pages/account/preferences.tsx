@@ -102,7 +102,7 @@ export default function Preferences({ fields, values }: Props) {
                             id="appearance-mode-label"
                             className="text-small text-ink-2 font-medium"
                         >
-                            {__('Colors')}
+                            {__('Colours')}
                         </span>
                         <Segmented
                             aria-labelledby="appearance-mode-label"

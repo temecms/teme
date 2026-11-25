@@ -272,7 +272,11 @@ function ScanStep({
                                 data-test="two-factor-key"
                                 className="bg-surface-2 text-body rounded-sm px-2 py-1 font-mono break-all"
                             >
-                                {manualSetupKey ?? '…'}
+                                {manualSetupKey === null
+                                    ? '…'
+                                    : manualSetupKey
+                                          .replace(/\s+/g, '')
+                                          .replace(/(.{4})(?=.)/g, '$1 ')}
                             </code>
                             <Button
                                 type="button"

@@ -46,7 +46,23 @@ it('draws a refusal inside the admin with the policy\'s own reason', function ()
             ->component('errors/in-admin')
             ->where('status', 403)
             ->where('reason', 'You can’t edit this item.')
-            ->where('site', 'The Garden City Ledger'),
+            ->where('site', 'The Garden City Ledger')
+            ->where('page', null)
+            ->where('permission', null),
+        );
+});
+
+it('names the page and permission on a refused settings address', function (): void {
+    $author = User::factory()->create()->assignRole('author');
+
+    $this->actingAs($author)
+        ->get('/admin/settings/ai')
+        ->assertForbidden()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('errors/in-admin')
+            ->where('status', 403)
+            ->where('page', 'Settings')
+            ->where('permission', 'settings.ai.manage'),
         );
 });
 

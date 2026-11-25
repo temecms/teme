@@ -25,13 +25,15 @@
     $percent = (int) round($done / max($total, 1) * 100);
 @endphp
 <x-teme::standalone :title="__('Down for maintenance')" :error="503" :brand="$brand" :refresh-seconds="$refresh">
+@if ($update !== null)
     <x-teme::error-pill tone="info" :dot="true">{{ __('Updating') }}</x-teme::error-pill>
+@endif
     <h1>{{ __('Down for maintenance') }}</h1>
 @if ($update !== null)
     <p class="sa-quiet">{{ __(':site is being updated to Teme :version. This usually takes a few minutes. Nothing you saved is affected.', ['site' => $site, 'version' => $update->to]) }}</p>
     <div>
         <div class="sa-bar" role="progressbar" aria-label="{{ __('Update progress') }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $percent }}"><i style="width: {{ $percent }}%"></i></div>
-        <p class="sa-bar-note">{{ __('Step :step of :total', ['step' => min($done + 1, $total), 'total' => $total]) }}</p>
+        <p class="sa-bar-note">{{ __('Step :step of :total…', ['step' => min($done + 1, $total), 'total' => $total]) }}</p>
     </div>
 @else
     <p class="sa-quiet">{{ __(':site is being updated. This usually takes a few minutes. Nothing you saved is affected.', ['site' => $site]) }}</p>
