@@ -65,9 +65,9 @@ it('shares every banner as the site status, the theme that cannot be used first,
     $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus.0.level', 'error')
         ->where('siteStatus.0.message', fn (string $message): bool => str_contains($message, '"broken"'))
-        ->where('statusBanner.message', fn (string $message): bool => str_contains($message, '"broken"')));
+        ->where('siteStatus.0.message', fn (string $message): bool => str_contains($message, '"broken"')));
 
     $this->actingAs($this->author)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus', [])
-        ->where('statusBanner', null));
+        ->where('siteStatus', []));
 });

@@ -109,14 +109,12 @@ it('has one shell, so no variant of it remains', function (): void {
         ->and(uiComponent('components/app-shell.tsx'))->not->toContain('variant');
 });
 
-it('draws the banner as a labelled region with its text in the foreground colour', function (): void {
+it('keeps StatusBanner for page-local notices, taking the banner as a prop', function (): void {
     $banner = uiComponent('components/status-banner.tsx');
 
-    expect($banner)->toContain('role="region"')
-        ->toContain('aria-label="Site notice"')
-        ->toContain('data-test="site-notice"')
-        ->toContain('Later (I-1392)')
-        ->not->toContain('role="status"')
+    expect($banner)->toContain('data-test="site-notice"')
+        ->toContain('banner: StatusBannerData')
+        ->not->toContain('usePage()')
         ->not->toContain('Dismiss');
 });
 

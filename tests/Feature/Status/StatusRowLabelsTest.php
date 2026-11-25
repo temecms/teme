@@ -71,8 +71,8 @@ it('shares a core banner with its label and no plugin', function (): void {
     $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus.0.label', 'Testing')
         ->where('siteStatus.0.plugin', null)
-        ->where('statusBanner.label', 'Testing')
-        ->where('statusBanner.plugin', null));
+        ->where('siteStatus.0.label', 'Testing')
+        ->where('siteStatus.0.plugin', null));
 });
 
 it('labels a plugin’s banner with the plugin’s name, for those who manage plugins', function (): void {
@@ -87,7 +87,7 @@ it('labels a plugin’s banner with the plugin’s name, for those who manage pl
 
     $this->actingAs($editor)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus', [])
-        ->where('statusBanner', null));
+        ->where('siteStatus', []));
 });
 
 it('keeps the most pressing first', function (): void {

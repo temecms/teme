@@ -191,7 +191,7 @@ it('hides the banner’s Open Plugins on the Plugins page itself', function (): 
     HealthyBackups::seed();
     PluginRecord::factory()->enabled()->create(['name' => 'tests/gone', 'code' => 'gone']);
 
-    $banner = fn (string $path): ?array => $this->actingAs($this->admin)->get($path)->assertOk()->viewData('page')['props']['statusBanner'];
+    $banner = fn (string $path): ?array => ($this->actingAs($this->admin)->get($path)->assertOk()->viewData('page')['props']['siteStatus'][0] ?? null);
 
     expect($banner('/admin/tools/updates'))->toMatchArray(['message' => 'tests/gone can’t run: Its code is no longer installed. Its settings are kept.', 'actionLabel' => 'Open Plugins', 'actionUrl' => route('plugins.index')])
         ->and($banner('/admin/plugins'))->toMatchArray(['message' => 'tests/gone can’t run: Its code is no longer installed. Its settings are kept.', 'actionLabel' => null, 'actionUrl' => null]);

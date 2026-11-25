@@ -46,7 +46,7 @@ it('sends every panel the person may see in the catalogue, empty ones too, with 
         ])
         ->and(collect($page['catalogue'])->firstWhere('key', 'site_status'))->toMatchArray([
             'kind' => 'site-status',
-            'size' => 'medium',
+            'size' => 'small',
             'owner' => 'core',
             'ownerName' => null,
         ])

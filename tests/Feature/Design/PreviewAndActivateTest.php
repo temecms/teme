@@ -183,12 +183,12 @@ it('mends a site whose chosen theme can\'t be used', function (): void {
     themeActivate('broken');
     DB::table('settings')->where('group_key', 'design')->update(['version' => 1]);
 
-    $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('statusBanner.level', 'error'));
+    $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('siteStatus.0.level', 'error'));
 
     app(ActivateTheme::class)->execute(new ActivateThemeInput('quiet', $this->adminId));
 
     // Fixture Quiet draws no menu, so no other check speaks either.
-    $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('statusBanner', null));
+    $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('siteStatus', []));
 });
 
 it('writes nothing when the person may not change the design', function (): void {

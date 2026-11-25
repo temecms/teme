@@ -47,6 +47,20 @@ it('sends the person\'s panels and the site figures, and nothing of the models',
             )));
 });
 
+it('hides Page from create actions when the person cannot create pages', function (): void {
+    $this->seed(RoleSeeder::class);
+    $author = User::factory()->create()->assignRole('author');
+    $editor = User::factory()->create()->assignRole('editor');
+
+    $this->actingAs($author)->get('/admin')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('create', [['singular' => 'Post', 'segment' => 'posts']]));
+
+    $this->actingAs($editor)->get('/admin')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('create', fn ($create): bool => collect($create)->pluck('segment')->all() === ['posts', 'pages']));
+});
+
 it('greets a person with nothing waiting once, rather than with empty panels', function (): void {
     $this->seed(RoleSeeder::class);
     $author = User::factory()->create()->assignRole('author');

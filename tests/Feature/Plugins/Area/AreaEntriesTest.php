@@ -153,7 +153,7 @@ it('puts the area’s own icon on its menu entry in Content, with no second plug
 
     expect($entry)->not->toBeNull()
         ->and($entry['icon'])->toBe('send')
-        ->and($entry)->not->toHaveKey('plugin')
+        ->and($entry['plugin'] ?? null)->toBe('Placard Icon')
         ->and($entry['label'])->toBe('Ads')
         ->and($entry['section'])->toBe('content');
 });

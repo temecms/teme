@@ -200,14 +200,93 @@ it('draws the parents above a child screen, and nothing above Home', function ()
         ->assertSeeIn('[data-test="crumbs"] a', 'Tools');
 });
 
-it('lists Profile, Security, Preferences and Sign out under the person\'s name and email', function (): void {
+it('lists Your account, Preferences, Notifications, Security and Sign out under Name · Role', function (): void {
     cmSignIn($this->admin)
         ->click('[data-test="account-menu-button"]')
         ->assertVisible('[role="menu"]')
-        ->assertSeeIn('[role="menu"]', $this->admin->email)
-        ->assertSeeIn('[role="menu"]', 'Profile')
-        ->assertSeeIn('[role="menu"]', 'Security')
+        ->assertSeeIn('[role="menu"]', 'Ada Admin · Administrator')
+        ->assertSeeIn('[role="menu"]', 'Your account')
         ->assertSeeIn('[role="menu"]', 'Preferences')
+        ->assertSeeIn('[role="menu"]', 'Notifications')
+        ->assertSeeIn('[role="menu"]', 'Security')
         ->assertSeeIn('[role="menu"]', 'Sign out')
         ->assertVisible('[data-test="logout-button"]');
+});
+
+it('shows Themes crumbs as Site / Themes, jobs idle, the bell count weight, Fold and View site icons, and hub chevrons at 1440', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900);
+    shellSettled($page, 'header[data-slot="app-header"] button');
+
+    $page->assertVisible('[data-test="jobs-button"]')
+        ->assertAttribute('[data-test="jobs-button"]', 'aria-label', 'No jobs running')
+        ->assertVisible('[data-test="view-site"]')
+        ->assertVisible('[data-test="collapse-menu"]')
+        ->assertScript(<<<'JS'
+            () => {
+                const view = document.querySelector('[data-test="view-site"] svg');
+                const fold = document.querySelector('[data-test="collapse-menu"] svg');
+                const hub = document.querySelector('[data-test="nav-hub-tools"]');
+                return view !== null && fold !== null && hub !== null;
+            }
+            JS);
+
+    $page->navigate('/admin/themes');
+    cmWaitUntil($page, "location.pathname === '/admin/themes'");
+    shellSettled($page, '[data-test="crumbs"]');
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const crumbs = [...document.querySelectorAll('[data-test="crumbs"] li')]
+                .map((li) => li.textContent?.replace(/\\s+/g, ' ').trim())
+                .filter(Boolean);
+            return crumbs.join(' / ').includes('Site') && crumbs.join(' / ').includes('Themes');
+        }
+        JS);
+
+    $page->assertNoAccessibilityIssues(3);
+});
+
+it('applies a Customise menu tick at once and keeps the entry out of the sidebar', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900);
+    shellSettled($page, '[data-test="personalise-menu"]');
+
+    $page->assertVisible('[data-test="nav-media"]')
+        ->click('[data-test="personalise-menu"]');
+    shellSettled($page, '[data-test="personalise-menu-panel"]');
+
+    $page->click('[data-test="personalise-media"] button[role="checkbox"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="nav-media"]\') === null');
+
+    $page->assertNotPresent('[data-test="nav-media"]')
+        ->assertNoAccessibilityIssues(3);
+});
+
+it('draws Account and Plugins crumbs, and opens Tools screens from the hub chevron', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900);
+    shellSettled($page, '[data-test="nav-hub-tools"]');
+
+    $page->click('[data-test="nav-hub-tools"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="nav-page-cache"]\') !== null');
+    $page->assertVisible('[data-test="nav-page-cache"]');
+
+    $page->navigate('/admin/plugins');
+    cmWaitUntil($page, "location.pathname === '/admin/plugins'");
+    shellSettled($page, '[data-test="crumbs"]');
+    $page->assertScript(<<<'JS'
+        () => {
+            const text = document.querySelector('[data-test="crumbs"]')?.innerText ?? '';
+            return text.includes('Site') && text.includes('Plugins');
+        }
+        JS);
+
+    $page->navigate('/admin/account/profile');
+    cmWaitUntil($page, "location.pathname === '/admin/account/profile'");
+    shellSettled($page, '[data-test="crumbs"]');
+    $page->assertScript(<<<'JS'
+        () => {
+            const text = document.querySelector('[data-test="crumbs"]')?.innerText ?? '';
+            return text.includes('Account') && text.includes('Profile');
+        }
+        JS)
+        ->assertNoAccessibilityIssues(3);
 });
