@@ -108,7 +108,7 @@ function RegionRow({
             onClick={() => chooseRegion(region.key)}
             {...ahead}
             className={cn(
-                'h-auto min-h-9 w-full min-w-0 items-start justify-start gap-2 px-2 py-1.5 text-left whitespace-normal',
+                'h-auto min-h-9 w-full min-w-0 items-start justify-start gap-2 px-2 py-2 text-left whitespace-normal',
                 shown && 'bg-surface-3 text-ink font-semibold',
             )}
         >
