@@ -150,9 +150,9 @@ export default function TypeFields(page: FieldsPage) {
                         it in Details at once.
                     </p>
                 ) : (
-                    <table className="text-small w-full">
+                    <table className="text-body w-full">
                         <thead>
-                            <tr className="border-line border-b text-left">
+                            <tr className="text-left">
                                 <Th className="w-8">
                                     <span className="sr-only">Order</span>
                                 </Th>
@@ -204,7 +204,7 @@ export default function TypeFields(page: FieldsPage) {
                                         }
                                     }}
                                     className={cn(
-                                        'border-line border-b align-top last:border-b-0',
+                                        'align-top',
                                         dragging === row.key && 'opacity-50',
                                     )}
                                 >
@@ -584,12 +584,12 @@ function FromTeme({ page }: { page: FieldsPage }) {
                 </p>
             </div>
             <Card>
-                <table className="text-small w-full">
+                <table className="text-body w-full">
                     <caption className="sr-only">
                         {__('Fields that come with Teme')}
                     </caption>
                     <thead>
-                        <tr className="border-line border-b text-left">
+                        <tr className="text-left">
                             <Th className="pl-4">{__('Field')}</Th>
                             <Th className="hidden sm:table-cell">
                                 {__('Field type')}
@@ -601,18 +601,15 @@ function FromTeme({ page }: { page: FieldsPage }) {
                     </thead>
                     <tbody>
                         {[...alwaysFields(), ...page.fromTeme].map((row) => (
-                            <tr
-                                key={row.name}
-                                className="border-line border-b align-top last:border-b-0"
-                            >
+                            <tr key={row.name} className="align-top">
                                 <td className="min-w-0 py-3 pr-3 pl-4">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <span className="font-semibold">
                                             {row.name}
                                         </span>
-                                        <StatusPill tone="neutral">
+                                        <span className="text-small text-ink-3">
                                             {__('Code')}
-                                        </StatusPill>
+                                        </span>
                                     </div>
                                     <div className="text-caption text-ink-2 font-mono break-all">
                                         {row.handles}
