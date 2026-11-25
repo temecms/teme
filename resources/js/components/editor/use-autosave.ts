@@ -79,6 +79,7 @@ export function useAutosave({
     hasAutosave,
     onLinksChanged,
     onSlug,
+    onSlugRefused,
     askPassword,
     sidePending = false,
 }: Draft & {
@@ -94,6 +95,8 @@ export function useAutosave({
     onLinksChanged?: (changes: LinkChange[]) => void;
     /** The address a checkpoint's answer gives the draft, which a first title may have changed (I-425). */
     onSlug?: (slug: string) => void;
+    /** A taken or refused address on a draft Save that carried one. */
+    onSlugRefused?: (message: string) => void;
     /** Asks for the password in place when a save answers 423 (a change to Custom HTML code); true once confirmed. */
     askPassword?: () => Promise<boolean>;
     /**
@@ -120,6 +123,7 @@ export function useAutosave({
     const autosaved = useRef(hasAutosave);
     const linksChanged = useRef(onLinksChanged);
     const slugChanged = useRef(onSlug);
+    const slugRefused = useRef(onSlugRefused);
     const passwordAsked = useRef(askPassword);
     const lastRevisionAt = useRef(Date.now());
     const backoff = useRef(1000);
@@ -144,6 +148,7 @@ export function useAutosave({
     draft.current = { title, document: body, fields, terms };
     linksChanged.current = onLinksChanged;
     slugChanged.current = onSlug;
+    slugRefused.current = onSlugRefused;
     passwordAsked.current = askPassword;
 
     const clearTimers = () => {
@@ -187,9 +192,11 @@ export function useAutosave({
      * is, holding the latest text.
      */
     const checkpointNow = useCallback(
-        async (asked = false): Promise<string | null> => {
+        async (asked = false, address?: string): Promise<string | null> => {
+            const body = address === undefined ? undefined : { slug: address };
             let answer = await post(
                 ContentEditorController.checkpoint(contentId).url,
+                body,
             );
 
             if (answer.status === 423) {
@@ -214,6 +221,7 @@ export function useAutosave({
 
                 answer = await post(
                     ContentEditorController.checkpoint(contentId).url,
+                    body,
                 );
             }
 
@@ -223,9 +231,24 @@ export function useAutosave({
                 return null;
             }
 
-            // Only the version was refused: the autosave holds the latest text.
-            // Its reason is shown as today, with no notice, and nothing retries.
+            // A taken address is the slug field's refusal, not a version failure.
             if (answer.status >= 400) {
+                const errors = answer.body.errors as
+                    | Record<string, string[]>
+                    | undefined;
+
+                if (errors?.slug !== undefined) {
+                    slugRefused.current?.(
+                        __(
+                            'Another post already uses this address. Add a word to make it its own.',
+                        ),
+                    );
+
+                    return null;
+                }
+
+                // Only the version was refused: the autosave holds the latest text.
+                // Its reason is shown as today, with no notice, and nothing retries.
                 setFailure(versionRefused(reasonOf(answer.body)));
                 setState('refused');
 
@@ -737,40 +760,45 @@ export function useAutosave({
     /**
      * An explicit save: the latest work saved, then written into a revision.
      * Resolves to the working revision's ID, which is the one to publish, or
-     * null when the save was refused or stale.
+     * null when the save was refused or stale. A draft Save may pass the
+     * pending address so it travels in the same request.
      */
-    const checkpoint = useCallback(async (): Promise<string | null> => {
-        await flush();
+    const checkpoint = useCallback(
+        async (address?: string): Promise<string | null> => {
+            await flush();
 
-        if (stopped.current || version.current !== savedVersion.current) {
-            return null;
-        }
-
-        if (!autosaved.current) {
-            return based.current;
-        }
-
-        while (inFlight.current !== null) {
-            await inFlight.current;
-        }
-
-        // On its way like any save, so a save after it waits for its answer
-        // and is sent on the revision it writes.
-        const writing = checkpointNow(true);
-        const done = writing.then(
-            () => undefined,
-            () => undefined,
-        );
-        inFlight.current = done;
-
-        try {
-            return await writing;
-        } finally {
-            if (inFlight.current === done) {
-                inFlight.current = null;
+            if (stopped.current || version.current !== savedVersion.current) {
+                return null;
             }
-        }
-    }, [flush, checkpointNow]);
+
+            // No autosave to gather, but a pending address still needs writing.
+            if (!autosaved.current && address === undefined) {
+                return based.current;
+            }
+
+            while (inFlight.current !== null) {
+                await inFlight.current;
+            }
+
+            // On its way like any save, so a save after it waits for its answer
+            // and is sent on the revision it writes.
+            const writing = checkpointNow(true, address);
+            const done = writing.then(
+                () => undefined,
+                () => undefined,
+            );
+            inFlight.current = done;
+
+            try {
+                return await writing;
+            } finally {
+                if (inFlight.current === done) {
+                    inFlight.current = null;
+                }
+            }
+        },
+        [flush, checkpointNow],
+    );
 
     /**
      * Takes a revision the server wrote for this person, the assistant's

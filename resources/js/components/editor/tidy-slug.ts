@@ -1,7 +1,7 @@
 /**
- * Tidies a typed address the way WordPress's cleanForSlug does: accents
- * made plain, lower case, every other character a hyphen, no double
- * hyphens, none at either end. A pasted full link keeps only its path.
+ * Tidies a typed address to match the server's slug rules: letters and
+ * numbers of every script, lower case, joined by single hyphens. A pasted
+ * full link keeps only its path.
  *
  * @package Teme
  * @since next
@@ -29,17 +29,16 @@ function pathOf(raw: string): string {
 }
 
 /**
- * A slug from free text: accents plain, lower case, words joined by single
- * hyphens. Empty when nothing usable remains.
+ * A slug from free text: lower case, letters of every script kept, words
+ * joined by single hyphens. Empty when nothing usable remains.
  */
 export function tidySlug(raw: string): string {
     let text = pathOf(raw);
 
-    // NFD then drop combining marks, as Str::ascii does for Latin letters.
-    text = text.normalize('NFD').replace(/\p{M}+/gu, '');
-    text = text.toLowerCase();
+    text = text.toLocaleLowerCase();
     text = text.replaceAll('_', '-').replaceAll('@', '-at-');
-    text = text.replace(/[^a-z0-9-]+/g, '-');
+    // Keep lower-case letters and other letters (Lo) and numbers; drop the rest.
+    text = text.replace(/[^\p{Ll}\p{Lo}\p{N}-]+/gu, '-');
     text = text.replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '');
 
     return text.slice(0, 200).replace(/-+$/g, '');
@@ -47,7 +46,8 @@ export function tidySlug(raw: string): string {
 
 /**
  * The address made from a title when the field is emptied, or "untitled"
- * when the title gives nothing usable.
+ * when the title gives nothing usable. Used for the live preview; an empty
+ * field still sends empty so the server makes the title's address.
  */
 export function slugFromTitle(title: string): string {
     return tidySlug(title) || 'untitled';

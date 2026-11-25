@@ -134,6 +134,7 @@ export function PublishPanel({
     review,
     publishedAt,
     slug,
+    savedSlug,
     title,
     addressPattern,
     siteUrl,
@@ -173,6 +174,8 @@ export function PublishPanel({
     review: EditorReview | null;
     publishedAt: string | null;
     slug: string;
+    /** The address last saved on the server; the old-address note uses it. */
+    savedSlug: string;
     /** The working title, used when the address field is emptied. */
     title: string;
     addressPattern: string;
@@ -302,7 +305,8 @@ export function PublishPanel({
               );
     const previewSlug = (() => {
         if (!touched) {
-            return draft || slug;
+            // An emptied pending address still previews the title's address.
+            return draft || slug || slugFromTitle(title);
         }
 
         const tidied = tidySlug(draft);
@@ -326,10 +330,8 @@ export function PublishPanel({
             return true;
         }
 
-        const next =
-            tidySlug(draftRef.current) === ''
-                ? slugFromTitle(title)
-                : tidySlug(draftRef.current);
+        // Empty stays empty so the server makes the title's address on save.
+        const next = tidySlug(draftRef.current);
 
         setDraft(next);
         setTouched(false);
@@ -735,8 +737,7 @@ export function PublishPanel({
                                             </a>
                                         </p>
                                         {status === 'published' &&
-                                            touched &&
-                                            previewSlug !== slug && (
+                                            previewSlug !== savedSlug && (
                                                 <p className="text-ink-2 text-caption">
                                                     {__(
                                                         'The old address will keep sending readers here once you update.',

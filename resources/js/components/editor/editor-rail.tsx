@@ -765,6 +765,7 @@ export function EditorRail({
     status,
     publishedAt,
     slug,
+    savedSlug,
     title,
     onChangeSlug,
     slugProblem = null,
@@ -814,6 +815,8 @@ export function EditorRail({
     status: string;
     publishedAt: string | null;
     slug: string;
+    /** The address last saved on the server. */
+    savedSlug: string;
     /** The working title, for an emptied address field. */
     title: string;
     onChangeSlug: (slug: string) => Promise<string | null>;
@@ -934,6 +937,7 @@ export function EditorRail({
                     review={review}
                     publishedAt={publishedAt}
                     slug={slug}
+                    savedSlug={savedSlug}
                     title={title}
                     addressPattern={addressPattern}
                     siteUrl={siteUrl}

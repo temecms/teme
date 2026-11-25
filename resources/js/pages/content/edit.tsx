@@ -306,11 +306,18 @@ export default function ContentEdit(page: ContentEditPage) {
         initialOthers: session.otherEditors,
         hasAutosave: session.fromAutosave,
         sidePending: slug !== savedSlug,
-        // A first title may have given the draft its address (I-425).
+        // A first title may have given the draft its address (I-425). Never
+        // overwrite a pending typed address the person has not saved yet.
         onSlug: (next) => {
-            setSlug(next);
+            setSlug((current) =>
+                current === savedSlugRef.current ? next : current,
+            );
             setSavedSlug(next);
             setSlugProblem(null);
+        },
+        onSlugRefused: (message) => {
+            setSlugProblem(message);
+            toast.error(message);
         },
         // The server stored some links differently (I-452): the editor
         // shows what is saved, and says which links it removed.
@@ -336,19 +343,22 @@ export default function ContentEdit(page: ContentEditPage) {
         checkpoint: checkpointOnly,
         workingRevisionId,
     } = saving;
+    const savedSlugRef = useRef(savedSlug);
+    savedSlugRef.current = savedSlug;
+    const live = status === 'published';
 
-    /** Saves a pending address with the post, then writes a revision. */
-    const checkpoint = async (): Promise<string | null> => {
-        const addressError = await saveAddressIfNeeded();
+    /**
+     * A revision save. Draft Save draft may carry a pending address; preview,
+     * share, plugins, Ctrl+S on a live post, and the gather before Update
+     * never do — a live address moves only with Update / Publish.
+     */
+    const checkpoint = async (
+        withDraftAddress = false,
+    ): Promise<string | null> => {
+        const address =
+            withDraftAddress && !live && slug !== savedSlug ? slug : undefined;
 
-        if (addressError !== null) {
-            setSlugProblem(addressError);
-            toast.error(addressError);
-
-            return null;
-        }
-
-        return checkpointOnly();
+        return checkpointOnly(address);
     };
 
     // A failed autosave stays on screen as one notice until a save succeeds.
@@ -483,7 +493,8 @@ export default function ContentEdit(page: ContentEditPage) {
         const keys = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 's') {
                 event.preventDefault();
-                void checkpoint();
+                // Draft Save carries a pending address; a live Save does not.
+                void checkpoint(!live);
             }
 
             if (
@@ -579,6 +590,20 @@ export default function ContentEdit(page: ContentEditPage) {
             }
 
             if (answer.status >= 400) {
+                const errors = answer.body.errors as
+                    | Record<string, string[]>
+                    | undefined;
+
+                if (errors?.slug !== undefined) {
+                    const message = __(
+                        'Another post already uses this address. Add a word to make it its own.',
+                    );
+                    setSlugProblem(message);
+                    setNotice(`${refused}: ${message}`);
+
+                    return null;
+                }
+
                 setNotice(`${refused}: ${reasonOf(answer.body)}`);
                 showFieldErrors(answer.body);
 
@@ -621,16 +646,29 @@ export default function ContentEdit(page: ContentEditPage) {
     };
 
     // Publishing saves first, then publishes the revision that save returned;
-    // PublishRevision itself never saves.
+    // PublishRevision itself never saves. A pending address travels here so
+    // Update applies it with the publish (and its redirect), never earlier.
     const publishRevision = async (revisionId: string) => {
+        const data: Record<string, string> = { revision_id: revisionId };
+
+        if (slug !== savedSlug) {
+            data.slug = slug;
+        }
+
         const answer = await decide(
             ContentEditorController.publish(session.id),
-            { revision_id: revisionId },
+            data,
             'Not published',
         );
 
         if (answer === null) {
             return;
+        }
+
+        if (typeof answer.body.slug === 'string') {
+            setSlug(answer.body.slug);
+            setSavedSlug(answer.body.slug);
+            setSlugProblem(null);
         }
 
         // A publish by hand ends any schedule; the answer says so.
@@ -669,7 +707,6 @@ export default function ContentEdit(page: ContentEditPage) {
     // A first publication is confirmed (I-880): saved first, that revision's
     // structured data checked, then shown; its button acts on that revision.
     const [confirming, setConfirming] = useState<Confirming | null>(null);
-    const live = status === 'published';
 
     const confirmFirst = (
         action: Confirming['action'],
@@ -736,56 +773,14 @@ export default function ContentEdit(page: ContentEditPage) {
     };
 
     /**
-     * Commits a tidied address into unsaved changes. The address is saved
-     * with Save draft or Update, not at once.
+     * Commits a tidied address into unsaved changes. Empty means the server
+     * will make the title's address on Save draft or Update. Never saved here.
      */
     const changeSlug = async (next: string): Promise<string | null> => {
         setSlug(next);
         setSlugProblem(null);
 
         return null;
-    };
-
-    /** Writes a pending address before a checkpoint or publish. */
-    const saveAddressIfNeeded = async (): Promise<string | null> => {
-        if (slug === savedSlug) {
-            return null;
-        }
-
-        try {
-            const answer = await post(
-                ContentEditorController.address(session.id).url,
-                {
-                    slug,
-                    expected_revision_id: workingRevisionId(),
-                },
-            );
-
-            if (answer.status === 409) {
-                return `Someone else changed this ${(type?.singular ?? 'item').toLowerCase()}. Reload it before changing the address.`;
-            }
-
-            if (answer.status >= 400) {
-                const reason = reasonOf(answer.body);
-
-                if (/already uses this address/i.test(reason)) {
-                    return __(
-                        'Another post already uses this address. Add a word to make it its own.',
-                    );
-                }
-
-                return reason;
-            }
-
-            const written = (answer.body.slug as string) ?? slug;
-            setSlug(written);
-            setSavedSlug(written);
-            setSlugProblem(null);
-
-            return null;
-        } catch {
-            return __('The connection failed. Try again.');
-        }
     };
 
     // Saved at once, outside the revision, as the address is; a refusal puts
@@ -1482,11 +1477,12 @@ export default function ContentEdit(page: ContentEditPage) {
                             status={status}
                             publishedAt={publishedAt}
                             slug={slug}
+                            savedSlug={savedSlug}
                             title={title}
                             onChangeSlug={changeSlug}
                             slugProblem={slugProblem}
                             saveDisabled={saving.state === 'stale'}
-                            onSave={() => void checkpoint()}
+                            onSave={() => void checkpoint(!live)}
                             onPreview={
                                 themeRegion === null ? openPreview : null
                             }

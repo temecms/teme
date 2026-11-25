@@ -34,6 +34,7 @@ use App\Domain\Contents\Operations\UpdateContentDetails;
 use App\Domain\Contents\Queries\EditorPresence;
 use App\Domain\Contents\Queries\EditorSession;
 use App\Domain\Contents\Queries\RevisionAuthor;
+use App\Domain\Contents\Slugs;
 use App\Domain\Fields\FieldManifest;
 use App\Domain\Media\Queries\MissingAltText;
 use App\Domain\Plugins\Editor\EditorPanels;
@@ -105,9 +106,11 @@ final class ContentEditorController extends Controller
 
     /**
      * The person's autosave, gathered into a revision. A stale one is 409,
-     * which the editor treats exactly like a stale autosave.
+     * which the editor treats exactly like a stale autosave. A draft Save
+     * may send a slug with this request; a live post's address is never
+     * changed here (only Update / Publish may).
      */
-    public function checkpoint(Request $request, string $content, CheckpointDraft $checkpoint): JsonResponse
+    public function checkpoint(Request $request, string $content, CheckpointDraft $checkpoint, UpdateContentDetails $update): JsonResponse
     {
         $actorId = (string) $request->user()?->getAuthIdentifier();
 
@@ -125,20 +128,57 @@ final class ContentEditorController extends Controller
             ], 409);
         }
 
+        $session = EditorSession::for($content, $actorId);
+
+        // Drafts only: the address travels with Save draft. A live post keeps
+        // its public address until Update or Publish sends the slug.
+        if ($request->exists('slug') && $session !== null && $session->status !== 'published') {
+            try {
+                $update->execute(new UpdateContentDetailsInput(
+                    contentId: $content,
+                    expectedRevisionId: $revisionId ?? $session->workingRevisionId,
+                    actorId: $actorId,
+                    slug: $this->slugFromRequest($request, $session),
+                ));
+            } catch (StaleRevisionException) {
+                return response()->json(['stale' => true], 409);
+            }
+
+            $session = EditorSession::for($content, $actorId);
+        }
+
         // The address too: a draft's first title may have given it one (I-425).
-        return response()->json(['revisionId' => $revisionId, 'slug' => EditorSession::for($content, $actorId)?->slug]);
+        return response()->json(['revisionId' => $revisionId, 'slug' => $session?->slug]);
     }
 
     /**
      * Publishes the revision the rail names (the one the explicit save before
      * it returned), and answers with the new state and any images that went
-     * live without alt text.
+     * live without alt text. A pending address may travel with this request
+     * so Update applies it with the publish, including its redirect.
      */
-    public function publish(Request $request, string $content, PublishRevision $publish, MissingAltText $missingAlt): JsonResponse
+    public function publish(Request $request, string $content, PublishRevision $publish, UpdateContentDetails $update, MissingAltText $missingAlt): JsonResponse
     {
         $actorId = (string) $request->user()?->getAuthIdentifier();
+        $revisionId = $request->string('revision_id')->toString();
 
-        $publish->execute(new PublishRevisionInput($content, $request->string('revision_id')->toString(), $actorId));
+        if ($request->exists('slug')) {
+            $session = EditorSession::for($content, $actorId);
+            abort_if($session === null, 404);
+
+            try {
+                $update->execute(new UpdateContentDetailsInput(
+                    contentId: $content,
+                    expectedRevisionId: $revisionId,
+                    actorId: $actorId,
+                    slug: $this->slugFromRequest($request, $session),
+                ));
+            } catch (StaleRevisionException) {
+                return response()->json(['stale' => true], 409);
+            }
+        }
+
+        $publish->execute(new PublishRevisionInput($content, $revisionId, $actorId));
 
         $session = EditorSession::for($content, $actorId);
 
@@ -147,7 +187,19 @@ final class ContentEditorController extends Controller
             'publishedAt' => $session?->publishedAt,
             'unpublishedChanges' => $session?->unpublishedChanges,
             'missingAlt' => $missingAlt->inPublished($content),
+            'slug' => $session?->slug,
         ]);
+    }
+
+    /**
+     * The slug a save or publish asked for: empty means the title's address.
+     */
+    private function slugFromRequest(Request $request, EditorSession $session): string
+    {
+        $raw = $request->input('slug');
+        $text = is_string($raw) ? $raw : '';
+
+        return $text === '' ? Slugs::fromTitle($session->title) : $text;
     }
 
     /**
