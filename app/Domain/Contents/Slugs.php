@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace App\Domain\Contents;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Normalizer;
 
 final class Slugs
@@ -144,5 +146,26 @@ final class Slugs
             ->where(fn ($query) => $language === null ? $query->whereNull('language') : $query->where('language', $language))
             ->when($exceptId !== null, fn ($query) => $query->where('id', '!=', $exceptId))
             ->exists();
+    }
+
+    /**
+     * Refuses a slug that is empty, too long, badly formed, or taken by
+     * another live item of the same type in the same language — before any
+     * save writes. A null language is the default.
+     *
+     * @throws ValidationException
+     */
+    public static function assertUsable(string $type, string $slug, string $exceptId, ?string $language = null): void
+    {
+        Validator::make(
+            ['slug' => $slug],
+            ['slug' => ['required', 'string', 'max:200', 'regex:'.self::RULE]],
+        )->validate();
+
+        if (! self::isAvailable($type, $slug, $exceptId, $language)) {
+            throw ValidationException::withMessages([
+                'slug' => __('Another :type already uses this address.', ['type' => $type]),
+            ]);
+        }
     }
 }

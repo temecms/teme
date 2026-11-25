@@ -13,12 +13,18 @@ declare(strict_types=1);
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Tests\Fixtures\Fields\StoredFieldRows;
 
 uses(RefreshDatabase::class);
+
+const ADDR_RELEASE = '01K9F1E1D0000000000000RD01';
+const ADDR_RATING = '01K9F1E1D0000000000000RA03';
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     $this->author = User::factory()->create(['name' => 'Ada'])->assignRole('author');
+    $this->editor = User::factory()->create(['name' => 'Eve'])->assignRole('editor');
 });
 
 it('tidies a typed address keeping letters of every script', function (): void {
@@ -31,6 +37,8 @@ it('tidies a typed address keeping letters of every script', function (): void {
         ['https://example.org/harbour-festival/'],
         ['  Hello   World  '],
         ['user@harbour'],
+        ['नमस्ते दुनिया'],
+        ['สวัสดีชาวโลก'],
     ]))->toBe([
         'when-the-new-fares-start',
         'temecms-1-0',
@@ -40,6 +48,8 @@ it('tidies a typed address keeping letters of every script', function (): void {
         'harbour-festival',
         'hello-world',
         'user-at-harbour',
+        'नमस्ते-दुनिया',
+        'สวัสดีชาวโลก',
     ]);
 });
 
@@ -75,7 +85,7 @@ it('saves a pending address with Save draft or Update, never from a lone address
     $edit = uiComponent('pages/content/edit.tsx');
 
     expect($edit)
-        ->toContain('sidePending: slug !== savedSlug')
+        ->toContain("slug === '' || slug !== savedSlug")
         ->toContain('errors?.slug')
         ->toContain('Another post already uses this address. Add a word to make it its own.')
         ->not->toContain('saveAddressIfNeeded')
@@ -127,4 +137,63 @@ it('changes a live post\'s address on Update and redirects the old one', functio
 
     expect($post->refresh()->slug)->toBe('hello-again');
     expect(addrLocation(addrGet('/hello-world/')->assertStatus(301)))->toBe('/hello-again/');
+});
+
+it('keeps the autosave and writes no revision when a taken address arrives with the checkpoint', function (): void {
+    $draft = lifecycleDraft($this->author, 'Harbour festival');
+    lifecycleDraft($this->author, 'Taken')->forceFill(['slug' => 'taken'])->save();
+    edSave($draft->id, $this->author, docWith(docText('Typed while drafting.')));
+
+    $revisions = DB::table('content_revisions')->where('content_id', $draft->id)->count();
+    $working = $draft->working_revision_id;
+    $slug = $draft->slug;
+
+    $this->actingAs($this->author)->postJson("/admin/content/{$draft->id}/checkpoint", [
+        'slug' => 'taken',
+    ])->assertUnprocessable()->assertJsonValidationErrors('slug');
+
+    expect(DB::table('content_revisions')->where('content_id', $draft->id)->count())->toBe($revisions)
+        ->and($draft->refresh()->working_revision_id)->toBe($working)
+        ->and($draft->slug)->toBe($slug)
+        ->and(DB::table('content_autosaves')->where('content_id', $draft->id)->where('user_id', $this->author->id)->count())->toBe(1);
+});
+
+it('leaves a live address alone when publish with a pending address is refused', function (): void {
+    StoredFieldRows::movieType();
+    StoredFieldRows::store(StoredFieldRows::entry(ADDR_RELEASE, 'release_date', ['fieldType' => 'datetime', 'label' => 'Release date', 'settings' => ['dateOnly' => true], 'required' => true]), 1);
+    StoredFieldRows::store(StoredFieldRows::entry(ADDR_RATING, 'rating', ['fieldType' => 'select', 'settings' => ['choices' => [['value' => 'g', 'label' => 'G']]]]), 2);
+
+    $movie = lifecycleDraft($this->editor, 'Arrival', 'movie');
+    docSave($movie, $this->editor, docWith(docText('A film.')), [ADDR_RELEASE => '2016-11-11']);
+    listsPublish($movie, $this->editor);
+    $original = $movie->refresh()->slug;
+
+    StoredFieldRows::change(ADDR_RATING, ['required' => true]);
+
+    $this->actingAs($this->editor)->postJson("/admin/content/{$movie->id}/publish", [
+        'revision_id' => $movie->working_revision_id,
+        'slug' => 'arrival-again',
+    ])->assertUnprocessable();
+
+    expect($movie->refresh()->slug)->toBe($original)
+        ->and($movie->status)->toBe('published');
+});
+
+it('does not move a live post\'s address from preview or a share link', function (): void {
+    $post = addrPublished($this->author, 'Hello World');
+    $original = $post->slug;
+
+    $this->actingAs($this->author)->get(route('content.preview', ['content' => $post->id]))->assertOk();
+    expect($post->refresh()->slug)->toBe($original);
+
+    $this->actingAs($this->author)->postJson("/admin/content/{$post->id}/preview-links")->assertCreated();
+    expect($post->refresh()->slug)->toBe($original);
+});
+
+it('keeps an emptied address pending against the title\'s address', function (): void {
+    expect(uiComponent('pages/content/edit.tsx'))
+        ->toContain("slug === '' || slug !== savedSlug")
+        ->and(uiComponent('components/editor/rail/publish-panel.tsx'))
+        ->toContain('slugFromTitle')
+        ->toContain('// Empty stays empty so the server makes the title\'s address on save.');
 });

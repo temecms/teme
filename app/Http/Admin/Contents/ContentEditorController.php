@@ -110,12 +110,20 @@ final class ContentEditorController extends Controller
      * may send a slug with this request; a live post's address is never
      * changed here (only Update / Publish may).
      */
-    public function checkpoint(Request $request, string $content, CheckpointDraft $checkpoint, UpdateContentDetails $update): JsonResponse
+    public function checkpoint(Request $request, string $content, CheckpointDraft $checkpoint): JsonResponse
     {
         $actorId = (string) $request->user()?->getAuthIdentifier();
+        $session = EditorSession::for($content, $actorId);
+
+        // Drafts only: the address travels with Save draft, checked and written
+        // inside CheckpointDraft's own transaction. A live post keeps its
+        // public address until Update or Publish sends the slug.
+        $slug = $request->exists('slug') && $session !== null && $session->status !== 'published'
+            ? $this->slugFromRequest($request, $session)
+            : null;
 
         try {
-            $revisionId = $checkpoint->execute(new CheckpointDraftInput($content, $actorId));
+            $revisionId = $checkpoint->execute(new CheckpointDraftInput($content, $actorId, $slug));
         } catch (StaleRevisionException) {
             $current = EditorSession::for($content, $actorId)?->workingRevisionId;
             $author = RevisionAuthor::of($current);
@@ -130,23 +138,6 @@ final class ContentEditorController extends Controller
 
         $session = EditorSession::for($content, $actorId);
 
-        // Drafts only: the address travels with Save draft. A live post keeps
-        // its public address until Update or Publish sends the slug.
-        if ($request->exists('slug') && $session !== null && $session->status !== 'published') {
-            try {
-                $update->execute(new UpdateContentDetailsInput(
-                    contentId: $content,
-                    expectedRevisionId: $revisionId ?? $session->workingRevisionId,
-                    actorId: $actorId,
-                    slug: $this->slugFromRequest($request, $session),
-                ));
-            } catch (StaleRevisionException) {
-                return response()->json(['stale' => true], 409);
-            }
-
-            $session = EditorSession::for($content, $actorId);
-        }
-
         // The address too: a draft's first title may have given it one (I-425).
         return response()->json(['revisionId' => $revisionId, 'slug' => $session?->slug]);
     }
@@ -155,30 +146,26 @@ final class ContentEditorController extends Controller
      * Publishes the revision the rail names (the one the explicit save before
      * it returned), and answers with the new state and any images that went
      * live without alt text. A pending address may travel with this request
-     * so Update applies it with the publish, including its redirect.
+     * so PublishRevision applies it in the same transaction, including its
+     * redirect.
      */
-    public function publish(Request $request, string $content, PublishRevision $publish, UpdateContentDetails $update, MissingAltText $missingAlt): JsonResponse
+    public function publish(Request $request, string $content, PublishRevision $publish, MissingAltText $missingAlt): JsonResponse
     {
         $actorId = (string) $request->user()?->getAuthIdentifier();
         $revisionId = $request->string('revision_id')->toString();
+        $slug = null;
 
         if ($request->exists('slug')) {
             $session = EditorSession::for($content, $actorId);
             abort_if($session === null, 404);
-
-            try {
-                $update->execute(new UpdateContentDetailsInput(
-                    contentId: $content,
-                    expectedRevisionId: $revisionId,
-                    actorId: $actorId,
-                    slug: $this->slugFromRequest($request, $session),
-                ));
-            } catch (StaleRevisionException) {
-                return response()->json(['stale' => true], 409);
-            }
+            $slug = $this->slugFromRequest($request, $session);
         }
 
-        $publish->execute(new PublishRevisionInput($content, $revisionId, $actorId));
+        try {
+            $publish->execute(new PublishRevisionInput($content, $revisionId, $actorId, slug: $slug));
+        } catch (StaleRevisionException) {
+            return response()->json(['stale' => true], 409);
+        }
 
         $session = EditorSession::for($content, $actorId);
 

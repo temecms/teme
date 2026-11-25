@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Fixed
+
+- Editor: a taken address with Save draft is refused before any revision is written, so the autosave stays; a refused Update leaves the live address where it was. Preview and share links never move it.
+- Editor: tidying an address keeps combining marks (Hindi, Thai) the way the server does; emptying the field stays pending until Save.
+- Compare versions: Before, Restore the before version, and After sit on one line.
+- Account: the picture hint names Settings › People for the site’s default.
+- Admin 403: names the route’s permission only when that permission refused; a/an matches each role; holders load in one query.
+
 ## [1.5.1] — 2026-11-25
 
 ### Changed

@@ -18,10 +18,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
 
+use App\Domain\Contents\Slugs;
 use Teme\Contracts\Operations\OperationInput;
 
 final readonly class PublishRevisionInput implements OperationInput
 {
+    /** The address to apply with this publish, or null to leave it. */
+    public ?string $slug;
+
     public function __construct(
         public string $contentId,
         public string $revisionId,
@@ -29,7 +33,10 @@ final readonly class PublishRevisionInput implements OperationInput
         public bool $clearAutosave = true,
         public bool $checkRequired = true,
         public bool $keepClashingChildren = false,
-    ) {}
+        ?string $slug = null,
+    ) {
+        $this->slug = $slug === null ? null : Slugs::normal($slug);
+    }
 
     public function actorId(): ?string
     {

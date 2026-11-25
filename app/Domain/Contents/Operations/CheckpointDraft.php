@@ -6,7 +6,8 @@
  * autosave in the same transaction. This is how the history stays readable:
  * a revision per checkpoint, not per keystroke. With no autosave it writes
  * nothing. An autosave whose base is no longer the working revision is
- * refused by SaveDraft, and nothing is written.
+ * refused by SaveDraft, and nothing is written. A draft address travels in
+ * the same transaction after the revision, checked before any write.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -21,6 +22,8 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentAutosave;
 use App\Domain\Contents\Operations\Input\CheckpointDraftInput;
 use App\Domain\Contents\Operations\Input\SaveDraftInput;
+use App\Domain\Contents\Operations\Input\UpdateContentDetailsInput;
+use App\Domain\Contents\Slugs;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -40,7 +43,16 @@ final class CheckpointDraft extends BaseOperation
         }
     }
 
-    protected function validate(OperationInput $input): void {}
+    protected function validate(OperationInput $input): void
+    {
+        /** @var CheckpointDraftInput $input */
+        if ($input->slug === null) {
+            return;
+        }
+
+        $content = Content::query()->findOrFail($input->contentId);
+        Slugs::assertUsable((string) $content->type, $input->slug, (string) $content->id, $content->language);
+    }
 
     /**
      * The ID of the revision the checkpoint wrote, or of the working revision
@@ -53,23 +65,33 @@ final class CheckpointDraft extends BaseOperation
         $autosave = ContentAutosave::query()->where('content_id', $content->id)
             ->where('user_id', (int) $input->actorId())->first();
 
-        if ($autosave === null) {
-            return $content->working_revision_id;
+        $revisionId = $content->working_revision_id;
+
+        if ($autosave !== null) {
+            $saved = app(SaveDraft::class)->execute(new SaveDraftInput(
+                $content->id,
+                $autosave->title,
+                $autosave->document,
+                $autosave->fields,
+                $autosave->based_on_revision_id,
+                $input->actorId(),
+                $autosave->terms,
+                kind: 'checkpoint',
+            ));
+
+            $autosave->delete();
+            $revisionId = $saved->working_revision_id;
         }
 
-        $saved = app(SaveDraft::class)->execute(new SaveDraftInput(
-            $content->id,
-            $autosave->title,
-            $autosave->document,
-            $autosave->fields,
-            $autosave->based_on_revision_id,
-            $input->actorId(),
-            $autosave->terms,
-            kind: 'checkpoint',
-        ));
+        if ($input->slug !== null) {
+            app(UpdateContentDetails::class)->execute(new UpdateContentDetailsInput(
+                contentId: $input->contentId,
+                expectedRevisionId: (string) $revisionId,
+                actorId: $input->actorId(),
+                slug: $input->slug,
+            ));
+        }
 
-        $autosave->delete();
-
-        return $saved->working_revision_id;
+        return $revisionId;
     }
 }
