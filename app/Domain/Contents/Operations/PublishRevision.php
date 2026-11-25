@@ -93,7 +93,7 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
      *
      * @return list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>}, after: array{code: string, origins: list<string>}}>
      */
-    private static function codeChanges(Content $content, string $revisionId): array
+    public static function codeChanges(Content $content, string $revisionId): array
     {
         if ($content->type !== CoreTypes::REGION) {
             return [];
