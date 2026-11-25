@@ -6,7 +6,7 @@
  * commits.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 
@@ -19,14 +19,14 @@ namespace Teme\Contracts\Cards;
  * drew them are purged after the Operation commits. Offered to a plugin
  * granted pages.insert. Call it only inside an Operation's perform().
  *
- * @since next
+ * @since 1.5.0
  */
 interface CardsChanged
 {
     /**
      * Notes that this plugin's cards changed, for the page cache to purge after commit.
      *
-     * @since next
+     * @since 1.5.0
      */
     public function notify(): void;
 }

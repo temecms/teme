@@ -5,7 +5,7 @@
  * words, icon, fields and the object that draws it.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

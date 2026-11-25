@@ -4,7 +4,7 @@
  * Migration: indexes what the import's outside pictures wait for.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

@@ -5,7 +5,7 @@
  * cards.provides: its key, words, icon and fields.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

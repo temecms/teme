@@ -23,7 +23,7 @@ enum ImportRunKind: string
      * A picture pass: the media files of the run it follows, brought after
      * that run's articles, each swapped into the posts that use it.
      *
-     * @since next
+     * @since 1.5.0
      */
     case MediaPass = 'media';
 

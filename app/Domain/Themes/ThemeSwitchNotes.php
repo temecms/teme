@@ -5,7 +5,7 @@
  * that its regions hold, each with how many regions hold it.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

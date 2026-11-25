@@ -46,7 +46,7 @@ final readonly class ImportChoices
      * What becomes of a live site's media files: downloaded during the
      * import, or brought after the articles (#716).
      *
-     * @since next
+     * @since 1.5.0
      */
     public const array LIVE_MEDIA = ['download', 'later'];
 

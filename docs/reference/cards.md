@@ -13,7 +13,10 @@ Since 0.1.0. Registered by `core`.
 | Attribute | Rules | Default |
 |---|---|---|
 | `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
-| `mediaId` | required, string, size:26 | — |
+| `mediaId` | nullable, string, size:26 | — |
+| `source` | nullable, string, max:2048, url:http,https | — |
+| `sourceWidth` | nullable, integer, min:1, max:100000 | — |
+| `sourceHeight` | nullable, integer, min:1, max:100000 | — |
 | `alt` | nullable, string, max:1000 | — |
 | `decorative` | boolean | `false` |
 | `caption` | nullable, string, max:2000 | — |

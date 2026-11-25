@@ -5,7 +5,7 @@
  * from the values an editor gave its fields.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 
@@ -20,7 +20,7 @@ namespace Teme\Contracts\Cards;
  * cleaned as a page insertion is, and wrapped in an element carrying the
  * card's key, which the theme styles.
  *
- * @since next
+ * @since 1.5.0
  */
 interface PluginCard
 {
@@ -28,7 +28,7 @@ interface PluginCard
      * The card's markup, or '' to draw nothing, as for a choice that no
      * longer exists. The values are as stored, so escape them.
      *
-     * @since next
+     * @since 1.5.0
      */
     public function render(CardInstance $card): string;
 }

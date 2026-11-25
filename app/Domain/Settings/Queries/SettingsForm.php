@@ -180,7 +180,7 @@ final class SettingsForm
      *
      * @return array<string, mixed>
      *
-     * @since next
+     * @since 1.5.0
      */
     public function fieldOf(Setting $setting): array
     {

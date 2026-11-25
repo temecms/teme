@@ -6,7 +6,7 @@
  * person knows to bring them again before that site closes.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

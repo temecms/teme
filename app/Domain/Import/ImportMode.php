@@ -77,7 +77,7 @@ final class ImportMode
      *
      * @param  list<string>  $tags
      *
-     * @since next
+     * @since 1.5.0
      */
     public function hold(array $tags): void
     {
@@ -91,7 +91,7 @@ final class ImportMode
      *
      * @return list<string>
      *
-     * @since next
+     * @since 1.5.0
      */
     public function takeHeld(): array
     {

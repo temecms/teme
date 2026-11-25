@@ -114,7 +114,7 @@ final class DeclaredSettings
      *
      * @param  array<array-key, mixed>  $declared
      *
-     * @since next
+     * @since 1.5.0
      */
     public static function cardField(array $declared, string $version): Setting
     {

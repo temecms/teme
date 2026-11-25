@@ -8,7 +8,7 @@
  * MediaPhase, since the companion can't pick them, and nothing here.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

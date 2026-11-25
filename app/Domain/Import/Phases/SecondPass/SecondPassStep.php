@@ -110,7 +110,7 @@ final readonly class SecondPassStep implements RunsInMediaPass, StepPhase
      *
      * @param  list<string>  $keys  waiting keys, by ImageTrace::waitingKeys()
      *
-     * @since next
+     * @since 1.5.0
      */
     public function passWaiting(ImportContext $context, array $keys, string $after = ''): ?string
     {

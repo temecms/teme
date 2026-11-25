@@ -9,7 +9,7 @@
  * site at a time, as any import does.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

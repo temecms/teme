@@ -5,7 +5,7 @@
  * no others; another run asks each phase's runsIn() as before.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

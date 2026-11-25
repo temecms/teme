@@ -141,7 +141,7 @@ final readonly class ImportPhases
      * Whether a run of this kind runs the phase: a picture pass only its
      * own phases, which may run in other runs too as they say (#716).
      *
-     * @since next
+     * @since 1.5.0
      */
     public static function runs(ImportPhase $phase, ImportRunKind $kind): bool
     {

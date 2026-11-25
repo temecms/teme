@@ -5,7 +5,7 @@
  * document: the card's key and the values of its fields.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

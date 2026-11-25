@@ -129,7 +129,7 @@ final readonly class RegionScreens
      *
      * @return array{theme: array{code: string, name: string}|null, regions: list<array<string, mixed>>, others: list<array<string, mixed>>, groups: list<array{group: string, regions: list<array<string, mixed>>}>, chosen: array<string, mixed>|null}
      *
-     * @since next
+     * @since 1.5.0
      */
     public function workspace(?string $key, string $userId): array
     {

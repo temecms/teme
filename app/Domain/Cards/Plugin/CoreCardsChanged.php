@@ -5,7 +5,7 @@
  * plugin tag for the page cache to purge after the Operation commits.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

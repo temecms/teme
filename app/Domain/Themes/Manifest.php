@@ -333,7 +333,7 @@ final readonly class Manifest
      *
      * @return array<string, array<string, mixed>>
      *
-     * @since next
+     * @since 1.5.0
      */
     public function providedCards(): array
     {

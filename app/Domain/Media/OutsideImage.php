@@ -7,7 +7,7 @@
  * draws it as it draws any image.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

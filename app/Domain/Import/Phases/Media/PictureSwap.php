@@ -7,7 +7,7 @@
  * featured image likewise. What the post still waits for is what is left.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

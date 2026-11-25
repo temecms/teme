@@ -120,7 +120,7 @@ final class ImageTrace
      *
      * @return list<string>
      *
-     * @since next
+     * @since 1.5.0
      */
     public static function waitingKeys(Element $img, ConversionSite $site, ?int $attachmentId = null, ?int $captionId = null): array
     {

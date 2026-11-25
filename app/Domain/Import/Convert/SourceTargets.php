@@ -73,7 +73,7 @@ interface SourceTargets
      * so an own image Teme has no file for yet is shown from the old site,
      * an outside picture, until the picture pass swaps in the library item.
      *
-     * @since next
+     * @since 1.5.0
      */
     public function drawsOldSiteImages(): bool;
 

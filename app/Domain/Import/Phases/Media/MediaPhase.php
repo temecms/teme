@@ -117,7 +117,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      *
      * @return list<ImportList>
      *
-     * @since next
+     * @since 1.5.0
      */
     public function listsOf(ImportContext $context, ?string $waited): array
     {

@@ -55,7 +55,7 @@ final readonly class ImportContext
      * Whether the run brings its articles first and their media files after,
      * in a picture pass of their own (#716).
      *
-     * @since next
+     * @since 1.5.0
      */
     public function bringsMediaLater(): bool
     {
@@ -67,7 +67,7 @@ final readonly class ImportContext
      * that Teme has no file for yet: when they come after the articles, or
      * when an export file's media stay on the old site as links.
      *
-     * @since next
+     * @since 1.5.0
      */
     public function keepsOldSiteMedia(): bool
     {

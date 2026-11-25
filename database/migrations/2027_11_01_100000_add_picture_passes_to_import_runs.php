@@ -4,7 +4,7 @@
  * Migration: lets an import run be a picture pass, which brings an import's media files after its articles, and links it to the run it follows.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 

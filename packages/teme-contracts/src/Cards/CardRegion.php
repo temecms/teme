@@ -5,7 +5,7 @@
  * size the theme gives it, if any.
  *
  * @package Teme
- * @since   next
+ * @since   1.5.0
  * @license MIT
  */
 
@@ -18,7 +18,7 @@ namespace Teme\Contracts\Cards;
  * such as 300x600 for a sidebar ad: a card may read it, to list that
  * size's ads first, and core never refuses a card for it.
  *
- * @since next
+ * @since 1.5.0
  */
 final readonly class CardRegion
 {
@@ -29,7 +29,7 @@ final readonly class CardRegion
      * @param  int|null  $width  the size's width in pixels
      * @param  int|null  $height  the size's height in pixels
      *
-     * @since next
+     * @since 1.5.0
      */
     public function __construct(
         public string $slug,
