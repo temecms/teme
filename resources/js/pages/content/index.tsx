@@ -412,7 +412,7 @@ function listTabs(tabs: ContentTab[], current: string): ContentTab[] {
     return open === undefined ? shown : [...shown, open];
 }
 
-/** The line under a list's name: Posts' and Pages' own, by the core type's key, and a type's own words otherwise. */
+/** The line under a list's name: Posts' and Pages' own, by the core type's key, and a plain one for a type made here. */
 const DESCRIPTIONS: Record<string, () => string> = {
     post: () => __('Articles for the site.'),
     page: () =>
@@ -421,15 +421,8 @@ const DESCRIPTIONS: Record<string, () => string> = {
         ),
 };
 
-const describe = (
-    typeKey: string,
-    labels: { singular: string; plural: string },
-): string =>
-    DESCRIPTIONS[typeKey]?.() ??
-    __(':plural on the site.', { plural: labels.plural });
-
-/** How many filters sit on the row before the rest fold under More filters (4.26). */
-const FILTERS_ON_ROW = 4;
+const describe = (typeKey: string): string =>
+    DESCRIPTIONS[typeKey]?.() ?? __('Everything of this kind on the site.');
 
 /** A row's title for a sentence: "Untitled" when it has none. */
 const titleOf = (row: ContentRow): string => row.title.trim() || __('Untitled');
@@ -1379,7 +1372,7 @@ export default function ContentIndex(page: ContentIndexPage) {
     return (
         <ListPage
             title={title}
-            description={describe(typeKey, page.labels)}
+            description={describe(typeKey)}
             actions={
                 page.canAdd && (
                     <Form
@@ -1487,7 +1480,10 @@ export default function ContentIndex(page: ContentIndexPage) {
                     </form>
                 }
                 filters={(() => {
-                    const all: ReactNode[] = [
+                    // Author, categories (nesting) and Date stay on the row
+                    // (4.26). Tags, language and the rest sit under More
+                    // filters, and an applied one is promoted onto the row.
+                    const author = (
                         <ChoiceFilter
                             key="author"
                             testId="filter-author"
@@ -1499,67 +1495,24 @@ export default function ContentIndex(page: ContentIndexPage) {
                             }))}
                             value={page.filters.author}
                             onChange={(value) => filterTo({ author: value })}
-                        />,
-                        ...nesting.map((taxonomy) => (
-                            <ChoiceFilter
-                                key={taxonomy.key}
-                                testId={`filter-${taxonomy.key}`}
-                                label={taxonomy.singular}
-                                allLabel={__('All :plural', {
-                                    plural: taxonomy.plural.toLowerCase(),
-                                })}
-                                options={treeOptions[taxonomy.key] ?? []}
-                                value={page.filters[taxonomy.key]}
-                                onChange={(value) =>
-                                    filterTo({ [taxonomy.key]: value })
-                                }
-                            />
-                        )),
-                        ...flat.map((taxonomy) => (
-                            <TermSearchFilter
-                                key={taxonomy.key}
-                                testId={`filter-${taxonomy.key}`}
-                                taxonomy={taxonomy.key}
-                                label={taxonomy.singular}
-                                allLabel={__('All :plural', {
-                                    plural: taxonomy.plural.toLowerCase(),
-                                })}
-                                value={page.filters[taxonomy.key]}
-                                valueName={page.chosenTerms[taxonomy.key]}
-                                onChange={(value) =>
-                                    filterTo({ [taxonomy.key]: value })
-                                }
-                            />
-                        )),
-                        ...(siteLanguages.length > 0
-                            ? [
-                                  <ChoiceFilter
-                                      key="language"
-                                      testId="filter-language"
-                                      label={__('Language')}
-                                      allLabel={__('All languages')}
-                                      options={[
-                                          ...siteLanguages.map((language) => ({
-                                              value: language.tag,
-                                              label: language.name,
-                                          })),
-                                          ...siteLanguages.map((language) => ({
-                                              value: `missing:${language.tag}`,
-                                              label: __(
-                                                  'Missing a version in :language',
-                                                  {
-                                                      language: language.name,
-                                                  },
-                                              ),
-                                          })),
-                                      ]}
-                                      value={page.filters.language}
-                                      onChange={(value) =>
-                                          filterTo({ language: value })
-                                      }
-                                  />,
-                              ]
-                            : []),
+                        />
+                    );
+                    const categories = nesting.map((taxonomy) => (
+                        <ChoiceFilter
+                            key={taxonomy.key}
+                            testId={`filter-${taxonomy.key}`}
+                            label={taxonomy.singular}
+                            allLabel={__('All :plural', {
+                                plural: taxonomy.plural.toLowerCase(),
+                            })}
+                            options={treeOptions[taxonomy.key] ?? []}
+                            value={page.filters[taxonomy.key]}
+                            onChange={(value) =>
+                                filterTo({ [taxonomy.key]: value })
+                            }
+                        />
+                    ));
+                    const date = (
                         <DateFilter
                             key="date"
                             dates={page.dates}
@@ -1572,14 +1525,95 @@ export default function ContentIndex(page: ContentIndexPage) {
                             hrefFor={hrefFor}
                             open={dateOpen}
                             onOpenChange={setDateOpen}
-                        />,
-                    ];
-                    const shown = all.slice(0, FILTERS_ON_ROW);
-                    const more = all.slice(FILTERS_ON_ROW);
+                        />
+                    );
+                    const overflow: { key: string; applied: boolean; node: ReactNode }[] =
+                        [
+                            ...flat.map((taxonomy) => ({
+                                key: taxonomy.key,
+                                applied:
+                                    page.filters[taxonomy.key] !== undefined,
+                                node: (
+                                    <TermSearchFilter
+                                        key={taxonomy.key}
+                                        testId={`filter-${taxonomy.key}`}
+                                        taxonomy={taxonomy.key}
+                                        label={taxonomy.singular}
+                                        allLabel={__('All :plural', {
+                                            plural: taxonomy.plural.toLowerCase(),
+                                        })}
+                                        value={page.filters[taxonomy.key]}
+                                        valueName={
+                                            page.chosenTerms[taxonomy.key]
+                                        }
+                                        onChange={(value) =>
+                                            filterTo({
+                                                [taxonomy.key]: value,
+                                            })
+                                        }
+                                    />
+                                ),
+                            })),
+                            ...(siteLanguages.length > 0
+                                ? [
+                                      {
+                                          key: 'language',
+                                          applied:
+                                              page.filters.language !==
+                                              undefined,
+                                          node: (
+                                              <ChoiceFilter
+                                                  key="language"
+                                                  testId="filter-language"
+                                                  label={__('Language')}
+                                                  allLabel={__(
+                                                      'All languages',
+                                                  )}
+                                                  options={[
+                                                      ...siteLanguages.map(
+                                                          (language) => ({
+                                                              value: language.tag,
+                                                              label: language.name,
+                                                          }),
+                                                      ),
+                                                      ...siteLanguages.map(
+                                                          (language) => ({
+                                                              value: `missing:${language.tag}`,
+                                                              label: __(
+                                                                  'Missing a version in :language',
+                                                                  {
+                                                                      language:
+                                                                          language.name,
+                                                                  },
+                                                              ),
+                                                          }),
+                                                      ),
+                                                  ]}
+                                                  value={page.filters.language}
+                                                  onChange={(value) =>
+                                                      filterTo({
+                                                          language: value,
+                                                      })
+                                                  }
+                                              />
+                                          ),
+                                      },
+                                  ]
+                                : []),
+                        ];
+                    const promoted = overflow
+                        .filter((entry) => entry.applied)
+                        .map((entry) => entry.node);
+                    const more = overflow
+                        .filter((entry) => !entry.applied)
+                        .map((entry) => entry.node);
 
                     return (
                         <>
-                            {shown}
+                            {author}
+                            {categories}
+                            {date}
+                            {promoted}
                             {more.length > 0 && (
                                 <ListPanel
                                     label={__('More filters')}
@@ -1597,7 +1631,9 @@ export default function ContentIndex(page: ContentIndexPage) {
                                         </Button>
                                     }
                                 >
-                                    <div className="grid gap-3 p-1">{more}</div>
+                                    <div className="grid gap-3 p-1">
+                                        {more}
+                                    </div>
                                 </ListPanel>
                             )}
                         </>
