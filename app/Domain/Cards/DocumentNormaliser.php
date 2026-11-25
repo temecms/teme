@@ -161,6 +161,11 @@ final class DocumentNormaliser
      */
     private function attributes(string $type, array $attrs): array
     {
+        // A Custom HTML card has no on or off any more; an older document's is dropped.
+        if ($type === 'site-code') {
+            unset($attrs['on']);
+        }
+
         if ($type === 'codeBlock' && is_string($attrs['language'] ?? null)) {
             $language = strtolower($attrs['language']);
             $attrs['language'] = preg_match(DocumentSchema::LANGUAGE, $language) === 1 ? $language : null;

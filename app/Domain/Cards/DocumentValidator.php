@@ -151,6 +151,11 @@ final readonly class DocumentValidator
             throw InvalidDocumentException::at($path, "A {$card->name()} card holds only attributes.");
         }
 
+        // A Custom HTML card once had an `on`: older revisions and open editors still send it, and it is dropped on saving.
+        if ($card->name() === 'site-code') {
+            unset($attrs['on']);
+        }
+
         $rules = [];
 
         foreach ($card->attributes() as $name => $attribute) {
