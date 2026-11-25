@@ -30,6 +30,7 @@ it('sends every panel the person may see in the catalogue, empty ones too, with 
     $page = app(Dashboard::class)->forUser($this->author);
 
     expect(array_column($page['catalogue'], 'key'))->toBe([
+        'site_status',
         'returned_to_me',
         'my_items_in_review',
         'my_drafts',
@@ -40,6 +41,12 @@ it('sends every panel the person may see in the catalogue, empty ones too, with 
         ->and(collect($page['catalogue'])->firstWhere('key', 'quick_draft'))->toMatchArray([
             'kind' => 'quick-draft',
             'size' => 'small',
+            'owner' => 'core',
+            'ownerName' => null,
+        ])
+        ->and(collect($page['catalogue'])->firstWhere('key', 'site_status'))->toMatchArray([
+            'kind' => 'site-status',
+            'size' => 'medium',
             'owner' => 'core',
             'ownerName' => null,
         ])

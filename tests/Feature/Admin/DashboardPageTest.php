@@ -41,7 +41,10 @@ it('sends the person\'s panels and the site figures, and nothing of the models',
             // toContain, not an exact list: Comments waiting joins the row when it applies.
             ->where('figures', fn ($figures): bool => collect(['published', 'drafts', 'scheduled', 'review'])
                 ->diff(collect($figures)->pluck('key'))->isEmpty())
-            ->where('mainType', ['singular' => 'Post', 'segment' => 'posts', 'canCreate' => true]));
+            ->where('mainType', ['singular' => 'Post', 'segment' => 'posts', 'canCreate' => true])
+            ->where('create', fn ($create): bool => collect($create)->contains(
+                fn (array $one): bool => $one === ['singular' => 'Post', 'segment' => 'posts'],
+            )));
 });
 
 it('greets a person with nothing waiting once, rather than with empty panels', function (): void {

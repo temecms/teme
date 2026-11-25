@@ -11,8 +11,8 @@ export type DashboardRow = {
 /** How wide a panel is drawn. */
 export type PanelSize = 'small' | 'medium' | 'large' | 'full';
 
-/** What a panel draws: rows from its query, or the quick draft form. */
-export type PanelKind = 'rows' | 'quick-draft';
+/** What a panel draws: rows from its query, the quick draft form, or site status. */
+export type PanelKind = 'rows' | 'quick-draft' | 'site-status';
 
 /** One panel the person's Home screen shows; empty panels are never sent. */
 export type DashboardPanelData = {
@@ -70,6 +70,8 @@ export type DashboardPage = {
     figures: SiteFigure[];
     /** The type Home writes and links to; posts today. */
     mainType: { singular: string; segment: string; canCreate: boolean };
+    /** Post and Page create actions for the header (+ Post, + Page). */
+    create: { singular: string; segment: string }[];
     /** For someone who may manage the site, until it is done or hidden. */
     gettingStarted: { steps: GettingStartedStep[] } | null;
     canQuickDraft: boolean;

@@ -52,10 +52,11 @@ final readonly class Dashboard
      *
      * @return array{
      *   panels: list<array{key: string, label: string, rows: list<array{id: string, title: string, subtitle: string, url: string, at: string}>, seeAll: string|null, failed: bool}>,
-     *   catalogue: list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft', owner: string, ownerName: string|null}>,
+     *   catalogue: list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft'|'site-status', owner: string, ownerName: string|null}>,
      *   layout: array{order: list<string>, hidden: list<string>, sizes: array<string, 'small'|'medium'|'large'|'full'>},
      *   figures: list<array{key: string, label: string, dot: string, value: int, url: string|null}>,
      *   mainType: array{singular: string, segment: string, canCreate: bool},
+     *   create: list<array{singular: string, segment: string}>,
      *   gettingStarted: array{steps: list<array{key: string, label: string, done: bool, url: string}>}|null,
      *   canQuickDraft: bool,
      *   canUpload: bool,
@@ -133,6 +134,7 @@ final readonly class Dashboard
                 'segment' => $main->segment,
                 'canCreate' => $canCreate,
             ],
+            'create' => $this->createActions($held),
             'gettingStarted' => $this->gettingStarted->forUser($viewer),
             'canQuickDraft' => $canCreate,
             'canUpload' => $viewer->can('media.upload'),
@@ -141,11 +143,40 @@ final readonly class Dashboard
     }
 
     /**
+     * Post and Page create actions the viewer may use from Home's header.
+     *
+     * @param  array<string, list<string>>  $held
+     *
+     * @return list<array{singular: string, segment: string}>
+     */
+    private function createActions(array $held): array
+    {
+        $create = [];
+
+        foreach ($this->listed() as $type) {
+            if (! in_array($type->segment, ['posts', 'pages'], true)) {
+                continue;
+            }
+
+            if (! in_array('create', $held[$type->key] ?? [], true)) {
+                continue;
+            }
+
+            $create[] = [
+                'singular' => $type->singular,
+                'segment' => $type->segment,
+            ];
+        }
+
+        return $create;
+    }
+
+    /**
      * Every panel the viewer may see, empty or not, in registry order.
      *
      * @param  array<string, list<string>>  $held
      *
-     * @return list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft', owner: string, ownerName: string|null}>
+     * @return list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft'|'site-status', owner: string, ownerName: string|null}>
      */
     private function catalogue(User $viewer, array $held, bool $canQuickDraft): array
     {
@@ -156,6 +187,8 @@ final readonly class Dashboard
                 if (! $canQuickDraft) {
                     continue;
                 }
+            } elseif ($panel->kind === 'site-status') {
+                // Everyone who opens Home may see the site status summary.
             } else {
                 $types = array_values(array_filter(
                     $this->listed(),
@@ -183,7 +216,7 @@ final readonly class Dashboard
     /**
      * The person's arrangement, cleaned against the catalogue.
      *
-     * @param  list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft', owner: string, ownerName: string|null}>  $catalogue
+     * @param  list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft'|'site-status', owner: string, ownerName: string|null}>  $catalogue
      *
      * @return array{order: list<string>, hidden: list<string>, sizes: array<string, 'small'|'medium'|'large'|'full'>}
      */

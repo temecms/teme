@@ -37,15 +37,16 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('dashboard'))->assertOk();
 });
 
-it('greets the person and offers New post, Upload media and Customize', function (): void {
+it('greets the person and offers + Post, + Page, Upload media and Customise', function (): void {
     $page = cmSignIn($this->editor)->resize(1280, 900);
     shellSettled($page, '[data-slot="page-header"]');
 
     $page->assertSee('Good ')
         ->assertSee('Ngozi')
-        ->assertSee('New Post')
+        ->assertSee('+ Post')
+        ->assertSee('+ Page')
         ->assertSee('Upload media')
-        ->assertSee('Customize');
+        ->assertSee('Customise');
 
     $contributor = cmSignIn($this->contributor)->resize(1280, 900);
     shellSettled($contributor, '[data-slot="page-header"]');

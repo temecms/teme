@@ -46,6 +46,7 @@ export function QuickDraft() {
                         />
                     </Field>
                     <Button
+                        variant="neutral"
                         disabled={processing}
                         className="justify-self-start"
                     >
