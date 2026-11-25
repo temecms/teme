@@ -253,6 +253,10 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::post('records/{record}/act', [PluginAreaController::class, 'act'])->name('act');
                 Route::get('records/{record}/{id}', [PluginAreaController::class, 'edit'])->name('edit');
                 Route::post('records/{record}/{id?}', [PluginAreaController::class, 'save'])->name('save');
+                // Before {page?}: the plugin's own icon for the area header.
+                Route::get('_icon', [PluginAreaController::class, 'icon'])->name('icon');
+                // Before {page?}: a plugin with an area keeps its settings as this tab (#707).
+                Route::get('settings', [PluginAreaController::class, 'settings'])->name('settings');
                 Route::get('{page?}', [PluginAreaController::class, 'show'])->where('page', '[a-z][a-z0-9-]{1,39}')->name('show');
             });
 

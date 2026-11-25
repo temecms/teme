@@ -28,6 +28,7 @@ use App\Domain\Plugins\Operations\Input\MigratePluginInput;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\Plugins\Operations\RemovePluginData;
+use App\Domain\Plugins\PluginPlaces;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginSentences;
 use App\Domain\Plugins\PluginWords;
@@ -71,12 +72,7 @@ final class PluginsController extends Controller
             abort(404);
         }
 
-        return response()->file($icon['path'], [
-            'Content-Type' => $icon['type'],
-            'X-Content-Type-Options' => 'nosniff',
-            'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'; sandbox",
-            'Cache-Control' => 'private, max-age=86400',
-        ]);
+        return response()->file($icon['path'], PackagePictures::headers($icon['type']));
     }
 
     /**
@@ -108,7 +104,8 @@ final class PluginsController extends Controller
             return to_route('plugins.index');
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => trim(__(':name enabled. Its contributions appear where they belong.', ['name' => $row->label]).' '.$list->typesReport($row->name))]);
+        $places = app(PluginPlaces::class)->sentence($row->name);
+        Inertia::flash('toast', ['type' => 'success', 'message' => trim(__(':name enabled: :places.', ['name' => $row->label, 'places' => $places]).' '.$list->typesReport($row->name))]);
 
         return to_route('plugins.index');
     }

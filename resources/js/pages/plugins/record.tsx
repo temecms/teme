@@ -93,7 +93,7 @@ export default function PluginRecord(props: PluginRecordPageProps) {
         );
 
     return (
-        <FormPage title={heading}>
+        <FormPage title={heading} showTitle>
             <Head title={`${heading} · ${plugin.name}`} />
             {sections.length > 3 && (
                 <SectionTabs

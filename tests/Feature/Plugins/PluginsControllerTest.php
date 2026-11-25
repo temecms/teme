@@ -39,7 +39,7 @@ it('enables a plugin after the consent dialog, asking for the password only when
     $this->actingAs($this->admin)->withSession(scConfirmed())
         ->post('/admin/plugins/hello/enable', $this->shown)
         ->assertRedirect(route('plugins.index'))
-        ->assertInertiaFlash('toast.message', 'Hello enabled. Its contributions appear where they belong.');
+        ->assertInertiaFlash('toast.message', 'Hello enabled: it runs in the background; there is nothing to open.');
 
     $record = PluginRecord::query()->sole();
 

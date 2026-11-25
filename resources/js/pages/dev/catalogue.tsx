@@ -471,6 +471,7 @@ function PluginAreaDemo() {
             titleAs="div"
             plugin={{ name: __('Link checker') }}
             title={__('Link checker')}
+            showTitle
             description={__(
                 'Finds links on the site that lead nowhere, and posts nothing links to.',
             )}

@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Extensions\PackagePictures;
 use App\Domain\Plugins\Area\AreaEntries;
 use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\CodeScripts;
@@ -24,8 +25,10 @@ use App\Domain\Plugins\Operations\Input\RunPluginActionInput;
 use App\Domain\Plugins\Operations\Input\SavePluginRecordInput;
 use App\Domain\Plugins\Operations\RunPluginAction;
 use App\Domain\Plugins\Operations\SavePluginRecord;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Queries\PluginAreaScreen;
 use App\Domain\Plugins\Queries\PluginRecordForm;
+use App\Domain\Plugins\Queries\PluginSettingsScreen;
 use App\Domain\Site\Insertions\Operations\ApprovePluginScript;
 use App\Domain\Site\Insertions\Operations\Input\ApprovePluginScriptInput;
 use App\Http\Controllers\Controller;
@@ -35,17 +38,20 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class PluginAreaController extends Controller
 {
-    public function show(Request $request, string $code, PluginAreaScreen $screen, ?string $page = null): Response
+    public function show(Request $request, string $code, PluginAreaScreen $screen, PluginSettingsScreen $settings, PluginAreas $areas, ?string $page = null): Response
     {
         $plugin = $this->plugin($request, $code, $screen);
-        $frame = $screen->frame($plugin, $page);
+        $user = $request->user();
+        $settingsTab = $user !== null && $areas->hasSettingsTab($code) && $settings->maySee($user);
+        $frame = $screen->frame($plugin, $page, settingsTab: $settingsTab);
 
         abort_if($frame === null, 404);
 
-        $personId = (string) $request->user()?->getAuthIdentifier();
+        $personId = (string) $user?->getAuthIdentifier();
         /** @var array<string, array<string, mixed>> $asks */
         $asks = (array) $request->query('t', []);
         $data = [];
@@ -66,6 +72,53 @@ final class PluginAreaController extends Controller
             'parent' => app(AreaEntries::class)->onTools($code) ? ['title' => __('Tools'), 'href' => route('tools.index', [], false)] : null,
             'asks' => $asks,
             ...$data,
+        ]);
+    }
+
+    /**
+     * The icon the plugin declares, served to whoever may open its area. An
+     * SVG is sent so that, opened on its own, it can run and fetch nothing.
+     */
+    public function icon(Request $request, string $code, PluginAreaScreen $screen, PluginRegistry $registry): BinaryFileResponse
+    {
+        $plugin = $this->plugin($request, $code, $screen);
+        $found = $registry->find($plugin->name);
+        $icon = $found?->manifest === null ? null : PackagePictures::find($found->path, $found->manifest->icon());
+
+        if ($icon === null) {
+            abort(404);
+        }
+
+        return response()->file($icon['path'], PackagePictures::headers($icon['type']));
+    }
+
+    /**
+     * A plugin's settings as the last tab of its area: the same form Settings
+     * drew for plugin.{code}, behind the area's permission and plugins.manage
+     * or settings.view.
+     */
+    public function settings(Request $request, string $code, PluginAreaScreen $screen, PluginSettingsScreen $settings, PluginAreas $areas): Response
+    {
+        $plugin = $this->plugin($request, $code, $screen);
+        $user = $request->user();
+
+        abort_if($user === null || ! $areas->hasSettingsTab($code), 404);
+        abort_unless($settings->maySee($user), 403);
+
+        $props = $settings->for($code, $user, $request);
+
+        abort_if($props === null, 404);
+
+        $frame = $screen->frame($plugin, null, settingsTab: true, settingsCurrent: true);
+
+        abort_if($frame === null, 404);
+
+        return Inertia::render('plugins/settings', [
+            ...$frame,
+            'parent' => app(AreaEntries::class)->onTools($code) ? ['title' => __('Tools'), 'href' => route('tools.index', [], false)] : null,
+            ...$props,
+            // Keep the area frame's plugin object; settings props must not replace it.
+            'plugin' => $frame['plugin'],
         ]);
     }
 

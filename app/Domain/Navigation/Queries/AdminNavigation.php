@@ -142,6 +142,7 @@ final readonly class AdminNavigation
                 'href' => $href,
                 'badge' => $badge,
                 ...($entry->soon ? ['soon' => true] : []),
+                ...($entry->pluginLabel !== null ? ['plugin' => $entry->pluginLabel] : []),
                 'section' => $entry->section->value,
                 'hidden' => in_array($entry->key, $hidden, true),
                 'children' => $children,

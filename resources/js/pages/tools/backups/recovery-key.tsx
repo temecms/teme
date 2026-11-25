@@ -33,7 +33,10 @@ export default function RecoveryKey(page: RecoveryKeyPageProps) {
         <>
             <Head title={__('Your recovery key')} />
 
-            <FormPage title={title}>
+            <FormPage
+                title={title}
+                showTitle={title !== __('Your recovery key')}
+            >
                 <div className="grid gap-6">
                     {page.purpose === 'set-up' && (
                         <SetupSteps current={typing ? 3 : 2} />

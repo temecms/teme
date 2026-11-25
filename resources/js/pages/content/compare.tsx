@@ -119,6 +119,7 @@ export default function Compare({
             <Head title={__('Compare: :title', { title })} />
             <DetailPage
                 title={__('Compare versions of “:title”', { title })}
+                showTitle
                 description={__(
                     'What changed between two revisions. Nothing here changes the article.',
                 )}

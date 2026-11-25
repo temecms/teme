@@ -87,6 +87,8 @@ export type SettingsNavItem = {
     heading: string;
     /** Whether a plugin added the page, so it sits under From plugins with the plug mark. */
     plugin: boolean;
+    /** A plugin with an area: its settings live on that area's Settings tab. */
+    ownPage: boolean;
 };
 
 /** What Find a setting answers: Settings pages, then settings, in the menu's order. */

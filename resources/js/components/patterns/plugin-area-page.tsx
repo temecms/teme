@@ -24,6 +24,8 @@ export type PluginAreaPageProps = {
     }[];
     /** `div` where the page already has its h1, as in the catalogue. */
     titleAs?: 'h1' | 'div';
+    /** Keep the large title when it is not the breadcrumb's last crumb. */
+    showTitle?: boolean;
     children: ReactNode;
 };
 
@@ -60,7 +62,7 @@ class PluginAreaBoundary extends Component<
 
 /**
  * A plugin's own area (docs/architecture/design-system.md, section 5): the
- * plugin's icon at 64 beside the page header, its mark after the title, the
+ * plugin's icon at 32 leading the page header, its mark after the title, the
  * area's pages as in-page navigation, five shown and the rest under More,
  * then what the plugin draws, inside a boundary that keeps a failure to one
  * sentence naming the plugin.
@@ -72,6 +74,7 @@ export function PluginAreaPage({
     actions,
     pages = [],
     titleAs,
+    showTitle,
     children,
 }: PluginAreaPageProps) {
     // A new page of the area starts afresh, so a failure doesn't follow it.
@@ -79,23 +82,22 @@ export function PluginAreaPage({
 
     return (
         <Page>
-            <div className="flex min-w-0 items-start gap-4">
-                <PluginIcon
-                    size={64}
-                    name={plugin.name}
-                    src={plugin.icon ?? null}
-                    className="mt-2 shrink-0"
-                />
-                <div className="min-w-0 flex-1">
-                    <PageHeader
-                        title={title}
-                        description={description}
-                        actions={actions}
-                        plugin={plugin.name}
-                        as={titleAs}
+            <PageHeader
+                title={title}
+                description={description}
+                actions={actions}
+                plugin={plugin.name}
+                showTitle={showTitle}
+                as={titleAs}
+                leading={
+                    <PluginIcon
+                        size={32}
+                        name={plugin.name}
+                        src={plugin.icon ?? null}
+                        className="shrink-0"
                     />
-                </div>
-            </div>
+                }
+            />
             {pages.length > 1 && (
                 <InPageNav
                     label={__(':name pages', { name: plugin.name })}

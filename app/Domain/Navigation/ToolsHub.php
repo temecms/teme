@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Navigation;
 
 use App\Domain\Plugins\Area\AreaEntries;
+use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Contributions\ToolLink;
 use App\Domain\Plugins\Contributions\ToolLinks;
 use App\Domain\Plugins\PluginAccess;
@@ -61,15 +62,22 @@ final readonly class ToolsHub implements NavHub
         $links = $this->links->all();
         usort($links, fn (ToolLink $a, ToolLink $b): int => strnatcasecmp($a->label, $b->label));
 
+        $areas = app(PluginAreas::class);
+
         foreach ($links as $link) {
             $external = $link->to !== 'settings';
+            $settingsTab = ! $external && $areas->hasSettingsTab($link->code);
 
             $pages[] = [
                 'key' => "plugin.{$link->code}.{$link->id}",
                 'label' => $link->label,
                 'icon' => $link->icon,
                 'description' => $link->description,
-                'href' => $external ? $link->to : route('settings.show', ['group' => "plugin.{$link->code}"], false),
+                'href' => $external
+                    ? $link->to
+                    : ($settingsTab
+                        ? route('plugins.area.settings', ['code' => $link->code], false)
+                        : route('settings.show', ['group' => "plugin.{$link->code}"], false)),
                 'external' => $external,
                 ...($link->plugin !== '' ? ['plugin' => $link->plugin] : []),
             ];

@@ -37,5 +37,7 @@ final readonly class NavEntry
         public ?string $badge = null,
         /** Planned and not built: drawn with a Soon tag, opening nothing (I-3408). */
         public bool $soon = false,
+        /** A plugin's label for the menu's From-plugin mark; null for core's own entries. @since next */
+        public ?string $pluginLabel = null,
     ) {}
 }

@@ -55,3 +55,86 @@ it('draws :dataset on one page pattern, one heading, nothing sideways and no sma
         ->and($page->script('() => document.documentElement.scrollWidth <= document.documentElement.clientWidth'))->toBeTrue()
         ->and(cmSmallTargets($page)['small'])->toBe([]);
 })->with('tool frames');
+
+it('names a Settings page in the crumb and keeps its h1 for the outline only', function (): void {
+    $this->actingAs($this->admin)->get('/admin/settings/general')->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1280, 900);
+    cmNavigate($page, '/admin/settings/general');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="pattern-title"]\') !== null');
+
+    $look = $page->script(<<<'JS'
+        () => {
+            const title = document.querySelector('[data-test="pattern-title"]');
+            const crumb = document.querySelector('[data-test="crumbs"]');
+            const description = title?.closest('[data-slot="page-header"]')?.querySelector('p');
+
+            return {
+                crumb: crumb?.innerText.replace(/\s+/g, ' ').trim() ?? null,
+                h1: title?.textContent?.trim() ?? null,
+                h1Hidden: title?.classList.contains('sr-only') === true,
+                description: description?.textContent?.trim() ?? null,
+                descriptionQuiet: description?.className.includes('text-small') === true,
+            };
+        }
+        JS);
+
+    expect($look['crumb'])->toContain('General')
+        ->and($look['h1'])->toBe('General')
+        ->and($look['h1Hidden'])->toBeTrue()
+        ->and($look['description'])->not->toBeNull()
+        ->and($look['descriptionQuiet'])->toBeTrue();
+});
+
+it('keeps Home’s greeting as a visible title', function (): void {
+    $this->actingAs($this->admin)->get(route('dashboard'))->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1280, 900);
+    cmNavigate($page, '/admin');
+    shellSettled($page, '[data-slot="page-header"]');
+
+    $look = $page->script(<<<'JS'
+        () => {
+            const title = document.querySelector('[data-test="pattern-title"]');
+
+            return {
+                text: title?.textContent?.trim() ?? null,
+                visible: title?.classList.contains('sr-only') !== true,
+            };
+        }
+        JS);
+
+    expect($look['text'])->toContain('Ada Admin')
+        ->and($look['visible'])->toBeTrue();
+});
+
+it('keeps Compare versions’ long title visible under a shorter crumb', function (): void {
+    $draft = lifecycleDraft($this->admin, 'Harbour news');
+    $from = (string) $draft->working_revision_id;
+    $to = (string) docSave($draft, $this->admin, docWith(docText('The ferry leaves.')))->working_revision_id;
+    $url = "/admin/content/{$draft->id}/compare?from={$from}&to={$to}";
+
+    $this->actingAs($this->admin)->get($url)->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1280, 900);
+    cmNavigate($page, $url);
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="pattern-title"]\') !== null');
+
+    $look = $page->script(<<<'JS'
+        () => {
+            const title = document.querySelector('[data-test="pattern-title"]');
+            const crumb = document.querySelector('[data-test="crumbs"]');
+
+            return {
+                crumb: crumb?.innerText.replace(/\s+/g, ' ').trim() ?? null,
+                title: title?.textContent?.trim() ?? null,
+                visible: title?.classList.contains('sr-only') !== true,
+            };
+        }
+        JS);
+
+    expect($look['crumb'])->toContain('Compare versions')
+        ->and($look['title'])->toContain('Compare versions of')
+        ->and($look['title'])->toContain('Harbour news')
+        ->and($look['visible'])->toBeTrue();
+});
