@@ -1,11 +1,13 @@
 import { usePage } from '@inertiajs/react';
 import type { ReactNodeViewProps } from '@tiptap/react';
-import { CodeXml } from 'lucide-react';
-import { useId, useState } from 'react';
+import { ChevronRight, CodeXml } from 'lucide-react';
+import { useState } from 'react';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { IconTile } from '@/components/ui/icon-tile';
-import { Label } from '@/components/ui/label';
-import { StatusPill } from '@/components/ui/status-pill';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { __ } from '@/lib/i18n';
 import type { ContentEditPage } from '@/types';
@@ -43,7 +45,6 @@ export function SiteCodeCard({
 }: ReactNodeViewProps) {
     const { manages, locked } = useCodeRights();
     const code = typeof node.attrs.code === 'string' ? node.attrs.code : '';
-    const on = node.attrs.on !== false;
 
     let words: string;
 
@@ -57,10 +58,8 @@ export function SiteCodeCard({
         words = __(
             'Paste the code below. Readers see nothing here until then.',
         );
-    } else if (on) {
-        words = __('Readers see it here, drawn exactly as it was pasted.');
     } else {
-        words = __("This code is off, so readers don't see it.");
+        words = __('Readers see it here, drawn exactly as it was pasted.');
     }
 
     return (
@@ -79,27 +78,30 @@ export function SiteCodeCard({
             <div className="grid min-w-0 gap-3">
                 <div className="flex min-w-0 items-start gap-3">
                     <IconTile icon={CodeXml} />
-                    <p className="text-ink-2 text-small flex flex-wrap items-center gap-2">
-                        {manages && !locked && code !== '' && (
-                            <StatusPill tone={on ? 'ok' : 'neutral'}>
-                                {on ? __('On') : __('Off')}
-                            </StatusPill>
-                        )}
-                        <span>{words}</span>
-                    </p>
+                    <p className="text-ink-2 text-small">{words}</p>
                 </div>
                 {manages && !locked && (
-                    <Textarea
-                        aria-label={__('Code')}
-                        rows={4}
-                        spellCheck={false}
-                        value={code}
-                        placeholder={__('<script async src="…"></script>')}
-                        onChange={(event) =>
-                            updateAttributes({ code: event.target.value })
-                        }
-                        className="bg-surface-2 text-small field-sizing-content resize-none rounded-sm border-0 px-3 py-2 font-mono"
-                    />
+                    <CardField
+                        label={__('Code')}
+                        hint={__(
+                            'Paste the ad unit or embed code exactly as the service gives it.',
+                        )}
+                    >
+                        {(props) => (
+                            <Textarea
+                                {...props}
+                                rows={4}
+                                spellCheck={false}
+                                value={code}
+                                onChange={(event) =>
+                                    updateAttributes({
+                                        code: event.target.value,
+                                    })
+                                }
+                                className="text-small font-mono"
+                            />
+                        )}
+                    </CardField>
                 )}
             </div>
         </CardFrame>
@@ -108,7 +110,7 @@ export function SiteCodeCard({
 
 /**
  * A Custom HTML card's settings, for someone who may manage site code: the
- * hosts its code connects to and whether it is on. Anyone else is told who
+ * hosts its code connects to, folded away. Anyone else is told who
  * may change it.
  */
 export function SiteCodeSettings({
@@ -116,7 +118,6 @@ export function SiteCodeSettings({
     update: updateAttributes,
 }: CardSettingsProps) {
     const { manages, locked } = useCodeRights();
-    const id = useId();
     // The lines as typed, so an empty line being written survives; the card keeps the hosts.
     const [hosts, setHosts] = useState(() => hostsOf(attrs.origins).join('\n'));
 
@@ -136,42 +137,46 @@ export function SiteCodeSettings({
 
     return (
         <>
-            <CardField
-                label={__('Hosts it connects to')}
-                hint={__(
-                    'One a line, such as securepubads.g.doubleclick.net. Hosts the code names itself are found without this.',
-                )}
+            <Collapsible
+                defaultOpen={hostsOf(attrs.origins).length > 0}
+                className="group grid gap-2"
             >
-                {(props) => (
-                    <Textarea
-                        {...props}
-                        rows={3}
-                        autoGrow
-                        spellCheck={false}
-                        value={hosts}
-                        onChange={(event) => {
-                            setHosts(event.target.value);
-                            updateAttributes({
-                                origins: event.target.value
-                                    .split('\n')
-                                    .map((host) => host.trim())
-                                    .filter((host) => host !== ''),
-                            });
-                        }}
-                        className="font-mono"
+                <CollapsibleTrigger className="text-small text-ink-2 hover:text-ink flex items-center gap-1 text-left">
+                    <ChevronRight
+                        aria-hidden="true"
+                        className="size-4 transition-transform group-data-[state=open]:rotate-90"
                     />
-                )}
-            </CardField>
-            <div className="flex items-center gap-2">
-                <Switch
-                    id={`${id}-on`}
-                    checked={attrs.on !== false}
-                    onCheckedChange={(next) => updateAttributes({ on: next })}
-                />
-                <Label htmlFor={`${id}-on`} className="font-normal">
-                    {__('Show it on the site')}
-                </Label>
-            </div>
+                    {__('More: hosts this code loads from')}
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                    <CardField
+                        label={__('Hosts it connects to')}
+                        hint={__(
+                            'One a line, such as securepubads.g.doubleclick.net. Hosts the code names itself are found without this.',
+                        )}
+                    >
+                        {(props) => (
+                            <Textarea
+                                {...props}
+                                rows={3}
+                                autoGrow
+                                spellCheck={false}
+                                value={hosts}
+                                onChange={(event) => {
+                                    setHosts(event.target.value);
+                                    updateAttributes({
+                                        origins: event.target.value
+                                            .split('\n')
+                                            .map((host) => host.trim())
+                                            .filter((host) => host !== ''),
+                                    });
+                                }}
+                                className="font-mono"
+                            />
+                        )}
+                    </CardField>
+                </CollapsibleContent>
+            </Collapsible>
             <p className="text-small text-ink-3">
                 {__(
                     'Written exactly as pasted; each card is its own ad unit. Saving or publishing a change asks for your password again.',
