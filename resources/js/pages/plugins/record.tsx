@@ -28,13 +28,23 @@ import type { PluginRecordPageProps } from '@/types/plugin-area';
 /**
  * A record's form in a plugin's area (docs/plans/plugin-sockets-2.md, A9):
  * its sections as panels, a field shown only while its condition holds,
- * and the one save bar. The top bar names only the parent, the plugin's
- * own name (I-3468); the record's title heads the page.
+ * and the one save bar. The top bar names the area and the record; the
+ * record's title heads the page.
  */
 export default function PluginRecord(props: PluginRecordPageProps) {
-    const { plugin, back, record, id, title, sections, failed, deletable } =
-        props;
-    const errors = (usePage().props.errors ?? {}) as Record<string, string>;
+    const {
+        plugin,
+        back,
+        area,
+        record,
+        id,
+        title,
+        sections,
+        failed,
+        deletable,
+    } = props;
+    const page = usePage();
+    const errors = (page.props.errors ?? {}) as Record<string, string>;
     const [values, setValues] = useState<Record<string, unknown>>(props.values);
     const [processing, setProcessing] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -58,7 +68,12 @@ export default function PluginRecord(props: PluginRecordPageProps) {
         busy: approval.busy,
     };
 
-    setLayoutProps({ breadcrumbs: [{ title: plugin.name, href: back }] });
+    setLayoutProps({
+        breadcrumbs: [
+            { title: area.label, href: back },
+            { title: heading, href: page.url },
+        ],
+    });
 
     const submit = (event: FormEvent) => {
         event.preventDefault();

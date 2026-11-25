@@ -155,6 +155,8 @@ export type AreaField = {
 export type PluginRecordPageProps = {
     plugin: AreaPluginRef;
     back: string;
+    /** The area's label, for the top-bar crumbs (design system 4.31). */
+    area: { label: string };
     record: { id: string; label: string; plural: string };
     id: string | null;
     title: string;

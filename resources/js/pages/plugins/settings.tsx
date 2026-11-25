@@ -34,15 +34,23 @@ export default function PluginAreaSettings(
         plugin,
         area,
         tabs,
-        parent,
+        parent: _parent,
         blocks: _blocks,
         asks: _asks,
         current: _current,
         ...settings
     } = props;
+    const areaHome =
+        tabs[0]?.href ?? PluginAreaController.show.url({ code: plugin.code });
 
     setLayoutProps({
-        breadcrumbs: parent === null ? [] : [parent],
+        breadcrumbs: [
+            { title: area.label, href: areaHome },
+            {
+                title: __('Settings'),
+                href: PluginAreaController.settings.url({ code: plugin.code }),
+            },
+        ],
     });
 
     return (

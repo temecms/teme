@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, setLayoutProps, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useInstaller } from '@/components/extensions/installer';
@@ -11,9 +11,11 @@ import { ThemeRegions } from '@/components/themes/theme-regions';
 import { ThemeSettings } from '@/components/themes/theme-settings';
 import { useDesignDraft } from '@/components/themes/use-design-draft';
 import { Button } from '@/components/ui/button';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import { index as pluginsIndex } from '@/routes/plugins';
 import { show as showSettings } from '@/routes/settings';
+import { index as themesIndex } from '@/routes/themes';
 import type { DesignPage } from '@/types';
 
 /**
@@ -27,6 +29,12 @@ import type { DesignPage } from '@/types';
 export default function Design(page: DesignPage) {
     const { errors: pageErrors } = usePage().props;
     const design = useDesignDraft(page);
+    const siteCrumb = useSectionCrumb('site');
+    const title = __('Themes');
+
+    setLayoutProps({
+        breadcrumbs: [siteCrumb, { title, href: themesIndex() }],
+    });
     const active = page.themes.find((theme) => theme.state === 'active');
     // The theme the draft or the live value names: the previewed one, else the active one.
     const chosen = page.themes.find((theme) => theme.code === page.theme);
@@ -63,7 +71,7 @@ export default function Design(page: DesignPage) {
 
     return (
         <ListPage
-            title={__('Themes')}
+            title={title}
             description={__(
                 'How the public site looks. A theme draws the site; it adds no features of its own.',
             )}
@@ -92,7 +100,7 @@ export default function Design(page: DesignPage) {
                 )
             }
         >
-            <Head title={__('Themes')} />
+            <Head title={title} />
 
             <p
                 className="text-small text-ink-2"

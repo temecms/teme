@@ -17,6 +17,7 @@ namespace App\Http\Admin;
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Plugins\Area\AreaEntries;
 use App\Domain\Plugins\Area\AreaPlugin;
+use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Operations\ActOnPluginRecords;
@@ -216,6 +217,8 @@ final class PluginAreaController extends Controller
             'plugin' => ['code' => $plugin->code, 'name' => $plugin->label],
             // Where the form's top bar leads: the page listing these records.
             'back' => $this->listing($code, $record),
+            // The area's label in the crumbs (design system 4.31), not the plugin's name.
+            'area' => ['label' => AreaWords::text($plugin->code, $plugin->area->label)],
             ...$found,
             // The code fields' scripts that wait, and whether this person may approve them here (the decided Q2).
             'scripts' => [

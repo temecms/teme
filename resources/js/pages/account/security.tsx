@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { __ } from '@/lib/i18n';
 import { passwordMinimum } from '@/lib/password';
-import { edit } from '@/routes/security';
 
 type Props = {
     passwordRules: string;
@@ -34,7 +33,6 @@ export default function Security({
     const description = __('Your password and two-factor sign-in.');
 
     setLayoutProps({
-        breadcrumbs: [{ title, href: edit() }],
         title,
         description,
     });

@@ -1,7 +1,10 @@
+import { setLayoutProps, usePage } from '@inertiajs/react';
 import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import { Page } from '@/components/patterns/page';
 import { PageHeader } from '@/components/patterns/page-header';
+import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import { edit as editProfile } from '@/routes/profile';
 import { AccountNav, AccountPagesButton } from './account-nav';
 
 /** The side list beside the page from 1024px: up to 200 wide, the page taking the rest. */
@@ -21,8 +24,8 @@ const PAGE_IN_FRAME =
  * The frame of every account page (docs/architecture/design-system.md,
  * section 4.43): the page's title and line across the full width, then the
  * account's side list headed by you beside the page's column; under 1024px
- * one button opens the list. Each page names its title through its layout
- * props, as it names its breadcrumbs.
+ * one button opens the list. Crumbs are Account / the page, set once here
+ * (design system 4.31); each page names only its title and line.
  */
 export default function AccountLayout({
     title,
@@ -34,6 +37,17 @@ export default function AccountLayout({
     /** The line under it, saying what the page is for. */
     description?: ReactNode;
 }>) {
+    const url = usePage().url;
+
+    if (title !== undefined) {
+        setLayoutProps({
+            breadcrumbs: [
+                { title: __('Account'), href: editProfile() },
+                { title, href: url },
+            ],
+        });
+    }
+
     return (
         <Page>
             {title !== undefined && (

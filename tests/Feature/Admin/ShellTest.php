@@ -235,6 +235,8 @@ it('frames Account with one h1, its line and a sub-navigation, and the pages no 
 it('names the account frame\'s list and links', function (): void {
     expect(uiComponent('layouts/account/layout.tsx'))
         ->toContain('<AccountNav />')
+        ->toContain("__('Account')")
+        ->toContain('breadcrumbs:')
         ->not->toContain('Your profile, sign-in and interface preferences')
         ->and(uiComponent('layouts/account/account-nav.tsx'))
         ->toContain("aria-label={__('Account')}")
