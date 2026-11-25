@@ -243,8 +243,15 @@ final readonly class SecondPassStep implements RunsInMediaPass, StepPhase
 
         // A person's save here is never undone (I-332); said only where this run wrote the row, or a picture pass found pictures for it.
         if ($written === '' || ImportedContents::fingerprint($content) !== $written) {
-            if ($written !== '' && $arrived && $context->kind === ImportRunKind::MediaPass) {
-                $this->record($context, $objectId, $written, null, null, null, [new ImportMessage('second-pass.pictures-changed-here', 'It was changed here after the import, so its pictures still show from the old site: replace them in the editor before that site closes.')]);
+            if ($written !== '' && $context->kind === ImportRunKind::MediaPass && $waiting !== []) {
+                // Only what its working revision still shows from the old site is still waiting: a picture replaced or removed here is not (issue 736).
+                $revision = ContentRevision::query()->find($working);
+                $still = $revision === null ? [] : PictureSwap::showing($waiting, array_values((array) ($revision->document['content'] ?? [])), (array) $revision->fields, $this->sites->for($context->sourceId));
+                $note = $arrived && $still !== [] ? [new ImportMessage('second-pass.pictures-changed-here', 'It was changed here after the import, so its pictures still show from the old site: replace them in the editor before that site closes.')] : [];
+
+                if ($note !== [] || $still !== $waiting) {
+                    $this->record($context, $objectId, $written, null, null, null, $note, $still);
+                }
             } elseif ($written !== '' && (string) $row->run_id === $context->runId) {
                 $this->record($context, $objectId, $written, null, null, null, [new ImportMessage('second-pass.changed-here', 'It was changed here after the import, so its reusable blocks and links to the old site were left as they were.')]);
             }

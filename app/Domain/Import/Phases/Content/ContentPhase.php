@@ -371,7 +371,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
 
                 // The pictures come after the articles: the picture pass sets it, shown from the old site until then where the file says where (#716).
                 if ($context->bringsMediaLater()) {
-                    $outside = self::outsideFeatured($context, $featured);
+                    $outside = self::outsideFeatured($context, $featured, $site);
                     $waiting = ["a:{$featured}", ...($outside['key'] === null ? [] : [$outside['key']])];
                     $waitingFeatured = $featured;
 
@@ -739,11 +739,12 @@ final class ContentPhase implements ListPhase, PreparesObjects
      * An export file's featured image while its file is on the way: the old
      * site's address, size and alt text as the file gives them, and the
      * file's waiting key; nothing to show for a live site, whose post names
-     * only the attachment's ID, nor for a file that isn't an image.
+     * only the attachment's ID, for a file that isn't an image, nor for an
+     * address on another site than the old one's (issue 737).
      *
      * @return array{value: array{source: string, width: int, height: int, alt: string|null, decorative: false}|null, key: string|null}
      */
-    private static function outsideFeatured(ImportContext $context, int $attachmentId): array
+    private static function outsideFeatured(ImportContext $context, int $attachmentId, ConversionSite $site): array
     {
         $payload = $context->fileId === null ? null : DB::table('import_file_rows')
             ->where('file_id', $context->fileId)->where('list', ItemRows::MEDIA)->where('object_id', $attachmentId)->value('payload');
@@ -753,7 +754,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
         $width = is_array($row['metadata'] ?? null) ? ($row['metadata']['width'] ?? null) : null;
         $height = is_array($row['metadata'] ?? null) ? ($row['metadata']['height'] ?? null) : null;
 
-        if (! OutsideImage::isWebAddress($url) || ! is_int($width) || ! is_int($height) || $width < 1 || $height < 1) {
+        if (! OutsideImage::isWebAddress($url) || ! $site->isOwn($url) || ! is_int($width) || ! is_int($height) || $width < 1 || $height < 1) {
             return ['value' => null, 'key' => $file];
         }
 

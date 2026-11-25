@@ -87,6 +87,68 @@ final class PictureSwap
     }
 
     /**
+     * The waiting keys a revision still needs: the files of the pictures it
+     * still shows from the old site (its outside image cards, at any depth,
+     * and its outside featured image), with the attachments they came
+     * from; none when it shows no such picture. Keys are matched as the swap
+     * matches them, by the file below the uploads folder.
+     *
+     * @param  list<string>  $keys
+     * @param  list<array<string, mixed>>  $content
+     * @param  array<string, mixed>  $fields
+     *
+     * @return list<string>
+     */
+    public static function showing(array $keys, array $content, array $fields, ConversionSite $site): array
+    {
+        $shown = [];
+        $addresses = self::addresses($content);
+        $featured = $fields[BuiltInFields::FEATURED_IMAGE] ?? null;
+
+        if (is_array($featured) && ($featured['id'] ?? null) === null && is_string($featured['source'] ?? null)) {
+            $addresses[] = $featured['source'];
+        }
+
+        foreach ($addresses as $address) {
+            $key = $site->uploadsKey($address);
+
+            if ($key !== null) {
+                $shown['f:'.ImageTrace::original($key)] = true;
+            }
+        }
+
+        $files = array_values(array_filter($keys, fn (string $key): bool => isset($shown[$key])));
+
+        return $files === [] ? [] : array_values(array_filter($keys, fn (string $key): bool => str_starts_with($key, 'a:') || in_array($key, $files, true)));
+    }
+
+    /**
+     * The old site's addresses of the outside image cards, at any depth.
+     *
+     * @param  list<array<string, mixed>>  $content
+     *
+     * @return list<string>
+     */
+    private static function addresses(array $content): array
+    {
+        $found = [];
+
+        foreach ($content as $node) {
+            $source = ($node['type'] ?? null) === 'image' && is_array($node['attrs'] ?? null) ? ImageCard::source($node['attrs']) : null;
+
+            if ($source !== null) {
+                $found[] = $source;
+            }
+
+            if (is_array($node['content'] ?? null)) {
+                array_push($found, ...self::addresses(array_values(array_filter($node['content'], is_array(...)))));
+            }
+        }
+
+        return $found;
+    }
+
+    /**
      * @param  array<string, mixed>  $node
      *
      * @return array<string, mixed>
