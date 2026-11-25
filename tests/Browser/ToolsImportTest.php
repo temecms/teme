@@ -146,10 +146,13 @@ it('marks no step current on a stopped import, the steps it finished still done'
     ImportRecords::run($source, ['state' => 'stopped', 'phase' => 'fixture-notes', 'stop_reason' => 'by-hand', 'stop_message' => 'Stopped on request. Run it again to carry on from where it stopped.', 'started_by' => $this->admin->id, 'ended_at' => now()]);
 
     $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source}");
-    tiWaitUntil($page, tiPresent('[aria-label="Steps of this import"]'));
+    tiWaitUntil($page, tiPresent('[data-test="import-progress-steps"]'));
+    $page->click('[data-test="import-progress-steps"] button >> text=/Processed/');
+    tiWaitUntil($page, tiPresent('[data-test="import-progress-steps"] [data-state="done"]'));
 
-    expect($page->script('() => document.querySelectorAll(\'[aria-label="Steps of this import"] [aria-current]\').length'))->toBe(0)
-        ->and($page->script('() => document.querySelectorAll(\'[aria-label="Steps of this import"] [data-state="done"]\').length'))->toBe(1);
+    expect($page->script('() => document.querySelectorAll(\'[data-test="import-progress-steps"] [aria-current]\').length'))->toBe(0)
+        ->and($page->script('() => document.querySelectorAll(\'[data-test="import-progress-steps"] [data-state="done"]\').length'))->toBe(1)
+        ->and($page->script('() => document.querySelectorAll(\'[data-test="import-progress-steps"] [data-state="stopped"]\').length'))->toBe(1);
 });
 
 it('passes axe on a finished import’s report, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
@@ -158,8 +161,8 @@ it('passes axe on a finished import’s report, every target 24 pixels or more, 
 
     $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source}");
     tiWaitUntil($page, tiPresent('[data-test="import-report"]'));
-    $page->assertSeeIn('[data-test="import-report"]', 'How many')
-        ->assertSeeIn('[data-test="import-report"]', 'Teme refused it: The title may not be longer than 300 characters.')
+    $page->assertSeeIn('[data-test="import-report"]', 'Items Teme refused')
+        ->assertPresent('[data-test="import-tab-report"]')
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);

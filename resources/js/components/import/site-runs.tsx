@@ -1,6 +1,4 @@
 import { Link } from '@inertiajs/react';
-import { DataTable } from '@/components/list/data-table';
-import type { Column } from '@/components/list/data-table';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
@@ -13,7 +11,10 @@ const TONES: Record<ImportRunRow['state'], 'ok' | 'warn' | 'info'> = {
     running: 'info',
 };
 
-/** A site's past imports, newest first, each leading to its own report (I-345). */
+/**
+ * A site's past imports on the History tab (issue 699): date, state pill,
+ * one-line result, and Report — newest first.
+ */
 export function SiteRuns({
     runs,
     shownId,
@@ -23,88 +24,68 @@ export function SiteRuns({
     shownId: string | null;
     siteTimezone: string;
 }) {
-    const columns: Column<ImportRunRow>[] = [
-        {
-            id: 'import',
-            owner: 'core',
-            header: __('Import'),
-            cell: (row) => (
-                <div className="grid gap-1">
-                    <span className="font-semibold">
-                        {formatInZone(row.startedAt, siteTimezone)}
-                    </span>
-                    <span className="text-small text-ink-3">
-                        {row.id === shownId
-                            ? __('The one shown above')
-                            : row.kindLabel}
-                    </span>
-                </div>
-            ),
-        },
-        {
-            id: 'state',
-            owner: 'core',
-            header: __('State'),
-            cell: (row) => (
-                <StatusPill tone={TONES[row.state]}>
-                    {row.stateLabel}
-                </StatusPill>
-            ),
-        },
-        {
-            id: 'result',
-            owner: 'core',
-            header: __('Result'),
-            cell: (row) =>
-                __(':created created, :failed failed', {
-                    created: row.counts.created.toLocaleString(),
-                    failed: row.counts.failed.toLocaleString(),
-                }),
-        },
-        {
-            id: 'report',
-            owner: 'core',
-            header: <span className="sr-only">{__('Actions')}</span>,
-            cell: (row) =>
-                row.id === shownId ? null : (
-                    <div className="flex justify-end">
-                        <Button size="sm" variant="outline" asChild>
-                            <Link
-                                href={row.href}
-                                aria-label={__(
-                                    'Show the report of the import started :date',
-                                    {
-                                        date: formatInZone(
-                                            row.startedAt,
-                                            siteTimezone,
-                                        ),
-                                    },
-                                )}
-                            >
-                                {__('Show')}
-                            </Link>
-                        </Button>
-                    </div>
-                ),
-        },
-    ];
+    if (runs.length === 0) {
+        return (
+            <p className="text-ink-2" data-test="import-history-empty">
+                {__('No past imports yet.')}
+            </p>
+        );
+    }
 
     return (
-        <section aria-labelledby="import-runs" className="grid gap-3">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h2 id="import-runs" className="text-lead font-semibold">
-                    {__('Past imports')}
-                </h2>
-                <span className="text-small text-ink-2">
-                    {__('Newest first. Each has its own report.')}
-                </span>
-            </div>
-            <DataTable
-                caption={__('Past imports of this site')}
-                columns={columns}
-                rows={runs}
-                rowKey={(row) => row.id}
-            />
-        </section>
+        <ul
+            aria-label={__('Past imports of this site')}
+            data-test="import-history"
+            className="grid gap-1"
+        >
+            {runs.map((row) => {
+                const line =
+                    row.id === shownId
+                        ? __('The one shown above')
+                        : __(':created created, :failed failed · :kind', {
+                              created: row.counts.created.toLocaleString(),
+                              failed: row.counts.failed.toLocaleString(),
+                              kind: row.kindLabel,
+                          });
+
+                return (
+                    <li
+                        key={row.id}
+                        className="hover:bg-surface-2 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md px-3 py-3"
+                    >
+                        <time
+                            dateTime={row.startedAt}
+                            className="text-body min-w-40 font-semibold"
+                        >
+                            {formatInZone(row.startedAt, siteTimezone)}
+                        </time>
+                        <StatusPill tone={TONES[row.state]}>
+                            {row.stateLabel}
+                        </StatusPill>
+                        <span className="text-small text-ink-2 min-w-0 flex-1">
+                            {line}
+                        </span>
+                        {row.id !== shownId && (
+                            <Button size="sm" variant="outline" asChild>
+                                <Link
+                                    href={row.href}
+                                    aria-label={__(
+                                        'Show the report of the import started :date',
+                                        {
+                                            date: formatInZone(
+                                                row.startedAt,
+                                                siteTimezone,
+                                            ),
+                                        },
+                                    )}
+                                >
+                                    {__('Report')}
+                                </Link>
+                            </Button>
+                        )}
+                    </li>
+                );
+            })}
+        </ul>
     );
 }

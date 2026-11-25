@@ -5,7 +5,10 @@ import { ConnectForm } from '@/components/import/connect-form';
 import { FilePlan } from '@/components/import/file-plan';
 import { ImportSteps } from '@/components/import/import-steps';
 import { OtherHostsForm } from '@/components/import/other-hosts-form';
-import { RunProgress } from '@/components/import/run-progress';
+import {
+    RunProgress,
+    RunProgressSteps,
+} from '@/components/import/run-progress';
 import { RunReport } from '@/components/import/run-report';
 import { SiteRuns } from '@/components/import/site-runs';
 import {
@@ -15,10 +18,15 @@ import {
 import { UploadForm } from '@/components/import/upload-form';
 import { ListPage } from '@/components/patterns/list-page';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { StatusPill } from '@/components/ui/status-pill';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { __ } from '@/lib/i18n';
 import { dayInZone, formatInZone } from '@/lib/zoned-time';
 import { index } from '@/routes/tools';
-import { index as importerIndex } from '@/routes/tools/importer';
+import {
+    index as importerIndex,
+    show as importerShow,
+} from '@/routes/tools/importer';
 import type { ImportPlan, ImportShowPage, ImportSite } from '@/types/import';
 
 /** The plan step, once its deferred data has arrived: the analysis, then the choices. */
@@ -166,6 +174,31 @@ function describe(
           });
 }
 
+/** The run’s state as a pill beside the Connected as… line (issue 699). */
+function runPill(
+    run: NonNullable<ImportShowPage['run']>,
+    job: ImportShowPage['job'],
+) {
+    const waiting =
+        run.state === 'running' && job !== null && job.state === 'waiting';
+
+    if (run.state === 'finished') {
+        return <StatusPill tone="ok">{__('Finished')}</StatusPill>;
+    }
+
+    if (waiting) {
+        return <StatusPill tone="neutral">{__('Waiting')}</StatusPill>;
+    }
+
+    if (run.state === 'running') {
+        return <StatusPill tone="info">{__('Running')}</StatusPill>;
+    }
+
+    return <StatusPill tone="warn">{__('Stopped')}</StatusPill>;
+}
+
+type ImportTab = 'progress' | 'report' | 'history';
+
 /** A site's page (I-227): its five steps, and the section for the one it stands at. */
 export default function ImportShow({
     site,
@@ -197,6 +230,10 @@ export default function ImportShow({
         { autoStart: false },
     );
     const running = run?.state === 'running';
+    const finished = run?.state === 'finished' || step === 'report';
+    const [tab, setTab] = useState<ImportTab>(() =>
+        finished ? 'report' : 'progress',
+    );
 
     useEffect(() => {
         if (running) {
@@ -206,20 +243,38 @@ export default function ImportShow({
         }
     }, [running, start, stop]);
 
+    // Open Report when this run has finished (issue 699); later tab clicks stick.
+    useEffect(() => {
+        if (finished) {
+            setTab('report');
+        }
+    }, [finished, run?.id]);
+
     setLayoutProps({
         breadcrumbs: [
             { title: __('Tools'), href: index() },
             { title: __('Import'), href: importerIndex() },
-            { title: site.host },
+            { title: site.host, href: importerShow(site.id) },
         ],
     });
 
-    const description = describe(site, step, run, siteTimezone);
+    const descriptionText = describe(site, step, run, siteTimezone);
+    const description =
+        run !== null && descriptionText !== '' ? (
+            <span className="flex flex-wrap items-center gap-2">
+                <span>{descriptionText}</span>
+                {runPill(run, job)}
+            </span>
+        ) : (
+            descriptionText
+        );
     // A site read from its export file, or an import of one: Upload comes first.
     const fromFile =
         step === 'plan'
             ? site.file !== null
             : run?.file != null || !site.connected;
+    const messageCount =
+        report === null ? 0 : report.levels.error + report.levels.warning;
 
     return (
         <>
@@ -272,28 +327,89 @@ export default function ImportShow({
                     </Deferred>
                 )}
 
-                {step === 'import' && run !== null && (
-                    <RunProgress run={run} job={job} />
-                )}
+                {step !== 'plan' && run !== null && (
+                    <>
+                        <RunProgress
+                            run={run}
+                            job={job}
+                            onSeeReport={() => setTab('report')}
+                        />
 
-                {step !== 'plan' && run !== null && report !== null && (
-                    <RunReport
-                        site={site}
-                        run={run}
-                        report={report}
-                        downloads={downloads}
-                        latest={latest}
-                        siteTimezone={siteTimezone}
-                        maxFileMb={maxFileMb}
-                    />
-                )}
+                        <Tabs
+                            value={tab}
+                            onValueChange={(value) =>
+                                setTab(value as ImportTab)
+                            }
+                            data-test="import-tabs"
+                        >
+                            <TabsList aria-label={__('Import views')}>
+                                <TabsTrigger
+                                    value="progress"
+                                    data-test="import-tab-progress"
+                                >
+                                    {__('Progress')}
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="report"
+                                    count={
+                                        messageCount > 0
+                                            ? messageCount
+                                            : undefined
+                                    }
+                                    data-test="import-tab-report"
+                                >
+                                    {__('Report')}
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="history"
+                                    data-test="import-tab-history"
+                                >
+                                    {__('History')}
+                                </TabsTrigger>
+                            </TabsList>
 
-                {step !== 'plan' && runs.length > 0 && (
-                    <SiteRuns
-                        runs={runs}
-                        shownId={run?.id ?? null}
-                        siteTimezone={siteTimezone}
-                    />
+                            <TabsContent value="progress">
+                                <RunProgressSteps
+                                    run={run}
+                                    job={job}
+                                    warningCount={
+                                        report?.levels.warning ??
+                                        run.counts.warnings
+                                    }
+                                    onReviewWarnings={() => setTab('report')}
+                                />
+                            </TabsContent>
+
+                            <TabsContent value="report">
+                                {report !== null ? (
+                                    <RunReport
+                                        site={site}
+                                        run={run}
+                                        report={report}
+                                        downloads={downloads}
+                                        latest={latest}
+                                        siteTimezone={siteTimezone}
+                                        maxFileMb={maxFileMb}
+                                        framed={false}
+                                    />
+                                ) : (
+                                    <p className="text-ink-2">
+                                        {__(
+                                            'The report appears once the import has something to say.',
+                                        )}
+                                    </p>
+                                )}
+                            </TabsContent>
+
+                            <TabsContent value="history">
+                                <SiteRuns
+                                    runs={runs}
+                                    shownId={run.id}
+                                    siteTimezone={siteTimezone}
+                                />
+                            </TabsContent>
+                        </Tabs>
+                    </>
                 )}
             </ListPage>
         </>

@@ -90,7 +90,7 @@ function WayCard({
             data-test={testId}
             className={cn(
                 'border-edge bg-surface grid gap-4 rounded-md border p-5',
-                open && 'border-accent ring-accent ring-2 ring-inset',
+                open && 'border-accent',
             )}
         >
             <div className="grid gap-3">
@@ -105,9 +105,7 @@ function WayCard({
             <div>
                 <Button
                     type="button"
-                    variant={
-                        open ? 'outline' : primary ? 'default' : 'secondary'
-                    }
+                    variant={primary ? 'default' : 'secondary'}
                     onClick={onOpen}
                     data-test={`${testId}-button`}
                 >

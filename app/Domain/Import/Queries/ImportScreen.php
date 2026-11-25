@@ -279,9 +279,9 @@ final readonly class ImportScreen
     }
 
     /**
-     * Returns an import's report: its objects by kind and outcome, its messages grouped by code (errors first), whether more codes exist than are listed, how many errors need attention, and whether it is ready to switch (null until it has finished and the address check exists). Null when Teme has no such import.
+     * Returns an import's report: its objects by kind and outcome, its messages grouped by code (errors first) with a plain group name and sentence, whether more codes exist than are listed, how many errors need attention, and whether it is ready to switch (null until it has finished and the address check exists). Null when Teme has no such import.
      *
-     * @return array{types: list<array{type: string, label: string, created: int, updated: int, skipped: int, failed: int, warnings: int|null}>, messages: list<array{code: string, level: string, levelLabel: string, words: string, count: int}>, more: bool, levels: array{error: int, warning: int}, problems: int, ready: bool|null}|null
+     * @return array{types: list<array{type: string, label: string, created: int, updated: int, skipped: int, failed: int, warnings: int|null}>, messages: list<array{code: string, level: string, levelLabel: string, words: string, count: int, group: string, sentence: string|null}>, more: bool, levels: array{error: int, warning: int}, problems: int, ready: bool|null}|null
      */
     public function report(string $runId): ?array
     {
@@ -338,12 +338,15 @@ final readonly class ImportScreen
         $messages = [];
 
         foreach ($codes->take(self::CODES) as $row) {
+            $named = ImportMessageGroups::for((string) $row->code);
             $messages[] = [
                 'code' => (string) $row->code,
                 'level' => (string) $row->level,
                 'levelLabel' => $row->level === ImportMessageLevel::Error->value ? 'Error' : 'Warning',
                 'words' => (string) $row->words,
                 'count' => (int) $row->total,
+                'group' => $named['group'],
+                'sentence' => $named['sentence'],
             ];
         }
 
