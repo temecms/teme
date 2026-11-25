@@ -94,3 +94,20 @@ it('marks all of the reader’s items read and goes back to the inbox', function
     expect(DB::table('inbox_items')->where('user_id', $this->ada->id)->whereNull('read_at')->count())->toBe(0)
         ->and(DB::table('inbox_items')->where('id', $graces)->value('read_at'))->toBeNull();
 });
+
+it('marks one item read and stays on the inbox, without following its link', function (): void {
+    $item = JobsFixtures::inboxItem($this->grace->id, ['body' => ($this->link)('tools.redirects.index', 'redirects.manage')]);
+
+    $this->actingAs($this->grace)->from('/admin/inbox')->post("/admin/inbox/{$item}/read")
+        ->assertRedirect('/admin/inbox');
+
+    expect(DB::table('inbox_items')->where('id', $item)->value('read_at'))->not->toBeNull();
+});
+
+it('marks nothing for someone else’s item on the read route', function (): void {
+    $adas = JobsFixtures::inboxItem($this->ada->id);
+
+    $this->actingAs($this->grace)->from('/admin/inbox')->post("/admin/inbox/{$adas}/read")->assertNotFound();
+
+    expect(DB::table('inbox_items')->where('id', $adas)->value('read_at'))->toBeNull();
+});

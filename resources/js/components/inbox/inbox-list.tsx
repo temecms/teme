@@ -167,12 +167,13 @@ export function InboxList({
                             <div className="flex shrink-0 items-start pt-1">
                                 <TextButton asChild className="text-small">
                                     <Link
-                                        href={InboxController.open.url({
+                                        href={InboxController.read.url({
                                             item: row.id,
                                         })}
                                         method="post"
                                         as="button"
                                         data-test="inbox-mark-read"
+                                        preserveScroll
                                     >
                                         {__('Mark as read')}
                                     </Link>
