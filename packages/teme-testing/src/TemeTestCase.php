@@ -41,6 +41,20 @@ abstract class TemeTestCase extends TestCase
         return $app;
     }
 
+    /**
+     * Stops the run before the first database refresh when the database
+     * isn't a test database: a cached configuration would point the tests
+     * at the site's own (docs/guides/developers/testing.md).
+     *
+     * @return array<class-string, class-string>
+     */
+    protected function setUpTraits()
+    {
+        TestDatabaseGuard::enforce($this->app);
+
+        return parent::setUpTraits();
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
