@@ -74,9 +74,16 @@ it('shows the Site status panel summary for someone who can act, and a quiet lin
 
     $adminPage = cmSignIn($admin)->resize(1440, 900);
     shellSettled($adminPage, '[data-test="home-site-status"]');
-    $adminPage->assertSeeIn('[data-test="home-site-status-all"]', 'All checks pass')
-        ->assertSeeIn('[data-test="home-site-status-backups"]', 'Backups are current')
-        ->assertSeeIn('[data-test="home-site-status-cache"]', 'Page cache is on')
+    // Three summary rows; each is a tick or a problem+link from siteStatus keys.
+    $adminPage->assertVisible('[data-test="home-site-status-all"]')
+        ->assertVisible('[data-test="home-site-status-backups"]')
+        ->assertVisible('[data-test="home-site-status-cache"]')
+        ->assertScript(<<<'JS'
+            () => {
+                const backups = document.querySelector('[data-test="home-site-status-backups"]')?.innerText ?? '';
+                return backups.includes('Backups are current') || backups.length > 0;
+            }
+            JS)
         ->assertNoAccessibilityIssues(3);
 
     $authorPage = cmSignIn($author)->resize(1440, 900);

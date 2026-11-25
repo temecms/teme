@@ -80,6 +80,10 @@ afterEach(function (): void {
 
 it('crumbs the area root as Ads alone, keeps the menu current on records and Settings, and names the plugin for screen readers', function (): void {
     $id = ($this->id)('Ad 02');
+    $admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
+    $this->actingAs($admin)->get('/admin/plugin/placard')->assertOk();
+    $this->actingAs($admin)->get('/admin/plugin/placard/settings')->assertOk();
+
     $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="area-figures"]\') !== null');
     shellSettled($page, '[data-test="crumbs"]');
@@ -95,15 +99,8 @@ it('crumbs the area root as Ads alone, keeps the menu current on records and Set
         ->assertScript(<<<'JS'
             () => {
                 const entry = document.querySelector('[data-test="nav-plugin.placard"]');
-                const current = entry?.closest('[data-slot="sidebar-menu-button"]')?.getAttribute('data-active') === 'true'
-                    || entry?.getAttribute('data-active') === 'true'
-                    || entry?.getAttribute('aria-current') === 'page'
-                    || entry?.closest('a')?.getAttribute('aria-current') === 'page';
-                const from = entry?.textContent?.includes('From Placard')
-                    || document.body.innerText.includes('From Placard');
-                // sr-only lives inside the link.
                 const sr = entry?.querySelector('.sr-only')?.textContent ?? '';
-                return (current || entry !== null) && sr.includes('Placard');
+                return entry !== null && sr.includes('Placard');
             }
             JS);
 
@@ -116,15 +113,21 @@ it('crumbs the area root as Ads alone, keeps the menu current on records and Set
             return text.includes('Ads') && text.includes('Ad 02');
         }
         JS)
-        ->assertAttribute('[data-test="nav-plugin.placard"]', 'aria-current', 'page');
+        ->assertScript(<<<'JS'
+            () => [...document.querySelectorAll('[data-test="nav-plugin.placard"]')]
+                .some((el) => el.getAttribute('aria-current') === 'page')
+            JS);
 
-    $page = cmNavigate($page, '/admin/plugin/placard/settings');
-    cmWaitUntil($page, "location.pathname === '/admin/plugin/placard/settings'");
-    shellSettled($page, '[data-test="crumbs"]');
-    $page->assertScript(<<<'JS'
+    // Settings needs plugins.manage or settings.view; an administrator holds both.
+    $settings = cmNavigate(cmSignIn($admin)->resize(1440, 900), '/admin/plugin/placard/settings');
+    cmWaitUntil($settings, "location.pathname === '/admin/plugin/placard/settings'");
+    shellSettled($settings, '[data-test="crumbs"]');
+    $settings->assertScript(<<<'JS'
         () => {
             const text = document.querySelector('[data-test="crumbs"]')?.innerText ?? '';
-            return text.includes('Ads') && text.includes('Settings');
+            const current = [...document.querySelectorAll('[data-test="nav-plugin.placard"]')]
+                .some((el) => el.getAttribute('aria-current') === 'page');
+            return text.includes('Ads') && text.includes('Settings') && current;
         }
         JS)
         ->assertNoAccessibilityIssues(3);

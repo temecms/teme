@@ -1,14 +1,13 @@
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     DropdownMenu,
+    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuGroup,
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
 import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
 import { savePreferences } from '@/lib/preferences';
@@ -63,6 +62,7 @@ export function PersonaliseMenuDialog({
             return;
         }
 
+        onOpenChange(false);
         router.reload();
     };
 
@@ -72,7 +72,7 @@ export function PersonaliseMenuDialog({
             <DropdownMenuContent
                 align="start"
                 side="top"
-                className="max-h-[min(28rem,70vh)] w-72 overflow-y-auto p-2"
+                className="max-h-[min(28rem,70vh)] w-72 overflow-y-auto"
                 data-test="personalise-menu-panel"
             >
                 <DropdownMenuLabel className="text-body text-ink font-semibold">
@@ -94,56 +94,44 @@ export function PersonaliseMenuDialog({
                 )}
 
                 {sections.map((section) => (
-                    <DropdownMenuGroup key={section} className="grid gap-1 p-1">
+                    <DropdownMenuGroup key={section}>
                         <DropdownMenuLabel className="text-caption text-ink-3 font-semibold tracking-[0.04em] uppercase">
                             {headings[section]}
                         </DropdownMenuLabel>
-                        <ul className="grid">
-                            {nav
-                                .filter((entry) => entry.section === section)
-                                .map((entry) => {
-                                    const Icon = navIcon(entry.icon);
-                                    const isHidden = hidden.includes(entry.key);
+                        {nav
+                            .filter((entry) => entry.section === section)
+                            .map((entry) => {
+                                const Icon = navIcon(entry.icon);
+                                const isHidden = hidden.includes(entry.key);
 
-                                    return (
-                                        <li
-                                            key={entry.key}
-                                            className="flex items-center gap-2 px-1 py-1"
-                                            data-test={`personalise-${entry.key}`}
-                                        >
-                                            <Checkbox
-                                                id={`show-${entry.key}`}
-                                                checked={!isHidden}
-                                                disabled={saving}
-                                                onCheckedChange={(checked) => {
-                                                    void applyHidden(
-                                                        checked
-                                                            ? hidden.filter(
-                                                                  (hid) =>
-                                                                      hid !==
-                                                                      entry.key,
-                                                              )
-                                                            : [
-                                                                  ...hidden,
-                                                                  entry.key,
-                                                              ],
-                                                    );
-                                                }}
-                                                aria-label={__('Show :label', {
-                                                    label: entry.label,
-                                                })}
-                                            />
-                                            <Label
-                                                htmlFor={`show-${entry.key}`}
-                                                className="text-small flex flex-1 items-center gap-2 font-normal"
-                                            >
-                                                <Icon className="size-4" />
-                                                {entry.label}
-                                            </Label>
-                                        </li>
-                                    );
-                                })}
-                        </ul>
+                                return (
+                                    <DropdownMenuCheckboxItem
+                                        key={entry.key}
+                                        data-test={`personalise-${entry.key}`}
+                                        checked={!isHidden}
+                                        disabled={saving}
+                                        onSelect={(event) =>
+                                            event.preventDefault()
+                                        }
+                                        onCheckedChange={(checked) => {
+                                            void applyHidden(
+                                                checked
+                                                    ? hidden.filter(
+                                                          (hid) =>
+                                                              hid !== entry.key,
+                                                      )
+                                                    : [...hidden, entry.key],
+                                            );
+                                        }}
+                                        aria-label={__('Show :label', {
+                                            label: entry.label,
+                                        })}
+                                    >
+                                        <Icon className="size-4" />
+                                        {entry.label}
+                                    </DropdownMenuCheckboxItem>
+                                );
+                            })}
                     </DropdownMenuGroup>
                 ))}
             </DropdownMenuContent>

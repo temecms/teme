@@ -254,11 +254,13 @@ it('applies a Customise menu tick at once and keeps the entry out of the sidebar
         ->click('[data-test="personalise-menu"]');
     shellSettled($page, '[data-test="personalise-menu-panel"]');
 
-    $page->click('[data-test="personalise-media"] button[role="checkbox"]');
+    $page->click('[data-test="personalise-media"]');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="nav-media"]\') === null');
 
     $page->assertNotPresent('[data-test="nav-media"]')
-        ->assertNoAccessibilityIssues(3);
+        ->assertNotPresent('[data-test="personalise-menu-panel"]');
+    shellSettled($page, 'header[data-slot="app-header"] button');
+    $page->assertNoAccessibilityIssues(3);
 });
 
 it('draws Account and Plugins crumbs, and opens Tools screens from the hub chevron', function (): void {

@@ -277,7 +277,12 @@ function SubEntry({
             ) : (
                 <>
                     <SidebarMenuSubButton asChild isActive={isActive}>
-                        <Link href={item.href} prefetch>
+                        <Link
+                            href={item.href}
+                            prefetch
+                            data-test={`nav-${item.key}`}
+                            aria-current={isActive ? 'page' : undefined}
+                        >
                             <span className="min-w-0 flex-1 truncate">
                                 {item.label}
                             </span>
