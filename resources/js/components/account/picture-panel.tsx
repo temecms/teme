@@ -24,7 +24,7 @@ export function PictureField() {
         ? __('Verify your email address to change your picture.')
         : mayChoose
           ? __(
-                'Choose a picture from Media, or leave it empty so your initials show on your posts and author page.',
+                'Choose a picture from Media, or leave it empty so your initials show. The site’s default is chosen in Settings › People.',
             )
           : __(
                 'Your role can’t choose from Media. Ask an administrator to add your picture.',

@@ -19,10 +19,7 @@ use App\Domain\Users\Roles;
 use App\Http\Standalone\StandalonePage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -30,14 +27,24 @@ use Throwable;
 final class AdminErrorPage
 {
     /**
-     * The words for permissions that are not "Manage {group} settings".
+     * Short names for known admin sections; anything else stays unnamed so
+     * we never invent a title from the path segment.
      *
      * @var array<string, string>
      */
-    private const array PERMISSION_NAMES = [
-        'settings.security.manage' => 'Manage sign-in rules',
-        'settings.addresses.manage' => 'Manage addresses',
-        'settings.ai.manage' => 'Manage AI settings',
+    private const array PAGES = [
+        'settings' => 'Settings',
+        'tools' => 'Tools',
+        'plugins' => 'Plugins',
+        'themes' => 'Themes',
+        'media' => 'Media',
+        'users' => 'People',
+        'people' => 'People',
+        'posts' => 'Posts',
+        'pages' => 'Pages',
+        'comments' => 'Comments',
+        'account' => 'Your account',
+        'content' => 'Content',
     ];
 
     /**
@@ -68,20 +75,25 @@ final class AdminErrorPage
         $site = app(StandalonePage::class)->brand()['name'];
         $reason = $status === 403 ? self::reason($exception) : null;
         $page = $status === 403 ? self::pageName($request) : null;
-        $ability = $status === 403 ? self::routeAbility($request) : null;
-        $permission = $ability === null ? null : self::permissionLabel($ability);
-        $holders = $ability === null ? null : self::holders($ability);
+        // Name the route's permission only when that permission is what refused
+        // — a policy's own reason is not the can: middleware's label.
+        $ability = $status === 403 && $reason === null ? self::routeAbility($request) : null;
+        $permission = $ability === null ? null : PermissionLabels::of($ability);
+        $holders = $ability === null ? null : PermissionLabels::holders($ability);
+        $roleKey = $request->user()->getRoleNames()->first();
+        $roleKey = is_string($roleKey) ? $roleKey : null;
 
         return Inertia::render('errors/in-admin', [
             'status' => $status,
             'site' => $site,
             'name' => $user['name'] ?? null,
             'role' => $user['role'] ?? null,
+            'roleKey' => $roleKey,
             'reason' => $reason,
             'page' => $page,
             'permission' => $permission,
             'holders' => $holders,
-        ])->withViewData(['fallback' => self::words($status, $site, $reason, $page, $permission, $holders, $user['name'] ?? null, $user['role'] ?? null)])
+        ])->withViewData(['fallback' => self::words($status, $site, $reason, $page, $permission, $holders, $user['name'] ?? null, $roleKey)])
             ->toResponse($request)
             ->setStatusCode($status);
     }
@@ -92,7 +104,7 @@ final class AdminErrorPage
      *
      * @return array{title: string, text: string}
      */
-    private static function words(int $status, ?string $site, ?string $reason, ?string $page, ?string $permission, ?string $holders, ?string $name, ?string $role): array
+    private static function words(int $status, ?string $site, ?string $reason, ?string $page, ?string $permission, ?string $holders, ?string $name, ?string $roleKey): array
     {
         if ($status === 404) {
             return [
@@ -107,13 +119,11 @@ final class AdminErrorPage
 
         if ($reason !== null) {
             $text = $reason;
-        } elseif ($page !== null && $holders !== null && $name !== null && $role !== null) {
-            $text = __(':page is for :roles. You’re signed in as :name, an :role.', [
+        } elseif ($page !== null && $holders !== null && $name !== null && $roleKey !== null) {
+            $text = __(':page is for :roles.', [
                 'page' => $page,
                 'roles' => $holders,
-                'name' => $name,
-                'role' => $role,
-            ]);
+            ]).' '.self::signedInAs($name, $roleKey);
 
             if ($permission !== null) {
                 $text .= ' '.__('It needs the :permission permission.', ['permission' => $permission]);
@@ -135,6 +145,23 @@ final class AdminErrorPage
     }
 
     /**
+     * "You’re signed in as …, an author." — a/an baked into each role's phrase.
+     */
+    private static function signedInAs(string $name, string $roleKey): string
+    {
+        return match ($roleKey) {
+            Roles::ADMINISTRATOR, 'administrator' => __('You’re signed in as :name, an administrator.', ['name' => $name]),
+            'editor' => __('You’re signed in as :name, an editor.', ['name' => $name]),
+            'author' => __('You’re signed in as :name, an author.', ['name' => $name]),
+            'contributor' => __('You’re signed in as :name, a contributor.', ['name' => $name]),
+            default => __('You’re signed in as :name, a :role.', [
+                'name' => $name,
+                'role' => mb_strtolower(__(Roles::LABELS[$roleKey] ?? $roleKey)),
+            ]),
+        };
+    }
+
+    /**
      * A short name for the admin page that was refused, from its path.
      */
     private static function pageName(Request $request): ?string
@@ -149,24 +176,11 @@ final class AdminErrorPage
         $segments = explode('/', $rest);
         $segment = $segments[0];
 
-        if ($segment === '' || str_starts_with($segment, '_')) {
+        if ($segment === '' || str_starts_with($segment, '_') || ! isset(self::PAGES[$segment])) {
             return null;
         }
 
-        return match ($segment) {
-            'settings' => __('Settings'),
-            'tools' => __('Tools'),
-            'plugins' => __('Plugins'),
-            'themes' => __('Themes'),
-            'media' => __('Media'),
-            'users', 'people' => __('People'),
-            'posts' => __('Posts'),
-            'pages' => __('Pages'),
-            'comments' => __('Comments'),
-            'account' => __('Your account'),
-            'content' => __('Content'),
-            default => __(Str::title(str_replace('-', ' ', $segment))),
-        };
+        return __(self::PAGES[$segment]);
     }
 
     /**
@@ -193,41 +207,6 @@ final class AdminErrorPage
         }
 
         return null;
-    }
-
-    /**
-     * A permission in plain words, such as "Manage AI settings".
-     */
-    private static function permissionLabel(string $ability): string
-    {
-        if (isset(self::PERMISSION_NAMES[$ability])) {
-            return __(self::PERMISSION_NAMES[$ability]);
-        }
-
-        if (preg_match('/^settings\.([a-z-]+)\.manage$/', $ability, $match) === 1) {
-            return __('Manage :group settings', ['group' => str_replace('-', ' ', $match[1])]);
-        }
-
-        return __(Str::title(str_replace(['.', '_', '-'], ' ', $ability)));
-    }
-
-    /**
-     * The roles that hold a permission, in words and in the core roles'
-     * order, such as "Administrators" or "Administrators and Editors".
-     */
-    private static function holders(string $ability): string
-    {
-        $names = [];
-
-        foreach (Roles::LABELS as $role => $label) {
-            $found = Role::query()->where('name', $role)->first();
-
-            if ($found !== null && $found->hasPermissionTo($ability)) {
-                $names[] = __(Str::plural($label));
-            }
-        }
-
-        return $names === [] ? __('no role') : Arr::join($names, ', ', ' '.__('and').' ');
     }
 
     /**

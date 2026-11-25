@@ -28,16 +28,19 @@ function pathOf(raw: string): string {
 }
 
 /**
- * A slug from free text: lower case, letters of every script kept, words
- * joined by single hyphens. Empty when nothing usable remains.
+ * A slug from free text: lower case, letters of every script kept with their
+ * combining marks (Mn/Mc, as Hindi and Thai need), words joined by single
+ * hyphens. Empty when nothing usable remains. Matches the server's Slugs rule.
  */
 export function tidySlug(raw: string): string {
-    let text = pathOf(raw);
+    let text = pathOf(raw).normalize('NFC');
 
     text = text.toLocaleLowerCase();
     text = text.replaceAll('_', '-').replaceAll('@', '-at-');
-    // Keep lower-case letters and other letters (Lo) and numbers; drop the rest.
-    text = text.replace(/[^\p{Ll}\p{Lo}\p{N}-]+/gu, '-');
+    // Letters and numbers with their vowel signs; drop the rest.
+    text = text.replace(/[^\p{Ll}\p{Lo}\p{N}\p{Mn}\p{Mc}-]+/gu, '-');
+    // A mark belongs to the letter before it; one with none goes.
+    text = text.replace(/(?<=^|-)[\p{Mn}\p{Mc}]+/gu, '');
     text = text.replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '');
 
     return text.slice(0, 200).replace(/-+$/g, '');

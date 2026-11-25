@@ -305,7 +305,9 @@ export default function ContentEdit(page: ContentEditPage) {
         initialSavedAt: session.savedAt,
         initialOthers: session.otherEditors,
         hasAutosave: session.fromAutosave,
-        sidePending: slug !== savedSlug,
+        // Empty stays pending so Save still sends '' (server makes the title's
+        // address); otherwise compare the typed address to what was last saved.
+        sidePending: slug === '' || slug !== savedSlug,
         // A first title may have given the draft its address (I-425). Never
         // overwrite a pending typed address the person has not saved yet.
         onSlug: (next) => {

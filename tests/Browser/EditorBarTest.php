@@ -107,6 +107,7 @@ it('opens Share as a pane, makes a preview link of what was just typed, and revo
 
     $page->click('[data-test="share-links"] button:has-text("Revoke")');
     ($this->textShown)($page, "Anyone who has it can no longer open the preview. This can't be undone.");
+    $page->assertSee('Keep it')->assertSee('Revoke link');
     $page->click('[data-test="share-revoke-confirm"]');
 
     ($this->textShown)($page, 'Revoked', '[data-test="share-links"]');

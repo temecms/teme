@@ -15,6 +15,8 @@ type Props = {
     name?: string | null;
     /** Your role's label, for a refusal. */
     role: string | null;
+    /** The role's key (author, editor…), for a/an in the signed-in line. */
+    roleKey?: string | null;
     /** A policy's own reason for refusing, when it gave one. */
     reason: string | null;
     /** A short name for the page that was refused. */
@@ -25,6 +27,25 @@ type Props = {
     holders?: string | null;
 };
 
+/** "You’re signed in as …, an author." — a/an baked into each role's phrase. */
+function signedInAs(name: string, roleKey: string): string {
+    switch (roleKey) {
+        case 'administrator':
+            return __('You’re signed in as :name, an administrator.', { name });
+        case 'editor':
+            return __('You’re signed in as :name, an editor.', { name });
+        case 'author':
+            return __('You’re signed in as :name, an author.', { name });
+        case 'contributor':
+            return __('You’re signed in as :name, a contributor.', { name });
+        default:
+            return __('You’re signed in as :name, a :role.', {
+                name,
+                role: roleKey,
+            });
+    }
+}
+
 /**
  * A refused or missing admin page drawn inside the admin, the menu and top
  * bar kept: the title and what happened, then a panel with the way on.
@@ -33,7 +54,8 @@ export default function InAdminError({
     status,
     site,
     name = null,
-    role,
+    role: _role,
+    roleKey = null,
     reason,
     page = null,
     permission = null,
@@ -47,12 +69,13 @@ export default function InAdminError({
         : __('We can’t find that page');
     const description = refused
         ? (reason ??
-          (page !== null && holders !== null && name !== null && role !== null
+          (page !== null &&
+          holders !== null &&
+          name !== null &&
+          roleKey !== null
               ? [
-                    __(
-                        ':page is for :roles. You’re signed in as :name, an :role.',
-                        { page, roles: holders, name, role },
-                    ),
+                    __(':page is for :roles.', { page, roles: holders }),
+                    signedInAs(name, roleKey),
                     permission !== null
                         ? __('It needs the :permission permission.', {
                               permission,
