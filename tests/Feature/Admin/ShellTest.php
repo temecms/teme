@@ -87,15 +87,14 @@ it('moves the account menu to the header', function (): void {
         ->toContain('Preferences');
 });
 
-it('lays the page out as a header, then the banner, then the main content', function (): void {
+it('lays the page out as a header, then the main content, with no follow-you banner', function (): void {
     $layout = uiComponent('layouts/app/app-sidebar-layout.tsx');
     $header = strpos($layout, '<AppSidebarHeader');
-    $banner = strpos($layout, '<StatusBanner');
     $content = strpos($layout, '<AppContent');
 
     expect($header)->toBeInt()
-        ->and($banner)->toBeGreaterThan($header)
-        ->and($content)->toBeGreaterThan($banner)
+        ->and($content)->toBeGreaterThan($header)
+        ->and($layout)->not->toContain('<StatusBanner')
         ->and(uiComponent('components/app-content.tsx'))
         ->toContain('<main')
         ->toContain('id="main-content"')

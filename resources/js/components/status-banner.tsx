@@ -11,11 +11,10 @@ const TONES: Record<StatusBannerData['level'], 'danger' | 'warn' | 'info'> = {
 };
 
 /**
- * The one Status banner (I-221), under the top bar of every admin screen,
- * for something the person may fix: the highest-priority one, drawn as a
- * notice in the page's width. It sits outside `main`, so it is a labelled
- * region of its own, and it has no dismiss: it goes when the problem does
- * (docs/architecture/themes.md).
+ * A page-local status notice drawn as a labelled region. Site-wide problems
+ * do not follow every screen (design system 4.33); they live in the top-bar
+ * site status and on Home. A page may still place this notice in its own
+ * flow. It has no dismiss: it goes when the problem does.
  */
 export function StatusBanner() {
     const { statusBanner } = usePage().props;

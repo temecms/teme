@@ -96,25 +96,16 @@ it('passes axe on the sign-in screen, every target 24 pixels or more, in both sc
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('draws the banner under the header as a labelled region, passing axe and the target size, in both schemes', function (string $scheme): void {
+it('does not draw a follow-you banner under the header; site status stays in the top bar, passing axe in both schemes', function (string $scheme): void {
     config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/broken')]]);
     themeActivate('broken');
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
     $this->actingAs($this->admin)->get(route('dashboard'))->assertOk();
 
     $page = cmSignIn($this->admin)
-        ->assertVisible('[data-test="site-notice"]')
-        ->assertAttribute('[data-test="site-notice"]', 'role', 'region')
-        ->assertAttribute('[data-test="site-notice"]', 'aria-label', 'Site notice');
+        ->assertNotPresent('[data-test="site-notice"]')
+        ->assertVisible('[data-test="site-status-button"]');
 
-    $page->assertScript(<<<'JS'
-        function () {
-            const header = document.querySelector('header[data-slot="app-header"]');
-            const banner = document.querySelector('[data-test="site-notice"]');
-
-            return header !== null && banner !== null && header.nextElementSibling === banner;
-        }
-        JS);
     shellSettled($page, 'header[data-slot="app-header"] button');
     $page->assertNoAccessibilityIssues(3);
 
