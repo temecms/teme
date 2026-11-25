@@ -329,86 +329,103 @@ export default function ImportShow({
 
                 {step !== 'plan' && run !== null && (
                     <>
-                        <RunProgress
-                            run={run}
-                            job={job}
-                            onSeeReport={() => setTab('report')}
-                        />
+                        {latest && step === 'import' && (
+                            <RunProgress
+                                run={run}
+                                job={job}
+                                onSeeReport={() => setTab('report')}
+                            />
+                        )}
 
-                        <Tabs
-                            value={tab}
-                            onValueChange={(value) =>
-                                setTab(value as ImportTab)
-                            }
-                            data-test="import-tabs"
+                        <Panel
+                            data-test="import-tabs-panel"
+                            className="overflow-hidden"
                         >
-                            <TabsList aria-label={__('Import views')}>
-                                <TabsTrigger
-                                    value="progress"
-                                    data-test="import-tab-progress"
+                            <Tabs
+                                value={tab}
+                                onValueChange={(value) =>
+                                    setTab(value as ImportTab)
+                                }
+                                className="gap-0"
+                                data-test="import-tabs"
+                            >
+                                <TabsList
+                                    variant="underline"
+                                    aria-label={__('Import views')}
                                 >
-                                    {__('Progress')}
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="report"
-                                    count={
-                                        messageCount > 0
-                                            ? messageCount
-                                            : undefined
-                                    }
-                                    data-test="import-tab-report"
-                                >
-                                    {__('Report')}
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="history"
-                                    data-test="import-tab-history"
-                                >
-                                    {__('History')}
-                                </TabsTrigger>
-                            </TabsList>
+                                    <TabsTrigger
+                                        value="progress"
+                                        data-test="import-tab-progress"
+                                    >
+                                        {__('Progress')}
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="report"
+                                        count={
+                                            messageCount > 0
+                                                ? messageCount
+                                                : undefined
+                                        }
+                                        data-test="import-tab-report"
+                                    >
+                                        {__('Report')}
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="history"
+                                        data-test="import-tab-history"
+                                    >
+                                        {__('History')}
+                                    </TabsTrigger>
+                                </TabsList>
 
-                            <TabsContent value="progress">
-                                <RunProgressSteps
-                                    run={run}
-                                    job={job}
-                                    warningCount={
-                                        report?.levels.warning ??
-                                        run.counts.warnings
-                                    }
-                                    onReviewWarnings={() => setTab('report')}
-                                />
-                            </TabsContent>
+                                <PanelBody className="gap-4">
+                                    <TabsContent value="progress">
+                                        <RunProgressSteps
+                                            run={run}
+                                            job={job}
+                                            warningCount={
+                                                report === null
+                                                    ? run.counts.warnings
+                                                    : report.levels.warning +
+                                                      report.levels.error
+                                            }
+                                            onReviewWarnings={() =>
+                                                setTab('report')
+                                            }
+                                        />
+                                    </TabsContent>
 
-                            <TabsContent value="report">
-                                {report !== null ? (
-                                    <RunReport
-                                        site={site}
-                                        run={run}
-                                        report={report}
-                                        downloads={downloads}
-                                        latest={latest}
-                                        siteTimezone={siteTimezone}
-                                        maxFileMb={maxFileMb}
-                                        framed={false}
-                                    />
-                                ) : (
-                                    <p className="text-ink-2">
-                                        {__(
-                                            'The report appears once the import has something to say.',
+                                    <TabsContent value="report">
+                                        {report !== null ? (
+                                            <RunReport
+                                                site={site}
+                                                run={run}
+                                                report={report}
+                                                downloads={downloads}
+                                                latest={latest}
+                                                siteTimezone={siteTimezone}
+                                                maxFileMb={maxFileMb}
+                                                framed={false}
+                                            />
+                                        ) : (
+                                            <p className="text-ink-2">
+                                                {__(
+                                                    'The report appears once the import has something to say.',
+                                                )}
+                                            </p>
                                         )}
-                                    </p>
-                                )}
-                            </TabsContent>
+                                    </TabsContent>
 
-                            <TabsContent value="history">
-                                <SiteRuns
-                                    runs={runs}
-                                    shownId={run.id}
-                                    siteTimezone={siteTimezone}
-                                />
-                            </TabsContent>
-                        </Tabs>
+                                    <TabsContent value="history">
+                                        <SiteRuns
+                                            runs={runs}
+                                            shownId={run.id}
+                                            siteTimezone={siteTimezone}
+                                        />
+                                    </TabsContent>
+                                </PanelBody>
+                            </Tabs>
+                        </Panel>
                     </>
                 )}
             </ListPage>

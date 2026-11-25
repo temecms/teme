@@ -71,3 +71,22 @@ it('clears the page cache from its screen, and then says who cleared it', functi
 
     expect(DB::table('security_events')->where('type', 'page_cache.cleared')->count())->toBe(1);
 });
+
+it('keeps Tools hub, Redirects search and panel titles at 1440', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/tools');
+    $page->resize(1440, 900)
+        ->assertSee('Teme’s tools, then the pages plugins add.');
+
+    // From plugins only draws when a plugin added a tool; the line sits beside its heading when it does.
+    $page->navigate('/admin/tools/redirects');
+    $hasMagnifier = $page->script('() => document.querySelector(\'[data-slot="search-field"] svg\') !== null');
+    expect($hasMagnifier)->toBeTrue();
+
+    $page->navigate('/admin/tools/page-cache');
+    $page->assertSee('Now');
+    $page->navigate('/admin/tools/updates');
+    $titles = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-slot="panel-header"]')].map((h) => h.textContent.trim()).filter(Boolean)
+    JS);
+    expect($titles)->not->toBeEmpty();
+});

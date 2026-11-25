@@ -82,7 +82,7 @@ function WayCard({
     onOpen: () => void;
     openLabel: string;
     testId: string;
-    /** The preferred way in: primary when closed, outline when open so Close stays readable. */
+    /** The preferred way in: Connect stays primary; Upload is secondary. */
     primary?: boolean;
 }) {
     return (

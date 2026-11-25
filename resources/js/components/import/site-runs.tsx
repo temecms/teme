@@ -66,7 +66,7 @@ export function SiteRuns({
                             {line}
                         </span>
                         {row.id !== shownId && (
-                            <Button size="sm" variant="outline" asChild>
+                            <Button size="sm" variant="ghost" asChild>
                                 <Link
                                     href={row.href}
                                     aria-label={__(

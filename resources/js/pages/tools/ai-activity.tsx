@@ -56,7 +56,7 @@ function Summary({
             key: 'spent',
             label: __('Spent'),
             value: formatCost(summary.costMicrounits),
-            tone: summary.costMicrounits > 0 ? 'ok' : 'neutral',
+            tone: summary.costMicrounits > 0 ? 'accent' : 'neutral',
         },
         {
             key: 'requests',
@@ -83,10 +83,7 @@ function Summary({
                       label: __('Monthly budget'),
                       value:
                           budget === null ? __('None set') : formatCost(budget),
-                      tone:
-                          budget === null
-                              ? ('warn' as const)
-                              : ('neutral' as const),
+                      tone: 'neutral' as const,
                   },
               ]
             : []),
@@ -319,7 +316,6 @@ export default function AiActivity(page: AiActivityPage) {
         older,
         from,
         to,
-        total,
         filters,
         people,
         tasks,
@@ -670,7 +666,7 @@ export default function AiActivity(page: AiActivityPage) {
                     }
                 />
 
-                {from !== null && to !== null && total > 0 && (
+                {from !== null && to !== null && (
                     <div
                         className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
                         data-test="ai-activity-pager"
@@ -679,10 +675,9 @@ export default function AiActivity(page: AiActivityPage) {
                             className="text-small text-ink-3 tabular-nums"
                             data-test="ai-activity-range"
                         >
-                            {__(':from to :to of :total', {
+                            {__(':from to :to, requests, newest first.', {
                                 from: from.toLocaleString(),
                                 to: to.toLocaleString(),
-                                total: total.toLocaleString(),
                             })}
                         </p>
                         {(newer !== null || older !== null) && (

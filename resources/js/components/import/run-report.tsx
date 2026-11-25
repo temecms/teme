@@ -17,6 +17,7 @@ import {
 import { Notice } from '@/components/ui/notice';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { StatusPill } from '@/components/ui/status-pill';
+import { TextButton } from '@/components/ui/text-button';
 import { useState } from 'react';
 import { __, __n } from '@/lib/i18n';
 import { dayInZone, formatInZone } from '@/lib/zoned-time';
@@ -162,9 +163,10 @@ export function RunReport({
                     >
                         {report.messages.map((row) => (
                             <MessageGroup
-                                key={row.code}
+                                key={`${row.level}-${row.group}`}
                                 row={row}
                                 number={number}
+                                seeItemsHref={downloads?.attention ?? null}
                             />
                         ))}
                     </ul>
@@ -398,9 +400,12 @@ export function RunReport({
 function MessageGroup({
     row,
     number,
+    seeItemsHref,
 }: {
     row: MessageRow;
     number: (value: number) => string;
+    /** The attention download, when the report offers one. */
+    seeItemsHref: string | null;
 }) {
     const sentence = row.sentence ?? row.words;
 
@@ -432,6 +437,23 @@ function MessageGroup({
                     <p>{sentence}</p>
                     {row.sentence !== null && row.words !== row.sentence && (
                         <p className="text-small text-ink-3">{row.words}</p>
+                    )}
+                    {seeItemsHref !== null && (
+                        <p>
+                            <TextButton asChild>
+                                <a
+                                    href={seeItemsHref}
+                                    download
+                                    data-test={`import-see-items-${row.code}`}
+                                >
+                                    {__n(
+                                        'See the :count item|See the :count items',
+                                        row.count,
+                                        { count: number(row.count) },
+                                    )}
+                                </a>
+                            </TextButton>
+                        </p>
                     )}
                 </CollapsibleContent>
             </Collapsible>

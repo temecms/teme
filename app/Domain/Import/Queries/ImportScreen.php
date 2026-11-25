@@ -335,20 +335,35 @@ final readonly class ImportScreen
             ->limit(self::CODES + 1)
             ->get();
 
-        $messages = [];
+        // Fold codes that share a plain name (and every error into Failed), summing counts.
+        $grouped = [];
 
         foreach ($codes->take(self::CODES) as $row) {
             $named = ImportMessageGroups::for((string) $row->code);
-            $messages[] = [
+            $error = $row->level === ImportMessageLevel::Error->value;
+            $group = $error ? __('Failed') : $named['group'];
+            $sentence = $error
+                ? __('These items failed and need attention.')
+                : $named['sentence'];
+
+            if (isset($grouped[$group])) {
+                $grouped[$group]['count'] += (int) $row->total;
+
+                continue;
+            }
+
+            $grouped[$group] = [
                 'code' => (string) $row->code,
                 'level' => (string) $row->level,
-                'levelLabel' => $row->level === ImportMessageLevel::Error->value ? 'Error' : 'Warning',
+                'levelLabel' => $error ? 'Error' : 'Warning',
                 'words' => (string) $row->words,
                 'count' => (int) $row->total,
-                'group' => $named['group'],
-                'sentence' => $named['sentence'],
+                'group' => $group,
+                'sentence' => $sentence,
             ];
         }
+
+        $messages = array_values($grouped);
 
         $problems = DB::table('import_messages')->where('run_id', $runId)->where('level', ImportMessageLevel::Error->value)->count();
         $check = $this->phases->find('check');

@@ -70,7 +70,7 @@ final class AiActivityController extends Controller
             'older' => fn (): ?string => $read()['older'],
             'from' => fn (): ?int => $read()['from'],
             'to' => fn (): ?int => $read()['to'],
-            'total' => fn (): int => $read()['total'],
+            'total' => fn (): ?int => $read()['total'],
             'filters' => fn (): array => ['person' => $person, 'task' => $task, 'month' => $month === null ? null : substr($month, 0, 7), 'plugin' => $plugin],
             'people' => fn (): array => $filters->people($person),
             'tasks' => fn (): array => $filters->tasks($task),

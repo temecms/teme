@@ -68,7 +68,7 @@ it('shows a request as one row: who, which task and option, which item, how it e
     expect($page['rows'])->toHaveCount(1)
         ->and($page['from'])->toBe(1)
         ->and($page['to'])->toBe(1)
-        ->and($page['total'])->toBe(1)
+        ->and($page['total'])->toBeNull()
         ->and($page['rows'][0])->toBe([
             'id' => $id,
             'at' => '2026-11-12T14:03:22+00:00',
@@ -125,9 +125,9 @@ it('pages by keyset, forward and back, with no gap and no overlap (I-140)', func
         ->and($backTwo['older'])->not->toBeNull()
         ->and(($this->ids)($backOne))->toBe(($this->ids)($one))
         ->and($backOne['newer'])->toBeNull()
-        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 3, 7])
-        ->and([$two['from'], $two['to'], $two['total']])->toBe([4, 6, 7])
-        ->and([$three['from'], $three['to'], $three['total']])->toBe([7, 7, 7]);
+        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 3, null])
+        ->and([$two['from'], $two['to'], $two['total']])->toBe([4, 6, null])
+        ->and([$three['from'], $three['to'], $three['total']])->toBe([7, 7, null]);
 });
 
 it('ignores a cursor that doesn\'t read as a moment and a row, and shows the newest page', function (string $case): void {
@@ -316,11 +316,12 @@ it('pages with no offset, counting only for the range the screen names', functio
     $sql = strtolower(implode("\n", array_column([...$first, ...$second], 'query')));
 
     expect($one['rows'])->toHaveCount(20)
-        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 20, 30])
-        ->and(count($first))->toBe(5)
-        ->and(count($second))->toBe(6)
+        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 20, null])
+        ->and(count($first))->toBe(4)
+        ->and(count($second))->toBe(5)
         ->and($sql)->not->toContain('offset')
-        ->and(substr_count($sql, 'count('))->toBe(3);
+        // One ahead count on the second page only; no full filtered total.
+        ->and(substr_count($sql, 'count('))->toBe(1);
 });
 
 it('answers a page by the index on the moment and the ID, with no sort, after a cursor too (I-140)', function (): void {

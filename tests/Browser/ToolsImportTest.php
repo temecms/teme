@@ -161,7 +161,7 @@ it('passes axe on a finished import’s report, every target 24 pixels or more, 
 
     $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source}");
     tiWaitUntil($page, tiPresent('[data-test="import-report"]'));
-    $page->assertSeeIn('[data-test="import-report"]', 'Items Teme refused')
+    $page->assertPresent('[data-test="import-message-check.not-found"]')
         ->assertPresent('[data-test="import-tab-report"]')
         ->assertNoAccessibilityIssues(3);
 
@@ -334,4 +334,79 @@ it('carries an export file’s start on after the password, and shows the Import
         ->assertNoJavaScriptErrors();
 
     expect(ImportRun::query()->count())->toBe(1);
+});
+
+it('switches Progress, Report and History at 1440, names the Failed group, and hides Carry on on an older stopped run', function (): void {
+    $source = ImportRecords::source(['created_by' => $this->admin->id]);
+    $older = ImportRecords::run($source, [
+        'state' => 'stopped',
+        'phase' => 'fixture-notes',
+        'stop_reason' => 'by-hand',
+        'stop_message' => 'Stopped on request.',
+        'started_by' => $this->admin->id,
+        'started_at' => now()->subDay(),
+        'ended_at' => now()->subDay(),
+        'created_at' => now()->subDay(),
+        'updated_at' => now()->subDay(),
+        'failed_count' => 1,
+    ]);
+    ImportRecords::message($older, null, 'object.refused', 'Teme refused it.', 'error');
+    ImportRecords::run($source, [
+        'state' => 'finished',
+        'phase' => 'check',
+        'started_by' => $this->admin->id,
+        'started_at' => now()->subHour(),
+        'ended_at' => now()->subMinutes(30),
+        'created_at' => now()->subHour(),
+        'updated_at' => now()->subMinutes(30),
+        'created_count' => 2,
+        'warning_count' => 1,
+        'failed_count' => 1,
+    ]);
+
+    $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source}?run={$older}");
+    $page->resize(1440, 900);
+    tiWaitUntil($page, tiPresent('[data-test="import-tabs"]'));
+
+    expect($page->script('() => document.querySelector(\'[data-test="import-carry-on"]\') !== null'))->toBeFalse();
+
+    $page->click('[data-test="import-tab-progress"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-progress-steps"]'));
+    $page->click('[data-test="import-tab-report"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-report"]'));
+    $page->assertPresent('[data-test="import-message-object.refused"]')
+        ->assertSeeIn('[data-test="import-tab-report"]', '1');
+    $page->click('[data-test="import-tab-history"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-history"]'));
+    $page->assertSee('Report')
+        ->assertNoJavaScriptErrors();
+});
+
+it('keeps Connect primary on Import and the host in the crumb of a finished site', function (): void {
+    ['source' => $source] = ImportRecords::finishedImport($this->admin->id);
+
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-way-connect-button"]'));
+    $page->resize(1440, 900);
+
+    $look = $page->script(<<<'JS'
+        () => {
+            const connect = document.querySelector('[data-test="import-way-connect-button"]');
+            const upload = document.querySelector('[data-test="import-way-upload-button"]');
+            const classes = (el) => (el?.className ?? '').split(/\s+/);
+            return {
+                connectAccent: classes(connect).includes('bg-accent'),
+                uploadSurface: classes(upload).includes('bg-surface-3'),
+            };
+        }
+    JS);
+
+    expect($look['connectAccent'])->toBeTrue()
+        ->and($look['uploadSurface'])->toBeTrue();
+
+    $page->navigate("/admin/tools/import/{$source}");
+    tiWaitUntil($page, tiPresent('[data-test="import-report"]'));
+    $crumb = $page->script('() => document.querySelector(\'[data-test="crumbs"]\')?.innerText.replace(/\\s+/g, " ").trim() ?? ""');
+
+    expect($crumb)->toContain('old.example');
 });

@@ -179,7 +179,8 @@ export type AiActivityPage = {
     /** Where this page's rows sit in the filtered list; null when the list is empty. */
     from: number | null;
     to: number | null;
-    total: number;
+    /** Always null: a full filtered count was ruled out for speed. */
+    total: number | null;
     filters: {
         person: number | null;
         task: string | null;

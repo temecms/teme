@@ -32,7 +32,7 @@ it('shows an administrator the record, the filters\' options and the month\'s fi
         ->where('older', null)
         ->where('from', 1)
         ->where('to', 2)
-        ->where('total', 2)
+        ->where('total', null)
         ->where('filters', ['person' => null, 'task' => null, 'month' => null, 'plugin' => null])
         ->where('people.0.label', 'Ada Admin')
         ->where('tasks', fn ($tasks): bool => $tasks->contains(['value' => 'tidy', 'label' => 'Tidy']))

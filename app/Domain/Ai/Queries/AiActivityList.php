@@ -64,9 +64,11 @@ final readonly class AiActivityList
      * size (1 to 200), narrowed by its person, task, month and plugin; with the cursor
      * that opens the page of newer rows, or null at the first page, and the
      * one that opens the page of older rows, or null at the last; and where
-     * the rows sit in the filtered list ("1 to 10 of N").
+     * the rows sit in the filtered list ("1 to 10, requests, newest first").
+     * The page no longer carries a full filtered total: counting every match
+     * twice per request was ruled out for speed.
      *
-     * @return array{rows: list<ActivityRow>, newer: string|null, older: string|null, from: int|null, to: int|null, total: int}
+     * @return array{rows: list<ActivityRow>, newer: string|null, older: string|null, from: int|null, to: int|null, total: int|null}
      */
     public function page(AiActivityRequest $request): array
     {
@@ -76,7 +78,6 @@ final readonly class AiActivityList
         $cursor = $before ?? self::cursor($request->after);
 
         $filtered = $this->filtered($request);
-        $total = (int) (clone $filtered)->count();
 
         $query = (clone $filtered)->select(self::COLUMNS);
 
@@ -117,13 +118,13 @@ final readonly class AiActivityList
             'older' => $last !== null && ($backwards || $more) ? self::cursorAt($last) : null,
             'from' => $from,
             'to' => $to,
-            'total' => $total,
+            'total' => null,
         ];
     }
 
     /**
      * The record narrowed by the request's person, task, month and plugin,
-     * with no order or limit: for the page's rows and for its total.
+     * with no order or limit: for the page's rows and for its range.
      */
     private function filtered(AiActivityRequest $request): Builder
     {
