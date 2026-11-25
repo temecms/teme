@@ -17,6 +17,7 @@ uses(RefreshDatabase::class);
 dataset('edFixtures', [
     'prose', 'callout', 'snippet', 'button', 'image', 'gallery', 'embed',
     'aligned', 'code-language', 'ordered-start', 'table-align', 'links',
+    'outside-image',
 ]);
 
 beforeEach(function (): void {

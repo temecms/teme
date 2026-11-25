@@ -111,4 +111,21 @@ final class PackagePictures
 
         return $named !== null && $type === $named ? ['path' => $file, 'type' => $named] : null;
     }
+
+    /**
+     * The response headers a served icon carries: its type, no sniffing, a
+     * tight CSP so an SVG opened on its own can run and fetch nothing, and
+     * a day of private cache.
+     *
+     * @return array<string, string>
+     */
+    public static function headers(string $type): array
+    {
+        return [
+            'Content-Type' => $type,
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+            'Cache-Control' => 'private, max-age=86400',
+        ];
+    }
 }

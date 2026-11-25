@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Added
+
+- An import from an export file downloads several media files at once, 4 by default: Settings › Media › Imports › Files fetched at once, from 1 to 8. It goes only as fast as the server's queue workers allow, each taking one file at a time; the Docker image starts more of them with `TEME_QUEUE_WORKERS`. An import already started, or carried on, keeps fetching one at a time. The import from a live site still fetches one at a time.
+- Import can bring the articles first and the pictures after: on the plan, Media files offers Bring the articles first, then the pictures, for an export file and a live site alike. The posts arrive quickly, showing the old site's pictures where they stand, and a picture pass then downloads every media file, the ones in use first. As each file arrives, the posts using it switch to the library's copy. A post someone edited here in the meantime is left as it is and listed in the report.
+- An Image card and a featured image may show a picture from the old site while an import copies it. The editor says "From the old site, being copied" and offers Replace; only the import writes such a picture.
+- The import screen shows the picture pass as its own row under its import, with how many files it brought and how many posts still wait. Bring the pictures again starts another pass for files that could not be fetched.
+- Plugins can offer cards for a theme's regions, such as an ad slot or a sign-up form. Editors add them from the region's Add card list, fill in their settings and publish them with the region. A disabled plugin's cards stay in the region, show nothing on the site, and come back when it is enabled again.
+- Themes can bring their own cards for their regions, such as an author bio. Editors add them from Add card under the theme's name. A theme's cards show only while that theme is in use; on a switch they are kept with its regions, counted under Regions › Other themes, and Themes says before the switch which cards it hides.
+- A plugin with its own area keeps its settings as that area's Settings tab. Settings › From plugins links there as “on its own page”, and the old settings address redirects.
+
+### Changed
+
+- A region's Custom HTML card now holds its own code, such as one ad unit, instead of naming code kept in Settings › Site code. Only administrators paste, see or change it, and saving or publishing a change asks for their password again; editors see the card and may move or remove it. Every change is logged. Editors can't publish an administrator's unpublished change to it, and it is never published on a schedule. On upgrade, code placed with a card moves into the cards that placed it, kept on or off as it was, and Settings › Site code no longer offers “Placed with a card”.
+- Content › Regions is one screen: every region of the theme in use, under the groups the theme gives them, with how full each is and a dot for changes not published yet. Choose one to add cards, grouped by where they come from, edit a card's form in place, move cards up and down or drag them, and remove them, then save a draft, publish, or discard the changes. The full editor stays a click away for history and comparing. A theme may now put its regions in groups, such as "Ad placements".
+- A theme's region now takes every card unless its theme names the ones it takes, so a plugin's cards fit regions their theme never heard of. The default theme's After the article region takes every card. A theme may also tell its region's cards the space they have, such as 300x600.
+- Admin pages are named by the breadcrumb: the large repeated heading is visually hidden, and the page's description sits as one quiet line under the crumb beside its controls.
+- A plugin's area may name its own menu icon; the menu marks every plugin entry with a plug, and editor panels and areas share a wider set of Lucide names.
+- A plugin's area header shows its picture (or initials) at 32 pixels beside the title, served to whoever may open the area.
+- Enabling a plugin says where its parts appear (area, settings, editor panels, Tools), or that it runs in the background.
+- A plugin's area page can no longer have the id `settings`, which its Settings tab now uses, as `records` was already taken. A plugin whose area names a page `settings` gives it another id.
+
 ## [1.4.3] — 2026-11-25
 
 ### Fixed

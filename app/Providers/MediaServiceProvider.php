@@ -51,6 +51,8 @@ final class MediaServiceProvider extends ServiceProvider
                     ->default(64)->min(1)->max(2048)->unit('MB')->required(),
                 Setting::number('max_megapixels', 'Largest image', 'The most megapixels an uploaded image may have. It stops a small file that would expand to gigabytes in memory.', '0.1.0')
                     ->default(50)->min(1)->max(200)->unit('megapixels')->required(),
+                Setting::number('import_downloads', 'Files fetched at once in an import', 'The most media files an import from an export file downloads at the same time. It goes only as fast as the queue workers allow: each worker fetches one file, so set the server’s workers to match. The old site gets that many requests at once.', '1.5.0')
+                    ->default(4)->min(1)->max(8)->unit('files')->required(),
             ],
             since: '0.1.0',
         ));

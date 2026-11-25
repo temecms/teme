@@ -34,8 +34,8 @@ beforeEach(function (): void {
     $this->admin = User::factory()->create()->assignRole('administrator');
     $this->editor = User::factory()->create(['name' => 'Eze Editor'])->assignRole('editor');
 
-    // Code an administrator placed with a card: words a reader sees, and an inline script the page's policy allows by its hash.
-    $this->entry = scAdd($this->admin, 'Sidebar ad', 'placed', '<div class="sidebar-ad"><p>Fresh bread at the harbour bakery</p><script>window.regionCode = 1;</script></div>');
+    // Code an administrator pastes into a Custom HTML card: words a reader sees, and an inline script the page's policy allows by its hash.
+    $this->code = '<div class="sidebar-ad"><p>Fresh bread at the harbour bakery</p><script>window.regionCode = 1;</script></div>';
 
     foreach (['Harbour news', 'Ferry fares', 'Market day', 'Lighthouse open'] as $title) {
         pageArticle($this->editor, $title);
@@ -86,8 +86,8 @@ beforeEach(function (): void {
     addrGet('/harbour-news/')->assertOk();
 });
 
-it('places Featured posts and Custom HTML after the article, publishes, and the article page shows both under its policy', function (): void {
-    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit))
+it('places Featured posts and Custom HTML after the article, asks for the password once, publishes, and the article page shows both under its policy', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->admin)->resize(1280, 900), $this->edit))
         ->click('[role="toolbar"] button:has-text("Insert")')
         ->click('[data-test="block-picker"] [role="option"]:has-text("Featured posts")')
         ->assertNotPresent('[data-test="block-picker"]');
@@ -96,30 +96,33 @@ it('places Featured posts and Custom HTML after the article, publishes, and the 
     $page->type('.teme-prose input[type="number"]', '3');
     cmWaitUntil($page, "(document.querySelector('.teme-prose')?.innerText ?? '').includes('Latest 3 posts')");
 
-    // Nothing is chosen yet, so Custom HTML opens on its panel.
-    // The caret goes to the empty line after the card, where the next card goes.
+    // The caret goes to the empty line after the card, where the next card goes; the code is pasted into the card itself.
     cmWaitUntil($page, "document.querySelector('.ProseMirror > p:last-child') !== null");
     $page->click('.ProseMirror > p:last-child')
         ->click('[role="toolbar"] button:has-text("Insert")')
         ->click('[data-test="block-picker"] [role="option"]:has-text("Custom HTML")')
         ->assertNotPresent('[data-test="block-picker"]')
-        ->assertSee('Choose the code to show')
-        ->click('.ProseMirror label:text-is("Sidebar ad")');
-    cmWaitUntil($page, "(document.querySelector('.teme-prose')?.innerText ?? '').includes('Readers see it here, drawn exactly as it was written.')");
+        ->type('.ProseMirror textarea[aria-label="Code"]', $this->code);
+    cmWaitUntil($page, "(document.querySelector('.teme-prose')?.innerText ?? '').includes('Readers see it here, drawn exactly as it was pasted.')");
 
     // The rail shows the chosen card's settings; back to the region's, where Publish is.
+    // Publishing saves first; that save changes code, so the password is asked in place, once, and covers the publish.
     $page->click('[data-slot="pane-head"] button[aria-label^="Back to the"]');
     $page->click('[aria-label="Region settings"] button:text-is("Publish")');
-    cmWaitUntil($page, "document.querySelector('[role=\"dialog\"] button') !== null");
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="fresh-password-input"]\') !== null');
+    $page->type('[data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="fresh-password-confirm"]');
+    cmWaitUntil($page, "document.querySelector('[role=\"dialog\"] button:not([data-test=\"fresh-password-confirm\"])') !== null && document.querySelector('[data-test=\"fresh-password-input\"]') === null");
     $page->click('[role="dialog"] button:text-is("Publish")');
     cmWaitUntil($page, "document.querySelector('[role=\"dialog\"]') === null && document.body.innerText.includes('Published.')");
     cmNoJavaScriptErrors($page);
 
     $region = Content::query()->findOrFail($this->region->id);
-    $cards = array_map(fn (array $node): array => [$node['type'], $node['attrs']['source'] ?? $node['attrs']['entryId'] ?? null, $node['attrs']['count'] ?? null], array_values(array_filter($region->publishedRevision?->document['content'] ?? [], fn (array $node): bool => $node['type'] !== 'paragraph')));
+    $cards = array_map(fn (array $node): array => [$node['type'], $node['attrs']['source'] ?? $node['attrs']['code'] ?? null, $node['attrs']['count'] ?? null], array_values(array_filter($region->publishedRevision?->document['content'] ?? [], fn (array $node): bool => $node['type'] !== 'paragraph')));
 
     expect($region->status)->toBe('published')
-        ->and($cards)->toBe([['featured-posts', 'latest', 3], ['site-code', $this->entry->id, null]]);
+        ->and($cards)->toBe([['featured-posts', 'latest', 3], ['site-code', $this->code, null]])
+        ->and(collect(scLog())->pluck('type')->all())->toBe(['site_code.card_added', 'site_code.card_published']);
 
     $article = visit('/harbour-news/');
     cmWaitUntil($article, "document.querySelector('.card-site-code') !== null");
@@ -144,14 +147,14 @@ it('places Featured posts and Custom HTML after the article, publishes, and the 
 });
 
 it('passes axe with both cards\' panels open at :dataset', function (int $width, string $scheme): void {
-    regionSave($this->region, $this->editor, [
+    scElevated(fn () => regionSave($this->region, $this->admin, [
         ['type' => 'featured-posts', 'attrs' => ['id' => (string) Str::ulid(), 'source' => 'latest', 'type' => 'post', 'count' => 3]],
-        ['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'entryId' => $this->entry->id]],
-    ]);
-    lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
-    $this->actingAs($this->editor)->get($this->edit)->assertOk();
+        ['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'code' => $this->code, 'origins' => ['ads.example.com']]],
+    ]));
+    lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
+    $this->actingAs($this->admin)->get($this->edit)->assertOk();
 
-    $page = cmNavigate(cmSignIn($this->editor)->resize($width, $width === 375 ? 812 : 900), $this->edit);
+    $page = cmNavigate(cmSignIn($this->admin)->resize($width, $width === 375 ? 812 : 900), $this->edit);
     // On a phone the menu is a drawer, so cmEditorSettled's folded menu never comes.
     $width === 375
         ? cmWaitUntil($page, "document.querySelector('.teme-prose') !== null")
@@ -160,12 +163,12 @@ it('passes axe with both cards\' panels open at :dataset', function (int $width,
 
     ($this->openSettings)($page, 'Featured posts');
     ($this->openSettings)($page, 'Custom HTML');
-    cmWaitUntil($page, "['How many', 'Code to show'].every((words) => document.querySelector('.ProseMirror').innerText.includes(words))");
+    cmWaitUntil($page, "['How many', 'Hosts it connects to'].every((words) => document.querySelector('.ProseMirror').innerText.includes(words))");
 
     $sideways = $page->script(<<<'JS'
         () => ({
             page: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
-            cut: [...document.querySelectorAll('.teme-prose input, .teme-prose button, .teme-prose [role="radio"], .teme-prose [role="switch"]')]
+            cut: [...document.querySelectorAll('.teme-prose input, .teme-prose textarea, .teme-prose button, .teme-prose [role="radio"], .teme-prose [role="switch"]')]
                 .filter((element) => { const box = element.getBoundingClientRect(); return box.width > 0 && (box.left < 0 || box.right > window.innerWidth); })
                 .map((element) => element.id || element.outerHTML.slice(0, 80)),
         })
@@ -180,6 +183,19 @@ it('passes axe with both cards\' panels open at :dataset', function (int $width,
     '375, light' => [375, 'light'],
     '375, dark' => [375, 'dark'],
 ]);
+
+it('shows an editor a Custom HTML card without its code, and offers them none to add', function (): void {
+    scElevated(fn () => regionSave($this->region, $this->admin, [['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'code' => $this->code]]]));
+
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit));
+    cmWaitUntil($page, "(document.querySelector('.teme-prose')?.innerText ?? '').includes('Only administrators can read or change this code.')")
+        ->assertNotPresent('.ProseMirror textarea[aria-label="Code"]')
+        ->assertScript("document.documentElement.innerHTML.includes('Fresh bread')", false)
+        ->click('[role="toolbar"] button:has-text("Insert")');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"] [role=\"option\"]') !== null")
+        ->assertNotPresent('[data-test="block-picker"] [role="option"]:has-text("Custom HTML")');
+    cmNoJavaScriptErrors($page);
+});
 
 it('gives a region its own checks in the rail, and none of a post\'s search checks (#529)', function (): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit));

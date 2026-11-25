@@ -36,7 +36,9 @@ use App\Domain\Import\Convert\BlockConverter;
 use App\Domain\Import\Convert\Conversion;
 use App\Domain\Import\Convert\ConversionItem;
 use App\Domain\Import\Convert\ConversionSite;
+use App\Domain\Import\Convert\Media\ImageTrace;
 use App\Domain\Import\Convert\PendingReference;
+use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Phases\ImportContext;
@@ -52,6 +54,7 @@ use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Media\OutsideImage;
 use App\Domain\Taxonomy\TermRules;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
@@ -162,7 +165,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             $blocks,
             $this->site,
             new ImportedMedia($context->sourceId),
-            new MapTargets($context->sourceId, $context->readsFile() && $context->choice('media') === 'links'),
+            new MapTargets($context->sourceId, $context->keepsOldSiteMedia(), $context->bringsMediaLater()),
             new ConversionItem((int) $ref->id, self::shortcodes($item)),
         ), $this->site);
     }
@@ -322,7 +325,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
      * @param  array<string, mixed>  $item
      * @param  array{status: string, visibility: string|null, trashed: bool, dropped: bool}  $state
      *
-     * @return array{0: ImportedItem, 1: list<ImportMessage>, 2: array{pending_canonical: string|null, missing: bool}}
+     * @return array{0: ImportedItem, 1: list<ImportMessage>, 2: array{pending_canonical: string|null, missing: bool, waiting: list<string>, featured: int|null}}
      *
      * @throws ImportFailed when nobody can own it
      */
@@ -355,6 +358,8 @@ final class ContentPhase implements ListPhase, PreparesObjects
         }
 
         $featured = self::number($item['featured_media'] ?? null);
+        $waiting = [];
+        $waitingFeatured = null;
 
         if ($featured > 0 && in_array(BuiltInFields::FEATURED_IMAGE, $supported, true)) {
             $mediaId = (new ImportedMedia($context->sourceId))->attachment($featured);
@@ -364,8 +369,19 @@ final class ContentPhase implements ListPhase, PreparesObjects
             } else {
                 $missing = true;
 
-                // A file's media kept on the old site as links: the address check says so once for every post (CheckStep).
-                if (! ($context->readsFile() && $context->choice('media') === 'links')) {
+                // The pictures come after the articles: the picture pass sets it, shown from the old site until then where the file says where (#716).
+                if ($context->bringsMediaLater()) {
+                    $outside = self::outsideFeatured($context, $featured);
+                    $waiting = ["a:{$featured}", ...($outside['key'] === null ? [] : [$outside['key']])];
+                    $waitingFeatured = $featured;
+
+                    if ($outside['value'] !== null) {
+                        $fields[BuiltInFields::FEATURED_IMAGE] = $outside['value'];
+                    }
+                }
+
+                // Media kept on the old site, as links or until the picture pass: the address check says so once for every post (CheckStep).
+                if (! $context->keepsOldSiteMedia()) {
                     $notes[] = new ImportMessage('post.featured-missing', 'Its featured image isn’t in Teme’s library, so it has none for now. A later import sets it if the image comes across.');
                 }
             }
@@ -422,7 +438,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             language: $language,
         );
 
-        return [$decided, $notes, ['pending_canonical' => $seo['pendingCanonical'], 'missing' => $missing]];
+        return [$decided, $notes, ['pending_canonical' => $seo['pendingCanonical'], 'missing' => $missing, 'waiting' => $waiting, 'featured' => $waitingFeatured]];
     }
 
     /**
@@ -435,7 +451,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
      * @param  array{status: string, visibility: string|null, trashed: bool, dropped: bool}  $state
      * @param  array{written: string, moved: array{from: string, to: string}|null, taken: int, many: bool, clash: array{from: string, holder: string}|null, links: list<array{from: string, to: string|null}>}  $written
      * @param  list<ImportMessage>  $notes
-     * @param  array{pending_canonical: string|null, missing: bool}  $extra
+     * @param  array{pending_canonical: string|null, missing: bool, waiting: list<string>, featured: int|null}  $extra
      */
     private function result(ImportResult $result, array $item, array $state, Conversion $conversion, array $written, array $notes, array $extra): ImportResult
     {
@@ -461,6 +477,9 @@ final class ContentPhase implements ListPhase, PreparesObjects
             'pending_links' => array_values(array_diff($conversion->pendingLinks, $resolved)),
             'pending_canonical' => $extra['pending_canonical'],
             'missing' => $extra['missing'],
+            // What the post's outside pictures wait for: the picture pass swaps them as each file arrives (#716).
+            'waiting_media' => array_values(array_unique([...$conversion->waitingMedia, ...$extra['waiting']])),
+            'waiting_featured' => $extra['featured'],
             'visibility' => $state['visibility'],
             'language' => is_string($item['language'] ?? null) ? $item['language'] : null,
             'translations' => is_array($item['translations'] ?? null) ? $item['translations'] : null,
@@ -714,6 +733,33 @@ final class ContentPhase implements ListPhase, PreparesObjects
         }
 
         return null;
+    }
+
+    /**
+     * An export file's featured image while its file is on the way: the old
+     * site's address, size and alt text as the file gives them, and the
+     * file's waiting key; nothing to show for a live site, whose post names
+     * only the attachment's ID, nor for a file that isn't an image.
+     *
+     * @return array{value: array{source: string, width: int, height: int, alt: string|null, decorative: false}|null, key: string|null}
+     */
+    private static function outsideFeatured(ImportContext $context, int $attachmentId): array
+    {
+        $payload = $context->fileId === null ? null : DB::table('import_file_rows')
+            ->where('file_id', $context->fileId)->where('list', ItemRows::MEDIA)->where('object_id', $attachmentId)->value('payload');
+        $row = is_string($payload) ? (array) json_decode($payload, true) : [];
+        $file = is_string($row['file'] ?? null) && $row['file'] !== '' ? 'f:'.ImageTrace::original(strtolower($row['file'])) : null;
+        $url = is_string($row['url'] ?? null) ? $row['url'] : '';
+        $width = is_array($row['metadata'] ?? null) ? ($row['metadata']['width'] ?? null) : null;
+        $height = is_array($row['metadata'] ?? null) ? ($row['metadata']['height'] ?? null) : null;
+
+        if (! OutsideImage::isWebAddress($url) || ! is_int($width) || ! is_int($height) || $width < 1 || $height < 1) {
+            return ['value' => null, 'key' => $file];
+        }
+
+        $alt = is_string($row['alt'] ?? null) ? trim($row['alt']) : '';
+
+        return ['value' => ['source' => $url, 'width' => $width, 'height' => $height, 'alt' => $alt === '' ? null : $alt, 'decorative' => false], 'key' => $file];
     }
 
     /**

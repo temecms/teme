@@ -21,6 +21,7 @@ use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Fields\Types\EntryField;
+use App\Domain\SiteCode\RegionCode;
 use App\Domain\Taxonomy\TermSiblings;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
@@ -34,7 +35,8 @@ final class TranslationCopy
      */
     public static function of(ContentRevision $revision, string $type, ?string $language): array
     {
-        $document = (array) $revision->document;
+        // A copy never moves a region's Custom HTML code: its cards start empty (docs/architecture/security.md).
+        $document = RegionCode::redact((array) $revision->document);
         $fields = (array) $revision->fields;
         $terms = array_values(array_filter((array) $revision->terms, is_string(...)));
         $entries = array_map(fn ($field): string => $field->key, array_filter(app(FieldRegistry::class)->forType($type), fn ($field): bool => $field->type instanceof EntryField));

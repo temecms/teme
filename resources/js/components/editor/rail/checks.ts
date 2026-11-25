@@ -582,7 +582,7 @@ export type RegionChecksInput = {
     max: number;
     /** The cards the region takes, by name. */
     allowed: string[];
-    /** Every card's label, by name: what tells a card from text. */
+    /** Every card's label, by name, a plugin's card by its key: what tells a card from text. */
     cardLabels: Record<string, string>;
 };
 
@@ -614,7 +614,12 @@ export function regionFacts(input: RegionChecksInput): RegionFacts {
     );
     const refused: string[] = [];
     const walk = (node: Node) => {
-        const type = node.type ?? '';
+        // A plugin's or theme's card is known by its key, "{code}:{id}" (docs/guides/developers/plugins/cards.md).
+        const type =
+            (node.type === 'plugin-card' || node.type === 'theme-card') &&
+            typeof node.attrs?.card === 'string'
+                ? node.attrs.card
+                : (node.type ?? '');
 
         if (
             Object.hasOwn(input.cardLabels, type) &&

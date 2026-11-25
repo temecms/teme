@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Discussion } from '@/lib/discussion';
+import type { FieldDefinition } from './settings';
 
 /** One card as the server declares it (CardManifest::forBrowser). */
 export type CardManifestEntry = {
@@ -18,9 +19,6 @@ export type CardManifestEntry = {
     attributes: { name: string; default: unknown; options: string[] | null }[];
 };
 
-/** A site code entry the Custom HTML card may place: its name and whether it is on, never its code (I-3127). */
-export type PlacedCode = { id: string; name: string; on: boolean };
-
 /** A provider an embed card may frame, from config/embeds.php. */
 export type EmbedProvider = {
     name: string;
@@ -36,6 +34,42 @@ export type CardManifest = {
     embedProviders: EmbedProvider[];
     /** The active theme's image contexts, each with its `sizes` value. */
     imageSizes: Record<string, string>;
+    /** The running plugins' cards for a theme's regions, each stored as a plugin-card node. */
+    pluginCards: PluginCardEntry[];
+    /** Every installed theme's own cards, each stored as a theme-card node and offered only in its theme's regions. */
+    themeCards: ThemeCardEntry[];
+};
+
+/** One card a theme brings for its regions (CardManifest::forBrowser, docs/guides/developers/themes/regions.md). */
+export type ThemeCardEntry = {
+    /** "{theme}:{id}", as the theme-card node's `card` holds it. */
+    key: string;
+    theme: string;
+    /** The theme's name. */
+    themeName: string;
+    label: string;
+    description: string;
+    icon: string;
+    keywords: string[];
+    /** Drawn as plugin settings are. */
+    fields: FieldDefinition[];
+};
+
+/** One card a running plugin offers (CardManifest::forBrowser, docs/guides/developers/plugins/cards.md). */
+export type PluginCardEntry = {
+    /** "{code}:{id}", as the plugin-card node's `card` holds it. */
+    key: string;
+    code: string;
+    /** The plugin's label. */
+    plugin: string;
+    label: string;
+    description: string;
+    icon: string;
+    keywords: string[];
+    /** Drawn as plugin settings are; a field whose options the plugin gives is of type "choice". */
+    fields: (Omit<FieldDefinition, 'type'> & {
+        type: FieldDefinition['type'] | 'choice';
+    })[];
 };
 
 /** A media item as a card needs it (CardMedia::forIds). */
@@ -285,10 +319,12 @@ export type ContentEditPage = {
         cardLabels: string[];
         /** The most blocks it holds. */
         max: number;
+        /** The size the theme tells its cards, "300x600"; null when it gives none. */
+        size: string | null;
         takes: string;
     } | null;
-    /** The code the Custom HTML card may place, by name; null for any item that isn't a theme region. */
-    placedCode: PlacedCode[] | null;
+    /** Whether this person may read and change a Custom HTML card's code; null for any item that isn't a theme region. */
+    canManageSiteCode: boolean | null;
     /** Whether the host has switched site code off; null for any item that isn't a theme region. */
     siteCodeLocked: boolean | null;
     siteUrl: string;

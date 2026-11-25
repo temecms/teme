@@ -43,8 +43,16 @@ import { Kbd } from '@/components/ui/kbd';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import type { CardManifestEntry } from '@/types';
-import { cardEntries } from './insert-entries';
+import type {
+    CardManifestEntry,
+    PluginCardEntry,
+    ThemeCardEntry,
+} from '@/types';
+import {
+    cardEntries,
+    pluginCardEntries,
+    themeCardEntries,
+} from './insert-entries';
 import type { EditorContext, RegionEntry } from './region-entry';
 import { visibleEntries } from './region-entry';
 
@@ -228,11 +236,16 @@ function groups(): { id: string; heading: string }[] {
         { id: 'text', heading: __('Text') },
         { id: 'media', heading: __('Media') },
         { id: 'cards', heading: __('Cards') },
+        { id: 'theme', heading: __('From the theme') },
         { id: 'plugins', heading: __('From plugins') },
     ];
 }
 
 function groupOf(entry: RegionEntry): string {
+    if (entry.owner.startsWith('theme:')) {
+        return 'theme';
+    }
+
     if (entry.owner !== 'core') {
         return 'plugins';
     }
@@ -311,12 +324,18 @@ function placed(anchor: DOMRect): CSSProperties {
 export function BlockPicker({
     editor,
     cards,
+    pluginCards = [],
+    themeCards = [],
     context,
     request,
     onClose,
 }: {
     editor: Editor;
     cards: CardManifestEntry[];
+    /** The plugins' cards, offered in a theme's region (docs/guides/developers/plugins/cards.md). */
+    pluginCards?: PluginCardEntry[];
+    /** The region's theme's own cards it takes (docs/guides/developers/themes/regions.md). */
+    themeCards?: ThemeCardEntry[];
     context: EditorContext;
     request: PickerRequest | null;
     onClose: () => void;
@@ -353,7 +372,12 @@ export function BlockPicker({
         }
 
         const all = visibleEntries(
-            [...textEntries(), ...cardEntries(cards)],
+            [
+                ...textEntries(),
+                ...cardEntries(cards),
+                ...themeCardEntries(themeCards),
+                ...pluginCardEntries(pluginCards),
+            ],
             context,
         ).filter((entry) =>
             matchesEveryWord(
@@ -373,7 +397,7 @@ export function BlockPicker({
         return groups().flatMap((group) =>
             all.filter((entry) => groupOf(entry) === group.id),
         );
-    }, [open, cards, context, query]);
+    }, [open, cards, themeCards, pluginCards, context, query]);
 
     const close = useCallback(
         (returnFocus: boolean) => {

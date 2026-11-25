@@ -21,10 +21,12 @@ use App\Domain\Import\Operations\Input\ImportObjectInput;
 use App\Domain\Import\Operations\Input\RecordImportFailureInput;
 use App\Domain\Import\Operations\Input\RecordImportMessagesInput;
 use App\Domain\Import\Operations\Input\StartImportRunInput;
+use App\Domain\Import\Operations\Input\StartMediaPassInput;
 use App\Domain\Import\Operations\Input\StopImportRunInput;
 use App\Domain\Import\Operations\RecordImportFailure;
 use App\Domain\Import\Operations\RecordImportMessages;
 use App\Domain\Import\Operations\StartImportRun;
+use App\Domain\Import\Operations\StartMediaPass;
 use App\Domain\Import\Operations\StopImportRun;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\SourceRef;
@@ -101,7 +103,7 @@ it('refuses what a run can\'t start from', function (string $case, string $field
         $this->admin,
         $case === 'catch-up' ? ImportRunKind::CatchUp : ImportRunKind::Full,
         match ($case) {
-            'pause' => ['pause_ms' => 60001], 'option' => ['speed' => 'fast'], default => []
+            'pause' => ['pause_ms' => 60001], 'option' => ['speed' => 'fast'], 'lanes' => ['media_lanes' => 5], 'no lanes' => ['media_lanes' => 0], default => []
         },
     ));
 
@@ -114,6 +116,8 @@ it('refuses what a run can\'t start from', function (string $case, string $field
     'a site whose password Teme forgot' => ['forgotten', 'source', 'Teme has forgotten this site’s application password. Connect the site again first.'],
     'a pause longer than a minute' => ['pause', 'options.pause_ms', 'Choose a pause from 0 to 60,000 milliseconds.'],
     'an option Teme doesn\'t have' => ['option', 'options', 'Teme has no import option called speed.'],
+    'more files at once than the media setting allows (#701)' => ['lanes', 'options.media_lanes', 'Choose from 1 to 4 files at once.'],
+    'no files at once (#701)' => ['no lanes', 'options.media_lanes', 'Choose from 1 to 4 files at once.'],
 ]);
 
 it('writes nothing for anyone who may not import', function (string $operation): void {
@@ -122,12 +126,16 @@ it('writes nothing for anyone who may not import', function (string $operation):
     $context = app(ImportRuns::class)->context($run, JobActor::person($this->editor->id));
     $item = ['id' => 1, 'login' => 'ada', 'display_name' => 'Ada Lovelace', 'roles' => ['administrator']];
     $editor = (string) $this->editor->id;
+    // An import that brought the articles first, finished, for a picture pass to follow.
+    $articles = ImportRun::query()->create(['source_id' => $this->source->id, 'kind' => ImportRunKind::Full, 'state' => ImportRunState::Finished, 'options' => ['pause_ms' => 0], 'choices' => ['media' => 'later'], 'started_at' => now(), 'high_water_at' => now(), 'ended_at' => now()]);
     $before = ($this->tables)();
 
     $act = match ($operation) {
         'start' => fn () => scElevated(fn () => ($this->start)($this->editor)),
+        'start with lanes' => fn () => scElevated(fn () => ($this->start)($this->editor, ImportRunKind::Full, ['media_lanes' => 3])),
         'continue' => fn () => scElevated(fn () => app(ContinueImportRun::class)->execute(new ContinueImportRunInput($run->id, $editor))),
         'stop' => fn () => app(StopImportRun::class)->execute(new StopImportRunInput($run->id, $editor)),
+        'pass' => fn () => app(StartMediaPass::class)->execute(new StartMediaPassInput((string) $articles->id, $editor)),
         'advance' => fn () => app(AdvanceImportRun::class)->execute(new AdvanceImportRunInput($run->id, $token, 'fixture-notes', strtolower((string) Str::ulid()), $editor)),
         'finish' => fn () => app(FinishImportRun::class)->execute(new FinishImportRunInput($run->id, $token, $editor)),
         'import an object' => fn () => app(ImportObject::class)->execute(new ImportObjectInput($token, 'fixture-people', $context, SourceRef::of('user', 1), $item, ImportMap::hashOf($item), null)),
@@ -140,7 +148,9 @@ it('writes nothing for anyone who may not import', function (string $operation):
         ->and(DB::table('fixture_people')->count())->toBe(0);
 })->with([
     'starting' => ['start'],
+    'starting with media lanes (#701)' => ['start with lanes'],
     'carrying on' => ['continue'],
+    'starting a picture pass (#716)' => ['pass'],
     'stopping' => ['stop'],
     'advancing' => ['advance'],
     'finishing' => ['finish'],
@@ -236,4 +246,19 @@ it('gives a catch-up what changed since an hour before the last finished import 
         ->and($context->modifiedAfter?->utc()->format('Y-m-d H:i:s'))->toBe($mark->subHour()->utc()->format('Y-m-d H:i:s'))
         ->and($context->pauseMs)->toBe(1000)
         ->and($context->actorId())->toBe((string) $this->admin->id);
+});
+
+it('leaves a picture pass out of the latest and the last finished import, so catch-up and the report read the import it follows (#716)', function (): void {
+    $run = ($this->started)();
+    DB::table('import_runs')->where('id', $run->id)->update(['state' => 'finished', 'phase' => null, 'phase_token' => null, 'ended_at' => now()]);
+    $pass = ImportRun::query()->create([
+        'source_id' => $this->source->id, 'kind' => ImportRunKind::MediaPass, 'state' => 'finished', 'follows_run_id' => $run->id,
+        'high_water_at' => now(), 'started_at' => now()->addMinute(), 'ended_at' => now()->addMinutes(2),
+    ]);
+    $runs = app(ImportRuns::class);
+
+    expect($runs->latest($this->source->id)?->id)->toBe($run->id)
+        ->and($runs->lastFinished($this->source->id)?->id)->toBe($run->id)
+        ->and($runs->passOf($run->id)?->id)->toBe($pass->id)
+        ->and(ImportRunKind::MediaPass->label())->toBe('Pictures');
 });

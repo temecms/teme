@@ -108,6 +108,7 @@ export default function TypeFields(page: FieldsPage) {
     return (
         <ListPage
             title={`${type.singular} fields`}
+            showTitle
             description={`What the editor asks for on each ${type.noun}, in this order. A saved change works at once.`}
             actions={
                 <>

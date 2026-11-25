@@ -23,6 +23,7 @@ final readonly class Conversion
      * @param  list<ImportMessage>  $messages
      * @param  list<PendingReference>  $references
      * @param  list<string>  $pendingLinks  the paths links were left at for the second pass (I-333)
+     * @param  list<string>  $waitingMedia  what each outside picture waits for, by ImageTrace::waitingKeys() (#716)
      */
-    public function __construct(public array $document, public array $messages, public array $references, public array $pendingLinks = []) {}
+    public function __construct(public array $document, public array $messages, public array $references, public array $pendingLinks = [], public array $waitingMedia = []) {}
 }

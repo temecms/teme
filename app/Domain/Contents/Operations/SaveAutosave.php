@@ -28,7 +28,10 @@ use App\Domain\Contents\Operations\Input\SaveAutosaveInput;
 use App\Domain\Contents\Queries\EditorPresence;
 use App\Domain\Contents\SaveAutosaveResult;
 use App\Domain\Fields\FieldValidator;
+use App\Domain\SiteCode\RegionCode;
+use App\Domain\SiteCode\SiteCode;
 use App\Domain\Support\Operations\BaseOperation;
+use App\Domain\Types\CoreTypes;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
@@ -45,6 +48,13 @@ final class SaveAutosave extends BaseOperation
 
         if ($user === null || ! Gate::forUser($user)->allows('update', $content)) {
             throw new AuthorizationException('Not permitted to edit this content.');
+        }
+
+        // An autosave is never live, so someone who may change a region's
+        // code keeps it here without a password; nobody else ever stores
+        // any (docs/architecture/security.md).
+        if ($content->type === CoreTypes::REGION && ! RegionCode::manages($user)) {
+            RegionCode::carry($input->document, (array) (ContentRevision::query()->whereKey($content->working_revision_id)->value('document') ?? []), SiteCode::disallowed() ? SiteCode::SWITCHED_OFF : 'Not permitted to change site code.');
         }
     }
 

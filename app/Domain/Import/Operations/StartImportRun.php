@@ -41,6 +41,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
+use Teme\Contracts\Settings\SettingsReader;
 
 final class StartImportRun extends BaseOperation implements RequiresElevation
 {
@@ -49,7 +50,16 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
     /** The options a run takes, with their defaults: the pause between pages, to spare the old site. */
     public const array OPTIONS = ['pause_ms' => 1000];
 
-    public function __construct(private readonly ImportPhases $phases, private readonly ImportRuns $runs) {}
+    /**
+     * The options a run of an export file also takes, with none stored by
+     * default: the media files fetched at once, the media setting's when
+     * none is given (#701).
+     *
+     * @since next
+     */
+    public const array FILE_OPTIONS = ['media_lanes'];
+
+    public function __construct(private readonly ImportPhases $phases, private readonly ImportRuns $runs, private readonly SettingsReader $settings) {}
 
     public function requiresElevation(OperationInput $input): bool
     {
@@ -66,7 +76,7 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
         assert($input instanceof StartImportRunInput);
 
         foreach (array_keys($input->options) as $key) {
-            if (! array_key_exists($key, self::OPTIONS)) {
+            if (! array_key_exists($key, self::OPTIONS) && ! in_array($key, self::FILE_OPTIONS, true)) {
                 throw ValidationException::withMessages(['options' => "Teme has no import option called {$key}."]);
             }
         }
@@ -75,6 +85,13 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
 
         if (! is_int($pause) || $pause < 0 || $pause > 60000) {
             throw ValidationException::withMessages(['options.pause_ms' => 'Choose a pause from 0 to 60,000 milliseconds.']);
+        }
+
+        $ceiling = $this->downloads();
+        $lanes = $input->options['media_lanes'] ?? 1;
+
+        if (! is_int($lanes) || $lanes < 1 || $lanes > $ceiling) {
+            throw ValidationException::withMessages(['options.media_lanes' => "Choose from 1 to {$ceiling} files at once."]);
         }
 
         if (($input->choices !== [] && array_is_list($input->choices)) || strlen((string) json_encode($input->choices)) > 65536) {
@@ -121,7 +138,8 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
             'state' => ImportRunState::Running,
             'phase' => $this->phases->first($input->kind)?->key(),
             'phase_token' => $token,
-            'options' => [...self::OPTIONS, ...$input->options],
+            // A file's media lanes are frozen here, so a change to the setting never moves a running import's lists (#701).
+            'options' => [...self::OPTIONS, ...($file === null ? [] : ['media_lanes' => $this->downloads()]), ...$input->options],
             'choices' => $input->choices,
             'high_water_at' => now(),
             'started_by' => $input->actorId() === null ? null : (int) $input->actorId(),
@@ -142,6 +160,14 @@ final class StartImportRun extends BaseOperation implements RequiresElevation
         ]);
 
         return ['runId' => (string) $run->id, 'token' => $token, 'actorId' => $input->actorId()];
+    }
+
+    /**
+     * The most media files an import of an export file fetches at once: the media setting.
+     */
+    private function downloads(): int
+    {
+        return $this->settings->int('media', 'import_downloads');
     }
 
     /**

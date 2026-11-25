@@ -328,6 +328,34 @@ final readonly class Manifest
     }
 
     /**
+     * The cards the theme brings for its own regions, by id, as declared
+     * under cards.provides (docs/guides/developers/themes/regions.md).
+     *
+     * @return array<string, array<string, mixed>>
+     *
+     * @since next
+     */
+    public function providedCards(): array
+    {
+        $cards = $this->raw['cards'] ?? null;
+        $provides = is_array($cards) ? ($cards['provides'] ?? null) : null;
+
+        if (! is_array($provides)) {
+            return [];
+        }
+
+        $provided = [];
+
+        foreach ($provides as $id => $card) {
+            if (is_string($id) && is_array($card)) {
+                $provided[$id] = $card;
+            }
+        }
+
+        return $provided;
+    }
+
+    /**
      * The outside origins the theme's pages load from, by kind (I-3375):
      * each host it listed as https://host, in lower case; kinds it didn't
      * list are absent, and [] when it lists none.

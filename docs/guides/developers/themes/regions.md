@@ -12,17 +12,19 @@ A theme draws the site; the people who run it fill it. This page covers the thre
 
 ## Regions
 
-A region is a spot your theme sets aside for the site's own content, such as a box after each article. You declare it; editors write it under **Regions** in the admin, in the same editor as an article, and publish it.
+A region is a spot your theme sets aside for the site's own content, such as a box after each article. You declare it; editors fill it under **Content › Regions** in the admin, where every region is on one screen, card by card, and publish it.
 
 ### Declare a region
 
-Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-case letters, digits and hyphens. The default theme declares one: `"after-content": {"label": "After the article", "cards": ["callout", "button"], "max": 5}`.
+Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-case letters, digits and hyphens. The default theme declares one: `"after-content": {"label": "After the article", "max": 5}`.
 
 - `label` is the name editors see. It is required.
-- `cards` lists the cards the region allows beside text. Text is always allowed. Each name must be a card Teme registers, such as `image`, `gallery`, `embed`, `callout`, `snippet`, `button`, `audio` or `video`.
+- `cards` is optional. Leave it out, or give `"*"`, and the region takes every card, as a WordPress widget area takes any widget: Teme's own, and every card an enabled plugin offers, which your theme never needs to know about. Give a list only where your design needs it, such as a front-page slot built for one Featured posts card: then the region takes text and the cards named. Name Teme's cards by name, such as `image`, `callout`, `button`, `site-code` or `featured-posts`, a plugin's by its key, `code:id`, such as `ads:ad-slot`, and a card your theme brings by its id, such as `about-me`.
 - `max` is the most top-level blocks the region holds, 1 to 50; 50 when you leave it out.
+- `group` is optional: the heading Content › Regions lists the region under, such as `"Ad placements"`, at most 40 characters. Regions without one are listed under Regions.
+- `size` is optional: the space the region gives, width x height in pixels, such as `"300x600"` for a sidebar. Teme tells it to the cards placed there and never refuses a card for it; an ad plugin's card may list that size's ads first.
 
-`php artisan teme:theme:check` refuses a region without a label, a card Teme doesn't know, or a `max` outside that range. Teme holds a region's document to its declaration when it is saved and again when it is published, against the declaration as it is then.
+`php artisan teme:theme:check` refuses a region without a label, a card Teme doesn't know, a `max` outside that range, a `group` that isn't a name of 1 to 40 characters, or a `size` that isn't two numbers joined by `x`. A plugin's key is checked by its shape only, since the plugin may not be installed where the theme is checked. Teme holds a region's document to its declaration when it is saved and again when it is published, against the declaration as it is then.
 
 ### Draw a region
 
@@ -30,7 +32,28 @@ Place the component where the region belongs, naming its slug, as the default th
 
 It draws the region's published content with the same renderer as an article, and records its cards for the page's head. It draws nothing for a region that is empty or unpublished, so don't wrap it in markup that would show empty. Outside production it draws a note when you name a region your manifest doesn't declare. See [the region component](../../../reference/theme.md#x-temeregion) in the generated reference.
 
+A plugin's card is drawn inside `<div class="card-plugin card-plugin-{code}-{id}" data-plugin-card="{code}:{id}">`. Plugins load no stylesheet of their own yet, so style the cards your theme expects, by those classes. See [Cards for a theme's regions](../plugins/cards.md).
+
 Each theme's regions are its own. When the site switches themes, the old theme's regions are kept, read-only, and show again if it switches back.
+
+### Cards your theme brings
+
+A theme can bring its own cards for its regions, such as an author bio, declared under `cards.provides` in `teme-theme.json`, at most 12, keyed by an id of 2 to 41 lower-case letters, digits and hyphens, starting with a letter:
+
+```json
+"cards": { "provides": { "about-me": { "label": "About me", "description": "A short bio.", "icon": "user",
+    "fields": [ { "key": "heading", "type": "text", "label": "Heading", "default": "About me" } ] } } }
+```
+
+`label`, `description`, `icon`, `keywords` and `fields` are a plugin card's (see [Cards for a theme's regions](../plugins/cards.md)), except that a field can't be a `choice`, whose options only a plugin's class can give. An id can't be the name of one of Teme's cards, because a region's `cards` names both the same way. The card's key is `{code}:{id}`, such as `my-theme:about-me`; editors find it in Add card under your theme's name, in every region of your theme that takes every card or names it.
+
+Your theme draws each card with its own view, `views/cards/own/{id}.blade.php`; `teme:theme:check` refuses a card without one. The view gets `$values`, the card's fields by key with each missing one filled from its `default`, `$id`, the card's node ID, and `$region`, the region's `slug`, `theme`, `size`, `width` and `height`. The values are as an editor typed them, so print them with `{{ }}`, never `{!! !!}`:
+
+```blade
+<aside class="about"><h2>{{ $values['heading'] }}</h2></aside>
+```
+
+Teme wraps what the view draws in `<div class="card-theme card-theme-{id}" data-theme-card="{code}:{id}">` and draws nothing when it draws nothing. A theme's card is drawn only while that theme is in use, and only in that theme's regions. When the site switches themes, the regions keep its cards, Content › Regions counts them under the theme they came from, and they show again with that theme. Before a switch, Themes says which of the active theme's cards the switch hides, and in how many regions.
 
 ## Site code: the administrator's own HTML
 

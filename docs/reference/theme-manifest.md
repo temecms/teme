@@ -18,9 +18,11 @@
 | `license` | string | no | Shown to people only; Teme reads nothing from it. |  |
 | `templates` | object | no | Content type, then template slug, then label. Every slug but default needs views/templates/single-{type}-{slug}.blade.php: only the theme's files can say whether it exists. |  |
 | `navigations` | object | no | The places the theme draws a menu: slot, then label. |  |
-| `regions` | object | no | The places the theme puts the site's own content: slug, then label, cards and max. Every card named must be a registered card: only Teme's registry can say which are. |  |
+| `regions` | object | no | The places the theme puts the site's own content: slug, then label, group, cards, max and size. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are. |  |
 | `regions.*.label` | string | yes |  |  |
-| `regions.*.cards` | array | no |  |  |
+| `regions.*.cards` |  | no | "*" or absent for every card; else the cards the region takes. |  |
+| `regions.*.group` | string | no | The heading Content › Regions lists the region under, such as "Ad placements"; regions without one are listed under "Regions". |  |
+| `regions.*.size` | string | no | The region's size in pixels, width x height, told to its cards; advice only. | ^[1-9]\d{1,4}x[1-9]\d{1,4}$ |
 | `regions.*.max` | integer | no | How many cards the region holds; 50 when absent. |  |
 | `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. |  |
 | `settings[].key` | string | yes | 2 to 41 lower-case letters, digits and underscores, starting with a letter; never starting with nav_. | ^[a-z][a-z0-9_]{1,40}$ |
@@ -59,8 +61,17 @@
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |  |
 | `screenshots[].path` | string | yes | A path inside the theme, with no .., to a .png, .jpg, .jpeg or .webp picture, in any case. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP])$ |
 | `screenshots[].caption` | string | no | What the picture shows, in at most 140 characters. |  |
-| `cards` | object | no | Cards the theme styles itself. |  |
+| `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |  |
 | `cards.replaces` | array | no | Registered card names whose core stylesheets the theme replaces with its own. |  |
+| `cards.provides` | object | no | Cards the theme brings for its own regions, by id, at most 12. Each is drawn by views/cards/own/{id}.blade.php while the theme is active; its key is code:id, and a region's cards name it by its id. |  |
+| `cards.provides.*.label` | string | yes | The card's name in Add card. |  |
+| `cards.provides.*.description` | string | yes | One sentence on what the card shows. |  |
+| `cards.provides.*.icon` | string | no | A Lucide icon's name; a square when it isn't one the editor knows. | ^[a-z][a-z0-9-]{1,40}$ |
+| `cards.provides.*.keywords` | array | no | Words Add card also finds the card by. |  |
+| `cards.provides.*.fields` | array | no | The card's fields, declared as a plugin card's are, without choice. |  |
+| `cards.provides.*.fields[].key` | string | yes | The field's key. | ^[a-z][a-z0-9_]{1,40}$ |
+| `cards.provides.*.fields[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "color", "person", "term", "type" |
+| `cards.provides.*.fields[].label` | string | yes | The name people see. |  |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |  |
 | `per_page` | integer | no | Items per page of a listing; 10 when absent. |  |
 | `csp` | object | no | Outside hosts the theme's pages load from, by kind. Each is a host name or *.host; https is implied. A theme's own files are always allowed. |  |

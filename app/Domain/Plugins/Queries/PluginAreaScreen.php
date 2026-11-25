@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
+use App\Domain\Extensions\PackagePictures;
 use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\AreaReads;
@@ -23,6 +24,7 @@ use App\Domain\Plugins\Area\AreaValidator;
 use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Lists\PluginActions;
+use App\Domain\Plugins\PluginRegistry;
 use App\Models\User;
 use Closure;
 use Teme\Contracts\Admin\TableQuery;
@@ -36,6 +38,7 @@ final readonly class PluginAreaScreen
         private PluginAreas $areas,
         private AreaReads $reads,
         private PluginActions $actions,
+        private PluginRegistry $registry,
     ) {}
 
     /**
@@ -53,32 +56,68 @@ final readonly class PluginAreaScreen
      * The page's frame: the plugin's code and name, the area's label and
      * description, its pages (the current marked), and the page's blocks as
      * declared, each with what it draws before its data arrives. Null for a
-     * page the area doesn't declare.
+     * page the area doesn't declare. Pass settingsTab when the person may
+     * see the Settings tab; settingsCurrent when that tab is open.
      *
-     * @return array{plugin: array{code: string, name: string}, area: array{label: string, description: string}, tabs: list<array{id: string, label: string, current: bool}>, current: array{id: string, label: string}, blocks: list<array<string, mixed>>}|null
+     * @return array{plugin: array{code: string, name: string, icon: string|null}, area: array{label: string, description: string}, tabs: list<array{id: string, label: string, current: bool, href?: string}>, current: array{id: string, label: string}, blocks: list<array<string, mixed>>}|null
      */
-    public function frame(AreaPlugin $plugin, ?string $page): ?array
+    public function frame(AreaPlugin $plugin, ?string $page, bool $settingsTab = false, bool $settingsCurrent = false): ?array
     {
-        $current = $plugin->area->page($page);
+        $words = fn (string $english): string => AreaWords::text($plugin->code, $english);
 
-        if ($current === null) {
-            return null;
+        if ($settingsCurrent) {
+            $current = ['id' => 'settings', 'label' => __('Settings'), 'blocks' => []];
+        } else {
+            $current = $plugin->area->page($page);
+
+            if ($current === null) {
+                return null;
+            }
         }
 
-        $words = fn (string $english): string => AreaWords::text($plugin->code, $english);
         $blocks = [];
 
         foreach ($current['blocks'] as $block) {
             $blocks[] = $this->blockFrame($plugin, $block, $words);
         }
 
+        $tabs = array_map(
+            fn (array $one): array => ['id' => $one['id'], 'label' => $words($one['label']), 'current' => ! $settingsCurrent && $one['id'] === $current['id']],
+            $plugin->area->pages,
+        );
+
+        if ($settingsTab) {
+            $tabs[] = [
+                'id' => 'settings',
+                'label' => __('Settings'),
+                'current' => $settingsCurrent,
+                'href' => route('plugins.area.settings', ['code' => $plugin->code], false),
+            ];
+        }
+
         return [
-            'plugin' => ['code' => $plugin->code, 'name' => $plugin->label],
+            'plugin' => ['code' => $plugin->code, 'name' => $plugin->label, 'icon' => $this->iconUrl($plugin)],
             'area' => ['label' => $words($plugin->area->label), 'description' => $words($plugin->area->description)],
-            'tabs' => array_map(fn (array $one): array => ['id' => $one['id'], 'label' => $words($one['label']), 'current' => $one['id'] === $current['id']], $plugin->area->pages),
-            'current' => ['id' => $current['id'], 'label' => $words($current['label'])],
+            'tabs' => $tabs,
+            'current' => ['id' => $current['id'], 'label' => $settingsCurrent ? __('Settings') : $words($current['label'])],
             'blocks' => $blocks,
         ];
+    }
+
+    /**
+     * The address of the plugin's own icon for the area header, or null when
+     * the package declares none or the file is missing.
+     */
+    private function iconUrl(AreaPlugin $plugin): ?string
+    {
+        $found = $this->registry->find($plugin->name);
+        $manifest = $found?->manifest;
+
+        if ($found === null || $manifest === null || PackagePictures::find($found->path, $manifest->icon()) === null) {
+            return null;
+        }
+
+        return route('plugins.area.icon', ['code' => $plugin->code, 'v' => $manifest->version()]);
     }
 
     /**

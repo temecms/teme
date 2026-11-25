@@ -174,9 +174,9 @@ it('works out the policy once per change, not per page', function (): void {
 
     addrGet('/')->assertOk();
 
-    $cached = Cache::memo()->get('site-code:on:2');
+    $cached = Cache::memo()->get('site-code:on:3');
 
-    expect(SiteCodeEntries::CACHE_KEY)->toBe('site-code:on:2')
+    expect(SiteCodeEntries::CACHE_KEY)->toBe('site-code:on:3')
         ->and($cached['head'][0]['policy']['scripts'] ?? null)->toBe([PagePolicy::hash('on()')]);
 
     $read = 0;

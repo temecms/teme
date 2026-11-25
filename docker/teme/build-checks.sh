@@ -41,7 +41,8 @@ done
 id -u teme-installer 2>/dev/null | grep -qx 9990 || missing "the installer's user (teme-installer, uid 9990) doesn't exist."
 id -nG nginx 2>/dev/null | grep -qw www-data || missing "nginx isn't in www-data's group, so it can't read the files PHP writes."
 command -v setpriv >/dev/null || missing "setpriv isn't installed."
-for file in /usr/local/bin/teme-entrypoint /usr/local/bin/teme-healthcheck /usr/local/lib/teme/start-all /usr/local/lib/teme/deploy-step /usr/local/lib/teme/installer-prepare /usr/local/lib/teme/as-site /usr/local/lib/teme/as-installer; do
+bash -c '[ "${BASH_VERSINFO[0]}" -gt 5 ] || { [ "${BASH_VERSINFO[0]}" -eq 5 ] && [ "${BASH_VERSINFO[1]}" -ge 1 ]; }' || missing "bash isn't 5.1 or later, which queue-workers needs."
+for file in /usr/local/bin/teme-entrypoint /usr/local/bin/teme-healthcheck /usr/local/lib/teme/start-all /usr/local/lib/teme/queue-workers /usr/local/lib/teme/deploy-step /usr/local/lib/teme/installer-prepare /usr/local/lib/teme/as-site /usr/local/lib/teme/as-installer; do
     [ -x "$file" ] || missing "$file isn't there, or isn't executable."
 done
 [ -x /command/s6-svstat ] || missing "s6-overlay's s6-svstat isn't at /command."

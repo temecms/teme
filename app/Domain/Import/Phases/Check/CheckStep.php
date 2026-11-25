@@ -85,8 +85,8 @@ final readonly class CheckStep implements StepPhase
         $others = [];
         // The old file addresses the uploads rule answers, counted across jobs after the cursor's |.
         [$position, $files] = self::counted($cursor);
-        // A file's media kept on the old site as links, as the person chose: their addresses aren't Teme's to answer.
-        $kept = $context->readsFile() && $context->choice('media') === 'links';
+        // Media kept on the old site, as links or until the picture pass, as the person chose: their addresses aren't Teme's to answer yet.
+        $kept = $context->keepsOldSiteMedia();
         $kinds = $kept ? array_values(array_diff(OldSiteUrls::KINDS, self::MEDIA_KINDS)) : OldSiteUrls::KINDS;
 
         while (true) {
@@ -121,7 +121,9 @@ final readonly class CheckStep implements StepPhase
                 : number_format($files).' old file addresses now redirect to the media library.', ['count' => $files]);
         }
 
-        if ($kept && $context->fileId !== null) {
+        if ($context->bringsMediaLater()) {
+            $messages[] = new ImportMessage('check.media-later', "The media files come after the articles, in the background: until each one is copied here, posts show it from {$host}. Keep that site up until the pictures are done.", ['host' => $host]);
+        } elseif ($kept && $context->fileId !== null) {
             $messages = [...$messages, ...self::keptMedia($context->fileId, $context->sourceId, $host)];
         }
 

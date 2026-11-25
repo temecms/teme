@@ -25,6 +25,7 @@ namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\Plugins\PluginSiteAi;
+use App\Domain\Cards\Plugin\CoreCardsChanged;
 use App\Domain\Contents\Queries\ItemSnapshots;
 use App\Domain\Contents\Queries\PublishedItems;
 use App\Domain\Contents\Queries\QueuedItems;
@@ -47,6 +48,7 @@ use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use App\Domain\Site\Insertions\Scripts\PluginInlineScripts;
 use App\Domain\Users\Queries\AuthorOptions;
 use Teme\Contracts\Ai\SiteAi;
+use Teme\Contracts\Cards\CardsChanged;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\HtmlToDocument;
@@ -131,6 +133,11 @@ final readonly class PluginDoors implements PluginServices
         if (in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true)) {
             $offered[InsertionsChanged::class] = $this->insertionsChanged;
             $offered[InlineScripts::class] = new PluginInlineScripts($code);
+        }
+
+        // What its cards draw changed (docs/guides/developers/plugins/cards.md).
+        if (in_array(Capability::PagesInsert->value, $capabilities, true)) {
+            $offered[CardsChanged::class] = new CoreCardsChanged($code);
         }
 
         if (in_array(Capability::FediverseRead->value, $capabilities, true)) {

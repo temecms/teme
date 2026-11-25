@@ -95,7 +95,7 @@ afterEach(function (): void {
 it('draws the area’s page under the plugin’s own name, its blocks as declared, each block’s data deferred', function (): void {
     ($this->overview)($this->editor)->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('plugins/area')
-        ->where('plugin', ['code' => 'placard', 'name' => 'Placard'])
+        ->where('plugin', ['code' => 'placard', 'icon' => null, 'name' => 'Placard'])
         ->where('area.label', 'Ads')
         ->where('tabs', [['id' => 'overview', 'label' => 'Overview', 'current' => true], ['id' => 'ads', 'label' => 'Ads', 'current' => false]])
         ->where('blocks.0.type', 'figures')

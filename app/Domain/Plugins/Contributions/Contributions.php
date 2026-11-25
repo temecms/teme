@@ -22,6 +22,8 @@ use App\Domain\PublicRoutes\RootFileNames;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Contracts\Container\Container;
+use Teme\Contracts\Cards\HasCards;
+use Teme\Contracts\Cards\PluginCard;
 use Teme\Contracts\Head\HasHeadMeta;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Insertions\PageInsertionContributor;
@@ -64,6 +66,7 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->jobHandlers($jobs, $plugin));
         array_push($errors, ...$this->columnHandlers($contributes['columns'] ?? [], $plugin));
         array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
+        array_push($errors, ...$this->cardHandlers($contributes['cards'] ?? [], $plugin));
         array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
         array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
         array_push($errors, ...app(SeoValidator::class)->startErrors($contributes, $plugin));
@@ -82,7 +85,7 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== [], searchEngines: $plugin instanceof HasHeadMeta || $plugin instanceof HasStructuredData || $plugin instanceof HasSitemaps), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== [], searchEngines: $plugin instanceof HasHeadMeta || $plugin instanceof HasStructuredData || $plugin instanceof HasSitemaps, cards: $plugin instanceof HasCards), $name);
 
             // A name its settings fill is checked when they are saved (docs/guides/developers/plugins/root-files.md).
             if ($rootFiles) {
@@ -229,6 +232,48 @@ final readonly class Contributions implements PluginContributions
         foreach ($handlers as $id) {
             if (! isset($declared[$id])) {
                 $errors[] = "It has a class for list \"{$id}\", which isn’t declared.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Declared card ids must match the plugin's cards() keys, and the other
+     * way round, each a PluginCard (docs/guides/developers/plugins/cards.md).
+     * Cards are not registered here; PluginCards reads them from the
+     * manifest when a region asks.
+     *
+     * @return list<string>
+     */
+    private function cardHandlers(mixed $cards, object $plugin): array
+    {
+        $declared = [];
+
+        foreach (is_array($cards) ? $cards : [] as $entry) {
+            if (is_array($entry) && is_string($entry['id'] ?? null)) {
+                $declared[$entry['id']] = true;
+            }
+        }
+
+        if (! ($plugin instanceof HasCards)) {
+            return $declared === []
+                ? []
+                : ['It declares cards but doesn’t implement '.HasCards::class.'.'];
+        }
+
+        $handlers = $plugin->cards();
+        $errors = [];
+
+        foreach (array_keys($declared) as $id) {
+            if (! ($handlers[$id] ?? null) instanceof PluginCard) {
+                $errors[] = "It declares card \"{$id}\" but has no ".PluginCard::class.' for it.';
+            }
+        }
+
+        foreach (array_keys($handlers) as $id) {
+            if (! isset($declared[$id])) {
+                $errors[] = "It has a class for card \"{$id}\", which isn’t declared.";
             }
         }
 

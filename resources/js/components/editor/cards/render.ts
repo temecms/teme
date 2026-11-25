@@ -483,23 +483,42 @@ function imageMarkup(
     return `<img src="${escape(src.url)}" srcset="${escape(srcset)}" sizes="${escape(sizes)}" alt="${escape(text)}" width="${item.width}" height="${item.height}"${style} loading="lazy" decoding="async">`;
 }
 
+/**
+ * An outside picture as PHP's ImageCard draws it: the old site's file at its
+ * address, while an import brings it into the library.
+ */
+function outsideMarkup(source: string, attrs: Attrs): string {
+    const alt = attrs.decorative ? '' : text(attrs.alt).trim();
+    const size =
+        typeof attrs.sourceWidth === 'number' &&
+        typeof attrs.sourceHeight === 'number'
+            ? ` width="${attrs.sourceWidth}" height="${attrs.sourceHeight}"`
+            : '';
+
+    return `<img src="${escape(source)}" alt="${escape(alt)}"${size} loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
+}
+
 type CardRenderer = (attrs: Attrs, context: Context) => string;
 
 const CARDS: Record<string, CardRenderer> = {
     image: (attrs, { media, manifest }) => {
         const item = media[text(attrs.mediaId)];
+        const source = text(attrs.source);
 
-        if (item === undefined) {
+        if (item === undefined && source === '') {
             return '';
         }
 
-        const image = imageMarkup(
-            item,
-            'content',
-            manifest,
-            text(attrs.alt),
-            Boolean(attrs.decorative),
-        );
+        const image =
+            item === undefined
+                ? outsideMarkup(source, attrs)
+                : imageMarkup(
+                      item,
+                      'content',
+                      manifest,
+                      text(attrs.alt),
+                      Boolean(attrs.decorative),
+                  );
 
         if (image === '') {
             return '';

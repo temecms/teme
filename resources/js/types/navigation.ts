@@ -23,6 +23,8 @@ export type AdminNavChild = {
     badge: number;
     /** Planned and not built (I-3408): drawn with a Soon tag, opening nothing; its href is empty. */
     soon?: true;
+    /** The plugin that added this entry; absent for Teme's own. */
+    plugin?: string;
 };
 
 /** A screen of a hub, such as Settings › General, for the palette's Go to. */

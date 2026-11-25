@@ -33,6 +33,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [The plugin import socket](plugins/import.md)
 - [Content inside articles](plugins/insertions.md)
 - [Content on every page](plugins/page-insertions.md)
+- [Cards for a theme's regions](plugins/cards.md)
 - [The fediverse](plugins/fediverse.md)
 - [List columns](plugins/list-columns.md)
 - [Feeds and the site](plugins/feeds-and-site.md)

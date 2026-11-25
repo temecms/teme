@@ -46,6 +46,7 @@ use App\Http\Admin\Contents\EditorPanelController;
 use App\Http\Admin\Contents\LinkChoicesController;
 use App\Http\Admin\Contents\LinkedContentController;
 use App\Http\Admin\Contents\LinkTargetsController;
+use App\Http\Admin\Contents\PluginCardChoicesController;
 use App\Http\Admin\Contents\PluginChecksController;
 use App\Http\Admin\Contents\PreviewLinkController;
 use App\Http\Admin\Contents\ReviewController;
@@ -252,6 +253,10 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::post('records/{record}/act', [PluginAreaController::class, 'act'])->name('act');
                 Route::get('records/{record}/{id}', [PluginAreaController::class, 'edit'])->name('edit');
                 Route::post('records/{record}/{id?}', [PluginAreaController::class, 'save'])->name('save');
+                // Before {page?}: the plugin's own icon for the area header.
+                Route::get('_icon', [PluginAreaController::class, 'icon'])->name('icon');
+                // Before {page?}: a plugin with an area keeps its settings as this tab (#707).
+                Route::get('settings', [PluginAreaController::class, 'settings'])->name('settings');
                 Route::get('{page?}', [PluginAreaController::class, 'show'])->where('page', '[a-z][a-z0-9-]{1,39}')->name('show');
             });
 
@@ -453,6 +458,11 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->middleware('can:content.create')
             ->name('content.card-media');
         Route::get('content/{content}/edit', [ContentEditorController::class, 'edit'])->name('content.edit');
+        // A plugin card's choice field: the options its plugin gives (docs/guides/developers/plugins/cards.md).
+        Route::get('content/{content}/card-choices/{card}/{field}', PluginCardChoicesController::class)
+            ->middleware('can:regions.manage')
+            ->where(['card' => '[a-z0-9][a-z0-9-]*:[a-z][a-z0-9-]*', 'field' => '[a-z][a-z0-9_]*'])
+            ->name('content.card-choices');
         // A plugin's panel in the editor: what it shows, its actions, and the person's use of its suggestions.
         Route::get('content/{content}/panels/{code}/{panel}', [EditorPanelController::class, 'show'])->name('content.panels.show');
         Route::post('content/{content}/panels/{code}/{panel}/actions/{action}', [EditorPanelController::class, 'action'])->middleware('throttle:editor-panels')->name('content.panels.actions');
@@ -522,13 +532,14 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::delete('{id}', [NavigationController::class, 'destroy'])->name('destroy');
             });
 
-        // Content › Regions (I-395). A region is edited in the content editor.
+        // Content › Regions (I-395): the regions on one screen; a region's full editor is the content editor.
         Route::middleware('can:regions.manage')
             ->prefix('regions')
             ->name('regions.')
             ->group(function (): void {
                 Route::get('/', [RegionsController::class, 'index'])->name('index');
                 Route::post('/', [RegionsController::class, 'store'])->name('store');
+                Route::post('{content}/discard', [RegionsController::class, 'discard'])->whereUlid('content')->name('discard');
             });
 
         // Asking AI for a suggestion, collecting it, putting it aside and using it (I-317).
@@ -562,6 +573,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::post('{source}/catch-up', [ImportRunController::class, 'catchUp'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('catch-up');
             Route::post('runs/{run}/stop', [ImportRunController::class, 'stop'])->where('run', '[0-9a-hjkmnp-tv-z]{26}')->name('stop');
             Route::post('runs/{run}/carry-on', [ImportRunController::class, 'carryOn'])->where('run', '[0-9a-hjkmnp-tv-z]{26}')->name('carry-on');
+            Route::post('runs/{run}/pictures', [ImportRunController::class, 'pictures'])->where('run', '[0-9a-hjkmnp-tv-z]{26}')->name('pictures');
             Route::get('runs/{run}/{file}', [ImportScreenController::class, 'download'])
                 ->where(['run' => '[0-9a-hjkmnp-tv-z]{26}', 'file' => 'everything|attention'])
                 ->name('download');

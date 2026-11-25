@@ -175,6 +175,19 @@ final class SettingsForm
     }
 
     /**
+     * One setting as the settings form draws it, for another form built of
+     * settings, such as a plugin card's fields.
+     *
+     * @return array<string, mixed>
+     *
+     * @since next
+     */
+    public function fieldOf(Setting $setting): array
+    {
+        return $this->field($setting);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function field(Setting $setting): array

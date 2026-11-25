@@ -36,9 +36,13 @@ use App\Domain\Fields\RequiredFields;
 use App\Domain\Hooks\Payloads;
 use App\Domain\Media\MediaProjection;
 use App\Domain\Regions\RegionRules;
+use App\Domain\SiteCode\RegionCode;
+use App\Domain\SiteCode\RegionCodeLog;
+use App\Domain\SiteCode\SiteCode;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Taxonomy\TermProjection;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\CoreTypes;
 use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -47,8 +51,9 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Operations\OperationInput;
+use Teme\Contracts\Operations\RequiresElevation;
 
-final class PublishRevision extends BaseOperation
+final class PublishRevision extends BaseOperation implements RequiresElevation
 {
     use FollowsTree;
     use PurgesTranslations;
@@ -62,6 +67,42 @@ final class PublishRevision extends BaseOperation
         if ($user === null || ! Gate::forUser($user)->allows('publish', $content)) {
             throw new AuthorizationException('Not permitted to publish this content.');
         }
+
+        // Code put on the site or changed there goes live only by someone who
+        // may manage site code; taking it off, anyone who may publish the region.
+        if (RegionCode::addsOrChanges(self::codeChanges($content, $input->revisionId)) && ! RegionCode::manages($user)) {
+            throw new AuthorizationException(SiteCode::disallowed() ? SiteCode::SWITCHED_OFF : 'Only an administrator can publish this region: it changes its Custom HTML code.');
+        }
+    }
+
+    /**
+     * Publishing a region whose Custom HTML code changes on the site asks
+     * for the password again (docs/architecture/security.md).
+     */
+    public function requiresElevation(OperationInput $input): bool
+    {
+        /** @var PublishRevisionInput $input */
+        $content = Content::query()->find($input->contentId);
+
+        return $content !== null && self::codeChanges($content, $input->revisionId) !== [];
+    }
+
+    /**
+     * What publishing this revision of a region does to the code on the
+     * site, card by card; none for any other item, or a revision not its own.
+     *
+     * @return list<array{kind: 'added'|'changed'|'removed', id: string, before: array{code: string, origins: list<string>, on: bool}, after: array{code: string, origins: list<string>, on: bool}}>
+     */
+    private static function codeChanges(Content $content, string $revisionId): array
+    {
+        if ($content->type !== CoreTypes::REGION) {
+            return [];
+        }
+
+        $target = ContentRevision::query()->whereKey($revisionId)->where('content_id', $content->id)->value('document');
+        $live = $content->published_revision_id === null || $content->status !== 'published' ? [] : ContentRevision::query()->whereKey($content->published_revision_id)->value('document');
+
+        return RegionCode::changes((array) ($live ?? []), (array) ($target ?? []));
     }
 
     protected function validate(OperationInput $input): void
@@ -129,6 +170,7 @@ final class PublishRevision extends BaseOperation
         $this->noteChain($content, $nests);
 
         $before = ContentState::of($content);
+        $code = self::codeChanges($content, (string) $revision->id);
         // What the public saw of it, read under the lock (I-263).
         $shown = Footprints::content($content);
 
@@ -147,6 +189,7 @@ final class PublishRevision extends BaseOperation
             'scheduled_for' => null,
         ]);
 
+        RegionCodeLog::published($code, $input->actorId(), (string) $content->id, (string) $content->slug, (string) $revision->id);
         ContentCounts::apply($before, ContentState::of($content));
         TermProjection::sync($content);
         MediaProjection::sync($content, $input->actorId());

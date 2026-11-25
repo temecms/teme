@@ -15,8 +15,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Jobs;
 
+use App\Domain\Import\Convert\Media\ImageTrace;
 use App\Domain\Import\ImportEngine;
 use App\Domain\Import\ImportMode;
+use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Jobs\Concerns\EndsRuns;
 use App\Domain\Import\Jobs\Concerns\WaitsForTheSource;
@@ -32,6 +34,8 @@ use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Phases\ListPhase;
+use App\Domain\Import\Phases\Media\MediaPhase;
+use App\Domain\Import\Phases\Media\MediaRestPhase;
 use App\Domain\Import\Phases\PreparesObjects;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
@@ -153,11 +157,45 @@ final class ImportListPage implements ShouldQueue
             return;
         }
 
+        // A picture pass swaps in this page's files where posts wait for them, a page of posts at a time (#716).
+        $keys = $context->kind === ImportRunKind::MediaPass && ($phase instanceof MediaPhase || $phase instanceof MediaRestPhase) ? self::waitingKeys($page->items) : [];
+
+        if ($keys !== []) {
+            $this->batch()?->add([new SwapPictures($this->runId, $this->token, $keys, '', $this->actor)]);
+        }
+
         if ($next !== null) {
             $this->batch()?->add([
                 (new self($this->runId, $this->token, $this->phase, $this->list, $next, $this->actor))->delay(now()->addMilliseconds($context->pauseMs)),
             ]);
         }
+    }
+
+    /**
+     * What a page of attachments answers of the posts' waiting keys: each
+     * one's ID, and its original file below the uploads folder.
+     *
+     * @param  array<int|string, mixed>  $items
+     *
+     * @return list<string>
+     */
+    private static function waitingKeys(array $items): array
+    {
+        $keys = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item) || ! is_int($item['id'] ?? null)) {
+                continue;
+            }
+
+            $keys[] = 'a:'.$item['id'];
+
+            if (is_string($item['file'] ?? null) && $item['file'] !== '') {
+                $keys[] = 'f:'.ImageTrace::original(strtolower($item['file']));
+            }
+        }
+
+        return array_values(array_unique($keys));
     }
 
     /**

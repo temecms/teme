@@ -211,7 +211,7 @@ it('opens the consent dialog, lists what it asks to, and enables the plugin afte
     $page->click('[data-test="consent-confirm"]');
     cmWaitUntil($page, "location.pathname === '/admin/user/confirm-password'");
     $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
-    ($this->seen)($page, 'Hello enabled. Its contributions appear where they belong.');
+    ($this->seen)($page, 'Hello enabled: it runs in the background; there is nothing to open.');
 
     expect(PluginRecord::query()->where('name', 'tests/hello')->value('state'))->toBe('enabled');
     $page->assertScript("document.querySelector('[data-test=\"plugin-hello\"] [data-test=\"plugin-state\"]')?.textContent === 'Enabled'");

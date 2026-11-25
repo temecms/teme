@@ -25,11 +25,11 @@ it('lists the active theme\'s regions with their state', function (): void {
         ->where('regions.0.cards', ['callout', 'button']));
 });
 
-it('creates a region and opens it in the editor in region mode', function (): void {
+it('creates a region, shows it chosen on the screen, and still opens it in the editor in region mode', function (): void {
     $response = $this->actingAs($this->editor)->post('/admin/regions', ['theme' => 'good', 'region' => 'after-content']);
 
     $region = Content::query()->where('type', 'region')->firstOrFail();
-    $response->assertRedirect("/admin/content/{$region->id}/edit");
+    $response->assertRedirect('/admin/regions?region=after-content');
 
     $this->actingAs($this->editor)->get("/admin/content/{$region->id}/edit")->assertInertia(fn (Assert $page) => $page
         ->where('kind', 'region')
@@ -66,8 +66,8 @@ it('lists the regions kept from other themes under an open Unplaced heading, wit
         ->toContain('data-test="unplaced"')
         ->toContain('Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.')
         ->toContain('Regions kept from themes not in use')
-        ->toContain('row.cardLabels')
-        ->toContain('row.limit')
+        ->toContain('<RegionPanel')
+        ->toContain('region.limit')
         ->not->toContain('Collapsible')
         ->not->toContain('Regions of other themes');
 });

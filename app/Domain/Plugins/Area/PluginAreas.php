@@ -18,6 +18,7 @@ use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Settings\SettingsRegistry;
 use Teme\Contracts\Admin\HasPluginArea;
 use Teme\Contracts\Admin\PluginArea;
 use Throwable;
@@ -28,6 +29,7 @@ final readonly class PluginAreas
         private PluginRecords $records,
         private PluginRegistry $registry,
         private LoadedPlugins $loaded,
+        private SettingsRegistry $settings,
     ) {}
 
     /**
@@ -64,6 +66,16 @@ final readonly class PluginAreas
         }
 
         return null;
+    }
+
+    /**
+     * Whether this plugin has its own area and a settings group, so its
+     * settings belong as that area's Settings tab rather than under
+     * Settings › From plugins.
+     */
+    public function hasSettingsTab(string $code): bool
+    {
+        return $this->find($code) !== null && $this->settings->find("plugin.{$code}") !== null;
     }
 
     private function read(string $name, string $code): ?AreaPlugin

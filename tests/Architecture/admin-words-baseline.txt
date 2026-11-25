@@ -298,7 +298,6 @@ pages/navigation/edit.tsx	This menu has no items yet
 pages/regions/index.tsx	From other themes
 pages/regions/index.tsx	Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.
 pages/regions/index.tsx	No theme is in use
-pages/regions/index.tsx	Text only
 pages/regions/index.tsx	Theme no longer installed
 pages/regions/index.tsx	There’s nothing to fill here while {} is the active theme.
 pages/regions/index.tsx	Your own content in the spots the active theme sets aside, such as a box after each article.

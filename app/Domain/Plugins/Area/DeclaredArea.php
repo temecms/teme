@@ -37,6 +37,8 @@ final readonly class DeclaredArea
         public array $purges,
         public array $pages,
         public array $records,
+        /** The menu icon; plug when the area names none. @since next */
+        public string $icon = 'plug',
     ) {}
 
     /**
@@ -80,6 +82,8 @@ final readonly class DeclaredArea
             ];
         }
 
+        $icon = self::string($area, 'icon');
+
         return new self(
             label: self::string($area, 'label'),
             description: self::string($area, 'description'),
@@ -88,6 +92,7 @@ final readonly class DeclaredArea
             purges: array_values(array_filter(is_array($area['purges'] ?? null) ? $area['purges'] : [], is_string(...))),
             pages: $pages,
             records: $records,
+            icon: $icon !== '' ? $icon : 'plug',
         );
     }
 

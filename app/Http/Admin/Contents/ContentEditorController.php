@@ -40,7 +40,7 @@ use App\Domain\Plugins\Editor\EditorPanels;
 use App\Domain\Plugins\Seo\PluginSearchFields;
 use App\Domain\Regions\Queries\RegionScreens;
 use App\Domain\Seo\Queries\EditorSearchAndSocial;
-use App\Domain\SiteCode\Queries\SiteCodeScreen;
+use App\Domain\SiteCode\RegionCode;
 use App\Domain\SiteCode\SiteCode;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Users\Queries\AuthorOptions;
@@ -74,9 +74,9 @@ final class ContentEditorController extends Controller
             'authors' => $request->user()?->can($types->ability($session->type, 'edit.any')) === true ? $authorOptions->all() : null,
             'kind' => $region === null ? 'content' : 'region',
             'allowedCards' => $region['cards'] ?? null,
-            'themeRegion' => $region === null ? null : ['label' => $region['label'], 'themeName' => $region['themeName'], 'inUse' => $region['inUse'], 'cardLabels' => $region['cardLabels'], 'max' => $region['max'], 'takes' => $region['takes']],
-            // The code the Custom HTML card may place, by name, never the code itself, and the host's switch; null outside region mode (I-3127).
-            'placedCode' => $region === null ? null : SiteCodeScreen::placed(),
+            'themeRegion' => $region === null ? null : ['label' => $region['label'], 'themeName' => $region['themeName'], 'inUse' => $region['inUse'], 'cardLabels' => $region['cardLabels'], 'max' => $region['max'], 'size' => $region['size'], 'takes' => $region['takes']],
+            // Whether this person may read and change a Custom HTML card's code, and the host's switch; null outside region mode.
+            'canManageSiteCode' => $region === null ? null : RegionCode::manages($request->user()),
             'siteCodeLocked' => $region === null ? null : SiteCode::disallowed(),
             'siteUrl' => url('/'),
             // Every time the editor shows or asks for is on this clock, named.

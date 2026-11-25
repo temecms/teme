@@ -64,6 +64,9 @@ final class RecordMediaFiles extends BaseOperation
             return [];
         }
 
+        // One order for every caller: two media lanes inserting the same keys in opposite orders would wait on each other (#701).
+        sort($keys, SORT_STRING);
+
         $now = now();
         $facts = json_encode(['attachment' => $input->attachmentId], JSON_THROW_ON_ERROR);
 

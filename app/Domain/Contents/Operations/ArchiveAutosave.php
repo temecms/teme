@@ -22,8 +22,11 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentAutosave;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Contents\Operations\Input\ArchiveAutosaveInput;
+use App\Domain\SiteCode\RegionCode;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\Operator;
+use App\Domain\Types\CoreTypes;
+use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Date;
 use Teme\Contracts\Operations\OperationInput;
@@ -62,6 +65,17 @@ final class ArchiveAutosave extends BaseOperation
         }
 
         $document = DocumentNormaliser::normalise($autosave->document);
+
+        // The autosave of someone who may not read a region's code holds it hidden; the revision keeps the code its cards had.
+        if ($content->type === CoreTypes::REGION && ! RegionCode::manages(User::query()->find($autosave->user_id))) {
+            $base = (array) (ContentRevision::query()->whereKey($autosave->based_on_revision_id ?? $content->working_revision_id)->value('document') ?? []);
+
+            try {
+                $document = RegionCode::carry($document, $base);
+            } catch (AuthorizationException) {
+                $document = RegionCode::carry(RegionCode::redact($document), $base);
+            }
+        }
 
         $revision = ContentRevision::query()->create([
             'content_id' => $content->id,

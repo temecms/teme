@@ -19,6 +19,8 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Hooks\Payloads;
+use App\Domain\SiteCode\RegionCode;
+use App\Domain\Types\CoreTypes;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Content\ItemRef;
@@ -40,7 +42,8 @@ final readonly class ItemSnapshots
             Payloads::item($content),
             (string) $revision->id,
             (string) $content->slug,
-            (array) $revision->document,
+            // A plugin never reads a region's Custom HTML code (docs/architecture/security.md).
+            $content->type === CoreTypes::REGION ? RegionCode::redact((array) $revision->document) : (array) $revision->document,
             $this->byHandle((string) $content->type, (array) $revision->fields),
             self::terms(array_map(strval(...), (array) $revision->terms)),
             self::credits((string) $content->id),

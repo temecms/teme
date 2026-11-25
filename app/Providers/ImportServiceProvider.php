@@ -38,7 +38,9 @@ use App\Domain\Import\Phases\Languages\LanguageWordsStep;
 use App\Domain\Import\Phases\Languages\TranslationsStep;
 use App\Domain\Import\Phases\Media\MediaParentsStep;
 use App\Domain\Import\Phases\Media\MediaPhase;
+use App\Domain\Import\Phases\Media\MediaRestPhase;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
+use App\Domain\Import\Phases\Media\PicturesLeftStep;
 use App\Domain\Import\Phases\Menus\MenusPhase;
 use App\Domain\Import\Phases\Menus\UnplacedMenusStep;
 use App\Domain\Import\Phases\Redirects\RedirectsStep;
@@ -82,7 +84,7 @@ final class ImportServiceProvider extends ServiceProvider
 
         $this->app->tag([TermsPhase::class, TermParentsStep::class], ImportPhases::TAG);
 
-        $this->app->tag([MediaPhase::class, OutsideImagesStep::class, MediaParentsStep::class], ImportPhases::TAG);
+        $this->app->tag([MediaPhase::class, MediaRestPhase::class, OutsideImagesStep::class, MediaParentsStep::class, PicturesLeftStep::class], ImportPhases::TAG);
 
         $this->app->tag([ContentVisibilityStep::class], ImportPhases::TAG);
 

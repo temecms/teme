@@ -80,7 +80,7 @@ final class CardProse
 
         return app(DocumentRenderer::class)->html(
             ['type' => 'doc', 'content' => array_values((array) ($value['content'] ?? []))],
-            new RenderContext($context->links, $context->target, $context->media, linkAttributes: $context->linkAttributes),
+            new RenderContext($context->links, $context->target, $context->media, linkAttributes: $context->linkAttributes, region: $context->region),
         );
     }
 

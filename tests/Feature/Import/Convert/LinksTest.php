@@ -283,3 +283,22 @@ it('makes one key for a page however its path is written', function (): void {
         ->and(ConversionSite::pageKey('/'))->toBe('/')
         ->and(ConversionSite::pageKey(''))->toBe('/');
 });
+
+it('shows an own image from the old site while the pictures come after the articles, and says what it waits for (#716)', function (): void {
+    $src = 'https://old.example/wp-content/uploads/2024/05/Teeth-Whitening-1024x683.jpg';
+
+    $conversion = WordPressContent::convert([
+        WordPressContent::classic('<p>Before.</p>'),
+        wpBlock('core/image', "<figure class=\"wp-block-image\"><img src=\"{$src}\" alt=\"Teeth\" width=\"1024\" height=\"683\" class=\"wp-image-99\"/><figcaption>A smile</figcaption></figure>", ['id' => 99]),
+    ], new KnownTargets(oldSiteMedia: true, drawsOldSiteImages: true));
+    wpAccepted($conversion->document);
+
+    expect(wpWithoutIds($conversion->document)['content'])->toBe([
+        WordPressContent::p('Before.'),
+        ['type' => 'image', 'attrs' => [
+            'mediaId' => null, 'source' => $src, 'sourceWidth' => 1024, 'sourceHeight' => 683,
+            'alt' => 'Teeth', 'decorative' => false, 'caption' => 'A smile', 'credit' => null, 'width' => 'column',
+        ]],
+    ])->and(WordPressContent::said($conversion))->toBe([])
+        ->and($conversion->waitingMedia)->toBe(['a:99', 'f:2024/05/teeth-whitening.jpg']);
+});

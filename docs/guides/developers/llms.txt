@@ -27,6 +27,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [The plugin import socket](plugins/import.md): How a plugin brings its own data across when a site moves from WordPress, declaring exactly what it reads and receiving it from Teme's import.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
 - [Content on every page](plugins/page-insertions.md): How a plugin with pages.insert places markup in the head, at the top and bottom of every page, between list items, around a theme's regions and fixed to the screen's edge, and what core cleans, caps and leaves out.
+- [Cards for a theme's regions](plugins/cards.md): How a plugin with pages.insert offers cards that editors place in a theme's regions, with fields core draws, options it gives while a card is filled in, and markup it draws on the public page.
 - [The fediverse](plugins/fediverse.md): What core does on the fediverse by itself, and the sockets a plugin can use to hear activities, handle them, change what is sent, and send its own.
 - [List columns](plugins/list-columns.md): How a plugin adds a column to the admin's content lists.
 - [Feeds and the site](plugins/feeds-and-site.md): How a plugin adds links to the site's feeds, reads the site's address, name, language and feeds, hears which feeds a change touched, and posts a form to a service outside the site.

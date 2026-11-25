@@ -37,6 +37,7 @@ final readonly class KnownTargets implements SourceTargets
         private array $outside = [],
         private array $attached = [],
         private bool $oldSiteMedia = false,
+        private bool $drawsOldSiteImages = false,
     ) {}
 
     public function page(string $key): ?array
@@ -77,6 +78,11 @@ final readonly class KnownTargets implements SourceTargets
     public function keepsOldSiteMedia(): bool
     {
         return $this->oldSiteMedia;
+    }
+
+    public function drawsOldSiteImages(): bool
+    {
+        return $this->drawsOldSiteImages;
     }
 
     public function attached(int $postId, string $type): array

@@ -142,7 +142,7 @@ it('says under a code setting which scripts wait on the plugin’s settings page
     app(UpdateSettings::class)->execute(new UpdateSettingsInput('plugin.placard', ['fallback' => '<script>window.fallback = 1;</script>'], [], [], $version, (string) $this->admin->id));
     $script = PluginScript::query()->sole();
 
-    $this->actingAs($this->admin)->get(route('settings.show', ['group' => 'plugin.placard']))
+    $this->actingAs($this->admin)->get(route('plugins.area.settings', ['code' => 'placard']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('pluginScripts.code', 'placard')
             ->where('pluginScripts.waiting', ['values.fallback' => [['id' => (string) $script->id, 'script' => 'window.fallback = 1;']]])

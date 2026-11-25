@@ -129,6 +129,12 @@ Set `TEME_UPDATES_CHECK` and `TEME_UPDATES_CHANNEL` the same on every role: `web
 | `TEME_UPDATER_DEPLOY_TIMEOUT` | `3600` | Seconds the updater waits for the deploy to finish. The updater only. |
 | `TEME_UPDATER_PART_TIMEOUT` | `900` | Seconds the updater waits for each later step. The updater only. |
 
+## Background work
+
+| Setting | Default | What it does |
+|---|---|---|
+| `TEME_QUEUE_WORKERS` | `1` | How many workers take the default queue, from 1 to 8: in the `worker` role, or in the one container that runs every role. Each takes one job at a time, so more of them do more at once; an import from an export file then fetches that many media files at once, up to the media setting *Files fetched at once in an import* (Settings › Media › Imports, 4 by default). Each worker needs about 512 MB of memory: raise the `worker` container's memory limit with it, or the one container's. A value outside 1 to 8 stops the container from starting, saying so. |
+
 ## Sessions and mail
 
 | Variable | Default | What it does |
@@ -152,7 +158,7 @@ A key set here replaces the stored one, and nobody can change it in the admin.
 
 | Variable | Default | What it does |
 |---|---|---|
-| `TEME_DISALLOW_SITE_CODE` | `false` | Set it to `true` on a host that forbids code added from the admin: no page draws the entries in **Settings › Site code**, and nobody can change them. A deploy clears the page cache, so you need only deploy after changing it. |
+| `TEME_DISALLOW_SITE_CODE` | `false` | Set it to `true` on a host that forbids code added from the admin: no page draws the entries in **Settings › Site code** or the code in a region's Custom HTML cards, and nobody can change them; a card can still be removed. A deploy clears the page cache, so you need only deploy after changing it. |
 | `TEME_PUBLIC_CSP` | `report-only` | The public site's content security policy. `report-only` blocks nothing and sends what it would block to the site, which `php artisan teme:csp:reports` lists; `enforce` blocks it; `off` sends no policy at all, as an escape hatch. A deploy clears the page cache, so you need only deploy after changing it. |
 
 ## Plugins

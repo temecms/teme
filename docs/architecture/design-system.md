@@ -685,7 +685,7 @@ Head: title, count, and for a plugin's panel the **plugin mark** (plug icon and 
 
 ### 4.30 Page header
 
-**New** `patterns/page-header.tsx` (replacing `list/page-header.tsx` and `heading.tsx` as page titles). Flex, items aligned to the end, gap 16, wraps; margin 8 0 24. Start: the `h1` (`text-title` 600, −0.01em; a plugin's page adds its plugin mark after it) and one line of description (`text-body` `--ink-2`, 4px below). End: actions, at most one primary, the primary first in reading order (Home: "+ Post" primary, then "+ Page", "Upload media", ghost "Customise"). One `h1` per page. No breadcrumb here (4.31).
+**New** `patterns/page-header.tsx` (replacing `list/page-header.tsx` and `heading.tsx` as page titles). Flex, items aligned to the end, gap 16, wraps; margin 0 0 24 when the breadcrumb already names the page, 8 0 24 when the large title is shown. Start: the `h1` with the page's name — visually hidden (`sr-only`) when the breadcrumb is the title, or `text-title` 600 −0.01em when `showTitle` is set (Home's greeting, a detail page whose title is not the last crumb; a plugin's page adds its plugin mark after it) — and one quiet line of description (`text-small` `--ink-2` under the crumb, or `text-body` when the large title shows, 4px below). End: actions beside the description, at most one primary, the primary first in reading order (Home: "+ Post" primary, then "+ Page", "Upload media", ghost "Customise"). One `h1` per page. No breadcrumb here (4.31).
 
 ### 4.31 Breadcrumb
 

@@ -160,6 +160,19 @@ it('asks a file’s choices on its plan, refuses ones that don’t fit, and star
         ->and($run->choices['media'])->toBe('download');
 });
 
+it('takes the articles first, then the pictures, as a file’s media choice (#716)', function (): void {
+    $file = FileImports::ready('companion-site.xml', $this->admin);
+    $analysis = app(ImportAnalysis::class)->read((string) $file->source_id);
+    $input = [
+        'owner' => (string) $this->admin->id, 'pause' => '1000',
+        'authors' => ['ada' => 'new:editor', 'grace' => 'new:author', 'harbour' => 'to:'.$this->admin->id, 'seo' => 'new:author', 'reader' => 'new:contributor'],
+        'media' => 'later', 'category_base' => 'category', 'tag_base' => 'tag', 'types' => [],
+    ];
+
+    expect(app(ImportChoices::class)->validatedFile($input, $analysis, $file->id)['choices']['media'])->toBe('later')
+        ->and(app(ImportChoices::class)->validatedFile([...$input, 'media' => 'links'], $analysis, $file->id)['choices']['media'])->toBe('links');
+});
+
 it('checks the old site again on a second plan reload', function (): void {
     $file = FileImports::ready('companion-site.xml', $this->admin);
     $show = '/admin/tools/import/'.$file->source_id;

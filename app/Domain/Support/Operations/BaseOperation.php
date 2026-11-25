@@ -93,6 +93,9 @@ abstract class BaseOperation implements Operation
                 $changes->purge($tags);
                 $this->feedsChanged($tags);
                 app(HookDispatcher::class)->deliver($pending);
+            } else {
+                // Kept for work that purges its own pages when its mode ends (#716).
+                app(ImportMode::class)->hold($tags);
             }
             // Later (I-332): an import run gathers its notifications and delivers them once when it ends.
         });

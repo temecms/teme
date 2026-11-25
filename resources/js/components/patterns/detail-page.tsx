@@ -22,6 +22,7 @@ export function DetailPage({
     panelLabel,
     titleAs,
     badge,
+    showTitle,
     lead,
     back,
     children,
@@ -35,6 +36,8 @@ export function DetailPage({
     titleAs?: 'h1' | 'div';
     /** Drawn after the title: a "Soon" tag. */
     badge?: ReactNode;
+    /** Keep the large title when it is not the breadcrumb's last crumb. */
+    showTitle?: boolean;
     /** Above the content and the panel, across both: a filter row. */
     lead?: ReactNode;
     /** A link back, above the title: "← Back to the editor". */
@@ -50,6 +53,7 @@ export function DetailPage({
                 actions={actions}
                 as={titleAs}
                 badge={badge}
+                showTitle={showTitle}
             />
             {lead}
             <div

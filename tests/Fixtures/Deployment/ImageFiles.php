@@ -208,6 +208,12 @@ final class ImageFiles
             $names[] = $name.'_FILE';
         }
 
+        // Teme's own settings that only the image's scripts read, such as TEME_QUEUE_WORKERS.
+        foreach (['docker/teme/lib/queue-workers', 'docker/teme/lib/start-all', 'docker/teme/bin/teme-healthcheck'] as $script) {
+            preg_match_all('/\$\{(TEME_[A-Z0-9_]+)/', self::text($script), $found);
+            array_push($names, ...$found[1]);
+        }
+
         return array_values(array_unique($names));
     }
 

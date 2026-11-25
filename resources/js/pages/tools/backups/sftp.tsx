@@ -79,6 +79,7 @@ export default function Sftp({
                         ? __('Check the new server')
                         : __('Check the server')
                 }
+                showTitle={purpose === 'change'}
                 description={__(
                     'Teme made this key for the server. Add it there, then check the fingerprint.',
                 )}

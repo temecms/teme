@@ -63,12 +63,13 @@ final class FileImports
      * lets the synchronous queue carry it to its end. The run, fresh.
      *
      * @param  array<string, mixed>  $choices
+     * @param  array<string, int>  $options  more of the run's options than its pause of none
      */
-    public static function run(ImportFile $file, array $choices = []): ImportRun
+    public static function run(ImportFile $file, array $choices = [], array $options = []): ImportRun
     {
         /** @var array{runId: string} $result */
         $result = scElevated(fn (): array => app(StartImportRun::class)->execute(
-            new StartImportRunInput((string) $file->source_id, ImportRunKind::Full, ['pause_ms' => 0], $choices, null, (string) $file->id),
+            new StartImportRunInput((string) $file->source_id, ImportRunKind::Full, ['pause_ms' => 0, ...$options], $choices, null, (string) $file->id),
         ));
 
         return ImportRun::query()->findOrFail($result['runId']);

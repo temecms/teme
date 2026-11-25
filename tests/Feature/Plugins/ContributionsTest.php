@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Plugins\Contributions\Contributions;
+use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Contributions\ToolLink;
 use App\Domain\Plugins\Contributions\ToolLinks;
 use App\Domain\Settings\SettingsRegistry;
@@ -10,6 +11,9 @@ use App\Domain\Status\StatusChecks;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Teme\Contracts\Cards\CardInstance;
+use Teme\Contracts\Cards\HasCards;
+use Teme\Contracts\Cards\PluginCard;
 use Teme\Contracts\Status\StatusNotice;
 use Tests\Fixtures\Plugins\Lists\NoticingPlugin;
 
@@ -95,3 +99,70 @@ it('takes a plugin’s checks only when it implements ChecksStatus', function ()
 
     expect(app(StatusChecks::class)->forUser($admin)?->message)->toBe('Look at me.');
 });
+
+/**
+ * One card, as cardbox declares it, with its fields changed by $change.
+ *
+ * @param  array<string, mixed>  $change
+ *
+ * @return array<string, mixed>
+ */
+function cardContributes(array $change = []): array
+{
+    return ['cards' => [[
+        'id' => 'note',
+        'label' => 'Note',
+        'description' => 'A short note.',
+        'fields' => [['key' => 'body', 'type' => 'text', 'label' => 'Text']],
+        ...$change,
+    ]]];
+}
+
+/**
+ * A card that draws nothing.
+ */
+function quietCard(): PluginCard
+{
+    return new class implements PluginCard
+    {
+        public function render(CardInstance $card): string
+        {
+            return '';
+        }
+    };
+}
+
+it('refuses cards it can’t use, and says why', function (array $contributes, string $why): void {
+    expect(app(ContributionsValidator::class)->errors($contributes, '1.0.0', ['pages.insert']))->toContain($why);
+})->with([
+    'two with one id' => [['cards' => [...cardContributes()['cards'], ...cardContributes()['cards']]], 'Two cards can’t share the id note.'],
+    'a secret field' => [cardContributes(['fields' => [['key' => 'token', 'type' => 'secret', 'label' => 'Token']]]), 'A card’s field can’t be of the type secret.'],
+    'a code field' => [cardContributes(['fields' => [['key' => 'html', 'type' => 'code', 'label' => 'Code']]]), 'A card’s field can’t be of the type code.'],
+    'a bad id' => [cardContributes(['id' => 'Note']), 'A card’s id must be 2 to 41 lower-case letters, digits and hyphens, starting with a letter.'],
+    'no description' => [cardContributes(['description' => '']), 'A card needs a description of 1 to 160 characters.'],
+]);
+
+it('reads cards only with pages.insert', function (): void {
+    expect(app(ContributionsValidator::class)->errors(cardContributes(), '1.0.0', ['content.insert']))->toContain('A plugin’s cards need pages.insert.')
+        ->and(app(ContributionsValidator::class)->errors(cardContributes(), '1.0.0', ['pages.insert']))->toBe([]);
+});
+
+it('starts a plugin only when its declared cards and its card classes match', function (object $plugin, string $why): void {
+    expect(app(Contributions::class)->add('tests/cards', 'cards', 'Cards', '1.0.0', cardContributes(), $plugin))->toBe([$why]);
+})->with([
+    'no class for a declared card' => [fn (): object => new class implements HasCards
+    {
+        public function cards(): array
+        {
+            return [];
+        }
+    }, 'It declares card "note" but has no '.PluginCard::class.' for it.'],
+    'a class for a card it doesn’t declare' => [fn (): object => new class implements HasCards
+    {
+        public function cards(): array
+        {
+            return ['note' => quietCard(), 'extra' => quietCard()];
+        }
+    }, 'It has a class for card "extra", which isn’t declared.'],
+    'no HasCards' => [fn (): object => new stdClass, 'It declares cards but doesn’t implement '.HasCards::class.'.'],
+]);

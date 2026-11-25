@@ -45,7 +45,7 @@ final readonly class DocumentRenderer
     {
         $context ??= new RenderContext(app(LinkResolver::class));
         // Rebuilt with the document's media: the page's record and lead go along, or no card would see them.
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes);
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes, $context->region);
         $html = '';
         $run = [];
         $content = array_values((array) ($document['content'] ?? []));

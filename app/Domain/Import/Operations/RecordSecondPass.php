@@ -112,7 +112,13 @@ final class RecordSecondPass extends BaseOperation
         }
 
         $mine = (string) $entry->run_id === $run->id;
-        $changes = ['facts' => [...$entry->facts, 'written' => $done['written'], 'passed' => [...self::passed($input->passed ?? []), 'to' => $done['revisionId']]]];
+        $changes = ['facts' => [
+            ...$entry->facts,
+            'written' => $done['written'],
+            'passed' => [...self::passed($input->passed ?? []), 'to' => $done['revisionId']],
+            // What its outside pictures still wait for, once the picture pass swapped those here (#716).
+            ...($input->waiting === null ? [] : ['waiting_media' => array_values(array_filter($input->waiting, is_string(...)))]),
+        ]];
 
         // Written in this run, so the report lists it here (I-345). Its status is never written:
         // a row an earlier run left failed or needing an update keeps that, and its run, to be tried again.

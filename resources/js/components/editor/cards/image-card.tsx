@@ -23,6 +23,10 @@ import type { CardSettingsProps } from './card-environment';
 
 type ImageAttrs = {
     mediaId: string | null;
+    /** The old site's address while an import brings the file: an outside picture. */
+    source: string | null;
+    sourceWidth: number | null;
+    sourceHeight: number | null;
     alt: string | null;
     decorative: boolean | null;
     caption: string | null;
@@ -42,6 +46,8 @@ const WIDTHS: Record<string, string> = {
  * selected or the alt text is missing. When selected, the header offers
  * Replace and the widths. A new card opens the library at once, and closing
  * it without choosing removes the card, so no card is left naming no image.
+ * An outside picture, which an import left at the old site's address while
+ * it copies the file, says so, and Replace swaps it for a library image.
  */
 export function ImageCard({
     node,
@@ -61,13 +67,18 @@ export function ImageCard({
         uploadedFor,
         onInsert: (ids) => {
             void addMedia(ids);
-            updateAttributes({ mediaId: ids[0] });
+            updateAttributes({
+                mediaId: ids[0],
+                source: null,
+                sourceWidth: null,
+                sourceHeight: null,
+            });
         },
         // A new card closed without a choice is removed, so none names no image.
         onClose: caller === 'insert' ? deleteNode : undefined,
     });
     const { open, picker } = useMediaPicker(
-        attrs.mediaId ? null : pick('insert'),
+        attrs.mediaId || attrs.source ? null : pick('insert'),
     );
     const missingAlt = item !== undefined && isMissingAlt(attrs, item);
     const widths = optionsFor(manifest, 'image', 'width');
@@ -78,7 +89,13 @@ export function ImageCard({
                 label={__('Image')}
                 selected={selected}
                 onReplace={() =>
-                    open(pick(attrs.mediaId ? 'replace' : 'insert'))
+                    open(
+                        pick(
+                            attrs.mediaId || attrs.source
+                                ? 'replace'
+                                : 'insert',
+                        ),
+                    )
                 }
                 replaceLabel={__('Replace the image')}
                 onRemove={deleteNode}
@@ -180,6 +197,28 @@ export function ImageCard({
                                 />
                             </div>
                         )}
+                    </figure>
+                ) : attrs.source ? (
+                    <figure
+                        className={cn(
+                            'relative',
+                            WIDTHS[attrs.width ?? 'column'],
+                        )}
+                    >
+                        <img
+                            src={attrs.source}
+                            alt={attrs.decorative ? '' : (attrs.alt ?? '')}
+                            width={attrs.sourceWidth ?? undefined}
+                            height={attrs.sourceHeight ?? undefined}
+                            referrerPolicy="no-referrer"
+                            className="h-auto w-full rounded-sm"
+                        />
+                        <figcaption className="text-small text-ink-2 mt-1">
+                            <span data-test="image-card-outside">
+                                {__('From the old site, being copied')}
+                            </span>
+                            {attrs.caption ? ` · ${attrs.caption}` : ''}
+                        </figcaption>
                     </figure>
                 ) : attrs.mediaId && loading.includes(attrs.mediaId) ? (
                     <Skeleton aria-busy="true" className="aspect-3/2 w-full" />

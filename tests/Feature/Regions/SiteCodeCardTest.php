@@ -3,11 +3,6 @@
 declare(strict_types=1);
 
 use App\Domain\Site\Policy\PagePolicy;
-use App\Domain\SiteCode\Models\SiteCodeEntry;
-use App\Domain\SiteCode\Operations\DeleteSiteCode;
-use App\Domain\SiteCode\Operations\Input\DeleteSiteCodeInput;
-use App\Domain\SiteCode\Operations\Input\SwitchSiteCodeInput;
-use App\Domain\SiteCode\Operations\SwitchSiteCode;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +11,11 @@ use Tests\Fixtures\Policy\PolicyHeaders;
 
 uses(RefreshDatabase::class);
 
+/*
+ * The Custom HTML card's code on the public site: drawn exactly as written,
+ * its scripts and hosts given to the page's policy, and nothing while it is
+ * off, the host disallows site code, or the preview withholds it.
+ */
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     config(['app.url' => 'http://localhost', 'teme.theme_paths' => []]);
@@ -24,12 +24,15 @@ beforeEach(function (): void {
     $this->editor = User::factory()->create(['name' => 'Eve Editor'])->assignRole('editor');
     $this->ad = '<script src="https://ads.example/a.js"></script><script>window.x=1</script><div onclick="go()">Ad</div>';
     $this->folder = null;
+    $this->region = regionCreate($this->admin, 'default');
+    $this->id = (string) Str::ulid();
 
-    // The default theme's region after the article, published with one Custom HTML card placing this entry.
-    $this->place = function (SiteCodeEntry $entry): void {
-        $region = regionCreate($this->admin, 'default');
-        regionSave($region, $this->editor, [['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'entryId' => $entry->id]]]);
-        listsPublish($region, $this->editor);
+    // The default theme's region after the article, published by an administrator with one Custom HTML card holding this code.
+    $this->place = function (string $code, array $origins = [], bool $on = true): void {
+        scElevated(function () use ($code, $origins, $on): void {
+            regionSave($this->region, $this->admin, [['type' => 'site-code', 'attrs' => ['id' => $this->id, 'code' => $code, 'origins' => $origins, 'on' => $on]]]);
+            listsPublish($this->region, $this->admin);
+        });
     };
     $this->story = pageArticle($this->editor, 'A story');
 });
@@ -40,40 +43,32 @@ afterEach(function (): void {
     }
 });
 
-it('draws the placed code exactly as written, and gives the page its hashes and hosts (I-3375)', function (): void {
-    ($this->place)(scAdd($this->admin, 'Sidebar ad', 'placed', $this->ad));
+it('draws the card’s code exactly as written, and gives the page its hashes and hosts', function (): void {
+    ($this->place)($this->ad, ['cdn.ads.example']);
 
     $response = addrGet('/a-story/')->assertOk();
     $policy = PolicyHeaders::of($response);
 
     expect((string) $response->getContent())->toContain('<div class="card-site-code">'.$this->ad.'</div>')
         ->and(substr_count((string) $response->getContent(), 'window.x=1'))->toBe(1)
-        ->and(PolicyHeaders::sources($policy, 'script-src'))->toContain(PagePolicy::hash('window.x=1'), PagePolicy::hash('go()'), "'unsafe-hashes'", 'https://ads.example');
+        ->and(PolicyHeaders::sources($policy, 'script-src'))->toContain(PagePolicy::hash('window.x=1'), PagePolicy::hash('go()'), "'unsafe-hashes'", 'https://ads.example')
+        ->and($policy)->toContain('cdn.ads.example');
 });
 
-it('draws nothing, and fails nothing, for code that is off, deleted, or not placed with a card', function (string $case): void {
-    $entry = scAdd($this->admin, 'Sidebar ad', $case === 'head' ? 'head' : 'placed', $case === 'head' ? '<div data-test="head-code"></div>' : $this->ad);
-    ($this->place)($entry);
-
-    match ($case) {
-        'off' => scElevated(fn (): array => app(SwitchSiteCode::class)->execute(new SwitchSiteCodeInput($entry->id, false, (string) $this->admin->id))),
-        'deleted' => scElevated(fn (): array => app(DeleteSiteCode::class)->execute(new DeleteSiteCodeInput($entry->id, (string) $this->admin->id))),
-        default => null,
-    };
+it('draws nothing, and fails nothing, for a card that is off or holds no code', function (string $code, bool $on): void {
+    ($this->place)($code, [], $on);
 
     $response = addrGet('/a-story/')->assertOk();
 
     expect((string) $response->getContent())->not->toContain('card-site-code')->not->toContain('window.x=1')
         ->and(PolicyHeaders::of($response))->not->toContain(PagePolicy::hash('window.x=1'))->not->toContain('https://ads.example');
-
-    if ($case === 'head') {
-        // Drawn in the head as head code, once, and never by the card.
-        expect(substr_count((string) $response->getContent(), 'data-test="head-code"'))->toBe(1);
-    }
-})->with(['off', 'deleted', 'head']);
+})->with([
+    'off' => [fn (): string => test()->ad, false],
+    'empty' => ['', true],
+]);
 
 it('draws nothing while the host disallows site code', function (): void {
-    ($this->place)(scAdd($this->admin, 'Sidebar ad', 'placed', $this->ad));
+    ($this->place)($this->ad);
     config(['teme.disallow_site_code' => true]);
 
     $response = addrGet('/a-story/')->assertOk();
@@ -83,7 +78,7 @@ it('draws nothing while the host disallows site code', function (): void {
 });
 
 it('draws nothing in the signed-in preview, which withholds site code (I-1324)', function (): void {
-    ($this->place)(scAdd($this->admin, 'Sidebar ad', 'placed', $this->ad));
+    ($this->place)($this->ad);
 
     // The public page first: in a test, a scoped service outlives one request.
     expect((string) addrGet('/a-story/')->assertOk()->getContent())->toContain('window.x=1');
@@ -94,7 +89,7 @@ it('draws nothing in the signed-in preview, which withholds site code (I-1324)',
 });
 
 it('keeps the hashes on the page served again from the page cache', function (): void {
-    ($this->place)(scAdd($this->admin, 'Sidebar ad', 'placed', $this->ad));
+    ($this->place)($this->ad);
     $this->folder = cacheOn();
 
     addrGet('/a-story/')->assertOk()->assertHeader('X-Teme-Cache', 'MISS');
@@ -104,18 +99,12 @@ it('keeps the hashes on the page served again from the page cache', function ():
         ->and(PolicyHeaders::sources(PolicyHeaders::of($hit), 'script-src'))->toContain(PagePolicy::hash('window.x=1'), 'https://ads.example');
 });
 
-it('removes the stored page when the code is switched off, once that commits, and not after a rollback (rule 6)', function (): void {
-    $entry = scAdd($this->admin, 'Sidebar ad', 'placed', $this->ad);
-    ($this->place)($entry);
+it('removes the stored page when a published change switches the card off', function (): void {
+    ($this->place)($this->ad);
     $this->folder = cacheOn();
     addrGet('/a-story/')->assertOk()->assertHeader('X-Teme-Cache', 'MISS');
-    $switchOff = fn (): array => scElevated(fn (): array => app(SwitchSiteCode::class)->execute(new SwitchSiteCodeInput($entry->id, false, (string) $this->admin->id)));
 
-    cacheRolledBack($switchOff);
-
-    expect(cacheKept('/a-story/'))->toBe(['/a-story/']);
-
-    $switchOff();
+    ($this->place)($this->ad, [], false);
 
     expect(cacheKept('/a-story/'))->toBe([])
         ->and((string) addrGet('/a-story/')->getContent())->not->toContain('window.x=1');

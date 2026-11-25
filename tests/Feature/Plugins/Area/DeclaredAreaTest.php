@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Plugins\Area\AreaValidator;
 use App\Domain\Plugins\Area\DeclaredArea;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
+use App\Domain\Plugins\Editor\PanelValidator;
 use Illuminate\Support\Arr;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -53,12 +54,14 @@ it('refuses an area out of bounds, in one plain sentence each', function (array 
     expect(app(ContributionsValidator::class)->errors([...$this->contributes, 'area' => $area], '1.0.0', ['jobs']))->toContain($error);
 })->with([
     'an unknown key' => [[['colour', 'red']], 'An area can’t have colour.'],
+    'an unknown icon' => [[['icon', 'rocket']], 'rocket isn’t an icon a plugin can use.'],
     'no label' => [[['label', '']], 'An area needs a label of 1 to 40 characters.'],
     'an unknown menu' => [[['menu', 'top']], 'An area’s menu must be content, site or tools.'],
     'an unknown purge' => [[['purges', ['everything']]], 'An area may purge only insertions and page-insertions.'],
     'no pages' => [[['pages', []]], 'An area needs 1 to 8 pages.'],
     'nine pages' => [[['pages', array_map(fn (int $n): array => ['id' => "page-{$n}", 'label' => "Page {$n}", 'blocks' => [['type' => 'notice', 'id' => 'note', 'text' => 'Hello.']]], range(1, 9))]], 'An area needs 1 to 8 pages.'],
-    'a page called records' => [[['pages.0.id', 'records']], 'A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records.'],
+    'a page called records' => [[['pages.0.id', 'records']], 'A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records or settings.'],
+    'a page called settings' => [[['pages.0.id', 'settings']], 'A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records or settings.'],
     'nine blocks' => [[['pages.0.blocks', array_map(fn (int $n): array => ['type' => 'notice', 'id' => "note-{$n}", 'text' => 'Hello.'], range(1, 9))]], 'A page needs 1 to 8 blocks.'],
     'an unknown block' => [[['pages.0.blocks.0.type', 'map']], 'A block’s type must be figures, chart, table, actions or notice.'],
     'five figures' => [[['pages.0.blocks.0.items', array_map(fn (int $n): array => ['id' => "f{$n}", 'label' => "F{$n}", 'format' => 'number'], range(1, 5))]], 'A figures block holds 1 to 4 figures.'],
@@ -94,10 +97,16 @@ it('keeps the schema’s area in step with the validator', function (): void {
     $contributes = $schema['properties']['contributes']['properties'];
 
     expect($contributes['area']['properties']['menu']['enum'])->toBe(AreaValidator::MENUS)
+        ->and($contributes['area']['properties']['icon']['enum'])->toBe(PanelValidator::icons())
         ->and($contributes['area']['properties']['purges']['items']['enum'])->toBe(AreaValidator::PURGES)
         ->and($contributes['area']['properties']['pages']['maxItems'])->toBe(AreaValidator::MOST_PAGES)
         ->and($contributes['area']['properties']['records']['maxItems'])->toBe(AreaValidator::MOST_RECORDS)
         ->and($contributes['permissions']['maxItems'])->toBe(3)
         ->and($contributes['settingsSections']['maxItems'])->toBe(AreaValidator::MOST_SETTINGS_SECTIONS)
         ->and($contributes['settings']['items']['properties']['type']['enum'])->toBe(ContributionsValidator::TYPES);
+});
+
+it('reads an area’s icon, and plug when none is named', function (): void {
+    expect(DeclaredArea::from($this->area)->icon)->toBe('plug')
+        ->and(DeclaredArea::from([...$this->area, 'icon' => 'send'])->icon)->toBe('send');
 });

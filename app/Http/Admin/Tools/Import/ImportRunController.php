@@ -16,8 +16,10 @@ use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Operations\ContinueImportRun;
 use App\Domain\Import\Operations\Input\ContinueImportRunInput;
 use App\Domain\Import\Operations\Input\StartImportRunInput;
+use App\Domain\Import\Operations\Input\StartMediaPassInput;
 use App\Domain\Import\Operations\Input\StopImportRunInput;
 use App\Domain\Import\Operations\StartImportRun;
+use App\Domain\Import\Operations\StartMediaPass;
 use App\Domain\Import\Operations\StopImportRun;
 use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Planning\ImportChoices;
@@ -125,6 +127,23 @@ final class ImportRunController extends Controller
         }
 
         return self::told('Carrying on the import of '.($screen->site($source)['host'] ?? '').'.');
+    }
+
+    /**
+     * Brings the pictures of an import that brought the articles first, again: a new picture pass (#716).
+     */
+    public function pictures(Request $request, string $run, ImportScreen $screen, StartMediaPass $pass): RedirectResponse
+    {
+        $source = $screen->sourceOf($run);
+        abort_if($source === null, 404);
+
+        try {
+            $pass->execute(new StartMediaPassInput($run, self::actor($request)));
+        } catch (ValidationException $refused) {
+            return self::told((string) $refused->validator->errors()->first(), 'error');
+        }
+
+        return self::told('Bringing the pictures of '.($screen->site($source)['host'] ?? '').' again.');
     }
 
     /**

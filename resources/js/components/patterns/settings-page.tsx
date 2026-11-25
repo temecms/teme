@@ -19,6 +19,7 @@ export function SettingsPage({
     titleAs,
     actions,
     plugin,
+    showTitle,
     children,
 }: {
     title: string;
@@ -28,6 +29,8 @@ export function SettingsPage({
     actions?: ReactNode;
     /** The plugin whose settings these are: its mark follows the title. */
     plugin?: string;
+    /** Keep the large title when it is not the breadcrumb's last crumb. */
+    showTitle?: boolean;
     children?: ReactNode;
 }) {
     const frame = useSettingsFrame();
@@ -41,6 +44,7 @@ export function SettingsPage({
             title={title}
             description={description}
             plugin={plugin}
+            showTitle={showTitle}
             actions={
                 actions || saved ? (
                     <>

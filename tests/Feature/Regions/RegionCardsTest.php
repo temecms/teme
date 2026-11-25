@@ -24,7 +24,7 @@ beforeEach(function (): void {
 });
 
 dataset('regionCards', [
-    'custom HTML' => [fn (): array => ['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'entryId' => strtolower((string) Str::ulid())]]],
+    'custom HTML' => [fn (): array => ['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'code' => null]]],
     'featured posts' => [fn (): array => ['type' => 'featured-posts', 'attrs' => ['id' => (string) Str::ulid(), 'heading' => 'More to read', 'source' => 'latest', 'type' => 'post', 'count' => 3]]],
 ]);
 
@@ -77,45 +77,36 @@ it('refuses a featured list that chooses no posts, counts past twelve, or lists 
     'no such type' => [['type' => 'recipe'], 'Choose a type the site shows.'],
 ]);
 
-it('marks both cards, and only them, as region cards for the editor', function (): void {
+it('marks the region cards, and only them, as region cards for the editor', function (): void {
     $cards = collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->pluck('regionOnly', 'name')->all();
     $regionOnly = array_keys(array_filter($cards));
 
-    expect($regionOnly)->toEqualCanonicalizing(['site-code', 'featured-posts'])
-        ->and(array_filter(app(CardRegistry::class)->all(), fn ($card): bool => $card instanceof RegionCard))->toHaveCount(2)
+    expect($regionOnly)->toEqualCanonicalizing(['site-code', 'featured-posts', 'plugin-card', 'theme-card'])
+        ->and(array_filter(app(CardRegistry::class)->all(), fn ($card): bool => $card instanceof RegionCard))->toHaveCount(4)
         ->and(collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->firstWhere('name', 'featured-posts'))
         ->toMatchArray(['label' => 'Featured posts', 'menuLabel' => 'Featured posts', 'icon' => 'list', 'inMenus' => true])
         ->and(collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->firstWhere('name', 'site-code'))
         ->toMatchArray(['label' => 'Custom HTML', 'menuLabel' => 'Custom HTML', 'icon' => 'code-xml', 'inMenus' => true]);
 });
 
-it('sends the editor in region mode the code placed with a card, by name and state, and never the code (I-3127)', function (): void {
-    $ad = scAdd($this->admin, 'Sidebar ad', 'placed', '<script>window.secret=1</script>');
-    $off = scAdd($this->admin, 'Old banner', 'placed', '<div>Old</div>', on: false);
-    scAdd($this->admin, 'Analytics', 'head', '<script>head()</script>');
+it('tells the editor in region mode whether this person may read and change Custom HTML code, and the host’s switch', function (): void {
     $region = regionCreate($this->admin, 'default');
 
-    $response = $this->actingAs($this->editor)->get("/admin/content/{$region->id}/edit")->assertOk();
-
-    $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('placedCode', [
-            ['id' => $ad->id, 'name' => 'Sidebar ad', 'on' => true],
-            ['id' => $off->id, 'name' => 'Old banner', 'on' => false],
-        ])
-        ->where('siteCodeLocked', false));
-    expect((string) $response->getContent())->not->toContain('window.secret');
+    $this->actingAs($this->editor)->get("/admin/content/{$region->id}/edit")->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('canManageSiteCode', false)->where('siteCodeLocked', false)->missing('placedCode'));
+    $this->actingAs($this->admin)->get("/admin/content/{$region->id}/edit")->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('canManageSiteCode', true));
 
     config(['teme.disallow_site_code' => true]);
 
-    $this->actingAs($this->editor)->get("/admin/content/{$region->id}/edit")
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('siteCodeLocked', true));
+    $this->actingAs($this->admin)->get("/admin/content/{$region->id}/edit")
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('canManageSiteCode', false)->where('siteCodeLocked', true));
 });
 
-it('sends no placed code to the editor outside region mode', function (): void {
-    scAdd($this->admin, 'Sidebar ad', 'placed', '<div>Ad</div>');
+it('sends no site code rights to the editor outside region mode', function (): void {
     $post = lifecycleDraft($this->editor, 'A story');
 
     $this->actingAs($this->editor)->get("/admin/content/{$post->id}/edit")
         ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('placedCode', null)->where('siteCodeLocked', null));
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('canManageSiteCode', null)->where('siteCodeLocked', null));
 });

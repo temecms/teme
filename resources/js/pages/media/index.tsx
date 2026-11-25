@@ -648,6 +648,13 @@ export default function MediaIndex(page: MediaIndexPage) {
                         side="right"
                         aria-describedby={undefined}
                         className="gap-0 p-0"
+                        onOpenAutoFocus={(event) => {
+                            // The sheet itself, not its first button: Next's tooltip would open by itself.
+                            event.preventDefault();
+                            (
+                                event.currentTarget as HTMLElement | null
+                            )?.focus();
+                        }}
                         onCloseAutoFocus={(event) => event.preventDefault()}
                     >
                         <SheetTitle className="sr-only">

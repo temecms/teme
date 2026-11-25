@@ -12,12 +12,15 @@ export function FormPage({
     description,
     actions,
     titleAs,
+    showTitle,
     children,
 }: {
     title: string;
     description?: ReactNode;
     actions?: ReactNode;
     titleAs?: 'h1' | 'div';
+    /** Keep the large title when it is not the breadcrumb's last crumb. */
+    showTitle?: boolean;
     children: ReactNode;
 }) {
     return (
@@ -26,6 +29,7 @@ export function FormPage({
                 title={title}
                 description={description}
                 actions={actions}
+                showTitle={showTitle}
                 as={titleAs}
             />
             {children}

@@ -34,22 +34,27 @@ beforeEach(function (): void {
     $this->actingAs($this->admin)->get('/admin/_catalogue')->assertOk();
 });
 
-it('heads the area with the plugin’s icon at 64 pixels, its title and its mark', function (): void {
+it('heads the area with the plugin’s icon at 32 pixels inside the header before the title, and its mark', function (): void {
     $page = cmNavigate(cmSignIn($this->admin)->resize(1280, 900), '/admin/_catalogue#plugin-area');
     cmWaitUntil($page, $this->ready);
 
     $head = $page->script(<<<'JS'
         () => {
             const area = document.querySelector('#plugin-area');
-            const icons = area.querySelectorAll('[data-slot="plugin-icon"]');
+            const header = area.querySelector('[data-slot="page-header"]');
+            const icons = header.querySelectorAll('[data-slot="plugin-icon"]');
             const box = icons[0]?.getBoundingClientRect();
-            const title = area.querySelector('[data-test="pattern-title"]');
+            const title = header.querySelector('[data-test="pattern-title"]');
+            const beforeTitle = icons[0] !== undefined
+                && title !== null
+                && Boolean(icons[0].compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING);
 
             return {
                 icons: icons.length,
                 size: box ? [Math.round(box.width), Math.round(box.height)] : null,
                 initials: icons[0]?.textContent ?? null,
                 title: title?.textContent ?? null,
+                beforeTitle,
                 markAfter: title?.nextElementSibling?.getAttribute('data-slot') ?? null,
             };
         }
@@ -57,9 +62,10 @@ it('heads the area with the plugin’s icon at 64 pixels, its title and its mark
 
     expect($head)->toBe([
         'icons' => 1,
-        'size' => [64, 64],
+        'size' => [32, 32],
         'initials' => 'LC',
         'title' => 'Link checker',
+        'beforeTitle' => true,
         'markAfter' => 'plugin-mark',
     ]);
 });

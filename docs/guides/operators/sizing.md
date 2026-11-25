@@ -53,3 +53,5 @@ Count these:
 ## Memory of the other roles
 
 The recipe runs `worker`, `worker-long` and `scheduler` as three more PHP processes beside `web`, each with its own memory. Count each one when you size the server. They are small beside `web` at its busiest, but not nothing.
+
+`worker` runs as many processes as `TEME_QUEUE_WORKERS` says (one by default), and each may use up to 512 MB before it restarts itself. To import a large site from an export file faster, raise it together with the `worker` container's memory limit, about 512 MB a worker: the import then fetches that many media files at once, up to the media setting *Files fetched at once in an import* ([Configuring Teme](configure.md#background-work)).

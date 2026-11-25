@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Area;
 
 use App\Domain\Plugins\Contributions\ContributionsValidator;
+use App\Domain\Plugins\Editor\PanelValidator;
 use Teme\Contracts\Lists\Cell;
 
 final class AreaValidator
@@ -148,7 +149,7 @@ final class AreaValidator
         $actions = array_column(array_filter(is_array($contributes['actions'] ?? null) ? $contributes['actions'] : [], is_array(...)), 'id');
 
         foreach (array_keys($area) as $key) {
-            if (! in_array($key, ['label', 'description', 'permission', 'menu', 'purges', 'pages', 'records'], true)) {
+            if (! in_array($key, ['label', 'description', 'permission', 'menu', 'icon', 'purges', 'pages', 'records'], true)) {
                 $errors[] = __('An area can’t have :key.', ['key' => (string) $key]);
             }
         }
@@ -167,6 +168,10 @@ final class AreaValidator
 
         if (! in_array($area['menu'] ?? null, self::MENUS, true)) {
             $errors[] = __('An area’s menu must be content, site or tools.');
+        }
+
+        if (array_key_exists('icon', $area) && ! in_array($area['icon'], PanelValidator::icons(), true)) {
+            $errors[] = __(':icon isn’t an icon a plugin can use.', ['icon' => is_scalar($area['icon']) ? (string) $area['icon'] : '']);
         }
 
         $purges = $area['purges'] ?? [];
@@ -236,8 +241,8 @@ final class AreaValidator
             }
         }
 
-        if (preg_match(self::ID, is_string($page['id'] ?? null) ? $page['id'] : '') !== 1 || ($page['id'] ?? null) === 'records') {
-            $errors[] = __('A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records.');
+        if (preg_match(self::ID, is_string($page['id'] ?? null) ? $page['id'] : '') !== 1 || in_array($page['id'] ?? null, ['records', 'settings'], true)) {
+            $errors[] = __('A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records or settings.');
         }
 
         if (! $this->text($page['label'] ?? null, 40)) {

@@ -43,4 +43,35 @@ final class ImportSources
 
         return ImportSource::query()->where('address', $normal)->first();
     }
+
+    /**
+     * The hosts an import may leave pictures at while it copies them: each
+     * source's own host and the other hosts it names, lower-cased, without
+     * repeats. The admin's img-src allows them (an outside picture in the editor).
+     *
+     * @return list<string>
+     */
+    public function pictureHosts(): array
+    {
+        $hosts = [];
+
+        foreach (ImportSource::query()->get(['address', 'other_hosts']) as $source) {
+            $own = parse_url((string) $source->address, PHP_URL_HOST);
+            $names = [...(is_string($own) ? [$own] : []), ...array_filter((array) ($source->other_hosts ?? []), is_string(...))];
+
+            foreach ($names as $name) {
+                $name = strtolower(trim($name));
+
+                // A bare host, never anything that could end the source or the policy.
+                if (preg_match('/^[a-z0-9.-]+(:[0-9]{1,5})?$/D', $name) === 1) {
+                    $hosts[$name] = true;
+                }
+            }
+        }
+
+        $list = array_keys($hosts);
+        sort($list);
+
+        return $list;
+    }
 }

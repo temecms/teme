@@ -6,7 +6,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Button } from '@/components/ui/button';
 import { __ } from '@/lib/i18n';
-import type { CardManifestEntry, EditorDocument } from '@/types';
+import type {
+    CardManifestEntry,
+    EditorDocument,
+    PluginCardEntry,
+    ThemeCardEntry,
+} from '@/types';
 import { blockName } from './block-actions';
 import type { TopBlock } from './block-actions';
 import { BlockHandles } from './block-handle';
@@ -118,6 +123,8 @@ export function ProseEditor({
     document,
     cards,
     menuCards,
+    menuPluginCards,
+    menuThemeCards = [],
     contentType,
     status,
     permissions,
@@ -135,6 +142,10 @@ export function ProseEditor({
      * a pasted one the region doesn't allow reaches the server, which says why.
      */
     menuCards?: CardManifestEntry[];
+    /** The plugins' cards the menus offer, when fewer than every one: a narrowed theme region's. */
+    menuPluginCards?: PluginCardEntry[];
+    /** The region's theme's own cards the menus offer: none outside a theme's region. */
+    menuThemeCards?: ThemeCardEntry[];
     contentType: string;
     status: string;
     permissions: Record<string, boolean>;
@@ -148,7 +159,7 @@ export function ProseEditor({
     /** The editor, once it exists, for the rail and the checks to use. */
     onEditor: (editor: Editor | null) => void;
 }) {
-    const embedProviders = useCardEnvironment().manifest.embedProviders;
+    const { embedProviders, pluginCards } = useCardEnvironment().manifest;
     const editor = useTemeEditor({
         document,
         cards,
@@ -240,6 +251,8 @@ export function ProseEditor({
             <BlockPicker
                 editor={editor}
                 cards={shown}
+                pluginCards={menuPluginCards ?? pluginCards}
+                themeCards={menuThemeCards}
                 context={context}
                 request={picker}
                 onClose={closePicker}

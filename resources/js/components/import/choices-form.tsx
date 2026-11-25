@@ -6,6 +6,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field, FieldInline } from '@/components/ui/field';
+import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
 import { SelectField } from '@/components/ui/select-field';
 import { __, __n } from '@/lib/i18n';
 import type {
@@ -41,6 +42,8 @@ export function ChoicesForm({
     const [ticked, setTicked] = useState<string[]>(
         remembered?.outside_images ?? [],
     );
+
+    const [media, setMedia] = useState<string>(remembered?.media ?? form.media);
 
     const formRef = useRef<FormComponentRef>(null);
 
@@ -168,6 +171,38 @@ export function ChoicesForm({
                             />
                         </fieldset>
                     )}
+
+                    <fieldset
+                        className={GROUP}
+                        aria-describedby="import-media-error"
+                    >
+                        <legend className={LEGEND}>{__('Media files')}</legend>
+                        <RadioGroup
+                            name="media"
+                            value={media}
+                            onValueChange={setMedia}
+                        >
+                            <RadioGroupChoice
+                                id="import-media-download"
+                                value="download"
+                                label={__('Download them with the articles')}
+                            />
+                            <RadioGroupChoice
+                                id="import-media-later"
+                                value="later"
+                                label={__(
+                                    'Bring the articles first, then the pictures',
+                                )}
+                                description={__(
+                                    'Posts show their pictures from the old site until each is copied here',
+                                )}
+                            />
+                        </RadioGroup>
+                        <InputError
+                            id="import-media-error"
+                            message={errors.media}
+                        />
+                    </fieldset>
 
                     <Field
                         htmlFor="import-pause"

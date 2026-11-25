@@ -94,7 +94,11 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 className={LINK}
             >
                 <span className="min-w-0 flex-1 text-start wrap-break-word">
-                    {item.label}
+                    {item.ownPage
+                        ? __(':plugin: on its own page', {
+                              plugin: item.label,
+                          })
+                        : item.label}
                 </span>
                 {item.plugin && (
                     <span
@@ -106,7 +110,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     </span>
                 )}
             </Link>
-            {within(item.href) && <SectionLinks main={main} />}
+            {!item.ownPage && within(item.href) && <SectionLinks main={main} />}
         </div>
     );
 

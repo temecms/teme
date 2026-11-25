@@ -544,6 +544,92 @@
                         }
                     }
                 },
+                "cards": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "description": "Cards the plugin offers for a theme's regions, each drawn by the class its HasCards::cards() gives under the same id. Needs pages.insert.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "description"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,40}$",
+                                "description": "The card's id, unique in the plugin; the card's key is code:id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The card's name in Add card."
+                            },
+                            "description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 160,
+                                "description": "One sentence on what the card shows."
+                            },
+                            "icon": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,40}$",
+                                "description": "A Lucide icon's name, as core's cards use; a square when it isn't one the editor knows."
+                            },
+                            "keywords": {
+                                "type": "array",
+                                "maxItems": 10,
+                                "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                },
+                                "description": "Words Add card also finds the card by."
+                            },
+                            "fields": {
+                                "type": "array",
+                                "maxItems": 20,
+                                "description": "The card's fields, declared as settings are, without secret, code and repeater, and with choice: options the plugin's OffersCardChoices gives while the card is filled in.",
+                                "items": {
+                                    "type": "object",
+                                    "required": ["key", "type", "label"],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "pattern": "^[a-z][a-z0-9_]{1,40}$",
+                                            "description": "The field's key."
+                                        },
+                                        "type": {
+                                            "enum": [
+                                                "text",
+                                                "textarea",
+                                                "number",
+                                                "boolean",
+                                                "select",
+                                                "multiselect",
+                                                "url",
+                                                "urls",
+                                                "email",
+                                                "color",
+                                                "person",
+                                                "term",
+                                                "type",
+                                                "choice"
+                                            ]
+                                        },
+                                        "label": {
+                                            "type": "string",
+                                            "description": "The name people see."
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "description": "What the field is for."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "admin": {
                     "type": "array",
                     "description": "Entries the plugin adds to the admin.",
@@ -887,7 +973,15 @@
                                     "chart-line",
                                     "sparkles",
                                     "pen-line",
-                                    "list-checks"
+                                    "list-checks",
+                                    "mail",
+                                    "inbox",
+                                    "layout",
+                                    "list",
+                                    "user",
+                                    "globe",
+                                    "code",
+                                    "grid"
                                 ],
                                 "description": "The tool's icon."
                             },
@@ -1346,6 +1440,31 @@
                         "menu": {
                             "enum": ["content", "site", "tools"],
                             "description": "Where its entry goes."
+                        },
+                        "icon": {
+                            "enum": [
+                                "plug",
+                                "link",
+                                "external-link",
+                                "settings",
+                                "send",
+                                "bell",
+                                "refresh-cw",
+                                "chart-line",
+                                "sparkles",
+                                "pen-line",
+                                "list-checks",
+                                "mail",
+                                "inbox",
+                                "layout",
+                                "list",
+                                "user",
+                                "globe",
+                                "code",
+                                "grid"
+                            ],
+                            "$comment": "@since next",
+                            "description": "The menu and Tools-card icon; plug when absent."
                         },
                         "purges": {
                             "type": "array",

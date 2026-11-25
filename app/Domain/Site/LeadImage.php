@@ -19,6 +19,7 @@ use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Fields\BuiltInFields;
+use App\Domain\Fields\Types\MediaField;
 use App\Domain\Site\ViewModels\ImageRef;
 use Illuminate\Support\Facades\DB;
 
@@ -42,6 +43,13 @@ final class LeadImage
     {
         $fields ??= (array) $content->fields;
         $featured = $fields[BuiltInFields::FEATURED_IMAGE] ?? null;
+
+        // An outside picture, while an import copies its file, leads as any featured image does (#716).
+        $outside = MediaField::outside($featured);
+
+        if ($themeShowsFeatured && $outside !== null) {
+            return ['ref' => $outside, 'nodeId' => null];
+        }
 
         if ($themeShowsFeatured && is_array($featured) && is_string($featured['id'] ?? null)) {
             $media = self::live($featured['id']);

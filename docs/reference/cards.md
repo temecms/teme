@@ -153,14 +153,16 @@ Refers to: nothing.
 
 ## `site-code` — Custom HTML
 
-HTML an administrator keeps in Settings › Site code, placed here by name. Editors choose it; only administrators write or change it.
+HTML of its own, such as one ad unit, with the hosts it connects to. Only administrators add, read or change its code; editors may move or remove it.
 
 Since 1.0.0. Registered by `core`.
 
 | Attribute | Rules | Default |
 |---|---|---|
 | `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
-| `entryId` | required, string, regex:/^[0-9a-hjkmnp-tv-z]{26}$/ | — |
+| `code` | nullable, string, max:65535, Closure | — |
+| `origins` | array, max:20 | `[]` |
+| `on` | boolean | `true` |
 
 Refers to: nothing.
 
@@ -210,6 +212,34 @@ Since 1.1.0. Registered by `core`.
 | `materials` | array, list, max:30 | `[]` |
 | `tools` | array, list, max:30 | `[]` |
 | `steps` | required, array, list, min:1, max:50 | — |
+
+Refers to: nothing.
+
+## `plugin-card` — Plugin card
+
+A card a plugin offers for a theme’s regions, filled in with the fields the plugin declares and drawn by the plugin.
+
+Since 1.5.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `card` | required, string, regex:/^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{1,40}$/ | — |
+| `values` | array, max:40 | `[]` |
+
+Refers to: nothing.
+
+## `theme-card` — Theme card
+
+A card a theme brings for its own regions, filled in with the fields the theme declares and drawn by the theme.
+
+Since 1.5.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `card` | required, string, regex:/^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{1,40}$/ | — |
+| `values` | array, max:40 | `[]` |
 
 Refers to: nothing.
 

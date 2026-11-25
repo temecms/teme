@@ -6,7 +6,8 @@
  * show, looked up once per document by CardMedia, where to record the cards
  * a page draws, which image card, if any, is the page's lead image, the
  * insertion plan for a published article page (I-064), and the attributes
- * plugins ask for on an article's links (docs/plans/plugin-sockets-3.md).
+ * plugins ask for on an article's links (docs/plans/plugin-sockets-3.md),
+ * and the theme's region being drawn.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -18,6 +19,7 @@ declare(strict_types=1);
 namespace App\Domain\Cards;
 
 use App\Domain\Site\Insertions\InsertionPlan;
+use Teme\Contracts\Cards\CardRegion;
 
 final readonly class RenderContext
 {
@@ -36,5 +38,7 @@ final readonly class RenderContext
         /** Insertions for a published web article; null outside that path (I-064). */
         public ?InsertionPlan $insertions = null,
         public array $linkAttributes = [],
+        /** The theme's region being drawn, for the cards that read it; null outside a region. */
+        public ?CardRegion $region = null,
     ) {}
 }

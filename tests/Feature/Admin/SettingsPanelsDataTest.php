@@ -24,7 +24,7 @@ it('splits General, Writing, Reading, Media and People into the approved design\
     'general' => ['general', ['Site', 'Contact', 'Time and language']],
     'writing' => ['writing', ['Trash']],
     'reading' => ['reading', ['Listings']],
-    'media' => ['media', ['Uploads']],
+    'media' => ['media', ['Uploads', 'Imports']],
     'people' => ['people', ['Passwords', 'Sign-in limits', 'Sessions', 'Two-factor authentication']],
 ]);
 

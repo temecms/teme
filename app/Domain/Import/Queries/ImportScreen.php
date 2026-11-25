@@ -14,6 +14,7 @@ namespace App\Domain\Import\Queries;
 
 use App\Domain\Import\ImportMessageLevel;
 use App\Domain\Import\ImportOutcome;
+use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportRun;
@@ -55,6 +56,9 @@ final readonly class ImportScreen
 
     /** How many objects one statement of a file reads. */
     private const int BATCH = 500;
+
+    /** The map's object type of posts and pages, whose outside pictures a picture pass swaps (#716). */
+    private const string POSTS = 'post';
 
     public function __construct(private ImportRuns $runs, private ImportPhases $phases, private ImportRunJobs $tracking) {}
 
@@ -164,7 +168,11 @@ final readonly class ImportScreen
     /**
      * Returns one import as its page draws it: its kind and state, when it started and ended, why it stopped, its counts and its steps; null when Teme has no such import.
      *
-     * @return array{id: string, kind: string, kindLabel: string, state: string, stateLabel: string, startedAt: string, endedAt: string|null, stopMessage: string|null, counts: array{created: int, updated: int, skipped: int, failed: int, warnings: int}, steps: list<array{key: string, label: string, state: string}>, file: array{id: string, name: string, sizeBytes: int, uploadedAt: string, deletesOn: string|null, deleted: bool}|null}|null
+     * An import that brought the articles first also has its picture pass:
+     * how it stands, the files it brought, the posts still showing pictures
+     * from the old site, and whether a pass may start again (#716).
+     *
+     * @return array{id: string, kind: string, kindLabel: string, state: string, stateLabel: string, startedAt: string, endedAt: string|null, stopMessage: string|null, counts: array{created: int, updated: int, skipped: int, failed: int, warnings: int}, steps: list<array{key: string, label: string, state: string}>, file: array{id: string, name: string, sizeBytes: int, uploadedAt: string, deletesOn: string|null, deleted: bool}|null, picturePass: array{id: string|null, state: string|null, stateLabel: string|null, href: string|null, files: int, waiting: int, again: bool}|null}|null
      */
     public function run(string $runId): ?array
     {
@@ -186,6 +194,37 @@ final readonly class ImportScreen
             'counts' => $this->counts($run),
             'steps' => $this->steps($run),
             'file' => $this->runFile($run),
+            'picturePass' => $this->picturePass($run),
+        ];
+    }
+
+    /**
+     * The picture pass that follows an import that brought the articles
+     * first, as its page shows it under the import; null for any other run.
+     *
+     * @return array{id: string|null, state: string|null, stateLabel: string|null, href: string|null, files: int, waiting: int, again: bool}|null
+     */
+    private function picturePass(ImportRun $run): ?array
+    {
+        if ($run->kind === ImportRunKind::MediaPass || ($run->choices['media'] ?? null) !== 'later') {
+            return null;
+        }
+
+        $pass = $this->runs->passOf((string) $run->id);
+        $waiting = DB::table('import_map')
+            ->where('source_id', $run->source_id)->where('object_type', self::POSTS)->whereNotNull('teme_id')
+            ->whereRaw("(facts -> 'waiting_media') <> '[]'::jsonb")
+            ->count();
+        $again = $run->state === ImportRunState::Finished && $waiting > 0 && $this->runs->running((string) $run->source_id) === null;
+
+        return [
+            'id' => $pass === null ? null : (string) $pass->id,
+            'state' => $pass?->state->value,
+            'stateLabel' => $pass?->state->label(),
+            'href' => $pass === null ? null : route('tools.importer.show', ['source' => (string) $run->source_id, 'run' => (string) $pass->id], false),
+            'files' => $pass === null ? 0 : $this->counts($pass)['created'],
+            'waiting' => $waiting,
+            'again' => $again,
         ];
     }
 

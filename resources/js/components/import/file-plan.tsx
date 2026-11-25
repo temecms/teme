@@ -498,6 +498,18 @@ function FileChoices({
                                 )}
                             </div>
                             <RadioGroupChoice
+                                id="import-media-later"
+                                value="later"
+                                disabled={!answers}
+                                label={__(
+                                    'Bring the articles first, then the pictures',
+                                )}
+                                description={__(
+                                    'Posts show their pictures from :host until each is copied here',
+                                    { host },
+                                )}
+                            />
+                            <RadioGroupChoice
                                 id="import-media-links"
                                 value="links"
                                 label={__('Keep them on :host as links', {

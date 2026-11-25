@@ -2,7 +2,8 @@
 # The image's one health check. Every role's web answers /up, as the base
 # image asks. A container that runs every role (TEME_ROLE=all) also fails
 # when any process it supervises is down: web's two, the two workers, the
-# scheduler or the installer.
+# scheduler or the installer, or when fewer of the default queue's workers
+# run than TEME_QUEUE_WORKERS asks for.
 set -u
 
 # The port the web server listens on: a host's PORT, when a container that runs every role was given one.
@@ -22,4 +23,18 @@ if [ "${TEME_ROLE:-}" = all ]; then
             exit 1
         fi
     done
+
+    wanted="${TEME_QUEUE_WORKERS:-1}"
+    running=0
+    for cmdline in /proc/[0-9]*/cmdline; do
+        case "$(tr '\0' ' ' < "$cmdline" 2> /dev/null)" in
+            *queue-workers*) ;;
+            *"php artisan queue:work --tries="*) running=$((running + 1)) ;;
+        esac
+    done
+
+    if [ "$running" -lt "$wanted" ]; then
+        echo "Healthcheck failed: $running of the default queue's $wanted workers are running." >&2
+        exit 1
+    fi
 fi

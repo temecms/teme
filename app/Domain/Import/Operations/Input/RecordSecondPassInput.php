@@ -24,6 +24,7 @@ final readonly class RecordSecondPassInput implements OperationInput
      * @param  array<string, mixed>|null  $fields
      * @param  array<string, mixed>|null  $passed
      * @param  list<ImportMessage>  $messages
+     * @param  list<string>|null  $waiting  what the post's outside pictures still wait for, when the pass swapped them (#716)
      */
     public function __construct(
         public string $runId,
@@ -34,6 +35,7 @@ final readonly class RecordSecondPassInput implements OperationInput
         public ?array $passed,
         public array $messages,
         public ?string $actorId,
+        public ?array $waiting = null,
     ) {}
 
     public function actorId(): ?string
