@@ -49,7 +49,8 @@ Under **Your choices**, the plan asks what the file can't say. Teme uses these f
 
 - **Authors**: each author in the file is matched by email to a person on this site. Choose for each one: the person here, adding them with a role, or crediting their posts and pages to someone. The import emails no one.
 - **What to bring**: posts and pages always come. Choose each custom type Teme has, and whether drafts, scheduled and private items and comments come too.
-- **Media files**: the file lists the media, but the files themselves are on the old site. Download them from it while it answers, or keep them there as links. Links break when the old site closes. The plan says whether the old site answers now.
+- **Media files**: the file lists the media, but the files themselves are on the old site. Download them from it while it answers, bring the articles first and the pictures after, or keep them there as links. Links break when the old site closes. The plan says whether the old site answers now.
+  - **Bring the articles first, then the pictures** gets the posts and pages up sooner. Until each picture is copied here, posts show it from the old site, so keep that site up. When the import finishes, a picture pass starts by itself: it copies the pictures posts use first, then the rest, and puts each one in place as it arrives. The import's report shows how far it has got. A post you change before its pictures arrive keeps showing them from the old site: replace them in the editor, where they're marked *From the old site, being copied*. If some couldn't be copied, *Bring the pictures again* tries them once more.
 - **Category and tag addresses**: the first part of the old address of the category and tag pages. Teme fills them from the file's links; change them if the old site used others.
 
 Choose **Start the import**. Teme asks for your password first. The import runs in the background: you can leave the page, and the result reaches your inbox.

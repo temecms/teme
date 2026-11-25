@@ -15,6 +15,7 @@ use App\Domain\Import\Operations\Input\StartMediaPassInput;
 use App\Domain\Import\Operations\StartMediaPass;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Queries\ImportScreen;
 use App\Domain\Media\Models\Media;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -163,3 +164,20 @@ it('refuses a pass after an import that downloaded its pictures, or before it fi
     'downloaded with the articles' => ['download', ImportRunState::Finished, 'Only an import that brought the articles first has pictures to bring after.'],
     'still running' => ['later', ImportRunState::Running, 'The pictures come once the articles’ import has finished.'],
 ]);
+
+it('shows the picture pass under the import, and brings the pictures again from the screen (#716)', function (): void {
+    $this->oldFilesGone = true;
+    $run = FileImports::run(FileImports::ready('companion-site.xml', $this->admin, $this->bytes), ['media' => 'later']);
+    $first = ImportRun::query()->where('follows_run_id', $run->id)->sole();
+
+    expect(app(ImportScreen::class)->run((string) $run->id)['picturePass'])->toBe([
+        'id' => (string) $first->id, 'state' => 'finished', 'stateLabel' => 'Finished',
+        'href' => "/admin/tools/import/{$run->source_id}?run={$first->id}", 'files' => 0, 'waiting' => 1, 'again' => true,
+    ]);
+
+    $this->oldFilesGone = false;
+    $this->actingAs($this->admin)->post("/admin/tools/import/runs/{$run->id}/pictures")->assertRedirect();
+
+    expect(app(ImportScreen::class)->run((string) $run->id)['picturePass'])->toMatchArray(['files' => 2, 'waiting' => 0, 'again' => false])
+        ->and(collect(ppPost()->document['content'])->firstWhere('type', 'image')['attrs']['source'])->toBeNull();
+});

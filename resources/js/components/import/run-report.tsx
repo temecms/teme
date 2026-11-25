@@ -3,6 +3,7 @@ import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRun
 import ImportSourceController from '@/actions/App/Http/Admin/Tools/Import/ImportSourceController';
 import ImportFileController from '@/actions/App/Http/Admin/Tools/Import/ImportFileController';
 import { ConfirmAction } from '@/components/confirm-action';
+import { PicturePass } from '@/components/import/picture-pass';
 import { UploadForm } from '@/components/import/upload-form';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
@@ -179,6 +180,10 @@ export function RunReport({
                         testId="import-report-counts"
                     />
                 </div>
+
+                {run.picturePass !== null && (
+                    <PicturePass run={run} pass={run.picturePass} />
+                )}
 
                 {report.ready !== null && (
                     <Notice tone={report.ready ? 'ok' : 'warn'}>

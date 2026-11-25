@@ -7,6 +7,9 @@ All notable changes to this project are documented in this file. Versioning foll
 ### Added
 
 - An import from an export file downloads several media files at once, 4 by default: Settings › Media › Imports › Files fetched at once, from 1 to 8. It goes only as fast as the server's queue workers allow, each taking one file at a time; the Docker image starts more of them with `TEME_QUEUE_WORKERS`. An import already started, or carried on, keeps fetching one at a time. The import from a live site still fetches one at a time.
+- Import can bring the articles first and the pictures after: on the plan, Media files offers Bring the articles first, then the pictures, for an export file and a live site alike. The posts arrive quickly, showing the old site's pictures where they stand, and a picture pass then downloads every media file, the ones in use first. As each file arrives, the posts using it switch to the library's copy. A post someone edited here in the meantime is left as it is and listed in the report.
+- An Image card and a featured image may show a picture from the old site while an import copies it. The editor says "From the old site, being copied" and offers Replace; only the import writes such a picture.
+- The import screen shows the picture pass as its own row under its import, with how many files it brought and how many posts still wait. Bring the pictures again starts another pass for files that could not be fetched.
 
 ### Fixed
 
