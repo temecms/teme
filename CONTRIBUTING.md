@@ -35,8 +35,9 @@ Every PHP file in `app/`, `config/`, `database/`, `routes/` and the packages' `s
 
 1. Write the version's section of `CHANGELOG.md`.
 2. Run `php scripts/file-headers.php release <version>`, such as `php scripts/file-headers.php release 1.2.0`. It replaces every `@since next` in Teme's own files with the version. For a plugin or theme in this repository, add `--path=plugins/<name>` and give its own version.
-3. Run `composer check`, and commit both changes together.
-4. Tag the commit `v<version>`. The image workflow's `since` job stops the release if any `@since next` is left.
+3. If the release adds anything to `packages/teme-contracts`, its contracts move up to the version too: set `"teme/contracts": "<version>"` under the contracts path repository's `versions` in `composer.json`, run `composer update teme/contracts --no-install`, regenerate the references (`php artisan teme:docs:contracts`, and `teme:docs:cards`, `teme:docs:manifest` and the others when their sources changed), and change the version `GenerateContractsReferenceTest` expects. `CorePinsTest` fails until the lock and the reference agree.
+4. Run `composer check`, and commit the changes together.
+5. Tag the commit `v<version>`. The image workflow's `since` job stops the release if any `@since next` is left.
 
 ## Licence
 
