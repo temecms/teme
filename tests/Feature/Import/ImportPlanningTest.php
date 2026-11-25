@@ -30,6 +30,7 @@ beforeEach(function (): void {
         'roles' => ['wpseo_manager' => 'editor', 'wpseo_editor' => 'contributor'],
         'owner' => (string) $this->admin->id,
         'outside_images' => ['cdn.partner.example'],
+        'media' => 'later',
         'pause' => '2000',
     ], $changes);
 });
@@ -140,6 +141,7 @@ it('offers each choice from the analysis and from Teme, each with its default (I
         'people' => [['value' => (string) $this->admin->id, 'label' => 'Ada Admin']],
         'outsideHosts' => [['host' => 'cdn.partner.example', 'count' => 40], ['host' => 'photos.friend.example', 'count' => 12]],
         'pause' => 1000,
+        'media' => 'download',
         'pauses' => [
             ['value' => 0, 'label' => 'No pause'],
             ['value' => 500, 'label' => 'Half a second'],
@@ -177,9 +179,18 @@ it('keeps choices that fit as the run’s choices, with the pause as an option, 
             'roles' => ['wpseo_manager' => 'editor', 'wpseo_editor' => 'none'],
             'owner' => (string) $this->admin->id,
             'outside_images' => ['cdn.partner.example'],
+            'media' => 'later',
         ],
         'pauseMs' => 2000,
     ]);
+});
+
+it('downloads a live site’s media during the import unless the articles are to come first, and offers both (#716)', function (): void {
+    $input = ($this->input)();
+    unset($input['media']);
+
+    expect(app(ImportChoices::class)->validated($input, ($this->analysis)())['choices']['media'])->toBe('download')
+        ->and(app(ImportChoices::class)->form(($this->analysis)(), (string) $this->admin->id)['media'])->toBe('download');
 });
 
 it('refuses a choice that doesn’t fit, under its field, in words', function (string $case): void {
@@ -188,6 +199,7 @@ it('refuses a choice that doesn’t fit, under its field, in words', function (s
         'someone who can’t write' => [['owner' => '999999'], 'owner', 'Choose someone who can write on Teme.'],
         'a site not listed' => [['outside_images' => ['evil.example']], 'outside_images', 'Tick only the sites listed.'],
         'a pause not offered' => [['pause' => '750'], 'pause', 'Choose one of the pauses listed.'],
+        'links for a live site (#716)' => [['media' => 'links'], 'media', 'Choose how the media files come across.'],
     };
 
     try {
@@ -197,7 +209,7 @@ it('refuses a choice that doesn’t fit, under its field, in words', function (s
         expect($refused->errors())->toBe([$field => [$words]]);
     }
 })->with([
-    'a role Teme lacks', 'someone who can’t write', 'a site not listed', 'a pause not offered',
+    'a role Teme lacks', 'someone who can’t write', 'a site not listed', 'a pause not offered', 'links for a live site (#716)',
 ]);
 
 /**

@@ -20,6 +20,7 @@ use App\Domain\Addresses\Paths;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
+use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
@@ -32,7 +33,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-final readonly class MediaParentsStep implements StepPhase
+final readonly class MediaParentsStep implements RunsInMediaPass, StepPhase
 {
     public const int PAGE = 200;
 

@@ -99,6 +99,9 @@ it('refuses a card whose attributes do not fit its rules', function (array $attr
     'alt too long' => [['id' => str_repeat('A', 26), 'mediaId' => str_repeat('B', 26), 'alt' => str_repeat('a', 1001)]],
     'unknown attribute' => [['id' => str_repeat('A', 26), 'mediaId' => str_repeat('B', 26), 'onclick' => 'x']],
     'width not in the list' => [['id' => str_repeat('A', 26), 'mediaId' => str_repeat('B', 26), 'width' => 'enormous']],
+    'a library item and an old site\'s address (#716)' => [['id' => str_repeat('A', 26), 'mediaId' => str_repeat('B', 26), 'source' => 'https://old.example.org/a.jpg']],
+    'an address that isn\'t the web (#716)' => [['id' => str_repeat('A', 26), 'source' => 'javascript:alert(1)']],
+    'a size that isn\'t a number (#716)' => [['id' => str_repeat('A', 26), 'source' => 'https://old.example.org/a.jpg', 'sourceWidth' => 'wide']],
 ]);
 
 it('refuses a button with both a link and an article, or with neither', function (): void {

@@ -46,6 +46,7 @@ final class SettingsPanels
         ],
         'media' => [
             ['title' => 'Uploads', 'description' => 'What people may add to the library.', 'keys' => ['max_upload_mb', 'max_megapixels']],
+            ['title' => 'Imports', 'description' => 'How an import from another site brings its media files.', 'keys' => ['import_downloads']],
         ],
         'people' => [
             ['title' => 'Passwords', 'description' => 'What a new password must be.', 'keys' => ['password_min_length', 'password_check_breached']],

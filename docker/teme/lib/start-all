@@ -75,6 +75,15 @@ export TEME_EXTENSIONS_PATH="${TEME_EXTENSIONS_PATH:-/var/teme/extensions}"
 export TEME_IMAGE_REPOSITORY="${TEME_IMAGE_REPOSITORY:-ghcr.io/temecms/teme}"
 export PAGE_CACHE_DRIVER="${PAGE_CACHE_DRIVER:-static}"
 export PGCONNECT_TIMEOUT="${PGCONNECT_TIMEOUT:-3}"
+export TEME_QUEUE_WORKERS="${TEME_QUEUE_WORKERS:-1}"
+
+case "$TEME_QUEUE_WORKERS" in
+    [1-8]) ;;
+    *)
+        echo "TEME_QUEUE_WORKERS is \"$TEME_QUEUE_WORKERS\": set a whole number from 1 to 8." >&2
+        exit 1
+        ;;
+esac
 # A host that routes to one port of the container says which in PORT.
 export NGINX_HTTP_PORT="${PORT:-${NGINX_HTTP_PORT:-8080}}"
 

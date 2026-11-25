@@ -31,6 +31,8 @@ use App\Domain\Import\Phases\Content\ContentSite;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\Media\ImportedMedia;
+use App\Domain\Import\Phases\Media\PictureSwap;
+use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
@@ -39,13 +41,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-final readonly class SecondPassStep implements StepPhase
+final readonly class SecondPassStep implements RunsInMediaPass, StepPhase
 {
     /** Seconds a job works before it hands on to the next. */
     public const int BUDGET = 50;
 
     /** Rows read at once. */
     public const int BATCH = 100;
+
+    /** Posts a picture pass swaps in one job, one save each, before it hands on (#716). */
+    public const int WAITING_BATCH = 25;
 
     /** Addresses named in one message. */
     public const int MOST_SAID = 10;
@@ -80,15 +85,7 @@ final readonly class SecondPassStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
-        $links = new SiteLinks($this->sites->for($context->sourceId), new ImportedMedia($context->sourceId), new PassTargets($context->sourceId), new ConversionReport);
-        $blocks = [];
-        $find = function (string $id) use ($context, &$blocks): ?array {
-            if (! array_key_exists($id, $blocks)) {
-                $blocks[$id] = self::block($context->sourceId, $id);
-            }
-
-            return $blocks[$id];
-        };
+        [$links, $find] = $this->tools($context);
         $started = microtime(true);
         $position = $cursor ?? '';
 
@@ -106,6 +103,59 @@ final readonly class SecondPassStep implements StepPhase
     }
 
     /**
+     * The posts whose outside pictures wait for these files, after $after,
+     * passed as the second pass passes any: each swaps in the pictures now
+     * in the library, one save each, and is left as it is when changed here
+     * (#716). Returns where the next call carries on, or null when done.
+     *
+     * @param  list<string>  $keys  waiting keys, by ImageTrace::waitingKeys()
+     *
+     * @since next
+     */
+    public function passWaiting(ImportContext $context, array $keys, string $after = ''): ?string
+    {
+        if ($keys === []) {
+            return null;
+        }
+
+        $literal = '{'.implode(',', array_map(fn (string $key): string => '"'.addcslashes($key, '"\\').'"', $keys)).'}';
+        $rows = DB::table('import_map')
+            ->where('source_id', $context->sourceId)->where('object_type', self::OBJECT)->where('object_id', '>', $after)
+            ->where('teme_type', 'content')->whereNotNull('teme_id')
+            ->whereRaw("(facts -> 'waiting_media') <> '[]'::jsonb AND (facts -> 'waiting_media') ??| ?::text[]", [$literal])
+            ->orderBy('object_id')->limit(self::WAITING_BATCH)
+            ->get(['object_id', 'teme_id', 'run_id', 'facts'])->all();
+        [$links, $find] = $this->tools($context);
+        $changed = self::changedBlocks($context, $rows);
+
+        foreach ($rows as $row) {
+            $this->pass($row, $context, $links, $find, $changed);
+        }
+
+        return count($rows) < self::WAITING_BATCH ? null : (string) end($rows)->object_id;
+    }
+
+    /**
+     * The links and the reusable blocks a pass reads, the blocks each read once.
+     *
+     * @return array{0: SiteLinks, 1: Closure(string): (array{content: list<array<string, mixed>>, references: list<array<string, mixed>>, pendingLinks: list<string>}|null)}
+     */
+    private function tools(ImportContext $context): array
+    {
+        $links = new SiteLinks($this->sites->for($context->sourceId), new ImportedMedia($context->sourceId), new PassTargets($context->sourceId), new ConversionReport);
+        $blocks = [];
+        $find = function (string $id) use ($context, &$blocks): ?array {
+            if (! array_key_exists($id, $blocks)) {
+                $blocks[$id] = self::block($context->sourceId, $id);
+            }
+
+            return $blocks[$id];
+        };
+
+        return [$links, $find];
+    }
+
+    /**
      * The next rows after $after, in object order, whose item holds a
      * reference, a pending link or a pending canonical. The map's unique
      * index serves the order; the facts are read only for its rows.
@@ -120,7 +170,9 @@ final readonly class SecondPassStep implements StepPhase
             ->where(fn ($work) => $work
                 ->whereRaw("jsonb_typeof(facts->'references') = 'array' AND facts->'references' <> '[]'::jsonb")
                 ->orWhereRaw("jsonb_typeof(facts->'pending_links') = 'array' AND facts->'pending_links' <> '[]'::jsonb")
-                ->orWhereRaw("jsonb_typeof(facts->'pending_canonical') = 'string'"))
+                ->orWhereRaw("jsonb_typeof(facts->'pending_canonical') = 'string'")
+                // Outside pictures waiting for their files (#716).
+                ->orWhereRaw("jsonb_typeof(facts->'waiting_media') = 'array' AND facts->'waiting_media' <> '[]'::jsonb"))
             ->orderBy('object_id')->limit(self::BATCH)
             ->get(['object_id', 'teme_id', 'run_id', 'facts'])->all();
     }
@@ -179,14 +231,21 @@ final readonly class SecondPassStep implements StepPhase
         // Its own blocks and every block put in last time, nested ones too, so a change deep inside reaches it.
         $blockChanged = array_filter(self::uses($facts), fn (string $id): bool => isset($changed['#'.$id])) !== [];
 
+        // Its outside pictures, while the articles came first, and those whose files are here now (#716).
+        $waiting = $context->bringsMediaLater() ? self::strings($facts['waiting_media'] ?? null) : [];
+        $media = new ImportedMedia($context->sourceId);
+        $arrived = $waiting !== [] && PictureSwap::left($waiting, $media) !== $waiting;
+
         // Settled: nothing to do, so not even the fingerprint is read.
-        if ($done && ($passed['open'] ?? true) === false && ! $blockChanged) {
+        if ($done && ($passed['open'] ?? true) === false && ! $blockChanged && ! $arrived) {
             return;
         }
 
-        // A person's save here is never undone (I-332); said only where this run wrote the row.
+        // A person's save here is never undone (I-332); said only where this run wrote the row, or a picture pass found pictures for it.
         if ($written === '' || ImportedContents::fingerprint($content) !== $written) {
-            if ($written !== '' && (string) $row->run_id === $context->runId) {
+            if ($written !== '' && $arrived && $context->kind === ImportRunKind::MediaPass) {
+                $this->record($context, $objectId, $written, null, null, null, [new ImportMessage('second-pass.pictures-changed-here', 'It was changed here after the import, so its pictures still show from the old site: replace them in the editor before that site closes.')]);
+            } elseif ($written !== '' && (string) $row->run_id === $context->runId) {
                 $this->record($context, $objectId, $written, null, null, null, [new ImportMessage('second-pass.changed-here', 'It was changed here after the import, so its reusable blocks and links to the old site were left as they were.')]);
             }
 
@@ -216,7 +275,14 @@ final readonly class SecondPassStep implements StepPhase
             $kept = BlockIds::kept(SecondPassDocument::relink($inlined['content'], $hrefs), array_values((array) ($last?->document['content'] ?? [])));
             $document = ['type' => 'doc', 'content' => $kept];
 
-            $this->record($context, $objectId, $written, $document, $fields, ['from' => (string) $base->id, 'open' => $open, 'blocks' => $inlined['inlined']], $messages);
+            // The outside pictures whose files are here become the library's, from the words as converted each time (#716).
+            if ($context->bringsMediaLater()) {
+                $site = $this->sites->for($context->sourceId);
+                $document['content'] = PictureSwap::document($document['content'], $site, $media);
+                $fields = PictureSwap::featured($fields, is_int($facts['waiting_featured'] ?? null) ? $facts['waiting_featured'] : null, $site, $media);
+            }
+
+            $this->record($context, $objectId, $written, $document, $fields, ['from' => (string) $base->id, 'open' => $open, 'blocks' => $inlined['inlined']], $messages, $context->bringsMediaLater() ? PictureSwap::left($waiting, $media) : null);
         } catch (ValidationException $refused) {
             $reason = Str::limit((string) collect($refused->errors())->flatten()->first(), 300);
             $this->record($context, $objectId, $written, null, null, ['from' => (string) $base->id, 'open' => false, 'blocks' => self::uses($facts)], [new ImportMessage(
@@ -234,10 +300,11 @@ final readonly class SecondPassStep implements StepPhase
      * @param  array<string, mixed>|null  $fields
      * @param  array<string, mixed>|null  $passed
      * @param  list<ImportMessage>  $messages
+     * @param  list<string>|null  $waiting
      */
-    private function record(ImportContext $context, string $objectId, string $written, ?array $document, ?array $fields, ?array $passed, array $messages): void
+    private function record(ImportContext $context, string $objectId, string $written, ?array $document, ?array $fields, ?array $passed, array $messages, ?array $waiting = null): void
     {
-        app(RecordSecondPass::class)->execute(new RecordSecondPassInput($context->runId, $objectId, $written, $document, $fields, $passed, $messages, $context->actorId()));
+        app(RecordSecondPass::class)->execute(new RecordSecondPassInput($context->runId, $objectId, $written, $document, $fields, $passed, $messages, $context->actorId(), $waiting));
     }
 
     /**

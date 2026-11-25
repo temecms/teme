@@ -170,7 +170,7 @@ final readonly class ImportRunJobs
     {
         $skipped = $fromFile ? self::NOT_FROM_FILES : self::ONLY_FROM_FILES;
 
-        return array_values(array_filter($this->phases->all(), fn (ImportPhase $phase): bool => $phase->runsIn($kind) && ! in_array($phase->key(), $skipped, true)));
+        return array_values(array_filter($this->phases->all(), fn (ImportPhase $phase): bool => ImportPhases::runs($phase, $kind) && ! in_array($phase->key(), $skipped, true)));
     }
 
     /**

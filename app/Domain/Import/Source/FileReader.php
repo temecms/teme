@@ -18,6 +18,7 @@ use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\WordPressRecords;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * An export file read as a source: a list is a keyset page of the file's
@@ -29,6 +30,10 @@ final class FileReader implements SourceReader
 {
     /** The statuses an import without drafts brings: published items, and the files and blocks they show. */
     private const array PUBLISHED = ['publish', 'inherit'];
+
+    /** The attachment IDs the site's posts' outside pictures wait for, through the map's index of waiting rows (#716). */
+    private const string WAITED = "SELECT substr(waiting.key, 3)::bigint FROM import_map AS waiting_map, jsonb_array_elements_text(waiting_map.facts -> 'waiting_media') AS waiting(key)"
+        ." WHERE waiting_map.source_id = ? AND (waiting_map.facts -> 'waiting_media') <> '[]'::jsonb AND waiting.key LIKE 'a:%'";
 
     /** Added to a file's term number that another term holds in the map. */
     private const int APART = 1_000_000_000;
@@ -51,8 +56,8 @@ final class FileReader implements SourceReader
     public function page(string $list, array $query, int $afterId, int $limit): SourcePage
     {
         return match ($list) {
-            ItemRows::USERS, ItemRows::MEDIA => $this->rows($list, $afterId, $limit),
-            ItemRows::COMMENTS => ($this->choices['comments'] ?? true) === false ? new SourcePage([], null) : $this->rows($list, $afterId, $limit),
+            ItemRows::USERS, ItemRows::MEDIA => $this->rows($list, $afterId, $limit, $query),
+            ItemRows::COMMENTS => ($this->choices['comments'] ?? true) === false ? new SourcePage([], null) : $this->rows($list, $afterId, $limit, $query),
             ItemRows::TERMS => $this->termPage($afterId, $limit),
             ItemRows::CONTENT => $this->content($query, $afterId, $limit),
             'urls' => $this->urls((string) ($query['kind'] ?? ''), $afterId, $limit),
@@ -105,14 +110,34 @@ final class FileReader implements SourceReader
     /**
      * A keyset page of one list's rows, in ID order: an `afterId` of 0 is the
      * start, so the authors and terms a file names only on its items, whose
-     * IDs are below zero, come first.
+     * IDs are below zero, come first. A query's `lane` of `lanes` reads only
+     * the rows whose ID leaves that lane over the lanes (#701), so lanes read
+     * side by side never share a row, and each is read in ID order. A
+     * picture pass's `waited` of `only` reads only the attachments a post's
+     * outside pictures wait for by ID, and `without` the others (#716).
+     *
+     * @param  array<string, scalar>  $query
+     *
+     * @throws InvalidArgumentException for a lane that isn't one of the lanes
      */
-    private function rows(string $list, int $afterId, int $limit): SourcePage
+    private function rows(string $list, int $afterId, int $limit, array $query = []): SourcePage
     {
+        $lanes = (int) ($query['lanes'] ?? 1);
+        $lane = (int) ($query['lane'] ?? 0);
+
+        if ($lanes < 1 || $lanes > 16 || $lane < 0 || $lane >= $lanes) {
+            throw new InvalidArgumentException("An import list's lane [{$lane}] of [{$lanes}] isn't one.");
+        }
+
         $items = DB::table('import_file_rows')
             ->where('file_id', $this->fileId)
             ->where('list', $list)
             ->when($afterId !== 0, fn ($query) => $query->where('object_id', '>', $afterId))
+            ->when($lanes > 1, fn ($query) => $query->whereRaw('mod(object_id, ?::bigint) = ?::bigint', [$lanes, $lane]))
+            ->when(in_array($query['waited'] ?? null, ['only', 'without'], true), fn ($rows) => $rows->whereRaw(
+                'object_id '.($query['waited'] === 'only' ? 'IN' : 'NOT IN').' ('.self::WAITED.')',
+                [$this->sourceId],
+            ))
             ->orderBy('object_id')
             ->limit($limit)
             ->pluck('payload')

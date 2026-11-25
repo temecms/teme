@@ -44,6 +44,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $started_by
  * @property CarbonImmutable $started_at
  * @property CarbonImmutable|null $ended_at
+ * @property string|null $follows_run_id
  */
 final class ImportRun extends Model
 {

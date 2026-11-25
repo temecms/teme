@@ -23,6 +23,9 @@ final class ImportMode
 {
     private ?string $runId = null;
 
+    /** @var array<string, true> the page-cache tags the held purges of this run's work named, since it last entered the mode */
+    private array $held = [];
+
     /**
      * Runs $work in import mode for this run, and leaves the mode whatever
      * happens.
@@ -50,6 +53,7 @@ final class ImportMode
         }
 
         $this->runId = $runId;
+        $this->held = [];
 
         try {
             return $work();
@@ -64,6 +68,37 @@ final class ImportMode
     public function active(): bool
     {
         return $this->runId !== null;
+    }
+
+    /**
+     * Keeps the page-cache tags a held purge named, for work that purges
+     * its own pages once its mode has ended, as a picture pass purges each
+     * page of posts it swapped (#716).
+     *
+     * @param  list<string>  $tags
+     *
+     * @since next
+     */
+    public function hold(array $tags): void
+    {
+        foreach ($tags as $tag) {
+            $this->held[$tag] = true;
+        }
+    }
+
+    /**
+     * The tags held since the mode was last entered, given once.
+     *
+     * @return list<string>
+     *
+     * @since next
+     */
+    public function takeHeld(): array
+    {
+        $tags = array_keys($this->held);
+        $this->held = [];
+
+        return array_map(strval(...), $tags);
     }
 
     /**

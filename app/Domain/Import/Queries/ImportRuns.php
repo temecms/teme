@@ -2,7 +2,9 @@
 
 /**
  * The import runs read (I-332): the one running, the latest, the last
- * finished, and what a run's phases are given.
+ * finished, the picture pass that follows one, and what a run's phases are
+ * given. The latest and the last finished are never a picture pass, which
+ * belongs to the run it follows (#716).
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -35,7 +37,17 @@ final class ImportRuns
      */
     public function latest(string $sourceId): ?ImportRun
     {
-        return ImportRun::query()->where('source_id', $sourceId)->orderByDesc('started_at')->orderByDesc('id')->first();
+        return ImportRun::query()->where('source_id', $sourceId)->where('kind', '<>', ImportRunKind::MediaPass->value)->orderByDesc('started_at')->orderByDesc('id')->first();
+    }
+
+    /**
+     * The latest picture pass that follows this run, or null when it has none.
+     *
+     * @since next
+     */
+    public function passOf(string $runId): ?ImportRun
+    {
+        return ImportRun::query()->where('follows_run_id', $runId)->where('kind', ImportRunKind::MediaPass->value)->orderByDesc('started_at')->orderByDesc('id')->first();
     }
 
     /**
@@ -47,6 +59,7 @@ final class ImportRuns
         return ImportRun::query()
             ->where('source_id', $sourceId)
             ->where('state', ImportRunState::Finished->value)
+            ->where('kind', '<>', ImportRunKind::MediaPass->value)
             ->when($before !== null, fn ($query) => $query->where('started_at', '<', $before))
             ->orderByDesc('started_at')->orderByDesc('id')
             ->first();
@@ -74,6 +87,8 @@ final class ImportRuns
             (int) ($run->options['pause_ms'] ?? 1000),
             $run->choices,
             $run->file_id === null ? null : (string) $run->file_id,
+            // A run started before #701 holds no lanes, and reads its media in one.
+            (int) ($run->options['media_lanes'] ?? 1),
         );
     }
 }

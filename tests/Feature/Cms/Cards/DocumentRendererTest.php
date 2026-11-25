@@ -99,7 +99,7 @@ it('renders every fixture to its expected HTML', function (string $name): void {
     $expected = trim(file_get_contents(base_path("tests/Fixtures/Documents/{$name}.html")));
 
     expect(app(DocumentRenderer::class)->html($document))->toBe($expected);
-})->with(['prose', 'callout', 'snippet', 'button', 'image', 'gallery', 'embed', 'aligned', 'code-language', 'ordered-start', 'table-align', 'links']);
+})->with(['prose', 'callout', 'snippet', 'button', 'image', 'gallery', 'embed', 'aligned', 'code-language', 'ordered-start', 'table-align', 'links', 'outside-image']);
 
 it('draws a table cell stored with no attributes, as the database gives back "attrs": {}', function (): void {
     $cell = fn (string $type, string $text): array => ['type' => $type, 'attrs' => [], 'content' => [docText($text)]];

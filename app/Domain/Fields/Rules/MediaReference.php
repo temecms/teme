@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fields\Rules;
 
+use App\Domain\Media\OutsideImage;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,34 @@ final class MediaReference implements ValidationRule
      */
     public function __construct(private readonly array $kinds, private readonly bool $allowsDecorative = true) {}
 
+    /**
+     * An outside picture's address is the web's, its size whole numbers and its alt text short.
+     *
+     * @param  array<mixed>  $value
+     */
+    private function outside(array $value, Closure $fail): void
+    {
+        if (! is_string($value['source']) || ! OutsideImage::isWebAddress($value['source'])) {
+            $fail(__('Choose a file from the media library.'));
+
+            return;
+        }
+
+        foreach (['width', 'height'] as $key) {
+            if (($value[$key] ?? null) !== null && (! is_int($value[$key]) || $value[$key] < 1 || $value[$key] > 100000)) {
+                $fail(__('Choose a file from the media library.'));
+
+                return;
+            }
+        }
+
+        $alt = $value['alt'] ?? null;
+
+        if ($alt !== null && (! is_string($alt) || mb_strlen($alt) > 1000)) {
+            $fail(__('Alt text is at most 1,000 characters.'));
+        }
+    }
+
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_array($value)) {
@@ -35,6 +64,13 @@ final class MediaReference implements ValidationRule
         }
 
         $id = $value['id'] ?? '';
+
+        // An outside picture: the old site's address, kept until the import copies the file (#716).
+        if ($id === '' && array_key_exists('source', $value)) {
+            $this->outside($value, $fail);
+
+            return;
+        }
 
         if ($id === '') {
             return;

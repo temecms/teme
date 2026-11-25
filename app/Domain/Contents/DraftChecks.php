@@ -17,6 +17,7 @@ namespace App\Domain\Contents;
 
 use App\Domain\Cards\DocumentNormaliser;
 use App\Domain\Cards\DocumentValidator;
+use App\Domain\Cards\OutsidePictures;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Fields\FieldValidator;
@@ -42,7 +43,7 @@ final class DraftChecks
         // an editor can still save a post whose term has gone.
         // Loaded once, for its working revision, its type and a region's limits.
         $content = Content::query()->find($contentId);
-        $working = ContentRevision::query()->whereKey($content?->working_revision_id)->first(['terms', 'fields']);
+        $working = ContentRevision::query()->whereKey($content?->working_revision_id)->first(['terms', 'fields', 'document']);
         $known = (array) ($working->terms ?? []);
         $added = array_values(array_diff($terms, $known));
         $type = (string) $content?->type;
@@ -69,6 +70,10 @@ final class DraftChecks
                 'added.*' => [TermRules::usableBy($type, $language)],
             ],
         )->validate();
+
+        // An outside picture is the import's to write: a person keeps one, never adds one (#716).
+        OutsidePictures::refuseAdded($document, (array) ($working->document ?? []));
+        OutsidePictures::refuseAddedFields($fields, (array) ($working->fields ?? []));
 
         app(FieldValidator::class)->validate($type, $fields, (array) ($working->fields ?? []));
         // Like a term, a template is checked only when newly chosen (I-443).

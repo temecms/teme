@@ -75,10 +75,13 @@ services:
             installer:
                 condition: service_healthy
 
+    # The default queue's workers, as many as TEME_QUEUE_WORKERS in .env
+    # says (1 when unset): about 512 MB of memory each.
     worker:
         <<: *teme
         command:
             [
+                '/usr/local/lib/teme/queue-workers',
                 'php',
                 'artisan',
                 'queue:work',

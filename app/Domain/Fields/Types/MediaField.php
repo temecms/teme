@@ -18,6 +18,7 @@ use App\Domain\Cards\CardReference;
 use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 use App\Domain\Fields\Rules\MediaReference;
+use App\Domain\Media\OutsideImage;
 use App\Domain\Site\ViewModels\ImageRef;
 use App\Domain\StructuredData\ImageObjects;
 
@@ -45,10 +46,23 @@ final class MediaField implements FieldType
     }
 
     /**
-     * @return array{id: string, alt: string|null, decorative: bool}|null
+     * @return array{id: string, alt: string|null, decorative: bool}|array{source: string, width: int|null, height: int|null, alt: string|null, decorative: false}|null
      */
     public function normalise(Field $field, mixed $value): ?array
     {
+        // An outside picture, which only an import writes while it copies the file (#716).
+        if (is_array($value) && ($value['id'] ?? null) === null && is_string($value['source'] ?? null) && $value['source'] !== '') {
+            $alt = is_string($value['alt'] ?? null) ? trim($value['alt']) : '';
+
+            return [
+                'source' => $value['source'],
+                'width' => is_int($value['width'] ?? null) ? $value['width'] : null,
+                'height' => is_int($value['height'] ?? null) ? $value['height'] : null,
+                'alt' => $alt === '' ? null : $alt,
+                'decorative' => false,
+            ];
+        }
+
         if (! is_array($value) || ($value['id'] ?? '') === '' || ($value['id'] ?? null) === null) {
             return null;
         }
@@ -83,6 +97,12 @@ final class MediaField implements FieldType
     /** The image as a template draws it, or null when nothing is stored. */
     public function render(Field $field, mixed $value): ?ImageRef
     {
+        $outside = self::outside($value);
+
+        if ($outside !== null) {
+            return $outside;
+        }
+
         $id = $this->idOf($value);
 
         if ($id === null) {
@@ -113,6 +133,23 @@ final class MediaField implements FieldType
     }
 
     /** The media ID in a stored value, or null. */
+    /**
+     * An outside picture's reference, a theme drawing it as any image, or
+     * null for a value that isn't one.
+     */
+    public static function outside(mixed $value): ?ImageRef
+    {
+        if (! is_array($value) || ($value['id'] ?? null) !== null || ! is_string($value['source'] ?? null) || ! OutsideImage::isWebAddress($value['source'])) {
+            return null;
+        }
+
+        return new ImageRef(
+            OutsideImage::id($value['source'], is_int($value['width'] ?? null) ? $value['width'] : null, is_int($value['height'] ?? null) ? $value['height'] : null),
+            is_string($value['alt'] ?? null) ? $value['alt'] : null,
+            false,
+        );
+    }
+
     private function idOf(mixed $value): ?string
     {
         return is_array($value) && is_string($value['id'] ?? null) && $value['id'] !== '' ? $value['id'] : null;

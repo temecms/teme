@@ -28,6 +28,7 @@ use App\Domain\Import\Operations\RecordOutsideImage;
 use App\Domain\Import\Phases\Content\ContentSite;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
+use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
@@ -41,7 +42,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-final readonly class OutsideImagesStep implements StepPhase
+final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
 {
     /** Content items a read. */
     public const int PAGE = 50;
@@ -81,7 +82,8 @@ final readonly class OutsideImagesStep implements StepPhase
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
         $hosts = self::hosts($context->choice('outside_images', []));
-        $own = ! ($context->readsFile() && $context->choice('media') === 'links');
+        // The old site's own images come with its media files: never as links, and in the picture pass when that brings them (#716).
+        $own = ! $context->keepsOldSiteMedia() || $context->kind === ImportRunKind::MediaPass;
 
         if ($hosts === [] && ! $own) {
             return StepResult::done();

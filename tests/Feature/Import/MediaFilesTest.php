@@ -109,6 +109,19 @@ it('records each file address once, leaving one another item holds to it (I-338)
     ]);
 });
 
+it('inserts an attachment’s file addresses in one order whatever order they come in, so two lanes never wait on each other (#701)', function (): void {
+    $inserted = [];
+    DB::listen(function ($query) use (&$inserted): void {
+        if (str_starts_with($query->sql, 'insert into "import_map"')) {
+            $inserted[] = array_values(array_filter($query->bindings, fn (mixed $binding): bool => is_string($binding) && str_starts_with($binding, '2024/05/')));
+        }
+    });
+
+    imfRecord($this->source, 12, ['2024/05/harbour.jpg', '2024/05/boat.jpg', '2024/05/anchor.jpg'], $this->harbour->id, $this->importer);
+
+    expect($inserted)->toBe([['2024/05/anchor.jpg', '2024/05/boat.jpg', '2024/05/harbour.jpg']]);
+});
+
 it('records no file address when the actor may not import', function (string $who): void {
     $editor = User::factory()->create()->assignRole('editor');
     $record = fn (): array => app(RecordMediaFiles::class)->execute(new RecordMediaFilesInput($this->source, 12, ['2024/05/harbour.jpg'], $this->harbour->id, $who === 'an editor' ? (string) $editor->id : null));

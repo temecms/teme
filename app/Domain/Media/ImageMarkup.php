@@ -37,6 +37,17 @@ final readonly class ImageMarkup
      */
     public function render(string $mediaId, string $context, bool $priority = false, ?string $alt = null, bool $decorative = false, string $class = ''): string
     {
+        // An outside picture, while an import copies its file: drawn from the old site's address (#716).
+        $outside = OutsideImage::decode($mediaId);
+
+        if ($outside !== null) {
+            if ($priority) {
+                $this->warnings->priority();
+            }
+
+            return OutsideImage::markup($outside['source'], $decorative ? '' : trim((string) $alt), $outside['width'], $outside['height'], $priority, $class);
+        }
+
         $item = $this->media->forIds([$mediaId])[$mediaId] ?? null;
 
         if ($item === null) {

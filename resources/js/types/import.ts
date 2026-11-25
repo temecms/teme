@@ -71,7 +71,7 @@ export type ImportCounts = {
 
 export type ImportRunView = {
     id: string;
-    kind: 'full' | 'catch-up';
+    kind: 'full' | 'catch-up' | 'media';
     kindLabel: string;
     state: 'running' | 'stopped' | 'finished';
     stateLabel: string;
@@ -88,6 +88,16 @@ export type ImportRunView = {
         uploadedAt: string;
         deletesOn: string | null;
         deleted: boolean;
+    } | null;
+    /** The picture pass of an import that brought the articles first; null for any other. */
+    picturePass: {
+        id: string | null;
+        state: 'running' | 'stopped' | 'finished' | null;
+        stateLabel: string | null;
+        href: string | null;
+        files: number;
+        waiting: number;
+        again: boolean;
     } | null;
 };
 
@@ -114,6 +124,8 @@ export type ChoicesForm = {
     people: { value: string; label: string }[];
     outsideHosts: { host: string; count: number }[];
     pause: number;
+    /** download, or later: the articles first, then the pictures in the background. */
+    media: string;
     pauses: { value: number; label: string }[];
 };
 
@@ -162,6 +174,7 @@ export type RememberedChoices = {
     roles: Record<string, string>;
     owner: string;
     outside_images: string[];
+    media?: string;
     pause: number;
 };
 
@@ -183,7 +196,7 @@ export type ImportPlan = {
 /** One of a site's imports, as the list under its report draws it. */
 export type ImportRunRow = {
     id: string;
-    kind: 'full' | 'catch-up';
+    kind: 'full' | 'catch-up' | 'media';
     kindLabel: string;
     state: 'running' | 'stopped' | 'finished';
     stateLabel: string;

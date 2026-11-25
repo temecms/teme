@@ -31,6 +31,7 @@ use App\Domain\Import\Phases\ImportResult;
 use App\Domain\Import\Phases\ListPhase;
 use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\PreparesObjects;
+use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Phases\Terms\WordPressText;
 use App\Domain\Import\Queries\ImportMap;
@@ -50,10 +51,13 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Teme\Contracts\Settings\SettingsReader;
 
-final readonly class MediaPhase implements ListPhase, PreparesObjects
+final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMediaPass
 {
     /** Attachments a page: a page job starts none after ImportListPage::SECONDS and leaves the rest to the next (#254). */
     public const int PAGE = 20;
+
+    /** The most media lanes a run reads side by side (#701). */
+    public const int MAX_LANES = 8;
 
     /** The seconds one download may take, its tries and waits included. */
     public const int SECONDS = 20;
@@ -91,16 +95,50 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects
         return true;
     }
 
+    /**
+     * The media list, split into the run's lanes for an export file: lane k
+     * of N reads the attachments whose ID leaves k over N, each lane a chain
+     * of its own in the phase's batch (#701). A live import reads one list
+     * until the companion can page by ranges; that is the one condition to
+     * change then (docs/architecture/import.md). A picture pass of an
+     * export file reads here only the attachments posts wait for, and
+     * MediaRestPhase the rest after them (#716).
+     */
     public function lists(ImportContext $context): array
     {
-        // Kept on the old site as links: nothing is downloaded or recorded (docs/architecture/import.md).
-        if ($context->readsFile() && $context->choice('media') === 'links') {
+        $pass = $context->kind === ImportRunKind::MediaPass;
+
+        return $this->listsOf($context, $pass && $context->readsFile() ? 'only' : null);
+    }
+
+    /**
+     * The media lists, of the attachments posts wait for ('only'), of the
+     * others ('without'), or of every one (null).
+     *
+     * @return list<ImportList>
+     *
+     * @since next
+     */
+    public function listsOf(ImportContext $context, ?string $waited): array
+    {
+        // Kept on the old site, as links or until the picture pass: nothing is downloaded or recorded here (docs/architecture/import.md).
+        if ($context->keepsOldSiteMedia() && $context->kind !== ImportRunKind::MediaPass) {
             return [];
         }
 
         $query = $context->modifiedAfter === null ? [] : ['modified_after' => $context->modifiedAfter->utc()->format('Y-m-d H:i:s')];
+        $query = $waited === null ? $query : [...$query, 'waited' => $waited];
 
-        return [new ImportList('media', $query, self::PAGE)];
+        $lanes = $context->readsFile() ? max(1, min(self::MAX_LANES, $context->mediaLanes)) : 1;
+
+        if ($lanes === 1) {
+            return [new ImportList('media', $query, self::PAGE)];
+        }
+
+        return array_map(
+            fn (int $lane): ImportList => new ImportList('media', [...$query, 'lane' => $lane, 'lanes' => $lanes], self::PAGE),
+            range(0, $lanes - 1),
+        );
     }
 
     public function identify(ImportList $list, array $item, int|string $key): SourceRef

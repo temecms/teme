@@ -562,6 +562,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::post('{source}/catch-up', [ImportRunController::class, 'catchUp'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('catch-up');
             Route::post('runs/{run}/stop', [ImportRunController::class, 'stop'])->where('run', '[0-9a-hjkmnp-tv-z]{26}')->name('stop');
             Route::post('runs/{run}/carry-on', [ImportRunController::class, 'carryOn'])->where('run', '[0-9a-hjkmnp-tv-z]{26}')->name('carry-on');
+            Route::post('runs/{run}/pictures', [ImportRunController::class, 'pictures'])->where('run', '[0-9a-hjkmnp-tv-z]{26}')->name('pictures');
             Route::get('runs/{run}/{file}', [ImportScreenController::class, 'download'])
                 ->where(['run' => '[0-9a-hjkmnp-tv-z]{26}', 'file' => 'everything|attention'])
                 ->name('download');

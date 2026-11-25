@@ -105,7 +105,7 @@ final readonly class ImportPhases
     public function first(ImportRunKind $kind): ?ImportPhase
     {
         foreach ($this->all() as $phase) {
-            if ($phase->runsIn($kind)) {
+            if (self::runs($phase, $kind)) {
                 return $phase;
             }
         }
@@ -129,12 +129,23 @@ final readonly class ImportPhases
         }
 
         foreach ($this->all() as $phase) {
-            if ($phase->order() > $order && $phase->runsIn($kind)) {
+            if ($phase->order() > $order && self::runs($phase, $kind)) {
                 return $phase;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Whether a run of this kind runs the phase: a picture pass only its
+     * own phases, which may run in other runs too as they say (#716).
+     *
+     * @since next
+     */
+    public static function runs(ImportPhase $phase, ImportRunKind $kind): bool
+    {
+        return $kind === ImportRunKind::MediaPass ? $phase instanceof RunsInMediaPass : $phase->runsIn($kind);
     }
 
     /**

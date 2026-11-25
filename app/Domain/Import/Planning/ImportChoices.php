@@ -39,8 +39,16 @@ final readonly class ImportChoices
     /** The roles a person added from an export file can be given, in the plan page's order. */
     public const array FILE_ROLES = ['author', 'contributor', 'editor'];
 
-    /** What becomes of an export file's media files: downloaded from the old site, or kept there as links. */
-    public const array MEDIA = ['download', 'links'];
+    /** What becomes of an export file's media files: downloaded from the old site, kept there as links, or brought after the articles (#716). */
+    public const array MEDIA = ['download', 'links', 'later'];
+
+    /**
+     * What becomes of a live site's media files: downloaded during the
+     * import, or brought after the articles (#716).
+     *
+     * @since next
+     */
+    public const array LIVE_MEDIA = ['download', 'later'];
 
     /** An address's base: words of letters, digits, hyphens and underscores, between slashes. */
     private const string BASE = '/^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*$/';
@@ -51,7 +59,7 @@ final readonly class ImportChoices
      * Returns what the choices step draws: each choice's options, and its
      * default, for this site's analysis and the person choosing.
      *
-     * @return array{roles: list<array{key: string, value: string}>, roleOptions: list<array{value: string, label: string}>, owner: string, people: list<array{value: string, label: string}>, outsideHosts: list<array{host: string, count: int}>, pause: int, pauses: list<array{value: int, label: string}>}
+     * @return array{roles: list<array{key: string, value: string}>, roleOptions: list<array{value: string, label: string}>, owner: string, people: list<array{value: string, label: string}>, outsideHosts: list<array{host: string, count: int}>, pause: int, media: string, pauses: list<array{value: int, label: string}>}
      */
     public function form(SiteAnalysis $analysis, string $personId): array
     {
@@ -64,6 +72,7 @@ final readonly class ImportChoices
             'people' => self::options($people),
             'outsideHosts' => array_map(fn (string $host, int $count): array => ['host' => $host, 'count' => $count], array_keys($analysis->outsideHosts()), $analysis->outsideHosts()),
             'pause' => StartImportRun::OPTIONS['pause_ms'],
+            'media' => 'download',
             'pauses' => array_map(fn (int $value, string $label): array => ['value' => $value, 'label' => $label], array_keys(self::PAUSES), self::PAUSES),
         ];
     }
@@ -76,7 +85,7 @@ final readonly class ImportChoices
      *
      * @param  array<string, mixed>  $input
      *
-     * @return array{choices: array{roles: array<string, string>, owner: string, outside_images: list<string>}, pauseMs: int}
+     * @return array{choices: array{roles: array<string, string>, owner: string, outside_images: list<string>, media: string}, pauseMs: int}
      *
      * @throws ValidationException under each field that doesn't fit
      */
@@ -99,6 +108,12 @@ final readonly class ImportChoices
             $errors['outside_images'] = 'Tick only the sites listed.';
         }
 
+        $media = $input['media'] ?? 'download';
+
+        if (! in_array($media, self::LIVE_MEDIA, true)) {
+            $errors['media'] = 'Choose how the media files come across.';
+        }
+
         $pause = $input['pause'] ?? (string) StartImportRun::OPTIONS['pause_ms'];
 
         if (! is_numeric($pause) || ! array_key_exists((int) $pause, self::PAUSES)) {
@@ -115,6 +130,7 @@ final readonly class ImportChoices
                 'roles' => array_map(fn (?string $role): string => (string) $role, $roles),
                 'owner' => $owner,
                 'outside_images' => $hosts ?? [],
+                'media' => (string) $media,
             ],
             'pauseMs' => (int) $pause,
         ];
@@ -191,7 +207,8 @@ final readonly class ImportChoices
         $errors = [];
 
         try {
-            $companion = $this->validated([...$input, 'roles' => [], 'outside_images' => []], $analysis);
+            // A file's media choice has links beside the live ones, so it is checked below.
+            $companion = $this->validated([...$input, 'roles' => [], 'outside_images' => [], 'media' => 'download'], $analysis);
         } catch (ValidationException $refused) {
             $errors = array_map(fn (array $words): string => (string) $words[0], $refused->errors());
             $companion = null;

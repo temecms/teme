@@ -12,6 +12,8 @@ use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Operations\Input\StartImportRunInput;
 use App\Domain\Import\Operations\StartImportRun;
 use App\Domain\Import\Phases\Finish\DeletedStep;
+use App\Domain\Import\Phases\ImportContext;
+use App\Domain\Import\Phases\ImportList;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Phases\Media\ImportedMedia;
 use App\Domain\Import\Phases\Media\MediaParentsStep;
@@ -19,6 +21,7 @@ use App\Domain\Import\Phases\Media\MediaPhase;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
 use App\Domain\Media\Downloads\FileDownloader;
 use App\Domain\Media\Models\Media;
+use App\Domain\Support\Security\JobActor;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -592,4 +595,36 @@ it('skips with a warning an attachment whose image is damaged, rather than faili
         ->and($message->level->value)->toBe('warning')
         ->and(Media::query()->count())->toBe(0)
         ->and(glob($this->folder.DIRECTORY_SEPARATOR.'*'))->toBe([]);
+});
+
+it('keeps a live import to one media list however many lanes the run holds (#701)', function (): void {
+    $context = new ImportContext('run', $this->source->id, ImportRunKind::Full, JobActor::person(1), null, 0, [], null, 4);
+    $lists = app(MediaPhase::class)->lists($context);
+
+    expect($lists)->toHaveCount(1)
+        ->and($lists[0]->query)->toBe([]);
+});
+
+it('gives a file import one media list per lane, eight at most, and none when media stay as links (#701)', function (): void {
+    $file = fn (int $lanes, array $choices = []): ImportContext => new ImportContext('run', $this->source->id, ImportRunKind::Full, JobActor::person(1), null, 0, $choices, 'file-1', $lanes);
+    $phase = app(MediaPhase::class);
+
+    expect(array_map(fn (ImportList $list): array => $list->query, $phase->lists($file(3))))->toBe([['lane' => 0, 'lanes' => 3], ['lane' => 1, 'lanes' => 3], ['lane' => 2, 'lanes' => 3]])
+        ->and(array_map(fn (ImportList $list): array => $list->query, $phase->lists($file(1))))->toBe([[]])
+        ->and($phase->lists($file(99)))->toHaveCount(8)
+        ->and($phase->lists($file(4, ['media' => 'links'])))->toBe([]);
+});
+
+it('reads no media list when the articles come first, live or from a file, and keeps the old site’s media only then (#716)', function (): void {
+    $context = fn (array $choices, ?string $file): ImportContext => new ImportContext('run', $this->source->id, ImportRunKind::Full, JobActor::person(1), null, 0, $choices, $file, 4);
+
+    expect(app(MediaPhase::class)->lists($context(['media' => 'later'], null)))->toBe([])
+        ->and(app(MediaPhase::class)->lists($context(['media' => 'later'], 'file-1')))->toBe([])
+        ->and($context(['media' => 'later'], null)->keepsOldSiteMedia())->toBeTrue()
+        ->and($context(['media' => 'later'], null)->bringsMediaLater())->toBeTrue()
+        ->and($context(['media' => 'links'], 'file-1')->keepsOldSiteMedia())->toBeTrue()
+        ->and($context(['media' => 'links'], 'file-1')->bringsMediaLater())->toBeFalse()
+        ->and($context(['media' => 'links'], null)->keepsOldSiteMedia())->toBeFalse()
+        ->and($context(['media' => 'download'], 'file-1')->keepsOldSiteMedia())->toBeFalse()
+        ->and($context([], null)->keepsOldSiteMedia())->toBeFalse();
 });

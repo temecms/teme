@@ -152,3 +152,13 @@ it('hashes an item the same whatever the order of its keys, leaving out the keys
         ->and(ImportMap::hashOf($one))->not->toBe(ImportMap::hashOf($two))
         ->and(ImportMap::hashOf(['roles' => ['editor', 'author']]))->not->toBe(ImportMap::hashOf(['roles' => ['author', 'editor']]));
 });
+
+it('runs only the picture pass’s phases in a picture pass, and none of them in another run (#716)', function (): void {
+    $full = phasesChain(ImportRunKind::Full);
+    $pass = phasesChain(ImportRunKind::MediaPass);
+
+    expect($pass)->toBe(['media', 'media-rest', 'outside-images', 'media-parents', 'second-pass', 'pictures-left'])
+        ->and($full)->toContain('outside-images')
+        ->and($full)->toContain('second-pass')
+        ->and($full)->toContain('content');
+});

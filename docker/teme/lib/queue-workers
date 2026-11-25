@@ -1,0 +1,60 @@
+#!/bin/bash
+# Runs the default queue's worker command as many times side by side as
+# TEME_QUEUE_WORKERS says, 1 to 8, or once when it is unset. Once, it simply
+# becomes the command, as before there was a choice. Several, it starts each,
+# starts a new one in place of any that ends (each ends after its hour, or at
+# its memory limit), and on SIGTERM or SIGINT passes the signal to them all
+# and waits for each to finish the job it has. An import from an export file
+# fetches as many media files at once as there are workers, up to its setting
+# (docs/architecture/import.md).
+set -u
+
+count="${TEME_QUEUE_WORKERS:-1}"
+
+case "$count" in
+    [1-8]) ;;
+    *)
+        echo "TEME_QUEUE_WORKERS is \"$count\": set a whole number from 1 to 8." >&2
+        exit 1
+        ;;
+esac
+
+if [ "$#" -eq 0 ]; then
+    echo "Give the worker's command, such as php artisan queue:work." >&2
+    exit 1
+fi
+
+if [ "$count" = 1 ]; then
+    exec "$@"
+fi
+
+stopping=
+
+stop_all() {
+    stopping=1
+    kill -TERM $(jobs -p) 2> /dev/null
+}
+
+trap stop_all TERM INT
+
+for _ in $(seq "$count"); do
+    "$@" &
+done
+
+while [ -z "$stopping" ]; do
+    ended=
+    wait -n -p ended
+    [ -n "$stopping" ] && break
+    [ -z "$ended" ] && continue
+    # A worker that ends at once (the database not there yet, say) isn't started again in a tight loop.
+    sleep 1
+    [ -n "$stopping" ] && break
+    "$@" &
+done
+
+# Each worker finishes the job it has; a second signal doesn't cut this short.
+while [ -n "$(jobs -p)" ]; do
+    wait
+done
+
+exit 0

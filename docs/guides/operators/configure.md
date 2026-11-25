@@ -129,6 +129,12 @@ Set `TEME_UPDATES_CHECK` and `TEME_UPDATES_CHANNEL` the same on every role: `web
 | `TEME_UPDATER_DEPLOY_TIMEOUT` | `3600` | Seconds the updater waits for the deploy to finish. The updater only. |
 | `TEME_UPDATER_PART_TIMEOUT` | `900` | Seconds the updater waits for each later step. The updater only. |
 
+## Background work
+
+| Setting | Default | What it does |
+|---|---|---|
+| `TEME_QUEUE_WORKERS` | `1` | How many workers take the default queue, from 1 to 8: in the `worker` role, or in the one container that runs every role. Each takes one job at a time, so more of them do more at once; an import from an export file then fetches that many media files at once, up to the media setting *Files fetched at once in an import* (Settings › Media › Imports, 4 by default). Each worker needs about 512 MB of memory: raise the `worker` container's memory limit with it, or the one container's. A value outside 1 to 8 stops the container from starting, saying so. |
+
 ## Sessions and mail
 
 | Variable | Default | What it does |
