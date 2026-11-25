@@ -205,17 +205,24 @@ type Props = {
     onAltTextUsed?: (details: MediaDetailsData) => void;
 };
 
+type FieldGroup = 'all' | 'primary' | 'secondary';
+
 /**
- * Title, alt text, caption, credit and license, each saved as it is left
+ * Alt text, caption and credit first (primary); title and license after the
+ * detail panel's actions (secondary). Each is saved as it is left
  * (docs/architecture/design-system.md, section 4.36); the detail panel and
- * the picker's side draw the same fields (I-236).
+ * the picker's side draw the same fields.
  */
 export function MediaFields({
     item,
     saver,
     disabled = false,
     onAltTextUsed,
-}: Props) {
+    group = 'all',
+}: Props & {
+    /** Primary = Alt, Caption, Credit; secondary = Title, License; all = both. */
+    group?: FieldGroup;
+}) {
     const altField = useRef<HTMLTextAreaElement | null>(null);
     const field = (name: DetailField) => ({
         name,
@@ -226,26 +233,12 @@ export function MediaFields({
         onBlur: saver.saveNow,
     });
     const missingAlt = (item.alt ?? '').trim() === '';
+    const primary = group === 'all' || group === 'primary';
+    const secondary = group === 'all' || group === 'secondary';
 
     return (
         <div className="grid gap-4">
-            <div className="grid gap-1">
-                <Label htmlFor={`attachment-${item.id}-title`}>
-                    {__('Title')}
-                </Label>
-                <Input
-                    {...field('title')}
-                    id={`attachment-${item.id}-title`}
-                    aria-describedby={`attachment-${item.id}-title-error`}
-                    defaultValue={item.title}
-                    key={`${item.id}-title`}
-                />
-                <InputError
-                    id={`attachment-${item.id}-title-error`}
-                    message={saver.errors.title}
-                />
-            </div>
-            {item.kind === 'image' && (
+            {primary && item.kind === 'image' && (
                 <div className="grid gap-1">
                     <Label
                         htmlFor={`attachment-${item.id}-alt`}
@@ -298,55 +291,79 @@ export function MediaFields({
                     )}
                 </div>
             )}
-            <div className="grid gap-1">
-                <Label htmlFor={`attachment-${item.id}-caption`}>
-                    {__('Caption')}
-                </Label>
-                <Textarea
-                    {...field('caption')}
-                    id={`attachment-${item.id}-caption`}
-                    aria-describedby={`attachment-${item.id}-caption-error`}
-                    rows={2}
-                    defaultValue={item.caption ?? ''}
-                    key={`${item.id}-caption`}
-                />
-                <InputError
-                    id={`attachment-${item.id}-caption-error`}
-                    message={saver.errors.caption}
-                />
-            </div>
-            <div className="grid gap-1">
-                <Label htmlFor={`attachment-${item.id}-credit`}>
-                    {__('Credit')}
-                </Label>
-                <Input
-                    {...field('credit')}
-                    id={`attachment-${item.id}-credit`}
-                    aria-describedby={`attachment-${item.id}-credit-error`}
-                    defaultValue={item.credit ?? ''}
-                    key={`${item.id}-credit`}
-                />
-                <InputError
-                    id={`attachment-${item.id}-credit-error`}
-                    message={saver.errors.credit}
-                />
-            </div>
-            <div className="grid gap-1">
-                <Label htmlFor={`attachment-${item.id}-licence`}>
-                    {__('License')}
-                </Label>
-                <Input
-                    {...field('licence')}
-                    id={`attachment-${item.id}-licence`}
-                    aria-describedby={`attachment-${item.id}-licence-error`}
-                    defaultValue={item.licence ?? ''}
-                    key={`${item.id}-licence`}
-                />
-                <InputError
-                    id={`attachment-${item.id}-licence-error`}
-                    message={saver.errors.licence}
-                />
-            </div>
+            {primary && (
+                <>
+                    <div className="grid gap-1">
+                        <Label htmlFor={`attachment-${item.id}-caption`}>
+                            {__('Caption')}
+                        </Label>
+                        <Textarea
+                            {...field('caption')}
+                            id={`attachment-${item.id}-caption`}
+                            aria-describedby={`attachment-${item.id}-caption-error`}
+                            rows={2}
+                            defaultValue={item.caption ?? ''}
+                            key={`${item.id}-caption`}
+                        />
+                        <InputError
+                            id={`attachment-${item.id}-caption-error`}
+                            message={saver.errors.caption}
+                        />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label htmlFor={`attachment-${item.id}-credit`}>
+                            {__('Credit')}
+                        </Label>
+                        <Input
+                            {...field('credit')}
+                            id={`attachment-${item.id}-credit`}
+                            aria-describedby={`attachment-${item.id}-credit-error`}
+                            defaultValue={item.credit ?? ''}
+                            key={`${item.id}-credit`}
+                        />
+                        <InputError
+                            id={`attachment-${item.id}-credit-error`}
+                            message={saver.errors.credit}
+                        />
+                    </div>
+                </>
+            )}
+            {secondary && (
+                <>
+                    <div className="grid gap-1">
+                        <Label htmlFor={`attachment-${item.id}-title`}>
+                            {__('Title')}
+                        </Label>
+                        <Input
+                            {...field('title')}
+                            id={`attachment-${item.id}-title`}
+                            aria-describedby={`attachment-${item.id}-title-error`}
+                            defaultValue={item.title}
+                            key={`${item.id}-title`}
+                        />
+                        <InputError
+                            id={`attachment-${item.id}-title-error`}
+                            message={saver.errors.title}
+                        />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label htmlFor={`attachment-${item.id}-licence`}>
+                            {__('License')}
+                        </Label>
+                        <Input
+                            {...field('licence')}
+                            id={`attachment-${item.id}-licence`}
+                            aria-describedby={`attachment-${item.id}-licence-error`}
+                            defaultValue={item.licence ?? ''}
+                            key={`${item.id}-licence`}
+                        />
+                        <InputError
+                            id={`attachment-${item.id}-licence-error`}
+                            message={saver.errors.licence}
+                        />
+                    </div>
+                </>
+            )}
         </div>
     );
 }

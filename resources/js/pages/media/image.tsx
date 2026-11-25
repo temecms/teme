@@ -297,7 +297,7 @@ export default function MediaImage({ item, place }: ImagePage) {
                             disabled={!item.can.edit}
                             onClick={() => moveTo([50, 50])}
                         >
-                            {__('Center the focal point')}
+                            {__('Centre the focal point')}
                         </Button>
                     </div>
                 </div>
