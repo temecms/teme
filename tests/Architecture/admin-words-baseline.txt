@@ -295,14 +295,7 @@ pages/navigation/edit.tsx	Only the name changes. Themes that show this menu keep
 pages/navigation/edit.tsx	Rename menu
 pages/navigation/edit.tsx	Rename the menu
 pages/navigation/edit.tsx	This menu has no items yet
-pages/regions/index.tsx	From other themes
-pages/regions/index.tsx	Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.
-pages/regions/index.tsx	No theme is in use
 pages/regions/index.tsx	Theme no longer installed
-pages/regions/index.tsx	There’s nothing to fill here while {} is the active theme.
-pages/regions/index.tsx	Your own content in the spots the active theme sets aside, such as a box after each article.
-pages/regions/index.tsx	Your own content in the spots the active theme, {}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.
-pages/regions/index.tsx	{} has no regions
 pages/settings/group.tsx	{} settings
 pages/taxonomies/show.tsx	, which keeps every old address working as a redirect.
 pages/taxonomies/show.tsx	/admin/
@@ -415,9 +408,7 @@ pages/types/show.tsx	Add fields once the type is saved.
 pages/types/show.tsx	Admin address
 pages/types/show.tsx	Admin address
 pages/types/show.tsx	Archive page
-pages/types/show.tsx	Beside the name in the menu.
 pages/types/show.tsx	Can’t be used:
-pages/types/show.tsx	Change icon
 pages/types/show.tsx	Change in Settings › Addresses
 pages/types/show.tsx	Change in Settings › Addresses
 pages/types/show.tsx	Comments
@@ -434,7 +425,6 @@ pages/types/show.tsx	Fields
 pages/types/show.tsx	For example
 pages/types/show.tsx	From Teme:
 pages/types/show.tsx	Has an archive page
-pages/types/show.tsx	Icon
 pages/types/show.tsx	Icon
 pages/types/show.tsx	In the admin
 pages/types/show.tsx	In the admin
