@@ -1,11 +1,12 @@
 import { router } from '@inertiajs/react';
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { createContext, useContext, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { CodeField } from '@/components/fields/code-field';
 import type { WaitingScript } from '@/components/fields/code-field';
 import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
-import { RepeaterField } from '@/components/fields/repeater-field';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -111,6 +112,201 @@ function list(value: unknown): string[] {
     return Array.isArray(value)
         ? value.filter((one): one is string => typeof one === 'string')
         : [];
+}
+
+/**
+ * A repeater for an area field: Move up / Move down / Remove as words, a
+ * count line ("3 of at most 20."), and no second copy of the section label
+ * (the Field above already names it).
+ */
+function AreaRepeater({
+    id,
+    label,
+    items,
+    onChange,
+    itemLabel,
+    itemTitle,
+    empty,
+    minItems,
+    maxItems,
+    children,
+}: {
+    id: string;
+    label: string;
+    items: Values[];
+    onChange: (items: Values[]) => void;
+    itemLabel: string;
+    itemTitle: string | null;
+    empty: Values;
+    minItems: number;
+    maxItems: number;
+    children: (
+        item: Values,
+        index: number,
+        change: (item: Values) => void,
+    ) => ReactNode;
+}) {
+    const [keys, setKeys] = useState(() => items.map((_, index) => index));
+    const [next, setNext] = useState(items.length);
+    const [closed, setClosed] = useState<Set<number>>(new Set());
+
+    const titleOf = (item: Values, index: number): string => {
+        const title = itemTitle === null ? '' : item[itemTitle];
+
+        return typeof title === 'string' && title.trim() !== ''
+            ? title
+            : `${itemLabel} ${index + 1}`;
+    };
+
+    const named = itemLabel.trim() !== '' && itemLabel !== __('Item');
+    const noun = itemLabel.trim().toLowerCase();
+    const addLabel = !named
+        ? __('Add item')
+        : /^[aeiou]/.test(noun)
+          ? __('Add an :item', { item: noun })
+          : __('Add a :item', { item: noun });
+
+    const move = (from: number, to: number) => {
+        const moved = [...items];
+        const movedKeys = [...keys];
+        [moved[from], moved[to]] = [moved[to], moved[from]];
+        [movedKeys[from], movedKeys[to]] = [movedKeys[to], movedKeys[from]];
+        setKeys(movedKeys);
+        onChange(moved);
+    };
+
+    return (
+        <fieldset
+            id={id}
+            className="grid gap-3"
+            data-test="repeater"
+            data-count={items.length}
+        >
+            <legend className="sr-only">{label}</legend>
+            <p className="text-caption text-ink-3" data-test="repeater-count">
+                {__(':count of at most :max.', {
+                    count: items.length,
+                    max: maxItems,
+                })}
+            </p>
+            <ol className="grid gap-3">
+                {items.map((item, index) => {
+                    const key = keys[index] ?? index;
+                    const open = !closed.has(key);
+                    const title = titleOf(item, index);
+
+                    return (
+                        <li
+                            key={key}
+                            data-test="repeater-item"
+                            data-open={open || undefined}
+                            className="border-line rounded-md border"
+                        >
+                            <div className="flex flex-wrap items-center gap-1 py-1 pr-2 pl-2">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="min-w-0 flex-1 justify-start"
+                                    aria-expanded={open}
+                                    onClick={() =>
+                                        setClosed((current) => {
+                                            const changed = new Set(current);
+
+                                            if (open) {
+                                                changed.add(key);
+                                            } else {
+                                                changed.delete(key);
+                                            }
+
+                                            return changed;
+                                        })
+                                    }
+                                >
+                                    {open ? (
+                                        <ChevronDown aria-hidden="true" />
+                                    ) : (
+                                        <ChevronRight aria-hidden="true" />
+                                    )}
+                                    <span
+                                        className="truncate"
+                                        data-test="repeater-title"
+                                    >
+                                        {title}
+                                    </span>
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={index === 0}
+                                    onClick={() => move(index, index - 1)}
+                                >
+                                    {__('Move up')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={index === items.length - 1}
+                                    onClick={() => move(index, index + 1)}
+                                >
+                                    {__('Move down')}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="danger-quiet"
+                                    size="sm"
+                                    disabled={items.length <= minItems}
+                                    onClick={() => {
+                                        setKeys(
+                                            keys.filter(
+                                                (_, at) => at !== index,
+                                            ),
+                                        );
+                                        onChange(
+                                            items.filter(
+                                                (_, at) => at !== index,
+                                            ),
+                                        );
+                                    }}
+                                >
+                                    {__('Remove')}
+                                </Button>
+                            </div>
+                            {open && (
+                                <div className="grid gap-5 px-4 pt-2 pb-4">
+                                    {children(item, index, (changed) =>
+                                        onChange(
+                                            items.map((one, at) =>
+                                                at === index ? changed : one,
+                                            ),
+                                        ),
+                                    )}
+                                </div>
+                            )}
+                        </li>
+                    );
+                })}
+            </ol>
+            <div>
+                <Button
+                    type="button"
+                    variant="neutral"
+                    disabled={items.length >= maxItems}
+                    data-test="repeater-add"
+                    onClick={() => {
+                        setKeys([...keys, next]);
+                        setNext(next + 1);
+                        onChange([...items, { ...empty }]);
+                    }}
+                >
+                    <Plus aria-hidden="true" />
+                    {addLabel}
+                </Button>
+            </div>
+        </fieldset>
+    );
 }
 
 /** A list of tick boxes, one a choice, for multiselect and the pickers. */
@@ -245,7 +441,7 @@ export function AreaFieldInput({
                         {field.description}
                     </p>
                 )}
-                <RepeaterField
+                <AreaRepeater
                     id={id}
                     label={field.label}
                     items={items}
@@ -274,7 +470,7 @@ export function AreaFieldInput({
                                 />
                             ));
                     }}
-                </RepeaterField>
+                </AreaRepeater>
                 {error !== undefined && (
                     <p className="text-small text-danger-ink">{error}</p>
                 )}
@@ -313,6 +509,7 @@ export function AreaFieldInput({
                 return (
                     <SelectField
                         id={id}
+                        className="w-full"
                         options={field.choices}
                         emptyLabel={
                             field.type === 'region' ? __('None') : undefined
