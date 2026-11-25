@@ -40,20 +40,20 @@ export function InboxBell({ counts }: { counts: HeaderCounts | null }) {
                 <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     data-test="inbox-bell"
                     aria-label={
                         unread > 0
                             ? `Inbox, ${unread >= 100 ? '99+' : unread} unread`
                             : 'Inbox'
                     }
-                    className="relative"
+                    className="gap-1"
                 >
                     <Bell aria-hidden="true" />
                     {unread > 0 && (
                         <span
                             aria-hidden="true"
-                            className="bg-ink text-page text-caption pointer-events-none absolute end-0 top-0 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 font-mono"
+                            className="text-small font-semibold tabular-nums"
                         >
                             {unread >= 100 ? '99+' : unread}
                         </span>

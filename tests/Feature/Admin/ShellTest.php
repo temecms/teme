@@ -52,9 +52,10 @@ it('names the drawer under 768 pixels as the main menu', function (): void {
         ->not->toContain('Displays the mobile sidebar.');
 });
 
-it('puts Search or jump to… at the top of the sidebar, opening the palette', function (): void {
+it('puts Search or jump to at the top of the sidebar, opening the palette', function (): void {
     expect(uiComponent('components/app-sidebar.tsx'))
-        ->toContain('Search or jump to…')
+        ->toContain('Search or jump to')
+        ->not->toContain('Search or jump to…')
         ->toContain('teme:palette')
         ->toContain('data-test="palette-button"');
 });
@@ -78,13 +79,15 @@ it('moves the account menu to the header', function (): void {
 
     expect($menu)->toContain('data-test="account-menu-button"')
         ->toContain('Account: ')
-        ->toContain('Later (I-1393)')
+        ->toContain('size-8')
+        ->not->toContain('ChevronDown')
         ->and(uiComponent('components/user-menu-content.tsx'))
         ->toContain('Sign out')
         ->toContain('data-test="logout-button"')
-        ->toContain('Profile')
+        ->toContain('Your account')
         ->toContain('Security')
-        ->toContain('Preferences');
+        ->toContain('Preferences')
+        ->toContain('Notifications');
 });
 
 it('lays the page out as a header, then the main content, with no follow-you banner', function (): void {

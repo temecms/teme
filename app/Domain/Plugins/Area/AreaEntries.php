@@ -44,14 +44,15 @@ final readonly class AreaEntries
             $entries[] = new NavEntry(
                 key: "plugin.{$plugin->code}",
                 label: $this->areaLabel($plugin),
+                // The area's own icon, or plug when it names none — never a plug at both ends.
                 icon: $plugin->area->icon,
-                section: $plugin->area->menu === 'content' ? NavSection::Content : NavSection::Site,
+                // Menu areas sit in Content; Tools-placed areas are hub cards instead.
+                section: NavSection::Content,
                 order: self::ORDER + $index,
                 route: 'plugins.area.show',
                 routeParameters: ['code' => $plugin->code],
                 ability: $plugin->ability(),
                 owner: $plugin->name,
-                pluginLabel: $plugin->label,
             );
         }
 

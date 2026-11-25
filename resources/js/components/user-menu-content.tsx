@@ -1,5 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import {
+    Bell,
     LogOut,
     ShieldCheck,
     SlidersHorizontal,
@@ -11,10 +12,10 @@ import {
     ResponsiveMenuLabel,
     ResponsiveMenuSeparator,
 } from '@/components/patterns/responsive-menu';
-import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { __ } from '@/lib/i18n';
 import { logout } from '@/routes';
+import { edit as editNotifications } from '@/routes/notifications';
 import { edit as editPreferences } from '@/routes/preferences';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
@@ -24,6 +25,10 @@ type Props = {
     user: User;
 };
 
+/**
+ * The account menu body (design system 4.33): "Name · Role", then Your
+ * account, Preferences, Notifications, Security, and Sign out.
+ */
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
 
@@ -33,20 +38,43 @@ export function UserMenuContent({ user }: Props) {
     };
 
     const items = [
-        { title: __('Profile'), href: editProfile(), icon: UserRound },
-        { title: __('Security'), href: editSecurity(), icon: ShieldCheck },
+        {
+            title: __('Your account'),
+            href: editProfile(),
+            icon: UserRound,
+        },
         {
             title: __('Preferences'),
             href: editPreferences(),
             icon: SlidersHorizontal,
         },
+        {
+            title: __('Notifications'),
+            href: editNotifications(),
+            icon: Bell,
+        },
+        {
+            title: __('Security'),
+            href: editSecurity(),
+            icon: ShieldCheck,
+        },
     ];
+
+    const who =
+        user.role !== null && user.role !== ''
+            ? `${user.name} · ${user.role}`
+            : user.name;
 
     return (
         <>
             <ResponsiveMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <UserInfo user={user} showEmail={true} />
+                <div className="text-small grid gap-0.5 px-3 py-2 text-left leading-tight">
+                    <span className="text-body truncate font-medium">
+                        {who}
+                    </span>
+                    <span className="text-caption text-ink-2 truncate">
+                        {user.email}
+                    </span>
                 </div>
             </ResponsiveMenuLabel>
             <ResponsiveMenuSeparator />

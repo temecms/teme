@@ -1,6 +1,5 @@
 import { usePage } from '@inertiajs/react';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
-import { ChevronDown } from 'lucide-react';
 import {
     ResponsiveMenu,
     ResponsiveMenuContent,
@@ -13,11 +12,9 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { __ } from '@/lib/i18n';
 
-// Later (I-1393): draw the person's role beside their name; the shared user carries it now.
 /**
- * The account menu at the header's right edge: the person's initials, their
- * name (hidden under 768px) and a chevron. It opens the menu the sidebar's
- * foot used to hold.
+ * The account control at the header's right edge: a 32px initials circle
+ * only (design system 4.33). It opens the account menu.
  */
 export function AccountMenu() {
     const { auth } = usePage().props;
@@ -34,9 +31,10 @@ export function AccountMenu() {
                 <Button
                     type="button"
                     variant="ghost"
+                    size="icon-sm"
                     data-test="account-menu-button"
                     aria-label={__('Account: :name', { name: auth.user.name })}
-                    className="gap-2 px-1 max-md:size-11 max-md:px-0"
+                    className="rounded-full p-0 max-md:size-11"
                 >
                     <Avatar className="size-8">
                         <AvatarImage
@@ -47,10 +45,6 @@ export function AccountMenu() {
                             {getInitials(auth.user.name)}
                         </AvatarFallback>
                     </Avatar>
-                    <span className="text-small max-w-40 truncate max-md:hidden">
-                        {auth.user.name}
-                    </span>
-                    <ChevronDown aria-hidden="true" className="max-md:hidden" />
                 </Button>
             </ResponsiveMenuTrigger>
             <ResponsiveMenuContent

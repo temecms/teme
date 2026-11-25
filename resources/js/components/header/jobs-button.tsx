@@ -7,30 +7,33 @@ import type { useHeaderActivity } from '@/components/header/use-header-activity'
 import { JobProgress } from '@/components/jobs/job-progress';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
-
-/** The count drawn on the button's corner. */
-const COUNT =
-    'bg-ink text-page text-caption pointer-events-none absolute end-0 top-0 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 font-mono';
 
 /** A count as the badge shows it: "99+" from 100. */
 const shown = (n: number): string => (n >= 100 ? '99+' : String(n));
 
 /** The button's name, which says the counts in words. */
 function nameOf(running: number, failed: number): string {
-    const parts = [
-        running > 0 ? `${shown(running)} running` : null,
-        failed > 0 ? `${shown(failed)} failed` : null,
-    ].filter((part) => part !== null);
+    if (running > 0 && failed > 0) {
+        return `Jobs, ${shown(running)} running, ${shown(failed)} failed`;
+    }
 
-    return parts.length === 0 ? 'Jobs' : `Jobs, ${parts.join(', ')}`;
+    if (running > 0) {
+        return `Jobs, ${shown(running)} running`;
+    }
+
+    if (failed > 0) {
+        return `Jobs, ${shown(failed)} failed`;
+    }
+
+    return __('No jobs running');
 }
 
 /**
- * The header's jobs button (I-104): drawn only for someone who has a job, it
- * counts the jobs running, or else those failed, and opens their latest ten
- * with Retry and Cancel.
+ * The header's jobs button: always shown; a turning icon and count while
+ * jobs run, else idle with "No jobs running" as its name. Opens the latest
+ * ten with Retry and Cancel.
  */
 export function JobsButton({
     activity,
@@ -40,7 +43,7 @@ export function JobsButton({
     const [open, setOpen] = useState(false);
     const { counts, jobs, loadJobs } = activity;
 
-    if (counts === null || !counts.hasJobs) {
+    if (counts === null) {
         return null;
     }
 
@@ -62,10 +65,10 @@ export function JobsButton({
                 <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     data-test="jobs-button"
                     aria-label={nameOf(counts.running, counts.failed)}
-                    className="relative"
+                    className="gap-1"
                 >
                     {counts.running > 0 ? (
                         <LoaderCircle
@@ -76,14 +79,17 @@ export function JobsButton({
                         <ListChecks aria-hidden="true" />
                     )}
                     {counts.running > 0 && (
-                        <span aria-hidden="true" className={COUNT}>
+                        <span
+                            aria-hidden="true"
+                            className="text-small font-semibold tabular-nums"
+                        >
                             {shown(counts.running)}
                         </span>
                     )}
                     {counts.running === 0 && counts.failed > 0 && (
                         <span
                             aria-hidden="true"
-                            className={cn(COUNT, 'bg-danger text-on-danger')}
+                            className="text-danger-ink text-small font-semibold tabular-nums"
                         >
                             {shown(counts.failed)}
                         </span>
@@ -139,7 +145,7 @@ export function JobsPanelBody({
             )}
             {!jobsFailed && jobs !== null && jobs.rows.length === 0 && (
                 <div className="text-small px-4 py-3">
-                    <p className="font-medium">No jobs yet</p>
+                    <p className="font-medium">{__('No jobs running')}</p>
                     <p className="text-ink-2">
                         Long tasks you start show their progress here.
                     </p>
