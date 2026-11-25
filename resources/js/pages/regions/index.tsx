@@ -70,7 +70,10 @@ function RegionList({
     const many = groups.reduce((all, group) => all + group.regions.length, 0);
 
     return (
-        <nav aria-label={__('Regions')} className="grid content-start gap-4">
+        <nav
+            aria-label={__('Regions')}
+            className="grid min-w-0 content-start gap-4"
+        >
             {many > 6 && (
                 <Input
                     type="search"
@@ -84,13 +87,16 @@ function RegionList({
                 const shown = group.regions.filter(found);
 
                 return shown.length === 0 ? null : (
-                    <section key={group.group} className="grid gap-1">
+                    <section
+                        key={group.group}
+                        className="grid min-w-0 gap-1"
+                    >
                         <h2 className="text-caption text-ink-3 px-2 font-semibold uppercase">
                             {group.group}
                         </h2>
-                        <ul className="grid gap-0.5">
+                        <ul className="grid min-w-0 gap-0.5">
                             {shown.map((region) => (
-                                <li key={region.key}>
+                                <li key={region.key} className="min-w-0">
                                     <Button
                                         type="button"
                                         variant="ghost"
@@ -103,12 +109,12 @@ function RegionList({
                                         }
                                         onClick={() => choose(region.key)}
                                         className={cn(
-                                            'w-full min-w-0 justify-start gap-2 px-2 text-left',
+                                            'h-auto min-h-9 w-full min-w-0 items-start justify-start gap-2 px-2 py-1.5 text-left whitespace-normal',
                                             region.key === chosen &&
                                                 'bg-surface-3 text-ink font-semibold',
                                         )}
                                     >
-                                        <span className="text-ink min-w-0 flex-1 truncate">
+                                        <span className="text-ink min-w-0 flex-1 break-words">
                                             {region.label}
                                         </span>
                                         {region.dirty && (
@@ -315,7 +321,7 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
                 <TabsContent value="active">
                     {chosen !== null && (
                         <div className="grid gap-6 lg:flex lg:items-start">
-                            <div className="lg:w-(--side-w) lg:shrink-0">
+                            <div className="min-w-0 lg:w-(--side-w) lg:shrink-0">
                                 <RegionList
                                     groups={groups}
                                     chosen={chosen.key}

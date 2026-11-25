@@ -119,3 +119,47 @@ it('stacks a card row’s buttons under its name in a narrow panel, and passes a
         ->and(cmAxeViolations($page))->toBe([]);
     cmNoJavaScriptErrors($page);
 });
+
+it('keeps long region names inside the list, wrapped, clear of the chosen region', function (): void {
+    // The good theme, with regions named as a real theme names them.
+    $folder = sys_get_temp_dir().'/teme-long-regions-'.bin2hex(random_bytes(4));
+    Illuminate\Support\Facades\File::copyDirectory(base_path('tests/Fixtures/themes/good'), $folder);
+    $manifest = json_decode((string) file_get_contents($folder.'/teme-theme.json'), true);
+    $manifest['regions'] = [
+        'after-content' => ['label' => 'After the article', 'max' => 5],
+        'also-today' => ['label' => 'Front page: also today (three stories beside the cover)', 'max' => 1],
+        'header-ad' => ['label' => 'Header banner: ad below the top of every page (728 × 90)', 'max' => 1],
+        'side-ad' => ['label' => 'Article side column ad (300 × 600)', 'max' => 1],
+        'more' => ['label' => 'Recommended stories on search and 404', 'max' => 1],
+    ];
+    file_put_contents($folder.'/teme-theme.json', json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    config(['teme.theme_paths' => [$folder]]);
+    themeActivate('good');
+
+    try {
+        $this->actingAs($this->editor)->get('/admin/regions')->assertOk();
+        $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/regions');
+        cmWaitUntil($page, "document.querySelectorAll('[data-test=\"region-choice\"]').length === 5");
+
+        $at = cmScriptArray($page, <<<'JS'
+            () => {
+                const list = document.querySelector('nav[aria-label="Regions"]').getBoundingClientRect();
+                const panel = document.querySelector('section[aria-labelledby="chosen-region"]').getBoundingClientRect();
+                const choices = [...document.querySelectorAll('[data-test="region-choice"]')];
+
+                return {
+                    widest: Math.max(...choices.map((choice) => choice.getBoundingClientRect().right)),
+                    listRight: list.right,
+                    panelLeft: panel.left,
+                    wrapped: choices.some((choice) => choice.getBoundingClientRect().height > 40),
+                };
+            }
+            JS);
+
+        expect($at['widest'])->toBeLessThanOrEqual($at['listRight'] + 0.5)
+            ->and($at['listRight'])->toBeLessThanOrEqual($at['panelLeft'])
+            ->and($at['wrapped'])->toBeTrue();
+    } finally {
+        Illuminate\Support\Facades\File::deleteDirectory($folder);
+    }
+});
