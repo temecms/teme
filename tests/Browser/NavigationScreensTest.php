@@ -122,7 +122,51 @@ it('shows the menu in a place ticked under Show in, naming the theme, and says w
         ->navigate("/admin/navigation/{$this->menu->id}")
         ->assertSee('Places come from the active theme, Fixture Good. A place shows one menu; choosing it here replaces the menu it shows now.')
         ->click('#slot-primary')
+        ->press('Save menu')
         ->assertSee('Saved. Header shows “Main”.');
+});
+
+it('sends nothing when a place is ticked, writes the items and the place together on Save, and asks before leaving with a tick unsaved', function (): void {
+    $requests = "() => performance.getEntriesByType('resource').filter((entry) => entry.name.includes('/admin/navigation/')).length";
+
+    $page = cmSignIn($this->editor)->navigate("/admin/navigation/{$this->menu->id}");
+    cmWaitUntil($page, "document.getElementById('slot-primary') !== null");
+    $before = $page->script($requests);
+
+    $page->click('#slot-primary');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
+
+    expect($page->script($requests))->toBe($before)
+        ->and(app(SettingsReader::class)->string('theme.good', 'nav_primary'))->not->toBe($this->menu->id);
+
+    // A tick alone is a change the page asks about before it is left.
+    $page->click('[data-test="crumbs"] a');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="leave-guard"]\') !== null');
+    shellSettled($page, '[data-test="leave-guard"]');
+    $page->click('[data-test="leave-guard-stay"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="leave-guard"]\') === null && document.getElementById(\'slot-primary\').getAttribute(\'aria-checked\') === \'true\'');
+
+    $page->type('[aria-label="Label for Home"]', 'Start')->press('Save menu');
+    cmWaitUntil($page, "document.body.innerText.includes('Saved. Header shows “Main”.')");
+
+    expect(app(SettingsReader::class)->string('theme.good', 'nav_primary'))->toBe($this->menu->id)
+        ->and(NavigationItem::query()->where('navigation_id', $this->menu->id)->where('kind', 'home')->sole()->label)->toBe('Start')
+        ->and($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeTrue()
+        ->and($page->script('() => document.body.innerText.includes("Saved “Main”.")'))->toBeFalse();
+});
+
+it('lists the most used categories and tags as the tab opens, before anything is typed', function (): void {
+    $used = taxonomyTerm('category', 'Harbour news');
+    $used->forceFill(['published_count' => 4])->save();
+    taxonomyTerm('category', 'Aardvarks');
+
+    $page = cmSignIn($this->editor)->navigate("/admin/navigation/{$this->menu->id}")->press('Add an item');
+    shellSettled($page, '[data-slot="sheet-content"]');
+    $page->click('#add-item-tab-terms');
+
+    cmWaitUntil($page, "document.querySelector('#add-item-panel-terms')?.innerText.includes('Harbour news') === true");
+
+    $page->assertScript("document.querySelector('#add-item-panel-terms').innerText.indexOf('Harbour news') < document.querySelector('#add-item-panel-terms').innerText.indexOf('Aardvarks')");
 });
 
 it('deletes a menu from its row\'s "…" menu, after a confirmation that names it', function (): void {
@@ -326,7 +370,8 @@ it('shows a French menu in a place for French readers, and adds the language swi
     $page = cmNavigate(cmSignIn($this->editor), "/admin/navigation/{$principal->id}");
     cmWaitUntil($page, "document.getElementById('menu-readers-of') !== null");
     $page->assertScript("document.getElementById('menu-readers-of').textContent.includes('French')")
-        ->click('#slot-primary');
+        ->click('#slot-primary')
+        ->press('Save menu');
     cmWaitUntil($page, "document.body.innerText.includes('Saved. Header shows “Principal”.')");
 
     expect(SettingsGroupRecord::query()->find('theme.good')->translations)->toEqual(['fr' => ['nav_primary' => $principal->id]])

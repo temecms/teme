@@ -53,7 +53,7 @@ A menu is a list of links to pages, posts, categories, tags, the home page or an
 
 1. Open **Navigation** and choose **New menu**.
 2. Give it a **Name**, then choose **Create menu**. Its page opens.
-3. Choose **Add an item** and pick a page, post, category, tag or address. An item that points at one of those takes its title unless you give it a **Label**.
+3. Choose **Add an item** and pick a page, post, category, tag or address. The category and tag tab lists the most used ones as it opens; type to narrow the list. An item that points at one of those takes its title unless you give it a **Label**.
 4. Put the items in order. Drag an item by its handle, or move it with its arrows (on a phone, its "…" menu), or with Alt and the arrow keys:
    - **Move up** and **Move down** reorder it;
    - **Move under the item above** makes it a child of the item above;
@@ -66,7 +66,7 @@ To rename a menu, choose **Rename…**; only the name changes, and themes that s
 
 ## To choose where a menu shows
 
-Each place in the theme, such as the header or the footer, shows one menu. On **Navigation**, a panel lists the places the theme shows a menu; choose the menu for each. On a menu's own page, **Show in** does the same from the other side: tick each place that should show it. A place another menu holds says so, and ticking it takes that menu's place.
+Each place in the theme, such as the header or the footer, shows one menu. On **Navigation**, a panel lists the places the theme shows a menu; choose the menu for each. On a menu's own page, **Show in** does the same from the other side: tick each place that should show it. Ticking a place changes nothing yet: it joins the menu's items, and **Save menu** writes both together. A place another menu holds says so, and ticking it takes that menu's place once you save.
 
 If a place has no menu, a banner at the top of the admin tells you; its button is **Choose menus**. See [status banners](status-banners.md).
 
