@@ -5,17 +5,16 @@ import {
     text,
     visible,
 } from '@/components/themes/design-field';
+import { ThemeRegions } from '@/components/themes/theme-regions';
 import type { useDesignDraft } from '@/components/themes/use-design-draft';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
-import { Panel } from '@/components/ui/panel';
 import { SelectField } from '@/components/ui/select-field';
-import { SoonTag } from '@/components/ui/soon-tag';
 import { __ } from '@/lib/i18n';
 import { index as navigationIndex } from '@/routes/navigation';
-import type { DesignFieldset, DesignPage } from '@/types';
+import type { DesignFieldset, DesignPage, DesignSettingsPage } from '@/types';
 
-/** The settings sections, in the order Themes shows them (I-442). */
+/** The settings sections, in the order Themes shows them. */
 function sections(): { key: DesignFieldset; label: string }[] {
     return [
         { key: 'site', label: __('Site') },
@@ -25,7 +24,7 @@ function sections(): { key: DesignFieldset; label: string }[] {
     ];
 }
 
-/** One section of the theme's settings: its heading with its button beside it, then its fields. */
+/** One section of the theme's settings: a titled form panel (design system 4.12). */
 function Section({
     id,
     title,
@@ -34,68 +33,59 @@ function Section({
     test,
 }: {
     id: string;
-    title: ReactNode;
+    title: string;
     action?: ReactNode;
     children: ReactNode;
     test?: string;
 }) {
     return (
-        <Panel
-            aria-labelledby={id}
+        <section
+            id={id}
+            data-settings-section={title}
+            aria-labelledby={`${id}-heading`}
             data-test={test}
-            className="grid gap-5 p-6 max-sm:p-4"
+            className="bg-surface shadow-raised grid gap-5 rounded-lg p-6 max-sm:p-4"
         >
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 id={id} className="text-body text-ink font-semibold">
+                <h2
+                    id={`${id}-heading`}
+                    className="text-lead text-ink font-semibold"
+                >
                     {title}
-                </h3>
+                </h2>
                 {action}
             </div>
             {children}
-        </Panel>
+        </section>
     );
 }
 
 /**
- * The chosen theme's own settings and menu places, on Themes under the
- * theme (v10): the one previewed, or else the one in use. Every change is
- * saved as a draft as it is made; each section previews its page on the
- * real site, and nothing reaches readers until Publish.
+ * The chosen theme's own settings and menu places: drafted as they change,
+ * each section with a Preview of its page, and nothing live until Publish.
+ * Drawn on the theme's settings page (issue 714).
  */
 export function ThemeSettings({
     page,
     design,
     name,
 }: {
-    page: DesignPage;
+    page: DesignSettingsPage | DesignPage;
     design: ReturnType<typeof useDesignDraft>;
     name: string;
 }) {
     const themeGroup = page.themeGroup;
+    const regions =
+        'regions' in page && page.regions !== undefined ? page.regions : null;
+    const canEditRegions =
+        'canEditRegions' in page ? page.canEditRegions === true : false;
 
     return (
-        <section
+        <div
             id="theme-settings"
-            aria-labelledby="theme-settings-heading"
             data-test="theme-settings"
-            className="grid scroll-mt-4 gap-4"
+            className="grid max-w-(--form-max) scroll-mt-4 gap-4"
         >
-            <div className="grid gap-1">
-                <h2
-                    id="theme-settings-heading"
-                    className="text-lead text-ink font-semibold"
-                >
-                    {__(':name settings', { name })}
-                </h2>
-                {page.preview !== null && (
-                    <p className="text-small text-ink-2">
-                        {__('Visitors see these once you activate :name.', {
-                            name: page.preview.name,
-                        })}
-                    </p>
-                )}
-            </div>
-
             {themeGroup === null ? (
                 <p className="text-small text-ink-2">
                     {__(':name has no settings or menu places of its own.', {
@@ -157,22 +147,6 @@ export function ThemeSettings({
                             </Section>
                         ))}
 
-                    <Section
-                        id="theme-settings-appearance"
-                        title={
-                            <>
-                                {__('Appearance')}
-                                <SoonTag />
-                            </>
-                        }
-                    >
-                        <p className="text-small text-ink-2">
-                            {__(
-                                'Colors, fonts and spacing, with a live preview, come with the Appearance screen. Until then a theme sets them.',
-                            )}
-                        </p>
-                    </Section>
-
                     {page.slots.length > 0 && (
                         <Section
                             id="theme-settings-menus"
@@ -200,6 +174,7 @@ export function ThemeSettings({
                                 >
                                     <SelectField
                                         id={`design-${slot.key}`}
+                                        className="w-full"
                                         value={text(
                                             design.themeValues[slot.key],
                                         )}
@@ -222,6 +197,18 @@ export function ThemeSettings({
                     )}
                 </>
             )}
-        </section>
+
+            {regions !== null && (
+                <Section id="theme-settings-regions" title={__('Regions')}>
+                    <ThemeRegions
+                        regions={regions}
+                        level={3}
+                        intro={__('Regions are filled in Content › Regions.')}
+                        canEdit={canEditRegions}
+                        idPrefix="theme-settings-regions-list"
+                    />
+                </Section>
+            )}
+        </div>
     );
 }

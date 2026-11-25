@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, setLayoutProps, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useInstaller } from '@/components/extensions/installer';
@@ -8,21 +8,19 @@ import { SwitchWarning } from '@/components/themes/switch-warning';
 import { ThemeList } from '@/components/themes/theme-list';
 import { ThemePreviewPanel } from '@/components/themes/theme-preview-panel';
 import { ThemeRegions } from '@/components/themes/theme-regions';
-import { ThemeSettings } from '@/components/themes/theme-settings';
 import { useDesignDraft } from '@/components/themes/use-design-draft';
 import { Button } from '@/components/ui/button';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import { index as pluginsIndex } from '@/routes/plugins';
 import { show as showSettings } from '@/routes/settings';
+import { index as themesIndex } from '@/routes/themes';
 import type { DesignPage } from '@/types';
 
 /**
- * Site › Themes: the installed themes as cards, a theme's preview, the
- * regions each places, and under them the chosen theme's settings and menu
- * places (v10), which its card's Theme settings leads down to; the draft
- * they make waits here for Publish or Discard. Someone who may install also
- * adds, updates and removes themes here; their requests are listed on
- * Plugins (I-211).
+ * Site › Themes: the active theme in a card of its own, the others in a
+ * grid, a theme's preview, and a link into each theme's settings page
+ * (issue 714). The draft they make waits here for Publish or Discard.
  */
 export default function Design(page: DesignPage) {
     const { errors: pageErrors } = usePage().props;
@@ -31,7 +29,7 @@ export default function Design(page: DesignPage) {
     // The theme the draft or the live value names: the previewed one, else the active one.
     const chosen = page.themes.find((theme) => theme.code === page.theme);
     const previewError = pageErrors['groups.design.theme'];
-    // A switch that hides the active theme's own cards asks first (docs/guides/developers/themes/regions.md).
+    // A switch that hides the active theme's own cards asks first.
     const [switching, setSwitching] = useState<{
         code: string;
         name: string;
@@ -60,6 +58,11 @@ export default function Design(page: DesignPage) {
                 : [],
         ),
     );
+    const siteCrumb = useSectionCrumb('site');
+
+    setLayoutProps({
+        breadcrumbs: [siteCrumb, { title: __('Themes'), href: themesIndex() }],
+    });
 
     return (
         <ListPage
@@ -107,19 +110,6 @@ export default function Design(page: DesignPage) {
                     )}
             </p>
 
-            <div className="flex flex-wrap items-center gap-3">
-                <p className="text-small text-ink-2">
-                    {__(
-                        'The site’s name, tagline and brand colour stay when you change theme.',
-                    )}
-                </p>
-                <Button variant="neutral" size="sm" asChild>
-                    <Link href={showSettings({ group: 'general' })}>
-                        {__('Open Settings › General')}
-                    </Link>
-                </Button>
-            </div>
-
             {page.preview !== null && (
                 <ThemePreviewPanel
                     preview={page.preview}
@@ -145,10 +135,14 @@ export default function Design(page: DesignPage) {
                             level={3}
                             intro={
                                 active === undefined
-                                    ? 'Regions are filled in Content › Regions.'
-                                    : `Regions are filled in Content › Regions. What ${active.name} places stays as it is, listed under From other themes, and comes back with ${active.name}.`
+                                    ? __(
+                                          'Regions are filled in Content › Regions.',
+                                      )
+                                    : __(
+                                          'Regions are filled in Content › Regions. What :name places stays as it is, and comes back with :name.',
+                                          { name: active.name },
+                                      )
                             }
-                            unplacedLine={`What ${page.preview.name} would leave unplaced: kept as it is, and placed again when its theme is in use.`}
                             canEdit={false}
                             idPrefix="theme-preview-regions"
                         />
@@ -161,12 +155,15 @@ export default function Design(page: DesignPage) {
                 settingsOf={
                     chosen !== undefined && chosen.usable ? chosen.code : null
                 }
+                regionCount={page.regions.regions.length}
+                menuCount={page.preview === null ? page.slots.length : null}
                 error={
                     previewError !== undefined && design.pressed !== null
                         ? { code: design.pressed, message: previewError }
                         : null
                 }
                 onPreview={(code) => void design.previewTheme(code)}
+                onPreviewSite={() => void design.preview('site')}
                 onActivate={activate}
                 activating={design.activating}
                 onChange={
@@ -174,17 +171,18 @@ export default function Design(page: DesignPage) {
                 }
             />
 
-            <ThemeRegions
-                regions={page.regions}
-                level={2}
-                unplacedLine="Kept from themes not in use, as they were. Each is placed again when its theme is in use."
-                canEdit={page.canEditRegions}
-                idPrefix="theme-regions"
-            />
-
-            {chosen !== undefined && chosen.usable && (
-                <ThemeSettings page={page} design={design} name={chosen.name} />
-            )}
+            <div className="flex flex-wrap items-center gap-3">
+                <p className="text-small text-ink-2">
+                    {__(
+                        'The site’s name, tagline and brand colour stay when you change theme.',
+                    )}
+                </p>
+                <Button variant="neutral" size="sm" asChild>
+                    <Link href={showSettings({ group: 'general' })}>
+                        {__('Open Settings › General')}
+                    </Link>
+                </Button>
+            </div>
 
             <SwitchWarning
                 hidden={page.hiddenCards}
