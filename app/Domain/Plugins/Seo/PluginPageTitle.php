@@ -19,6 +19,7 @@ namespace App\Domain\Plugins\Seo;
 
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Fields\BuiltInFields;
+use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Site\Document\DocumentPage;
 use App\Domain\Site\Head\HeadValues;
 use App\Domain\Site\ViewModels\ArticleView;
@@ -31,6 +32,7 @@ final readonly class PluginPageTitle
         private SeoPlugins $plugins,
         private HeadPages $pages,
         private RenderRecord $record,
+        private LoadedPlugins $loaded,
     ) {}
 
     /**
@@ -39,6 +41,11 @@ final readonly class PluginPageTitle
     public function apply(DocumentPage $page, HeadValues $values): HeadValues
     {
         if ($page->intent === null || ! isset(HeadPages::KINDS[$page->intent->kind])) {
+            return $values;
+        }
+
+        // The cheap question first: most sites run no plugin that answers titles, and every page comes here.
+        if (! array_any($this->loaded->running(), fn (mixed $running): bool => $running instanceof HasPageTitle)) {
             return $values;
         }
 
