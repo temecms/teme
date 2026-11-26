@@ -653,7 +653,7 @@ final class ContentList
                 $images[(string) $contentId] = [
                     'id' => (string) $item->id,
                     'title' => (string) $item->title,
-                    'thumbUrl' => MediaUrls::variant((array) json_decode((string) $item->variants, true)),
+                    'thumbUrl' => MediaUrls::variant((array) json_decode((string) $item->variants, true), mediaId: (string) $item->id),
                     'alt' => $use['alt'] ?? null,
                     'decorative' => (bool) ($use['decorative'] ?? false),
                 ];

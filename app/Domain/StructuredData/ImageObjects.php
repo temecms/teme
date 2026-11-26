@@ -16,7 +16,7 @@ namespace App\Domain\StructuredData;
 
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
-use App\Domain\Media\MediaDisks;
+use App\Domain\Plugins\Images\ImageServices;
 use Illuminate\Support\Facades\DB;
 
 final readonly class ImageObjects
@@ -43,10 +43,12 @@ final readonly class ImageObjects
 
         $variants = (array) json_decode((string) $media->variants, true);
         $widest = null;
+        $widestKey = '';
 
         foreach ($variants as $key => $variant) {
             if (preg_match('/^w\d+$/', (string) $key) === 1 && is_array($variant) && is_string($variant['path'] ?? null) && (int) ($variant['width'] ?? 0) > (int) ($widest['width'] ?? 0)) {
                 $widest = $variant;
+                $widestKey = (string) $key;
             }
         }
 
@@ -54,12 +56,13 @@ final readonly class ImageObjects
             return null;
         }
 
-        $url = url(MediaDisks::public()->url((string) $widest['path']));
+        $images = app(ImageServices::class);
+        $url = url($images->address($mediaId, $widestKey, (string) $widest['path']));
         $crops = [];
 
         foreach (self::CROPS as $key) {
             if (is_array($variants[$key] ?? null) && is_string($variants[$key]['path'] ?? null)) {
-                $crops[] = url(MediaDisks::public()->url($variants[$key]['path']));
+                $crops[] = url($images->address($mediaId, $key, $variants[$key]['path']));
             }
         }
 

@@ -17,6 +17,7 @@ namespace App\Http\Admin\Middleware;
 
 use App\Domain\Extensions\Directory\DirectoryReader;
 use App\Domain\Import\Queries\ImportSources;
+use App\Domain\Plugins\Images\ImageServices;
 use App\Domain\Site\Policy\PolicySources;
 use Closure;
 use Illuminate\Http\Request;
@@ -69,13 +70,15 @@ final class AdminSecurityHeaders
         $directory = DirectoryReader::origin();
         // An import's pictures, shown from the old site while it copies them (#716).
         $imported = implode(' ', app(ImportSources::class)->pictureHosts());
+        // A plugin's image service, which may give the library's and the editor's images their addresses.
+        $images = (string) app(ImageServices::class)->origin();
 
         return implode('; ', array_filter([
             "default-src 'self'",
             trim("script-src 'self' 'nonce-{$nonce}' {$devServer}"),
             trim("style-src 'self' 'unsafe-inline' {$devServer}"),
             // The plugin and theme directory's own icons and screenshots, on Add plugin and Add theme.
-            trim(preg_replace('/\s+/', ' ', "img-src 'self' data: {$directory} {$media} {$imported}") ?? ''),
+            trim(preg_replace('/\s+/', ' ', "img-src 'self' data: {$directory} {$media} {$imported} {$images}") ?? ''),
             $preview === null ? null : trim("media-src 'self' {$media}"),
             $preview === null || $preview['frames'] === [] ? null : 'frame-src '.implode(' ', $preview['frames']),
             "font-src 'self'",

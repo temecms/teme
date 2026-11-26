@@ -719,7 +719,7 @@ A hook: its parameters are in the [hooks reference](hooks.md#feedschanged).
 
 `Teme\Contracts\Head\HasHeadMeta`, interface. Since 1.1.0.
 
-A plugin granted pages.head that adds `<meta>` tags to public pages' heads. Core escapes and draws them; a plugin's tag wins over core's own with the same name or property.
+A plugin granted pages.head that adds `<meta>` tags to public pages' heads. Core escapes and draws them; a plugin's tag wins over core's own with the same name or property, except `robots`, which is laid over core's and can only make the page more private.
 
 - `headMeta(HeadPage $page): array` — Its tags for this page, at most 20, answered within 100 ms; none where it adds nothing. Since 1.1.0.
 
@@ -1183,6 +1183,22 @@ One list's rows on a plugin's settings page, newest or most useful first.
 - `rows(int $limit): array` — At most $limit rows; each row its cells by declared column id. Since 1.0.0.
 
 ## Teme\Contracts\Media
+
+### HasImageService
+
+`Teme\Contracts\Media\HasImageService`, interface. Since next.
+
+A plugin granted media.read whose manifest declares an image service: hands over the driver core asks for images' addresses. One driver is active at a time.
+
+- `imageService(): ImageService` — The plugin's image service driver. Since next.
+
+### ImageService
+
+`Teme\Contracts\Media\ImageService`, interface. Since next.
+
+A driver that gives the address of an image's size from an outside image service, or null to leave the address to core, which serves the sizes it made at upload. Asked each time a page or a screen draws the image, so it only reads: it is handed no way to change anything.
+
+- `imageAddress(string $mediaId, string $variant, string $format): ?string` — The address of this size of this image in this format: an absolute `https://` address on the host the plugin's manifest declares for its image service, or a path on this site starting with a single `/`. Since next.
 
 ### MediaRef
 

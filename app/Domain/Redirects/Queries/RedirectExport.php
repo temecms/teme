@@ -165,7 +165,7 @@ final readonly class RedirectExport
         $addresses = [];
 
         foreach (Media::query()->whereIn('id', $ids)->get() as $media) {
-            $url = $media->isImage() ? MediaUrls::largest($media->variants) : MediaDisks::public()->url($media->original_path);
+            $url = $media->isImage() ? MediaUrls::largest($media->variants, (string) $media->id) : MediaDisks::public()->url($media->original_path);
 
             if ($url !== null) {
                 $addresses[$media->id] = $url;

@@ -95,7 +95,7 @@ final readonly class ApiMedia
     public static function shape(Media $media): array
     {
         $url = $media->isImage()
-            ? MediaUrls::largest((array) $media->variants)
+            ? MediaUrls::largest((array) $media->variants, (string) $media->id)
             : MediaDisks::public()->url($media->original_path);
 
         if ($url !== null && str_starts_with($url, '/')) {

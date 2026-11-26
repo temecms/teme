@@ -336,6 +336,6 @@ final class RedirectLookup
             return MediaDisks::public()->url($media->original_path);
         }
 
-        return $width === null ? MediaUrls::largest($media->variants) : MediaUrls::nearest($media->variants, $width);
+        return $width === null ? MediaUrls::largest($media->variants, (string) $media->id) : MediaUrls::nearest($media->variants, $width, (string) $media->id);
     }
 }
