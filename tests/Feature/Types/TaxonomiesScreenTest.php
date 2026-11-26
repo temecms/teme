@@ -234,7 +234,7 @@ it('puts Taxonomies between Types and People in the menu, for those who may mana
         ->and(array_column($nav($this->editor), 'key'))->not->toContain('taxonomies');
 });
 
-it('gives the term screen its Set up link for those who may manage types, and each term its public address', function (): void {
+it('gives each term its public address on the term screen, with no Set up link', function (): void {
     ($this->genres)();
     txCreate($this->admin, ['key' => 'badge', 'singular' => 'Badge', 'plural' => 'Badges', 'segment' => 'badges', 'public' => false, 'base' => null, 'hierarchical' => false], []);
     typesTerm($this->admin, 'badge', 'Staff pick');
@@ -243,14 +243,11 @@ it('gives the term screen its Set up link for those who may manage types, and ea
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('terms/index')
-            ->where('setup', '/admin/taxonomies/genre')
+            ->missing('setup')
+            ->missing('tabs')
             ->where('rows.0.name', 'Action')
             ->where('rows.0.address', '/genre/action/')
             ->where('rows.1.address', '/genre/action/martial-arts/'));
-    $this->actingAs($this->admin)->get('/admin/categories')
-        ->assertInertia(fn (Assert $page) => $page->where('setup', '/admin/taxonomies/category'));
-    $this->actingAs($this->editor)->get('/admin/genres')
-        ->assertInertia(fn (Assert $page) => $page->where('setup', null));
     $this->actingAs($this->admin)->get('/admin/badges')
         ->assertInertia(fn (Assert $page) => $page->where('rows.0.name', 'Staff pick')->where('rows.0.address', null));
 });

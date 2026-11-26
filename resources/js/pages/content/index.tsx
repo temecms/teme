@@ -7,8 +7,9 @@ import {
     useHttp,
     usePage,
 } from '@inertiajs/react';
-import { Plus, X } from 'lucide-react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import BulkContentController from '@/actions/App/Http/Admin/Contents/BulkContentController';
 import BulkMatchingController from '@/actions/App/Http/Admin/Contents/BulkMatchingController';
 import ContentActionController from '@/actions/App/Http/Admin/Contents/ContentActionController';
@@ -26,6 +27,7 @@ import { DataTable } from '@/components/list/data-table';
 import type { Column, SortDirection } from '@/components/list/data-table';
 import { DateFilter } from '@/components/list/date-filter';
 import { EmptyState } from '@/components/list/empty-state';
+import { ListPanel } from '@/components/list/filter-button';
 import {
     ChoiceFilter,
     FilterRow,
@@ -632,18 +634,17 @@ function menuActions(row: ContentRow, page: ContentIndexPage): RowAction[] {
 
 /**
  * When the row happened, or will, and a second line saying which date it
- * is. A scheduled item says when it publishes, on the site's clock with the
- * zone named, and why its schedule cannot run when it cannot; an item in
- * review says who submitted it and when.
+ * is. A scheduled item and one in review show the day like every other
+ * date cell, with the full time and zone in the title; the second line
+ * names the state, or why a schedule cannot run when it cannot.
  */
 function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
     if (row.status === 'scheduled' && row.scheduledFor !== null) {
+        const when = `${formatInZone(row.scheduledFor, page.siteTimezone)} (${page.siteTimezone})`;
+
         return (
-            <span className="grid">
-                <span>
-                    {formatInZone(row.scheduledFor, page.siteTimezone)} (
-                    {page.siteTimezone})
-                </span>
+            <span className="grid" title={when}>
+                <span>{formatDate(row.scheduledFor, page.siteTimezone)}</span>
                 <span
                     className={
                         row.scheduleIssue === 'failed'
@@ -662,21 +663,18 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
     }
 
     if (row.review !== null) {
+        const when = `${formatInZone(row.review.submittedAt, page.siteTimezone)} (${page.siteTimezone})`;
+        const by = row.review.submittedBy ?? __('a removed account');
+
         return (
-            <span className="grid">
+            <span
+                className="grid"
+                title={__('Submitted :when by :name', { when, name: by })}
+            >
                 <span>
-                    {__('Submitted :date', {
-                        date: formatInZone(
-                            row.review.submittedAt,
-                            page.siteTimezone,
-                        ),
-                    })}
+                    {formatDate(row.review.submittedAt, page.siteTimezone)}
                 </span>
-                <span className="text-small text-ink-3">
-                    {__('by :name', {
-                        name: row.review.submittedBy ?? __('a removed account'),
-                    })}
-                </span>
+                <span className="text-small text-ink-3">{__('In review')}</span>
             </span>
         );
     }
@@ -715,6 +713,7 @@ export default function ContentIndex(page: ContentIndexPage) {
     const shownColumns = preferences[`lists.${typeKey}.columns`];
     const perPage = preferences['lists.per_page'];
     const [selected, setSelected] = useState<string[]>([]);
+    const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
     // The row ticked last, for Shift+click to tick the rows between.
     const lastTicked = useRef<string | null>(null);
     const shiftHeld = useRef(false);
@@ -1023,6 +1022,10 @@ export default function ContentIndex(page: ContentIndexPage) {
     };
     const thumbnails =
         Array.isArray(shownColumns) && shownColumns.includes('featured');
+    // A type made here always shows a thumbnail (or its empty mark) beside
+    // the title; Posts and Pages keep the Columns preference.
+    const coreList = typeKey === 'post' || typeKey === 'page';
+    const showThumbs = thumbnails || !coreList;
 
     const select: Column<ContentRow> = {
         id: 'select',
@@ -1074,7 +1077,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                     row.trashed || !row.canEdit ? null : contentEdit(row.id).url
                 }
                 thumbnail={
-                    thumbnails
+                    showThumbs
                         ? (row.featuredImage?.thumbUrl ?? null)
                         : undefined
                 }
@@ -1476,9 +1479,13 @@ export default function ContentIndex(page: ContentIndexPage) {
                         )}
                     </form>
                 }
-                filters={
-                    <>
+                filters={(() => {
+                    // Author, categories (nesting) and Date stay on the row
+                    // (4.26). Tags, language and the rest sit under More
+                    // filters, and an applied one is promoted onto the row.
+                    const author = (
                         <ChoiceFilter
+                            key="author"
                             testId="filter-author"
                             label={__('Author')}
                             allLabel={__('All authors')}
@@ -1489,64 +1496,25 @@ export default function ContentIndex(page: ContentIndexPage) {
                             value={page.filters.author}
                             onChange={(value) => filterTo({ author: value })}
                         />
-                        {nesting.map((taxonomy) => (
-                            <ChoiceFilter
-                                key={taxonomy.key}
-                                testId={`filter-${taxonomy.key}`}
-                                label={taxonomy.singular}
-                                allLabel={__('All :plural', {
-                                    plural: taxonomy.plural.toLowerCase(),
-                                })}
-                                options={treeOptions[taxonomy.key] ?? []}
-                                value={page.filters[taxonomy.key]}
-                                onChange={(value) =>
-                                    filterTo({ [taxonomy.key]: value })
-                                }
-                            />
-                        ))}
-                        {flat.map((taxonomy) => (
-                            <TermSearchFilter
-                                key={taxonomy.key}
-                                testId={`filter-${taxonomy.key}`}
-                                taxonomy={taxonomy.key}
-                                label={taxonomy.singular}
-                                allLabel={__('All :plural', {
-                                    plural: taxonomy.plural.toLowerCase(),
-                                })}
-                                value={page.filters[taxonomy.key]}
-                                valueName={page.chosenTerms[taxonomy.key]}
-                                onChange={(value) =>
-                                    filterTo({ [taxonomy.key]: value })
-                                }
-                            />
-                        ))}
-                        {siteLanguages.length > 0 && (
-                            <ChoiceFilter
-                                testId="filter-language"
-                                label={__('Language')}
-                                allLabel={__('All languages')}
-                                options={[
-                                    ...siteLanguages.map((language) => ({
-                                        value: language.tag,
-                                        label: language.name,
-                                    })),
-                                    ...siteLanguages.map((language) => ({
-                                        value: `missing:${language.tag}`,
-                                        label: __(
-                                            'Missing a version in :language',
-                                            {
-                                                language: language.name,
-                                            },
-                                        ),
-                                    })),
-                                ]}
-                                value={page.filters.language}
-                                onChange={(value) =>
-                                    filterTo({ language: value })
-                                }
-                            />
-                        )}
+                    );
+                    const categories = nesting.map((taxonomy) => (
+                        <ChoiceFilter
+                            key={taxonomy.key}
+                            testId={`filter-${taxonomy.key}`}
+                            label={taxonomy.singular}
+                            allLabel={__('All :plural', {
+                                plural: taxonomy.plural.toLowerCase(),
+                            })}
+                            options={treeOptions[taxonomy.key] ?? []}
+                            value={page.filters[taxonomy.key]}
+                            onChange={(value) =>
+                                filterTo({ [taxonomy.key]: value })
+                            }
+                        />
+                    ));
+                    const date = (
                         <DateFilter
+                            key="date"
                             dates={page.dates}
                             filters={page.filters}
                             tabCount={
@@ -1558,8 +1526,119 @@ export default function ContentIndex(page: ContentIndexPage) {
                             open={dateOpen}
                             onOpenChange={setDateOpen}
                         />
-                    </>
-                }
+                    );
+                    const overflow: { key: string; applied: boolean; node: ReactNode }[] =
+                        [
+                            ...flat.map((taxonomy) => ({
+                                key: taxonomy.key,
+                                applied:
+                                    page.filters[taxonomy.key] !== undefined,
+                                node: (
+                                    <TermSearchFilter
+                                        key={taxonomy.key}
+                                        testId={`filter-${taxonomy.key}`}
+                                        taxonomy={taxonomy.key}
+                                        label={taxonomy.singular}
+                                        allLabel={__('All :plural', {
+                                            plural: taxonomy.plural.toLowerCase(),
+                                        })}
+                                        value={page.filters[taxonomy.key]}
+                                        valueName={
+                                            page.chosenTerms[taxonomy.key]
+                                        }
+                                        onChange={(value) =>
+                                            filterTo({
+                                                [taxonomy.key]: value,
+                                            })
+                                        }
+                                    />
+                                ),
+                            })),
+                            ...(siteLanguages.length > 0
+                                ? [
+                                      {
+                                          key: 'language',
+                                          applied:
+                                              page.filters.language !==
+                                              undefined,
+                                          node: (
+                                              <ChoiceFilter
+                                                  key="language"
+                                                  testId="filter-language"
+                                                  label={__('Language')}
+                                                  allLabel={__(
+                                                      'All languages',
+                                                  )}
+                                                  options={[
+                                                      ...siteLanguages.map(
+                                                          (language) => ({
+                                                              value: language.tag,
+                                                              label: language.name,
+                                                          }),
+                                                      ),
+                                                      ...siteLanguages.map(
+                                                          (language) => ({
+                                                              value: `missing:${language.tag}`,
+                                                              label: __(
+                                                                  'Missing a version in :language',
+                                                                  {
+                                                                      language:
+                                                                          language.name,
+                                                                  },
+                                                              ),
+                                                          }),
+                                                      ),
+                                                  ]}
+                                                  value={page.filters.language}
+                                                  onChange={(value) =>
+                                                      filterTo({
+                                                          language: value,
+                                                      })
+                                                  }
+                                              />
+                                          ),
+                                      },
+                                  ]
+                                : []),
+                        ];
+                    const promoted = overflow
+                        .filter((entry) => entry.applied)
+                        .map((entry) => entry.node);
+                    const more = overflow
+                        .filter((entry) => !entry.applied)
+                        .map((entry) => entry.node);
+
+                    return (
+                        <>
+                            {author}
+                            {categories}
+                            {date}
+                            {promoted}
+                            {more.length > 0 && (
+                                <ListPanel
+                                    label={__('More filters')}
+                                    testId="more-filters"
+                                    open={moreFiltersOpen}
+                                    onOpenChange={setMoreFiltersOpen}
+                                    trigger={
+                                        <Button
+                                            type="button"
+                                            variant="neutral"
+                                            data-test="more-filters"
+                                        >
+                                            {__('More filters')}
+                                            <ChevronDown aria-hidden="true" />
+                                        </Button>
+                                    }
+                                >
+                                    <div className="grid gap-3 p-1">
+                                        {more}
+                                    </div>
+                                </ListPanel>
+                            )}
+                        </>
+                    );
+                })()}
                 clear={
                     <Button asChild variant="ghost" className="shrink-0">
                         <Link href={clearHref} data-test="clear-filters">

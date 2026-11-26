@@ -660,6 +660,7 @@ function DetailBody({
                     saver={saver}
                     disabled={!item.can.edit}
                     onAltTextUsed={onItem}
+                    group="primary"
                 />
             </fieldset>
 
@@ -710,26 +711,6 @@ function DetailBody({
                             <Download aria-hidden="true" />
                             {__('Download original')}
                         </a>
-                    </Button>
-                )}
-                {item.can.edit && !item.trashed && (
-                    <Button asChild variant="neutral" size="sm">
-                        <label>
-                            {__('Replace…')}
-                            <input
-                                type="file"
-                                hidden
-                                onChange={(event) => {
-                                    const file = event.target.files?.[0];
-
-                                    if (file) {
-                                        void replace(file);
-                                    }
-
-                                    event.target.value = '';
-                                }}
-                            />
-                        </label>
                     </Button>
                 )}
                 {item.can.edit && item.processing === 'failed' && (
@@ -828,6 +809,40 @@ function DetailBody({
                     </>
                 )}
             </section>
+
+            <fieldset disabled={!item.can.edit} className="grid gap-4">
+                <MediaFields
+                    item={item}
+                    saver={saver}
+                    disabled={!item.can.edit}
+                    group="secondary"
+                />
+                {item.can.edit && !item.trashed && (
+                    <Button
+                        asChild
+                        variant="neutral"
+                        size="sm"
+                        className="justify-self-start"
+                    >
+                        <label>
+                            {__('Replace…')}
+                            <input
+                                type="file"
+                                hidden
+                                onChange={(event) => {
+                                    const file = event.target.files?.[0];
+
+                                    if (file) {
+                                        void replace(file);
+                                    }
+
+                                    event.target.value = '';
+                                }}
+                            />
+                        </label>
+                    </Button>
+                )}
+            </fieldset>
             <InputError message={fileError} />
         </>
     );

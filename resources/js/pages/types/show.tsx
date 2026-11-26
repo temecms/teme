@@ -1,7 +1,7 @@
 import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
 import { ArrowLeft, Check } from 'lucide-react';
 import { lazy, Suspense, useId, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import TypesController from '@/actions/App/Http/Admin/TypesController';
 import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
@@ -17,6 +17,7 @@ import {
     toggle,
 } from '@/components/types/builder-parts';
 import { Button } from '@/components/ui/button';
+import { IconTile } from '@/components/ui/icon-tile';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
@@ -29,6 +30,11 @@ import { navIcon } from '@/lib/nav-icons';
 import { show as addresses } from '@/routes/settings/addresses';
 import { index as typesIndex, show } from '@/routes/types';
 import type { TypeComments, TypePage } from '@/types';
+
+/** Icon tile beside Singular and Plural (docs/architecture/design-system.md, section 4.48). */
+const NAMES_STYLE = {
+    '--names-cols': 'auto minmax(0, 1fr) minmax(0, 1fr)',
+} as CSSProperties;
 
 const IconPicker = lazy(() => import('@/components/types/icon-picker'));
 
@@ -234,7 +240,25 @@ function TypeForm({
                                     title="Names"
                                     description="What the type is called across the admin."
                                 >
-                                    <div className="grid gap-5 sm:grid-cols-2">
+                                    <div
+                                        className="grid items-start gap-5 sm:grid-cols-(--names-cols)"
+                                        style={NAMES_STYLE}
+                                    >
+                                        <div className="grid justify-items-start gap-2">
+                                            <IconTile icon={Icon} size="lg" />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                data-test="type-icon-change"
+                                                onClick={() => {
+                                                    setPickerMounted(true);
+                                                    setPickerOpen(true);
+                                                }}
+                                            >
+                                                {__('Change icon')}
+                                            </Button>
+                                        </div>
                                         <Field
                                             id="type-singular"
                                             name="singular"
@@ -266,7 +290,7 @@ function TypeForm({
                                         />
                                     ) : (
                                         <div className="grid gap-1">
-                                            <p className="text-body font-medium">
+                                            <p className="text-small text-ink-2 font-medium">
                                                 Key
                                             </p>
                                             <code id="type-key">
@@ -278,33 +302,6 @@ function TypeForm({
                                             </Hint>
                                         </div>
                                     )}
-                                    <div className="grid gap-1">
-                                        <p className="text-body font-medium">
-                                            Icon
-                                        </p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="bg-surface-2 flex size-8 items-center justify-center rounded-md border">
-                                                <Icon
-                                                    aria-hidden
-                                                    className="size-4"
-                                                />
-                                            </span>
-                                            <Button
-                                                type="button"
-                                                variant="neutral"
-                                                data-test="type-icon-change"
-                                                onClick={() => {
-                                                    setPickerMounted(true);
-                                                    setPickerOpen(true);
-                                                }}
-                                            >
-                                                Change icon
-                                            </Button>
-                                        </div>
-                                        <Hint>
-                                            Beside the name in the menu.
-                                        </Hint>
-                                    </div>
                                 </FormPanel>
                             </Section>
 
@@ -453,7 +450,7 @@ function TypeForm({
                                     description="What the editor offers beside the writing."
                                 >
                                     <div className="grid gap-2">
-                                        <p className="text-body font-medium">
+                                        <p className="text-small text-ink-2 font-medium">
                                             Taxonomies
                                         </p>
                                         {page.options.taxonomies.map(
@@ -493,7 +490,7 @@ function TypeForm({
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <p className="text-body font-medium">
+                                        <p className="text-small text-ink-2 font-medium">
                                             Features
                                         </p>
                                         {page.options.features.map(
@@ -801,7 +798,7 @@ function DeletePanel({ page }: { page: TypePage }) {
 function PatternLine({ page }: { page: TypePage }) {
     return (
         <div className="grid gap-2">
-            <p className="text-body font-medium">Public address</p>
+            <p className="text-small text-ink-2 font-medium">Public address</p>
             {page.type.pattern === null ? (
                 <p>None: not public</p>
             ) : (
@@ -904,7 +901,10 @@ function PermissionsField({
 
     return (
         <div className="grid gap-2">
-            <p id="type-permissions-label" className="text-body font-medium">
+            <p
+                id="type-permissions-label"
+                className="text-small text-ink-2 font-medium"
+            >
                 Which permissions it uses
             </p>
             <RadioGroup
@@ -1066,7 +1066,10 @@ function CommentsField({
 
     return (
         <div className="grid gap-2">
-            <p id="type-comments-label" className="text-body font-medium">
+            <p
+                id="type-comments-label"
+                className="text-small text-ink-2 font-medium"
+            >
                 Comments
             </p>
             <RadioGroup

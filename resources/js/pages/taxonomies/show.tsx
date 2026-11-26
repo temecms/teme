@@ -218,6 +218,9 @@ function TaxonomyForm({
                                         style={NAMES_STYLE}
                                     >
                                         <div className="grid justify-items-start gap-2">
+                                            <p className="text-small text-ink-2 font-medium">
+                                                {__('Icon')}
+                                            </p>
                                             <IconTile icon={Icon} size="lg" />
                                             <Button
                                                 type="button"
@@ -263,7 +266,7 @@ function TaxonomyForm({
                                         />
                                     ) : (
                                         <div className="grid gap-1">
-                                            <p className="text-body font-medium">
+                                            <p className="text-small text-ink-2 font-medium">
                                                 Key
                                             </p>
                                             <code id="taxonomy-key">
@@ -286,7 +289,7 @@ function TaxonomyForm({
                                     <div className="grid gap-2">
                                         <p
                                             id="taxonomy-arrangement-label"
-                                            className="text-body font-medium"
+                                            className="text-small text-ink-2 font-medium"
                                         >
                                             How terms are arranged
                                         </p>
@@ -351,7 +354,7 @@ function TaxonomyForm({
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <p className="text-body font-medium">
+                                        <p className="text-small text-ink-2 font-medium">
                                             Used by
                                         </p>
                                         {page.options.types.map((type) => (
@@ -606,7 +609,7 @@ function ViewPanels({ page }: { page: TaxonomyPage }) {
 function AddressLine({ page }: { page: TaxonomyPage }) {
     return (
         <div className="grid gap-2">
-            <p className="text-body font-medium">Public address</p>
+            <p className="text-small text-ink-2 font-medium">Public address</p>
             <p className="text-pretty">
                 <code>{page.address}</code>
                 {page.example !== null && page.address !== null ? (

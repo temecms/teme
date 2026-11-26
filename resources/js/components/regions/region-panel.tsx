@@ -1,13 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import type { JSONContent } from '@tiptap/core';
-import {
-    ChevronDown,
-    ChevronUp,
-    GripVertical,
-    Pencil,
-    Plus,
-    Trash2,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, GripVertical, Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import ContentEditorController from '@/actions/App/Http/Admin/Contents/ContentEditorController';
@@ -29,7 +22,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { __, __n } from '@/lib/i18n';
+import { IconTile } from '@/components/ui/icon-tile';
+import { __ } from '@/lib/i18n';
 import { lucideIcon } from '@/lib/lucide-icons';
 import { cn } from '@/lib/utils';
 import { edit as editContent } from '@/routes/content';
@@ -90,7 +84,7 @@ function CardRow({
                 onDrop();
             }}
             className={cn(
-                'border-line bg-surface flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-md border px-2 py-2 @max-lg:flex-col @max-lg:items-stretch',
+                'bg-surface flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-md px-2 py-2 @max-lg:flex-col @max-lg:items-stretch',
                 dragging && 'opacity-50',
                 row.off && 'bg-surface-2',
             )}
@@ -100,9 +94,7 @@ function CardRow({
                     aria-hidden
                     className="text-ink-3 size-4 shrink-0 cursor-grab"
                 />
-                {Icon !== undefined && (
-                    <Icon aria-hidden className="text-ink-2 size-4 shrink-0" />
-                )}
+                {Icon !== undefined && <IconTile icon={Icon} size="sm" />}
                 <div className="grid min-w-0 gap-0.5">
                     <span className="text-ink truncate font-semibold">
                         {row.title !== '' ? row.title : row.label}
@@ -118,17 +110,6 @@ function CardRow({
                 </div>
             </div>
             <div className="flex shrink-0 items-center gap-0.5 @max-lg:justify-end">
-                {!row.off && (
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="xs"
-                        onClick={onEdit}
-                    >
-                        <Pencil />
-                        {__('Edit')}
-                    </Button>
-                )}
                 <Button
                     type="button"
                     variant="ghost"
@@ -151,15 +132,24 @@ function CardRow({
                 >
                     <ChevronDown />
                 </Button>
+                {!row.off && (
+                    <Button
+                        type="button"
+                        variant="neutral"
+                        size="xs"
+                        onClick={onEdit}
+                    >
+                        {__('Edit')}
+                    </Button>
+                )}
                 <Button
                     type="button"
                     variant="ghost"
-                    size="icon-xs"
+                    size="xs"
                     aria-label={__('Remove :card', { card: row.label })}
-                    title={__('Remove')}
                     onClick={onRemove}
                 >
-                    <Trash2 />
+                    {__('Remove')}
                 </Button>
             </div>
         </li>
@@ -176,10 +166,13 @@ export function RegionPanel({
     region,
     session,
     page,
+    onCount,
 }: {
     region: ChosenRegion;
     session: EditorSession;
     page: RegionsWorkspacePage;
+    /** Told how many cards the panel holds now, as they are added and removed. */
+    onCount?: (count: number) => void;
 }) {
     const manifest: CardManifest = page.manifest;
     const [document, putDocument] = useState<JSONContent>(
@@ -246,6 +239,10 @@ export function RegionPanel({
         [document, manifest],
     );
     const full = rows.length >= region.max;
+
+    useEffect(() => {
+        onCount?.(rows.length);
+    }, [rows.length, onCount]);
     const choices = regionChoices(
         manifest,
         region.cards,
@@ -329,17 +326,7 @@ export function RegionPanel({
         <CardEnvironmentContext value={environment}>
             {elevated.password}
             <div className="@container grid gap-4" data-test="region-panel">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p
-                        className="text-small text-ink-2"
-                        data-test="region-fill"
-                    >
-                        {__n(
-                            ':count of :max block used|:count of :max blocks used',
-                            rows.length,
-                            { max: region.max },
-                        )}
-                    </p>
+                <div className="flex flex-wrap items-center justify-end gap-2">
                     <Button
                         type="button"
                         size="sm"
@@ -409,31 +396,38 @@ export function RegionPanel({
                     <p className="text-small text-ink-3">{region.takes}</p>
                 )}
 
-                <div className="border-line flex flex-wrap items-center gap-3 border-t pt-3">
-                    <SaveState
-                        state={saving.state}
-                        pending={saving.pending}
-                        savedAt={saving.savedAt}
-                        failure={saving.failure}
-                    />
-                    {unpublished && (
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                    {unpublished ? (
                         <span
                             className="text-small text-warn-ink"
                             data-test="region-unpublished"
                         >
                             {__('Changes not published yet')}
                         </span>
+                    ) : (
+                        <span
+                            className="text-small text-ink-3"
+                            data-test="region-published"
+                        >
+                            {__('No unpublished changes')}
+                        </span>
                     )}
+                    <SaveState
+                        state={saving.state}
+                        pending={saving.pending}
+                        savedAt={saving.savedAt}
+                        failure={saving.failure}
+                    />
                     <div className="ml-auto flex flex-wrap items-center gap-2">
                         <Link
                             href={editContent(session.id).url}
-                            className="text-small text-accent underline"
+                            className="text-small text-accent-ink underline"
                         >
                             {__('Open in the full editor')}
                         </Link>
                         <Button
                             type="button"
-                            variant="neutral"
+                            variant="ghost"
                             size="sm"
                             disabled={busy || !unpublished}
                             onClick={() => setDiscarding(true)}
@@ -442,7 +436,7 @@ export function RegionPanel({
                         </Button>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="neutral"
                             size="sm"
                             disabled={busy}
                             data-test="region-save-draft"
@@ -452,6 +446,7 @@ export function RegionPanel({
                         </Button>
                         <Button
                             type="button"
+                            variant="primary"
                             size="sm"
                             disabled={busy || !unpublished}
                             data-test="region-publish"

@@ -43,10 +43,6 @@ export type TermsIndexPage = {
         plural: string;
         hierarchical: boolean;
     };
-    /** The taxonomy's page on Site › Taxonomies, for a person who may manage types; else null. */
-    setup: string | null;
-    /** The taxonomies filed with this one under its type that the person may manage, this one among them. */
-    tabs: { segment: string; label: string; count: number }[];
     /** The listed types whose items the counts count: a column each. */
     types: { key: string; segment: string; singular: string; plural: string }[];
     rows: TermRow[];
