@@ -31,7 +31,7 @@ final class Regions
     /**
      * What each region drew on this page, by name.
      *
-     * @var array<string, array{html: string|null, before: string, after: string, undeclared: bool}>
+     * @var array<string, array{html: string|null, before: string, after: string, undeclared: bool, minWidth: int|null}>
      */
     private array $drawn = [];
 
@@ -48,9 +48,9 @@ final class Regions
      * What the region drew on this page, built by $build the first time it
      * is asked and remembered after (RegionDrawing).
      *
-     * @param  Closure(): array{html: string|null, before: string, after: string, undeclared: bool}  $build
+     * @param  Closure(): array{html: string|null, before: string, after: string, undeclared: bool, minWidth: int|null}  $build
      *
-     * @return array{html: string|null, before: string, after: string, undeclared: bool}
+     * @return array{html: string|null, before: string, after: string, undeclared: bool, minWidth: int|null}
      */
     public function drawn(string $name, Closure $build): array
     {
