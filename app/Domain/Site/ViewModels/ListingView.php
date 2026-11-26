@@ -29,6 +29,7 @@ final readonly class ListingView
      * @param  Pagination  $pagination  the links between the listing's pages
      * @param  SearchDetails|null  $search  what only a search has; null for any other listing
      * @param  list<Crumb>|null  $breadcrumbs  the trail to it, when the active theme draws one
+     * @param  int|null  $total  how many items the listing holds in all, on every page: the exact number readers can see, in the page's language; null where core doesn't count them all, such as a listing deeper than its last page served
      */
     public function __construct(
         public ?Subject $subject,
@@ -36,5 +37,6 @@ final readonly class ListingView
         public Pagination $pagination,
         public ?SearchDetails $search = null,
         public ?array $breadcrumbs = null,
+        public ?int $total = null,
     ) {}
 }

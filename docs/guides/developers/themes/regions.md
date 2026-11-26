@@ -30,7 +30,7 @@ Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-c
 
 Place the component where the region belongs, naming its slug, as the default theme's single template does: `<x-teme::region name="after-content" />`.
 
-It draws the region's published content with the same renderer as an article, and records its cards for the page's head. It draws nothing for a region that is empty or unpublished, so don't wrap it in markup that would show empty. Outside production it draws a note when you name a region your manifest doesn't declare. See [the region component](../../../reference/theme.md#x-temeregion) in the generated reference.
+It draws the region's published content with the same renderer as an article, and records its cards for the page's head. It draws nothing for a region that is empty or unpublished. To leave out markup that belongs around it, such as a heading or a label, wrap that markup in `@regionHasContent('after-content')` and `@endregionHasContent`; see [Addresses, listings and bodies in a template](template-data.md#does-a-region-have-anything-to-draw). Outside production it draws a note when you name a region your manifest doesn't declare. See [the region component](../../../reference/theme.md#x-temeregion) in the generated reference.
 
 A plugin's card is drawn inside `<div class="card-plugin card-plugin-{code}-{id}" data-plugin-card="{code}:{id}">`. Plugins load no stylesheet of their own yet, so style the cards your theme expects, by those classes. See [Cards for a theme's regions](../plugins/cards.md).
 

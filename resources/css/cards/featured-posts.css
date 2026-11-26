@@ -1,34 +1,36 @@
 /* The featured posts card (FeaturedPostsCard): linked only on pages that draw one (I-248). */
-.card-featured-posts {
-    margin-block: var(--teme-space-4, 1.5rem);
-}
+@layer teme.core {
+    .card-featured-posts {
+        margin-block: var(--teme-space-4, 1.5rem);
+    }
 
-.card-featured-posts-heading {
-    margin-block: 0 var(--teme-space-2, 0.5rem);
-    font-size: 1.25rem;
-}
+    .card-featured-posts-heading {
+        margin-block: 0 var(--teme-space-2, 0.5rem);
+        font-size: 1.25rem;
+    }
 
-.card-featured-posts-list {
-    display: grid;
-    gap: var(--teme-space-3, 1rem);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
+    .card-featured-posts-list {
+        display: grid;
+        gap: var(--teme-space-3, 1rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
 
-.card-featured-posts-item {
-    display: flex;
-    gap: var(--teme-space-2, 0.5rem);
-    align-items: center;
-}
+    .card-featured-posts-item {
+        display: flex;
+        gap: var(--teme-space-2, 0.5rem);
+        align-items: center;
+    }
 
-.card-featured-posts-image {
-    flex: 0 0 6rem;
-    width: 6rem;
-    height: auto;
-}
+    .card-featured-posts-image {
+        flex: 0 0 6rem;
+        width: 6rem;
+        height: auto;
+    }
 
-.card-featured-posts-title:focus-visible {
-    outline: 3px solid var(--teme-contrast, #111111);
-    outline-offset: 2px;
+    .card-featured-posts-title:focus-visible {
+        outline: 3px solid var(--teme-contrast, #111111);
+        outline-offset: 2px;
+    }
 }

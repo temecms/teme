@@ -37,6 +37,7 @@ use App\Domain\Site\Insertions\PlanBuilder;
 use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
 use App\Domain\Site\Links\ArticleLinkAttributes;
 use App\Domain\Site\ViewModels\ArticleView;
+use App\Domain\Site\ViewModels\Block;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ItemLink;
 use App\Domain\Site\ViewModels\TermLink;
@@ -111,15 +112,15 @@ final readonly class ArticleViews
         $url = Addresses::relativeUrl($content) ?? '';
         $plan = $this->insertionPlan($content, $revision, $document, $language, $credits, $fields, $drawInsertions, $url);
         $links = app(LinkResolver::class);
+        // Plugins are asked about links only where they may insert: published renders, never a preview.
+        $linkAttributes = $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [];
         $body = $this->renderer->html($document, new RenderContext(
             $links,
             usage: app(CardUsage::class),
             leadNodeId: $lead['nodeId'],
             insertions: $plan,
-            // Plugins are asked about links only where they may insert: published renders, never a preview.
-            linkAttributes: $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [],
+            linkAttributes: $linkAttributes,
         ));
-
         // A draft never published has no first publication yet: the revision's own time stands in.
         $published = SiteDates::inSite($content->published_at ?? $revision->created_at);
         $saved = SiteDates::inSite($revision->created_at);
@@ -153,11 +154,12 @@ final readonly class ArticleViews
             firstImageId: self::firstImage($document),
             wordCount: (int) $revision->word_count,
             revised: SiteDates::forView($saved),
-            breadcrumbs: ! $this->trail->wanted() ? null : ($url === '/' ? [$this->trail->home()] : $this->trail->toItem((string) $revision->title, $url, $section, array_map(fn (ItemLink $link): Crumb => new Crumb($link->title, $link->url), $ancestors))),
+            breadcrumbs: ! $this->trail->wanted() ? null : ($url === '/' ? [$this->trail->home()] : $this->trail->toItem((string) $revision->title, $url, $section, array_map(fn (ItemLink $link): Crumb => new Crumb($link->title, $link->url), $ancestors), (string) $content->type)),
             fieldViews: $this->fieldViews->forArticle((string) $content->type, (string) $content->id, $fields),
             parent: $parent,
             ancestors: $ancestors,
             children: $children,
+            later: $this->later($content, $document, $lead['nodeId'], $linkAttributes),
         );
     }
 
@@ -281,13 +283,13 @@ final readonly class ArticleViews
     /**
      * The live items above it, the top first, its parent among them while
      * readers can see it, and those under it, each read once and only for a
-     * type that nests (I-3363).
+     * type that nests.
      *
      * @return array{0: list<ItemLink>, 1: ItemLink|null, 2: list<ItemLink>}
      */
     private function family(Content $content): array
     {
-        if (! $this->types->has((string) $content->type) || ! $this->types->get((string) $content->type)->hierarchical) {
+        if (! $this->nests($content)) {
             return [[], null, []];
         }
 
@@ -295,6 +297,36 @@ final readonly class ArticleViews
         [$ancestors, $parent] = $content->parent_id === null ? [[], null] : $this->family->lineage($id);
 
         return [$ancestors, $parent, $this->family->children($id)];
+    }
+
+    /**
+     * The values a template pays for only when it reads them: the item's
+     * siblings, the one before and the one after it, and the body as blocks.
+     * Each runs, tags the page and records its cards, at its first read.
+     *
+     * @param  array<mixed>  $document
+     * @param  array<string, mixed>  $linkAttributes
+     *
+     * @return array<string, Deferred>
+     */
+    private function later(Content $content, array $document, ?string $leadNodeId, array $linkAttributes): array
+    {
+        $nests = $this->nests($content);
+
+        return [
+            'siblings' => new Deferred(fn (): array => $nests ? $this->family->siblings($content) : []),
+            'previous' => new Deferred(fn (): ?ItemLink => $nests ? $this->family->neighbour($content, true) : null),
+            'next' => new Deferred(fn (): ?ItemLink => $nests ? $this->family->neighbour($content, false) : null),
+            'blocks' => new Deferred(fn (): array => array_map(
+                fn (array $block): Block => new Block($block['type'], $block['attrs'], $block['html']),
+                $this->renderer->blocks($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), leadNodeId: $leadNodeId, linkAttributes: $linkAttributes)),
+            )),
+        ];
+    }
+
+    private function nests(Content $content): bool
+    {
+        return $this->types->has((string) $content->type) && $this->types->get((string) $content->type)->hierarchical;
     }
 
     /**

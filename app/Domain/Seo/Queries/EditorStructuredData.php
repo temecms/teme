@@ -23,7 +23,6 @@ use App\Domain\Site\ArticleViews;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Site\Document\DocumentPage;
 use App\Domain\Site\Document\Withheld;
-use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Themes\ViewIntent;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -48,8 +47,7 @@ final readonly class EditorStructuredData
         $view = $this->views->ofRevision($content->id, $revisionId);
 
         if ($view->url === '') {
-            // Every public property of the view is a constructor parameter, so the copy differs in its address alone.
-            $view = new ArticleView(...[...get_object_vars($view), 'url' => $this->wouldHave($content, $revisionId)]);
+            $view = $view->withUrl($this->wouldHave($content, $revisionId));
         }
 
         $head = $this->meta->for(new DocumentPage(new ViewIntent('single', type: $content->type), $view));

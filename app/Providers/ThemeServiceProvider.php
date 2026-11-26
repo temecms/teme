@@ -20,6 +20,7 @@ namespace App\Providers;
 use App\Domain\Cards\CardUsage;
 use App\Domain\Design\ThemeSettings;
 use App\Domain\Menus\SlotMenus;
+use App\Domain\Regions\RegionDrawing;
 use App\Domain\Regions\Regions;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Site\PageWarnings;
@@ -59,6 +60,9 @@ final class ThemeServiceProvider extends ServiceProvider
 
         // The active theme's built assets, where a template's <head> asks.
         Blade::directive('temeThemeAssets', fn (): string => '<?php echo app('.ThemeAssets::class.'::class)->tags(); ?>');
+
+        // @regionHasContent('sidebar') … @endregionHasContent: true when <x-teme::region name="sidebar"> would draw anything, the answer it draws from.
+        Blade::if('regionHasContent', fn (string $name): bool => $this->app->make(RegionDrawing::class)->hasContent($name));
 
         // One dispatcher for every theme view: a composer registered on its
         // own couldn't be taken back when the active theme changes.

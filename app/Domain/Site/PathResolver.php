@@ -278,7 +278,7 @@ final class PathResolver
         parse_str($query, $parameters);
 
         if (array_key_exists('s', $parameters)) {
-            return [...self::search(is_string($parameters['s']) ? $parameters['s'] : '', $page, $language), 'language' => $language];
+            return [...self::search(is_string($parameters['s']) ? $parameters['s'] : '', $page, $language, is_string($parameters['section'] ?? null) ? $parameters['section'] : null), 'language' => $language];
         }
 
         if ($settings->frontShows === AddressSettings::FRONT_PAGE && $settings->frontPageId !== '') {
@@ -515,13 +515,13 @@ final class PathResolver
      *
      * @return array{kind: string, address: string, redirect?: string, intent?: ViewIntent, pageNumber?: int, model?: ArticleView|ListingView|LatestView|NotFoundView|CommentsPageView|ProtectedView, private?: bool, item?: string, language?: string|null}
      */
-    private static function search(string $query, int $page, ?string $language): array
+    private static function search(string $query, int $page, ?string $language, ?string $section = null): array
     {
         if ($page > self::LAST_PAGE) {
             return self::notFound($language);
         }
 
-        return self::listing(app(SearchViews::class)->for($query, $page, $language), $page, 'search', new ViewIntent('search'));
+        return self::listing(app(SearchViews::class)->for($query, $page, $language, $section), $page, 'search', new ViewIntent('search'));
     }
 
     /**

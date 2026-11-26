@@ -106,7 +106,8 @@ final class ThemeCardNode implements CardType, RegionCard
         $html = View::make($view, [
             'id' => (string) ($attrs['id'] ?? ''),
             'values' => $definition->withDefaults($values),
-            'region' => $context->region ?? new CardRegion('', $definition->theme),
+            'region' => $region = $context->region ?? new CardRegion('', $definition->theme),
+            'regionInfo' => $region,
         ])->render();
 
         if (trim($html) === '') {

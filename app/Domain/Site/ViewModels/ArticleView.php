@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;
 
+use App\Domain\Site\Deferred;
 use DateTimeImmutable;
 
 /**
@@ -21,7 +22,7 @@ use DateTimeImmutable;
  * computes none of it: the dates to show, the reading time, the lead image
  * and the related posts are all here.
  */
-final readonly class ArticleView
+final class ArticleView
 {
     /**
      * @param  list<Person>  $authors
@@ -37,57 +38,104 @@ final readonly class ArticleView
      */
     public function __construct(
         /** The item's ID. */
-        public string $id,
+        public readonly string $id,
         /** The item's content type key. */
-        public string $type,
+        public readonly string $type,
         /** The item's title. */
-        public string $title,
+        public readonly string $title,
         /** The item's address. */
-        public string $url,
+        public readonly string $url,
         /** The page template the item chose, or null for the theme's default. */
-        public ?string $template,
+        public readonly ?string $template,
         /** Only an excerpt someone wrote; never generated. */
-        public ?string $standfirst,
+        public readonly ?string $standfirst,
         /** Its primary category: the chosen one while it is ticked, else the first in the type's first hierarchical taxonomy. */
-        public ?TermLink $kicker,
+        public readonly ?TermLink $kicker,
         /** The people the item credits, its bylines, in order, the main one first; none when it credits no one. A person need not have an account here. */
-        public array $authors,
+        public readonly array $authors,
         /** In the site's time zone. */
-        public DateTimeImmutable $published,
+        public readonly DateTimeImmutable $published,
         /** Only when the revision shown is at least a day newer than the first publication. */
-        public ?DateTimeImmutable $updated,
+        public readonly ?DateTimeImmutable $updated,
         /** The publication date as words, in the item's language. */
-        public string $publishedText,
+        public readonly string $publishedText,
         /** The updated date as words, in the site's language; null when updated is. */
-        public ?string $updatedText,
+        public readonly ?string $updatedText,
         /** The minutes the body takes to read, at 238 words a minute. */
-        public int $readingMinutes,
+        public readonly int $readingMinutes,
         /** The lead image, or null when there is none. */
-        public ?ImageRef $lead,
+        public readonly ?ImageRef $lead,
         /** Whether the lead is the featured image, which the template draws, or an image card in the body. */
-        public bool $leadIsFeatured,
+        public readonly bool $leadIsFeatured,
         /** The body as HTML, drawn by core. */
-        public string $bodyHtml,
-        public array $tags,
+        public readonly string $bodyHtml,
+        public readonly array $tags,
         /** Up to three related posts, each with the reason it is shown; empty when nothing is shared. */
-        public array $related,
-        public ?CommentsView $comments = null,
+        public readonly array $related,
+        public readonly ?CommentsView $comments = null,
         /** The revision shown: the published one, or the one a preview shares. */
-        public string $revisionId = '',
+        public readonly string $revisionId = '',
         /** The revision's stored values by field key, which core's head reads; a template reads `field()` instead. */
-        public array $fields = [],
+        public readonly array $fields = [],
         /** The media of the first image card at the top level of its body, or null. */
-        public ?string $firstImageId = null,
+        public readonly ?string $firstImageId = null,
         /** That revision's word count, as stored. */
-        public int $wordCount = 0,
+        public readonly int $wordCount = 0,
         /** When that revision was saved, in the site's time zone. */
-        public ?DateTimeImmutable $revised = null,
-        public ?array $breadcrumbs = null,
-        public array $fieldViews = [],
-        public ?ItemLink $parent = null,
-        public array $ancestors = [],
-        public array $children = [],
+        public readonly ?DateTimeImmutable $revised = null,
+        public readonly ?array $breadcrumbs = null,
+        public readonly array $fieldViews = [],
+        public readonly ?ItemLink $parent = null,
+        public readonly array $ancestors = [],
+        public readonly array $children = [],
+        /** @var array<string, Deferred> the values read only when a template asks: siblings, previous, next and blocks */
+        private readonly array $later = [],
     ) {}
+
+    /**
+     * The published items of its type under the same parent, itself among them, in menu order, at most 100. Top-level pages are siblings of each other. None for a type that doesn't nest. Read from the database the first time a template asks, never otherwise.
+     *
+     * @var list<ItemLink>
+     */
+    public array $siblings {
+        get => $this->read('siblings') ?? [];
+    }
+
+    /**
+     * The sibling before it in menu order; null for the first, and for a type that doesn't nest. Read when a template asks.
+     */
+    public ?ItemLink $previous {
+        get => $this->read('previous');
+    }
+
+    /**
+     * The sibling after it in menu order; null for the last, and for a type that doesn't nest. Read when a template asks.
+     */
+    public ?ItemLink $next {
+        get => $this->read('next');
+    }
+
+    /**
+     * The body's top-level blocks in order, each its type, attributes and HTML, drawn by the renderer `bodyHtml` is drawn by; plugin insertions are not among them. Drawn the first time a template asks, never otherwise.
+     *
+     * @var list<Block>
+     */
+    public array $blocks {
+        get => $this->read('blocks') ?? [];
+    }
+
+    /**
+     * The same article at another address. Its deferred values stay deferred.
+     */
+    public function withUrl(string $url): self
+    {
+        return new self(...[...array_diff_key(get_object_vars($this), array_flip(['siblings', 'previous', 'next', 'blocks'])), 'url' => $url]);
+    }
+
+    private function read(string $name): mixed
+    {
+        return ($this->later[$name] ?? null)?->value();
+    }
 
     /**
      * One of this type's fields by its handle, as a FieldView that prints as

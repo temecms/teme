@@ -214,6 +214,7 @@ One placed plugin card: its node's ID, the values of its fields as stored, the r
 The theme's region a card is placed in. Its size is the theme's advice, such as 300x600 for a sidebar ad: a card may read it, to list that size's ads first, and core never refuses a card for it.
 
 - `__construct(string $slug, string $theme, ?string $size = null, ?int $width = null, ?int $height = null)`. Since 1.5.0.
+- `__toString(): string` — The region's slug, so a view may print the region or compare it with a name: `$region == 'sidebar'`. Since next.
 
 ### CardsChanged
 
@@ -1579,7 +1580,7 @@ One item found: its content ID, and a snippet of its text.
 
 A page of hits, and how many there are in all.
 
-- `__construct(array $hits, int $total, bool $totalCapped)`. Since 0.1.0.
+- `__construct(array $hits, int $total, bool $totalCapped, array $counts = [])`. Since 0.1.0.
 
 ### SearchRequest
 
@@ -1587,7 +1588,7 @@ A page of hits, and how many there are in all.
 
 What a reader asked: the query as typed, the page wanted, its size, and the language searched.
 
-- `__construct(string $query, int $page, int $perPage, ?array $types = null, ?string $language = null)`. Since 0.1.0.
+- `__construct(string $query, int $page, int $perPage, ?array $types = null, ?string $language = null, bool $counts = false)`. Since 0.1.0.
 
 ### SiteSearch
 

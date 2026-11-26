@@ -1,30 +1,32 @@
 /* The image card (ImageCard): linked only on pages that draw one (I-248). */
-.card-image {
-    margin-block: var(--teme-space-5, 2rem);
-    margin-inline: 0;
-}
+@layer teme.core {
+    .card-image {
+        margin-block: var(--teme-space-5, 2rem);
+        margin-inline: 0;
+    }
 
-.card-image img {
-    display: block;
-    inline-size: 100%;
-    block-size: auto;
-}
+    .card-image img {
+        display: block;
+        inline-size: 100%;
+        block-size: auto;
+    }
 
-.card-image--wide {
-    margin-inline: calc(-1 * var(--teme-space-5, 2rem));
-}
+    .card-image--wide {
+        margin-inline: calc(-1 * var(--teme-space-5, 2rem));
+    }
 
-.card-image--full {
-    inline-size: 100vw;
-    margin-inline: calc(50% - 50vw);
-}
+    .card-image--full {
+        inline-size: 100vw;
+        margin-inline: calc(50% - 50vw);
+    }
 
-.card-image figcaption {
-    margin-block-start: var(--teme-space-2, 0.5rem);
-    color: var(--teme-muted, #595959);
-    font-size: var(--teme-step--1, 0.875rem);
-}
+    .card-image figcaption {
+        margin-block-start: var(--teme-space-2, 0.5rem);
+        color: var(--teme-muted, #595959);
+        font-size: var(--teme-step--1, 0.875rem);
+    }
 
-.card-image .credit {
-    margin-inline-start: 0.5em;
+    .card-image .credit {
+        margin-inline-start: 0.5em;
+    }
 }

@@ -130,8 +130,23 @@ One article as its template sees it, as `$page`, from its published revision, or
 | `$parent` | `?ItemLink` | the item it sits under, while readers can see it; null at the top, for a type that doesn't nest, and while its parent is hidden |
 | `$ancestors` | `list<ItemLink>` | the items above it that readers can see, the top first; the trail is made from them |
 | `$children` | `list<ItemLink>` | the published items under it, in their order, at most 100 |
+| `$siblings` | `list<ItemLink>` | The published items of its type under the same parent, itself among them, in menu order, at most 100. Top-level pages are siblings of each other. None for a type that doesn't nest. Read from the database the first time a template asks, never otherwise. |
+| `$previous` | `?ItemLink` | The sibling before it in menu order; null for the first, and for a type that doesn't nest. Read when a template asks. |
+| `$next` | `?ItemLink` | The sibling after it in menu order; null for the last, and for a type that doesn't nest. Read when a template asks. |
+| `$blocks` | `list<Block>` | The body's top-level blocks in order, each its type, attributes and HTML, drawn by the renderer `bodyHtml` is drawn by; plugin insertions are not among them. Drawn the first time a template asks, never otherwise. |
+| `withUrl()` | `(string $url): self` | The same article at another address. |
 | `field()` | `(string $handle): ?FieldView` | One of this type's fields by its handle, as a FieldView that prints as its text, with the type's default when nothing is stored; null for a handle the type doesn't have, because one template may serve several types. |
 | `shownFields()` | `(?string $where): list<FieldView>` | The fields to list `after` or `before` the article, or with no place both, in order: those the site set to show there that hold something. |
+
+### Block
+
+One top-level block of an article's body: a paragraph, a heading, a list or a card, as the page draws it.
+
+| Name | Type | Description |
+|---|---|---|
+| `$type` | `string` | the node's type, such as "paragraph", "heading" or "image" |
+| `$attrs` | `array<string, mixed>` | the node's attributes: a heading's `level`, an image's media and alt, a card's own, with the defaults it declares |
+| `$html` | `string` | the block drawn as HTML, by the renderer the body is drawn by |
 
 ### CommentFormView
 
@@ -283,6 +298,7 @@ One item in a listing, from its published revision: its title and address, the e
 | `$image` | `?ImageRef` | its featured image; null for none, and for a protected item |
 | `$type` | `string` | the item's content type key |
 | `$fieldViews` | `array<string, FieldView>` | its published fields as a template draws them, by handle; none for a protected item |
+| `$readingMinutes` | `?int` | the minutes its body takes to read, the estimate its article gives; null for a protected item |
 | `field()` | `(string $handle): ?FieldView` | One of the item's fields by its handle, as a FieldView that prints as its text; null for a handle its type doesn't have, and for every handle on a protected item's card. |
 
 ### ListingView
@@ -296,6 +312,7 @@ One page of a listing as its template sees it, as `$page`: what it is about (nul
 | `$pagination` | `Pagination` | the links between the listing's pages |
 | `$search` | `?SearchDetails` | what only a search has; null for any other listing |
 | `$breadcrumbs` | `list<Crumb>\|null` | the trail to it, when the active theme draws one |
+| `$total` | `?int` | how many items the listing holds in all, on every page: the exact number readers can see, in the page's language; null where core doesn't count them all, such as a listing deeper than its last page served |
 
 ### NotFoundView
 
@@ -380,6 +397,10 @@ What only a search's listing has, as `$page->search`: the query as it was search
 | `$total` | `int` | how many results there are, capped |
 | `$totalCapped` | `bool` | whether the total was capped |
 | `$empty` | `bool` | whether the query was blank, so nothing was searched |
+| `$section` | `?string` | the content type key the search is filtered to; null for every type |
+| `$sections` | `list<SearchSection>` | each type with matches, in the registry's order, with its count across all pages; none for a blank query |
+| `$allUrl` | `?string` | the address of this search with no section chosen, query and language kept; null for a blank query |
+| `$allTotal` | `int` | how many results there are in every section together, capped; 0 for a blank query |
 
 ### SearchResult
 
@@ -390,9 +411,21 @@ One search result: the item, as every listing shows it, and its snippet, safe HT
 | `$item` | `ListingItem` | the item, as every listing shows it |
 | `$snippetHtml` | `string` | its snippet, safe HTML with the matches marked |
 
+### SearchSection
+
+One section of a search's results: a content type with matches, its name and count, and the address that filters the search to it, keeping the query and the language.
+
+| Name | Type | Description |
+|---|---|---|
+| `$type` | `string` | the content type's key |
+| `$label` | `string` | the type's plural name, such as "Films" |
+| `$count` | `int` | how many results the type holds across all pages, capped as the search's total is |
+| `$url` | `string` | the address of the search filtered to this type, query and language kept |
+| `$current` | `bool` | whether this is the section the search is filtered to |
+
 ### SiteView
 
-The site as every theme view sees it, as `$site`: its name and tagline, its home address, and its language, both as a locale for PHP, such as "pt_BR", and as the BCP 47 tag `lang` takes, such as "pt-BR"; and the current year on the site's clock, for a footer's copyright.
+The site as every theme view sees it, as `$site`: its name and tagline, its home address, and its language, both as a locale for PHP, such as "pt_BR", and as the BCP 47 tag `lang` takes, such as "pt-BR"; and the current year on the site's clock, for a footer's copyright; the posts page's address and each type's archive page's.
 
 | Name | Type | Description |
 |---|---|---|
@@ -402,6 +435,8 @@ The site as every theme view sees it, as `$site`: its name and tagline, its home
 | `$locale` | `string` | the site's default language as a locale for PHP, such as pt_BR |
 | `$language` | `string` | the site's default language as the BCP 47 tag `lang` takes, such as pt-BR |
 | `$year` | `int` | the current year on the site's clock |
+| `$postsUrl` | `string` | The address of the page listing the latest posts, in the page's language: the posts page when Settings › Reading names one, else the home page while it shows the latest posts; an empty string while a static front page is shown and no posts page is live, since no page lists them. Read the first time a template asks, never otherwise. |
+| `$archives` | `array<string, string>` | The address of each public type's archive page, by type key, in the page's language; the first public type's, which lists the latest posts, is `$postsUrl` and has no key while that is empty. Read the first time a template asks, never otherwise. |
 
 ### Subject
 
@@ -490,6 +525,17 @@ No attributes.
 |---|---|---|---|
 | `name` | `string` | '' | the script's data-teme marker, by which core's tests and scripts find it |
 | `type` | `string` | '' | the script's type, such as speculationrules; none for a classic script |
+
+### `<x-teme::items>`
+
+`<x-teme::items type="docs" :limit="20" />`: a public type's published items in the page's language, newest first or in menu order, at most 100. With `partial="partials.doc-list"` the theme's own partial draws them, given `$items`; without it a plain list of links is drawn. Nothing for a type that is unknown or not public.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `type` | `string` | — | the type's key |
+| `limit` | `int` | 10 | how many items, from 1 to 100 |
+| `order` | `string` | 'newest' | `newest` (the default) or `menu` for the order a hierarchical type's items are arranged in |
+| `partial` | `?string` | null | the theme's own view to draw them with, such as `partials.doc-list` |
 
 ### `<x-teme::languages>`
 

@@ -1,57 +1,59 @@
 /* The FAQ card (FaqCard): linked only on pages that draw one. Each question
    is a summary that opens its answer, with no script. */
-.card-faq {
-    margin-block: var(--teme-space-5, 2rem);
-    border-block-start: 1px solid var(--teme-rule, #d4d4d4);
-}
+@layer teme.core {
+    .card-faq {
+        margin-block: var(--teme-space-5, 2rem);
+        border-block-start: 1px solid var(--teme-rule, #d4d4d4);
+    }
 
-.card-faq__item {
-    border-block-end: 1px solid var(--teme-rule, #d4d4d4);
-}
+    .card-faq__item {
+        border-block-end: 1px solid var(--teme-rule, #d4d4d4);
+    }
 
-.card-faq__item > summary {
-    display: flex;
-    gap: var(--teme-space-2, 0.5rem);
-    align-items: baseline;
-    padding-block: var(--teme-space-3, 1rem);
-    cursor: pointer;
-    list-style: none;
-}
+    .card-faq__item > summary {
+        display: flex;
+        gap: var(--teme-space-2, 0.5rem);
+        align-items: baseline;
+        padding-block: var(--teme-space-3, 1rem);
+        cursor: pointer;
+        list-style: none;
+    }
 
-.card-faq__item > summary::-webkit-details-marker {
-    display: none;
-}
+    .card-faq__item > summary::-webkit-details-marker {
+        display: none;
+    }
 
-.card-faq__item > summary::before {
-    content: '+';
-    flex: none;
-    inline-size: 1ch;
-    font-weight: 700;
-}
+    .card-faq__item > summary::before {
+        content: '+';
+        flex: none;
+        inline-size: 1ch;
+        font-weight: 700;
+    }
 
-.card-faq__item[open] > summary::before {
-    content: '\2212';
-}
+    .card-faq__item[open] > summary::before {
+        content: '\2212';
+    }
 
-.card-faq__item > summary:focus-visible {
-    outline: 2px solid var(--teme-accent, #1a5fb4);
-    outline-offset: 2px;
-}
+    .card-faq__item > summary:focus-visible {
+        outline: 2px solid var(--teme-accent, #1a5fb4);
+        outline-offset: 2px;
+    }
 
-.card-faq__question {
-    margin: 0;
-    font-size: 1.125rem;
-}
+    .card-faq__question {
+        margin: 0;
+        font-size: 1.125rem;
+    }
 
-.card-faq__answer {
-    padding-block-end: var(--teme-space-3, 1rem);
-    padding-inline-start: calc(1ch + var(--teme-space-2, 0.5rem));
-}
+    .card-faq__answer {
+        padding-block-end: var(--teme-space-3, 1rem);
+        padding-inline-start: calc(1ch + var(--teme-space-2, 0.5rem));
+    }
 
-.card-faq__answer > :first-child {
-    margin-block-start: 0;
-}
+    .card-faq__answer > :first-child {
+        margin-block-start: 0;
+    }
 
-.card-faq__answer > :last-child {
-    margin-block-end: 0;
+    .card-faq__answer > :last-child {
+        margin-block-end: 0;
+    }
 }

@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Themes\CoreComposers;
 
+use App\Domain\Site\SiteAddresses;
 use App\Domain\Site\SiteDates;
 use App\Domain\Site\SiteLanguage;
 use App\Domain\Site\ViewModels\SiteView;
@@ -27,7 +28,7 @@ use Teme\Contracts\Themes\ViewContext;
 
 final readonly class SiteComposer implements ViewComposer
 {
-    public function __construct(private SettingsReader $settings, private SiteLanguage $site) {}
+    public function __construct(private SettingsReader $settings, private SiteLanguage $site, private SiteAddresses $addresses) {}
 
     public function views(): array
     {
@@ -47,6 +48,7 @@ final readonly class SiteComposer implements ViewComposer
                 locale: str_replace('-', '_', $language),
                 language: $language,
                 year: SiteDates::inSite('now')->year,
+                addresses: $this->addresses,
             ),
             'isFront' => $context->isFront(),
             'teme' => ['version' => $version, 'release' => $this->release($version)],

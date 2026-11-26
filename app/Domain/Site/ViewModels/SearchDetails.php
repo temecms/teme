@@ -29,6 +29,10 @@ final readonly class SearchDetails
      * @param  int  $total  how many results there are, capped
      * @param  bool  $totalCapped  whether the total was capped
      * @param  bool  $empty  whether the query was blank, so nothing was searched
+     * @param  string|null  $section  the content type key the search is filtered to; null for every type
+     * @param  list<SearchSection>  $sections  each type with matches, in the registry's order, with its count across all pages; none for a blank query
+     * @param  string|null  $allUrl  the address of this search with no section chosen, query and language kept; null for a blank query
+     * @param  int  $allTotal  how many results there are in every section together, capped; 0 for a blank query
      */
     public function __construct(
         public string $query,
@@ -36,5 +40,9 @@ final readonly class SearchDetails
         public int $total,
         public bool $totalCapped,
         public bool $empty,
+        public ?string $section = null,
+        public array $sections = [],
+        public ?string $allUrl = null,
+        public int $allTotal = 0,
     ) {}
 }

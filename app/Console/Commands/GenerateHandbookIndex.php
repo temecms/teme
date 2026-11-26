@@ -68,6 +68,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/exports.md',
         'plugins/content-types.md',
         'themes/languages.md',
+        'themes/template-data.md',
         'outside/management-api.md',
     ];
 
