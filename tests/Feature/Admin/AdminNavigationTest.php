@@ -54,7 +54,7 @@ it('shows an administrator every core entry, in section order, with the taxonomi
         ->and($nav[11]['href'])->toBe(route('users.index', [], false));
 });
 
-it('keeps a stored type out of the menu and marks its segment so Types can be current', function (): void {
+it('lists a stored type in the menu, where the icon chosen in the type builder shows, and marks it stored', function (): void {
     ctStoreRow(ctDefinition());
     app(ContentTypeRegistry::class)->refreshStored();
     $admin = User::factory()->create()->assignRole('administrator');
@@ -62,7 +62,7 @@ it('keeps a stored type out of the menu and marks its segment so Types can be cu
     $props = $this->actingAs($admin)->get(route('dashboard'))->viewData('page')['props'];
     $film = collect($props['contentTypes'])->firstWhere('segment', 'films');
 
-    expect(array_column($props['nav'], 'key'))->not->toContain('films')
+    expect(array_column($props['nav'], 'key'))->toContain('films')
         ->and($film)->not->toBeNull()
         ->and($film['stored'])->toBeTrue();
 });
