@@ -28,6 +28,7 @@ use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\Exceptions\StaleRevisionException;
 use App\Domain\Contents\GroupLock;
+use App\Domain\Contents\ItemTerms;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Contents\Operations\Concerns\PurgesTranslations;
@@ -109,6 +110,7 @@ final class ChangeContentLanguage extends BaseOperation
         $free = Slugs::isAvailable($type, $slug, (string) $item->id, $language);
 
         // Revisions are never edited in place: each one in use is copied with its terms mapped.
+        $termsBefore = (array) ContentRevision::query()->whereKey($item->working_revision_id)->value('terms');
         $same = $item->working_revision_id === $item->published_revision_id;
         $published = $item->published_revision_id === null ? null : self::mapped((string) $item->published_revision_id, $terms, (int) $input->actorId());
         $item->published_revision_id = $published;
@@ -116,6 +118,7 @@ final class ChangeContentLanguage extends BaseOperation
         $item->language = $language;
         $item->slug = $free ? $slug : Slugs::unique($type, $slug, $language);
         $item->save();
+        ItemTerms::announce($item, $termsBefore, (array) ContentRevision::query()->whereKey($item->working_revision_id)->value('terms'), (string) $input->actorId());
 
         ContentCounts::apply($before, ContentState::of($item));
         TermProjection::sync($item);

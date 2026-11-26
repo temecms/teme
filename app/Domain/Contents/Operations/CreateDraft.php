@@ -27,6 +27,7 @@ use App\Domain\Comments\DiscussionSettings;
 use App\Domain\Contents\AuthorSort;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
+use App\Domain\Contents\ItemTerms;
 use App\Domain\Contents\LinkProjection;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
@@ -270,6 +271,7 @@ final class CreateDraft extends BaseOperation
 
         $content->refresh();
         $revisionId = (string) $revision->id;
+        ItemTerms::announce($content, [], (array) $revision->terms, $actorId);
         app(PendingNotifications::class)->add(ContentSaved::class, fn (): ContentSaved => new ContentSaved(Payloads::item($content), $revisionId, true, $actorId));
 
         return $content;
