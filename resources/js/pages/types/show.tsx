@@ -478,7 +478,9 @@ function TypeForm({
                                         error={errors.archive_heading}
                                         onChange={setArchiveHeading}
                                         placeholder={plural}
-                                        hint="Leave it empty to use the plural name."
+                                        hint={__(
+                                            'Leave it empty to use the plural name.',
+                                        )}
                                     />
                                     <div className="grid gap-2">
                                         <Label>{__('Opening text')}</Label>
@@ -512,8 +514,10 @@ function TypeForm({
 
                             <Section id="type-section-editor">
                                 <FormPanel
-                                    title="In the editor"
-                                    description="What the editor offers beside the writing."
+                                    title={__('In the editor')}
+                                    description={__(
+                                        'What the editor offers beside the writing.',
+                                    )}
                                 >
                                     <div className="grid gap-2">
                                         <p className="text-small text-ink-2 font-medium">

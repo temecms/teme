@@ -106,11 +106,6 @@ final class PublicController extends Controller
     }
 
     /**
-     * A redirect's answer where routing missed, so it never hides a live page
-     * or an old address's own (I-858): a 3xx to where it sends readers, or
-     * the theme's 410 or 451 page; null when none answers.
-     */
-    /**
      * A listing's page as JSON, for a theme's script: the data of the very
      * page the resolver built, so its items, order, visibility, language and
      * pagination are the page's own. What isn't a listing, and a page past
@@ -131,6 +126,11 @@ final class PublicController extends Controller
         return new JsonResponse(['error' => $answer['kind'] === 'notfound' ? 'not_found' : 'not_a_listing'], 404, $headers);
     }
 
+    /**
+     * A redirect's answer where routing missed, so it never hides a live page
+     * or an old address's own (I-858): a 3xx to where it sends readers, or
+     * the theme's 410 or 451 page; null when none answers.
+     */
     private static function redirected(Request $request): ?Response
     {
         $redirect = app(RedirectLookup::class)->answer($request->getPathInfo(), (string) $request->getQueryString());

@@ -93,6 +93,21 @@ it('answers 404 for a region with no width, an unknown one, an empty one and a m
     }
 });
 
+it('limits the region fetch to sixty a minute per reader, on a tally apart from search suggestions', function (): void {
+    ($this->place)($this->ad);
+
+    foreach (range(1, 60) as $n) {
+        addrGet('/_teme/suggest?q=lifeboat')->assertOk();
+    }
+
+    // Suggestions used up their own budget, not the region's.
+    foreach (range(1, 60) as $n) {
+        addrGet('/_teme/region?name=half-page')->assertOk();
+    }
+
+    addrGet('/_teme/region?name=half-page')->assertStatus(429);
+});
+
 it('reads a language that isn’t one of the site’s as the default’s', function (): void {
     ($this->place)($this->ad);
 

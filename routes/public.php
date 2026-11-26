@@ -69,7 +69,7 @@ Route::middleware(['public', 'throttle:suggest', MarkCacheable::class])->get('_t
 
 // A region that waits for a viewport width, answered to core's script: HTML, stored by the page cache
 // like the page and kept apart by its name and language (docs/guides/developers/themes/regions.md).
-Route::middleware(['public', 'throttle:suggest'])->get('_teme/region', RegionFragmentController::class)->name('teme.region');
+Route::middleware(['public', 'throttle:region-fragment'])->get('_teme/region', RegionFragmentController::class)->name('teme.region');
 
 // Exact public addresses before any catch-all fallback (docs/plans/plugin-public-routes.md).
 Route::middleware(['public', MarkCacheable::class])->get('robots.txt', RobotsTxtController::class)->name('robots-txt');

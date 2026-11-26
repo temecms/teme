@@ -398,7 +398,6 @@ pages/types/show.tsx	Icon
 pages/types/show.tsx	In the admin
 pages/types/show.tsx	In the admin
 pages/types/show.tsx	In the editor
-pages/types/show.tsx	In the editor
 pages/types/show.tsx	It has no items, so only the type goes.
 pages/types/show.tsx	Items
 pages/types/show.tsx	Items have public addresses
@@ -444,7 +443,6 @@ pages/types/show.tsx	Their public address can still change:
 pages/types/show.tsx	Types are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
 pages/types/show.tsx	What the editor asks for on each item.
 pages/types/show.tsx	What the editor asks for on each item.
-pages/types/show.tsx	What the editor offers beside the writing.
 pages/types/show.tsx	What the editor offers beside the writing.
 pages/types/show.tsx	What the type is called across the admin.
 pages/types/show.tsx	What the type is called across the admin.

@@ -227,15 +227,6 @@ trait ManagesTypes
     }
 
     /**
-     * Tells the page cache every page may show the change: lists, addresses,
-     * titles and feeds all read the types (I-263).
-     */
-    private function purgeArchive(string $key): void
-    {
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SETTINGS, 'types', [PageTags::listOf($key)]));
-    }
-
-    /**
      * The archive page's own heading and intro changed and nothing else did.
      */
     private function onlyArchiveTextChanged(TypeDefinition $next, TypeDefinition $current): bool
@@ -243,6 +234,15 @@ trait ManagesTypes
         $without = static fn (TypeDefinition $type): array => array_diff_key($type->toArray(), ['archive_heading' => 1, 'archive_intro' => 1]);
 
         return $without($next) === $without($current);
+    }
+
+    /**
+     * Tells the page cache every page may show the change: lists, addresses,
+     * titles and feeds all read the types (I-263).
+     */
+    private function purgeArchive(string $key): void
+    {
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SETTINGS, 'types', [PageTags::listOf($key)]));
     }
 
     private function purgeEverything(): void
