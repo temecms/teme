@@ -64,17 +64,17 @@ function assignedDraft(User $author, array $terms): Content
     return app(CreateDraft::class)->execute(new CreateDraftInput('post', 'Pictured', ['type' => 'doc', 'content' => []], [], (string) $author->id, $terms));
 }
 
-it('sends one TermAssigned for each taxonomy an item gained terms in, once, after commit', function (): void {
+it('sends one TermAssigned for the item, with what it gained in each taxonomy, once, after commit', function (): void {
     $base = DB::transactionLevel();
     $heard = termAssignedRecord();
 
     $content = assignedDraft($this->editor, [(string) $this->news->id, (string) $this->owls->id]);
 
-    expect($heard)->toHaveCount(2)
-        ->and(array_map(fn (array $entry): string => $entry['payload']->taxonomy, $heard->getArrayCopy()))->toBe(['category', 'tag'])
-        ->and($heard[0]['payload']->added)->toBe([(string) $this->news->id])
-        ->and($heard[1]['payload']->added)->toBe([(string) $this->owls->id])
-        ->and($heard[0]['payload']->removed)->toBe([])
+    expect($heard)->toHaveCount(1)
+        ->and($heard[0]['payload']->changes)->toBe([
+            'category' => ['added' => [(string) $this->news->id], 'removed' => []],
+            'tag' => ['added' => [(string) $this->owls->id], 'removed' => []],
+        ])
         ->and($heard[0]['depth'])->toBe($base)
         ->and($heard[0]['payload']->item->id)->toBe((string) $content->id)
         ->and($heard[0]['payload']->actorId)->toBe((string) $this->editor->id);
@@ -95,9 +95,7 @@ it('sends TermAssigned with the terms added and taken off when a save swaps a ca
     ));
 
     expect($heard)->toHaveCount(1)
-        ->and($heard[0]['payload']->taxonomy)->toBe('category')
-        ->and($heard[0]['payload']->added)->toBe([(string) $this->harbour->id])
-        ->and($heard[0]['payload']->removed)->toBe([(string) $this->news->id]);
+        ->and($heard[0]['payload']->changes)->toBe(['category' => ['added' => [(string) $this->harbour->id], 'removed' => [(string) $this->news->id]]]);
 });
 
 it('sends nothing when a save leaves the item’s terms as they were', function (): void {
@@ -129,8 +127,7 @@ it('sends TermAssigned when a details change alters the terms, and not when it d
     ));
 
     expect($heard)->toHaveCount(1)
-        ->and($heard[0]['payload']->taxonomy)->toBe('tag')
-        ->and($heard[0]['payload']->added)->toBe([(string) $this->owls->id]);
+        ->and($heard[0]['payload']->changes)->toBe(['tag' => ['added' => [(string) $this->owls->id], 'removed' => []]]);
 
     $content->refresh();
     app(UpdateContentDetails::class)->execute(new UpdateContentDetailsInput(

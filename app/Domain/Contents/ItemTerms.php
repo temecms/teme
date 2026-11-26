@@ -2,7 +2,7 @@
 
 /**
  * Works out which taxonomies' terms an item gained or lost in a change, and
- * queues one TermAssigned for each, so every write path to an item's terms
+ * queues one TermAssigned for the item, so every write path to an item's terms
  * announces the change the same way.
  *
  * @package Teme
@@ -18,6 +18,7 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Hooks\Payloads;
 use App\Domain\Hooks\PendingNotifications;
+use App\Domain\Import\ImportMode;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Taxonomy\TermAssigned;
 
@@ -72,9 +73,10 @@ final class ItemTerms
     }
 
     /**
-     * Queues a TermAssigned for each taxonomy whose terms the item gained or lost
-     * between two term lists. Nothing is worked out unless a plugin listens, and
-     * nothing is queued when the lists name the same terms.
+     * Queues one TermAssigned for the item, carrying what it gained and lost in
+     * each taxonomy that changed. Nothing is worked out unless a plugin listens,
+     * nothing is queued when the lists name the same terms, and nothing is done
+     * during an import run, which sends no term hooks yet.
      *
      * @param  list<string>  $before  the item's terms before the change
      * @param  list<string>  $after  the item's terms after the change
@@ -83,12 +85,16 @@ final class ItemTerms
      */
     public static function announce(Content $content, array $before, array $after, ?string $actorId): void
     {
-        if (! app(HookDispatcher::class)->wants(TermAssigned::class)) {
+        if (app(ImportMode::class)->active() || ! app(HookDispatcher::class)->wants(TermAssigned::class)) {
             return;
         }
 
-        foreach (self::changes($before, $after) as $taxonomy => $change) {
-            app(PendingNotifications::class)->add(TermAssigned::class, fn (): TermAssigned => new TermAssigned(Payloads::item($content), (string) $taxonomy, $change['added'], $change['removed'], $actorId));
+        $changes = self::changes($before, $after);
+
+        if ($changes === []) {
+            return;
         }
+
+        app(PendingNotifications::class)->add(TermAssigned::class, fn (): TermAssigned => new TermAssigned(Payloads::item($content), $changes, $actorId));
     }
 }
