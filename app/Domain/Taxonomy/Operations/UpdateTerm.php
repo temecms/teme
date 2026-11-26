@@ -18,6 +18,7 @@ use App\Domain\Addresses\Jobs\RecomputeAddresses;
 use App\Domain\Addresses\PathProjection;
 use App\Domain\Cache\Footprints;
 use App\Domain\Contents\Slugs;
+use App\Domain\Hooks\Payloads;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
@@ -27,6 +28,7 @@ use App\Domain\Taxonomy\TermSlugs;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
+use Teme\Contracts\Taxonomy\TermUpdated;
 
 final class UpdateTerm extends BaseOperation
 {
@@ -79,6 +81,8 @@ final class UpdateTerm extends BaseOperation
         }
 
         // So do the items filed under it, where an address takes {category} from its taxonomy.
+        $this->notifyAfterCommit(TermUpdated::class, fn (): TermUpdated => new TermUpdated(Payloads::term($term), $input->actorId()));
+
         if (AddressSettings::current()->termsMoveItems((string) $term->taxonomy)) {
             RecomputeAddresses::dispatch(JobActor::of($input->actorId()), (string) $term->id)->afterCommit();
         }

@@ -42,6 +42,9 @@ use Teme\Contracts\Media\MediaTrashed;
 use Teme\Contracts\Media\MediaUpdated;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
 use Teme\Contracts\Settings\SettingsChanged;
+use Teme\Contracts\Taxonomy\TermCreated;
+use Teme\Contracts\Taxonomy\TermDeleted;
+use Teme\Contracts\Taxonomy\TermUpdated;
 
 final class HookCatalogue
 {
@@ -60,6 +63,9 @@ final class HookCatalogue
         MediaTrashed::class,
         MediaRestored::class,
         MediaDeleted::class,
+        TermCreated::class,
+        TermUpdated::class,
+        TermDeleted::class,
         CommentStatusChanged::class,
         SettingsChanged::class,
         CollectPersonalDataHolders::class,

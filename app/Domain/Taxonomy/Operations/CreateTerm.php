@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations;
 
+use App\Domain\Hooks\Payloads;
 use App\Domain\Languages\LanguageChoice;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Languages\TranslatedTypes;
@@ -23,6 +24,7 @@ use App\Domain\Taxonomy\Operations\Concerns\ValidatesTerms;
 use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
 use App\Domain\Taxonomy\TermWriter;
 use Teme\Contracts\Operations\OperationInput;
+use Teme\Contracts\Taxonomy\TermCreated;
 
 final class CreateTerm extends BaseOperation
 {
@@ -59,6 +61,7 @@ final class CreateTerm extends BaseOperation
         [$term, $keys] = TermWriter::create($input->taxonomy, $input->name, $input->slug, $input->parentId, $input->description, $language);
 
         $this->purgeAfterCommit($keys);
+        $this->notifyAfterCommit(TermCreated::class, fn (): TermCreated => new TermCreated(Payloads::term($term), $input->actorId()));
 
         return $term;
     }
