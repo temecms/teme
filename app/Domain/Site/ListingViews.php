@@ -20,6 +20,9 @@ use App\Domain\Addresses\ListingTypes;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\CardMedia;
+use App\Domain\Cards\CardProse;
+use App\Domain\Cards\LinkResolver;
+use App\Domain\Cards\RenderContext;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\Types\MediaField;
@@ -176,14 +179,19 @@ final readonly class ListingViews
     {
         app(RenderRecord::class)->tag(PageTags::listOf($type));
         $url = Addresses::toUrl($path);
-        $plural = app(ContentTypeRegistry::class)->get($type)->plural;
+        $definition = app(ContentTypeRegistry::class)->get($type);
+        $plural = $definition->plural;
+        $heading = $definition->archiveHeading !== null && trim($definition->archiveHeading) !== '' ? trim($definition->archiveHeading) : $plural;
+        $intro = $definition->archiveIntro === null ? '' : CardProse::html($definition->archiveIntro, new RenderContext(app(LinkResolver::class)));
         $items = self::inLanguage(self::archive([$type]), $language);
 
         return new ListingView(
-            new Subject('type', $plural, url: $url),
+            new Subject('type', $heading, url: $url),
             $this->page(clone $items, $page),
             $this->pagination($page, $this->count($items, [$type], $language), $url),
             breadcrumbs: $this->trail->wanted() ? $this->trail->to($plural, $url) : null,
+            heading: $heading,
+            introHtml: $intro === '' ? null : $intro,
         );
     }
 

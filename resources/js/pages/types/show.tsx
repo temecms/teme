@@ -4,6 +4,12 @@ import { lazy, Suspense, useId, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import TypesController from '@/actions/App/Http/Admin/TypesController';
 import { ConfirmAction } from '@/components/confirm-action';
+import {
+    blankProse,
+    CardProse,
+    proseText,
+} from '@/components/editor/cards/card-prose';
+import type { CardProseValue } from '@/components/editor/cards/card-prose';
 import InputError from '@/components/input-error';
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { SaveBar } from '@/components/patterns/save-bar';
@@ -137,6 +143,8 @@ type TypeFormState = {
     taxonomies: string[];
     supports: string[];
     permissions: 'shared' | 'own';
+    archiveHeading: string;
+    archiveIntro: CardProseValue;
 };
 
 /** The saved type as the form starts from it. */
@@ -155,6 +163,9 @@ function savedState(saved: TypePage['type']): TypeFormState {
         taxonomies: saved.taxonomies,
         supports: saved.supports,
         permissions: saved.permissions,
+        archiveHeading: saved.archive_heading ?? '',
+        archiveIntro:
+            (saved.archive_intro as CardProseValue | null) ?? blankProse(),
     };
 }
 
@@ -194,6 +205,12 @@ function TypeForm({
     const [taxonomies, setTaxonomies] = useState(saved.taxonomies);
     const [supports, setSupports] = useState(saved.supports);
     const [permissions, setPermissions] = useState(saved.permissions);
+    const [archiveHeading, setArchiveHeading] = useState(
+        saved.archive_heading ?? '',
+    );
+    const [archiveIntro, setArchiveIntro] = useState<CardProseValue>(
+        (saved.archive_intro as CardProseValue | null) ?? blankProse(),
+    );
     const [pattern, setPattern] = useState('');
     const [pickerMounted, setPickerMounted] = useState(false);
     const [pickerOpen, setPickerOpen] = useState(false);
@@ -217,6 +234,8 @@ function TypeForm({
         taxonomies,
         supports,
         permissions,
+        archiveHeading,
+        archiveIntro,
     };
 
     return (
@@ -441,6 +460,51 @@ function TypeForm({
                                         error={errors.comments}
                                         onChange={setComments}
                                     />
+                                </FormPanel>
+                            </Section>
+
+                            <Section id="type-section-archive">
+                                <FormPanel
+                                    title="Archive page"
+                                    description="The heading and opening text of the page listing every published item. Themes draw them above the list."
+                                >
+                                    <Field
+                                        id="type-archive-heading"
+                                        name="archive_heading"
+                                        label="Heading"
+                                        value={archiveHeading}
+                                        error={errors.archive_heading}
+                                        onChange={setArchiveHeading}
+                                        placeholder={plural}
+                                        hint="Leave it empty to use the plural name."
+                                    />
+                                    <div className="grid gap-2">
+                                        <Label>{__('Opening text')}</Label>
+                                        <div className="border-line rounded-md border">
+                                            <CardProse
+                                                value={archiveIntro}
+                                                label={__('Opening text')}
+                                                placeholder={__(
+                                                    'A few words above the list',
+                                                )}
+                                                onChange={setArchiveIntro}
+                                            />
+                                        </div>
+                                        <input
+                                            type="hidden"
+                                            name="archive_intro"
+                                            value={
+                                                proseText(archiveIntro) === ''
+                                                    ? ''
+                                                    : JSON.stringify(
+                                                          archiveIntro,
+                                                      )
+                                            }
+                                        />
+                                        <InputError
+                                            message={errors.archive_intro}
+                                        />
+                                    </div>
                                 </FormPanel>
                             </Section>
 

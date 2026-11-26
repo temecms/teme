@@ -16,8 +16,10 @@ namespace App\Domain\Types;
 
 use App\Domain\Addresses\AddressPattern;
 use App\Domain\Addresses\Paths;
+use App\Domain\Cards\CardProse;
 use App\Domain\Fields\FieldRegistry;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Spatie\Permission\Models\Permission;
 
@@ -190,6 +192,18 @@ final class TypeRules
 
             if ($refusal !== null) {
                 $problems['type'] = $refusal;
+            }
+        }
+
+        if ($type->archiveHeading !== null && mb_strlen($type->archiveHeading) > TypeDefinition::HEADING_LENGTH) {
+            $problems['archive_heading'] = __('Give the archive a heading of :most characters at most.', ['most' => TypeDefinition::HEADING_LENGTH]);
+        }
+
+        if ($type->archiveIntro !== null) {
+            try {
+                CardProse::check($type->archiveIntro, 'archive_intro', required: false);
+            } catch (ValidationException $invalid) {
+                $problems['archive_intro'] = (string) ($invalid->errors()['archive_intro'][0] ?? __('This text isn’t in a form Teme can save.'));
             }
         }
 

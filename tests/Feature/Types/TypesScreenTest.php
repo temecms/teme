@@ -74,7 +74,7 @@ it('opens a type made here to change, with its items, the day it was made and an
             ->where('mode', 'edit')
             ->where('source', 'stored')
             ->where('reason', null)
-            ->where('type', ['key' => 'film', 'singular' => 'Film', 'plural' => 'Films', 'segment' => 'films', 'icon' => 'film', 'single' => false, 'public' => true, 'archive' => true, 'searchable' => true, 'taxonomies' => ['category'], 'supports' => ['seo', 'excerpt', 'featured_image'], 'comments' => 'closed', 'pattern' => '/films/{slug}/', 'permissions' => 'shared'])
+            ->where('type', ['key' => 'film', 'singular' => 'Film', 'plural' => 'Films', 'segment' => 'films', 'icon' => 'film', 'single' => false, 'public' => true, 'archive' => true, 'searchable' => true, 'taxonomies' => ['category'], 'supports' => ['seo', 'excerpt', 'featured_image'], 'comments' => 'closed', 'pattern' => '/films/{slug}/', 'permissions' => 'shared', 'archive_heading' => null, 'archive_intro' => null])
             ->where('made', '2 November 2026')
             ->where('items', 3)
             ->where('trashed', 1)
@@ -107,7 +107,7 @@ it('opens a saved type nobody can read to be fixed, filled in as far as it can b
             ->where('mode', 'edit')
             ->where('source', 'refused')
             ->where('reason', '[singular] is missing. [plural] is missing. [public] must be true or false.')
-            ->where('type', ['key' => 'event', 'singular' => '', 'plural' => '', 'segment' => 'events', 'icon' => 'calendar', 'single' => false, 'public' => true, 'archive' => false, 'searchable' => true, 'taxonomies' => [], 'supports' => [], 'comments' => null, 'pattern' => '/events/{slug}/', 'permissions' => 'shared'])
+            ->where('type', ['key' => 'event', 'singular' => '', 'plural' => '', 'segment' => 'events', 'icon' => 'calendar', 'single' => false, 'public' => true, 'archive' => false, 'searchable' => true, 'taxonomies' => [], 'supports' => [], 'comments' => null, 'pattern' => '/events/{slug}/', 'permissions' => 'shared', 'archive_heading' => null, 'archive_intro' => null])
             ->where('made', '4 November 2026')
             ->where('listUrl', null));
 });
@@ -137,7 +137,7 @@ it('opens New type with the registered taxonomies and every feature a field prov
             ->component('types/show')
             ->where('mode', 'new')
             ->where('source', null)
-            ->where('type', ['key' => '', 'singular' => '', 'plural' => '', 'segment' => '', 'icon' => 'file', 'single' => false, 'public' => true, 'archive' => false, 'searchable' => true, 'taxonomies' => [], 'supports' => [], 'comments' => null, 'pattern' => null, 'permissions' => 'shared'])
+            ->where('type', ['key' => '', 'singular' => '', 'plural' => '', 'segment' => '', 'icon' => 'file', 'single' => false, 'public' => true, 'archive' => false, 'searchable' => true, 'taxonomies' => [], 'supports' => [], 'comments' => null, 'pattern' => null, 'permissions' => 'shared', 'archive_heading' => null, 'archive_intro' => null])
             ->where('options.taxonomies', [['key' => 'category', 'plural' => 'Categories'], ['key' => 'tag', 'plural' => 'Tags']])
             ->where('options.features.0', ['key' => 'seo', 'label' => 'Search and social', 'hint' => 'SEO title, meta description and the card shown when an item is shared.', 'field' => 'Search and social'])
             ->where('options.features.4', ['key' => 'sticky', 'label' => 'Pinning', 'hint' => 'An item can be pinned to the top of the latest posts.', 'field' => 'Pin to the top of the latest posts']));

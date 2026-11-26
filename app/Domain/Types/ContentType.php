@@ -39,6 +39,8 @@ final readonly class ContentType
      * @param  TypeSchema|null  $schema  what search engines are told its items are (I-709); null, a web page with no main entity
      * @param  string|null  $wordpress  WordPress's name for the post type whose items an import brings into this type; null, none
      * @param  bool  $stored  declared in the admin or a file and stored in the database (I-411); false, declared by code and locked in the admin
+     * @param  string|null  $archiveHeading  the heading of the type's archive page; null, the plural
+     * @param  array<mixed>|null  $archiveIntro  the archive page's opening text, as a Tiptap document; null, none
      */
     public function __construct(
         public string $key,
@@ -60,6 +62,8 @@ final readonly class ContentType
         public ?TypeSchema $schema = null,
         public ?string $wordpress = null,
         public bool $stored = false,
+        public ?string $archiveHeading = null,
+        public ?array $archiveIntro = null,
     ) {}
 
     /**

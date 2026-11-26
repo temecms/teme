@@ -296,6 +296,8 @@ One page of a listing as its template sees it, as `$page`: what it is about (nul
 | `$pagination` | `Pagination` | the links between the listing's pages |
 | `$search` | `?SearchDetails` | what only a search has; null for any other listing |
 | `$breadcrumbs` | `list<Crumb>\|null` | the trail to it, when the active theme draws one |
+| `$heading` | `?string` | a type's archive page's heading, the type's plural unless its archive page sets its own; null for any other listing |
+| `$introHtml` | `?string` | a type's archive page's opening text, drawn and safe to print unescaped; null for none, and for any other listing |
 
 ### NotFoundView
 

@@ -109,7 +109,13 @@ final class UpdateType extends BaseOperation
 
         $this->stored->update($next);
         $this->applyPermissions($next, $current);
-        $this->purgeEverything();
+
+        // A new heading or intro touches the type's archive pages and nothing else.
+        if (! $mending && $this->onlyArchiveTextChanged($next, $current)) {
+            $this->purgeArchive($next->key);
+        } else {
+            $this->purgeEverything();
+        }
 
         return ['key' => $next->key, 'changed' => true];
     }

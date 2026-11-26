@@ -418,6 +418,12 @@
         "ListingView::$breadcrumbs": {
             "type": "list<Crumb>|null"
         },
+        "ListingView::$heading": {
+            "type": "?string"
+        },
+        "ListingView::$introHtml": {
+            "type": "?string"
+        },
         "ListingView::$items": {
             "type": "list<ListingItem>"
         },
