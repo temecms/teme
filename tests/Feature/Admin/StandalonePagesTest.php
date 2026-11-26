@@ -122,12 +122,12 @@ it('offers a way back beside Home, and the 500 page a reference to give', functi
         ->and($failed)->toContain('Try again');
 });
 
-it('marks the maintenance page as updating, with a way to check now', function (): void {
+it('offers a way to check now on the maintenance page, without an Updating pill when no update is open', function (): void {
     $page = saPage((string) $this->get('/admin/_sa-maintenance')->assertStatus(503)->getContent());
 
     expect(trim((string) $page->query("//a[@class='sa-button']")->item(0)?->textContent))->toBe('Check now')
         ->and($page->query("//a[@class='sa-button']")->item(0)?->getAttribute('href'))->toBe(url('/admin/_sa-maintenance'))
-        ->and(trim((string) $page->query("//*[contains(@class,'sa-pill')]")->item(0)?->textContent))->toBe('Updating');
+        ->and($page->query("//*[contains(@class,'sa-pill')]")->length)->toBe(0);
 });
 
 it('says a refusal\'s own reason on the 403 page', function (): void {

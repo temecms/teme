@@ -41,6 +41,7 @@ it('tells administrators when a newer release exists, with the way to it', funct
         'actionUrl' => route('tools.updates.index'),
         'label' => '',
         'plugin' => null,
+        'key' => '',
     ])
         ->and(app(UpdateAvailable::class)->banner()?->priority)->toBe(5)
         ->and($this->checks->forUser($this->admin)?->message)->toBe('Teme 0.1.0-rc.14 is available. This site runs 0.1.0-rc.13.');

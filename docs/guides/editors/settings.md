@@ -45,7 +45,7 @@ The time zone decides how dates are shown and when scheduled items go live. Chan
 
 ## To choose the site's color
 
-The **Brand color** is on **Settings › General** too, in its own section, and **Save** saves it with the rest of the page. Beside it, a line says how well text reads on it. It is used by the theme, so it can look different from theme to theme. The site's name, tagline and brand color stay when you change theme.
+The **Brand colour** is on **Settings › General** too, in its own section, and **Save** saves it with the rest of the page. Beside it, a line says how well text reads on it. It is used by the theme, so it can look different from theme to theme. The site's name, tagline and brand color stay when you change theme.
 
 ## To choose the home page and how many items a list shows
 

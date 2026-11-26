@@ -21,7 +21,7 @@ it('draws Open Settings › General as a button beside the site-settings line on
     $line = ($this->at)($source, 'brand colour stay when you change theme.');
 
     expect(($this->at)($source, 'asChild', $line))->toBeLessThan(($this->at)($source, 'Open Settings › General', $line))
-        ->and(($this->at)($source, 'Open Settings › General', $line))->toBeLessThan(($this->at)($source, '{page.preview !== null && (', $line))
+        ->and(($this->at)($source, '<ThemeList'))->toBeLessThan($line)
         ->and($source)->not->toContain('are site settings')
         ->not->toContain('Change them in');
 });

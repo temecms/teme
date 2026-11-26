@@ -90,7 +90,7 @@ it('adds an item to a repeater setting, moves it and keeps it', function (): voi
     $page->type('#field-values-slots-0-name', 'Top');
     $page->click('[data-test="repeater-setting"] [data-test="repeater-add"]');
     $page->type('#field-values-slots-1-name', 'Bottom');
-    $page->click('[data-test="repeater-setting"] [data-test="repeater-item"] >> nth=1 >> button[aria-label$=" up"]');
+    $page->click('[data-test="repeater-setting"] [data-test="repeater-item"] >> nth=1 >> button[aria-label^="Move up"]');
 
     $page->click('[data-test="settings-save"]');
     cmWaitUntil($page, 'document.body.innerText.includes("Settings saved.")');
@@ -110,3 +110,24 @@ it('passes axe with sections, a condition and a repeater, in the light and dark 
         ->and(cmSmallTargets($page)['small'])->toBe([]);
     $page->screenshot(true, "plugin-settings-sections-{$scheme}-1280");
 })->with(['light', 'dark']);
+
+it('lists the plugin in the settings side list by its own name with a plug, and as a card with its mark, at 1440', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 900), '/admin/settings/general');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="settings-group"]\') !== null');
+
+    $entry = $page->script(<<<'JS'
+        () => {
+            const item = [...document.querySelectorAll('[data-test="settings-group"]')].find((link) => link.textContent.includes('Placard'));
+
+            return item === undefined ? null : { plug: item.querySelector('svg') !== null, onOwnPage: item.textContent.includes('on its own page') };
+        }
+        JS);
+
+    expect($entry)->toBe(['plug' => true, 'onOwnPage' => false])
+        ->and(cmAxeViolations($page))->toBe([]);
+
+    $page = cmNavigate($page, '/admin/settings');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test^="settings-card-"] [data-slot="plugin-mark"]\') !== null');
+    $page->assertScript('[...document.querySelectorAll(\'[data-test^="settings-card-"]\')].filter((card) => card.querySelector(\'[data-slot="plugin-mark"]\') !== null).every((card) => !card.textContent.includes("on its own page"))', true);
+    cmNoJavaScriptErrors($page);
+});

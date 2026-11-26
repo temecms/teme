@@ -107,7 +107,14 @@ export type AreaTableAsk = {
 export type PluginAreaPageProps = {
     plugin: AreaPluginRef;
     area: { label: string; description: string };
-    tabs: { id: string; label: string; current: boolean; href?: string }[];
+    tabs: {
+        id: string;
+        label: string;
+        current: boolean;
+        href?: string;
+        /** Drawn beside the tab label when the page has a count. */
+        count?: number;
+    }[];
     current: { id: string; label: string };
     blocks: AreaBlock[];
     asks: Record<string, AreaTableAsk>;
@@ -155,6 +162,8 @@ export type AreaField = {
 export type PluginRecordPageProps = {
     plugin: AreaPluginRef;
     back: string;
+    /** The area's label, for the top-bar crumbs (design system 4.31). */
+    area: { label: string };
     record: { id: string; label: string; plural: string };
     id: string | null;
     title: string;

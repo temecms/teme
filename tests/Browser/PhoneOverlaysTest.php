@@ -360,7 +360,7 @@ it('opens the account menu as a sheet from the foot of a phone\'s screen, and si
 
     expect($box['bottom'])->toBe($box['vh']);
 
-    $page->assertScript('[...document.querySelectorAll(\'[data-slot="sheet-content"] [role="menu"] [role="menuitem"]\')].some((item) => item.textContent.trim() === "Profile")')
+    $page->assertScript('[...document.querySelectorAll(\'[data-slot="sheet-content"] [role="menu"] [role="menuitem"]\')].some((item) => item.textContent.trim() === "Your account")')
         ->assertScript('document.querySelector(\'[data-slot="sheet-content"] [role="menu"] [data-test="logout-button"]\')?.getAttribute("role")', 'menuitem')
         ->click('[data-test="logout-button"]');
 

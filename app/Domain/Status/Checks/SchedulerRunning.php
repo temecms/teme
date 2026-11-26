@@ -31,6 +31,16 @@ final readonly class SchedulerRunning implements StatusCheck
 
     public function __construct(private Heartbeats $heartbeats) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'scheduler-running';
+    }
+
     public function ability(): string
     {
         return 'settings.general.manage';

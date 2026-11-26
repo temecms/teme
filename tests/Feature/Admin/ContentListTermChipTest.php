@@ -55,7 +55,7 @@ it('leaves out a tag filter whose term is not a tag, or has gone', function (str
 it('keeps a flat taxonomy\'s filter when another filter applies, and names it in its own filter, which removes it', function (): void {
     expect(uiComponent('pages/content/index.tsx'))
         ->toMatch('/\(taxonomy\) => !taxonomy\.hierarchical/')
-        ->toMatch('/flat\.map\(\s*\(taxonomy\) =>\s*\(\s*<TermSearchFilter/')
+        ->toMatch('/flat\.map\(\s*\(taxonomy\) =>\s*\(\{[\s\S]*?<TermSearchFilter/')
         ->toContain('valueName={page.chosenTerms[taxonomy.key]}')
         ->and(uiComponent('components/list/filter-row.tsx'))
         ->toContain("valueName ?? __('Not found')")

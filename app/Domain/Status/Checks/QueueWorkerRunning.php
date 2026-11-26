@@ -28,6 +28,16 @@ final readonly class QueueWorkerRunning implements StatusCheck
 
     public function __construct(private UntakenJobs $jobs) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'queue-worker-running';
+    }
+
     public function ability(): string
     {
         return 'settings.general.manage';

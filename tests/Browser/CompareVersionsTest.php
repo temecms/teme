@@ -78,7 +78,10 @@ it('lists the saved versions beside the comparison, the two chosen tinted, and c
         ->assertScript("document.querySelectorAll('[aria-label=\"Versions\"] li').length === 3")
         ->assertScript("Array.from(document.querySelectorAll('[aria-label=\"Versions\"] li')).at(-1).innerText.includes('Eze Editor · Created')")
         ->assertScript("document.querySelectorAll('[aria-label=\"Versions\"] li[data-chosen]').length === 2")
-        ->assertScript("document.querySelectorAll('[aria-label=\"Versions\"] button[aria-pressed=\"true\"]').length === 2");
+        ->assertScript("document.querySelectorAll('[aria-label=\"Versions\"] button[aria-pressed=\"true\"]').length === 2")
+        // Restore lives on the Before / After line only, not on every version row.
+        ->assertScript("!document.querySelector('[aria-label=\"Versions\"]').innerText.includes('Restore')")
+        ->assertSee('Restore the before version');
 
     // The oldest version's Before: the comparison reloads from it.
     $page->script("Array.from(document.querySelectorAll('[aria-label=\"Versions\"] li')).at(-1).querySelector('button').click()");

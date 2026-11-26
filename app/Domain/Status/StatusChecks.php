@@ -81,13 +81,33 @@ final class StatusChecks
             $banner = $check->banner();
 
             if ($banner !== null) {
-                $banners[] = $banner->labelled($check->label(), $owner === 'core' ? null : $check->label());
+                $banners[] = $banner->labelled(
+                    $check->label(),
+                    $owner === 'core' ? null : $check->label(),
+                    $check->key(),
+                );
             }
         }
 
         usort($banners, fn (StatusBanner $a, StatusBanner $b): int => $b->priority <=> $a->priority);
 
         return $banners;
+    }
+
+    /**
+     * Whether this person holds the ability for any registered status check.
+     */
+    public function canAct(User $user): bool
+    {
+        foreach ($this->checks as ['check' => $registered]) {
+            $check = $registered instanceof StatusCheck ? $registered : app($registered);
+
+            if ($user->can($check->ability())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

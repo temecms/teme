@@ -48,11 +48,10 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))->assertOk();
 });
 
-it('shows Categories under its own heading, Categories and Tags as tabs with their sizes, and each category under its parent, a step in', function (): void {
+it('shows Categories under its own heading, and each category under its parent, a step in', function (): void {
     cmSignIn($this->editor)
         ->navigate('/admin/categories')
         ->assertScript('document.querySelector("main h1")?.textContent', 'Categories')
-        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Taxonomies\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'Categories5|Tags2')
         ->assertScript($this->rows, '0:Transport|1:Rail|2:Trams|1:Roads|0:Weather')
         ->assertScript("document.querySelector('[data-test=\"term-name\"][data-depth=\"2\"]').parentElement.textContent", '— — Trams, under Rail');
 });

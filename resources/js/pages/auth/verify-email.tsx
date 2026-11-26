@@ -22,7 +22,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
                 <IconTile
                     icon={Mail}
                     size="lg"
-                    className="bg-info-soft text-info-ink"
+                    className="bg-info-soft text-info-ink rounded-full"
                 />
             }
             lead={__(

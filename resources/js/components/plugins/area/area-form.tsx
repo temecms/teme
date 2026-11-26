@@ -3,9 +3,9 @@ import { createContext, useContext, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { CodeField } from '@/components/fields/code-field';
+import { RepeaterField } from '@/components/fields/repeater-field';
 import type { WaitingScript } from '@/components/fields/code-field';
 import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
-import { RepeaterField } from '@/components/fields/repeater-field';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -113,7 +113,6 @@ function list(value: unknown): string[] {
         : [];
 }
 
-/** A list of tick boxes, one a choice, for multiselect and the pickers. */
 function Choices({
     id,
     field,
@@ -236,18 +235,15 @@ export function AreaFieldInput({
         );
 
         return (
-            <div className="grid gap-2" data-field={field.key}>
-                <p className="text-small text-ink-2 font-medium">
-                    {field.label}
-                </p>
-                {field.description !== '' && (
-                    <p className="text-caption text-ink-3">
-                        {field.description}
-                    </p>
-                )}
+            <div data-field={field.key}>
                 <RepeaterField
                     id={id}
                     label={field.label}
+                    help={
+                        field.description !== '' ? field.description : undefined
+                    }
+                    error={error}
+                    required={field.required}
                     items={items}
                     onChange={onChange}
                     itemLabel={field.itemLabel}
@@ -275,9 +271,6 @@ export function AreaFieldInput({
                             ));
                     }}
                 </RepeaterField>
-                {error !== undefined && (
-                    <p className="text-small text-danger-ink">{error}</p>
-                )}
             </div>
         );
     }
@@ -313,6 +306,7 @@ export function AreaFieldInput({
                 return (
                     <SelectField
                         id={id}
+                        className="w-full"
                         options={field.choices}
                         emptyLabel={
                             field.type === 'region' ? __('None') : undefined

@@ -166,10 +166,10 @@ final class ImportRecords
         $refused = self::entry($source, $run, 'post', '23', 'failed');
 
         self::message($run, $subscriber, 'user.subscriber', 'A subscriber: Teme has no accounts for readers yet, so they weren’t imported.', at: 1);
-        self::message($run, $shortcode, 'content.shortcode-removed', 'Removed the shortcode [gallery_bank]: its plugin is gone.', at: 2);
-        self::message($run, $download, 'media.download-failed', 'The file couldn’t be downloaded (404), so it wasn’t imported. The next run tries again.', 'error', 3);
+        self::message($run, $shortcode, 'shortcode.removed', 'Removed the shortcode [gallery_bank]: its plugin is gone.', at: 2);
+        self::message($run, $download, 'attachment.download-failed', 'The file couldn’t be downloaded (404), so it wasn’t imported. The next run tries again.', 'error', 3);
         self::message($run, $refused, 'object.refused', 'Teme refused it: The title may not be longer than 300 characters.', 'error', 4);
-        self::message($run, null, 'widgets.reported', '=SUM(3) widgets in the sidebar weren’t imported. Set up the theme’s regions again.', at: 5);
+        self::message($run, null, 'setting.not-carried', '=SUM(3) widgets in the sidebar weren’t imported. Set up the theme’s regions again.', at: 5);
         self::message($run, null, 'check.not-found', '/old-page/ answers “not found” on Teme.', 'error', 6);
 
         return ['source' => $source, 'run' => $run];

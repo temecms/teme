@@ -21,7 +21,7 @@ type CustomizeBarProps = {
 };
 
 /**
- * The Customize bar across Home: Add a panel, Reset, and Done.
+ * The Customise bar across Home: Add a panel, Reset, and Done.
  */
 export function CustomizeBar({
     catalogue,
@@ -52,13 +52,13 @@ export function CustomizeBar({
     return (
         <div
             role="region"
-            aria-label={__('Customizing Home')}
+            aria-label={__('Customising Home')}
             data-test="home-customize-bar"
             className="bg-accent-soft text-on-accent-soft mb-6 flex flex-wrap items-center gap-3 rounded-lg px-4 py-3"
         >
             <p className="text-body min-w-0 flex-1">
                 <span className="font-semibold">
-                    {__('Customizing your Home.')}
+                    {__('Customising your Home.')}
                 </span>{' '}
                 {__('Move, resize or hide panels. Only you see this.')}
             </p>

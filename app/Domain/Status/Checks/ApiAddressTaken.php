@@ -39,6 +39,16 @@ final readonly class ApiAddressTaken implements StatusCheck
      */
     public const int PRIORITY = 70;
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'api-address-taken';
+    }
+
     public function ability(): string
     {
         return 'settings.addresses.manage';

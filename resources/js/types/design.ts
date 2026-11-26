@@ -106,14 +106,10 @@ export type DesignPage = {
     extensions: ExtensionsData | null;
 };
 
-/** A theme's own settings page: what Themes sends, without the regions. */
+/** A theme's own settings page: the chosen theme's fields, with its regions as chips. */
 export type DesignSettingsPage = Omit<
     DesignPage,
-    | 'regions'
-    | 'previewRegions'
-    | 'canEditRegions'
-    | 'hiddenCards'
-    | 'extensions'
+    'previewRegions' | 'extensions'
 >;
 
 /** One of the active theme's own cards that a switch hides (ThemeSwitchNotes::hiddenByLeaving). */

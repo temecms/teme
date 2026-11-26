@@ -25,6 +25,8 @@ final readonly class StatusBanner
         public int $priority,
         public string $label = '',
         public ?string $plugin = null,
+        /** Stable check key for Home rows; empty until labelled. */
+        public string $key = '',
     ) {}
 
     /**
@@ -32,18 +34,18 @@ final readonly class StatusBanner
      *
      * @since 0.8.0-alpha.1
      */
-    public function labelled(string $label, ?string $plugin): self
+    public function labelled(string $label, ?string $plugin, string $key = ''): self
     {
-        return new self($this->level, $this->message, $this->actionLabel, $this->actionUrl, $this->priority, $label, $plugin);
+        return new self($this->level, $this->message, $this->actionLabel, $this->actionUrl, $this->priority, $label, $plugin, $key);
     }
 
     /**
      * What the admin shares with the browser.
      *
-     * @return array{level: string, message: string, actionLabel: string|null, actionUrl: string|null, label: string, plugin: string|null}
+     * @return array{level: string, message: string, actionLabel: string|null, actionUrl: string|null, label: string, plugin: string|null, key: string}
      */
     public function toArray(): array
     {
-        return ['level' => $this->level, 'message' => $this->message, 'actionLabel' => $this->actionLabel, 'actionUrl' => $this->actionUrl, 'label' => $this->label, 'plugin' => $this->plugin];
+        return ['level' => $this->level, 'message' => $this->message, 'actionLabel' => $this->actionLabel, 'actionUrl' => $this->actionUrl, 'label' => $this->label, 'plugin' => $this->plugin, 'key' => $this->key];
     }
 }

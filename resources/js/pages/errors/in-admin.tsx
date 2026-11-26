@@ -11,31 +11,97 @@ type Props = {
     status: 403 | 404;
     /** The site's name, for "ask an administrator of …". */
     site: string | null;
+    /** Your name, for a refusal that names who is signed in. */
+    name?: string | null;
     /** Your role's label, for a refusal. */
     role: string | null;
+    /** The role's key (author, editor…), for a/an in the signed-in line. */
+    roleKey?: string | null;
     /** A policy's own reason for refusing, when it gave one. */
     reason: string | null;
+    /** A short name for the page that was refused. */
+    screen?: string | null;
+    /** The permission the route asked for, in plain words. */
+    permission?: string | null;
+    /** The roles that hold that permission, in words. */
+    holders?: string | null;
 };
+
+/** "You’re signed in as …, an author." — a/an baked into each role's phrase. */
+function signedInAs(name: string, roleKey: string): string {
+    switch (roleKey) {
+        case 'administrator':
+            return __('You’re signed in as :name, an administrator.', { name });
+        case 'editor':
+            return __('You’re signed in as :name, an editor.', { name });
+        case 'author':
+            return __('You’re signed in as :name, an author.', { name });
+        case 'contributor':
+            return __('You’re signed in as :name, a contributor.', { name });
+        default:
+            return __('You’re signed in as :name, a :role.', {
+                name,
+                role: roleKey,
+            });
+    }
+}
 
 /**
  * A refused or missing admin page drawn inside the admin, the menu and top
  * bar kept: the title and what happened, then a panel with the way on.
  */
-export default function InAdminError({ status, site, role, reason }: Props) {
+export default function InAdminError({
+    status,
+    site,
+    name = null,
+    role: _role,
+    roleKey = null,
+    reason,
+    screen = null,
+    permission = null,
+    holders = null,
+}: Props) {
     const refused = status === 403;
     const title = refused
-        ? __('You can’t open this page')
+        ? screen === null
+            ? __('You can’t open this page')
+            : __('You can’t open :screen', { screen })
         : __('We can’t find that page');
     const description = refused
         ? (reason ??
-          (site === null
-              ? __(
-                    'Your account doesn’t have permission to do that. If you need it, ask an administrator to change your role.',
-                )
-              : __(
-                    'Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.',
-                    { site },
-                )))
+          (screen !== null &&
+          holders !== null &&
+          name !== null &&
+          roleKey !== null
+              ? [
+                    __(':screen is for :roles.', { screen, roles: holders }),
+                    signedInAs(name, roleKey),
+                    permission !== null
+                        ? __('It needs the :permission permission.', {
+                              permission,
+                          })
+                        : null,
+                ]
+                    .filter((line): line is string => line !== null)
+                    .join(' ')
+              : permission !== null
+                ? site === null
+                    ? __(
+                          'This page needs the :permission permission. If you need it, ask an administrator to change your role.',
+                          { permission },
+                      )
+                    : __(
+                          'This page needs the :permission permission. If you need it, ask an administrator of :site to change your role.',
+                          { permission, site },
+                      )
+                : site === null
+                  ? __(
+                        'Your account doesn’t have permission to do that. If you need it, ask an administrator to change your role.',
+                    )
+                  : __(
+                        'Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.',
+                        { site },
+                    )))
         : __(
               'The address may be mistyped, or the item may have moved to the Trash. Search the admin to find it.',
           );
@@ -81,9 +147,7 @@ export default function InAdminError({ status, site, role, reason }: Props) {
                         title={label}
                         description={
                             refused
-                                ? role === null
-                                    ? undefined
-                                    : __('Your role is :role.', { role })
+                                ? undefined
                                 : __('Nothing is at this address.')
                         }
                         action={

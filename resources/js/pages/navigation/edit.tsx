@@ -383,7 +383,7 @@ export default function NavigationEdit({
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <h2 className="text-lead text-ink flex items-baseline gap-2 font-semibold">
                                 {__('Items')}
-                                <span className="text-small text-ink-3 font-normal tabular-nums">
+                                <span className="text-ink-3 font-normal tabular-nums">
                                     {countOf(tree).toLocaleString()}
                                 </span>
                             </h2>
@@ -483,7 +483,7 @@ export default function NavigationEdit({
                             confirmLabel={__('Delete menu')}
                         >
                             <Button
-                                variant="danger"
+                                variant="danger-quiet"
                                 size="sm"
                                 data-test="menu-delete"
                             >

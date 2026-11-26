@@ -223,6 +223,10 @@ export type RunReport = {
         levelLabel: string;
         words: string;
         count: number;
+        /** Plain name for the report tab’s foldable groups (issue 699). */
+        group: string;
+        /** What the group means; null when the first message’s words stand in. */
+        sentence: string | null;
     }[];
     more: boolean;
     /** Every error and warning of the run, not only the codes listed. */

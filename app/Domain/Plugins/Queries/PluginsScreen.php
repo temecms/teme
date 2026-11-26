@@ -139,7 +139,7 @@ final readonly class PluginsScreen
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 // The plugins it needs, then those that need it, by their own names (docs/plans/plugin-sockets-3.md).
                 'requires' => array_map(fn (string $name): array => [
-                    'words' => PluginWords::needs($this->labelOf($name)),
+                    'words' => $this->labelOf($name),
                     'new' => $row->consent !== [] && in_array($name, $row->added['requires'] ?? [], true),
                 ], $manifest === null ? [] : Consent::declaredRequires($manifest)),
                 'requiredBy' => array_map($this->labelOf(...), $row->requiredBy),

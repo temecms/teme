@@ -55,7 +55,7 @@ it('passes axe on Tools › Updates, every target 24 pixels or more, in the ligh
 
     $page = cmSignIn($this->admin)
         ->navigate('/admin/tools/updates')
-        ->assertSee('Teme 0.1.0-rc.15 is available')
+        ->assertSee('2 releases after yours · Teme 0.1.0-rc.15 is the newest')
         ->assertNoAccessibilityIssues(3);
 
     $screen = cmSmallTargets($page);
@@ -68,7 +68,7 @@ it('never scrolls sideways at 375 pixels', function (): void {
     cmSignIn($this->admin)
         ->resize(375, 812)
         ->navigate('/admin/tools/updates')
-        ->assertSee('Teme 0.1.0-rc.15 is available')
+        ->assertSee('2 releases after yours · Teme 0.1.0-rc.15 is the newest')
         ->assertScript('document.documentElement.scrollWidth <= document.documentElement.clientWidth', true);
 });
 

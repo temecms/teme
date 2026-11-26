@@ -84,7 +84,7 @@ it('shows a person’s running job on the jobs button, and cancels it from the p
         ->click('[aria-label="Cancel Move all posts to the trash"]');
     cmWaitUntil($page, <<<'JS'
         document.body.textContent.includes('Cancelled Move all posts to the trash. What it did stays done.')
-            && document.querySelector('[data-test="jobs-button"]')?.getAttribute('aria-label') === 'Jobs'
+            && document.querySelector('[data-test="jobs-button"]')?.getAttribute('aria-label') === 'No jobs running'
         JS);
 
     expect(DB::table('tracked_jobs')->where('id', $job)->value('state'))->toBe('cancelled');

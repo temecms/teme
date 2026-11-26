@@ -27,7 +27,6 @@ use App\Domain\Taxonomy\Queries\TermPicker;
 use App\Domain\Taxonomy\Queries\TermScreen;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
-use App\Domain\Types\TypeAccess;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -60,8 +59,6 @@ final class TermController extends Controller
                 'plural' => $declared->plural,
                 'hierarchical' => $declared->hierarchical,
             ],
-            'setup' => $request->user()?->can(TypeAccess::MANAGE) === true ? route('taxonomies.show', ['key' => $declared->key], false) : null,
-            'tabs' => $screen->tabs($declared->key, $request->user()),
             'types' => $screen->countedTypes($declared->key),
             'rows' => $page['rows'],
             'paging' => $page['paging'],

@@ -4,7 +4,6 @@ R1	js/components/comments/quick-edit.tsx	sm:max-w-[480px]
 R1	js/components/editor/fields/media-control.tsx	sm:grid-cols-[190px_minmax(0,1fr)]
 R1	js/components/editor/rail/document-panel.tsx	grid-cols-[1fr_auto]
 R1	js/components/editor/rail/fields-proposed.tsx	[data-ai-proposal]
-R1	js/components/fields/field-control.tsx	max-w-[360px]
 R1	js/components/fields/hours-setting.tsx	sm:grid-cols-[7rem_8rem_8rem_auto_1fr]
 R1	js/components/heading.tsx	tracking-[-0.015em]
 R1	js/components/list/bulk-edit-dialog.tsx	max-h-[90vh]
@@ -73,10 +72,6 @@ R2	js/components/list/page-header.tsx	text-[22px]
 R2	js/components/list/row-links.tsx	text-xs
 R2	js/components/list/tab-strip.tsx	text-[11px]
 R2	js/components/list/tab-strip.tsx	text-[13px]
-R2	js/components/personalise-menu-dialog.tsx	text-[11px]
-R2	js/components/personalise-menu-dialog.tsx	text-[13px]
-R2	js/components/personalise-menu-dialog.tsx	text-xs
-R2	js/components/user-menu-content.tsx	text-sm
 R3	js/components/comments/comment-details.tsx	mt-0.5
 R3	js/components/comments/comment-details.tsx	space-y-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
@@ -99,7 +94,6 @@ R3	js/components/ui/sidebar.tsx	peer-data-[size=lg]/menu-button:top-2.5
 R3	js/components/ui/sidebar.tsx	top-1.5
 R3	js/components/ui/sidebar.tsx	top-3.5
 R3	js/components/ui/toggle.tsx	px-1.5
-R3	js/components/user-menu-content.tsx	py-1.5
 R5	js/components/comments/inline-reply.tsx	<textarea>
 R5	js/components/comments/quick-edit.tsx	<textarea>
 R5	js/components/editor/cards/callout-card.tsx	<textarea>

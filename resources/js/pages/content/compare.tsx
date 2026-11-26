@@ -184,7 +184,7 @@ export default function Compare({
                                                     {`${version.author ?? __('Someone')} · ${noteOf(version, first)}`}
                                                 </span>
                                             </span>
-                                            <span className="flex gap-1">
+                                            <span className="flex flex-wrap items-center gap-1">
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
@@ -258,39 +258,17 @@ export default function Compare({
                             {__('Compare')}
                         </Button>
                     </form>
-                    <div className="text-ink-2 text-small grid gap-3 lg:grid-cols-2 lg:gap-6">
-                        {[
-                            {
-                                side: __('Before'),
-                                restore: __('Restore the before version'),
-                                revision: from,
-                            },
-                            {
-                                side: __('After'),
-                                restore: __('Restore the after version'),
-                                revision: to,
-                            },
-                        ].map(({ side, restore, revision }) => (
-                            <div
-                                key={side}
-                                className="flex flex-wrap items-center gap-3"
-                            >
-                                <p>
-                                    {__(':side: :name', {
-                                        side,
-                                        name: nameOf(revision),
-                                    })}
-                                </p>
-                                {revision.id !== workingRevisionId && (
-                                    <RestoreButton
-                                        contentId={contentId}
-                                        revisionId={revision.id}
-                                        createdAt={revision.createdAt}
-                                        label={restore}
-                                    />
-                                )}
-                            </div>
-                        ))}
+                    <div className="text-ink-2 text-small flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <p>{__('Before: :name', { name: nameOf(from) })}</p>
+                        {from.id !== workingRevisionId && (
+                            <RestoreButton
+                                contentId={contentId}
+                                revisionId={from.id}
+                                createdAt={from.createdAt}
+                                label={__('Restore the before version')}
+                            />
+                        )}
+                        <p>{__('After: :name', { name: nameOf(to) })}</p>
                     </div>
                     <DiffView
                         blocks={blocks}

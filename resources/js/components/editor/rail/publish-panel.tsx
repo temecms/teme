@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { Check, Copy, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FieldInline } from '@/components/ui/field';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { SelectField } from '@/components/ui/select-field';
 import { choiceOf, DISCUSSION_CHOICES } from '@/lib/discussion';
 import type { Discussion } from '@/lib/discussion';
@@ -20,7 +22,9 @@ import type {
     EditorSchedule,
 } from '@/types';
 import { TextButton } from '@/components/ui/text-button';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { __ } from '@/lib/i18n';
+import { slugFromTitle, tidySlug } from '@/components/editor/tidy-slug';
 import { PublishWhen } from './publish-when';
 import type { WhenChoice } from './publish-when';
 import { templateChoice } from './template-choice';
@@ -130,6 +134,8 @@ export function PublishPanel({
     review,
     publishedAt,
     slug,
+    savedSlug,
+    title,
     addressPattern,
     siteUrl,
     templates,
@@ -142,6 +148,7 @@ export function PublishPanel({
     revisionCount,
     canEdit,
     onChangeSlug,
+    slugProblem = null,
     onOpenHistory,
     schedule,
     siteTimezone,
@@ -167,6 +174,10 @@ export function PublishPanel({
     review: EditorReview | null;
     publishedAt: string | null;
     slug: string;
+    /** The address last saved on the server; the old-address note uses it. */
+    savedSlug: string;
+    /** The working title, used when the address field is emptied. */
+    title: string;
     addressPattern: string;
     siteUrl: string;
     /** The active theme's templates for the item's type (I-443). */
@@ -183,7 +194,13 @@ export function PublishPanel({
     noun: string;
     revisionCount: number;
     canEdit: boolean;
+    /**
+     * Commits a tidied address into the editor's unsaved changes. Answers a
+     * taken-address message when the check finds one, or null.
+     */
     onChangeSlug: (slug: string) => Promise<string | null>;
+    /** A taken-address message from a refused save, shown in the popover. */
+    slugProblem?: string | null;
     onOpenHistory: () => void;
     schedule: EditorSchedule | null;
     siteTimezone: string;
@@ -224,7 +241,10 @@ export function PublishPanel({
     const [open, setOpen] = useState(false);
     const [draft, setDraft] = useState(slug);
     const [problem, setProblem] = useState<string | null>(null);
-    const [busy, setBusy] = useState(false);
+    const [touched, setTouched] = useState(false);
+    const [copiedText, copyAddress] = useClipboard();
+    const draftRef = useRef(draft);
+    draftRef.current = draft;
     const [discussionSaving, setDiscussionSaving] = useState(false);
     const [authorSaving, setAuthorSaving] = useState(false);
     const [authorProblem, setAuthorProblem] = useState<string | null>(null);
@@ -283,6 +303,50 @@ export function PublishPanel({
                   "The template “:template” isn't in the current theme, so the default layout is used. It stays chosen, and comes back if the theme does.",
                   { template: choice.missing },
               );
+    const previewSlug = (() => {
+        if (!touched) {
+            // An emptied pending address still previews the title's address.
+            return draft || slug || slugFromTitle(title);
+        }
+
+        const tidied = tidySlug(draft);
+
+        return tidied === '' ? slugFromTitle(title) : tidied;
+    })();
+    const fullAddress = addressOf(siteUrl, addressPattern, previewSlug);
+    const slugMark = previewSlug;
+    const slugAt = fullAddress.lastIndexOf(slugMark);
+    const addressPrefix =
+        slugAt >= 0 ? fullAddress.slice(0, slugAt) : fullAddress;
+    const addressSuffix =
+        slugAt >= 0 ? fullAddress.slice(slugAt + slugMark.length) : '';
+    const shownProblem = problem ?? slugProblem;
+
+    /** Tidies on leave and commits into the editor's unsaved changes. */
+    const commitAddress = async (): Promise<boolean> => {
+        if (!touched) {
+            setProblem(null);
+
+            return true;
+        }
+
+        // Empty stays empty so the server makes the title's address on save.
+        const next = tidySlug(draftRef.current);
+
+        setDraft(next);
+        setTouched(false);
+
+        if (next === slug) {
+            setProblem(null);
+
+            return true;
+        }
+
+        const error = await onChangeSlug(next);
+        setProblem(error);
+
+        return error === null;
+    };
 
     return (
         <section
@@ -511,88 +575,191 @@ export function PublishPanel({
                 {!themeRegion && (
                     <>
                         <Row label={__('Address')}>
-                            <DropdownMenu
+                            <Popover
                                 open={open}
                                 onOpenChange={(next) => {
+                                    if (!next && open) {
+                                        void commitAddress();
+                                    }
+
+                                    if (next) {
+                                        setDraft(slug);
+                                        setTouched(false);
+                                        setProblem(null);
+                                    }
+
                                     setOpen(next);
-                                    setDraft(slug);
-                                    setProblem(null);
                                 }}
                             >
-                                <DropdownMenuTrigger
-                                    asChild
-                                    disabled={!canEdit}
-                                >
-                                    <TextButton className="block max-w-full truncate text-left font-normal">
+                                <PopoverTrigger asChild disabled={!canEdit}>
+                                    <TextButton
+                                        data-test="editor-address"
+                                        className="block max-w-full text-left font-normal break-all whitespace-normal"
+                                    >
                                         /{slug}
                                     </TextButton>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
+                                </PopoverTrigger>
+                                <PopoverContent
                                     align="start"
-                                    className="w-80 max-w-(--radix-dropdown-menu-content-available-width) p-3"
+                                    collisionPadding={16}
+                                    className="w-80 max-w-(--radix-popover-content-available-width) p-0"
+                                    data-test="address-popover"
+                                    aria-labelledby="editor-address-title"
+                                    onOpenAutoFocus={(event) => {
+                                        event.preventDefault();
+                                        document
+                                            .getElementById('editor-slug')
+                                            ?.focus();
+                                    }}
                                 >
-                                    <form
-                                        className="grid gap-2"
-                                        onSubmit={(event) => {
-                                            event.preventDefault();
-                                            setBusy(true);
-                                            void onChangeSlug(
-                                                draft.trim(),
-                                            ).then((error) => {
-                                                setBusy(false);
-                                                setProblem(error);
-
-                                                if (error === null) {
-                                                    setOpen(false);
-                                                }
-                                            });
-                                        }}
-                                    >
-                                        <Label htmlFor="editor-slug">
+                                    <div className="border-line flex items-center justify-between gap-2 border-b px-3 py-2">
+                                        <p
+                                            id="editor-address-title"
+                                            className="text-body font-semibold"
+                                        >
+                                            {__('Address')}
+                                        </p>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon-xs"
+                                            aria-label={__('Close')}
+                                            data-test="address-close"
+                                            onClick={() => {
+                                                void commitAddress().then(
+                                                    (ok) => {
+                                                        if (ok) {
+                                                            setOpen(false);
+                                                        }
+                                                    },
+                                                );
+                                            }}
+                                        >
+                                            <X aria-hidden="true" />
+                                        </Button>
+                                    </div>
+                                    <div className="grid gap-2 p-3">
+                                        <Label
+                                            htmlFor="editor-slug"
+                                            className="sr-only"
+                                        >
                                             {__('Address')}
                                         </Label>
-                                        <Input
-                                            id="editor-slug"
-                                            aria-describedby="editor-slug-url"
-                                            value={draft}
-                                            onChange={(event) =>
-                                                setDraft(event.target.value)
-                                            }
-                                            onKeyDown={(event) =>
-                                                event.stopPropagation()
-                                            }
-                                        />
+                                        <p
+                                            id="editor-slug-hint"
+                                            className="text-ink-2 text-caption"
+                                        >
+                                            {__(
+                                                "The last part of this post's address.",
+                                            )}
+                                        </p>
+                                        <div className="relative">
+                                            <Input
+                                                id="editor-slug"
+                                                data-test="editor-slug"
+                                                aria-describedby="editor-slug-hint editor-slug-url"
+                                                aria-invalid={
+                                                    shownProblem !== null
+                                                        ? true
+                                                        : undefined
+                                                }
+                                                value={draft}
+                                                onChange={(event) => {
+                                                    setTouched(true);
+                                                    setProblem(null);
+                                                    setDraft(
+                                                        event.target.value,
+                                                    );
+                                                }}
+                                                onBlur={() => {
+                                                    void commitAddress();
+                                                }}
+                                                onKeyDown={(event) => {
+                                                    event.stopPropagation();
+
+                                                    if (event.key === 'Enter') {
+                                                        event.preventDefault();
+                                                        void commitAddress().then(
+                                                            (ok) => {
+                                                                if (ok) {
+                                                                    setOpen(
+                                                                        false,
+                                                                    );
+                                                                }
+                                                            },
+                                                        );
+                                                    }
+                                                }}
+                                                className="pe-10"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon-xs"
+                                                aria-label={__(
+                                                    'Copy the address',
+                                                )}
+                                                data-test="address-copy"
+                                                className="absolute end-1 top-1/2 -translate-y-1/2"
+                                                onClick={() => {
+                                                    void copyAddress(
+                                                        fullAddress,
+                                                    ).then((ok) => {
+                                                        if (ok) {
+                                                            toast.success(
+                                                                __(
+                                                                    'Address copied',
+                                                                ),
+                                                            );
+                                                        }
+                                                    });
+                                                }}
+                                            >
+                                                {copiedText === fullAddress ? (
+                                                    <Check aria-hidden="true" />
+                                                ) : (
+                                                    <Copy aria-hidden="true" />
+                                                )}
+                                            </Button>
+                                        </div>
                                         <p
                                             id="editor-slug-url"
                                             className="text-ink-2 text-caption break-all"
                                         >
-                                            {addressOf(
-                                                siteUrl,
-                                                addressPattern,
-                                                draft || slug,
-                                            )}
+                                            {__('Address:')}{' '}
+                                            <a
+                                                href={fullAddress}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-accent-ink underline-offset-3 hover:underline"
+                                            >
+                                                {addressPrefix}
+                                                <strong className="font-semibold">
+                                                    {previewSlug}
+                                                </strong>
+                                                {addressSuffix}
+                                            </a>
                                         </p>
-                                        {problem && (
+                                        {status === 'published' &&
+                                            previewSlug !== savedSlug && (
+                                                <p className="text-ink-2 text-caption">
+                                                    {__(
+                                                        'The old address will keep sending readers here once you update.',
+                                                    )}
+                                                </p>
+                                            )}
+                                        {shownProblem !== null && (
                                             <p
                                                 role="alert"
+                                                data-test="address-problem"
                                                 className="text-danger-ink text-caption"
                                             >
-                                                {problem}
+                                                {shownProblem}
                                             </p>
                                         )}
-                                        <Button
-                                            type="submit"
-                                            size="sm"
-                                            disabled={
-                                                busy || draft.trim() === ''
-                                            }
-                                            className="justify-self-start"
-                                        >
-                                            {__('Change address')}
-                                        </Button>
-                                    </form>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                         </Row>
                     </>
                 )}

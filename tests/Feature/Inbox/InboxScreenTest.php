@@ -29,12 +29,44 @@ it('shows a person their own inbox, newest first, with how many are unread (I-22
             ->has('rows', 2)
             ->where('rows.0.title', 'Failed: Rebuild the link index')
             ->where('rows.0.read', false)
+            ->where('rows.0.kind', 'job.finished')
+            ->where('rows.0.result', 'finished')
             ->where('rows.1.read', true)
             ->where('unread', 1)
             ->where('newer', null)
             ->where('older', null)
             ->has('siteTimezone'));
 });
+
+it('sends kind, result and place from the server, not from the title’s English words', function (): void {
+    JobsFixtures::inboxItem($this->ada->id, [
+        'kind' => 'job.failed',
+        'body' => [
+            'title' => 'Something went wrong',
+            'text' => null,
+            'link' => ['route' => 'tools.backups.index', 'parameters' => [], 'ability' => 'backups.manage'],
+        ],
+    ]);
+
+    $this->actingAs($this->ada)->get('/admin/inbox')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('rows.0.kind', 'job.failed')
+            ->where('rows.0.result', 'failed')
+            ->where('rows.0.place', 'Tools › Backups'));
+});
+
+it('draws a warning only for the exact warning kinds, never for a kind that merely contains the word', function (string $kind, ?string $result): void {
+    JobsFixtures::inboxItem($this->ada->id, ['kind' => $kind]);
+
+    $this->actingAs($this->ada)->get('/admin/inbox')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('rows.0.kind', $kind)
+            ->where('rows.0.result', $result));
+})->with([
+    'a warning kind' => ['job.warning', 'warning'],
+    'the bare kind' => ['warning', 'warning'],
+    'a word inside a kind' => ['plugin.forwarded', null],
+]);
 
 it('pages the inbox by the reader’s page size, with addresses for the pages either side (I-140)', function (): void {
     foreach (range(1, 30) as $minutes) {
@@ -93,4 +125,21 @@ it('marks all of the reader’s items read and goes back to the inbox', function
 
     expect(DB::table('inbox_items')->where('user_id', $this->ada->id)->whereNull('read_at')->count())->toBe(0)
         ->and(DB::table('inbox_items')->where('id', $graces)->value('read_at'))->toBeNull();
+});
+
+it('marks one item read and stays on the inbox, without following its link', function (): void {
+    $item = JobsFixtures::inboxItem($this->grace->id, ['body' => ($this->link)('tools.redirects.index', 'redirects.manage')]);
+
+    $this->actingAs($this->grace)->from('/admin/inbox')->post("/admin/inbox/{$item}/read")
+        ->assertRedirect('/admin/inbox');
+
+    expect(DB::table('inbox_items')->where('id', $item)->value('read_at'))->not->toBeNull();
+});
+
+it('marks nothing for someone else’s item on the read route', function (): void {
+    $adas = JobsFixtures::inboxItem($this->ada->id);
+
+    $this->actingAs($this->grace)->from('/admin/inbox')->post("/admin/inbox/{$adas}/read")->assertNotFound();
+
+    expect(DB::table('inbox_items')->where('id', $adas)->value('read_at'))->toBeNull();
 });

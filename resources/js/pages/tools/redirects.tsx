@@ -29,7 +29,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+import { SearchField } from '@/components/list/search-field';
 import { SelectField } from '@/components/ui/select-field';
 import { StatusPill } from '@/components/ui/status-pill';
 import { QuietNote } from '@/components/tools/quiet-note';
@@ -390,18 +390,18 @@ export default function Redirects(page: RedirectsPage) {
             id: 'hits',
             owner: 'core',
             header: __('Hits'),
-            className: 'whitespace-nowrap',
+            className: 'whitespace-nowrap text-end',
             cell: (row) => (
-                <>
+                <div className="grid justify-items-end gap-0.5">
                     <span className="tabular-nums">
                         {row.hits.toLocaleString()}
                     </span>
-                    <span className="text-ink-2 text-caption block">
+                    <span className="text-ink-2 text-caption">
                         {row.lastHitAt === null
                             ? __('Never')
                             : formatInZone(row.lastHitAt, siteTimezone)}
                     </span>
-                </>
+                </div>
             ),
         },
         {
@@ -593,8 +593,7 @@ export default function Redirects(page: RedirectsPage) {
                     data-test="list-filters"
                     className="flex flex-wrap items-center gap-2"
                 >
-                    <Input
-                        type="search"
+                    <SearchField
                         name="search"
                         value={typed}
                         onChange={(event) => searchFor(event.target.value)}

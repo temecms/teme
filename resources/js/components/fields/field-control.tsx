@@ -277,9 +277,7 @@ export function FieldControl({
                     maxLength={field.maxLength ?? undefined}
                     placeholder={field.example ?? undefined}
                     disabled={disabled}
-                    className={
-                        field.type === 'email' ? 'max-w-[360px]' : undefined
-                    }
+                    className={field.type === 'email' ? 'w-full' : undefined}
                 />
             );
     }

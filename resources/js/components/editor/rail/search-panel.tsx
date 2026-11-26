@@ -331,7 +331,6 @@ export function SearchPanel({
     const socialTitle = field('social_title');
     const socialDescription = field('social_description');
     const socialImage = field('social_image');
-    const hasExcerpt = field('excerpt') !== undefined;
     const home = seo.kind === 'home';
     const proposes =
         metadata.offered &&
@@ -426,24 +425,24 @@ export function SearchPanel({
     const date = seo.kind === 'item' ? (seo.tokens.date ?? null) : null;
     const descriptionPlaceholder =
         description.from === 'excerpt' && description.text !== null
-            ? description.text
+            ? __('Using the excerpt: :excerpt', {
+                  excerpt: description.text,
+              })
             : description.from === 'tagline' && description.text !== null
               ? description.text
-              : hasExcerpt
-                ? __(
-                      'No excerpt either: search engines will choose text from the page',
-                  )
-                : __('Search engines will choose text from the page');
+              : __(
+                    'No excerpt either: search engines will choose text from the page',
+                );
 
     return (
         <section
             aria-labelledby="editor-search-label"
             data-test="search-section"
-            className="grid grid-cols-1"
+            className="-mx-4 grid grid-cols-1 sm:-mx-10"
         >
             <div
                 data-test="search-strip"
-                className="bg-chrome border-line flex min-h-13 items-center gap-3 border-y pr-4 pl-6"
+                className="bg-chrome border-line flex min-h-13 w-full items-center gap-3 border-y pr-4 pl-6"
             >
                 <h2
                     id="editor-search-label"
@@ -638,7 +637,10 @@ export function SearchPanel({
                                         describedBy="editor-seo-title-count"
                                         rows={2}
                                         className={`${textareaClass} resize-none`}
-                                        placeholder={search.title.text}
+                                        placeholder={__(
+                                            'Using the title template: :title',
+                                            { title: search.title.text },
+                                        )}
                                     />
                                     <MetadataProposal
                                         handle="seo_title"

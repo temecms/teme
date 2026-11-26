@@ -84,12 +84,10 @@ it('groups a run’s messages by code, errors first, then the most frequent, eac
     $report = app(ImportScreen::class)->report($this->run);
 
     expect($report['messages'])->toBe([
-        ['code' => 'check.not-found', 'level' => 'error', 'levelLabel' => 'Error', 'words' => '/old-page/ answers “not found” on Teme.', 'count' => 2],
-        ['code' => 'media.download-failed', 'level' => 'error', 'levelLabel' => 'Error', 'words' => 'The file couldn’t be downloaded (404), so it wasn’t imported. The next run tries again.', 'count' => 1],
-        ['code' => 'object.refused', 'level' => 'error', 'levelLabel' => 'Error', 'words' => 'Teme refused it: The title may not be longer than 300 characters.', 'count' => 1],
-        ['code' => 'content.shortcode-removed', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => 'Removed the shortcode [gallery_bank]: its plugin is gone.', 'count' => 1],
-        ['code' => 'user.subscriber', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => 'A subscriber: Teme has no accounts for readers yet, so they weren’t imported.', 'count' => 1],
-        ['code' => 'widgets.reported', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => '=SUM(3) widgets in the sidebar weren’t imported. Set up the theme’s regions again.', 'count' => 1],
+        ['code' => 'check.not-found', 'level' => 'error', 'levelLabel' => 'Error', 'words' => '/old-page/ answers “not found” on Teme.', 'count' => 4, 'group' => 'Failed', 'sentence' => 'These items failed and need attention.'],
+        ['code' => 'setting.not-carried', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => '=SUM(3) widgets in the sidebar weren’t imported. Set up the theme’s regions again.', 'count' => 1, 'group' => 'Date and time settings not carried over', 'sentence' => null],
+        ['code' => 'shortcode.removed', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => 'Removed the shortcode [gallery_bank]: its plugin is gone.', 'count' => 1, 'group' => 'Shortcodes removed', 'sentence' => 'A shortcode’s plugin isn’t on Teme, so the shortcode was taken out of the content.'],
+        ['code' => 'user.subscriber', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => 'A subscriber: Teme has no accounts for readers yet, so they weren’t imported.', 'count' => 1, 'group' => 'Subscribers left behind', 'sentence' => 'Teme has no accounts for readers yet, so WordPress subscribers weren’t imported.'],
     ])
         ->and($report['more'])->toBeFalse()
         ->and($report['problems'])->toBe(4);

@@ -188,7 +188,7 @@ it('opens a new draft from every door with one press', function (): void {
         ->and(uiComponent('pages/dashboard.tsx'))->not->toContain("new: '1'")
         ->and(uiComponent('pages/content/edit.tsx'))
         ->toContain("session.title.trim() === ''")
-        ->toContain('onSlug: setSlug')
+        ->toContain('onSlug: (next, sent)')
         ->and(uiComponent('components/editor/use-autosave.ts'))->toContain('onSlug');
 });
 

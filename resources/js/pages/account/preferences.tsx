@@ -10,7 +10,6 @@ import { Segmented, SegmentedItem } from '@/components/ui/segmented';
 import { Switch } from '@/components/ui/switch';
 import { useAppearance, type Appearance } from '@/hooks/use-appearance';
 import { __ } from '@/lib/i18n';
-import { edit as editPreferences } from '@/routes/preferences';
 import type { FieldDefinition } from '@/types';
 
 type Props = {
@@ -86,7 +85,6 @@ export default function Preferences({ fields, values }: Props) {
     );
 
     setLayoutProps({
-        breadcrumbs: [{ title, href: editPreferences() }],
         title,
         description,
     });
@@ -102,7 +100,7 @@ export default function Preferences({ fields, values }: Props) {
                             id="appearance-mode-label"
                             className="text-small text-ink-2 font-medium"
                         >
-                            {__('Colors')}
+                            {__('Colours')}
                         </span>
                         <Segmented
                             aria-labelledby="appearance-mode-label"

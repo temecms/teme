@@ -31,6 +31,16 @@ final readonly class PluginsRunning implements StatusCheck
         private PluginRecords $records,
     ) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'plugins-running';
+    }
+
     public function ability(): string
     {
         return PluginAccess::MANAGE;

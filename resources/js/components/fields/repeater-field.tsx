@@ -1,10 +1,4 @@
-import {
-    ChevronDown,
-    ChevronRight,
-    ChevronUp,
-    Plus,
-    Trash2,
-} from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
@@ -15,8 +9,9 @@ type Item = Record<string, unknown>;
 /**
  * A repeater (docs/plans/plugin-sockets-2.md, A2): a list of items of one
  * shape, each in its own box that collapses to its title, with Move up,
- * Move down and Remove buttons (the single-pointer path, I-1720), then Add.
- * The caller draws each item's fields.
+ * Move down and Remove as words (the single-pointer path, I-1720), a count
+ * line, then Add. The group's legend is its visible label, with the help
+ * and error lines under it, as a Field draws them.
  */
 export function RepeaterField({
     id,
@@ -28,13 +23,19 @@ export function RepeaterField({
     empty,
     minItems,
     maxItems,
+    help,
+    error,
+    required,
     children,
 }: {
     id: string;
     label: string;
+    help?: string;
+    error?: string;
+    required?: boolean;
     items: Item[];
     onChange: (items: Item[]) => void;
-    /** What one item is called, as in "Add a version". */
+    /** What one item is called, as in "Add version". */
     itemLabel: string;
     /** The key whose value titles a collapsed item. */
     itemTitle: string | null;
@@ -61,14 +62,11 @@ export function RepeaterField({
             : `${itemLabel} ${index + 1}`;
     };
 
-    // The button names what it adds ("Add a service"); with no name declared, it stays "Add item".
-    const named = itemLabel.trim() !== '' && itemLabel !== __('Item');
-    const noun = itemLabel.trim().toLowerCase();
-    const addLabel = !named
-        ? __('Add item')
-        : /^[aeiou]/.test(noun)
-          ? __('Add an :item', { item: noun })
-          : __('Add a :item', { item: noun });
+    // Whole translated phrases per case, never an English a/an vowel check.
+    const named = itemLabel.trim() !== '';
+    const addLabel = named
+        ? __('Add :item', { item: itemLabel.trim().toLowerCase() })
+        : __('Add item');
 
     const move = (from: number, to: number) => {
         const moved = [...items];
@@ -86,7 +84,31 @@ export function RepeaterField({
             data-test="repeater"
             data-count={items.length}
         >
-            <legend className="sr-only">{label}</legend>
+            <legend className="text-small text-ink-2 mb-1 font-medium">
+                {label}
+                {required && (
+                    <>
+                        {' '}
+                        <span className="text-ink-3 font-normal">
+                            {__('Required')}
+                        </span>
+                    </>
+                )}
+            </legend>
+            {help !== undefined && (
+                <p className="text-caption text-ink-3">{help}</p>
+            )}
+            {error !== undefined && (
+                <p className="text-small text-danger-ink" role="alert">
+                    {error}
+                </p>
+            )}
+            <p className="text-caption text-ink-3" data-test="repeater-count">
+                {__(':count of at most :max.', {
+                    count: items.length,
+                    max: maxItems,
+                })}
+            </p>
             <ol className="grid gap-3">
                 {items.map((item, index) => {
                     const key = keys[index] ?? index;
@@ -100,7 +122,7 @@ export function RepeaterField({
                             data-open={open || undefined}
                             className="border-line rounded-md border"
                         >
-                            <div className="flex items-center gap-1 py-1 pr-1 pl-2">
+                            <div className="flex flex-wrap items-center gap-1 py-1 pr-2 pl-2">
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -136,35 +158,35 @@ export function RepeaterField({
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    size="icon-sm"
-                                    aria-label={__('Move :item up', {
+                                    size="sm"
+                                    disabled={index === 0}
+                                    aria-label={__('Move up :item', {
                                         item: title,
                                     })}
-                                    disabled={index === 0}
                                     onClick={() => move(index, index - 1)}
                                 >
-                                    <ChevronUp aria-hidden="true" />
+                                    {__('Move up')}
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    size="icon-sm"
-                                    aria-label={__('Move :item down', {
+                                    size="sm"
+                                    disabled={index === items.length - 1}
+                                    aria-label={__('Move down :item', {
                                         item: title,
                                     })}
-                                    disabled={index === items.length - 1}
                                     onClick={() => move(index, index + 1)}
                                 >
-                                    <ChevronDown aria-hidden="true" />
+                                    {__('Move down')}
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="danger-quiet"
-                                    size="icon-sm"
+                                    size="sm"
+                                    disabled={items.length <= minItems}
                                     aria-label={__('Remove :item', {
                                         item: title,
                                     })}
-                                    disabled={items.length <= minItems}
                                     onClick={() => {
                                         setKeys(
                                             keys.filter(
@@ -178,7 +200,7 @@ export function RepeaterField({
                                         );
                                     }}
                                 >
-                                    <Trash2 aria-hidden="true" />
+                                    {__('Remove')}
                                 </Button>
                             </div>
                             {open && (

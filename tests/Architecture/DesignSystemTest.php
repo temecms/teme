@@ -67,9 +67,9 @@ function dsSurplus(array $tally, array $than): array
 function dsCounts(): array
 {
     return [
-        'R1' => 20,
-        'R2' => 40,
-        'R3' => 23,
+        'R1' => 19,
+        'R2' => 36,
+        'R3' => 22,
         'R5' => 20,
         'R6' => 9,
         'R8' => 11,

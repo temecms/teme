@@ -1,5 +1,5 @@
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
-import { LayoutDashboard } from 'lucide-react';
+import { FileText, LayoutDashboard, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ContentListController from '@/actions/App/Http/Admin/Contents/ContentListController';
 import { CustomizeBar } from '@/components/dashboard/customize-bar';
@@ -35,16 +35,17 @@ const SIZE_WORDS: Record<PanelSize, string> = {
 };
 
 /**
- * Home (I-161, I-210, I-3401): greeting and actions, the site's figures as
- * tiles, then Your work and From plugins in a grid of four sizes. Customize
- * saves each change at once as the person's preferences.
+ * Home: greeting and actions, the site's figures as tiles, then Your work
+ * and From plugins in a grid of four sizes. Customise saves each change at
+ * once as the person's preferences.
  */
 export default function Dashboard({
     panels,
     catalogue,
     layout: initialLayout,
     figures,
-    mainType,
+    mainType: _mainType,
+    create: createTypes,
     gettingStarted,
     canQuickDraft,
     canUpload,
@@ -99,15 +100,23 @@ export default function Dashboard({
         return __('Good evening, :name', { name });
     })();
 
-    const create = mainType.canCreate && (
-        <Form {...ContentListController.store.form({ type: mainType.segment })}>
+    const createButtons = createTypes.map((type, index) => (
+        <Form
+            key={type.segment}
+            {...ContentListController.store.form({ type: type.segment })}
+        >
             {({ processing }) => (
-                <Button disabled={processing}>
-                    {__('New :singular', { singular: mainType.singular })}
+                <Button
+                    variant={index === 0 ? 'default' : 'neutral'}
+                    disabled={processing}
+                >
+                    <FileText aria-hidden="true" />
+                    {__('+ :singular', { singular: type.singular })}
                 </Button>
             )}
         </Form>
-    );
+    ));
+    const create = createButtons.length > 0 ? <>{createButtons}</> : null;
 
     const persist = (next: Layout) => {
         setLayout(next);
@@ -335,7 +344,10 @@ export default function Dashboard({
             {create}
             {canUpload && (
                 <Button variant="neutral" asChild>
-                    <Link href={mediaIndex()}>{__('Upload media')}</Link>
+                    <Link href={mediaIndex()}>
+                        <Upload aria-hidden="true" />
+                        {__('Upload media')}
+                    </Link>
                 </Button>
             )}
             <Button
@@ -346,7 +358,7 @@ export default function Dashboard({
                 onClick={() => setCustomizing(true)}
             >
                 <LayoutDashboard aria-hidden="true" />
-                {__('Customize')}
+                {__('Customise')}
             </Button>
         </>
     );
@@ -371,6 +383,10 @@ export default function Dashboard({
                 return canQuickDraft;
             }
 
+            if (entry.kind === 'site-status') {
+                return true;
+            }
+
             const panel = panelsByKey[key];
 
             return (
@@ -383,7 +399,7 @@ export default function Dashboard({
     const hasPluginCatalogue = catalogue.some(
         (entry) => sectionOf(entry.owner) === 'plugins',
     );
-    // Outside Customize, empty plugin panels stay out of the way (I-161); Customize
+    // Outside Customise, empty plugin panels stay out of the way; Customise
     // still shows the section so empty ones can be arranged.
     const showFromPlugins =
         pluginKeys.length > 0 || (customizing && hasPluginCatalogue);
@@ -527,7 +543,7 @@ export default function Dashboard({
                         </h2>
                         <p className="text-small text-ink-2 mb-4">
                             {__(
-                                'Panels that plugins add, each naming its plugin. Hide or move them in Customize.',
+                                'Panels that plugins add, each naming its plugin. Hide or move them in Customise.',
                             )}
                         </p>
                         {pluginKeys.length > 0 && (

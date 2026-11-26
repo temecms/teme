@@ -94,7 +94,9 @@ export function SettingsField({
         <Label
             htmlFor={`field-${field.key}`}
             className={
-                field.type === 'boolean' ? 'text-body text-ink' : undefined
+                field.type === 'boolean'
+                    ? 'text-small text-ink font-semibold'
+                    : undefined
             }
         >
             {words}
@@ -124,16 +126,14 @@ export function SettingsField({
     );
 
     if (field.type === 'boolean') {
-        // The switch beside its words, the hint under the words.
+        // The switch beside its label; the hint under the switch row.
         return (
             <div data-slot="settings-field" className={FIELD_CLASS}>
-                <div className="flex items-start gap-2">
+                <div className="flex items-center gap-2">
                     <div className="flex h-lh items-center">{control}</div>
-                    <div className="grid gap-1">
-                        {label}
-                        {hint}
-                    </div>
+                    {label}
                 </div>
+                {hint}
                 {problem}
             </div>
         );

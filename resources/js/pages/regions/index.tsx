@@ -109,12 +109,10 @@ function RegionRow({
             {...ahead}
             className={cn(
                 'h-auto min-h-9 w-full min-w-0 items-start justify-start gap-2 px-2 py-2 text-left whitespace-normal',
-                shown && 'bg-surface-3 text-ink font-semibold',
+                shown && 'bg-accent-soft text-on-accent-soft font-semibold',
             )}
         >
-            <span className="text-ink min-w-0 flex-1 break-words">
-                {region.label}
-            </span>
+            <span className="min-w-0 flex-1 break-words">{region.label}</span>
             {region.dirty && (
                 <span
                     className="bg-warn size-2 shrink-0 rounded-full"
@@ -125,7 +123,12 @@ function RegionRow({
                     </span>
                 </span>
             )}
-            <span className="text-small text-ink-2 shrink-0 tabular-nums">
+            <span
+                className={cn(
+                    'text-small shrink-0 tabular-nums',
+                    shown ? 'text-on-accent-soft' : 'text-ink-2',
+                )}
+            >
                 {__(':used/:max', {
                     used: region.used,
                     max: region.max,
@@ -195,16 +198,41 @@ function ChosenPanel({
     region: ChosenRegion;
     page: RegionsWorkspacePage;
 }) {
+    // The cards in the panel as they are now, not the saved revision's count.
+    const [liveUsed, setLiveUsed] = useState<number | null>(null);
+    const used = liveUsed ?? region.used;
+
     return (
         <section
             aria-labelledby="chosen-region"
-            className="border-line grid content-start gap-4 rounded-lg border p-4"
+            className="bg-surface shadow-raised grid content-start gap-4 rounded-lg p-4"
         >
-            <div className="flex flex-wrap items-center gap-2">
-                <h2 id="chosen-region" className="text-lead font-semibold">
-                    {region.label}
-                </h2>
-                <StatePill state={region.state} />
+            <div className="grid gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    <h2 id="chosen-region" className="text-lead font-semibold">
+                        {region.label}
+                    </h2>
+                    <StatePill state={region.state} />
+                </div>
+                {page.theme !== null && (
+                    <StatusPill tone="neutral" flat>
+                        {__(':theme · active theme', {
+                            theme: page.theme.name,
+                        })}
+                    </StatusPill>
+                )}
+                <p className="text-small text-ink-2">{region.limit}</p>
+                <p
+                    className="text-small text-ink-2 tabular-nums"
+                    data-test="region-fill"
+                >
+                    {__n(
+                        ':count of :max slot used|:count of :max slots used',
+                        used,
+                        { max: region.max },
+                    )}
+                </p>
+                <div className="border-line border-b" />
             </div>
             {!region.every && region.cardLabels.length > 0 && (
                 <div data-test="region-cards" className="min-w-0">
@@ -252,6 +280,7 @@ function ChosenPanel({
                     region={region}
                     session={region.session}
                     page={page}
+                    onCount={setLiveUsed}
                 />
             )}
         </section>
@@ -325,8 +354,13 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
             title={title}
             description={
                 theme === null
-                    ? 'Your own content in the spots the active theme sets aside, such as a box after each article.'
-                    : `Your own content in the spots the active theme, ${theme.name}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.`
+                    ? __(
+                          'Your own content in the spots the active theme sets aside. Each region takes only the cards its theme allows.',
+                      )
+                    : __(
+                          'Your own content in the spots :theme sets aside. Each region takes only the cards its theme allows.',
+                          { theme: theme.name },
+                      )
             }
         >
             <Head title={title} />
@@ -336,28 +370,33 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
                     kind="nothing-yet"
                     title={
                         theme === null
-                            ? 'No theme is in use'
-                            : `${theme.name} has no regions`
+                            ? __('No theme is in use')
+                            : __(':theme has no regions', {
+                                  theme: theme.name,
+                              })
                     }
                     description={
                         theme === null
                             ? undefined
-                            : `There’s nothing to fill here while ${theme.name} is the active theme.`
+                            : __(
+                                  'There’s nothing to fill here while :theme is the active theme.',
+                                  { theme: theme.name },
+                              )
                     }
                 />
             )}
 
             <Tabs defaultValue={chosen === null ? 'others' : 'active'}>
-                <TabsList>
-                    <TabsTrigger value="active">
-                        {theme?.name ?? __('Active theme')}{' '}
-                        <span className="text-ink-2 tabular-nums">{count}</span>
+                <TabsList variant="underline">
+                    <TabsTrigger value="active" count={count}>
+                        {theme?.name ?? __('Active theme')}
                     </TabsTrigger>
-                    <TabsTrigger value="others" data-test="others-tab">
-                        {__('Other themes')}{' '}
-                        <span className="text-ink-2 tabular-nums">
-                            {others.length}
-                        </span>
+                    <TabsTrigger
+                        value="others"
+                        data-test="others-tab"
+                        count={others.length}
+                    >
+                        {__('Other themes')}
                     </TabsTrigger>
                 </TabsList>
 
@@ -371,7 +410,12 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
                                 />
                             </div>
                             <div className="grid min-w-0 content-start gap-3 lg:flex-1">
-                                <ChosenPanel region={chosen} page={page} />
+                                <ChosenPanel
+                                    // A region of its own: the live count of the last one never carries over.
+                                    key={chosen.key}
+                                    region={chosen}
+                                    page={page}
+                                />
                             </div>
                         </div>
                     )}
@@ -388,18 +432,18 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
                                 id="unplaced-heading"
                                 className="text-lead font-semibold"
                             >
-                                From other themes{' '}
+                                {__('From other themes')}{' '}
                                 <span className="text-ink-2 tabular-nums">
                                     {others.length}
                                 </span>
                             </h2>
                             <p className="text-ink-2 text-body">
-                                {
-                                    'Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.'
-                                }{' '}
+                                {__(
+                                    'Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.',
+                                )}{' '}
                                 <Link
                                     href={themesIndex().url}
-                                    className="text-accent underline"
+                                    className="text-accent-ink underline"
                                 >
                                     {__('Open Themes')}
                                 </Link>

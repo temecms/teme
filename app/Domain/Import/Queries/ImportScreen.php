@@ -279,9 +279,9 @@ final readonly class ImportScreen
     }
 
     /**
-     * Returns an import's report: its objects by kind and outcome, its messages grouped by code (errors first), whether more codes exist than are listed, how many errors need attention, and whether it is ready to switch (null until it has finished and the address check exists). Null when Teme has no such import.
+     * Returns an import's report: its objects by kind and outcome, its messages grouped by code (errors first) with a plain group name and sentence, whether more codes exist than are listed, how many errors need attention, and whether it is ready to switch (null until it has finished and the address check exists). Null when Teme has no such import.
      *
-     * @return array{types: list<array{type: string, label: string, created: int, updated: int, skipped: int, failed: int, warnings: int|null}>, messages: list<array{code: string, level: string, levelLabel: string, words: string, count: int}>, more: bool, levels: array{error: int, warning: int}, problems: int, ready: bool|null}|null
+     * @return array{types: list<array{type: string, label: string, created: int, updated: int, skipped: int, failed: int, warnings: int|null}>, messages: list<array{code: string, level: string, levelLabel: string, words: string, count: int, group: string, sentence: string|null}>, more: bool, levels: array{error: int, warning: int}, problems: int, ready: bool|null}|null
      */
     public function report(string $runId): ?array
     {
@@ -335,17 +335,35 @@ final readonly class ImportScreen
             ->limit(self::CODES + 1)
             ->get();
 
-        $messages = [];
+        // Fold codes that share a plain name (and every error into Failed), summing counts.
+        $grouped = [];
 
         foreach ($codes->take(self::CODES) as $row) {
-            $messages[] = [
+            $named = ImportMessageGroups::for((string) $row->code);
+            $error = $row->level === ImportMessageLevel::Error->value;
+            $group = $error ? __('Failed') : $named['group'];
+            $sentence = $error
+                ? __('These items failed and need attention.')
+                : $named['sentence'];
+
+            if (isset($grouped[$group])) {
+                $grouped[$group]['count'] += (int) $row->total;
+
+                continue;
+            }
+
+            $grouped[$group] = [
                 'code' => (string) $row->code,
                 'level' => (string) $row->level,
-                'levelLabel' => $row->level === ImportMessageLevel::Error->value ? 'Error' : 'Warning',
+                'levelLabel' => $error ? 'Error' : 'Warning',
                 'words' => (string) $row->words,
                 'count' => (int) $row->total,
+                'group' => $group,
+                'sentence' => $sentence,
             ];
         }
+
+        $messages = array_values($grouped);
 
         $problems = DB::table('import_messages')->where('run_id', $runId)->where('level', ImportMessageLevel::Error->value)->count();
         $check = $this->phases->find('check');

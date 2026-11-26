@@ -9,9 +9,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Notice } from '@/components/ui/notice';
 import { PluginIcon } from '@/components/ui/plugin-icon';
+import { StatusPill } from '@/components/ui/status-pill';
+import { formatCost } from '@/lib/ai-cost';
 import { __ } from '@/lib/i18n';
-import type { PluginRowPage, PluginSettingHosts } from '@/types';
+import type {
+    PluginAccessLine,
+    PluginAiSite,
+    PluginRowPage,
+    PluginSettingHosts,
+} from '@/types';
 
 /**
  * The words the dialog's button carries: the plain Enable while an earlier
@@ -25,20 +33,61 @@ export function confirmLabel(plugin: PluginRowPage): string {
         : __('Agree and enable :version', { version: plugin.version });
 }
 
+/** A NEW mark as a small info pill (design system 4.13), never an accent badge. */
+function NewMark() {
+    return (
+        <StatusPill tone="info" flat className="text-caption h-5 px-2">
+            {__('New')}
+        </StatusPill>
+    );
+}
+
+/** One consented line with an optional New mark. */
+function AccessLine({
+    line,
+    hosts,
+}: {
+    line: PluginAccessLine;
+    hosts?: PluginSettingHosts | null;
+}) {
+    return (
+        <li className="flex items-baseline gap-2">
+            <CheckIcon
+                aria-hidden="true"
+                className="text-ok-ink size-4 shrink-0"
+            />
+            {hosts !== null &&
+            hosts !== undefined &&
+            line.words === hosts.replaces ? (
+                <span data-test="consent-setting-hosts">
+                    {hosts.line}
+                    <br />
+                    {hosts.now}
+                </span>
+            ) : (
+                <span>{line.words}</span>
+            )}
+            {line.new && <NewMark />}
+        </li>
+    );
+}
+
 /**
- * The consent dialog (I-3353): what the plugin asks to do, in words, with NEW
- * beside what an update adds. It has no password box: when the password was
- * not confirmed lately the server sends the person to Teme's password screen,
- * and the page then enables the plugin itself.
+ * The consent dialog: trust in a warn banner, then It asks to / What it adds /
+ * It listens for / It needs. AI task lines from the server (PluginWords) sit
+ * under It asks to. The password ask stays on Teme's password screen when
+ * needed; this dialog has no password box.
  */
 export function ConsentDialog({
     plugin,
     settingHosts = null,
+    aiSite,
     onClose,
     onConfirm,
 }: {
     plugin: PluginRowPage | null;
     settingHosts?: PluginSettingHosts | null;
+    aiSite: PluginAiSite;
     onClose: () => void;
     onConfirm: (plugin: PluginRowPage) => void;
 }) {
@@ -75,26 +124,31 @@ export function ConsentDialog({
                                               version: plugin.version,
                                           })}
                                 </DialogTitle>
-                                <DialogDescription>
-                                    <strong>
-                                        {__('Plugins are trusted code.')}
-                                    </strong>{' '}
+                                <DialogDescription className="sr-only">
                                     {__(
-                                        ':name runs inside Teme with the same access to the server as Teme itself.',
+                                        'Review what :name asks for before you enable it.',
                                         { name: plugin.label },
-                                    )}{' '}
-                                    {__(
-                                        'Teme holds it to the list below wherever it hands out services, but it cannot stop a plugin that means harm. Enable plugins only from people you trust.',
                                     )}
                                 </DialogDescription>
                             </div>
                         </div>
                     </DialogHeader>
 
+                    <Notice tone="warn" data-test="consent-trust">
+                        <strong>{__('Plugins are trusted code.')}</strong>{' '}
+                        {__(
+                            ':name runs inside Teme with the same access to the server as Teme itself.',
+                            { name: plugin.label },
+                        )}{' '}
+                        {__(
+                            'Teme holds it to the list below wherever it hands out services, but it cannot stop a plugin that means harm. Enable plugins only from people you trust.',
+                        )}
+                    </Notice>
+
                     {plugin.agreedBefore && plugin.asksMore && (
                         <p className="text-small">
                             {__(
-                                'You agreed to what version :agreed asks. Version :version adds the items marked NEW. Until you agree, :name stays disabled.',
+                                'You agreed to what version :agreed asks. Version :version adds the items marked New. Until you agree, :name stays disabled.',
                                 {
                                     agreed: plugin.agreedVersion ?? '',
                                     version: plugin.version,
@@ -120,29 +174,92 @@ export function ConsentDialog({
                                 className="text-small grid gap-3"
                             >
                                 {plugin.asks.map((line) => (
-                                    <li
+                                    <AccessLine
                                         key={line.words}
+                                        line={line}
+                                        hosts={settingHosts}
+                                    />
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+
+                    {plugin.shown.capabilities.includes('ai') && (
+                        <p
+                            data-test="consent-ai-controls"
+                            className="text-small text-ink-2"
+                        >
+                            {__(
+                                'It spends the site’s AI budget (:budget a month) and the site’s hourly request limit (:limit requests an hour). An administrator can switch it off, give it its own budget, or change its limits in Settings › AI.',
+                                {
+                                    budget:
+                                        aiSite.budgetMicrounits === null
+                                            ? __('none set')
+                                            : formatCost(
+                                                  aiSite.budgetMicrounits,
+                                              ),
+                                    limit: String(aiSite.hourlyLimit),
+                                },
+                            )}
+                        </p>
+                    )}
+
+                    {plugin.adds.length > 0 && (
+                        <section
+                            aria-labelledby="consent-adds"
+                            className="grid gap-2"
+                        >
+                            <h3
+                                id="consent-adds"
+                                className="text-small font-semibold"
+                            >
+                                {__('What it adds to the admin')}
+                            </h3>
+                            <ul
+                                data-test="consent-adds"
+                                className="text-small grid gap-2"
+                            >
+                                {plugin.adds.map((label) => (
+                                    <li
+                                        key={label}
                                         className="flex items-baseline gap-2"
                                     >
                                         <CheckIcon
                                             aria-hidden="true"
                                             className="text-ok-ink size-4 shrink-0"
                                         />
-                                        {settingHosts !== null &&
-                                        line.words === settingHosts.replaces ? (
-                                            <span data-test="consent-setting-hosts">
-                                                {settingHosts.line}
-                                                <br />
-                                                {settingHosts.now}
-                                            </span>
-                                        ) : (
-                                            <span>{line.words}</span>
-                                        )}
-                                        {line.new && (
-                                            <span className="bg-accent text-on-accent text-caption rounded-sm px-2 font-semibold">
-                                                {__('NEW')}
-                                            </span>
-                                        )}
+                                        <span>{label}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+
+                    {plugin.listensFor.length > 0 && (
+                        <section
+                            aria-labelledby="consent-listens"
+                            className="grid gap-2"
+                        >
+                            <h3
+                                id="consent-listens"
+                                className="text-small font-semibold"
+                            >
+                                {__('It listens for')}
+                            </h3>
+                            <ul
+                                data-test="consent-listens"
+                                className="text-small grid gap-2"
+                            >
+                                {plugin.listensFor.map((words) => (
+                                    <li
+                                        key={words}
+                                        className="flex items-baseline gap-2"
+                                    >
+                                        <CheckIcon
+                                            aria-hidden="true"
+                                            className="text-ok-ink size-4 shrink-0"
+                                        />
+                                        <span>{words}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -150,24 +267,35 @@ export function ConsentDialog({
                     )}
 
                     {plugin.requires.length > 0 && (
-                        <ul
-                            data-test="consent-requires"
-                            className="text-small grid gap-2"
+                        <section
+                            aria-labelledby="consent-needs"
+                            className="grid gap-2"
                         >
-                            {plugin.requires.map((line) => (
-                                <li
-                                    key={line.words}
-                                    className="flex flex-wrap items-baseline gap-2"
-                                >
-                                    <span>{line.words}</span>
-                                    {line.new && (
-                                        <span className="bg-accent text-on-accent text-caption rounded-sm px-2 font-semibold">
-                                            {__('NEW')}
-                                        </span>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
+                            <h3
+                                id="consent-needs"
+                                className="text-small font-semibold"
+                            >
+                                {__('It needs')}
+                            </h3>
+                            <ul
+                                data-test="consent-requires"
+                                className="text-small grid gap-2"
+                            >
+                                {plugin.requires.map((line) => (
+                                    <li
+                                        key={line.words}
+                                        className="flex flex-wrap items-baseline gap-2"
+                                    >
+                                        <CheckIcon
+                                            aria-hidden="true"
+                                            className="text-ok-ink size-4 shrink-0"
+                                        />
+                                        <span>{line.words}</span>
+                                        {line.new && <NewMark />}
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
                     )}
 
                     <DialogFooter>

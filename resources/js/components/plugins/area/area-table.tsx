@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { BulkBar } from '@/components/list/bulk-bar';
@@ -7,8 +7,10 @@ import { ConfirmItems } from '@/components/list/confirm-items';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
+import { numbersFor } from '@/components/list/numbered-pager';
 import { PluginCell } from '@/components/list/plugin-cell';
 import type { RowAction } from '@/components/list/row-actions';
+import { RowLine } from '@/components/list/row-line';
 import { RowMenu } from '@/components/list/row-menu';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,12 +42,18 @@ function actionLabel(action: string): string {
     }
 }
 
+/** Line actions stay under the title; the rest wait in the row's menu. */
+function onLine(action: string): boolean {
+    return action === 'edit' || action === 'duplicate';
+}
+
 /**
  * A table of a plugin's records (docs/plans/plugin-sockets-2.md, A9): its
  * search, filters, sortable columns and pages as core's lists draw them, a
- * tick box a row when the table has bulk actions, each row's actions in its
- * menu, and Add when the record has a form. A delete asks first. Every cell
- * is plain text.
+ * tick box a row when the table has bulk actions, Edit and Duplicate under
+ * the name, the rest in the row's menu. Add is never drawn here: the area's
+ * page header holds the one primary Add. A delete asks first. Every cell is
+ * plain text.
  */
 export function AreaTable({
     plugin,
@@ -98,30 +106,42 @@ export function AreaTable({
             },
         );
 
-    const menu = (row: Row): RowAction[] =>
-        block.rowActions
-            .filter((action) => !row.unavailable.includes(action))
-            .map((action): RowAction => {
-                if (action === 'edit') {
-                    return {
-                        id: action,
-                        owner: 'core',
-                        label: actionLabel(action),
-                        href: editHref(row),
-                    };
-                }
+    const asAction = (row: Row, action: string): RowAction => {
+        if (action === 'edit') {
+            return {
+                id: action,
+                owner: 'core',
+                label: actionLabel(action),
+                href: editHref(row),
+            };
+        }
 
-                return {
-                    id: action,
-                    owner: 'core',
-                    label: actionLabel(action),
-                    destructive: action === 'delete',
-                    onSelect: () =>
-                        action === 'delete'
-                            ? setDeleting([row.id])
-                            : act(action, [row.id]),
-                };
-            });
+        return {
+            id: action,
+            owner: 'core',
+            label: actionLabel(action),
+            destructive: action === 'delete',
+            onSelect: () =>
+                action === 'delete'
+                    ? setDeleting([row.id])
+                    : act(action, [row.id]),
+        };
+    };
+
+    const lineOf = (row: Row): RowAction[] =>
+        block.rowActions
+            .filter(
+                (action) => onLine(action) && !row.unavailable.includes(action),
+            )
+            .map((action) => asAction(row, action));
+
+    const menuOf = (row: Row): RowAction[] =>
+        block.rowActions
+            .filter(
+                (action) =>
+                    !onLine(action) && !row.unavailable.includes(action),
+            )
+            .map((action) => asAction(row, action));
 
     const toggle = (id: string, on: boolean) =>
         setSelected((current) => {
@@ -192,17 +212,34 @@ export function AreaTable({
                               : null,
                   }
                 : undefined,
-            cell: (row: Row) =>
-                index === 0 && block.rowActions.includes('edit') ? (
-                    <Link
-                        href={editHref(row)}
-                        className="text-ink font-medium underline-offset-2 hover:underline"
-                    >
-                        <PluginCell value={row.cells[column.id]} />
-                    </Link>
-                ) : (
-                    <PluginCell value={row.cells[column.id]} />
-                ),
+            cell: (row: Row) => {
+                const cell = <PluginCell value={row.cells[column.id]} />;
+                const line = lineOf(row);
+
+                if (index !== 0) {
+                    return cell;
+                }
+
+                return (
+                    <div className="grid gap-1">
+                        {block.rowActions.includes('edit') ? (
+                            <Link
+                                href={editHref(row)}
+                                className="text-ink text-body font-semibold underline-offset-2 hover:underline"
+                            >
+                                {cell}
+                            </Link>
+                        ) : (
+                            <span className="text-ink text-body font-semibold">
+                                {cell}
+                            </span>
+                        )}
+                        {line.length > 0 && (
+                            <RowLine title={titleOf(row)} items={line} />
+                        )}
+                    </div>
+                );
+            },
         })),
         {
             id: 'actions',
@@ -211,8 +248,8 @@ export function AreaTable({
             label: __('Actions'),
             width: 64,
             cell: (row: Row) =>
-                menu(row).length > 0 ? (
-                    <RowMenu items={menu(row)} title={titleOf(row)} />
+                menuOf(row).length > 0 ? (
+                    <RowMenu items={menuOf(row)} title={titleOf(row)} />
                 ) : null,
         },
     ];
@@ -226,11 +263,9 @@ export function AreaTable({
         pages === null ? data.rows.length >= block.perPage : pageNumber < pages;
     const filtered =
         (ask.search ?? '') !== '' || Object.keys(ask.filters ?? {}).length > 0;
-
-    const addHref = PluginAreaController.create.url({
-        code: plugin.code,
-        record: record.id,
-    });
+    const from =
+        data.rows.length === 0 ? 0 : (pageNumber - 1) * block.perPage + 1;
+    const to = from === 0 ? 0 : from + data.rows.length - 1;
 
     return (
         <section
@@ -269,7 +304,9 @@ export function AreaTable({
                         key={filter.id}
                         aria-label={filter.label}
                         className="w-44"
-                        emptyLabel={__('All')}
+                        emptyLabel={__('All :label', {
+                            label: filter.label.toLowerCase(),
+                        })}
                         options={filter.options}
                         value={ask.filters?.[filter.id] ?? ''}
                         onValueChange={(value) => {
@@ -285,12 +322,6 @@ export function AreaTable({
                         }}
                     />
                 ))}
-                <Button asChild variant="primary" className="ms-auto">
-                    <Link href={addHref} data-test="area-table-add">
-                        <Plus aria-hidden="true" />
-                        {__('Add :item', { item: record.label.toLowerCase() })}
-                    </Link>
-                </Button>
             </div>
 
             {selected.size > 0 && block.bulkActions.length > 0 && (
@@ -361,61 +392,97 @@ export function AreaTable({
                             title={__('No :plural yet.', {
                                 plural: record.plural.toLowerCase(),
                             })}
-                            action={
-                                <Button asChild variant="primary">
-                                    <Link href={addHref}>
-                                        {__('Add :item', {
-                                            item: record.label.toLowerCase(),
-                                        })}
-                                    </Link>
-                                </Button>
-                            }
                         />
                     )
                 }
                 footer={
-                    pageNumber > 1 || hasNext ? (
-                        <nav
-                            aria-label={__('Pages')}
-                            className="flex items-center justify-between gap-2 px-5 py-3"
-                        >
-                            <Button
-                                type="button"
-                                variant="neutral"
-                                size="sm"
-                                disabled={pageNumber <= 1}
-                                onClick={() =>
-                                    onAsk({
-                                        ...ask,
-                                        page: String(pageNumber - 1),
-                                    })
-                                }
-                            >
-                                {__('Previous')}
-                            </Button>
-                            <span className="text-small text-ink-3">
-                                {pages === null
+                    data.rows.length > 0 &&
+                    (pageNumber > 1 || hasNext || data.total !== null) ? (
+                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-4">
+                            <p className="text-small text-ink-3 tabular-nums">
+                                {data.total === null
                                     ? __('Page :page', { page: pageNumber })
-                                    : __('Page :page of :pages', {
-                                          page: pageNumber,
-                                          pages,
+                                    : __(':from to :to of :total', {
+                                          from,
+                                          to,
+                                          total: data.total,
                                       })}
-                            </span>
-                            <Button
-                                type="button"
-                                variant="neutral"
-                                size="sm"
-                                disabled={!hasNext}
-                                onClick={() =>
-                                    onAsk({
-                                        ...ask,
-                                        page: String(pageNumber + 1),
-                                    })
-                                }
-                            >
-                                {__('Next')}
-                            </Button>
-                        </nav>
+                            </p>
+                            {(pageNumber > 1 || hasNext) && (
+                                <nav
+                                    aria-label={__('Pages')}
+                                    className="flex items-center gap-1"
+                                >
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={pageNumber <= 1}
+                                        aria-label={__('Previous page')}
+                                        onClick={() =>
+                                            onAsk({
+                                                ...ask,
+                                                page: String(pageNumber - 1),
+                                            })
+                                        }
+                                    >
+                                        <ChevronLeft aria-hidden="true" />
+                                    </Button>
+                                    {pages !== null &&
+                                        numbersFor(pageNumber, pages).map(
+                                            (number, at) =>
+                                                number === null ? (
+                                                    <span
+                                                        key={`gap-${at}`}
+                                                        className="text-ink-3 px-1 tabular-nums"
+                                                        aria-hidden="true"
+                                                    >
+                                                        …
+                                                    </span>
+                                                ) : (
+                                                    <Button
+                                                        key={number}
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="aria-[current=page]:bg-surface-3 aria-[current=page]:text-ink min-w-8 tabular-nums"
+                                                        aria-current={
+                                                            number ===
+                                                            pageNumber
+                                                                ? 'page'
+                                                                : undefined
+                                                        }
+                                                        onClick={() =>
+                                                            onAsk({
+                                                                ...ask,
+                                                                page: String(
+                                                                    number,
+                                                                ),
+                                                            })
+                                                        }
+                                                    >
+                                                        {number}
+                                                    </Button>
+                                                ),
+                                        )}
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={!hasNext}
+                                        aria-label={__('Next page')}
+                                        onClick={() =>
+                                            onAsk({
+                                                ...ask,
+                                                page: String(pageNumber + 1),
+                                            })
+                                        }
+                                    >
+                                        <ChevronRight aria-hidden="true" />
+                                    </Button>
+                                </nav>
+                            )}
+                        </div>
                     ) : undefined
                 }
             />
@@ -460,4 +527,17 @@ export function AreaTable({
             />
         </section>
     );
+}
+
+/** The primary Add for a table block, for the area page header. */
+export function areaTableAdd(plugin: AreaPluginRef, block: AreaTableBlock) {
+    return {
+        href: PluginAreaController.create.url({
+            code: plugin.code,
+            record: block.record.id,
+        }),
+        label: __('Add :item', {
+            item: block.record.label.toLowerCase(),
+        }),
+    };
 }

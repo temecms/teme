@@ -218,8 +218,10 @@ it('lists the posts missing a version in French from the Language filter', funct
     clMultilingual($this->editor, $this->harbour);
 
     $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/posts');
-    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-language\"]') !== null");
-    $page->click('[data-test="filter-language"] [data-slot="combobox-trigger"]')
+    cmWaitUntil($page, "document.querySelector('[data-test=\"list-filters\"] [data-test=\"more-filters\"]') !== null");
+    $page->click('[data-test="list-filters"] [data-test="more-filters"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"more-filters\"] [data-test=\"filter-language\"]') !== null");
+    $page->click('[data-test="more-filters"] [data-test="filter-language"] [data-slot="combobox-trigger"]')
         ->click('[data-slot="combobox-item"] >> text="Missing a version in French"');
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('language') === 'missing:fr'");

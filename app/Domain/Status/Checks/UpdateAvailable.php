@@ -23,6 +23,16 @@ final readonly class UpdateAvailable implements StatusCheck
 {
     public function __construct(private UpdateState $state) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'update-available';
+    }
+
     public function ability(): string
     {
         return 'updates.manage';

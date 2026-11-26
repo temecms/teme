@@ -221,16 +221,14 @@ it('preloads at most 48 files on the media screen, the whole icon set staying on
         ->toBeGreaterThan(0)
         ->toBeLessThanOrEqual(48);
 
-    // The set's file is the largest of the chunk Rolldown names after resources/js/lib/lucide-icons.ts and the
-    // chunks it imports: the set itself unless a code-splitting group moved it out. It must never be preloaded.
+    // The set's file is the chunk Rolldown names after resources/js/lib/lucide-icons.ts. Its imports are left out:
+    // the design system's shared `ui` chunk is larger than the set and is preloaded on every page.
     $manifest = collect(json_decode((string) file_get_contents(public_path('build/manifest.json')), true));
     $entry = $manifest->first(fn (array $chunk): bool => ($chunk['name'] ?? null) === 'lucide-icons');
 
     expect($entry)->not->toBeNull();
 
-    $iconSet = collect([$entry, ...array_map(fn (string $key): array => $manifest[$key], $entry['imports'] ?? [])])
-        ->sortByDesc(fn (array $chunk): int => (int) filesize(public_path('build/'.$chunk['file'])))
-        ->first()['file'];
+    $iconSet = $entry['file'];
 
     $preloaded = $page->script('() => [...document.querySelectorAll(\'link[rel="modulepreload"]\')].map((link) => link.href)');
 

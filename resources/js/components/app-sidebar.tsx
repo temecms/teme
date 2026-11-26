@@ -1,7 +1,8 @@
 import { usePage } from '@inertiajs/react';
 import {
-    ExternalLink,
-    PanelLeftClose,
+    ChevronLeft,
+    ChevronRight,
+    Globe,
     PanelLeftOpen,
     Search,
     SlidersHorizontal,
@@ -24,10 +25,9 @@ import {
 import { __ } from '@/lib/i18n';
 import { toUrl } from '@/lib/utils';
 import { home } from '@/routes';
-import type { AdminNavChild } from '@/types';
 
 /** The foot's rows: quiet until hovered. */
-const footRow = 'text-ink-3 hover:text-ink-2';
+const footRow = 'text-ink-2 hover:text-ink';
 
 /** Whether the keyboard's command key is ⌘, for the shortcut's hint. */
 function isMac(): boolean {
@@ -37,7 +37,7 @@ function isMac(): boolean {
     );
 }
 
-/** Folds the full menu to the rail and back on wide screens: the same toggle as the keyboard shortcut. */
+/** Folds the full menu to the rail and back on wide screens. */
 function FoldMenu({ className }: { className: string }) {
     const { state, toggleSidebar } = useSidebar();
     const folded = state === 'collapsed';
@@ -51,7 +51,11 @@ function FoldMenu({ className }: { className: string }) {
             aria-pressed={folded}
             onClick={toggleSidebar}
         >
-            {folded ? <PanelLeftOpen /> : <PanelLeftClose />}
+            {folded ? (
+                <ChevronRight className="text-ink-2" />
+            ) : (
+                <ChevronLeft className="text-ink-2" />
+            )}
             <span>{__('Fold the menu')}</span>
         </SidebarMenuButton>
     );
@@ -70,13 +74,13 @@ function OpenMenu({ className }: { className: string }) {
             aria-expanded={overlayOpen}
             onClick={() => setOverlayOpen(!overlayOpen)}
         >
-            <PanelLeftOpen />
+            <PanelLeftOpen className="text-ink-2" />
             <span>{__('Open the menu')}</span>
         </SidebarMenuButton>
     );
 }
 
-/** Search or jump to…: opens the command palette, not a second search. */
+/** Search or jump to: opens the command palette, not a second search. */
 function SearchButton() {
     return (
         <SidebarMenu className="px-3 pb-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
@@ -85,14 +89,14 @@ function SearchButton() {
                     type="button"
                     data-test="palette-button"
                     aria-keyshortcuts="Control+K Meta+K"
-                    tooltip={{ children: __('Search or jump to…') }}
+                    tooltip={{ children: __('Search or jump to') }}
                     onClick={() =>
                         window.dispatchEvent(new Event('teme:palette'))
                     }
                     className="bg-surface-3 text-ink-3 hover:bg-surface-4 font-normal"
                 >
                     <Search />
-                    <span className="flex-1">{__('Search or jump to…')}</span>
+                    <span className="flex-1">{__('Search or jump to')}</span>
                     <Kbd className="group-data-[collapsible=icon]:hidden">
                         {isMac() ? __('⌘K') : __('Ctrl K')}
                     </Kbd>
@@ -105,21 +109,9 @@ function SearchButton() {
 export function AppSidebar() {
     // The menu comes from the server's registry, already filtered to what
     // this person may open and sorted (NavigationServiceProvider).
-    const { nav, navPinned, preferences } = usePage().props;
+    const { nav } = usePage().props;
     const { width } = useSidebar();
     const [personalising, setPersonalising] = useState(false);
-    // A pin may name a child entry, so both levels are looked up.
-    const entries = new Map<string, AdminNavChild>(
-        nav.flatMap((entry) => [
-            [entry.key, entry] as const,
-            ...entry.children.map((child) => [child.key, child] as const),
-        ]),
-    );
-    const pinned = navPinned.flatMap((key) => {
-        const entry = entries.get(key);
-
-        return entry === undefined ? [] : [entry];
-    });
 
     return (
         <Sidebar collapsible="icon">
@@ -129,7 +121,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={nav} pinned={pinned} />
+                <NavMain items={nav} />
             </SidebarContent>
 
             <SidebarFooter className="px-3 py-2">
@@ -146,7 +138,7 @@ export function AppSidebar() {
                                 rel="noopener noreferrer"
                                 data-test="view-site"
                             >
-                                <ExternalLink />
+                                <Globe className="text-ink-2" />
                                 <span>
                                     View site
                                     <span className="sr-only">
@@ -157,16 +149,24 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton
-                            type="button"
-                            className={footRow}
-                            tooltip={{ children: __('Customise menu') }}
-                            data-test="personalise-menu"
-                            onClick={() => setPersonalising(true)}
-                        >
-                            <SlidersHorizontal />
-                            <span>{__('Customise menu')}</span>
-                        </SidebarMenuButton>
+                        <PersonaliseMenuDialog
+                            nav={nav}
+                            open={personalising}
+                            onOpenChange={setPersonalising}
+                            trigger={
+                                <SidebarMenuButton
+                                    type="button"
+                                    className={footRow}
+                                    tooltip={{
+                                        children: __('Customise menu'),
+                                    }}
+                                    data-test="personalise-menu"
+                                >
+                                    <SlidersHorizontal />
+                                    <span>{__('Customise menu')}</span>
+                                </SidebarMenuButton>
+                            }
+                        />
                     </SidebarMenuItem>
                     {width === 'wide' && (
                         <SidebarMenuItem>
@@ -179,15 +179,6 @@ export function AppSidebar() {
                         </SidebarMenuItem>
                     )}
                 </SidebarMenu>
-                {personalising && (
-                    <PersonaliseMenuDialog
-                        nav={nav}
-                        pinned={navPinned}
-                        storedOrder={preferences['nav.order'] ?? []}
-                        open
-                        onOpenChange={setPersonalising}
-                    />
-                )}
             </SidebarFooter>
         </Sidebar>
     );

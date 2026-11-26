@@ -1,43 +1,31 @@
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { __n } from '@/lib/i18n';
+import { __ } from '@/lib/i18n';
 import { index as regionsIndex } from '@/routes/regions';
-import type { RegionState, RegionsIndexPage } from '@/types';
-
-/** A region's state in Content › Regions' words, as its screen says them. */
-const STATES: Record<RegionState, string> = {
-    empty: 'Empty',
-    draft: 'Draft',
-    published: 'Published',
-    changed: 'Published, with unpublished changes',
-};
+import type { RegionsIndexPage } from '@/types';
 
 /**
- * A theme's regions on Site › Themes, as an overview (I-395): each region
- * with the cards it takes, the most blocks it holds and its state, linked to
- * where it is edited; then the regions it leaves unplaced, never hidden.
- * Nothing is edited here.
+ * A theme's regions on Site › Themes as chips and a link to Content ›
+ * Regions (issue 714): nothing is edited here, and the long list lives on
+ * Regions itself.
  */
 export function ThemeRegions({
     regions,
     level,
     intro,
-    unplacedLine,
     canEdit,
     idPrefix,
 }: {
     regions: RegionsIndexPage;
     /** 2 on the page, 3 inside the preview panel. */
     level: 2 | 3;
-    /** A line under the heading, as the preview panel's. */
+    /** A line under the heading. */
     intro?: string;
-    unplacedLine: string;
-    /** Whether each region links to where it is edited: never in a preview. */
+    /** Whether Open Regions is offered. */
     canEdit: boolean;
     idPrefix: string;
 }) {
     const Heading = level === 2 ? 'h2' : 'h3';
-    const Part = level === 2 ? 'h3' : 'h4';
     const theme = regions.theme;
     const count = regions.regions.length;
 
@@ -45,14 +33,16 @@ export function ThemeRegions({
         <section
             aria-labelledby={`${idPrefix}-heading`}
             data-test={idPrefix}
-            className="grid gap-4"
+            className="grid gap-3"
         >
             <div className="grid gap-1">
                 <Heading
                     id={`${idPrefix}-heading`}
                     className="text-lead font-semibold"
                 >
-                    {theme === null ? 'Regions' : `Regions in ${theme.name}`}
+                    {theme === null
+                        ? __('Regions')
+                        : __('Regions in :name', { name: theme.name })}
                 </Heading>
                 {intro !== undefined && (
                     <p className="text-ink-2 text-small">{intro}</p>
@@ -61,123 +51,46 @@ export function ThemeRegions({
 
             {theme === null ? (
                 <p className="text-ink-2 text-small">
-                    No theme is in use, so no region is drawn.
+                    {__('No theme is in use, so no region is drawn.')}
+                </p>
+            ) : count === 0 ? (
+                <p className="text-ink-2 text-small" data-test="theme-region">
+                    {__(':name declares no regions.', { name: theme.name })}
                 </p>
             ) : (
-                <div className="grid gap-2">
-                    <div className="grid gap-1">
-                        <Part className="text-small font-semibold">
-                            {count === 1 ? '1 region' : `${count} regions`}
-                        </Part>
-                        <p className="text-ink-2 text-small">
-                            The places {theme.name} puts the site’s own content,
-                            such as a box after each article.
-                        </p>
-                    </div>
-                    {count === 0 ? (
-                        <p className="text-ink-2 text-small">
-                            {theme.name} declares no regions.
-                        </p>
-                    ) : (
-                        <ul className="border-line divide-line text-small divide-y rounded-md border">
-                            {regions.regions.map((region) => (
-                                <li
-                                    key={region.key}
-                                    data-test="theme-region"
-                                    className="flex flex-wrap items-center gap-3 px-3 py-2"
-                                >
-                                    <div className="grid min-w-0 flex-1 gap-1">
-                                        <span className="font-semibold">
-                                            {region.label}
-                                        </span>
-                                        <span className="text-ink-2 text-caption">
-                                            {region.cardLabels.length === 0
-                                                ? 'Text only'
-                                                : region.cardLabels.join(
-                                                      ', ',
-                                                  )}{' '}
-                                            · {region.limit}
-                                        </span>
-                                    </div>
-                                    <span
-                                        className={
-                                            region.state === 'empty'
-                                                ? 'text-ink-2'
-                                                : undefined
-                                        }
-                                    >
-                                        {STATES[region.state]}
-                                    </span>
-                                    {canEdit && (
-                                        <Button
-                                            variant="neutral"
-                                            size="sm"
-                                            asChild
-                                        >
-                                            <Link
-                                                href={
-                                                    regionsIndex({
-                                                        query: {
-                                                            region: region.key,
-                                                        },
-                                                    }).url
-                                                }
-                                            >
-                                                Edit in Regions
-                                                <span className="sr-only">
-                                                    : {region.label}
-                                                </span>
-                                            </Link>
-                                        </Button>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            )}
-
-            <div className="grid gap-2" data-test={`${idPrefix}-unplaced`}>
-                <div className="grid gap-1">
-                    <Part className="text-small font-semibold">
-                        From other themes
-                        {regions.others.length > 0 && (
-                            <span className="text-ink-2 tabular-nums">
-                                {' '}
-                                {regions.others.length}
-                            </span>
-                        )}
-                    </Part>
-                    <p className="text-ink-2 text-small">{unplacedLine}</p>
-                </div>
-                {regions.others.length === 0 ? (
-                    <p className="text-ink-2 text-small">
-                        Nothing from other themes.
-                    </p>
-                ) : (
-                    <ul className="border-line divide-line text-small divide-y rounded-md border">
-                        {regions.others.map((row) => (
-                            <li
-                                key={row.slug}
-                                data-test="theme-unplaced-row"
-                                className="grid gap-1 px-3 py-2"
-                            >
-                                <span className="font-semibold">
-                                    {row.label}
-                                </span>
-                                <span className="text-ink-2">
-                                    {row.themeName === null
-                                        ? 'Theme no longer installed'
-                                        : `From ${row.themeName}`}{' '}
-                                    · {STATES[row.state]}
-                                    {row.themeCards > 0 &&
-                                        ` · ${__n(':count theme card kept|:count theme cards kept', row.themeCards)}`}
+                <div className="flex flex-wrap items-center gap-2">
+                    <ul className="flex flex-wrap gap-2">
+                        {regions.regions.map((region) => (
+                            <li key={region.key} data-test="theme-region">
+                                <span className="bg-surface-3 text-ink-2 text-small inline-flex h-6 max-w-33 items-center truncate rounded-sm px-2">
+                                    {region.label}
                                 </span>
                             </li>
                         ))}
                     </ul>
-                )}
-            </div>
+                    {canEdit && (
+                        <Button variant="neutral" size="sm" asChild>
+                            <Link
+                                href={regionsIndex().url}
+                                data-test="theme-open-regions"
+                            >
+                                {__('Open Regions')}
+                            </Link>
+                        </Button>
+                    )}
+                </div>
+            )}
+
+            {regions.others.length > 0 && (
+                <p
+                    className="text-ink-2 text-small"
+                    data-test={`${idPrefix}-unplaced`}
+                >
+                    {__(
+                        'Content kept from other themes stays in Content › Regions.',
+                    )}
+                </p>
+            )}
         </section>
     );
 }

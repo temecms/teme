@@ -94,16 +94,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 className={LINK}
             >
                 <span className="min-w-0 flex-1 text-start wrap-break-word">
-                    {item.ownPage
-                        ? __(':plugin: on its own page', {
-                              plugin: item.label,
-                          })
-                        : item.label}
+                    {item.label}
                 </span>
                 {item.plugin && (
                     <span
                         title={__('A plugin’s settings')}
-                        className="text-ink-3"
+                        className="text-ink-3 inline-flex shrink-0 items-center"
                     >
                         <PlugIcon aria-hidden="true" className="size-3.5" />
                         <span className="sr-only">{__('Plugin')}</span>

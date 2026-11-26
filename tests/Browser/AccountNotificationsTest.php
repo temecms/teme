@@ -56,11 +56,32 @@ it('saves an unticked email and keeps it unticked after a reload', function (): 
     $page->assertScript("document.getElementById('pref-notifications.comments.waiting').getAttribute('data-state')", 'unchecked');
 });
 
-it('says there are no emails to choose while comments are off', function (): void {
+it('hides the Email panel while comments are off and no plugin notices are offered', function (): void {
     cmSettings(['comments' => 'off'], 'modules');
 
     $page = cmSignIn($this->author)->navigate('/admin/account/notifications');
-    cmWaitUntil($page, "document.body.textContent.includes('There are no emails to choose here.')");
+    cmWaitUntil($page, "document.body.textContent.includes('Always sent')");
 
-    $page->assertSee('There are no emails to choose here.');
+    $page->assertDontSee('There are no emails to choose here.')
+        ->assertScript(
+            "document.querySelector('[data-test=\"always-sent\"]') !== null && ![...document.querySelectorAll('h2,h3')].some((heading) => heading.textContent.trim() === 'Email')",
+            true,
+        );
+});
+
+it('shows Backup alerts under Always sent for an administrator and not for an editor (issue 755)', function (): void {
+    $admin = User::factory()->create(['name' => 'Ned Admin'])->assignRole('administrator');
+    $editor = User::factory()->create(['name' => 'Ed Editor'])->assignRole('editor');
+
+    $this->actingAs($admin)->get(route('notifications.edit'))->assertOk();
+
+    cmSignIn($admin)
+        ->navigate('/admin/account/notifications')
+        ->assertSeeIn('[data-test="always-sent"]', 'Backup alerts');
+
+    $this->actingAs($editor)->get(route('notifications.edit'))->assertOk();
+
+    cmSignIn($editor)
+        ->navigate('/admin/account/notifications')
+        ->assertDontSee('Backup alerts');
 });

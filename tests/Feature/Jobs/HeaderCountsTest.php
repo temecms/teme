@@ -120,5 +120,5 @@ it('leaves the counts out of a partial reload that doesn’t ask for them', func
     $this->actingAs($this->author)->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('headerCounts.running', 1)
-            ->reloadOnly('statusBanner', fn (Assert $reload) => $reload->missing('headerCounts')));
+            ->reloadOnly('siteStatus', fn (Assert $reload) => $reload->missing('headerCounts')));
 });

@@ -133,15 +133,15 @@ it('carries no link on the banner while Tools › Updates itself is open, and ke
 
     $this->actingAs($this->admin)->get('/admin/tools/updates')->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('statusBanner.level', 'warning')
-            ->where('statusBanner.message', 'Teme 0.1.0-rc.15 is available, with security fixes. This site runs 0.1.0-rc.13.')
-            ->where('statusBanner.actionLabel', null)
-            ->where('statusBanner.actionUrl', null));
+            ->where('siteStatus.0.level', 'warning')
+            ->where('siteStatus.0.message', 'Teme 0.1.0-rc.15 is available, with security fixes. This site runs 0.1.0-rc.13.')
+            ->where('siteStatus.0.actionLabel', null)
+            ->where('siteStatus.0.actionUrl', null));
 
     $this->actingAs($this->admin)->get('/admin/tools')->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('statusBanner.actionLabel', 'See the update')
-            ->where('statusBanner.actionUrl', route('tools.updates.index')));
+            ->where('siteStatus.0.actionLabel', 'See the update')
+            ->where('siteStatus.0.actionUrl', route('tools.updates.index')));
 });
 
 it('gives the screen what it needs to say an older release carries security fixes', function (): void {

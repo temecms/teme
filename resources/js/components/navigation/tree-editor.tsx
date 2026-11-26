@@ -23,6 +23,11 @@ import type { KeyboardEvent, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -375,7 +380,7 @@ function DragRow({
         <div
             ref={row}
             className={cn(
-                'bg-surface relative flex flex-wrap items-center gap-2 rounded-md border px-2 py-1',
+                'bg-surface relative flex flex-wrap items-center gap-2 rounded-md px-2 py-1',
                 dragging && 'opacity-50',
             )}
             onKeyDown={onKeyDown}
@@ -741,7 +746,7 @@ export function TreeEditor({
                                 }
                             }}
                         >
-                            <StatusPill tone="neutral">
+                            <StatusPill tone="neutral" flat>
                                 {kindOf(item)}
                             </StatusPill>
                             {item.kind === 'url' && (
@@ -753,18 +758,42 @@ export function TreeEditor({
                                 <StatusPill tone="warn">{warning}</StatusPill>
                             )}
                             {!heading && (
-                                <label className="text-small flex items-center gap-2">
-                                    <Checkbox
-                                        data-control="new-tab"
-                                        checked={item.opensNewTab}
-                                        onCheckedChange={(checked) =>
-                                            update(path, {
-                                                opensNewTab: checked === true,
-                                            })
-                                        }
-                                    />
-                                    {__('Open in new tab')}
-                                </label>
+                                <Collapsible className="basis-full sm:basis-auto">
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="xs"
+                                            data-control="details"
+                                            className="group"
+                                            aria-label={__(
+                                                'Details for :name',
+                                                { name },
+                                            )}
+                                        >
+                                            {__('Details')}
+                                            <ChevronRight
+                                                aria-hidden
+                                                className="size-3.5 transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none"
+                                            />
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="pt-1">
+                                        <label className="text-small flex items-center gap-2">
+                                            <Checkbox
+                                                data-control="new-tab"
+                                                checked={item.opensNewTab}
+                                                onCheckedChange={(checked) =>
+                                                    update(path, {
+                                                        opensNewTab:
+                                                            checked === true,
+                                                    })
+                                                }
+                                            />
+                                            {__('Open in new tab')}
+                                        </label>
+                                    </CollapsibleContent>
+                                </Collapsible>
                             )}
                             <div
                                 role="group"

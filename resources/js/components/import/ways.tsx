@@ -30,6 +30,7 @@ export function ImportWays({
                         'Needs the Teme Companion plugin on the WordPress site.',
                     )}
                     testId="import-way-connect"
+                    primary
                     items={[
                         __(
                             'Everything: posts, pages, media, people with their roles and passwords, comments, menus in their places',
@@ -72,6 +73,7 @@ function WayCard({
     onOpen,
     openLabel,
     testId,
+    primary = false,
 }: {
     title: string;
     items: string[];
@@ -80,13 +82,15 @@ function WayCard({
     onOpen: () => void;
     openLabel: string;
     testId: string;
+    /** The preferred way in: Connect stays primary; Upload is secondary. */
+    primary?: boolean;
 }) {
     return (
         <div
             data-test={testId}
             className={cn(
                 'border-edge bg-surface grid gap-4 rounded-md border p-5',
-                open && 'border-accent ring-accent ring-2 ring-inset',
+                open && 'border-accent',
             )}
         >
             <div className="grid gap-3">
@@ -101,7 +105,7 @@ function WayCard({
             <div>
                 <Button
                     type="button"
-                    variant="default"
+                    variant={primary ? 'default' : 'secondary'}
                     onClick={onOpen}
                     data-test={`${testId}-button`}
                 >

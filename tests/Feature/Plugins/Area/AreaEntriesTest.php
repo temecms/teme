@@ -126,9 +126,11 @@ it('shows neither the entry nor the card to a person without the area’s permis
         ->and(($this->cards)($author))->toBe([]);
 });
 
-it('puts the area’s own icon on its menu entry and names the plugin for the plug mark', function (): void {
+it('puts the area’s own icon on its menu entry in Content, with no second plug mark', function (): void {
     $manifest = PluginFixtures::manifest('placard');
     $manifest['contributes']['area']['icon'] = 'send';
+    // An area the plugin places in Content.
+    $manifest['contributes']['area']['menu'] = 'content';
     $folder = PluginFixtures::copy('placard', [
         'name' => 'tests/placard-icon',
         'code' => 'placardicon',
@@ -153,6 +155,7 @@ it('puts the area’s own icon on its menu entry and names the plugin for the pl
 
     expect($entry)->not->toBeNull()
         ->and($entry['icon'])->toBe('send')
-        ->and($entry['plugin'])->toBe('Placard Icon')
-        ->and($entry['label'])->toBe('Ads');
+        ->and($entry['plugin'] ?? null)->toBe('Placard Icon')
+        ->and($entry['label'])->toBe('Ads')
+        ->and($entry['section'])->toBe('content');
 });

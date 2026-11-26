@@ -78,6 +78,61 @@ afterEach(function (): void {
     PluginFixtures::forget();
 });
 
+it('crumbs the area root as Ads alone, keeps the menu current on records and Settings, and names the plugin for screen readers', function (): void {
+    $id = ($this->id)('Ad 02');
+    $admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
+    $this->actingAs($admin)->get('/admin/plugin/placard')->assertOk();
+    $this->actingAs($admin)->get('/admin/plugin/placard/settings')->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-figures"]\') !== null');
+    shellSettled($page, '[data-test="crumbs"]');
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const crumbs = [...document.querySelectorAll('[data-test="crumbs"] li')]
+                .map((li) => (li.textContent ?? '').replace(/\s+/g, ' ').trim())
+                .filter((text) => text !== '/' && text !== '');
+            return crumbs.length === 1 && crumbs[0].includes('Ads');
+        }
+        JS)
+        ->assertScript(<<<'JS'
+            () => {
+                const entry = document.querySelector('[data-test="nav-plugin.placard"]');
+                const sr = entry?.querySelector('.sr-only')?.textContent ?? '';
+                return entry !== null && sr.includes('Placard');
+            }
+            JS);
+
+    $page = cmNavigate($page, "/admin/plugin/placard/records/ad/{$id}");
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="record-form"]\') !== null');
+    shellSettled($page, '[data-test="crumbs"]');
+    $page->assertScript(<<<'JS'
+        () => {
+            const text = document.querySelector('[data-test="crumbs"]')?.innerText ?? '';
+            return text.includes('Ads') && text.includes('Ad 02');
+        }
+        JS)
+        ->assertScript(<<<'JS'
+            () => [...document.querySelectorAll('[data-test="nav-plugin.placard"]')]
+                .some((el) => el.getAttribute('aria-current') === 'page')
+            JS);
+
+    // Settings needs plugins.manage or settings.view; an administrator holds both.
+    $settings = cmNavigate(cmSignIn($admin)->resize(1440, 900), '/admin/plugin/placard/settings');
+    cmWaitUntil($settings, "location.pathname === '/admin/plugin/placard/settings'");
+    shellSettled($settings, '[data-test="crumbs"]');
+    $settings->assertScript(<<<'JS'
+        () => {
+            const text = document.querySelector('[data-test="crumbs"]')?.innerText ?? '';
+            const current = [...document.querySelectorAll('[data-test="nav-plugin.placard"]')]
+                .some((el) => el.getAttribute('aria-current') === 'page');
+            return text.includes('Ads') && text.includes('Settings') && current;
+        }
+        JS)
+        ->assertNoAccessibilityIssues(3);
+});
+
 it('opens the area from its menu entry, switches pages in place, and draws each block', function (int $width): void {
     $page = cmNavigate(cmSignIn($this->editor)->resize($width, 900), '/admin');
 
@@ -111,16 +166,16 @@ it('opens the area from its menu entry, switches pages in place, and draws each 
     expect($page->script('() => location.pathname'))->toBe('/admin/plugin/placard/ads')
         ->and(($this->sideways)($page))->toBe(0);
     cmNoJavaScriptErrors($page);
-})->with(['wide' => 1280, 'phone' => 375]);
+})->with(['wide' => 1440, 'phone' => 375]);
 
 it('searches, filters, sorts and pages the table, and acts on rows', function (): void {
-    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/plugin/placard/ads');
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
     cmWaitUntil($page, "{$this->rows} === 20");
 
     // Paging: the second page holds the last five.
-    $page->click('button:has-text("Next")');
+    $page->click('[data-test="area-table"] button[aria-label="Next page"]');
     cmWaitUntil($page, "{$this->rows} === 5");
-    $page->click('button:has-text("Previous")');
+    $page->click('[data-test="area-table"] button[aria-label="Previous page"]');
     cmWaitUntil($page, "{$this->rows} === 20");
 
     // Sorted by impressions, most first.
@@ -172,7 +227,7 @@ it('adds an ad through its form: a condition shows a field, a repeater adds, mov
     $page->type('#field-values-versions-0-label', 'Wide');
     $page->click("{$repeater} [data-test=\"repeater-add\"]");
     $page->type('#field-values-versions-1-label', 'Narrow');
-    $page->click("{$repeater} [data-test=\"repeater-item\"] >> nth=1 >> button[aria-label\$=\" up\"]");
+    $page->click("{$repeater} [data-test=\"repeater-item\"] >> nth=1 >> button[aria-label^=\"Move up\"]");
     cmWaitUntil($page, 'document.querySelector(\'[data-field="versions"] [data-test="repeater-title"]\')?.textContent.includes("Narrow")');
 
     // Collapsed, an item shows only its title; removed, it's gone.
@@ -191,12 +246,12 @@ it('adds an ad through its form: a condition shows a field, a repeater adds, mov
         ->and(array_column($data['versions'] ?? [], 'label'))->toBe(['Wide'])
         ->and(($this->sideways)($page))->toBe(0);
     cmNoJavaScriptErrors($page);
-})->with(['wide' => 1280, 'phone' => 375]);
+})->with(['wide' => 1440, 'phone' => 375]);
 
 it('asks before it deletes an ad from its form, then leaves for the table', function (): void {
     $id = ($this->id)('Ad 01');
 
-    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), "/admin/plugin/placard/records/ad/{$id}");
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), "/admin/plugin/placard/records/ad/{$id}");
     cmWaitUntil($page, 'document.querySelector(\'[data-test="record-delete"]\') !== null');
     $page->click('[data-test="record-delete"]');
     shellSettled($page, '[data-test="record-delete-confirm"]');
@@ -216,7 +271,7 @@ it('shows under a code field which scripts wait, and lets a person who may chang
     $form = '/admin/plugin/placard/records/ad/'.($this->id)('Ad 01');
     $waiting = 'document.querySelector(\'[data-test="waiting-script"]\') !== null';
 
-    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $form);
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), $form);
     cmWaitUntil($page, $waiting);
     $page->assertSee('Waiting for approval')
         ->assertScript('document.querySelector(\'[data-test="approve-script"]\') === null', true);
@@ -238,25 +293,118 @@ it('shows under a code field which scripts wait, and lets a person who may chang
     cmNoJavaScriptErrors($page);
 });
 
+it('puts Add in the header, Edit and Duplicate under the name, and a pager that reaches page 2', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, "{$this->rows} === 20");
+
+    $page->assertPresent('[data-test="area-table-add"]')
+        ->assertScript(
+            'document.querySelector(\'[data-test="area-table"] tbody [data-action="edit"]\') !== null && document.querySelector(\'[data-test="area-table"] tbody [data-action="duplicate"]\') !== null',
+            true,
+        )
+        ->assertScript(
+            '[...document.querySelectorAll(\'[data-test="area-table"] nav[aria-label="Pages"] button\')].some((button) => button.textContent.trim() === "2")',
+            true,
+        );
+});
+
+it('toggles the chart between legend and table', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-chart-legend"]\') !== null');
+
+    $page->assertPresent('[data-test="area-chart-legend"]')
+        ->assertSeeIn('[data-test="area-chart-table-toggle"]', 'Show as table')
+        ->click('[data-test="area-chart-table-toggle"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-chart-table-toggle"]\')?.textContent.includes("Show as chart")');
+    $page->assertNotPresent('[data-test="area-chart-legend"]')
+        ->assertPresent('[data-test="area-chart-table"]');
+});
+
+it('draws a failed block with Try again at 1440, and the block returns when it answers', function (): void {
+    PlacardArea::$on['figures'] = fn () => throw new RuntimeException('Placard did not answer.');
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-block-failed"]\') !== null');
+
+    $page->assertSeeIn('[data-test="area-block-failed"]', 'Try again')
+        ->assertScript('document.querySelector(\'[data-test="area-block-failed"] [role="alert"]\') !== null', true)
+        ->assertPresent('[data-test="area-chart"]');
+    expect(cmAxeViolations($page))->toBe([]);
+
+    unset(PlacardArea::$on['figures']);
+    $page->click('[data-test="area-block-failed"] button:has-text("Try again")');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-figures"]\') !== null');
+    $page->assertNotPresent('[data-test="area-block-failed"]');
+    cmNoJavaScriptErrors($page);
+});
+
+it('keeps the chart in the order the plugin gave and draws no dashed series, at 1440', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-chart-legend"]\') !== null');
+
+    $page->assertScript('[...document.querySelectorAll(\'[data-test="area-chart-table"] [role="rowheader"]\')].map((one) => one.textContent).join("|")', '1 Nov|2 Nov|3 Nov')
+        ->assertScript('document.querySelectorAll(\'[data-test="area-chart-legend"] .border-dashed\').length', 0)
+        ->assertScript('document.querySelectorAll(\'[data-test="area-chart"] [stroke-dasharray]\').length', 0);
+
+    // The table is only read aloud until Show as table; then it is on screen.
+    $page->assertScript('document.querySelector(\'[data-test="area-chart-table"]\').getBoundingClientRect().height <= 1', true);
+    $page->click('[data-test="area-chart-table-toggle"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-chart-table"]\')?.getBoundingClientRect().height > 40');
+    expect(cmAxeViolations($page))->toBe([]);
+});
+
+it('names a repeater\'s buttons from their visible words and its group by a legend', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, "{$this->rows} === 20");
+    $page->click('[data-test="area-table-add"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="record-form"]\') !== null');
+    $page->click('[data-field="versions"] [data-test="repeater-add"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-field="versions"] [data-test="repeater-item"]\') !== null');
+
+    $page->assertScript('document.querySelector(\'[data-field="versions"] fieldset > legend\')?.textContent.length > 0', true)
+        ->assertScript('document.querySelector(\'[data-field="versions"] label[for="field-values-versions"]\') === null', true)
+        ->assertScript(
+            '[...document.querySelectorAll(\'[data-field="versions"] [data-test="repeater-item"] button\')].filter((button) => ["Move up", "Move down", "Remove"].includes(button.textContent.trim())).every((button) => button.getAttribute("aria-label").startsWith(button.textContent.trim()))',
+            true,
+        );
+    expect(cmAxeViolations($page))->toBe([]);
+});
+
+it('shows Move up, Move down and Remove as words on a repeater, with the count line', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, "{$this->rows} === 20");
+    $page->click('[data-test="area-table-add"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="record-form"]\') !== null');
+
+    $repeater = '[data-field="versions"]';
+    $page->click("{$repeater} [data-test=\"repeater-add\"]");
+    cmWaitUntil($page, "document.querySelector('{$repeater} [data-test=\"repeater-item\"]') !== null");
+
+    $page->assertSeeIn($repeater, 'Move up')
+        ->assertSeeIn($repeater, 'Move down')
+        ->assertSeeIn($repeater, 'Remove')
+        ->assertSeeIn('[data-test="repeater-count"]', 'of at most');
+});
+
 it('passes axe on the overview, the table and the form, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
     $id = ($this->id)('Ad 02');
 
-    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), '/admin/plugin/placard');
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="area-chart"]\') !== null && document.querySelector(\'[data-test="area-figures"]\') !== null');
     expect(cmAxeViolations($page))->toBe([])
         ->and(cmSmallTargets($page)['small'])->toBe([]);
-    $page->screenshot(true, "plugin-area-overview-{$scheme}-1280");
+    $page->screenshot(true, "plugin-area-overview-{$scheme}-1440");
 
     $page = cmNavigate($page, '/admin/plugin/placard/ads');
     cmWaitUntil($page, "{$this->rows} === 20");
     expect(cmAxeViolations($page))->toBe([]);
-    $page->screenshot(true, "plugin-area-table-{$scheme}-1280");
+    $page->screenshot(true, "plugin-area-table-{$scheme}-1440");
 
     $page = cmNavigate($page, "/admin/plugin/placard/records/ad/{$id}");
     cmWaitUntil($page, 'document.querySelector(\'[data-test="record-form"]\') !== null');
     expect(cmAxeViolations($page))->toBe([]);
-    $page->screenshot(true, "plugin-area-form-{$scheme}-1280");
+    $page->screenshot(true, "plugin-area-form-{$scheme}-1440");
 
     $page->resize(375, 812);
     $page = cmNavigate($page, '/admin/plugin/placard/ads');

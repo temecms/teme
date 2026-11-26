@@ -131,15 +131,15 @@ it('counts each term\'s items of each listed type that uses it, leaving out the 
         ->and($tags['rows'][0]['counts'])->toBe(['post' => 1]);
 });
 
-it('tabs between the taxonomies filed under one type, each with how many terms it has, and sends a flat one no tree', function (): void {
+it('sends a flat taxonomy no tree, and a nesting one its whole tree, without taxonomy tabs', function (): void {
     taxonomyTerm('category', 'Transport');
     taxonomyTerm('tag', 'Harbour');
     taxonomyTerm('tag', 'Ferries');
 
     $tags = ($this->props)('tags');
 
-    expect($tags['tabs'][0])->toBe(['segment' => 'categories', 'label' => 'Categories', 'count' => 1])
-        ->and($tags['tabs'][1])->toBe(['segment' => 'tags', 'label' => 'Tags', 'count' => 2])
+    expect($tags)->not->toHaveKey('tabs')
+        ->and($tags)->not->toHaveKey('setup')
         ->and($tags['declared'])->toBe(['key' => 'tag', 'singular' => 'Tag', 'plural' => 'Tags', 'hierarchical' => false])
         ->and($tags['tree'])->toBe([])
         ->and(($this->props)('categories')['tree'])->toHaveCount(1);

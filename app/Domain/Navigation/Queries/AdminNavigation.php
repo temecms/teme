@@ -72,8 +72,9 @@ final readonly class AdminNavigation
         $visible = [];
 
         foreach ($this->sorted([...$this->registry->all(), ...$this->typeEntries(), ...app(AreaEntries::class)->navEntries()]) as $entry) {
-            // An entry of a module that is switched off isn't there (I-077).
-            if ($entry->module !== null && ! Modules::on($entry->module)) {
+            // An entry of a module that is switched off isn't there (I-077),
+            // except Comments: it stays so people can still find it.
+            if ($entry->module !== null && ! Modules::on($entry->module) && $entry->key !== 'comments') {
                 continue;
             }
 
@@ -227,6 +228,15 @@ final readonly class AdminNavigation
                 $type->segment, $type->plural, $type->icon, NavSection::Content, 100 * (count($entries) + 1),
                 route: 'content.index', routeParameters: ['type' => $type->segment], ability: $type->ability('create'),
             );
+
+            // A hierarchical type's tree sits under it; current on /admin/{segment}/tree.
+            if ($type->hierarchical) {
+                $entries[] = new NavEntry(
+                    "{$type->segment}.tree", __(':plural tree', ['plural' => $type->plural]), 'list-tree', NavSection::Content, 100 * (count($entries) + 1),
+                    route: 'content.tree', routeParameters: ['type' => $type->segment], ability: $type->ability('create'),
+                    parent: $type->segment,
+                );
+            }
         }
 
         foreach (app(TaxonomyRegistry::class)->all() as $taxonomy) {

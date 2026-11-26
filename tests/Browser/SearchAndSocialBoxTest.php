@@ -218,7 +218,7 @@ it('draws an empty meta description three lines tall, saying the excerpt stands 
 
     expect($field['value'])->toBe('')
         ->and($field['lines'])->toBeGreaterThanOrEqual(3)
-        ->and($field['placeholder'])->toBe('Dearer crossings from October.');
+        ->and($field['placeholder'])->toBe('Using the excerpt: Dearer crossings from October.');
 });
 
 it('folds the whole box down to a 52-pixel header strip naming the result\'s title and how many things to check', function (): void {
@@ -337,8 +337,7 @@ it('draws the SEO title as two lines with the template as its placeholder, and o
 
     expect($empty['tag'])->toBe('TEXTAREA')
         ->and($empty['rows'])->toBe(2)
-        ->and($empty['placeholder'])->toBe('Harbour news – My Teme site')
-        ->and($empty['placeholder'])->not->toContain('Using the title template')
+        ->and($empty['placeholder'])->toBe('Using the title template: Harbour news – My Teme site')
         ->and($empty['count'])->toMatch('/^\d+ characters, from the template · about 60 show$/')
         ->and($empty['warn'])->toBeFalse();
 

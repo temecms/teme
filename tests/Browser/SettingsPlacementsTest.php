@@ -149,12 +149,12 @@ it('reads the brand color\'s contrast as it is typed, and saves it on General', 
     cmWaitUntil($page, 'document.querySelector("#field-accent")?.value === "#0b5394"');
 });
 
-it('draws General with its Brand color, passing axe and the target size, in both schemes', function (string $scheme): void {
+it('draws General with its Brand colour, passing axe and the target size, in both schemes', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)->navigate('/admin/settings/general');
 
-    cmWaitUntil($page, '[...document.querySelectorAll("main h2")].some((heading) => heading.textContent === "Brand color")');
+    cmWaitUntil($page, '[...document.querySelectorAll("main h2")].some((heading) => heading.textContent === "Brand colour")');
 
     $page->assertNoAccessibilityIssues(3);
 

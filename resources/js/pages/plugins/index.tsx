@@ -11,8 +11,18 @@ import { ForgetDialog } from '@/components/plugins/forget-dialog';
 import { PluginRow } from '@/components/plugins/plugin-row';
 import { RemoveDataDialog } from '@/components/plugins/remove-data-dialog';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Panel } from '@/components/ui/panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import { index as pluginsIndex } from '@/routes/plugins';
 import type { PluginEnablePost, PluginRowPage, PluginsPage } from '@/types';
@@ -180,6 +190,7 @@ function pendingUrl(pending: Pending): string {
 export default function Plugins({
     plugins,
     settingHosts,
+    aiSite,
     extensions,
 }: PluginsPage) {
     const [tab, setTab] = useState<Tab>(() => firstTab(extensions !== null));
@@ -197,11 +208,19 @@ export default function Plugins({
     const [details, setDetails] = useState<PluginRowPage | null>(null);
     const [removing, setRemoving] = useState<PluginRowPage | null>(null);
     const [forgetting, setForgetting] = useState<PluginRowPage | null>(null);
+    /** A disable refused because another enabled plugin needs it. */
+    const [blocked, setBlocked] = useState<{
+        plugin: PluginRowPage;
+        dependents: PluginRowPage[];
+    } | null>(null);
     // What opened a dialog, so closing it puts focus back there.
     const [opener, setOpener] = useState<HTMLElement | null>(null);
 
+    const siteCrumb = useSectionCrumb('site');
+    const title = __('Plugins');
+
     setLayoutProps({
-        breadcrumbs: [{ title: __('Plugins'), href: pluginsIndex() }],
+        breadcrumbs: [siteCrumb, { title, href: pluginsIndex() }],
     });
 
     // Closing a dialog gives focus back to the button that opened it.
@@ -339,7 +358,63 @@ export default function Plugins({
     };
 
     const disable = (plugin: PluginRowPage) => {
+        const dependents = plugins.filter(
+            (row) => row.enabled && plugin.requiredBy.includes(row.label),
+        );
+
+        if (dependents.length > 0) {
+            setBlocked({ plugin, dependents });
+
+            return;
+        }
+
         router.post(PluginsController.disable.url({ code: plugin.code }), {});
+    };
+
+    const showPlugin = (label: string) => {
+        // Dependents may sit on another tab; All always holds them.
+        if (tab !== 'all') {
+            setTab('all');
+        }
+
+        requestAnimationFrame(() => {
+            const row = plugins.find((plugin) => plugin.label === label);
+            const code =
+                row?.code === '' || row === undefined ? row?.name : row.code;
+            const target =
+                code === undefined
+                    ? null
+                    : document.querySelector<HTMLElement>(
+                          `[data-test="plugin-${code}"]`,
+                      );
+
+            target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target?.querySelector<HTMLElement>('button, a')?.focus();
+        });
+    };
+
+    /** Whole translated phrases for one or several dependents. */
+    const blockedCopy = (
+        plugin: PluginRowPage,
+        dependents: PluginRowPage[],
+    ): { title: string; body: string } => {
+        const title = __('Cannot disable :name', { name: plugin.label });
+
+        if (dependents.length === 1) {
+            const name = dependents[0].label;
+
+            return {
+                title,
+                body: __(':name needs it. Disable :name first.', { name }),
+            };
+        }
+
+        return {
+            title,
+            body: __(':names need it. Disable them first.', {
+                names: dependents.map((row) => row.label).join(', '),
+            }),
+        };
     };
 
     const onAsk = (row: PluginRowPage, button: HTMLElement) => {
@@ -440,33 +515,57 @@ export default function Plugins({
 
                             return (
                                 <TabsContent key={item.key} value={item.key}>
-                                    <Panel className="p-1">
+                                    <Panel className="overflow-hidden p-0">
                                         {shown.length === 0 ? (
                                             <p className="text-ink-3 px-3 py-3">
                                                 {__('Nothing in this view')}
                                             </p>
                                         ) : (
-                                            <ul data-test="plugins-list">
-                                                {shown.map((plugin) => (
-                                                    <PluginRow
-                                                        key={plugin.name}
-                                                        plugin={plugin}
-                                                        onAsk={onAsk}
-                                                        onDisable={disable}
-                                                        onDetails={onDetails}
-                                                        onMigrate={migrate}
-                                                        onRemoveData={
-                                                            onRemoveData
-                                                        }
-                                                        onChange={
-                                                            extensions === null
-                                                                ? undefined
-                                                                : installer.openChange
-                                                        }
-                                                        onForget={onForget}
+                                            <>
+                                                <div className="bg-surface text-small text-ink-3 sticky top-0 z-(--z-sticky) flex h-11 items-center gap-4 px-4 font-medium">
+                                                    <span
+                                                        className="size-14 shrink-0"
+                                                        aria-hidden="true"
                                                     />
-                                                ))}
-                                            </ul>
+                                                    <span className="min-w-0 flex-1">
+                                                        {__('Plugin')}
+                                                    </span>
+                                                    <span className="w-28 shrink-0 max-md:hidden">
+                                                        {__('State')}
+                                                    </span>
+                                                    <span
+                                                        className="w-40 shrink-0 max-md:hidden"
+                                                        aria-hidden="true"
+                                                    />
+                                                </div>
+                                                <ul data-test="plugins-list">
+                                                    {shown.map((plugin) => (
+                                                        <PluginRow
+                                                            key={plugin.name}
+                                                            plugin={plugin}
+                                                            onAsk={onAsk}
+                                                            onDisable={disable}
+                                                            onDetails={
+                                                                onDetails
+                                                            }
+                                                            onMigrate={migrate}
+                                                            onRemoveData={
+                                                                onRemoveData
+                                                            }
+                                                            onChange={
+                                                                extensions ===
+                                                                null
+                                                                    ? undefined
+                                                                    : installer.openChange
+                                                            }
+                                                            onForget={onForget}
+                                                            onShowPlugin={
+                                                                showPlugin
+                                                            }
+                                                        />
+                                                    ))}
+                                                </ul>
+                                            </>
                                         )}
                                     </Panel>
                                 </TabsContent>
@@ -490,6 +589,7 @@ export default function Plugins({
                             ? null
                             : (settingHosts[asking.name] ?? null)
                     }
+                    aiSite={aiSite}
                     onClose={() => setAsking(null)}
                     onConfirm={enable}
                 />
@@ -508,6 +608,57 @@ export default function Plugins({
                     onClose={() => setForgetting(null)}
                     onConfirm={forget}
                 />
+                <Dialog
+                    open={blocked !== null}
+                    onOpenChange={(next) => !next && setBlocked(null)}
+                >
+                    {blocked !== null && (
+                        <DialogContent
+                            data-test="plugin-disable-blocked"
+                            size="sm"
+                        >
+                            <DialogHeader>
+                                <DialogTitle>
+                                    {
+                                        blockedCopy(
+                                            blocked.plugin,
+                                            blocked.dependents,
+                                        ).title
+                                    }
+                                </DialogTitle>
+                                <DialogDescription>
+                                    {
+                                        blockedCopy(
+                                            blocked.plugin,
+                                            blocked.dependents,
+                                        ).body
+                                    }
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="neutral">
+                                        {__('Close')}
+                                    </Button>
+                                </DialogClose>
+                                {blocked.dependents.map((row) => (
+                                    <Button
+                                        key={row.name}
+                                        type="button"
+                                        variant="neutral"
+                                        data-test="plugin-show-dependent"
+                                        onClick={() => {
+                                            setBlocked(null);
+                                            showPlugin(row.label);
+                                        }}
+                                    >
+                                        {__('Show :name', { name: row.label })}
+                                    </Button>
+                                ))}
+                            </DialogFooter>
+                        </DialogContent>
+                    )}
+                </Dialog>
             </ListPage>
         </>
     );

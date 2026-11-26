@@ -39,16 +39,13 @@ use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Updates\Updater\PlatformCheck;
 use App\Domain\Updates\Updater\PlatformRefused;
 use App\Domain\Updates\UpdatesSettings;
-use App\Domain\Users\Roles;
+use App\Http\Admin\PermissionLabels;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
 
 final class SettingsController extends Controller
 {
@@ -58,17 +55,6 @@ final class SettingsController extends Controller
      * @since 1.2.0
      */
     public const string VIEW = 'settings.view';
-
-    /**
-     * The words for core's settings permissions, as the view-only line
-     * names them; any other reads "Manage {group} settings".
-     *
-     * @var array<string, string>
-     */
-    private const array PERMISSION_NAMES = [
-        'settings.security.manage' => 'Manage sign-in rules',
-        'settings.addresses.manage' => 'Manage addresses',
-    ];
 
     public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry): Response|RedirectResponse
     {
@@ -140,7 +126,7 @@ final class SettingsController extends Controller
             // A plugin's page names its plugin, for the mark after the title; null on core's.
             'plugin' => $this->pluginName($registry, SettingsPlacement::groupShownOn($page)),
             // View only: who may change this group, for the banner; null for someone who may.
-            'readOnly' => $readOnly ? ['permission' => self::permissionName($ability), 'holders' => self::holders($ability)] : null,
+            'readOnly' => $readOnly ? ['permission' => PermissionLabels::of($ability), 'holders' => PermissionLabels::holders($ability)] : null,
             ...$sections->for($page, $user),
         ]);
     }
@@ -239,39 +225,6 @@ final class SettingsController extends Controller
             'agreed' => $plugin['agreed'],
             'declared' => $plugin['hosts'],
         ];
-    }
-
-    /**
-     * A settings permission in words, such as "Manage general settings".
-     */
-    private static function permissionName(string $ability): string
-    {
-        if (isset(self::PERMISSION_NAMES[$ability])) {
-            return __(self::PERMISSION_NAMES[$ability]);
-        }
-
-        $group = preg_match('/^settings\.([a-z-]+)\.manage$/', $ability, $match) === 1 ? str_replace('-', ' ', $match[1]) : $ability;
-
-        return __('Manage :group settings', ['group' => $group]);
-    }
-
-    /**
-     * The roles that hold a permission, in words and in the core roles'
-     * order, such as "administrators" or "administrators and editors".
-     */
-    private static function holders(string $ability): string
-    {
-        $names = [];
-
-        foreach (Roles::LABELS as $role => $label) {
-            $found = Role::query()->where('name', $role)->first();
-
-            if ($found !== null && $found->hasPermissionTo($ability)) {
-                $names[] = mb_strtolower(__(Str::plural($label)));
-            }
-        }
-
-        return $names === [] ? __('no role') : Arr::join($names, ', ', ' '.__('and').' ');
     }
 
     /**

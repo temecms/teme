@@ -106,7 +106,6 @@ function blockTypes(): { value: string; label: string }[] {
 const FOLD_ORDER = [
     'horizontalRule',
     'table',
-    'blockquote',
     'taskList',
     'orderedList',
     'bulletList',
@@ -352,19 +351,6 @@ export function Toolbar({
                 </ToolButton>
             ),
         },
-        blockquote: {
-            label: __('Quote'),
-            run: () => chain().toggleBlockquote().run(),
-            button: (
-                <ToolButton
-                    label={__('Quote')}
-                    active={state.blockquote}
-                    onClick={() => chain().toggleBlockquote().run()}
-                >
-                    <Quote />
-                </ToolButton>
-            ),
-        },
         horizontalRule: {
             label: __('Horizontal rule'),
             run: () => chain().setHorizontalRule().run(),
@@ -513,7 +499,13 @@ export function Toolbar({
                 {fold('bulletList')}
                 {fold('orderedList')}
                 {fold('taskList')}
-                {fold('blockquote')}
+                <ToolButton
+                    label={__('Quote')}
+                    active={state.blockquote}
+                    onClick={() => chain().toggleBlockquote().run()}
+                >
+                    <Quote />
+                </ToolButton>
                 <LinkPopover
                     editor={editor}
                     siteUrl={siteUrl}

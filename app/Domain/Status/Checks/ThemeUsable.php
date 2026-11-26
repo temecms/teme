@@ -26,6 +26,16 @@ final readonly class ThemeUsable implements StatusCheck
         private ThemeRegistry $themes,
     ) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'theme-usable';
+    }
+
     public function ability(): string
     {
         return 'settings.design.manage';

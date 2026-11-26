@@ -1,4 +1,4 @@
-/** The Status banner the admin shows at the top of every screen (I-221). */
+/** One site-status row the admin shows (I-221, I-3397). */
 export type StatusBanner = {
     level: 'error' | 'warning' | 'info';
     message: string;
@@ -8,4 +8,6 @@ export type StatusBanner = {
     label: string;
     /** The plugin that raised it; null for Teme's own. */
     plugin: string | null;
+    /** Stable check key for matching Home summary rows. */
+    key: string;
 };

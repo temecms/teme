@@ -21,7 +21,7 @@ import { OTP_MAX_LENGTH, useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { edit as editSecurity } from '@/routes/security';
-import { confirm, edit, enable } from '@/routes/two-factor';
+import { confirm, enable } from '@/routes/two-factor';
 
 type Props = {
     canManageTwoFactor?: boolean;
@@ -59,7 +59,6 @@ export default function TwoFactor({
     );
 
     setLayoutProps({
-        breadcrumbs: [{ title, href: edit() }],
         title,
         description,
     });
@@ -123,7 +122,7 @@ function SetUpSteps() {
     const at = { scan: 0, code: 1, codes: 2 }[step];
 
     return (
-        <>
+        <div className="grid w-full gap-4">
             <StepBar
                 steps={steps}
                 current={at}
@@ -187,7 +186,7 @@ function SetUpSteps() {
                     </div>
                 </FormPanel>
             )}
-        </>
+        </div>
     );
 }
 
@@ -272,7 +271,11 @@ function ScanStep({
                                 data-test="two-factor-key"
                                 className="bg-surface-2 text-body rounded-sm px-2 py-1 font-mono break-all"
                             >
-                                {manualSetupKey ?? '…'}
+                                {manualSetupKey === null
+                                    ? '…'
+                                    : manualSetupKey
+                                          .replace(/\s+/g, '')
+                                          .replace(/(.{4})(?=.)/g, '$1 ')}
                             </code>
                             <Button
                                 type="button"
