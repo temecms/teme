@@ -10,8 +10,8 @@ type Item = Record<string, unknown>;
  * A repeater (docs/plans/plugin-sockets-2.md, A2): a list of items of one
  * shape, each in its own box that collapses to its title, with Move up,
  * Move down and Remove as words (the single-pointer path, I-1720), a count
- * line, then Add. The caller draws each item's fields; the Field above
- * already names the section, so the legend stays visually hidden.
+ * line, then Add. The group's legend is its visible label, with the help
+ * and error lines under it, as a Field draws them.
  */
 export function RepeaterField({
     id,
@@ -23,10 +23,16 @@ export function RepeaterField({
     empty,
     minItems,
     maxItems,
+    help,
+    error,
+    required,
     children,
 }: {
     id: string;
     label: string;
+    help?: string;
+    error?: string;
+    required?: boolean;
     items: Item[];
     onChange: (items: Item[]) => void;
     /** What one item is called, as in "Add version". */
@@ -56,8 +62,8 @@ export function RepeaterField({
             : `${itemLabel} ${index + 1}`;
     };
 
-    // Whole translated phrases per case — never an English a/an vowel check.
-    const named = itemLabel.trim() !== '' && itemLabel !== __('Item');
+    // Whole translated phrases per case, never an English a/an vowel check.
+    const named = itemLabel.trim() !== '';
     const addLabel = named
         ? __('Add :item', { item: itemLabel.trim().toLowerCase() })
         : __('Add item');
@@ -78,7 +84,25 @@ export function RepeaterField({
             data-test="repeater"
             data-count={items.length}
         >
-            <legend className="sr-only">{label}</legend>
+            <legend className="text-small text-ink-2 mb-1 font-medium">
+                {label}
+                {required && (
+                    <>
+                        {' '}
+                        <span className="text-ink-3 font-normal">
+                            {__('Required')}
+                        </span>
+                    </>
+                )}
+            </legend>
+            {help !== undefined && (
+                <p className="text-caption text-ink-3">{help}</p>
+            )}
+            {error !== undefined && (
+                <p className="text-small text-danger-ink" role="alert">
+                    {error}
+                </p>
+            )}
             <p className="text-caption text-ink-3" data-test="repeater-count">
                 {__(':count of at most :max.', {
                     count: items.length,
@@ -136,7 +160,7 @@ export function RepeaterField({
                                     variant="ghost"
                                     size="sm"
                                     disabled={index === 0}
-                                    aria-label={__('Move :item up', {
+                                    aria-label={__('Move up :item', {
                                         item: title,
                                     })}
                                     onClick={() => move(index, index - 1)}
@@ -148,7 +172,7 @@ export function RepeaterField({
                                     variant="ghost"
                                     size="sm"
                                     disabled={index === items.length - 1}
-                                    aria-label={__('Move :item down', {
+                                    aria-label={__('Move down :item', {
                                         item: title,
                                     })}
                                     onClick={() => move(index, index + 1)}

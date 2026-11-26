@@ -24,11 +24,6 @@ const COLOURS = ['var(--chart-1)', 'var(--chart-2)', 'var(--ink-3)'];
 
 /** Legend swatch fills as Tailwind token classes (no inline colour styles). */
 const SWATCH = ['bg-chart-1', 'bg-chart-2', 'bg-ink-3'] as const;
-const SWATCH_BORDER = [
-    'border-chart-1',
-    'border-chart-2',
-    'border-ink-3',
-] as const;
 
 /** A chart label as people read a day: "18 Oct", else the label as given. */
 function dayLabel(label: string): string {
@@ -49,30 +44,12 @@ function dayLabel(label: string): string {
     }).format(date);
 }
 
-/** Whether a series is the earlier comparison line (dashed). */
-function isEarlier(
-    series: AreaChartData['series'][number],
-    index: number,
-    total: number,
-): boolean {
-    const label = series.label.toLowerCase();
-
-    if (
-        label.includes('earlier') ||
-        label.includes('previous') ||
-        label.includes('prior')
-    ) {
-        return true;
-    }
-
-    return total === 2 && index === 1;
-}
-
 /**
  * A plugin's chart (docs/plans/plugin-sockets-2.md, A9): a line or ranked
- * bar chart core draws with Recharts from the plugin's numbers, its legend
- * above, earlier series dashed, day labels as "18 Oct", and Show as table
- * for the same numbers.
+ * bar chart core draws with Recharts from the plugin's numbers, in the
+ * order the plugin gave them, its legend above, day labels as "18 Oct", and
+ * Show as table for the same numbers. No series is dashed: the contract
+ * carries no flag for one.
  */
 export function AreaChart({
     block,
@@ -105,17 +82,8 @@ export function AreaChart({
             ),
         }));
 
-        // Ranked bars: categories ordered by the first series, highest first.
-        if (block.kind === 'bar' && data.series[0] !== undefined) {
-            const key = data.series[0].id;
-
-            return [...built].sort(
-                (a, b) => Number(b[key] ?? 0) - Number(a[key] ?? 0),
-            );
-        }
-
         return built;
-    }, [block.kind, data.labels, data.series]);
+    }, [data.labels, data.series]);
     const Chart = block.kind === 'bar' ? BarChart : LineChart;
 
     return (
@@ -194,11 +162,6 @@ export function AreaChart({
                             data-test="area-chart-legend"
                         >
                             {data.series.map((series, index) => {
-                                const earlier = isEarlier(
-                                    series,
-                                    index,
-                                    data.series.length,
-                                );
                                 const at = index % SWATCH.length;
 
                                 return (
@@ -210,12 +173,7 @@ export function AreaChart({
                                             aria-hidden="true"
                                             className={cn(
                                                 'inline-block h-0.5 w-4',
-                                                earlier
-                                                    ? cn(
-                                                          'border-t-2 border-dashed bg-transparent',
-                                                          SWATCH_BORDER[at],
-                                                      )
-                                                    : SWATCH[at],
+                                                SWATCH[at],
                                             )}
                                         />
                                         {series.label}
@@ -307,15 +265,6 @@ export function AreaChart({
                                                     ]
                                                 }
                                                 strokeWidth={2}
-                                                strokeDasharray={
-                                                    isEarlier(
-                                                        series,
-                                                        index,
-                                                        data.series.length,
-                                                    )
-                                                        ? '4 4'
-                                                        : undefined
-                                                }
                                                 dot={false}
                                                 isAnimationActive={false}
                                             />

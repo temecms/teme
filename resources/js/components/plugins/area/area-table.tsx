@@ -51,8 +51,8 @@ function onLine(action: string): boolean {
  * A table of a plugin's records (docs/plans/plugin-sockets-2.md, A9): its
  * search, filters, sortable columns and pages as core's lists draw them, a
  * tick box a row when the table has bulk actions, Edit and Duplicate under
- * the name, the rest in the row's menu, and Add only in the empty state (the
- * page header holds the primary Add). A delete asks first. Every cell is
+ * the name, the rest in the row's menu. Add is never drawn here: the area's
+ * page header holds the one primary Add. A delete asks first. Every cell is
  * plain text.
  */
 export function AreaTable({

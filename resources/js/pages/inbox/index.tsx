@@ -4,6 +4,7 @@ import { InboxList } from '@/components/inbox/inbox-list';
 import { Pager } from '@/components/list/pager';
 import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
+import { adminLocale } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
 import { index } from '@/routes/inbox';
 import type { InboxPage } from '@/types/jobs';
@@ -31,7 +32,9 @@ export default function Inbox({
                             data-test="inbox-unread"
                             className="text-ink-2 text-small"
                         >
-                            {unread >= 100 ? '99+' : unread.toLocaleString()}{' '}
+                            {unread >= 100
+                                ? '99+'
+                                : unread.toLocaleString(adminLocale())}{' '}
                             {__('unread')}
                         </span>
                         <Form

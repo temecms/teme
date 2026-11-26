@@ -105,7 +105,7 @@ final readonly class ToolsHub implements NavHub
             $stem = preg_replace('/\.[^.]+$/', '', $page['route']) ?? $page['route'];
 
             if ($page['route'] === $route || str_starts_with($route, $stem.'.')) {
-                return __('Tools › :page', ['page' => $page['label']]);
+                return __('Tools › :tool', ['tool' => $page['label']]);
             }
         }
 

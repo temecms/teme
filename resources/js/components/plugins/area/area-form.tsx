@@ -236,46 +236,41 @@ export function AreaFieldInput({
 
         return (
             <div data-field={field.key}>
-                <Field
-                    htmlFor={id}
+                <RepeaterField
+                    id={id}
                     label={field.label}
                     help={
                         field.description !== '' ? field.description : undefined
                     }
                     error={error}
                     required={field.required}
+                    items={items}
+                    onChange={onChange}
+                    itemLabel={field.itemLabel}
+                    itemTitle={field.itemTitle}
+                    empty={empty}
+                    minItems={field.minItems}
+                    maxItems={field.maxItems}
                 >
-                    <RepeaterField
-                        id={id}
-                        label={field.label}
-                        items={items}
-                        onChange={onChange}
-                        itemLabel={field.itemLabel}
-                        itemTitle={field.itemTitle}
-                        empty={empty}
-                        minItems={field.minItems}
-                        maxItems={field.maxItems}
-                    >
-                        {(item, index, change) => {
-                            const shown = visibleKeys(field.fields, item);
+                    {(item, index, change) => {
+                        const shown = visibleKeys(field.fields, item);
 
-                            return field.fields
-                                .filter((sub) => shown.has(sub.key))
-                                .map((sub) => (
-                                    <AreaFieldInput
-                                        key={sub.key}
-                                        field={sub}
-                                        value={item[sub.key]}
-                                        onChange={(next) =>
-                                            change({ ...item, [sub.key]: next })
-                                        }
-                                        errors={errors}
-                                        path={`${path}.${index}.${sub.key}`}
-                                    />
-                                ));
-                        }}
-                    </RepeaterField>
-                </Field>
+                        return field.fields
+                            .filter((sub) => shown.has(sub.key))
+                            .map((sub) => (
+                                <AreaFieldInput
+                                    key={sub.key}
+                                    field={sub}
+                                    value={item[sub.key]}
+                                    onChange={(next) =>
+                                        change({ ...item, [sub.key]: next })
+                                    }
+                                    errors={errors}
+                                    path={`${path}.${index}.${sub.key}`}
+                                />
+                            ));
+                    }}
+                </RepeaterField>
             </div>
         );
     }

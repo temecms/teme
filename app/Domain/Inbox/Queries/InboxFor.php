@@ -189,7 +189,7 @@ final readonly class InboxFor
             return 'finished';
         }
 
-        if (str_ends_with($kind, '.warning') || str_contains($kind, 'warn')) {
+        if (str_ends_with($kind, '.warning') || $kind === 'warning') {
             return 'warning';
         }
 

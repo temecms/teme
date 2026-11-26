@@ -22,7 +22,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Notice } from '@/components/ui/notice';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
 import { visibleKeys } from '@/lib/visible-when';
 import type { PluginRecordPageProps } from '@/types/plugin-area';
 
@@ -64,6 +64,11 @@ export default function PluginRecord(props: PluginRecordPageProps) {
         approve: props.scripts.approver ? approval.approve : undefined,
         busy: approval.busy,
     };
+
+    const waitingCount = Object.values(props.scripts.waiting).reduce(
+        (sum, list) => sum + list.length,
+        0,
+    );
 
     setLayoutProps({ breadcrumbs: [{ title: plugin.name, href: back }] });
 
@@ -125,6 +130,25 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                 />
             )}
             {approval.password}
+            {waitingCount > 0 && (
+                <Notice
+                    tone="warn"
+                    className="mb-4"
+                    data-test="record-scripts-waiting"
+                    title={__n(
+                        ':count script waits for approval|:count scripts wait for approval',
+                        waitingCount,
+                    )}
+                >
+                    {props.scripts.approver
+                        ? __(
+                              'It stays off the site’s pages until someone approves it. Approve it under the code field that holds it.',
+                          )
+                        : __(
+                              'It stays off the site’s pages until someone who can change the site’s code approves it.',
+                          )}
+                </Notice>
+            )}
             <AreaScriptsProvider value={scripts}>
                 <form onSubmit={submit} noValidate data-test="record-form">
                     {(failed !== null || errors.record !== undefined) && (

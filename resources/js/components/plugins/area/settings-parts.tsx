@@ -144,7 +144,7 @@ function asAreaField(field: FieldDefinition): AreaField {
         fields: (field.fields ?? []).map(asAreaField),
         minItems: field.min ?? 0,
         maxItems: field.max ?? 20,
-        itemLabel: field.itemLabel ?? __('Item'),
+        itemLabel: field.itemLabel ?? '',
         itemTitle: field.itemTitle ?? null,
         empty:
             field.type === 'boolean'
