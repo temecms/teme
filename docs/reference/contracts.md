@@ -744,6 +744,15 @@ A plugin granted pages.head that adds `<meta>` tags to public pages' heads. Core
 
 - `headMeta(HeadPage $page): array` — Its tags for this page, at most 20, answered within 100 ms; none where it adds nothing. Since 1.1.0.
 
+### HasPageTitle
+
+`Teme\Contracts\Head\HasPageTitle`, interface. Since next.
+
+A plugin granted pages.head that answers the title of a public page: the words in `<title>`. The social title and the structured data's name follow it, so the page names itself one way everywhere. Asked within 100 ms. One plugin answers a page: the first enabled that gives a title.
+
+- `MOST_CHARACTERS` — The longest title core accepts, in characters. Since next.
+- `pageTitle(HeadPage $page, string $coreTitle): ?string` — The page's title, as plain text of 1 to 200 characters, or null to leave it to core, whose own title is given. Since next.
+
 ### HeadMeta
 
 `Teme\Contracts\Head\HeadMeta`, class. Since 1.1.0.

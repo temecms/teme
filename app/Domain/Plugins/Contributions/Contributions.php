@@ -27,6 +27,7 @@ use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Cards\HasCards;
 use Teme\Contracts\Cards\PluginCard;
 use Teme\Contracts\Head\HasHeadMeta;
+use Teme\Contracts\Head\HasPageTitle;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
@@ -89,7 +90,7 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== [], searchEngines: $plugin instanceof HasHeadMeta || $plugin instanceof HasStructuredData || $plugin instanceof HasSitemaps, cards: $plugin instanceof HasCards), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== [], searchEngines: $plugin instanceof HasHeadMeta || $plugin instanceof HasPageTitle || $plugin instanceof HasStructuredData || $plugin instanceof HasSitemaps, cards: $plugin instanceof HasCards), $name);
 
             // A name its settings fill is checked when they are saved (docs/guides/developers/plugins/root-files.md).
             if ($rootFiles) {
