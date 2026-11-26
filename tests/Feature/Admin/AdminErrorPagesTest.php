@@ -47,7 +47,7 @@ it('draws a refusal inside the admin with the policy\'s own reason', function ()
             ->where('status', 403)
             ->where('reason', 'You can’t edit this item.')
             ->where('site', 'The Garden City Ledger')
-            ->where('page', null)
+            ->where('screen', null)
             ->where('permission', null),
         );
 });
@@ -61,7 +61,7 @@ it('names the page, roles and permission on a refused settings address', functio
         ->assertInertia(fn (Assert $page) => $page
             ->component('errors/in-admin')
             ->where('status', 403)
-            ->where('page', 'Settings')
+            ->where('screen', 'Settings')
             ->where('name', 'Ada Author')
             ->where('role', 'Author')
             ->where('roleKey', 'author')

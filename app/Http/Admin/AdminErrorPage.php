@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Users\Queries\CurrentUserData;
 use App\Domain\Users\Roles;
 use App\Http\Standalone\StandalonePage;
@@ -40,8 +41,6 @@ final class AdminErrorPage
         'media' => 'Media',
         'users' => 'People',
         'people' => 'People',
-        'posts' => 'Posts',
-        'pages' => 'Pages',
         'comments' => 'Comments',
         'account' => 'Your account',
         'content' => 'Content',
@@ -92,7 +91,7 @@ final class AdminErrorPage
             'role' => $user['role'] ?? null,
             'roleKey' => $roleKey,
             'reason' => $reason,
-            'page' => $page,
+            'screen' => $page,
             'permission' => $permission,
             'holders' => $holders,
         ])->withViewData(['fallback' => self::words($status, $site, $reason, $page, $permission, $holders, $user['name'] ?? null, $roleKey)])
@@ -117,13 +116,13 @@ final class AdminErrorPage
 
         $title = $page === null
             ? __('You can’t open this page')
-            : __('You can’t open :page', ['page' => $page]);
+            : __('You can’t open :screen', ['screen' => $page]);
 
         if ($reason !== null) {
             $text = $reason;
         } elseif ($page !== null && $holders !== null && $name !== null && $roleKey !== null) {
-            $text = __(':page is for :roles.', [
-                'page' => $page,
+            $text = __(':screen is for :roles.', [
+                'screen' => $page,
                 'roles' => $holders,
             ]).' '.self::signedInAs($name, $roleKey);
 
@@ -178,11 +177,18 @@ final class AdminErrorPage
         $segments = explode('/', $rest);
         $segment = $segments[0];
 
-        if ($segment === '' || str_starts_with($segment, '_') || ! isset(self::PAGES[$segment])) {
+        if ($segment === '' || str_starts_with($segment, '_')) {
             return null;
         }
 
-        return __(self::PAGES[$segment]);
+        // A content type's own list is named by the type, whatever its segment.
+        $type = app(ContentTypeRegistry::class)->bySegment($segment);
+
+        if ($type !== null) {
+            return __($type->plural);
+        }
+
+        return isset(self::PAGES[$segment]) ? __(self::PAGES[$segment]) : null;
     }
 
     /**

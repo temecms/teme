@@ -1024,7 +1024,7 @@ export default function ContentIndex(page: ContentIndexPage) {
         Array.isArray(shownColumns) && shownColumns.includes('featured');
     // A type made here always shows a thumbnail (or its empty mark) beside
     // the title; Posts and Pages keep the Columns preference.
-    const coreList = typeKey === 'post' || typeKey === 'page';
+    const coreList = typeKey in DESCRIPTIONS;
     const showThumbs = thumbnails || !coreList;
 
     const select: Column<ContentRow> = {

@@ -433,7 +433,7 @@ function MessageGroup({
                         className="size-4 shrink-0 transition-transform group-data-[state=open]:rotate-180"
                     />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="text-body text-ink-2 grid gap-2 px-3 ps-14 pb-3">
+                <CollapsibleContent className="text-body text-ink-2 grid gap-2 px-3 ps-12 pb-3">
                     <p>{sentence}</p>
                     {row.sentence !== null && row.words !== row.sentence && (
                         <p className="text-small text-ink-3">{row.words}</p>

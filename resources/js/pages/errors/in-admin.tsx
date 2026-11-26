@@ -20,7 +20,7 @@ type Props = {
     /** A policy's own reason for refusing, when it gave one. */
     reason: string | null;
     /** A short name for the page that was refused. */
-    page?: string | null;
+    screen?: string | null;
     /** The permission the route asked for, in plain words. */
     permission?: string | null;
     /** The roles that hold that permission, in words. */
@@ -57,24 +57,24 @@ export default function InAdminError({
     role: _role,
     roleKey = null,
     reason,
-    page = null,
+    screen = null,
     permission = null,
     holders = null,
 }: Props) {
     const refused = status === 403;
     const title = refused
-        ? page === null
+        ? screen === null
             ? __('You can’t open this page')
-            : __('You can’t open :page', { page })
+            : __('You can’t open :screen', { screen })
         : __('We can’t find that page');
     const description = refused
         ? (reason ??
-          (page !== null &&
+          (screen !== null &&
           holders !== null &&
           name !== null &&
           roleKey !== null
               ? [
-                    __(':page is for :roles.', { page, roles: holders }),
+                    __(':screen is for :roles.', { screen, roles: holders }),
                     signedInAs(name, roleKey),
                     permission !== null
                         ? __('It needs the :permission permission.', {

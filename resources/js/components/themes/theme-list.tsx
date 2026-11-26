@@ -349,7 +349,7 @@ export function ThemeList({
                     data-test={`theme-${active.code}`}
                 >
                     <Panel className="overflow-hidden p-0">
-                        <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+                        <div className="grid lg:grid-cols-2">
                             <ThemePicture
                                 theme={active}
                                 className="bg-surface-3 aspect-[3/2] w-full object-cover object-top lg:aspect-auto lg:h-full lg:min-h-72"

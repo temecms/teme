@@ -522,7 +522,7 @@ export default function Plugins({
                                             </p>
                                         ) : (
                                             <>
-                                                <div className="bg-surface text-small text-ink-3 sticky top-0 z-10 flex h-11 items-center gap-4 px-4 font-medium">
+                                                <div className="bg-surface text-small text-ink-3 sticky top-0 z-(--z-sticky) flex h-11 items-center gap-4 px-4 font-medium">
                                                     <span
                                                         className="size-14 shrink-0"
                                                         aria-hidden="true"

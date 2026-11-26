@@ -181,7 +181,7 @@ export default function ThemeSettingsPage(page: DesignSettingsPage) {
                 </p>
             )}
 
-            <div className="grid gap-8 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-8">
+            <div className="grid gap-8 lg:grid-cols-(--settings-cols) lg:gap-8">
                 {nav.length > 0 && (
                     <nav
                         aria-label={__('Sections')}

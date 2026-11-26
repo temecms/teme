@@ -12,17 +12,17 @@ const TONES: Record<
     { panel: string; icon: typeof Info; iconClass: string }
 > = {
     note: {
-        panel: 'border-l-info bg-info-soft',
+        panel: 'bg-info-soft',
         icon: Info,
         iconClass: 'text-info-ink',
     },
     tip: {
-        panel: 'border-l-ok bg-ok-soft',
+        panel: 'bg-ok-soft',
         icon: Lightbulb,
         iconClass: 'text-ok-ink',
     },
     warning: {
-        panel: 'border-l-warn bg-warn-soft',
+        panel: 'bg-warn-soft',
         icon: TriangleAlert,
         iconClass: 'text-warn-ink',
     },
@@ -53,15 +53,10 @@ export function CalloutCard({
                 <CalloutSettings attrs={node.attrs} update={updateAttributes} />
             }
         >
-            <div
-                className={cn(
-                    'flex gap-3 rounded-md border-l-4 px-3 py-2',
-                    look.panel,
-                )}
-            >
+            <div className={cn('flex gap-3 rounded-md px-3 py-2', look.panel)}>
                 <Icon
                     aria-hidden="true"
-                    className={cn('mt-0.5 size-4 shrink-0', look.iconClass)}
+                    className={cn('mt-1 size-4 shrink-0', look.iconClass)}
                 />
                 <textarea
                     aria-label={__('Callout text')}
