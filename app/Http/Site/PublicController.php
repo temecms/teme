@@ -16,17 +16,22 @@ declare(strict_types=1);
 
 namespace App\Http\Site;
 
+use App\Domain\Cache\PageCache;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Redirects\AddressCounts;
 use App\Domain\Redirects\RedirectLookup;
 use App\Domain\Site\Insertions\PageInsertions;
+use App\Domain\Site\ListingData;
 use App\Domain\Site\PathResolver;
 use App\Domain\Site\ReaderKeys;
+use App\Domain\Site\ViewModels\LatestView;
+use App\Domain\Site\ViewModels\ListingView;
 use App\Domain\Site\ViewModels\NotFoundView;
 use App\Domain\Themes\ViewIntent;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -63,16 +68,20 @@ final class PublicController extends Controller
         // Plugins granted pages.insert are asked for this page only when it is drawn (docs/plans/plugin-sockets-2.md).
         app(PageInsertions::class)->start($request, $answer, $pageLanguage->tag());
 
-        $response = $answer['kind'] === 'redirect'
-            // Not redirect(): Laravel's URL generator trims the trailing
-            // slash, and the canonical address would redirect to itself.
-            ? new RedirectResponse(rtrim(url('/'), '/').($answer['redirect'] ?? '/'), 301)
-            : PublicPage::render(
-                $answer['intent'] ?? new ViewIntent('notfound'),
-                $answer['model'] ?? new NotFoundView($request->getPathInfo()),
-                $answer['kind'] === 'notfound' ? 404 : 200,
-                $answer['pageNumber'] ?? 1,
-            );
+        if ($answer['kind'] !== 'redirect' && $request->query(ListingData::PARAMETER) === ListingData::FORMAT) {
+            $response = self::data($request, $answer);
+        } else {
+            $response = $answer['kind'] === 'redirect'
+                // Not redirect(): Laravel's URL generator trims the trailing
+                // slash, and the canonical address would redirect to itself.
+                ? new RedirectResponse(rtrim(url('/'), '/').($answer['redirect'] ?? '/'), 301)
+                : PublicPage::render(
+                    $answer['intent'] ?? new ViewIntent('notfound'),
+                    $answer['model'] ?? new NotFoundView($request->getPathInfo()),
+                    $answer['kind'] === 'notfound' ? 404 : 200,
+                    $answer['pageNumber'] ?? 1,
+                );
+        }
 
         if ($answer['kind'] !== 'redirect') {
             $response->headers->set('Content-Language', $pageLanguage->tag());
@@ -101,6 +110,27 @@ final class PublicController extends Controller
      * or an old address's own (I-858): a 3xx to where it sends readers, or
      * the theme's 410 or 451 page; null when none answers.
      */
+    /**
+     * A listing's page as JSON, for a theme's script: the data of the very
+     * page the resolver built, so its items, order, visibility, language and
+     * pagination are the page's own. What isn't a listing, and a page past
+     * the last, answer 404 as JSON. The route is one the page cache may store.
+     *
+     * @param  array<string, mixed>  $answer
+     */
+    private static function data(Request $request, array $answer): Response
+    {
+        $request->attributes->set(PageCache::CACHEABLE, true);
+        $model = $answer['model'] ?? null;
+        $headers = ['X-Robots-Tag' => 'noindex'];
+
+        if ($answer['kind'] === 'view' && ($model instanceof ListingView || $model instanceof LatestView)) {
+            return new JsonResponse(app(ListingData::class)->of($model), 200, $headers);
+        }
+
+        return new JsonResponse(['error' => $answer['kind'] === 'notfound' ? 'not_found' : 'not_a_listing'], 404, $headers);
+    }
+
     private static function redirected(Request $request): ?Response
     {
         $redirect = app(RedirectLookup::class)->answer($request->getPathInfo(), (string) $request->getQueryString());

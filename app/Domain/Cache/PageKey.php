@@ -19,6 +19,7 @@ namespace App\Domain\Cache;
 
 use App\Domain\Api\ApiPaths;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\Site\ListingData;
 use Illuminate\Http\Request;
 
 final readonly class PageKey
@@ -71,7 +72,7 @@ final readonly class PageKey
             ApiPaths::is($path) => array_map(strval(...), array_keys($parameters)),
             // The suggestions' answer depends on the query and the language, and on nothing else.
             self::isSuggestions($path) => ['q', 'lang'],
-            default => $registry->cacheQueryNames(),
+            default => [...$registry->cacheQueryNames(), ListingData::PARAMETER],
         };
         $kept = [];
 
@@ -82,6 +83,11 @@ final readonly class PageKey
 
             if (! is_string($parameters[$name])) {
                 return null;
+            }
+
+            // Only the one value means anything: any other would store a copy of the page for each.
+            if ($name === ListingData::PARAMETER && $parameters[$name] !== ListingData::FORMAT) {
+                continue;
             }
 
             $kept[$name] = $parameters[$name];

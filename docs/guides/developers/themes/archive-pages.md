@@ -3,7 +3,7 @@ title: Archive pages, author profiles and listing data
 type: how-to
 audience: theme
 summary: What a theme reads on a type's archive page and an author's page, and how its script asks for search suggestions and for any listing's next page as data.
-rests_on: [app/Domain/Site/ListingViews.php, app/Domain/Site/ViewModels/ListingView.php, app/Domain/Site/ViewModels/Subject.php, app/Domain/People/PublicProfile.php, docs/reference/theme.md]
+rests_on: [app/Domain/Site/ListingViews.php, app/Domain/Site/ListingData.php, app/Domain/Search/Suggestions.php, app/Domain/Site/ViewModels/ListingView.php, app/Domain/Site/ViewModels/Subject.php, app/Domain/People/PublicProfile.php, docs/reference/theme.md]
 ---
 
 # Archive pages, author profiles and listing data
@@ -106,3 +106,64 @@ input.addEventListener('input', () => {
 ```
 
 The markup it expects is an `<input data-suggest-input data-language="{{ $language->tag }}">` beside an empty `<div data-suggest-list></div>`; the full search at `/?s=` stays available for the visitor who presses Enter.
+
+## Any listing's page as data
+
+A script can ask for the page of any listing as JSON: the latest posts, a type's archive, a term's archive, an author's, a date's and a search's. Add `format=json` to the page's own address:
+
+```
+/category/news/page/2/?format=json
+```
+
+It is the same page, so it has the same items, in the same order, with the same visibility and in the same language as the page itself: a draft or a private item never appears, a French archive gives French items only, and a search keeps its `s`. Nothing is queried a second time; the data is built from the view model the page is drawn from. A page that isn't a listing, such as an article, and a page past the last, answer `404` with `{"error": "not_a_listing"}` or `{"error": "not_found"}`. `format` with any other value is ignored.
+
+The answer holds the subject (`kind`, `title`, `url`; `null` for the latest posts), the page's items and its pagination:
+
+| Value | What it is |
+|---|---|
+| `items[].title`, `url`, `type` | The item's title, address (site-relative, generated from the current site address) and type key |
+| `items[].standfirst` | The excerpt someone wrote, or `null` |
+| `items[].kicker` | `{name, url, taxonomy}` of its primary category, or `null` |
+| `items[].authors` | `[{name, url}]`, main author first |
+| `items[].published`, `publishedText` | When it was published, as an ISO 8601 time in the site's time zone, and as words in the item's language |
+| `items[].image` | `{id, alt, caption, credit, html}` or `null`; `html` is the `<img>` a card draws, safe to insert |
+| `pagination.current`, `total` | This page's number, and how many pages there are (`null` when not known) |
+| `pagination.previous`, `next` | The data address of the newer and the older page, or `null` at either end |
+
+The latest posts' lead and pinned posts are on page 1 of the page and not in the data; its feed is, so a homepage keeps its editorial lead and a script updates just the story grid. The section-filtered home feed is the term's archive: ask for `/category/news/?format=json`.
+
+Answers are stored by the page cache apart from the page, and removed with it when an item changes. Reading them costs nothing the page didn't. Below is a whole Load more script in plain JavaScript, with no library. It goes to the site's own address, which the page's content security policy already allows, and it writes titles with `textContent`, never as HTML:
+
+```js
+// docs/guides/developers/examples/themes/load-more.js
+const list = document.querySelector('[data-load-list]');
+const button = document.querySelector('[data-load-more]');
+
+async function loadMore() {
+    const address = button.dataset.next + (button.dataset.next.includes('?') ? '&' : '?') + 'format=json';
+    const page = await (await fetch(address)).json();
+
+    for (const item of page.items) {
+        const link = document.createElement('a');
+        link.href = item.url;
+        link.textContent = item.title;
+        list.append(link);
+    }
+
+    if (page.pagination.next === null) {
+        button.remove();
+    } else {
+        button.dataset.next = page.pagination.next.replace(/[?&]format=json$/, '');
+    }
+}
+
+button?.addEventListener('click', loadMore);
+```
+
+The markup it expects is a list container and a button that start from the page's own next address, which a template already has:
+
+```blade
+<div data-load-list>…the page's items…</div>
+@if ($page->pagination->next)<button data-load-more data-next="{{ $page->pagination->next }}">{{ __('Load more') }}</button>@endif
+```
+
