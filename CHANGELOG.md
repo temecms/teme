@@ -4,6 +4,36 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Added
+
+**For plugin authors**
+
+- **SEO sockets:** an SEO plugin can set an item's robots value, only ever to make it more private (#483), and set the page title, with the social title and structured data following it and an item's own social title still winning (#776). A plugin's sitemap leaves out items of a type hidden from search (#484). A plugin that answers too slowly for a page's tags, structured data, sitemap, title or image addresses is skipped for the rest of that request, and the fault is recorded once (#482, #765).
+- **Image service:** a plugin can give your images' addresses from an outside image service, such as one that resizes on request (#324).
+- **More hooks:** a file's details changing, moving to the trash, coming back or being deleted for good (#772); a category or tag created, changed or deleted, and an item's categories or tags changing, told once per item (#773); which cache tags and public addresses each purge touched, for purging an outside cache (#771).
+- **Redirects:** a plugin with the new redirects permission adds, lists and removes its own redirects; Tools › Redirects shows which plugin added each one (#778).
+- **Sending files:** the outbound door can upload files and send exact signed bytes, up to 10 MB (#478).
+- **Console commands:** a plugin can add commands under its own name while it's enabled, and can never replace a command that exists (#614).
+- **Export:** a plugin can add its own files to the site export; one that fails is listed as left out and never stops the export (#777).
+- **Removing a plugin's data** also removes its saved settings and stored secrets, and the security log says so (#775).
+
+**For theme authors**
+
+- **Addresses:** the posts page's address and every archive's address (#386), and breadcrumbs that run through a type's archive page (#385).
+- **Listings:** an exact total (#727), each item's reading time (#728), a page's siblings, previous and next, and `<x-teme::items>` to list a type's items from any template (#384); search pages say which section is chosen and how many results each holds (#725).
+- **The body as blocks** (#382), read only when a template asks.
+- **Regions and cards:** a card knows the region it is drawn in (#375); `@regionHasContent` says whether a region has anything to draw (#376); a region can be drawn only from a given screen width, and its content isn't loaded below it (#377); core's card styles sit in the `teme.core` layer, so a theme restyles cards with ordinary CSS (#83).
+- **Archive pages** have their own heading and opening text, set in Site › Types (#383); **authors** can show a role, coverage and links on their public page (#726).
+- **For a theme's script:** search suggestions as the reader types (#752), and any public listing's page as data, for a Load more button (#753).
+
+**For editors**
+
+- A guide to importing from a live WordPress site, including the site's other addresses and bringing the articles first, then the pictures (#751).
+
+### Fixed
+
+- A scheduled region publish whose Custom HTML code changed on the site after it was scheduled no longer publishes that code unattended: it fails with the reason, and the person who scheduled it is told in their inbox (#735).
+
 ## [1.6.1] — 2026-11-26
 
 ### Fixed
