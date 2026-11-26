@@ -27,6 +27,7 @@ use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentDetailsResult;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\Exceptions\StaleRevisionException;
+use App\Domain\Contents\ItemTerms;
 use App\Domain\Contents\LinkProjection;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
@@ -262,6 +263,8 @@ final class UpdateContentDetails extends BaseOperation
             || ($input->authorId !== null && $input->authorId !== (int) $content->author_id)
             || $input->publishedAt !== null;
         $publishedNow = false;
+        $termsBefore = [];
+        $termsAfter = [];
 
         if ($input->title !== null || $input->terms !== null || $input->fields !== null) {
             $current = ContentRevision::findOrFail($content->working_revision_id);
@@ -282,6 +285,8 @@ final class UpdateContentDetails extends BaseOperation
                 // Still translated from the same revision (I-3360).
                 'source_revision_id' => $current->source_revision_id,
             ]);
+            $termsBefore = (array) $current->terms;
+            $termsAfter = (array) $revision->terms;
 
             $content->working_revision_id = $revision->id;
             $content->title = $revision->title;
@@ -314,6 +319,7 @@ final class UpdateContentDetails extends BaseOperation
         }
 
         $content->save();
+        ItemTerms::announce($content, $termsBefore, $termsAfter, $input->actorId());
 
         ContentCounts::apply($before, ContentState::of($content));
         TermProjection::sync($content);

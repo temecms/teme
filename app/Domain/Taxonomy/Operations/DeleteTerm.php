@@ -18,6 +18,7 @@ use App\Domain\Addresses\AddressSettings;
 use App\Domain\Addresses\Jobs\RecomputeAddresses;
 use App\Domain\Addresses\PathProjection;
 use App\Domain\Cache\Footprints;
+use App\Domain\Hooks\Payloads;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
@@ -27,6 +28,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
+use Teme\Contracts\Taxonomy\TermDeleted;
 
 final class DeleteTerm extends BaseOperation
 {
@@ -56,9 +58,13 @@ final class DeleteTerm extends BaseOperation
         $moved = Term::query()->where('parent_id', $term->id)->pluck('id')->all();
         Term::query()->where('parent_id', $term->id)->update(['parent_id' => $term->parent_id]);
 
+        // Taken before the row goes, for the hook (see Payloads::term).
+        $deleted = Payloads::term($term);
+
         // content_terms rows cascade. published_count belongs to this term,
         // so nothing else needs adjusting.
         $term->delete();
+        $this->notifyAfterCommit(TermDeleted::class, fn (): TermDeleted => new TermDeleted($deleted, $input->actorId()));
 
         // Its children moved up to its parent, so their addresses, and their
         // descendants', change.

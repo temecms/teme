@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Media\Operations;
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Hooks\Payloads;
 use App\Domain\Media\MediaCounts;
 use App\Domain\Media\MediaState;
 use App\Domain\Media\Models\Media;
@@ -24,6 +25,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Cache\CacheKeysFor;
+use Teme\Contracts\Media\MediaTrashed;
 use Teme\Contracts\Operations\OperationInput;
 
 final class TrashMedia extends BaseOperation
@@ -52,6 +54,7 @@ final class TrashMedia extends BaseOperation
         $before = MediaState::of($media);
         $media->delete();
         MediaCounts::apply($before, MediaState::of($media));
+        $this->notifyAfterCommit(MediaTrashed::class, fn (): MediaTrashed => new MediaTrashed(Payloads::media($media), $input->actorId()));
 
         // A trashed image draws as nothing (I-263).
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::MEDIA, (string) $media->id, [PageTags::media((string) $media->id)]));

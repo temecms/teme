@@ -27,6 +27,7 @@ use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\ImportedContents;
 use App\Domain\Contents\ImportedItem;
+use App\Domain\Contents\ItemTerms;
 use App\Domain\Contents\LinkProjection;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentReview;
@@ -87,6 +88,8 @@ trait WritesImportedContent
             'kind' => 'import',
             'created_at' => $item->modifiedAt,
         ]) : $current;
+
+        ItemTerms::announce($content, $current === null ? [] : (array) $current->terms, $terms, $actorId);
 
         $published = $item->status === 'published';
 

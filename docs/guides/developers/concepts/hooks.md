@@ -26,6 +26,28 @@ Hooks are how Teme tells a plugin what happened, or asks it to take part in a de
 
 Hooks fire after the change is saved, never during the database transaction. A listener that reads the item sees the committed state. If the transaction had rolled back, no listener would have run for a change that never happened.
 
+## Hooks for media, terms and purged pages
+
+These are all Notifications, sent after commit.
+
+| Hook | When it is sent | Capability |
+|---|---|---|
+| `MediaUpdated` | A file's title, alt text, caption, credit, licence or focal point changed. | `media.read` |
+| `MediaTrashed` | A file was moved to the trash. | `media.read` |
+| `MediaRestored` | A file was taken out of the trash. | `media.read` |
+| `MediaDeleted` | A file in the trash was deleted for good. It carries the file as it was. | `media.read` |
+| `TermCreated` | A category or tag was created. | `content.read` |
+| `TermUpdated` | A category or tag was renamed, or its slug, parent or description changed. | `content.read` |
+| `TermDeleted` | A category or tag was deleted. It carries the term as it was before its row went. | `content.read` |
+| `TermAssigned` | An item's terms changed. | `content.read` |
+| `PagesPurged` | A change removed public pages from the page cache. | `content.read` |
+
+`TermAssigned` is sent once for the item and the change, with a map keyed by taxonomy: for each taxonomy that changed, the IDs of the terms added and the IDs taken off. A save that leaves the terms as they were sends nothing. It is a separate hook from `ContentSaved`, which a save also sends: `ContentSaved` says the item was saved and carries no terms, so listen to `TermAssigned` when you care which terms moved. Changing an item's language sends one `TermAssigned`: its old terms are removed and their versions in the new language are added. Terms deleted outright are not named as removed; listen to `TermDeleted` for those.
+
+`PagesPurged` is sent once for each purge, with the cache tags it removed. Nothing is sent when the page cache is off. The addresses it carries are only the cached pages Teme warms again after a purge, so they are empty when warming is off, and a purge can touch pages they do not list. A plugin that purges a CDN should purge by tag, and treat the addresses as a hint.
+
+An import run does not send term hooks yet, nor any of the other hooks above: what an import run writes is not announced to plugins.
+
 ## Capabilities
 
 A hook may require a capability, declared on the class. `ContentPublished` needs `content.read`. Teme refuses a subscription when the plugin did not ask for that capability in `teme-plugin.json`, and refuses enable when the manifest’s `hooks` and `capabilities` do not match.

@@ -17,6 +17,7 @@ namespace App\Domain\Regions\Operations;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\Exceptions\StaleRevisionException;
+use App\Domain\Contents\ItemTerms;
 use App\Domain\Contents\LinkProjection;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentAutosave;
@@ -86,7 +87,11 @@ final class DiscardRegionChanges extends BaseOperation
         $from = (array) (ContentRevision::query()->whereKey($content->working_revision_id)->value('document') ?? []);
         $to = (array) (ContentRevision::query()->whereKey($target)->value('document') ?? []);
 
+        $termsBefore = (array) (ContentRevision::query()->whereKey($content->working_revision_id)->value('terms') ?? []);
+        $termsAfter = (array) (ContentRevision::query()->whereKey($target)->value('terms') ?? []);
+
         $content->update(['working_revision_id' => $target]);
+        ItemTerms::announce($content, $termsBefore, $termsAfter, $input->actorId());
         ContentCounts::apply($before, ContentState::of($content));
         RegionCodeLog::saved(RegionCode::changes($from, $to), $input->actorId(), (string) $content->id, (string) $content->slug, (string) $target);
 

@@ -22,6 +22,7 @@ use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\DraftChecks;
 use App\Domain\Contents\Exceptions\StaleRevisionException;
+use App\Domain\Contents\ItemTerms;
 use App\Domain\Contents\LinkProjection;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
@@ -105,6 +106,7 @@ final class SaveDraft extends BaseOperation implements RequiresElevation
         }
 
         $fields = app(FieldValidator::class)->validate($content->type, $input->fields, (array) ContentRevision::query()->whereKey($content->working_revision_id)->value('fields'));
+        $termsBefore = (array) ContentRevision::query()->whereKey($content->working_revision_id)->value('terms');
         $title = trim($input->title);
 
         // The normalised document is what is stored; the input is readonly.
@@ -155,6 +157,7 @@ final class SaveDraft extends BaseOperation implements RequiresElevation
         $content->refresh();
         $revisionId = (string) $revision->id;
         $actorId = $input->actorId();
+        ItemTerms::announce($content, $termsBefore, (array) $revision->terms, $actorId);
         $this->notifyAfterCommit(ContentSaved::class, fn (): ContentSaved => new ContentSaved(Payloads::item($content), $revisionId, false, $actorId));
 
         return $content;
