@@ -7,6 +7,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Tests\Fixtures\Jobs\JobsFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -257,8 +258,7 @@ it('applies a Customise menu tick at once and keeps the entry out of the sidebar
     $page->click('[data-test="personalise-media"]');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="nav-media"]\') === null');
 
-    $page->assertNotPresent('[data-test="nav-media"]')
-        ->assertNotPresent('[data-test="personalise-menu-panel"]');
+    $page->assertNotPresent('[data-test="nav-media"]');
     shellSettled($page, 'header[data-slot="app-header"] button');
     $page->assertNoAccessibilityIssues(3);
 });
@@ -291,4 +291,82 @@ it('draws Account and Plugins crumbs, and opens Tools screens from the hub chevr
         }
         JS)
         ->assertNoAccessibilityIssues(3);
+});
+
+it('marks Home current on Home only, not on every other admin page', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900);
+    shellSettled($page, '[data-test="nav-dashboard"]');
+    $page->assertAttribute('[data-test="nav-dashboard"]', 'aria-current', 'page');
+
+    foreach (['/admin/themes', '/admin/tools/page-cache'] as $path) {
+        $page->navigate($path);
+        cmWaitUntil($page, "location.pathname === '{$path}'");
+        shellSettled($page, '[data-test="crumbs"]');
+        $page->assertScript('document.querySelector(\'[data-test="nav-dashboard"]\')?.getAttribute(\'aria-current\') === null');
+    }
+});
+
+it('draws the menu count as an accent pill, the bell count by its weight and the account as a 32 pixel circle, at 1440', function (): void {
+    $item = cmItem($this->admin, 'Harbour news');
+    cmNext($item, 'pending');
+    JobsFixtures::inboxItem($this->admin->id);
+    JobsFixtures::inboxItem($this->admin->id, ['created_at' => now()->subHour()]);
+    $this->actingAs($this->admin)->get(route('dashboard'))->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1440, 900);
+    shellSettled($page, 'header[data-slot="app-header"] button');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="inbox-bell"]\')?.getAttribute(\'aria-label\') === \'Inbox, 2 unread\'');
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const pill = document.querySelector('[data-test="nav-comments"]')
+                ?.closest('[data-sidebar="menu-item"]')
+                ?.querySelector('[data-sidebar="menu-badge"]');
+            if (!pill) {
+                return false;
+            }
+            const style = getComputedStyle(pill);
+            const box = pill.getBoundingClientRect();
+            return pill.textContent.includes('1')
+                && style.backgroundColor !== 'rgba(0, 0, 0, 0)'
+                && parseFloat(style.borderTopLeftRadius) >= box.height / 2;
+        }
+        JS)
+        ->assertScript(<<<'JS'
+        () => {
+            const bell = document.querySelector('[data-test="inbox-bell"]');
+            const count = bell?.querySelector('span');
+            return count !== null && count.textContent.trim() === '2'
+                && parseInt(getComputedStyle(count).fontWeight, 10) >= 500;
+        }
+        JS)
+        ->assertScript(<<<'JS'
+        () => {
+            const box = document.querySelector('[data-test="account-menu-button"] [data-slot="avatar"]')?.getBoundingClientRect();
+            return box !== undefined && Math.round(box.width) === 32 && Math.round(box.height) === 32;
+        }
+        JS)
+        ->assertNoAccessibilityIssues(3);
+});
+
+it('opens the account menu at 1440 and passes axe', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900);
+    shellSettled($page, 'header[data-slot="app-header"] button');
+
+    $page->click('[data-test="account-menu-button"]')->assertVisible('[role="menu"]');
+    shellSettled($page, '[role="menu"]');
+    $page->assertSeeIn('[role="menu"]', 'Ada Admin · Administrator')
+        ->assertNoAccessibilityIssues(3);
+});
+
+it('keeps the Customise menu open after a tick', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900);
+    shellSettled($page, '[data-test="personalise-menu"]');
+
+    $page->click('[data-test="personalise-menu"]');
+    shellSettled($page, '[data-test="personalise-menu-panel"]');
+    $page->click('[data-test="personalise-media"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="nav-media"]\') === null');
+
+    $page->assertVisible('[data-test="personalise-menu-panel"]');
 });

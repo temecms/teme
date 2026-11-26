@@ -14,9 +14,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Status;
 
-use App\Domain\Status\Checks\BackupsSafe;
-use App\Domain\Status\Checks\PageCacheCdnPurges;
-use App\Domain\Status\Checks\PageCacheFolderShared;
 use App\Models\User;
 
 final class StatusChecks
@@ -87,7 +84,7 @@ final class StatusChecks
                 $banners[] = $banner->labelled(
                     $check->label(),
                     $owner === 'core' ? null : $check->label(),
-                    $this->keyOf($check),
+                    $check->key(),
                 );
             }
         }
@@ -111,18 +108,6 @@ final class StatusChecks
         }
 
         return false;
-    }
-
-    /**
-     * A stable key for matching Home's summary rows, not the translated label.
-     */
-    private function keyOf(StatusCheck $check): string
-    {
-        return match ($check::class) {
-            BackupsSafe::class => 'backups',
-            PageCacheCdnPurges::class, PageCacheFolderShared::class => 'page-cache',
-            default => strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', class_basename($check))),
-        };
     }
 
     /**

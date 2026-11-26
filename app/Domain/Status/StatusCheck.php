@@ -17,6 +17,14 @@ namespace App\Domain\Status;
 interface StatusCheck
 {
     /**
+     * A stable key for the check, not its translated label, so Home's
+     * summary rows can tell which checks they own.
+     *
+     * @since next
+     */
+    public function key(): string;
+
+    /**
      * Who may see the banner: the ability that lets them fix the problem.
      */
     public function ability(): string;

@@ -25,6 +25,16 @@ final readonly class LanguageHomeShadowsRedirect implements StatusCheck
     /** As ApiAddressTaken's: something of the site that lost its address. */
     public const int PRIORITY = ApiAddressTaken::PRIORITY;
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'language-home-shadows-redirect';
+    }
+
     public function ability(): string
     {
         return 'redirects.manage';

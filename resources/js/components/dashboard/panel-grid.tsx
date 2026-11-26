@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Home's panel grid: 12 columns, gap 16, dense flow so small panels fill
- * holes left by mediums. A panel spans 4, 6, 8 or 12 by size from 1024;
+ * Home's panel grid: 12 columns, gap 16, in source order so the screen, reading and
+ * keyboard orders agree. A panel spans 4, 6, 8 or 12 by size from 1024;
  * from 768 to 1023 small and medium span 6, large and full 12; under 768
  * every panel spans 12.
  */
@@ -17,7 +17,7 @@ export function PanelGrid({
     return (
         <div
             data-test="home-grid"
-            className={cn('grid grid-flow-dense grid-cols-12 gap-4', className)}
+            className={cn('grid grid-cols-12 gap-4', className)}
         >
             {children}
         </div>

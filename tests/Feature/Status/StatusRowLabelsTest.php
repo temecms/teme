@@ -32,6 +32,16 @@ function srlCheck(string $label, string $level, int $priority): StatusCheck
     {
         public function __construct(private string $label, private string $level, private int $priority) {}
 
+        /**
+         * The check's stable key, matched by Home's summary rows.
+         *
+         * @since next
+         */
+        public function key(): string
+        {
+            return 'test';
+        }
+
         public function ability(): string
         {
             return 'settings.general.manage';

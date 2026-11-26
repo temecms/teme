@@ -19,6 +19,7 @@ import { SoonTag } from '@/components/ui/soon-tag';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AdminNavChild, AdminNavEntry } from '@/types';
 
@@ -147,8 +148,8 @@ function GroupHeading({
 }
 
 /**
- * A plug mark naming the plugin for screen readers. Only when the entry
- * has no icon of its own (the icon is already plug).
+ * A quiet plug mark at the end of a plugin's entry, with the plugin's name
+ * for screen readers.
  */
 function FromPlugin({ name }: { name: string }) {
     return (
@@ -208,7 +209,7 @@ function EntryButton({
                     isActive={isActive}
                     data-test={`nav-${item.key}`}
                     tooltip={{ children: item.label }}
-                    className={hubChevron === true ? 'pe-9' : undefined}
+                    className={hubChevron === true ? 'pe-10' : undefined}
                 >
                     <Link
                         href={item.href}
@@ -227,14 +228,16 @@ function EntryButton({
                     </Link>
                 </SidebarMenuButton>
                 {hubChevron === true && (
-                    <button
+                    <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-xs"
                         data-test={`nav-hub-${item.key}`}
                         aria-expanded={hubOpen === true}
                         aria-label={__('Show or hide :group', {
                             group: item.label,
                         })}
-                        className="text-ink-2 hover:bg-surface-3 absolute end-1 top-1/2 z-10 flex size-7 -translate-y-1/2 items-center justify-center rounded-md group-data-[collapsible=icon]:hidden"
+                        className="text-ink-2 absolute end-1 top-1/2 z-(--z-sticky) -translate-y-1/2 group-data-[collapsible=icon]:hidden"
                         onClick={onHubToggle}
                     >
                         <ChevronDown
@@ -244,7 +247,7 @@ function EntryButton({
                                 hubOpen !== true && '-rotate-90',
                             )}
                         />
-                    </button>
+                    </Button>
                 )}
             </div>
             <NavBadge count={item.badge} />
@@ -307,9 +310,19 @@ export function NavMain({ items: all }: { items: AdminNavEntry[] }) {
     const { currentUrl } = useCurrentUrl();
     const { contentTypes } = usePage().props;
     // A page is within an entry when it is the entry's page or under its address.
-    const within = (href: string): boolean =>
-        href !== '' &&
-        (currentUrl === href || currentUrl.startsWith(`${href}/`));
+    // Home's address is the admin's root, which every page is under: Home is current there only.
+    const within = (href: string): boolean => {
+        const path = currentUrl.split(/[?#]/)[0].replace(/\/$/, '');
+
+        if (href === '/admin') {
+            return path === href;
+        }
+
+        return (
+            href !== '' &&
+            (currentUrl === href || currentUrl.startsWith(`${href}/`))
+        );
+    };
     const items = all.filter((item) => !item.hidden);
     const sections = SECTIONS.filter((section) =>
         items.some((item) => item.section === section),

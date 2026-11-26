@@ -234,12 +234,12 @@ final readonly class AdminNavigation
                 route: 'content.index', routeParameters: ['type' => $type->segment], ability: $type->ability('create'),
             );
 
-            // Pages tree sits under Pages; current on /admin/pages/tree.
-            if ($type->hierarchical && $type->segment === 'pages') {
+            // A hierarchical type's tree sits under it; current on /admin/{segment}/tree.
+            if ($type->hierarchical) {
                 $entries[] = new NavEntry(
-                    'pages.tree', __('Pages tree'), 'list-tree', NavSection::Content, 100 * (count($entries) + 1),
-                    route: 'content.tree', routeParameters: ['type' => 'pages'], ability: $type->ability('create'),
-                    parent: 'pages',
+                    "{$type->segment}.tree", __(':plural tree', ['plural' => $type->plural]), 'list-tree', NavSection::Content, 100 * (count($entries) + 1),
+                    route: 'content.tree', routeParameters: ['type' => $type->segment], ability: $type->ability('create'),
+                    parent: $type->segment,
                 );
             }
         }

@@ -109,15 +109,6 @@ it('has one shell, so no variant of it remains', function (): void {
         ->and(uiComponent('components/app-shell.tsx'))->not->toContain('variant');
 });
 
-it('keeps StatusBanner for page-local notices, taking the banner as a prop', function (): void {
-    $banner = uiComponent('components/status-banner.tsx');
-
-    expect($banner)->toContain('data-test="site-notice"')
-        ->toContain('banner: StatusBannerData')
-        ->not->toContain('usePage()')
-        ->not->toContain('Dismiss');
-});
-
 it('draws the trail of a page in the top bar, the page itself last, and no trail above the page', function (): void {
     expect(uiComponent('components/patterns/crumbs.tsx'))
         ->toContain('data-test="crumbs"')

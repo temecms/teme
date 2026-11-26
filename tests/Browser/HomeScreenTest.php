@@ -80,8 +80,11 @@ it('shows the Site status panel summary for someone who can act, and a quiet lin
         ->assertVisible('[data-test="home-site-status-cache"]')
         ->assertScript(<<<'JS'
             () => {
-                const backups = document.querySelector('[data-test="home-site-status-backups"]')?.innerText ?? '';
-                return backups.includes('Backups are current') || backups.length > 0;
+                const text = (key) => document.querySelector(`[data-test="home-site-status-${key}"]`)?.innerText ?? '';
+                return text('backups').includes('Backups are current')
+                    && (text('cache').includes('Page cache is on') || text('cache').includes('Page cache is off'))
+                    // "All checks pass" only while every row does.
+                    && (!text('cache').includes('Page cache is off') || !text('all').includes('All checks pass'));
             }
             JS)
         ->assertNoAccessibilityIssues(3);

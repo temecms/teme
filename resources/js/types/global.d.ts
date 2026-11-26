@@ -25,6 +25,7 @@ declare module '@inertiajs/core' {
             siteStatus: StatusBanner[];
             /** Whether this person may act on any status check (Home's Site status panel). */
             siteStatusCanAct: boolean;
+            pageCacheOn: boolean;
             /** The header's jobs button and bell (I-104); null for anyone not signed in and verified. */
             headerCounts: HeaderCounts | null;
             contentTypes: ContentTypeInfo[];

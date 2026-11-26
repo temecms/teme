@@ -46,13 +46,13 @@ final readonly class AreaEntries
                 label: $this->areaLabel($plugin),
                 // The area's own icon, or plug when it names none — never a plug at both ends.
                 icon: $plugin->area->icon,
-                // Menu areas sit in Content; Tools-placed areas are hub cards instead.
-                section: NavSection::Content,
+                // The manifest's choice of section, Content by default; Tools-placed areas are hub cards instead.
+                section: $plugin->area->menu === 'site' ? NavSection::Site : NavSection::Content,
                 order: self::ORDER + $index,
                 route: 'plugins.area.show',
                 routeParameters: ['code' => $plugin->code],
                 ability: $plugin->ability(),
-                // Plugin name for screen readers; the menu draws no second plug mark.
+                // The plugin's name for screen readers, beside the menu's quiet plug mark.
                 pluginLabel: $plugin->label,
                 owner: $plugin->name,
             );

@@ -97,6 +97,8 @@ final class HandleInertiaRequests extends Middleware
             'siteStatus' => fn (): array => array_map(fn (StatusBanner $banner): array => $banner->toArray(), $bannersFor()),
             // Whether this person may act on any status check (Home's Site status panel).
             'siteStatusCanAct' => fn (): bool => $request->user() !== null && app(StatusChecks::class)->canAct($request->user()),
+            // Whether the page cache is on, so Home's Site status row says what is true.
+            'pageCacheOn' => fn (): bool => (bool) config('page_cache.enabled'),
             // The header's jobs button and bell (I-104): only for someone
             // the verified routes behind both panels will answer.
             'headerCounts' => function () use ($request): ?array {

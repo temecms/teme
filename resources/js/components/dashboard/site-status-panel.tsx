@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Check, OctagonAlert, TriangleAlert } from 'lucide-react';
+import { Check, Info, OctagonAlert, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { __ } from '@/lib/i18n';
 import type { StatusBanner } from '@/types/status';
@@ -7,6 +7,8 @@ import type { StatusBanner } from '@/types/status';
 type Row = {
     key: string;
     ok: string;
+    /** What the row says when nothing is wrong but the feature is off. */
+    off?: string;
     /** Check keys this row owns; empty means every other problem. */
     keys: string[];
 };
@@ -49,7 +51,7 @@ function matchOthers(banners: StatusBanner[]): StatusBanner | null {
  * cannot act on any check see one quiet line instead of false claims.
  */
 export function SiteStatusPanel() {
-    const { siteStatus, siteStatusCanAct } = usePage().props;
+    const { siteStatus, siteStatusCanAct, pageCacheOn } = usePage().props;
 
     // Built while drawing so __() runs after the page's words arrive.
     const rows: Row[] = [
@@ -66,6 +68,8 @@ export function SiteStatusPanel() {
         {
             key: 'cache',
             ok: __('Page cache is on'),
+            // No check says the cache is on: the row reads the setting itself.
+            off: __('Page cache is off'),
             keys: ['page-cache'],
         },
     ];
@@ -81,16 +85,36 @@ export function SiteStatusPanel() {
     return (
         <ul className="grid gap-2" data-test="home-site-status">
             {rows.map((row) => {
-                const problem =
+                const others = matchOthers(siteStatus);
+                const cacheOff = row.key === 'cache' && !pageCacheOn;
+                const own =
                     row.key === 'all'
-                        ? matchOthers(siteStatus)
+                        ? others
                         : matchKeys(siteStatus, row.keys);
-                const ok = problem === null;
-                const Icon = ok
-                    ? Check
-                    : problem.level === 'error'
-                      ? OctagonAlert
-                      : TriangleAlert;
+                // "All checks pass" only when every row does.
+                const allClear =
+                    others === null &&
+                    matchKeys(siteStatus, ['backups']) === null &&
+                    matchKeys(siteStatus, ['page-cache']) === null &&
+                    pageCacheOn;
+                const problem = own;
+                const notice =
+                    problem === null && row.key === 'all' && !allClear
+                        ? __('Not every check passes')
+                        : problem === null && cacheOff
+                          ? (row.off ?? null)
+                          : null;
+                const ok = problem === null && notice === null;
+                const Icon =
+                    notice !== null
+                        ? row.key === 'all'
+                            ? TriangleAlert
+                            : Info
+                        : problem === null
+                          ? Check
+                          : problem.level === 'error'
+                            ? OctagonAlert
+                            : TriangleAlert;
 
                 return (
                     <li
@@ -102,17 +126,21 @@ export function SiteStatusPanel() {
                             aria-hidden="true"
                             className={
                                 ok
-                                    ? 'text-ok mt-0.5 size-4 shrink-0'
-                                    : problem.level === 'error'
-                                      ? 'text-danger-ink mt-0.5 size-4 shrink-0'
-                                      : 'text-warn-ink mt-0.5 size-4 shrink-0'
+                                    ? 'text-ok mt-1 size-4 shrink-0'
+                                    : problem === null
+                                      ? row.key === 'all'
+                                          ? 'text-warn-ink mt-1 size-4 shrink-0'
+                                          : 'text-ink-2 mt-1 size-4 shrink-0'
+                                      : problem.level === 'error'
+                                        ? 'text-danger-ink mt-1 size-4 shrink-0'
+                                        : 'text-warn-ink mt-1 size-4 shrink-0'
                             }
                         />
                         <div className="grid min-w-0 flex-1 gap-1">
                             <p className="text-body text-ink">
-                                {ok ? row.ok : problem.message}
+                                {ok ? row.ok : (problem?.message ?? notice)}
                             </p>
-                            {!ok &&
+                            {problem !== null &&
                                 problem.actionUrl !== null &&
                                 problem.actionLabel !== null && (
                                     <Button

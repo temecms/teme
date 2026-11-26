@@ -143,7 +143,8 @@ final readonly class Dashboard
     }
 
     /**
-     * Post and Page create actions the viewer may use from Home's header.
+     * The create actions the viewer may use from Home's header, for the
+     * first two types the admin lists, which are core's own, registered first.
      *
      * @param  array<string, list<string>>  $held
      *
@@ -153,11 +154,9 @@ final readonly class Dashboard
     {
         $create = [];
 
-        foreach ($this->listed() as $type) {
-            if (! in_array($type->segment, ['posts', 'pages'], true)) {
-                continue;
-            }
+        $first = array_slice(array_values(array_filter($this->listed(), fn (ContentType $type): bool => ! $type->stored)), 0, 2);
 
+        foreach ($first as $type) {
             if (! in_array('create', $held[$type->key] ?? [], true)) {
                 continue;
             }

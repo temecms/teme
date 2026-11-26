@@ -16,14 +16,11 @@ beforeEach(function (): void {
     };
 });
 
-it('gives the pin limit in the Personalise menu dialog’s description, not under the list', function (): void {
+it('says in the Customise menu’s description that only the person sees the changes, with no pin limit', function (): void {
     $source = ($this->flat)('components/personalise-menu-dialog.tsx');
 
-    // Anchored on the words after {MAX_PINNED}: Prettier may put a {' '} before it.
-    expect(($this->at)($source, 'entries to the top. Hidden entries stay in search'))
-        ->toBeGreaterThan(($this->at)($source, '<DialogDescription>'))
-        ->toBeLessThan(($this->at)($source, '</DialogDescription>'))
-        ->and($source)->not->toContain('entries to the top of your menu');
+    expect($source)->toContain('Only you see these changes. The command palette still finds hidden entries.')
+        ->and($source)->not->toContain('entries to the top');
 });
 
 it('offers Open Search and social as a button beside Home’s search engines notice', function (): void {

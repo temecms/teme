@@ -73,10 +73,6 @@ R2	js/components/list/page-header.tsx	text-[22px]
 R2	js/components/list/row-links.tsx	text-xs
 R2	js/components/list/tab-strip.tsx	text-[11px]
 R2	js/components/list/tab-strip.tsx	text-[13px]
-R2	js/components/personalise-menu-dialog.tsx	text-[11px]
-R2	js/components/personalise-menu-dialog.tsx	text-[13px]
-R2	js/components/personalise-menu-dialog.tsx	text-xs
-R2	js/components/user-menu-content.tsx	text-sm
 R3	js/components/comments/comment-details.tsx	mt-0.5
 R3	js/components/comments/comment-details.tsx	space-y-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
@@ -99,7 +95,6 @@ R3	js/components/ui/sidebar.tsx	peer-data-[size=lg]/menu-button:top-2.5
 R3	js/components/ui/sidebar.tsx	top-1.5
 R3	js/components/ui/sidebar.tsx	top-3.5
 R3	js/components/ui/toggle.tsx	px-1.5
-R3	js/components/user-menu-content.tsx	py-1.5
 R5	js/components/comments/inline-reply.tsx	<textarea>
 R5	js/components/comments/quick-edit.tsx	<textarea>
 R5	js/components/editor/cards/callout-card.tsx	<textarea>

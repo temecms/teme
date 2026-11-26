@@ -25,6 +25,16 @@ use Illuminate\Support\Facades\Cache;
 
 final readonly class PageCacheCdnPurges implements StatusCheck
 {
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'page-cache';
+    }
+
     public function ability(): string
     {
         return 'settings.general.manage';

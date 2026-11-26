@@ -8,6 +8,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
 import { savePreferences } from '@/lib/preferences';
@@ -45,6 +46,10 @@ export function PersonaliseMenuDialog({
     const [problem, setProblem] = useState<string | null>(null);
 
     const applyHidden = async (next: string[]) => {
+        if (saving) {
+            return;
+        }
+
         const previous = hidden;
         setHidden(next);
         setSaving(true);
@@ -62,8 +67,8 @@ export function PersonaliseMenuDialog({
             return;
         }
 
-        onOpenChange(false);
-        router.reload();
+        // Stays open: only the menu's own props are fetched again, so ticking can go on.
+        router.reload({ only: ['nav'] });
     };
 
     return (
@@ -72,68 +77,74 @@ export function PersonaliseMenuDialog({
             <DropdownMenuContent
                 align="start"
                 side="top"
-                className="max-h-[min(28rem,70vh)] w-72 overflow-y-auto"
+                className="flex max-h-(--radix-dropdown-menu-content-available-height) w-72 flex-col overflow-hidden"
                 data-test="personalise-menu-panel"
             >
-                <DropdownMenuLabel className="text-body text-ink font-semibold">
-                    {__('Customise menu')}
-                </DropdownMenuLabel>
-                <p className="text-caption text-ink-2 px-2 pb-2">
-                    {__(
-                        'Only you see these changes. The command palette still finds hidden entries.',
-                    )}
-                </p>
-
-                {problem !== null && (
-                    <p
-                        role="alert"
-                        className="text-danger-ink text-small px-2 pb-2"
-                    >
-                        {problem}
+                <ScrollArea>
+                    <DropdownMenuLabel className="text-body text-ink font-semibold">
+                        {__('Customise menu')}
+                    </DropdownMenuLabel>
+                    <p className="text-caption text-ink-2 px-2 pb-2">
+                        {__(
+                            'Only you see these changes. The command palette still finds hidden entries.',
+                        )}
                     </p>
-                )}
 
-                {sections.map((section) => (
-                    <DropdownMenuGroup key={section}>
-                        <DropdownMenuLabel className="text-caption text-ink-3 font-semibold tracking-[0.04em] uppercase">
-                            {headings[section]}
-                        </DropdownMenuLabel>
-                        {nav
-                            .filter((entry) => entry.section === section)
-                            .map((entry) => {
-                                const Icon = navIcon(entry.icon);
-                                const isHidden = hidden.includes(entry.key);
+                    {problem !== null && (
+                        <p
+                            role="alert"
+                            className="text-danger-ink text-small px-2 pb-2"
+                        >
+                            {problem}
+                        </p>
+                    )}
 
-                                return (
-                                    <DropdownMenuCheckboxItem
-                                        key={entry.key}
-                                        data-test={`personalise-${entry.key}`}
-                                        checked={!isHidden}
-                                        disabled={saving}
-                                        onSelect={(event) =>
-                                            event.preventDefault()
-                                        }
-                                        onCheckedChange={(checked) => {
-                                            void applyHidden(
-                                                checked
-                                                    ? hidden.filter(
-                                                          (hid) =>
-                                                              hid !== entry.key,
-                                                      )
-                                                    : [...hidden, entry.key],
-                                            );
-                                        }}
-                                        aria-label={__('Show :label', {
-                                            label: entry.label,
-                                        })}
-                                    >
-                                        <Icon className="size-4" />
-                                        {entry.label}
-                                    </DropdownMenuCheckboxItem>
-                                );
-                            })}
-                    </DropdownMenuGroup>
-                ))}
+                    {sections.map((section) => (
+                        <DropdownMenuGroup key={section}>
+                            <DropdownMenuLabel className="text-caption text-ink-3 font-semibold">
+                                {headings[section]}
+                            </DropdownMenuLabel>
+                            {nav
+                                .filter((entry) => entry.section === section)
+                                .map((entry) => {
+                                    const Icon = navIcon(entry.icon);
+                                    const isHidden = hidden.includes(entry.key);
+
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={entry.key}
+                                            data-test={`personalise-${entry.key}`}
+                                            checked={!isHidden}
+                                            aria-busy={saving}
+                                            onSelect={(event) =>
+                                                event.preventDefault()
+                                            }
+                                            onCheckedChange={(checked) => {
+                                                void applyHidden(
+                                                    checked
+                                                        ? hidden.filter(
+                                                              (hid) =>
+                                                                  hid !==
+                                                                  entry.key,
+                                                          )
+                                                        : [
+                                                              ...hidden,
+                                                              entry.key,
+                                                          ],
+                                                );
+                                            }}
+                                            aria-label={__('Show :label', {
+                                                label: entry.label,
+                                            })}
+                                        >
+                                            <Icon className="size-4" />
+                                            {entry.label}
+                                        </DropdownMenuCheckboxItem>
+                                    );
+                                })}
+                        </DropdownMenuGroup>
+                    ))}
+                </ScrollArea>
             </DropdownMenuContent>
         </DropdownMenu>
     );
