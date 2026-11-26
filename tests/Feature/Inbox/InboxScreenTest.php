@@ -55,6 +55,19 @@ it('sends kind, result and place from the server, not from the title’s English
             ->where('rows.0.place', 'Tools › Backups'));
 });
 
+it('draws a warning only for the exact warning kinds, never for a kind that merely contains the word', function (string $kind, ?string $result): void {
+    JobsFixtures::inboxItem($this->ada->id, ['kind' => $kind]);
+
+    $this->actingAs($this->ada)->get('/admin/inbox')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('rows.0.kind', $kind)
+            ->where('rows.0.result', $result));
+})->with([
+    'a warning kind' => ['job.warning', 'warning'],
+    'the bare kind' => ['warning', 'warning'],
+    'a word inside a kind' => ['plugin.forwarded', null],
+]);
+
 it('pages the inbox by the reader’s page size, with addresses for the pages either side (I-140)', function (): void {
     foreach (range(1, 30) as $minutes) {
         JobsFixtures::inboxItem($this->ada->id, ['created_at' => now()->subMinutes($minutes)]);

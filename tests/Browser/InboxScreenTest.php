@@ -110,3 +110,24 @@ it('draws kind and Failed from the server result, shows the place in the meta li
         ->and(DB::table('inbox_items')->where('id', $this->failed)->value('read_at'))->not->toBeNull()
         ->and(DB::table('inbox_items')->where('id', $this->opened)->value('read_at'))->toBeNull();
 });
+
+it('draws a different kind icon for a failed and a finished item, at 1440, with axe clean', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/inbox');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"inbox-item\"][data-result=\"failed\"]') !== null");
+
+    $icons = $page->script(<<<'JS'
+        () => {
+            const icon = (result) => document.querySelector(`[data-test="inbox-item"][data-result="${result}"] svg`);
+            const size = icon('failed')?.getBoundingClientRect().width ?? 0;
+
+            return {
+                failed: icon('failed')?.getAttribute('class')?.includes('text-danger-ink') ?? false,
+                finished: icon('finished')?.getAttribute('class')?.includes('text-ok-ink') ?? false,
+                size,
+            };
+        }
+        JS);
+
+    expect($icons)->toBe(['failed' => true, 'finished' => true, 'size' => 20])
+        ->and(cmAxeViolations($page))->toBe([]);
+});
