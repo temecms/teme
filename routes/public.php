@@ -27,9 +27,11 @@ use App\Http\Site\Middleware\ServeRootFiles;
 use App\Http\Site\PendingCommentsController;
 use App\Http\Site\PolicyReportController;
 use App\Http\Site\PublicController;
+use App\Http\Site\RegionFragmentController;
 use App\Http\Site\RobotsTxtController;
 use App\Http\Site\SessionController;
 use App\Http\Site\SitemapController;
+use App\Http\Site\SuggestController;
 use App\Http\Site\UnlockController;
 use Illuminate\Support\Facades\Route;
 
@@ -60,6 +62,14 @@ Route::post('_teme/unlock', UnlockController::class)->name('teme.unlock');
 // carries no authority to borrow), a count of reports per address and per site, and a spool
 // instead of a table; reserved (_teme), so the page cache passes it by.
 Route::post('_teme/csp', PolicyReportController::class)->middleware([BareReportAnswer::class, 'throttle:csp-reports'])->name('teme.csp');
+
+// Search suggestions for a theme's overlay: read-only JSON, counted per address, stored by the
+// page cache for a short time and kept apart by its query and language (docs/guides/developers/themes/archive-pages.md).
+Route::middleware(['public', 'throttle:suggest', MarkCacheable::class])->get('_teme/suggest', SuggestController::class)->name('teme.suggest');
+
+// A region that waits for a viewport width, answered to core's script: HTML, stored by the page cache
+// like the page and kept apart by its name and language (docs/guides/developers/themes/regions.md).
+Route::middleware(['public', 'throttle:region-fragment'])->get('_teme/region', RegionFragmentController::class)->name('teme.region');
 
 // Exact public addresses before any catch-all fallback (docs/plans/plugin-public-routes.md).
 Route::middleware(['public', MarkCacheable::class])->get('robots.txt', RobotsTxtController::class)->name('robots-txt');

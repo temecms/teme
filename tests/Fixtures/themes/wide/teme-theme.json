@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "code": "wide",
+    "name": "Fixture Wide",
+    "version": "0.1.0",
+    "description": "A usable theme with a region drawn only from a viewport width, and one drawn at every width.",
+    "requires": { "teme": "^0.1" },
+    "regions": {
+        "half-page": { "group": "Ad placements", "label": "Half page", "size": "300x600", "minWidth": 1440 },
+        "after-content": { "label": "After the article" }
+    }
+}

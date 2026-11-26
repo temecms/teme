@@ -457,6 +457,12 @@
         "ListingView::$breadcrumbs": {
             "type": "list<Crumb>|null"
         },
+        "ListingView::$heading": {
+            "type": "?string"
+        },
+        "ListingView::$introHtml": {
+            "type": "?string"
+        },
         "ListingView::$items": {
             "type": "list<ListingItem>"
         },
@@ -515,6 +521,12 @@
             "type": "string"
         },
         "Person::$url": {
+            "type": "string"
+        },
+        "ProfileLink::$label": {
+            "type": "string"
+        },
+        "ProfileLink::$url": {
             "type": "string"
         },
         "ProtectedView::$error": {
@@ -637,6 +649,9 @@
         "Subject::$children": {
             "type": "list<TermLink>"
         },
+        "Subject::$coverage": {
+            "type": "?string"
+        },
         "Subject::$description": {
             "type": "?string"
         },
@@ -646,8 +661,17 @@
         "Subject::$kind": {
             "type": "string"
         },
+        "Subject::$links": {
+            "type": "list<ProfileLink>"
+        },
         "Subject::$parent": {
             "type": "?TermLink"
+        },
+        "Subject::$publishedCount": {
+            "type": "?int"
+        },
+        "Subject::$role": {
+            "type": "?string"
         },
         "Subject::$taxonomy": {
             "type": "?string"

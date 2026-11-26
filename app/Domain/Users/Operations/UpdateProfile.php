@@ -16,6 +16,7 @@ namespace App\Domain\Users\Operations;
 use App\Domain\Addresses\PathProjection;
 use App\Domain\Cache\Footprints;
 use App\Domain\Contents\AuthorSort;
+use App\Domain\People\PublicProfile;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Users\Operations\Input\UpdateProfileInput;
 use App\Models\User;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
@@ -57,6 +59,14 @@ final class UpdateProfile extends BaseOperation implements RequiresElevation
                 'bio' => ['nullable', 'string', 'max:1000'],
             ],
         )->validate();
+
+        if ($input->publicProfile !== null) {
+            $problems = PublicProfile::problems(PublicProfile::clean($input->publicProfile));
+
+            if ($problems !== []) {
+                throw ValidationException::withMessages($problems);
+            }
+        }
     }
 
     protected function perform(OperationInput $input): null
@@ -79,10 +89,16 @@ final class UpdateProfile extends BaseOperation implements RequiresElevation
             $user->email_verified_at = null;
         }
 
+        // Null leaves what they chose to show; an empty form clears it. Stored as one object, never a list.
+        if ($input->publicProfile !== null) {
+            $clean = PublicProfile::clean($input->publicProfile);
+            $user->public_profile = $clean === [] ? null : $clean;
+        }
+
         $renamed = $user->isDirty('name');
         // Their name and bio are shown under their articles and on their
         // page; their email isn't (I-263).
-        $shownChanged = $renamed || $user->isDirty('bio');
+        $shownChanged = $renamed || $user->isDirty('bio') || $user->isDirty('public_profile');
         $user->save();
 
         // One set-based statement, like ContentCounts::moveAuthor, so the

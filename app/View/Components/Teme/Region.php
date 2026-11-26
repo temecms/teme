@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\View\Components\Teme;
 
+use App\Domain\Languages\PageLanguage;
 use App\Domain\Regions\RegionDrawing;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
@@ -36,6 +37,12 @@ final class Region extends Component
 
     public bool $undeclared;
 
+    /** The viewport width the region waits for, in pixels, or null when it is drawn in the page. */
+    public ?int $minWidth = null;
+
+    /** Where core's script fetches a region that waits for a width. */
+    public string $source = '';
+
     /** What plugins place before the region, cleaned, or ''. */
     public string $before = '';
 
@@ -54,6 +61,8 @@ final class Region extends Component
         $this->undeclared = $drawn['undeclared'];
         $this->before = $drawn['before'];
         $this->after = $drawn['after'];
+        $this->minWidth = $drawn['minWidth'];
+        $this->source = $this->minWidth === null ? '' : route('teme.region', [], false).'?'.http_build_query(['name' => $name, 'lang' => app(PageLanguage::class)->tag()]);
     }
 
     public function render(): View

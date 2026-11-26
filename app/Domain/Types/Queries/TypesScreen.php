@@ -122,7 +122,7 @@ final readonly class TypesScreen
      * One type's page, a stored row ahead of a type code declares, or null
      * when neither exists.
      *
-     * @return array{mode: string, source: ?string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: ?string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}|null
+     * @return array{mode: string, source: ?string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string, archive_heading: ?string, archive_intro: ?array<mixed>}, made: ?string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}|null
      */
     public function type(string $key): ?array
     {
@@ -144,7 +144,7 @@ final readonly class TypesScreen
     /**
      * The page for making a type, with the field's own empty values.
      *
-     * @return array{mode: string, source: null, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: null, pattern: null, permissions: string}, made: null, items: int, trashed: int, example: null, listUrl: null, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
+     * @return array{mode: string, source: null, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: null, pattern: null, permissions: string, archive_heading: ?string, archive_intro: ?array<mixed>}, made: null, items: int, trashed: int, example: null, listUrl: null, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
     public function blank(): array
     {
@@ -167,6 +167,8 @@ final readonly class TypesScreen
                 'comments' => null,
                 'pattern' => null,
                 'permissions' => TypeDefinition::SHARED,
+                'archive_heading' => null,
+                'archive_intro' => null,
             ],
             'made' => null,
             'items' => 0,
@@ -298,7 +300,7 @@ final readonly class TypesScreen
     }
 
     /**
-     * @return array{mode: string, source: string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
+     * @return array{mode: string, source: string, reason: ?string, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string, archive_heading: ?string, archive_intro: ?array<mixed>}, made: string, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
     private function storedPage(object $row): array
     {
@@ -355,7 +357,7 @@ final readonly class TypesScreen
     }
 
     /**
-     * @return array{mode: string, source: string, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}, made: null, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
+     * @return array{mode: string, source: string, reason: null, type: array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string, archive_heading: ?string, archive_intro: ?array<mixed>}, made: null, items: int, trashed: int, example: ?string, listUrl: ?string, options: array{taxonomies: list<array{key: string, plural: string}>, features: list<array{key: string, label: string, hint: ?string, field: string}>}, permissions: array{roles: list<array{key: string, label: string}>, actions: list<array{key: string, label: string, ability: string}>, holds: array<string, list<string>>}, fields: array{own: list<string>, fromTeme: list<string>, url: string|null}, plugin: ?string, pluginEnabled: bool, nameClash: ?string}
      */
     private function codePage(ContentType $type): array
     {
@@ -385,6 +387,8 @@ final readonly class TypesScreen
                 'comments' => $type->comments?->value,
                 'pattern' => $this->livePattern($type->key, $type->public, AddressSettings::current()),
                 'permissions' => $type->abilities === [] ? TypeDefinition::SHARED : TypeDefinition::OWN,
+                'archive_heading' => $type->archiveHeading,
+                'archive_intro' => $type->archiveIntro,
             ],
             'made' => null,
             'items' => $count['items'],
@@ -401,7 +405,7 @@ final readonly class TypesScreen
     }
 
     /**
-     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}
+     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string, archive_heading: ?string, archive_intro: ?array<mixed>}
      */
     private function values(TypeDefinition $definition, ?string $pattern): array
     {
@@ -420,6 +424,8 @@ final readonly class TypesScreen
             'comments' => $definition->comments,
             'pattern' => $pattern,
             'permissions' => $definition->permissions,
+            'archive_heading' => $definition->archiveHeading,
+            'archive_intro' => $definition->archiveIntro,
         ];
     }
 

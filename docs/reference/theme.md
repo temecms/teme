@@ -23,7 +23,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `license` | string | no | Shown to people only; Teme reads nothing from it. |
 | `templates` | object | no | Content type, then template slug, then label. Every slug but default needs views/templates/single-{type}-{slug}.blade.php: only the theme's files can say whether it exists. |
 | `navigations` | object | no | The places the theme draws a menu: slot, then label. |
-| `regions` | object | no | The places the theme puts the site's own content: slug, then label, group, cards, max and size. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are. |
+| `regions` | object | no | The places the theme puts the site's own content: slug, then label, group, cards, max, size and minWidth. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are. |
 | `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. |
 | `assets` | object | no | The theme's Vite build. |
 | `title_separator` | string | no | Between the parts of a page's title; – when absent. |
@@ -313,6 +313,8 @@ One page of a listing as its template sees it, as `$page`: what it is about (nul
 | `$search` | `?SearchDetails` | what only a search has; null for any other listing |
 | `$breadcrumbs` | `list<Crumb>\|null` | the trail to it, when the active theme draws one |
 | `$total` | `?int` | how many items the listing holds in all, on every page: the exact number readers can see, in the page's language; null where core doesn't count them all, such as a listing deeper than its last page served |
+| `$heading` | `?string` | a type's archive page's heading, the type's plural unless its archive page sets its own; null for any other listing |
+| `$introHtml` | `?string` | a type's archive page's opening text, drawn and safe to print unescaped; null for none, and for any other listing |
 
 ### NotFoundView
 
@@ -356,6 +358,15 @@ A person an item credits, as a page shows them.
 | `$name` | `string` | the author's name |
 | `$url` | `string` | the address of their author page, site-relative; `''` when they have none |
 | `$bio` | `?string` | the bio they wrote, or null |
+
+### ProfileLink
+
+A link a person chose to show on their public author page.
+
+| Name | Type | Description |
+|---|---|---|
+| `$label` | `string` | what the link is called, as the person wrote it |
+| `$url` | `string` | the address it leads to, an https:// or http:// address on another site |
 
 ### ProtectedView
 
@@ -452,6 +463,10 @@ What a listing is about: a term, an author, a date, the latest posts at the post
 | `$taxonomy` | `?string` | a term's taxonomy key; null for any other subject |
 | `$parent` | `?TermLink` | a term's parent in a hierarchical taxonomy, whether or not it holds published items; null for a top term, a flat taxonomy's and any other subject |
 | `$children` | `list<TermLink>` | a term's children in a hierarchical taxonomy that hold at least one published item, by name, at most 100; none for any other subject |
+| `$role` | `?string` | an author's role line, when they filled it; null for any other subject |
+| `$coverage` | `?string` | an author's coverage line, when they filled it; null for any other subject |
+| `$links` | `list<ProfileLink>` | the links an author chose to show, at most six; none for any other subject |
+| `$publishedCount` | `?int` | how many items an author's page lists, in the page's language; null for any other subject, and when there are more than the page counts |
 
 ### TermLink
 

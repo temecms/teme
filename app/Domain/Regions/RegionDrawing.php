@@ -16,10 +16,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Regions;
 
-use App\Domain\Cards\CardUsage;
-use App\Domain\Cards\DocumentRenderer;
-use App\Domain\Cards\LinkResolver;
-use App\Domain\Cards\RenderContext;
 use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Themes\ActiveTheme;
 use Teme\Contracts\Insertions\PagePosition;
@@ -30,7 +26,7 @@ final readonly class RegionDrawing
         private ActiveTheme $active,
         private RegionDeclarations $declarations,
         private Regions $regions,
-        private DocumentRenderer $renderer,
+        private RegionDraw $draw,
     ) {}
 
     /**
@@ -38,9 +34,11 @@ final readonly class RegionDrawing
      * the region is empty or unpublished; `before` and `after` what plugins
      * place around it, '' for none, which is drawn also when it is empty;
      * `undeclared` whether the theme's manifest lacks the region while the
-     * site is not in production.
+     * site is not in production; `minWidth` the viewport width a region
+     * with content waits for, in pixels, or null when it is drawn in the
+     * page.
      *
-     * @return array{html: string|null, before: string, after: string, undeclared: bool}
+     * @return array{html: string|null, before: string, after: string, undeclared: bool, minWidth: int|null}
      */
     public function for(string $name): array
     {
@@ -59,15 +57,16 @@ final readonly class RegionDrawing
     }
 
     /**
-     * @return array{html: string|null, before: string, after: string, undeclared: bool}
+     * @return array{html: string|null, before: string, after: string, undeclared: bool, minWidth: int|null}
      */
     private function build(string $name): array
     {
         $theme = $this->active->get();
         $declaration = $theme === null ? null : ($this->declarations->for($theme)[$name] ?? null);
         $declared = $declaration !== null;
-        $document = $declared ? $this->regions->published($theme->code, $name) : null;
-        $html = $document === null ? '' : $this->renderer->html($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), region: RegionDeclarations::cardRegion($theme->code, $name, $declaration)));
+        // A region that waits for a width is drawn here all the same: its cards' styles and its scripts' hashes and hosts are
+        // noted for this page's head and policy, though the component prints only a placeholder (docs/guides/developers/themes/regions.md).
+        $html = $declared ? $this->draw->html($theme, $name, $declaration) : '';
         $before = '';
         $after = '';
 
@@ -84,11 +83,14 @@ final readonly class RegionDrawing
             }
         }
 
+        $html = trim($html) === '' ? null : $html;
+
         return [
-            'html' => trim($html) === '' ? null : $html,
+            'html' => $html,
             'before' => $before,
             'after' => $after,
             'undeclared' => $theme !== null && ! $declared && ! app()->isProduction(),
+            'minWidth' => $html === null ? null : ($declaration['minWidth'] ?? null),
         ];
     }
 }

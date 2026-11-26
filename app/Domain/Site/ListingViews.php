@@ -20,12 +20,16 @@ use App\Domain\Addresses\ListingTypes;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\CardMedia;
+use App\Domain\Cards\CardProse;
+use App\Domain\Cards\LinkResolver;
+use App\Domain\Cards\RenderContext;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\Types\MediaField;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\People\Credit;
 use App\Domain\People\Credits;
+use App\Domain\People\PublicProfile;
 use App\Domain\People\Queries\People;
 use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\ViewModels\ImageRef;
@@ -178,17 +182,22 @@ final readonly class ListingViews
     {
         app(RenderRecord::class)->tag(PageTags::listOf($type));
         $url = Addresses::toUrl($path);
-        $plural = app(ContentTypeRegistry::class)->get($type)->plural;
+        $definition = app(ContentTypeRegistry::class)->get($type);
+        $plural = $definition->plural;
+        $heading = $definition->archiveHeading !== null && trim($definition->archiveHeading) !== '' ? trim($definition->archiveHeading) : $plural;
+        $intro = $definition->archiveIntro === null ? '' : CardProse::html($definition->archiveIntro, new RenderContext(app(LinkResolver::class)));
         $items = self::inLanguage(self::archive([$type]), $language);
         $listed = $this->page(clone $items, $page);
         [$count, $exact] = $this->count(clone $items, [$type], $language);
 
         return new ListingView(
-            new Subject('type', $plural, url: $url),
+            new Subject('type', $heading, url: $url),
             $listed,
             $this->pagination($page, $count, $url),
             breadcrumbs: $this->trail->wanted() ? $this->trail->to($plural, $url) : null,
             total: $exact ? $count : null,
+            heading: $heading,
+            introHtml: $intro === '' ? null : $intro,
         );
     }
 
@@ -199,7 +208,7 @@ final readonly class ListingViews
      * touches an account, its list is read as before bylines, straight from
      * its index, and counted from the stored counts (I-3366).
      *
-     * @param  User|object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null}  $shown
+     * @param  User|object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null, profile?: array<mixed>|null}  $shown
      */
     public function forAuthor(object $shown, int $page, ?string $language = null): ListingView
     {
@@ -227,8 +236,12 @@ final readonly class ListingViews
             [$count, $exact] = $this->capped(clone $items);
         }
 
+        // Only an account has a profile to fill; the count is left out when it stopped at the page limit.
+        $profile = $credit->kind === Credit::ACCOUNT ? PublicProfile::shown(is_array($shown->profile ?? null) ? $shown->profile : []) : ['role' => null, 'coverage' => null, 'links' => []];
+        $exact = $count < PathResolver::LAST_PAGE * $this->perPage() ? $count : null;
+
         return new ListingView(
-            new Subject('author', $shown->name, $shown->bio, url: $url),
+            new Subject('author', $shown->name, $shown->bio, url: $url, role: $profile['role'], coverage: $profile['coverage'], links: $profile['links'], publishedCount: $exact),
             $this->page(clone $items, $page),
             $this->pagination($page, $count, $url ?? '/'),
             breadcrumbs: $this->trail->wanted() ? $this->trail->to($shown->name, $url ?? '') : null,

@@ -19,6 +19,7 @@ namespace App\Domain\Cache;
 
 use App\Domain\Api\ApiPaths;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\Site\ListingData;
 use App\Domain\Site\SearchViews;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,12 @@ final readonly class PageKey
 {
     /** The query parameters a public page's answer depends on without plugins: PathResolver reads `s` (1.6h) and, for a search, `section`. */
     public const array QUERY = ['s', 'section'];
+
+    /** The address of the search suggestions a theme's overlay asks for. */
+    public const string SUGGESTIONS = '/_teme/suggest';
+
+    /** The address of the fragment of a region that waits for a viewport width. */
+    public const string REGIONS = '/_teme/region';
 
     /**
      * @param  bool  $search  whether the key keeps a query the reader wrote: a search's page, or an API answer with parameters
@@ -65,7 +72,13 @@ final readonly class PageKey
 
         // An API answer depends on every parameter its route takes, and the
         // API refuses any other, so a stored answer is never one a typo made.
-        $names = ApiPaths::is($path) ? array_map(strval(...), array_keys($parameters)) : $registry->cacheQueryNames();
+        $names = match (true) {
+            ApiPaths::is($path) => array_map(strval(...), array_keys($parameters)),
+            // The suggestions' answer depends on the query and the language, and on nothing else.
+            self::isSuggestions($path) => ['q', 'lang'],
+            self::isRegionFragment($path) => ['name', 'lang'],
+            default => [...$registry->cacheQueryNames(), ListingData::PARAMETER],
+        };
         $kept = [];
 
         foreach ($names as $name) {
@@ -75,6 +88,11 @@ final readonly class PageKey
 
             if (! is_string($parameters[$name])) {
                 return null;
+            }
+
+            // Only the one value means anything: any other would store a copy of the page for each.
+            if ($name === ListingData::PARAMETER && $parameters[$name] !== ListingData::FORMAT) {
+                continue;
             }
 
             $kept[$name] = $parameters[$name];
@@ -91,6 +109,30 @@ final readonly class PageKey
         $suffix = $accept === null ? '' : '|accept:'.$accept;
 
         return new self(strtolower($request->getSchemeAndHttpHost()).$path.$query.$suffix, $path, $kept !== []);
+    }
+
+    /**
+     * Whether this path is the suggestions' address, read as the router reads it.
+     */
+    public static function isSuggestions(string $path): bool
+    {
+        return rtrim(strtolower(rawurldecode($path)), '/') === self::SUGGESTIONS;
+    }
+
+    /**
+     * Whether this path is a region fragment's address, read as the router reads it.
+     */
+    public static function isRegionFragment(string $path): bool
+    {
+        return rtrim(strtolower(rawurldecode($path)), '/') === self::REGIONS;
+    }
+
+    /**
+     * Whether this path is one of the two reserved addresses the page cache stores answers for.
+     */
+    public static function isStoredEndpoint(string $path): bool
+    {
+        return self::isSuggestions($path) || self::isRegionFragment($path);
     }
 
     /**

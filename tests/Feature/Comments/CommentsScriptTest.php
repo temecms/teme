@@ -7,6 +7,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -69,6 +70,22 @@ it('keeps core\'s two scripts within 5 KB compressed, study Q\'s budget for enha
     preg_match_all('#<script data-teme="(?:session|comments)">(.+?)</script>#s', (string) addrGet('/harbour-news/')->getContent(), $scripts);
 
     expect($scripts[1])->toHaveCount(2)
+        ->and(strlen((string) gzencode(implode('', $scripts[1]), 9)))->toBeLessThanOrEqual(5 * 1024);
+});
+
+it('keeps core\'s three scripts, the regions one too, within the same 5 KB compressed on a page with a width region (I-253)', function (): void {
+    config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/wide')]]);
+    themeActivate('wide');
+    $admin = User::factory()->create()->assignRole('administrator');
+    $region = regionCreate($admin, 'wide', 'half-page');
+    scElevated(function () use ($region, $admin): void {
+        regionSave($region, $admin, [['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'code' => '<div>Ad</div>', 'origins' => []]]]);
+        listsPublish($region, $admin);
+    });
+
+    preg_match_all('#<script data-teme="(?:session|comments|regions)">(.+?)</script>#s', (string) addrGet('/harbour-news/')->getContent(), $scripts);
+
+    expect($scripts[1])->toHaveCount(3)
         ->and(strlen((string) gzencode(implode('', $scripts[1]), 9)))->toBeLessThanOrEqual(5 * 1024);
 });
 

@@ -8,6 +8,9 @@
     <div class="wrap">
         <header class="archive-header">
             <h1>{{ $page->subject?->title }}</h1>
+            @if ($page->introHtml !== null)
+                <div class="archive-intro">{!! $page->introHtml !!}</div>
+            @endif
             @if (($themeSettings['archive_header'] ?? 'full') === 'full' && ($page->subject?->description ?? '') !== '')
                 <p class="description">{{ $page->subject->description }}</p>
             @endif

@@ -35,6 +35,7 @@ use stdClass;
  * @property CarbonInterface|null $suspended_at
  * @property array<string, mixed>|null $preferences
  * @property string|null $picture_media_id
+ * @property array<string, mixed>|null $public_profile
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
@@ -76,6 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'invited_at' => 'datetime',
             'suspended_at' => 'datetime',
             'preferences' => 'array',
+            'public_profile' => 'array',
         ];
     }
 

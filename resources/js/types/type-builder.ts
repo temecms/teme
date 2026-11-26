@@ -42,6 +42,8 @@ export type TypeValues = {
     comments: TypeComments;
     pattern: string | null;
     permissions: 'shared' | 'own';
+    archive_heading: string | null;
+    archive_intro: Record<string, unknown> | null;
 };
 
 export type TypePermissions = {

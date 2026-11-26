@@ -71,6 +71,14 @@ class AppServiceProvider extends ServiceProvider
             ? Limit::perMinute(30)->by((string) $request->ip())
             : Limit::none());
 
+        // A search overlay asks as someone types; a page's stored answers aren't counted, so this
+        // bounds only what is drawn, per address.
+        RateLimiter::for('suggest', fn (Request $request): Limit => Limit::perMinute(60)->by('suggest:'.$request->ip()));
+
+        // A width region's content is asked for once per page view, by core's script; it has its own
+        // tally, so a search overlay's typing never uses up a region's budget, nor the reverse.
+        RateLimiter::for('region-fragment', fn (Request $request): Limit => Limit::perMinute(60)->by('region-fragment:'.$request->ip()));
+
         // The command palette searches as someone types, debounced; sixty a
         // minute is far more than a person types, and bounds a script.
         RateLimiter::for('admin-search', fn (Request $request): Limit => Limit::perMinute(60)->by((string) $request->user()?->getAuthIdentifier()));
