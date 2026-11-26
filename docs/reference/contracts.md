@@ -180,6 +180,14 @@ A change to something the public site shows, as the page cache is told of it: wh
 - `SITE` — The whole site, as a repair of what every list counts on changes it; its ID is `*`. Since 0.1.0.
 - `__construct(string $subject, string $id, array $keys)`. Since 0.1.0.
 
+### PagesPurged
+
+`Teme\Contracts\Cache\PagesPurged`, class. Since next.
+
+The public pages a change purged from the page cache, and the CDN purge queued for them. Sent once for each purge, after the change is saved and never inside its transaction, so a plugin can purge an outside cache of its own. Nothing is sent when the page cache is off. The tags are what a purge is made of, so purge an outside cache by tag. The addresses are only the cached pages core warms again, and are empty when warming is off, so never rely on them being complete.
+
+A hook: its parameters are in the [hooks reference](hooks.md#pagespurged).
+
 ## Teme\Contracts\Cards
 
 ### CardChoice
@@ -1200,6 +1208,14 @@ A driver that gives the address of an image's size from an outside image service
 
 - `imageAddress(string $mediaId, string $variant, string $format): ?string` — The address of this size of this image in this format: an absolute `https://` address on the host the plugin's manifest declares for its image service, or a path on this site starting with a single `/`. Since next.
 
+### MediaDeleted
+
+`Teme\Contracts\Media\MediaDeleted`, class. Since next.
+
+A file was deleted for good, after it had been in the trash. Its payload is the file as it was before its row went. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediadeleted).
+
 ### MediaRef
 
 `Teme\Contracts\Media\MediaRef`, class. Since 0.5.0.
@@ -1208,6 +1224,14 @@ A media item as a hook tells of it: plain values read after the change was saved
 
 - `__construct(string $id, string $kind, string $mimeType, string $filename, string $title, int $sizeBytes, ?int $width, ?int $height)`. Since 0.5.0.
 
+### MediaRestored
+
+`Teme\Contracts\Media\MediaRestored`, class. Since next.
+
+A file was taken out of the trash and is live again. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediarestored).
+
 ### MediaStored
 
 `Teme\Contracts\Media\MediaStored`, class. Since 0.5.0.
@@ -1215,6 +1239,22 @@ A media item as a hook tells of it: plain values read after the change was saved
 A file was stored in the media library: a new upload, or a new file in place of an item's old one. Sent after the change is saved, never during an import run.
 
 A hook: its parameters are in the [hooks reference](hooks.md#mediastored).
+
+### MediaTrashed
+
+`Teme\Contracts\Media\MediaTrashed`, class. Since next.
+
+A file was moved to the trash. Its files stay, so restoring it brings every use back. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediatrashed).
+
+### MediaUpdated
+
+`Teme\Contracts\Media\MediaUpdated`, class. Since next.
+
+A file's details were changed: its title, alt text, caption, credit, licence or focal point. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediaupdated).
 
 ### MediaWriter
 
@@ -1732,6 +1772,48 @@ One step of a Steps card: its title, its words as plain text and as the page dra
 One Steps card in an article, for how-to content: its summary, how long it takes, what it needs, and its numbered steps. Core adds no HowTo markup of its own; a plugin may build one from it.
 
 - `__construct(string $id, string $nodeId, string $summary, ?string $totalTime, array $materials, array $tools, array $steps)`. Since 1.1.0.
+
+## Teme\Contracts\Taxonomy
+
+### TermAssigned
+
+`Teme\Contracts\Taxonomy\TermAssigned`, class. Since next.
+
+An item's terms changed: terms were added to it or taken off it. Sent once for the item and the change, after the change is saved, with what moved in each taxonomy that changed, and never for a save that left the item's terms as they were. Terms deleted outright are not named as removed. It is not sent during an import run.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termassigned).
+
+### TermCreated
+
+`Teme\Contracts\Taxonomy\TermCreated`, class. Since next.
+
+A category or tag was created. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termcreated).
+
+### TermDeleted
+
+`Teme\Contracts\Taxonomy\TermDeleted`, class. Since next.
+
+A category or tag was deleted. Its payload is the term as it was before its row went. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termdeleted).
+
+### TermRef
+
+`Teme\Contracts\Taxonomy\TermRef`, class. Since next.
+
+A category or tag as a hook tells of it: plain values, never the term itself.
+
+- `__construct(string $id, string $taxonomy, string $name, string $slug, ?string $parentId, ?string $language)`. Since next.
+
+### TermUpdated
+
+`Teme\Contracts\Taxonomy\TermUpdated`, class. Since next.
+
+A category or tag was renamed, or its slug, parent or description changed. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termupdated).
 
 ## Teme\Contracts\Themes
 
