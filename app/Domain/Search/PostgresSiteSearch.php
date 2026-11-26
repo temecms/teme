@@ -60,7 +60,8 @@ final readonly class PostgresSiteSearch implements SiteSearch
 
         // A search lists what its types have published, whoever asks it (I-263).
         if ($query !== '') {
-            app(RenderRecord::class)->tag(...array_map(PageTags::listOf(...), $types));
+            // The counts cover every searchable type, so a page that shows them depends on each one's list, whichever section it is filtered to.
+            app(RenderRecord::class)->tag(...array_map(PageTags::listOf(...), $request->counts ? $this->searchable(null) : $types));
         }
 
         if ($query === '' || $types === [] || $request->page < 1 || $request->perPage < 1) {

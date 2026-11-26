@@ -19,6 +19,7 @@ namespace App\Domain\Cache;
 
 use App\Domain\Api\ApiPaths;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\Site\SearchViews;
 use Illuminate\Http\Request;
 
 final readonly class PageKey
@@ -77,6 +78,11 @@ final readonly class PageKey
             }
 
             $kept[$name] = $parameters[$name];
+        }
+
+        // The search's own section changes a page only when a search is asked for and the section is a type it searches, so any other value is not a key of its own.
+        if (isset($kept['section']) && ! $registry->declaresQuery('section') && (! isset($kept['s']) || SearchViews::section($kept['section']) === null)) {
+            unset($kept['section']);
         }
 
         ksort($kept, SORT_STRING);

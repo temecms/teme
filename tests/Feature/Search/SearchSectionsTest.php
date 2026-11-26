@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cache\PageKey;
+use App\Domain\Cache\PageTags;
+use App\Domain\Cache\RenderRecord;
 use App\Domain\Site\SearchViews;
 use App\Domain\Site\ViewModels\SearchSection;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -107,4 +111,23 @@ it('counts every section in one grouped statement, however many types there are'
     app(SearchViews::class)->for('bittern', 1);
 
     expect($queries)->toBe(1);
+});
+
+it('keeps a section in the page key only for a search and only for a type it searches', function (): void {
+    $key = fn (string $uri): string => (string) PageKey::of(Request::create($uri))?->url;
+
+    expect($key('/about/?section=anything'))->toBe($key('/about/'))
+        ->and($key('/?section=film'))->toBe($key('/'))
+        ->and($key('/?s=bittern&section=nothing'))->toBe($key('/?s=bittern'))
+        ->and($key('/?s=bittern&section=film'))->toContain('section=film')
+        ->and($key('/?s=bittern&section=film'))->not->toBe($key('/?s=bittern'));
+});
+
+it('tags a search that counts its sections for every searchable type, whichever section it shows', function (): void {
+    $record = app(RenderRecord::class);
+    $record->start(0);
+
+    app(SearchViews::class)->for('bittern', 1, null, 'film');
+
+    expect($record->tags())->toContain(PageTags::listOf('film'), PageTags::listOf('post'));
 });

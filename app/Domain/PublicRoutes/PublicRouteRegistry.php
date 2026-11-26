@@ -162,6 +162,20 @@ final class PublicRouteRegistry
     }
 
     /**
+     * Whether an enabled cacheable entry declares this query parameter itself.
+     */
+    public function declaresQuery(string $name): bool
+    {
+        foreach ($this->all() as $route) {
+            if ($route->isCacheable() && in_array($name, (array) ($route->cache['query'] ?? []), true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Whether any enabled entry with varyAccept exists for this path, and
      * which Accept types those entries declare.
      *

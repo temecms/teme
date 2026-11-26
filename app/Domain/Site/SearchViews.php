@@ -37,6 +37,17 @@ final readonly class SearchViews
     ) {}
 
     /**
+     * The section as the search takes it: the type's key when it is a
+     * searchable type, else null, which is every type.
+     */
+    public static function section(?string $section): ?string
+    {
+        $types = app(ContentTypeRegistry::class);
+
+        return $section !== null && $types->has($section) && $types->get($section)->searchable ? $section : null;
+    }
+
+    /**
      * One page of a search for this query, among one language's items (the
      * default's when null); a page past the last has no items. A section
      * that isn't a searchable type is ignored, as no section.
@@ -50,8 +61,7 @@ final readonly class SearchViews
         }
 
         $perPage = $this->listings->perPage();
-        $types = app(ContentTypeRegistry::class);
-        $section = $section !== null && $types->has($section) && $types->get($section)->searchable ? $section : null;
+        $section = self::section($section);
         $hits = $this->search->search(new SearchRequest($query, $page, $perPage, $section === null ? null : [$section], $language, true));
         $items = $this->listings->itemsById(array_map(fn (SearchHit $hit): string => $hit->contentId, $hits->hits));
         $results = [];
