@@ -5,7 +5,9 @@
  * with their permission checked again now, through the same PublishRevision
  * a person would press. It locks its row and does nothing if the row is no
  * longer pending, so a second runner, or a slow run's reclaimed row, can
- * never publish twice.
+ * never publish twice. A region whose code on the site changed since it was
+ * scheduled is failed and its scheduler told, never published: code goes
+ * live only when a person publishes it.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -22,17 +24,23 @@ use App\Domain\Contents\Models\ScheduledPublication;
 use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\Input\ScheduledPublicationInput;
 use App\Domain\Contents\Tree\SubtreeAddresses;
+use App\Domain\Inbox\InboxLink;
+use App\Domain\Inbox\Operations\Input\SendToInboxInput;
+use App\Domain\Inbox\Operations\SendToInbox;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Teme\Contracts\Operations\OperationInput;
 
 final class RunScheduledPublication extends BaseOperation
 {
     /** The item's type, read as it is authorized, so perform() takes its tree first. */
     private ?string $type = null;
+
+    public function __construct(private readonly SendToInbox $inbox) {}
 
     protected function authorize(OperationInput $input): void
     {
@@ -63,9 +71,10 @@ final class RunScheduledPublication extends BaseOperation
     protected function validate(OperationInput $input): void {}
 
     /**
-     * Whether it published, and how late it ran.
+     * Whether it published, how late it ran, and why it failed when it
+     * failed for a reason its scheduler is told.
      *
-     * @return array{published: bool, lateSeconds: int}
+     * @return array{published: bool, lateSeconds: int, failed?: string}
      */
     protected function perform(OperationInput $input): array
     {
@@ -88,6 +97,14 @@ final class RunScheduledPublication extends BaseOperation
             return ['published' => false, 'lateSeconds' => 0];
         }
 
+        // Code goes live with a password asked at that moment, which a run
+        // can't ask (docs/architecture/security.md). The schedule was made
+        // with the code as it was then; code that differs now goes live only
+        // when a person publishes it, so the row fails and is not retried.
+        if (PublishRevision::codeChanges($content, (string) $schedule->revision_id) !== []) {
+            return $this->failForChangedCode($schedule, $content);
+        }
+
         // Complete before publishing, in the same transaction: PublishRevision
         // then finds no pending schedule to cancel, and a rollback un-marks it.
         $completedAt = Date::now();
@@ -105,5 +122,28 @@ final class RunScheduledPublication extends BaseOperation
             'published' => true,
             'lateSeconds' => max(0, (int) $schedule->run_at->diffInSeconds($completedAt)),
         ];
+    }
+
+    /**
+     * Fails the row because the region's code on the site changed after it
+     * was scheduled, and tells the person who scheduled it.
+     *
+     * @return array{published: false, lateSeconds: int, failed: string}
+     */
+    private function failForChangedCode(ScheduledPublication $schedule, Content $content): array
+    {
+        $reason = __('the region’s Custom HTML code on the site changed after it was scheduled, and changed code goes live only when a person publishes it. Check the code, then publish it by hand.');
+        $schedule->update(['failed_at' => Date::now(), 'failure_reason' => $reason]);
+
+        $this->inbox->execute(new SendToInboxInput(
+            recipientId: (string) $schedule->created_by,
+            kind: 'schedule.failed',
+            title: __('Not published: :title', ['title' => Str::limit((string) $content->title, 200)]),
+            text: __('The publication you scheduled didn’t run: :reason', ['reason' => $reason]),
+            link: new InboxLink('content.edit', ['content' => (string) $content->id]),
+            actorId: (string) $schedule->created_by,
+        ));
+
+        return ['published' => false, 'lateSeconds' => 0, 'failed' => $reason];
     }
 }

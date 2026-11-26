@@ -20,6 +20,8 @@ php artisan test ../my-plugin/tests
 
 The kit boots that checkout for each test, with a fresh PostgreSQL database: start it with `docker compose up -d` in the checkout, as for the site itself. Nothing a test does is kept.
 
+Before the first test refreshes that database, the kit checks it is a test database, and stops the whole run, saying why, when it isn't: when Laravel's configuration is cached, because the tests would then use the site's own database from the cache, and when the database's name doesn't end in `_test`, as `teme_test` in the checkout's `phpunit.xml` does. Refreshing a database drops every table, so this keeps a test run from wiping your site. Run `php artisan config:clear` before testing on a checkout whose configuration you cached. Teme's own tests make the same check.
+
 ## The first line of every test file
 
 Every test file starts by naming the kit's test case:
