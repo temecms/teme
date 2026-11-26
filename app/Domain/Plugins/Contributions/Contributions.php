@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
+use App\Domain\Plugins\Console\DeclaredCommands;
+use App\Domain\Plugins\Console\PluginCommands;
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Seams\PluginContributions;
@@ -72,6 +74,8 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
         array_push($errors, ...app(SeoValidator::class)->startErrors($contributes, $plugin));
         array_push($errors, ...ImageServiceDeclaration::startErrors($contributes, $plugin));
+        array_push($errors, ...DeclaredCommands::prefixErrors($code, $contributes));
+        array_push($errors, ...DeclaredCommands::startErrors($contributes, $plugin));
 
         if ($errors !== []) {
             return $errors;
@@ -112,6 +116,11 @@ final readonly class Contributions implements PluginContributions
 
         foreach ($checks as $check) {
             $this->checks->add($check, $name);
+        }
+
+        // The console lists a plugin's commands only while the plugin runs.
+        foreach (DeclaredCommands::read($contributes['commands'] ?? []) as $declared) {
+            $this->container->make(PluginCommands::class)->add($name, $declared);
         }
 
         return [];

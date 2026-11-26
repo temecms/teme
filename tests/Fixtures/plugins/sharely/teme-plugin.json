@@ -1,0 +1,25 @@
+{
+    "manifest": 1,
+    "name": "tests/sharely",
+    "code": "sharely",
+    "label": "Sharely",
+    "description": "A plugin the tests enable, which adds console commands.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Sharely\\Sharely",
+    "capabilities": [],
+    "contributes": {
+        "commands": [
+            {
+                "name": "sharely:resend",
+                "description": "Resend the shares that failed",
+                "arguments": [{ "name": "service", "description": "Only this service", "required": false }],
+                "options": [
+                    { "name": "limit", "description": "Resend at most this many", "value": true },
+                    { "name": "dry-run", "description": "Say what would be sent" }
+                ]
+            },
+            { "name": "sharely:fail", "description": "A command that throws" }
+        ]
+    }
+}

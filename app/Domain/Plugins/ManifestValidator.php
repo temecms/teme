@@ -19,6 +19,7 @@ namespace App\Domain\Plugins;
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Hooks\Reference\HookCatalogue;
 use App\Domain\Import\PluginData\WordPressNames;
+use App\Domain\Plugins\Console\DeclaredCommands;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Jobs\DeclaredJobs;
 use App\Domain\Plugins\Seams\ContributionsCheck;
@@ -180,6 +181,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->columns($read));
         array_push($errors, ...$this->aiTasks($read));
         array_push($errors, ...$this->notices($read));
+        array_push($errors, ...$this->commands($manifest, $read));
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
@@ -244,6 +246,21 @@ final readonly class ManifestValidator
         }
 
         return [__('It declares kinds of notice, but the plugin doesn’t ask for notices.send.')];
+    }
+
+    /**
+     * A plugin's commands are named inside its own code's space, never Teme's.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function commands(array $manifest, Manifest $read): array
+    {
+        $code = $manifest['code'] ?? null;
+
+        // A code that isn't well formed is refused on its own.
+        return is_string($code) ? DeclaredCommands::prefixErrors($code, $read->contributes()) : [];
     }
 
     /**

@@ -30,16 +30,13 @@ Every call answers a `RedirectRef` with the redirect's `id`, `from`, `to`, `stat
 
 Teme writes the redirect as the site, through the same code Tools › Redirects uses, so every check that screen makes applies: a path the site itself uses, a path that already has a redirect, and a redirect that would make a loop or a chain are refused. A refusal is a `WriteRefused` with one plain sentence, and nothing is written.
 
-A path a page already answers is not refused, as it isn't on Tools › Redirects: the redirect waits, and starts to answer when the page goes. `answering` is `false` until then, and the redirect's row on Tools › Redirects says why it waits.
+A path a page already answers is not refused, as it isn't on Tools › Redirects: the redirect waits, and starts to answer when the page goes. `answering` is `false` while it waits, and the redirect's row on Tools › Redirects says why it waits.
 
 ## List and remove your own
 
 ```php
-foreach ($this->redirects->mine() as $redirect) {
-    // $redirect->from, $redirect->status, ...
-}
-
-$this->redirects->remove([$redirect->id]);
+$mine = $this->redirects->mine();
+$this->redirects->remove([$mine[0]->id]);
 ```
 
 `mine()` lists the redirects your plugin added, oldest first. `remove()` takes their IDs and answers how many went; an ID that belongs to a person, to another plugin, or to no redirect is left alone and not counted.

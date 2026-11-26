@@ -17,6 +17,7 @@ namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\AreaValidator;
+use App\Domain\Plugins\Console\DeclaredCommands;
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
@@ -198,6 +199,8 @@ final class ContributionsValidator implements ContributionsCheck
                 // A kind may go to the holders of a permission the plugin declares (docs/plans/plugin-sockets-3.md, D-T5).
                 $permissions = array_values(array_filter(array_column(array_filter(is_array($contributes['permissions'] ?? null) ? $contributes['permissions'] : [], is_array(...)), 'id'), is_string(...)));
                 array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
+            } elseif ($surface === 'commands') {
+                array_push($errors, ...DeclaredCommands::errors($contributes['commands']));
             } elseif ($surface === 'hooks') {
                 array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
             } elseif ($surface === 'types') {

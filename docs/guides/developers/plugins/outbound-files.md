@@ -15,21 +15,18 @@ Both are in `teme/contracts` from the release that adds them; their `@since` say
 ## Upload files
 
 ```php
-$answer = $this->http->postMultipart('https://media.example.com/upload', ['status' => 'New post'], [
-    new HttpFile(field: 'media', filename: 'photo.jpg', contentType: 'image/jpeg', bytes: $jpeg),
-]);
+$file = new HttpFile(field: 'media', filename: 'photo.jpg', contentType: 'image/jpeg', bytes: $jpeg);
+$answer = $this->http->postMultipart('https://media.example.com/upload', ['status' => 'New post'], [$file]);
 ```
 
-The fields come first, as for `postForm()`: each a string, or a list of strings to repeat its name. Each `HttpFile` is sent under its own field, with the name and content type you give. It carries either `bytes`, or a `path` to a file inside your plugin's own folder. A path anywhere else, or one that leaves the folder with `..` or a link, is refused with an `InvalidArgumentException`, because a plugin reads only its own files. Teme sets the `Content-Type` header, with the boundary; one you pass is dropped.
+The fields come first, as for `postForm()`: each a string, or a list of strings to repeat its name. Each `HttpFile` is sent under its own field, with the name and content type you give. It carries either `bytes`, or a `path` to a file inside your plugin's own folder. A path anywhere else, or one that leaves the folder with `..` or a link, is refused before anything is sent, because a plugin reads only its own files. Teme sets the `Content-Type` header, with the boundary; one you pass is dropped.
 
 ## Send a raw body
 
 ```php
 $body = json_encode($activity, JSON_THROW_ON_ERROR);
-$answer = $this->http->postRaw($inbox, $body, 'application/activity+json', [
-    'Digest' => 'SHA-256='.base64_encode(hash('sha256', $body, true)),
-    'Signature' => $signature,
-]);
+$headers = ['Signature' => $this->sign($body)];
+$answer = $this->http->postRaw($inbox, $body, 'application/activity+json', $headers);
 ```
 
 The body goes out byte for byte: Teme doesn't encode, trim or change it, so a signature over it stays true. The content type you give is the one sent, on one line; a `Content-Type` header in the headers is dropped. Other headers pass as they do for `postJson()`.
