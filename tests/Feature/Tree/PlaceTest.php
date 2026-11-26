@@ -241,3 +241,21 @@ it('refuses a slug that is a feed\'s name for a page with a parent', function ()
 
     expect(placeState())->toBe($before);
 });
+
+it('refuses a publish whose pending address is a feed\'s name for a child page, and changes nothing', function (): void {
+    $history = $this->tree->history;
+    $before = placeState();
+    $live = addrCurrent('content', $history->id);
+    $slug = $history->slug;
+
+    $this->actingAs($this->tree->editor)->postJson("/admin/content/{$history->id}/publish", [
+        'revision_id' => $history->working_revision_id,
+        'slug' => 'rss',
+    ])->assertUnprocessable()
+        ->assertJsonPath('errors.slug.0', "A page under another page can't be called rss: that address is kept for feeds. Choose another.");
+
+    expect(placeState())->toBe($before)
+        ->and(addrCurrent('content', $history->id))->toBe($live)
+        ->and($history->refresh()->slug)->toBe($slug)
+        ->and($history->status)->toBe('published');
+});

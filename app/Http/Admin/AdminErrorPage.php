@@ -78,6 +78,8 @@ final class AdminErrorPage
         // Name the route's permission only when that permission is what refused
         // — a policy's own reason is not the can: middleware's label.
         $ability = $status === 403 && $reason === null ? self::routeAbility($request) : null;
+        // Only a permission the person lacks is the reason; one they hold is not.
+        $ability = $ability !== null && $request->user()->can($ability) ? null : $ability;
         $permission = $ability === null ? null : PermissionLabels::of($ability);
         $holders = $ability === null ? null : PermissionLabels::holders($ability);
         $roleKey = $request->user()->getRoleNames()->first();

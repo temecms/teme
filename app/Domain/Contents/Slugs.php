@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contents;
 
+use App\Domain\Fields\RequiredFields;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -164,7 +165,7 @@ final class Slugs
 
         if (! self::isAvailable($type, $slug, $exceptId, $language)) {
             throw ValidationException::withMessages([
-                'slug' => __('Another :type already uses this address.', ['type' => $type]),
+                'slug' => __('Another :type already uses this address.', ['type' => RequiredFields::noun($type)]),
             ]);
         }
     }

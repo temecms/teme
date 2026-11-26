@@ -115,3 +115,10 @@ it('says a wrong code is wrong, under its field, and stays on the setup page', f
 
     expect(User::query()->count())->toBe(0);
 });
+
+it('names the product once in the setup page\'s brand row, at 1440', function (): void {
+    $page = visit('/admin/setup')->resize(1440, 900);
+    ($this->seen)($page, 'Set up your site');
+
+    $page->assertScript('document.querySelector(\'[data-test="sign-in-brand"]\').innerText.split("Teme").length - 1 === 1');
+});

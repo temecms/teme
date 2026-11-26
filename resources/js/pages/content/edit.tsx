@@ -9,7 +9,12 @@ import { CardEnvironmentContext } from '@/components/editor/cards/card-environme
 import type { CardEnvironment } from '@/components/editor/cards/card-environment';
 import ReviewController from '@/actions/App/Http/Admin/Contents/ReviewController';
 import ScheduleController from '@/actions/App/Http/Admin/Contents/ScheduleController';
-import { post, reasonOf, send } from '@/components/editor/editor-http';
+import {
+    addressRefusalOf,
+    post,
+    reasonOf,
+    send,
+} from '@/components/editor/editor-http';
 import type { Answer, Route } from '@/components/editor/editor-http';
 import { coreTools, EditorHeader } from '@/components/editor/editor-header';
 import type { ToolPanes } from '@/components/editor/editor-header';
@@ -305,14 +310,19 @@ export default function ContentEdit(page: ContentEditPage) {
         initialSavedAt: session.savedAt,
         initialOthers: session.otherEditors,
         hasAutosave: session.fromAutosave,
-        // Empty stays pending so Save still sends '' (server makes the title's
-        // address); otherwise compare the typed address to what was last saved.
-        sidePending: slug === '' || slug !== savedSlug,
+        // Pending while the typed address differs from the saved one; an
+        // emptied field is sent as '' and takes the server's address on Save.
+        sidePending: slug !== savedSlug,
         // A first title may have given the draft its address (I-425). Never
         // overwrite a pending typed address the person has not saved yet.
-        onSlug: (next) => {
+        onSlug: (next, sent) => {
+            // A save that carried the typed address (even an emptied one)
+            // shows what the server stored; otherwise only an untouched field
+            // follows it.
             setSlug((current) =>
-                current === savedSlugRef.current ? next : current,
+                current === savedSlugRef.current || current === sent
+                    ? next
+                    : current,
             );
             setSavedSlug(next);
             setSlugProblem(null);
@@ -591,15 +601,18 @@ export default function ContentEdit(page: ContentEditPage) {
                 answer = await send(route, data);
             }
 
-            if (answer.status >= 400) {
-                const errors = answer.body.errors as
-                    | Record<string, string[]>
-                    | undefined;
+            // Someone else changed the item since this version: the dialog
+            // that explains it, as for a save, not a notice.
+            if (answer.status === 409 && answer.body.stale === true) {
+                saving.markStale(answer.body);
 
-                if (errors?.slug !== undefined) {
-                    const message = __(
-                        'Another post already uses this address. Add a word to make it its own.',
-                    );
+                return null;
+            }
+
+            if (answer.status >= 400) {
+                const message = addressRefusalOf(answer.body);
+
+                if (message !== null) {
                     setSlugProblem(message);
                     setNotice(`${refused}: ${message}`);
 

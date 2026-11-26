@@ -85,9 +85,10 @@ it('saves a pending address with Save draft or Update, never from a lone address
     $edit = uiComponent('pages/content/edit.tsx');
 
     expect($edit)
-        ->toContain("slug === '' || slug !== savedSlug")
-        ->toContain('errors?.slug')
-        ->toContain('Another post already uses this address. Add a word to make it its own.')
+        ->toContain('sidePending: slug !== savedSlug')
+        ->not->toContain("slug === '' ||")
+        ->toContain('addressRefusalOf')
+        ->not->toContain('Another post already uses this address')
         ->not->toContain('saveAddressIfNeeded')
         ->not->toContain('ContentEditorController.address');
 });
@@ -192,8 +193,23 @@ it('does not move a live post\'s address from preview or a share link', function
 
 it('keeps an emptied address pending against the title\'s address', function (): void {
     expect(uiComponent('pages/content/edit.tsx'))
-        ->toContain("slug === '' || slug !== savedSlug")
+        ->toContain('sidePending: slug !== savedSlug')
         ->and(uiComponent('components/editor/rail/publish-panel.tsx'))
         ->toContain('slugFromTitle')
         ->toContain('// Empty stays empty so the server makes the title\'s address on save.');
+});
+
+it('says the item\'s own noun when an address is taken', function (): void {
+    $draft = lifecycleDraft($this->editor, 'Harbour', 'page');
+    lifecycleDraft($this->editor, 'Taken', 'page')->forceFill(['slug' => 'taken'])->save();
+
+    $this->actingAs($this->editor)->postJson("/admin/content/{$draft->id}/checkpoint", ['slug' => 'taken'])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.slug.0', 'Another page already uses this address.');
+});
+
+it('shows the stale dialog when a publish comes back 409 with stale', function (): void {
+    expect(uiComponent('pages/content/edit.tsx'))
+        ->toContain('answer.status === 409 && answer.body.stale === true')
+        ->toContain('saving.markStale(answer.body)');
 });

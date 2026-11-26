@@ -6,7 +6,7 @@ import ContentEditorController from '@/actions/App/Http/Admin/Contents/ContentEd
 import { guardHistory } from '@/lib/history-guard';
 import { __ } from '@/lib/i18n';
 import type { EditorPerson } from '@/types';
-import { post, reasonOf } from './editor-http';
+import { addressRefusalOf, post, reasonOf } from './editor-http';
 import type { LinkChange } from './link-changes';
 import { retryDelay, saveFailure, versionRefused } from './save-failure';
 import type { SaveFailure } from './save-failure';
@@ -94,7 +94,7 @@ export function useAutosave({
     /** The links the server stored differently, from each saved autosave's answer (I-452). */
     onLinksChanged?: (changes: LinkChange[]) => void;
     /** The address a checkpoint's answer gives the draft, which a first title may have changed (I-425). */
-    onSlug?: (slug: string) => void;
+    onSlug?: (slug: string, sent?: string) => void;
     /** A taken or refused address on a draft Save that carried one. */
     onSlugRefused?: (message: string) => void;
     /** Asks for the password in place when a save answers 423 (a change to Custom HTML code); true once confirmed. */
@@ -233,16 +233,10 @@ export function useAutosave({
 
             // A taken address is the slug field's refusal, not a version failure.
             if (answer.status >= 400) {
-                const errors = answer.body.errors as
-                    | Record<string, string[]>
-                    | undefined;
+                const refusal = addressRefusalOf(answer.body);
 
-                if (errors?.slug !== undefined) {
-                    slugRefused.current?.(
-                        __(
-                            'Another post already uses this address. Add a word to make it its own.',
-                        ),
-                    );
+                if (refusal !== null) {
+                    slugRefused.current?.(refusal);
 
                     return null;
                 }
@@ -258,7 +252,7 @@ export function useAutosave({
             const revisionId = answer.body.revisionId as string;
 
             if (typeof answer.body.slug === 'string') {
-                slugChanged.current?.(answer.body.slug);
+                slugChanged.current?.(answer.body.slug, address);
             }
 
             based.current = revisionId;

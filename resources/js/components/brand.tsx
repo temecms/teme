@@ -91,7 +91,7 @@ export function SignInBrand({ teme = false }: { teme?: boolean } = {}) {
                     {asTeme ? brand.product : brand.name}
                 </span>
                 <span className="text-caption text-ink-3">
-                    {brandLine(brand)}
+                    {brandLine(brand, asTeme)}
                 </span>
             </span>
         </Link>
