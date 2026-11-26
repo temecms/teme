@@ -168,7 +168,11 @@ final readonly class PluginHead implements HeadContributor
 
             if ($tag->attribute === 'name' && strtolower($tag->key) === 'robots') {
                 try {
-                    $tags[] = MetaTag::name('robots', implode(', ', PluginRobots::over($robots, $tag->content)));
+                    $robotsTag = PluginRobots::tag($robots, $tag->content);
+
+                    if ($robotsTag !== null) {
+                        $tags[] = $robotsTag;
+                    }
                 } catch (SocketAnswerRefused $refused) {
                     $this->plugins->fault($plugin, 'head-meta', HasHeadMeta::class, $refused);
                 }

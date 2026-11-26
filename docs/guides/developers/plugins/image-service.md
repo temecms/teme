@@ -20,7 +20,7 @@ The plugin asks for `media.read` and declares the service under `imageService`, 
 "imageService": { "label": "Imagery CDN", "host": "images.example.com" }
 ```
 
-The `label` is at most 40 characters. The `host` is a host name, or `*.` and a domain. When the plugin is turned on, the person agrees to its images' addresses coming from that service, at that host.
+The `label` is at most 40 characters. The `host` is a host name, or `*.` and a domain. A wildcard such as `*.example.com` covers every subdomain, such as `images.example.com`, but not the bare `example.com`. The declaration names one host, so addresses on the bare domain are refused. When the plugin is turned on, the person agrees to its images' addresses coming from that service, at that host.
 
 ## The driver
 

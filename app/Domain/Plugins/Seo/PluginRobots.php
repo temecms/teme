@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
 
+use App\Domain\Site\Document\MetaTag;
+
 final class PluginRobots
 {
     /** The directives a plugin may give, `max-image-preview` with one of PREVIEWS. */
@@ -76,6 +78,23 @@ final class PluginRobots
         }
 
         return array_values($directives);
+    }
+
+    /**
+     * The robots tag to write for the plugin's answer over core's
+     * directives, or null when there are none to write: on a page where core
+     * writes none, an answer of only `index` or `follow` changes nothing,
+     * and an empty tag is never drawn.
+     *
+     * @param  list<string>  $core  core's directives, in the order they are written
+     *
+     * @throws SocketAnswerRefused as over() does
+     */
+    public static function tag(array $core, string $answer): ?MetaTag
+    {
+        $directives = self::over($core, $answer);
+
+        return $directives === [] ? null : MetaTag::name('robots', implode(', ', $directives));
     }
 
     /**

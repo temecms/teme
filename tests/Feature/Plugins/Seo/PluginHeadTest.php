@@ -2,15 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Seo\PluginRobots;
+use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Seo\SocketAnswerRefused;
 use App\Domain\Plugins\Seo\SocketTooSlow;
 use App\Domain\Seo\SearchAndSocial;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Teme\Contracts\Head\HasHeadMeta;
 use Teme\Contracts\Head\HeadMeta;
 use Teme\Contracts\Head\HeadPage;
 use Teme\Contracts\StructuredData\GraphNode;
+use Teme\Contracts\StructuredData\HasStructuredData;
 use Tests\Fixtures\Plugins\PluginFixtures;
 use Tests\Fixtures\Plugins\Seokit\Seokit;
 
@@ -198,4 +202,33 @@ it('drops structured data that comes back over its budget, records it once, and 
         ->and(headValue(headDom('/harbour-news/'), '//head/meta[@name="seokit"]/@content'))->toBe('on')
         ->and($asked)->toBe(1)
         ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/seokit#structured-data']);
+});
+
+it('asks a plugin that ran over a socket’s budget nothing more on it, in the same request', function (): void {
+    ['faults' => $faults, 'clock' => $clock] = seokitEnabled();
+    $service = app(SeoPlugins::class);
+    $plugin = $service->find('seokit');
+    $asked = 0;
+    $call = function () use ($clock, &$asked): array {
+        $asked++;
+        $clock->now += 150_000_000;
+
+        return ['late'];
+    };
+
+    $first = $service->ask($plugin, 'head-meta', HasHeadMeta::class, 100, $call);
+    $second = $service->ask($plugin, 'head-meta', HasHeadMeta::class, 100, $call);
+    $other = $service->ask($plugin, 'structured-data', HasStructuredData::class, 100, fn (): array => ['on time']);
+
+    expect($first)->toBeNull()
+        ->and($second)->toBeNull()
+        ->and($asked)->toBe(1)
+        ->and($other)->toBe(['on time'])
+        ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/seokit#head-meta']);
+});
+
+it('writes no robots tag where core gives no directives and the plugin only says index or follow', function (): void {
+    expect(PluginRobots::tag([], 'index, follow'))->toBeNull()
+        ->and(PluginRobots::tag([], 'follow'))->toBeNull()
+        ->and(PluginRobots::tag([], 'noindex')?->content)->toBe('noindex');
 });
