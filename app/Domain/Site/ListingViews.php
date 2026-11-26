@@ -77,12 +77,14 @@ final readonly class ListingViews
 
         $url = Addresses::relativeUrl($term);
         [$parent, $children] = $this->family($term, $types);
+        $count = self::countsInDefault((string) $term->taxonomy) ? (self::listedInDefault([(string) $term->id], $types)[(string) $term->id] ?? 0) : app(TermCounts::class)->published((string) $term->id, ...$types);
 
         return new ListingView(
             new Subject('term', (string) $term->name, self::text($term->description), url: $url, taxonomy: (string) $term->taxonomy, parent: $parent, children: $children),
             $this->page($items, $page),
-            $this->pagination($page, self::countsInDefault((string) $term->taxonomy) ? (self::listedInDefault([(string) $term->id], $types)[(string) $term->id] ?? 0) : app(TermCounts::class)->published((string) $term->id, ...$types), $url ?? '/'),
+            $this->pagination($page, $count, $url ?? '/'),
             breadcrumbs: $this->trail->wanted() ? $this->trail->toTerm((string) $term->id) : null,
+            total: $count,
         );
     }
 
@@ -178,12 +180,15 @@ final readonly class ListingViews
         $url = Addresses::toUrl($path);
         $plural = app(ContentTypeRegistry::class)->get($type)->plural;
         $items = self::inLanguage(self::archive([$type]), $language);
+        $listed = $this->page(clone $items, $page);
+        [$count, $exact] = $this->count(clone $items, [$type], $language);
 
         return new ListingView(
             new Subject('type', $plural, url: $url),
-            $this->page(clone $items, $page),
-            $this->pagination($page, $this->count($items, [$type], $language), $url),
+            $listed,
+            $this->pagination($page, $count, $url),
             breadcrumbs: $this->trail->wanted() ? $this->trail->to($plural, $url) : null,
+            total: $exact ? $count : null,
         );
     }
 
@@ -215,11 +220,11 @@ final readonly class ListingViews
 
         if ($owned) {
             $items = self::inLanguage(self::archive($types)->where('contents.author_id', (int) $credit->id), $language);
-            $count = $this->count(clone $items, $types, $language, (int) $credit->id);
+            [$count, $exact] = $this->count(clone $items, $types, $language, (int) $credit->id);
         } else {
             [$sql, $bindings] = app(Credits::class)->itemIdsSql($credit);
             $items = self::inLanguage(self::archive($types)->whereRaw("contents.id IN ({$sql})", $bindings), $language);
-            $count = self::countUpTo(clone $items, PathResolver::LAST_PAGE * $this->perPage());
+            [$count, $exact] = $this->capped(clone $items);
         }
 
         return new ListingView(
@@ -227,6 +232,7 @@ final readonly class ListingViews
             $this->page(clone $items, $page),
             $this->pagination($page, $count, $url ?? '/'),
             breadcrumbs: $this->trail->wanted() ? $this->trail->to($shown->name, $url ?? '') : null,
+            total: $exact ? $count : null,
         );
     }
 
@@ -252,11 +258,15 @@ final readonly class ListingViews
         $path = self::prefixed($language, implode('/', array_filter([sprintf('%04d', $year), $month === null ? null : sprintf('%02d', $month), $day === null ? null : sprintf('%02d', $day)])));
         $url = Addresses::toUrl($path);
 
+        $listed = $this->page(clone $items, $page);
+        [$count, $exact] = $this->capped(clone $items);
+
         return new ListingView(
             new Subject('date', $title, url: $url),
-            $this->page(clone $items, $page),
-            $this->pagination($page, self::countUpTo(clone $items, PathResolver::LAST_PAGE * $this->perPage()), $url),
+            $listed,
+            $this->pagination($page, $count, $url),
             breadcrumbs: $this->trail->wanted() ? $this->trail->to($title, $url) : null,
+            total: $exact ? $count : null,
         );
     }
 
@@ -555,14 +565,32 @@ final readonly class ListingViews
      * site has one language, which holds every item, else counted (D1).
      *
      * @param  list<string>  $types
+     * Whether the number is exact comes with it: a count stops at the
+     * deepest page served, and says so by not being exact.
      */
-    private function count(Builder $items, array $types, ?string $language, int $authorId = 0): int
+    private function count(Builder $items, array $types, ?string $language, int $authorId = 0): array
+     *
+     * @return array{0: int, 1: bool}
     {
         if ($language === null && ! app(SiteLanguages::class)->isMultilingual()) {
-            return ContentCounts::published($types, $authorId);
+            return [ContentCounts::published($types, $authorId), true];
         }
 
-        return self::countUpTo($items, PathResolver::LAST_PAGE * $this->perPage());
+        return $this->capped($items);
+    }
+
+    /**
+     * How many of these items there are, counted no further than the deepest
+     * page served, and whether that is the whole of them.
+     *
+     * @return array{0: int, 1: bool}
+     */
+    private function capped(Builder $items): array
+    {
+        $most = PathResolver::LAST_PAGE * $this->perPage();
+        $count = self::countUpTo($items, $most);
+
+        return [$count, $count < $most];
     }
 
     /**

@@ -63,7 +63,7 @@ final readonly class LatestViews
         $home = $home === '/' ? '/' : $home.'/';
 
         if ($types === []) {
-            return new LatestView(null, [], new ListingView(null, [], $this->listings->pagination($page, 0, $home)));
+            return new LatestView(null, [], new ListingView(null, [], $this->listings->pagination($page, 0, $home), total: 0));
         }
 
         // The latest items are the lists of the types Reading ticks, whichever they are now (I-263).
@@ -82,7 +82,8 @@ final readonly class LatestViews
             ->offset(($page - 1) * $perPage)->limit($perPage)
             ->pluck('contents.id')->map(fn (mixed $id): string => (string) $id)->all();
 
-        $count = max(0, $this->count($types, $language) - count($shown));
+        [$all, $exact] = $this->count($types, $language);
+        $count = max(0, $all - count($shown));
         $subject = $postsPage === null ? null : new Subject('posts', $this->publishedTitle($postsPage));
         $base = $postsPage === null ? $home : (Addresses::relativeUrl($postsPage) ?? $home);
 
@@ -93,7 +94,7 @@ final readonly class LatestViews
         return new LatestView(
             $page === 1 && $lead !== null ? ($items[(string) $lead] ?? null) : null,
             $page === 1 ? self::pick($items, $featured) : [],
-            new ListingView($subject, self::pick($items, $feed), $this->listings->pagination($page, $count, $base)),
+            new ListingView($subject, self::pick($items, $feed), $this->listings->pagination($page, $count, $base), total: $exact ? $all : null),
             breadcrumbs: ! $this->trail->wanted() ? null : ($subject === null ? [$this->trail->home()] : $this->trail->to($subject->title, $base)),
         );
     }
@@ -123,19 +124,24 @@ final readonly class LatestViews
     /**
      * How many items of these types are live in this language: the stored
      * count while the site has one language, which holds every item, else
-     * counted no further than the deepest page served (D1).
+     * counted no further than the deepest page served (D1); with whether
+     * the number is the whole of them.
      *
      * @param  list<string>  $types
+     *
+     * @return array{0: int, 1: bool}
      */
-    private function count(array $types, ?string $language): int
+    private function count(array $types, ?string $language): array
     {
         if ($language === null && ! app(SiteLanguages::class)->isMultilingual()) {
-            return ContentCounts::published($types);
+            return [ContentCounts::published($types), true];
         }
 
-        $items = ListingViews::inLanguage(ListingViews::archive($types), $language)->select('contents.id')->limit(PathResolver::LAST_PAGE * $this->listings->perPage());
+        $most = PathResolver::LAST_PAGE * $this->listings->perPage();
+        $items = ListingViews::inLanguage(ListingViews::archive($types), $language)->select('contents.id')->limit($most);
+        $count = (int) DB::query()->fromSub($items, 'counted')->count();
 
-        return (int) DB::query()->fromSub($items, 'counted')->count();
+        return [$count, $count < $most];
     }
 
     private function publishedTitle(Content $content): string
