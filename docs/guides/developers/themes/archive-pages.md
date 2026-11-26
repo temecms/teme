@@ -28,3 +28,34 @@ Both are `null` on every other listing, so check before you print:
 ```
 
 Only types the site made in Site › Types have these. A type a plugin or the code declares has no heading or intro of its own, and keeps its plural name.
+
+## An author's public profile
+
+On an author's page, `$page->subject` carries what the person chose to show. Each value is empty until they fill it in under **Your account › Profile › On your author page**, and nothing else about the account is ever given to a template.
+
+| Value | Type | What it is |
+|---|---|---|
+| `$page->subject->role` | `?string` | Their title, such as "Senior editor" |
+| `$page->subject->coverage` | `?string` | What they cover |
+| `$page->subject->links` | `list<ProfileLink>` | Up to six links, each with `label` and `url`, always an `https://` or `http://` address on another site |
+| `$page->subject->publishedCount` | `?int` | How many items the page lists, in the page's language; `null` for a very large list the site doesn't count to the end |
+
+These are `null`, empty or absent on any listing that isn't an author's, and for an author with no account here.
+
+Print them where the page heads an author:
+
+```blade
+@if ($page->subject->role)<p>{{ $page->subject->role }}</p>@endif
+```
+
+Each link has a `label` and a `url`; print both with `{{ }}`:
+
+```blade
+@foreach ($page->subject->links as $link)<a href="{{ $link->url }}" rel="me noopener">{{ $link->label }}</a>@endforeach
+```
+
+`publishedCount` is `null` when the count is unknown, so test it with `!== null`, as a count of zero is a count:
+
+```blade
+@if ($page->subject->publishedCount !== null){{ $page->subject->publishedCount }} published@endif
+```

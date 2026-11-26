@@ -342,6 +342,15 @@ A person an item credits, as a page shows them.
 | `$url` | `string` | the address of their author page, site-relative; `''` when they have none |
 | `$bio` | `?string` | the bio they wrote, or null |
 
+### ProfileLink
+
+A link a person chose to show on their public author page.
+
+| Name | Type | Description |
+|---|---|---|
+| `$label` | `string` | what the link is called, as the person wrote it |
+| `$url` | `string` | the address it leads to, an https:// or http:// address on another site |
+
 ### ProtectedView
 
 An item protected by a password, as a reader without its key sees it: its title and core's form. Its words are core's, so no theme can misstate what happened.
@@ -419,6 +428,10 @@ What a listing is about: a term, an author, a date, the latest posts at the post
 | `$taxonomy` | `?string` | a term's taxonomy key; null for any other subject |
 | `$parent` | `?TermLink` | a term's parent in a hierarchical taxonomy, whether or not it holds published items; null for a top term, a flat taxonomy's and any other subject |
 | `$children` | `list<TermLink>` | a term's children in a hierarchical taxonomy that hold at least one published item, by name, at most 100; none for any other subject |
+| `$role` | `?string` | an author's role line, when they filled it; null for any other subject |
+| `$coverage` | `?string` | an author's coverage line, when they filled it; null for any other subject |
+| `$links` | `list<ProfileLink>` | the links an author chose to show, at most six; none for any other subject |
+| `$publishedCount` | `?int` | how many items an author's page lists, in the page's language; null for any other subject, and when there are more than the page counts |
 
 ### TermLink
 

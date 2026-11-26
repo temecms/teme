@@ -481,6 +481,12 @@
         "Person::$url": {
             "type": "string"
         },
+        "ProfileLink::$label": {
+            "type": "string"
+        },
+        "ProfileLink::$url": {
+            "type": "string"
+        },
         "ProtectedView::$error": {
             "type": "?string"
         },
@@ -568,6 +574,9 @@
         "Subject::$children": {
             "type": "list<TermLink>"
         },
+        "Subject::$coverage": {
+            "type": "?string"
+        },
         "Subject::$description": {
             "type": "?string"
         },
@@ -577,8 +586,17 @@
         "Subject::$kind": {
             "type": "string"
         },
+        "Subject::$links": {
+            "type": "list<ProfileLink>"
+        },
         "Subject::$parent": {
             "type": "?TermLink"
+        },
+        "Subject::$publishedCount": {
+            "type": "?int"
+        },
+        "Subject::$role": {
+            "type": "?string"
         },
         "Subject::$taxonomy": {
             "type": "?string"

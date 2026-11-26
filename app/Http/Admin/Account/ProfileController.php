@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace App\Http\Admin\Account;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\People\PublicProfile;
+use App\Domain\Site\ViewModels\ProfileLink;
 use App\Domain\Users\Operations\Input\UpdateProfileInput;
 use App\Domain\Users\Operations\UpdateProfile;
 use App\Domain\Users\Queries\AccountSecurityStatus;
@@ -35,6 +37,7 @@ final class ProfileController extends Controller
             'mustVerifyEmail' => $status->for((int) $request->user()?->getAuthIdentifier())['mustVerifyEmail'],
             'status' => $request->session()->get('status'),
             'bio' => (string) ($request->user()->bio ?? ''),
+            'publicProfile' => $this->shownProfile((int) $request->user()?->getAuthIdentifier()),
             // Profile's "Set by the site": your author page, where it has an address.
             'authorPage' => $authorPath === null ? null : ['url' => rtrim(url('/'), '/').$authorPath, 'path' => $authorPath],
         ]);
@@ -51,10 +54,27 @@ final class ProfileController extends Controller
             actorId: $actorId,
             // '' clears it: the form always sends the field.
             bio: $request->string('bio')->toString(),
+            publicProfile: $request->has('public_profile') ? (array) $request->input('public_profile') : null,
         ));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
         return to_route('profile.edit');
+    }
+
+    /**
+     * What they chose to show on their author page, as the form holds it.
+     *
+     * @return array{role: string, coverage: string, links: list<array{label: string, url: string}>}
+     */
+    private function shownProfile(int $userId): array
+    {
+        $profile = PublicProfile::ofAccount($userId);
+
+        return [
+            'role' => $profile['role'] ?? '',
+            'coverage' => $profile['coverage'] ?? '',
+            'links' => array_map(fn (ProfileLink $link): array => ['label' => $link->label, 'url' => $link->url], $profile['links']),
+        ];
     }
 }

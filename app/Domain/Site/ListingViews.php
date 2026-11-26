@@ -29,6 +29,7 @@ use App\Domain\Fields\Types\MediaField;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\People\Credit;
 use App\Domain\People\Credits;
+use App\Domain\People\PublicProfile;
 use App\Domain\People\Queries\People;
 use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\ViewModels\ImageRef;
@@ -230,8 +231,12 @@ final readonly class ListingViews
             $count = self::countUpTo(clone $items, PathResolver::LAST_PAGE * $this->perPage());
         }
 
+        // Only an account has a profile to fill; the count is left out when it stopped at the page limit.
+        $profile = $credit->kind === Credit::ACCOUNT ? PublicProfile::ofAccount((int) $credit->id) : ['role' => null, 'coverage' => null, 'links' => []];
+        $exact = $count < PathResolver::LAST_PAGE * $this->perPage() ? $count : null;
+
         return new ListingView(
-            new Subject('author', $shown->name, $shown->bio, url: $url),
+            new Subject('author', $shown->name, $shown->bio, url: $url, role: $profile['role'], coverage: $profile['coverage'], links: $profile['links'], publishedCount: $exact),
             $this->page(clone $items, $page),
             $this->pagination($page, $count, $url ?? '/'),
             breadcrumbs: $this->trail->wanted() ? $this->trail->to($shown->name, $url ?? '') : null,

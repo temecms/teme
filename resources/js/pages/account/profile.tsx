@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import ProfileController from '@/actions/App/Http/Admin/Account/ProfileController';
 import { PictureField } from '@/components/account/picture-panel';
+import InputError from '@/components/input-error';
 import { FormPanel } from '@/components/patterns/form-page';
 import { SaveBar } from '@/components/patterns/save-bar';
 import { SettingsPage } from '@/components/patterns/settings-page';
@@ -35,12 +36,19 @@ export default function Profile({
     mustVerifyEmail,
     status,
     bio,
+    publicProfile,
     authorPage,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
     /** The bio shown on the person's author page and under their articles. */
     bio: string;
+    /** What the person chose to show on their author page. */
+    publicProfile: {
+        role: string;
+        coverage: string;
+        links: { label: string; url: string }[];
+    };
     /** Your author page on the site: its address and its path to show. */
     authorPage: { url: string; path: string } | null;
 }) {
@@ -153,6 +161,88 @@ export default function Profile({
                                         rows={4}
                                     />
                                 </Field>
+                            </FormPanel>
+
+                            <FormPanel
+                                title={__('On your author page')}
+                                description={__(
+                                    'Each one is shown only when you fill it in. Nothing else about your account is shown.',
+                                )}
+                            >
+                                <Field
+                                    htmlFor="public-role"
+                                    label={__('Your title')}
+                                    help={__('For example “Senior editor”.')}
+                                    error={errors['public_profile.role']}
+                                >
+                                    <Input
+                                        id="public-role"
+                                        name="public_profile[role]"
+                                        defaultValue={publicProfile.role}
+                                        maxLength={120}
+                                    />
+                                </Field>
+                                <Field
+                                    htmlFor="public-coverage"
+                                    label={__('What you cover')}
+                                    error={errors['public_profile.coverage']}
+                                >
+                                    <Input
+                                        id="public-coverage"
+                                        name="public_profile[coverage]"
+                                        defaultValue={publicProfile.coverage}
+                                        maxLength={255}
+                                    />
+                                </Field>
+                                <div className="grid gap-3">
+                                    <p className="text-small text-ink-2 font-medium">
+                                        {__('Links, up to six')}
+                                    </p>
+                                    {Array.from({ length: 6 }, (_, index) => (
+                                        <div
+                                            key={index}
+                                            className="grid gap-2 sm:grid-cols-2"
+                                        >
+                                            <Input
+                                                name={`public_profile[links][${index}][label]`}
+                                                defaultValue={
+                                                    publicProfile.links[index]
+                                                        ?.label ?? ''
+                                                }
+                                                maxLength={60}
+                                                aria-label={__(
+                                                    'Link :number label',
+                                                    { number: index + 1 },
+                                                )}
+                                                placeholder={__('Label')}
+                                            />
+                                            <Input
+                                                type="url"
+                                                name={`public_profile[links][${index}][url]`}
+                                                defaultValue={
+                                                    publicProfile.links[index]
+                                                        ?.url ?? ''
+                                                }
+                                                maxLength={500}
+                                                aria-label={__(
+                                                    'Link :number address',
+                                                    { number: index + 1 },
+                                                )}
+                                                placeholder="https://"
+                                            />
+                                            <InputError
+                                                message={
+                                                    errors[
+                                                        `public_profile.links.${index}.label`
+                                                    ] ??
+                                                    errors[
+                                                        `public_profile.links.${index}.url`
+                                                    ]
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </FormPanel>
 
                             <FormPanel title={__('Set by the site')}>
