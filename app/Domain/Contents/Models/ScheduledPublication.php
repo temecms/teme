@@ -54,12 +54,11 @@ final class ScheduledPublication extends Model
     /**
      * The words for a stored failure reason, translated where it is shown. A
      * reason that isn't a known code is returned as stored.
-     *
-     * @since next
      */
     public static function failureWords(string $reason): string
     {
         return match ($reason) {
+            'trashed' => __('the item was moved to the trash before the time came.'),
             self::FAILURE_CODE_CHANGED => __('the region’s Custom HTML code on the site changed after it was scheduled, and changed code goes live only when a person publishes it. Check the code, then publish it by hand.'),
             default => $reason,
         };
