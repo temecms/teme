@@ -85,9 +85,9 @@ it('groups a run’s messages by code, errors first, then the most frequent, eac
 
     expect($report['messages'])->toBe([
         ['code' => 'check.not-found', 'level' => 'error', 'levelLabel' => 'Error', 'words' => '/old-page/ answers “not found” on Teme.', 'count' => 4, 'group' => 'Failed', 'sentence' => 'These items failed and need attention.'],
-        ['code' => 'content.shortcode-removed', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => 'Removed the shortcode [gallery_bank]: its plugin is gone.', 'count' => 1, 'group' => 'Shortcodes removed', 'sentence' => 'A shortcode’s plugin isn’t on Teme, so the shortcode was taken out of the content.'],
+        ['code' => 'setting.not-carried', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => '=SUM(3) widgets in the sidebar weren’t imported. Set up the theme’s regions again.', 'count' => 1, 'group' => 'Date and time settings not carried over', 'sentence' => null],
+        ['code' => 'shortcode.removed', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => 'Removed the shortcode [gallery_bank]: its plugin is gone.', 'count' => 1, 'group' => 'Shortcodes removed', 'sentence' => 'A shortcode’s plugin isn’t on Teme, so the shortcode was taken out of the content.'],
         ['code' => 'user.subscriber', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => 'A subscriber: Teme has no accounts for readers yet, so they weren’t imported.', 'count' => 1, 'group' => 'Subscribers left behind', 'sentence' => 'Teme has no accounts for readers yet, so WordPress subscribers weren’t imported.'],
-        ['code' => 'widgets.reported', 'level' => 'warning', 'levelLabel' => 'Warning', 'words' => '=SUM(3) widgets in the sidebar weren’t imported. Set up the theme’s regions again.', 'count' => 1, 'group' => 'Widgets not imported', 'sentence' => 'Sidebar widgets aren’t brought across. Set up the theme’s regions again.'],
     ])
         ->and($report['more'])->toBeFalse()
         ->and($report['problems'])->toBe(4);
