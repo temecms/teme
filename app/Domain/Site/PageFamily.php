@@ -18,6 +18,7 @@ namespace App\Domain\Site;
 use App\Domain\Addresses\Addresses;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
+use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Tree\ContentTree;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\ViewModels\ItemLink;
@@ -95,6 +96,59 @@ final readonly class PageFamily
             SQL, [$id, now(), ...$hidden, self::CHILDREN]);
 
         return $this->links($rows);
+    }
+
+    /**
+     * The live items that share the item's parent and type, itself among
+     * them, in menu order, at most 100; for a top-level item, the top-level
+     * items of its type in its language. Records the list that sets the
+     * page aside when one is added, moved or taken off.
+     *
+     * @return list<ItemLink>
+     */
+    public function siblings(Content $content): array
+    {
+        app(RenderRecord::class)->tag($content->parent_id === null ? PageTags::listOf((string) $content->type) : PageTags::childrenOf((string) $content->parent_id));
+
+        [$shown, $hidden] = self::shown();
+        $rows = DB::select(<<<SQL
+            SELECT c.id, c.type, r.title, paths.path
+            FROM contents c
+            JOIN content_revisions r ON r.id = c.published_revision_id
+            JOIN paths ON paths.target_type = 'content' AND paths.target_id = c.id::text AND paths.is_current
+            WHERE c.parent_id IS NOT DISTINCT FROM ? AND c.type = ? AND c.language IS NOT DISTINCT FROM ?
+              AND c.deleted_at IS NULL AND c.status = 'published'
+              AND c.visibility <> 'private' AND c.published_at <= ?{$shown}
+            ORDER BY c.position, c.id
+            LIMIT ?
+            SQL, [$content->parent_id, $content->type, $content->language, now(), ...$hidden, self::CHILDREN]);
+
+        return $this->links($rows);
+    }
+
+    /**
+     * The live sibling just before the item in menu order, or the one just
+     * after it ($before false); null at the ends. Found by its position, so
+     * it is right however many siblings there are.
+     */
+    public function neighbour(Content $content, bool $before): ?ItemLink
+    {
+        [$shown, $hidden] = self::shown();
+        [$compare, $order] = $before ? ['<', 'DESC'] : ['>', 'ASC'];
+        $rows = DB::select(<<<SQL
+            SELECT c.id, c.type, r.title, paths.path
+            FROM contents c
+            JOIN content_revisions r ON r.id = c.published_revision_id
+            JOIN paths ON paths.target_type = 'content' AND paths.target_id = c.id::text AND paths.is_current
+            WHERE c.parent_id IS NOT DISTINCT FROM ? AND c.type = ? AND c.language IS NOT DISTINCT FROM ?
+              AND (c.position, c.id) {$compare} (?, ?)
+              AND c.deleted_at IS NULL AND c.status = 'published'
+              AND c.visibility <> 'private' AND c.published_at <= ?{$shown}
+            ORDER BY c.position {$order}, c.id {$order}
+            LIMIT 1
+            SQL, [$content->parent_id, $content->type, $content->language, $content->position, (string) $content->id, now(), ...$hidden]);
+
+        return $this->links($rows)[0] ?? null;
     }
 
     /**

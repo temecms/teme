@@ -34,6 +34,9 @@ final readonly class ArticleView
      * @param  ItemLink|null  $parent  the item it sits under, while readers can see it; null at the top, for a type that doesn't nest, and while its parent is hidden
      * @param  list<ItemLink>  $ancestors  the items above it that readers can see, the top first; the trail is made from them
      * @param  list<ItemLink>  $children  the published items under it, in their order, at most 100
+     * @param  list<ItemLink>  $siblings  the published items of its type under the same parent, itself among them, in menu order, at most 100; none for a type that doesn't nest
+     * @param  ItemLink|null  $previous  the sibling before it in menu order; null for the first, and for a type that doesn't nest
+     * @param  ItemLink|null  $next  the sibling after it in menu order; null for the last, and for a type that doesn't nest
      */
     public function __construct(
         /** The item's ID. */
@@ -87,6 +90,9 @@ final readonly class ArticleView
         public ?ItemLink $parent = null,
         public array $ancestors = [],
         public array $children = [],
+        public array $siblings = [],
+        public ?ItemLink $previous = null,
+        public ?ItemLink $next = null,
     ) {}
 
     /**

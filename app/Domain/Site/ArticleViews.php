@@ -126,7 +126,7 @@ final readonly class ArticleViews
         $updated = $saved->greaterThanOrEqualTo($published->addHours(self::UPDATED_AFTER_HOURS)) ? $saved : null;
 
         [$kicker, $tags, $section] = $this->terms((string) $content->type, array_map('strval', (array) $revision->terms), $fields[BuiltInFields::PRIMARY_CATEGORY] ?? null);
-        [$ancestors, $parent, $children] = $this->family($content);
+        [$ancestors, $parent, $children, $siblings, $previous, $next] = $this->family($content);
 
         return new ArticleView(
             id: (string) $content->id,
@@ -164,6 +164,9 @@ final readonly class ArticleViews
     /**
      * The cleaned insertion plan for a published article page, or null when
      * previews, opt-out, or no contributor gave anything (I-064).
+            siblings: $siblings,
+            previous: $previous,
+            next: $next,
      *
      * @param  array<mixed>  $document
      * @param  list<object>  $credits
@@ -281,20 +284,21 @@ final readonly class ArticleViews
     /**
      * The live items above it, the top first, its parent among them while
      * readers can see it, and those under it, each read once and only for a
-     * type that nests (I-3363).
+     * type that nests (I-3363); with them its siblings, in menu order, and
+     * the sibling before it and the one after.
      *
-     * @return array{0: list<ItemLink>, 1: ItemLink|null, 2: list<ItemLink>}
+     * @return array{0: list<ItemLink>, 1: ItemLink|null, 2: list<ItemLink>, 3: list<ItemLink>, 4: ItemLink|null, 5: ItemLink|null}
      */
     private function family(Content $content): array
     {
         if (! $this->types->has((string) $content->type) || ! $this->types->get((string) $content->type)->hierarchical) {
-            return [[], null, []];
+            return [[], null, [], [], null, null];
         }
 
         $id = (string) $content->id;
         [$ancestors, $parent] = $content->parent_id === null ? [[], null] : $this->family->lineage($id);
 
-        return [$ancestors, $parent, $this->family->children($id)];
+        return [$ancestors, $parent, $this->family->children($id), $this->family->siblings($content), $this->family->neighbour($content, true), $this->family->neighbour($content, false)];
     }
 
     /**
