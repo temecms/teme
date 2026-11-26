@@ -28,6 +28,15 @@ it('refuses the site’s database under parallel testing, which adds its own _te
     expect(TestDatabaseGuard::refusal(null, 'teme_test_2', '2'))->toContain('"teme_test_2"');
 });
 
+it('reads the database a DB_URL names, which wins over DB_DATABASE, so a host URL pointing at the site cannot slip past', function (): void {
+    $connection = ['driver' => 'pgsql', 'url' => 'pgsql://teme:secret@db:5432/teme_site', 'database' => 'teme_test'];
+
+    expect(TestDatabaseGuard::database($connection))->toBe('teme_site')
+        ->and(TestDatabaseGuard::refusal(null, TestDatabaseGuard::database($connection)))->toContain('"teme_site"')
+        ->and(TestDatabaseGuard::database(['driver' => 'pgsql', 'url' => '', 'database' => 'teme_test']))->toBe('teme_test')
+        ->and(TestDatabaseGuard::database(['driver' => 'pgsql', 'url' => null, 'database' => 'teme_test']))->toBe('teme_test');
+});
+
 it('refuses a cached configuration, saying config:clear fixes it', function (): void {
     $cache = tempnam(sys_get_temp_dir(), 'config');
 

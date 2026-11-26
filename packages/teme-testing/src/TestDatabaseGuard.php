@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Teme\Testing;
 
 use Illuminate\Foundation\Application;
+use Illuminate\Support\ConfigurationUrlParser;
 use Illuminate\Testing\ParallelTesting;
 
 final class TestDatabaseGuard
@@ -35,7 +36,7 @@ final class TestDatabaseGuard
         $connection = (string) $app['config']->get('database.default');
         $refusal = self::refusal(
             $app->configurationIsCached() ? $app->getCachedConfigPath() : null,
-            (string) $app['config']->get("database.connections.{$connection}.database"),
+            self::database((array) $app['config']->get("database.connections.{$connection}", [])),
             $app->bound(ParallelTesting::class) ? $app->make(ParallelTesting::class)->token() : false,
         );
 
@@ -72,6 +73,19 @@ final class TestDatabaseGuard
         }
 
         return null;
+    }
+
+    /**
+     * The name of the database the connection would really use: a `url`
+     * (DB_URL or DATABASE_URL, which a host's environment may set and
+     * phpunit.xml doesn't override) wins over `database`, as Laravel merges
+     * them when it connects. Read without connecting.
+     *
+     * @param  array<string, mixed>  $connection
+     */
+    public static function database(array $connection): string
+    {
+        return (string) ((new ConfigurationUrlParser)->parseConfiguration($connection)['database'] ?? '');
     }
 
     /**
