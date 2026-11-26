@@ -161,7 +161,7 @@ export default function Profile({
                                         <span>{auth.user.role ?? '—'}</span>
                                         <span className="text-small text-ink-2">
                                             {__(
-                                                'Only another administrator can change it, under People.',
+                                                'Only another administrator can change it, under Settings › People.',
                                             )}
                                         </span>
                                     </Fact>

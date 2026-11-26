@@ -26,6 +26,11 @@ function accountPictureGive(User $user): string
     return $image->id;
 }
 
+it('hints that the site’s default picture is chosen under Settings › People', function (): void {
+    expect(uiComponent('components/account/picture-panel.tsx'))
+        ->toContain('The site’s default is chosen in Settings › People.');
+});
+
 it('changes your own picture and says so', function (): void {
     $image = pageImage($this->author, 400, 400);
 

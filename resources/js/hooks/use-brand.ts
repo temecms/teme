@@ -11,12 +11,18 @@ export function useBrand(): Brand & { name: string } {
     return { ...brand, name };
 }
 
-/** The line under the site's name: "Teme 0.1.0 · production", or "Teme · production" before sign-in. */
-export function brandLine(brand: Brand): string {
-    const product =
-        brand.version === null
-            ? brand.product
-            : `${brand.product} ${brand.version}`;
+/** The line under the name: "Teme 0.1.0 · production", or "Teme · production" before sign-in. */
+export function brandLine(brand: Brand, named = false): string {
+    // Where the product's name is already the heading, the line leaves it out.
+    const product = named
+        ? (brand.version ?? '')
+        : brand.version === null
+          ? brand.product
+          : `${brand.product} ${brand.version}`;
+
+    if (product === '') {
+        return brand.environment;
+    }
 
     return `${product} · ${brand.environment}`;
 }

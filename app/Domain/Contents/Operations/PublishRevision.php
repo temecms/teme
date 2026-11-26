@@ -28,7 +28,9 @@ use App\Domain\Contents\Models\ScheduledPublication;
 use App\Domain\Contents\Operations\Concerns\FollowsTree;
 use App\Domain\Contents\Operations\Concerns\PurgesTranslations;
 use App\Domain\Contents\Operations\Input\PublishRevisionInput;
+use App\Domain\Contents\Operations\Input\UpdateContentDetailsInput;
 use App\Domain\Contents\SearchText;
+use App\Domain\Contents\Slugs;
 use App\Domain\Contents\Tree\SubtreeAddresses;
 use App\Domain\Contents\Visibility;
 use App\Domain\Fields\BuiltInFields;
@@ -121,6 +123,12 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
         $content = Content::query()->findOrFail($input->contentId);
         $this->treeType = (string) $content->type;
 
+        // A pending address is checked before any write, so a refused publish
+        // never leaves the live address moved.
+        if ($input->slug !== null) {
+            Slugs::assertUsable((string) $content->type, $input->slug, (string) $content->id, $content->language);
+        }
+
         // A region is held to its theme's declaration as it is now, which a
         // theme update may have narrowed since the revision was saved. Only
         // the region's limits: the revision already fitted the schema.
@@ -134,7 +142,8 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
         // term's or author's; a history row is taken over.
         $revision = ContentRevision::query()->whereKey($input->revisionId)->first(['terms', 'fields']);
         $terms = array_map('strval', (array) $revision?->terms);
-        $address = Addresses::wouldHave($content, $content->slug, $terms, null, $content->published_at, ((array) $revision?->fields)[BuiltInFields::PRIMARY_CATEGORY] ?? null);
+        $slug = $input->slug ?? (string) $content->slug;
+        $address = Addresses::wouldHave($content, $slug, $terms, null, $content->published_at, ((array) $revision?->fields)[BuiltInFields::PRIMARY_CATEGORY] ?? null);
         $clash = $address === null ? null : Paths::conflict($address, 'content', (string) $content->id);
 
         if ($clash !== null) {
@@ -147,6 +156,7 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
         if (! $input->keepClashingChildren && ! self::onSite($content) && app(ContentTypeRegistry::class)->get((string) $content->type)->hierarchical) {
             $published = clone $content;
             $published->status = 'published';
+            $published->slug = $slug;
             $subtree = app(SubtreeAddresses::class);
             $childClash = $subtree->hasChildren($published) ? $subtree->clash($published, $subtree->childChain($published)) : null;
 
@@ -164,6 +174,16 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
     protected function perform(OperationInput $input): Content
     {
         /** @var PublishRevisionInput $input */
+        // The address rides in this same transaction, before the pointer moves.
+        if ($input->slug !== null) {
+            app(UpdateContentDetails::class)->execute(new UpdateContentDetailsInput(
+                contentId: $input->contentId,
+                expectedRevisionId: $input->revisionId,
+                actorId: $input->actorId(),
+                slug: $input->slug,
+            ));
+        }
+
         $nests = $this->takeTree();
         $content = Content::lockForUpdate()->findOrFail($input->contentId);
         $revision = ContentRevision::findOrFail($input->revisionId);

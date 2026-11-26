@@ -288,6 +288,17 @@ it('draws the field and category changes above the body diff, and links a review
         ->and(uiComponent('components/editor/editor-rail.tsx'))->toContain('Compare with the published version');
 });
 
+it('puts Before, Restore the before version, and After on one line', function (): void {
+    $page = uiComponent('pages/content/compare.tsx');
+
+    expect($page)
+        ->toContain("__('Before: :name'")
+        ->toContain("__('Restore the before version')")
+        ->toContain("__('After: :name'")
+        ->not->toContain("__('Restore the after version')")
+        ->not->toContain('lg:grid-cols-2 lg:gap-6');
+});
+
 it('names exactly what changed on an image', function (?array $before, ?array $after, string $expected): void {
     $content = lifecycleDraft($this->author, 'Harbour festival');
     docSave($content, $this->author, docWith(docText('Three days of music.')));

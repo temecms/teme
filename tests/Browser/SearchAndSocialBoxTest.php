@@ -337,8 +337,7 @@ it('draws the SEO title as two lines with the template as its placeholder, and o
 
     expect($empty['tag'])->toBe('TEXTAREA')
         ->and($empty['rows'])->toBe(2)
-        ->and($empty['placeholder'])->toBe('Harbour news – My Teme site')
-        ->and($empty['placeholder'])->not->toContain('Using the title template')
+        ->and($empty['placeholder'])->toBe('Using the title template: Harbour news – My Teme site')
         ->and($empty['count'])->toMatch('/^\d+ characters, from the template · about 60 show$/')
         ->and($empty['warn'])->toBeFalse();
 

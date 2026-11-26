@@ -440,7 +440,7 @@ function ImageWidths({
  * A Settings page drawn from a group's declaration: the page's header, and
  * the group's form in the sections the page is split into, saved through
  * SaveSettingsPage by the one save bar. Reading opens with the addresses
- * group's Home page; General ends with the design group's Brand color
+ * group's Home page; General ends with the design group's Brand colour
  * (I-3437); Media ends with the image widths Teme makes; People opens with
  * the line on its password and ends with People's pictures. A plugin's page
  * names its plugin with the plug mark.

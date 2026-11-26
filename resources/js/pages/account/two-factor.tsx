@@ -122,7 +122,7 @@ function SetUpSteps() {
     const at = { scan: 0, code: 1, codes: 2 }[step];
 
     return (
-        <>
+        <div className="grid w-full gap-4">
             <StepBar
                 steps={steps}
                 current={at}
@@ -186,7 +186,7 @@ function SetUpSteps() {
                     </div>
                 </FormPanel>
             )}
-        </>
+        </div>
     );
 }
 
@@ -271,7 +271,11 @@ function ScanStep({
                                 data-test="two-factor-key"
                                 className="bg-surface-2 text-body rounded-sm px-2 py-1 font-mono break-all"
                             >
-                                {manualSetupKey ?? '…'}
+                                {manualSetupKey === null
+                                    ? '…'
+                                    : manualSetupKey
+                                          .replace(/\s+/g, '')
+                                          .replace(/(.{4})(?=.)/g, '$1 ')}
                             </code>
                             <Button
                                 type="button"

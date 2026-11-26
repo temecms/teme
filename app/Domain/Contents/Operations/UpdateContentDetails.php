@@ -41,6 +41,7 @@ use App\Domain\Contents\Tree\TreeRules;
 use App\Domain\Feeds\FeedPath;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldValidator;
+use App\Domain\Fields\RequiredFields;
 use App\Domain\Media\MediaProjection;
 use App\Domain\Media\Models\Media;
 use App\Domain\Support\Operations\BaseOperation;
@@ -115,7 +116,7 @@ final class UpdateContentDetails extends BaseOperation
         )->validate();
 
         if ($input->slug !== null && ! Slugs::isAvailable($content->type, $input->slug, $content->id, $content->language)) {
-            throw ValidationException::withMessages(['slug' => __('Another :type already uses this address.', ['type' => $content->type])]);
+            throw ValidationException::withMessages(['slug' => __('Another :type already uses this address.', ['type' => RequiredFields::noun((string) $content->type)])]);
         }
 
         $parentId = $input->place === null ? $content->parent_id : $input->place->parentId;

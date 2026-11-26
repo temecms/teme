@@ -435,7 +435,7 @@ function AddressSections({
                 >
                     <RadioGroup
                         aria-label={__('Address shape')}
-                        className="sm:grid-cols-2"
+                        className="grid-cols-1"
                         value={preset}
                         onValueChange={(next) => {
                             if (next === 'custom') {

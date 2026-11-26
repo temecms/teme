@@ -130,7 +130,7 @@ export function HomePageSetting({
                         value={frontShows}
                         onValueChange={setFrontShows}
                         disabled={locked}
-                        className="sm:grid-cols-2"
+                        className="grid-cols-1"
                     >
                         <RadioGroupCard
                             id="field-front_shows"

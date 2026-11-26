@@ -9,7 +9,12 @@ import { CardEnvironmentContext } from '@/components/editor/cards/card-environme
 import type { CardEnvironment } from '@/components/editor/cards/card-environment';
 import ReviewController from '@/actions/App/Http/Admin/Contents/ReviewController';
 import ScheduleController from '@/actions/App/Http/Admin/Contents/ScheduleController';
-import { post, reasonOf, send } from '@/components/editor/editor-http';
+import {
+    addressRefusalOf,
+    post,
+    reasonOf,
+    send,
+} from '@/components/editor/editor-http';
 import type { Answer, Route } from '@/components/editor/editor-http';
 import { coreTools, EditorHeader } from '@/components/editor/editor-header';
 import type { ToolPanes } from '@/components/editor/editor-header';
@@ -194,6 +199,8 @@ export default function ContentEdit(page: ContentEditPage) {
         session.addressPattern,
     );
     const [slug, setSlug] = useState(session.slug);
+    const [savedSlug, setSavedSlug] = useState(session.slug);
+    const [slugProblem, setSlugProblem] = useState<string | null>(null);
     const [discussion, setDiscussion] = useState(page.discussion);
     const [visibility, setVisibility] = useState(session.visibility);
     const [readerPassword, setReaderPassword] = useState(
@@ -303,8 +310,27 @@ export default function ContentEdit(page: ContentEditPage) {
         initialSavedAt: session.savedAt,
         initialOthers: session.otherEditors,
         hasAutosave: session.fromAutosave,
-        // A first title may have given the draft its address (I-425).
-        onSlug: setSlug,
+        // Pending while the typed address differs from the saved one; an
+        // emptied field is sent as '' and takes the server's address on Save.
+        sidePending: slug !== savedSlug,
+        // A first title may have given the draft its address (I-425). Never
+        // overwrite a pending typed address the person has not saved yet.
+        onSlug: (next, sent) => {
+            // A save that carried the typed address (even an emptied one)
+            // shows what the server stored; otherwise only an untouched field
+            // follows it.
+            setSlug((current) =>
+                current === savedSlugRef.current || current === sent
+                    ? next
+                    : current,
+            );
+            setSavedSlug(next);
+            setSlugProblem(null);
+        },
+        onSlugRefused: (message) => {
+            setSlugProblem(message);
+            toast.error(message);
+        },
         // The server stored some links differently (I-452): the editor
         // shows what is saved, and says which links it removed.
         onLinksChanged: (changes) => {
@@ -324,7 +350,28 @@ export default function ContentEdit(page: ContentEditPage) {
             }
         },
     });
-    const { setOtherEditors, checkpoint, workingRevisionId } = saving;
+    const {
+        setOtherEditors,
+        checkpoint: checkpointOnly,
+        workingRevisionId,
+    } = saving;
+    const savedSlugRef = useRef(savedSlug);
+    savedSlugRef.current = savedSlug;
+    const live = status === 'published';
+
+    /**
+     * A revision save. Draft Save draft may carry a pending address; preview,
+     * share, plugins, Ctrl+S on a live post, and the gather before Update
+     * never do — a live address moves only with Update / Publish.
+     */
+    const checkpoint = async (
+        withDraftAddress = false,
+    ): Promise<string | null> => {
+        const address =
+            withDraftAddress && !live && slug !== savedSlug ? slug : undefined;
+
+        return checkpointOnly(address);
+    };
 
     // A failed autosave stays on screen as one notice until a save succeeds.
     // One the person closed comes back only for a different failure.
@@ -458,7 +505,8 @@ export default function ContentEdit(page: ContentEditPage) {
         const keys = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 's') {
                 event.preventDefault();
-                void checkpoint();
+                // Draft Save carries a pending address; a live Save does not.
+                void checkpoint(!live);
             }
 
             if (
@@ -553,7 +601,24 @@ export default function ContentEdit(page: ContentEditPage) {
                 answer = await send(route, data);
             }
 
+            // Someone else changed the item since this version: the dialog
+            // that explains it, as for a save, not a notice.
+            if (answer.status === 409 && answer.body.stale === true) {
+                saving.markStale(answer.body);
+
+                return null;
+            }
+
             if (answer.status >= 400) {
+                const message = addressRefusalOf(answer.body);
+
+                if (message !== null) {
+                    setSlugProblem(message);
+                    setNotice(`${refused}: ${message}`);
+
+                    return null;
+                }
+
                 setNotice(`${refused}: ${reasonOf(answer.body)}`);
                 showFieldErrors(answer.body);
 
@@ -596,16 +661,29 @@ export default function ContentEdit(page: ContentEditPage) {
     };
 
     // Publishing saves first, then publishes the revision that save returned;
-    // PublishRevision itself never saves.
+    // PublishRevision itself never saves. A pending address travels here so
+    // Update applies it with the publish (and its redirect), never earlier.
     const publishRevision = async (revisionId: string) => {
+        const data: Record<string, string> = { revision_id: revisionId };
+
+        if (slug !== savedSlug) {
+            data.slug = slug;
+        }
+
         const answer = await decide(
             ContentEditorController.publish(session.id),
-            { revision_id: revisionId },
+            data,
             'Not published',
         );
 
         if (answer === null) {
             return;
+        }
+
+        if (typeof answer.body.slug === 'string') {
+            setSlug(answer.body.slug);
+            setSavedSlug(answer.body.slug);
+            setSlugProblem(null);
         }
 
         // A publish by hand ends any schedule; the answer says so.
@@ -644,7 +722,6 @@ export default function ContentEdit(page: ContentEditPage) {
     // A first publication is confirmed (I-880): saved first, that revision's
     // structured data checked, then shown; its button acts on that revision.
     const [confirming, setConfirming] = useState<Confirming | null>(null);
-    const live = status === 'published';
 
     const confirmFirst = (
         action: Confirming['action'],
@@ -710,30 +787,15 @@ export default function ContentEdit(page: ContentEditPage) {
               : submitRevision(revisionId));
     };
 
+    /**
+     * Commits a tidied address into unsaved changes. Empty means the server
+     * will make the title's address on Save draft or Update. Never saved here.
+     */
     const changeSlug = async (next: string): Promise<string | null> => {
-        try {
-            const answer = await post(
-                ContentEditorController.address(session.id).url,
-                {
-                    slug: next,
-                    expected_revision_id: workingRevisionId(),
-                },
-            );
+        setSlug(next);
+        setSlugProblem(null);
 
-            if (answer.status === 409) {
-                return `Someone else changed this ${(type?.singular ?? 'item').toLowerCase()}. Reload it before changing the address.`;
-            }
-
-            if (answer.status >= 400) {
-                return reasonOf(answer.body);
-            }
-
-            setSlug((answer.body.slug as string) ?? next);
-
-            return null;
-        } catch {
-            return __('The connection failed. Try again.');
-        }
+        return null;
     };
 
     // Saved at once, outside the revision, as the address is; a refusal puts
@@ -1430,9 +1492,12 @@ export default function ContentEdit(page: ContentEditPage) {
                             status={status}
                             publishedAt={publishedAt}
                             slug={slug}
+                            savedSlug={savedSlug}
+                            title={title}
                             onChangeSlug={changeSlug}
+                            slugProblem={slugProblem}
                             saveDisabled={saving.state === 'stale'}
-                            onSave={() => void checkpoint()}
+                            onSave={() => void checkpoint(!live)}
                             onPreview={
                                 themeRegion === null ? openPreview : null
                             }

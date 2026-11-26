@@ -77,13 +77,13 @@ it('saves the five sections from the bar', function (): void {
     expect(app(SettingsReader::class)->int('discussion', 'thread_depth'))->toBe(4);
 });
 
-it('splits Settings › General into Site, Contact, Time and language and Brand color, saved by the one bar after them', function (): void {
+it('splits Settings › General into Site, Contact, Time and language and Brand colour, saved by the one bar after them', function (): void {
     $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/settings/general');
 
     cmWaitUntil($page, "document.querySelectorAll('[data-test=\"settings-panel\"]').length === 4")
         ->assertScript("document.querySelector('[data-test=\"brand-colour\"] button[type=\"submit\"]') === null");
 
-    expect(($this->panels)($page, 'title'))->toBe('Site|Contact|Time and language|Brand color')
+    expect(($this->panels)($page, 'title'))->toBe('Site|Contact|Time and language|Brand colour')
         ->and(($this->bar)($page))->toBe('Save');
 
     $page->type('#field-site_title', 'The Garden City Ledger');

@@ -1,4 +1,5 @@
 import { http } from '@inertiajs/react';
+import { __ } from '@/lib/i18n';
 
 /** A JSON answer: its status, its body parsed, and any Retry-After it sent. */
 export type Answer = {
@@ -94,4 +95,19 @@ export function reasonOf(body: Record<string, unknown>): string {
         (body.message as string | undefined) ??
         'Teme couldn’t save this.'
     );
+}
+
+/**
+ * The server's own sentence for a refused address (format, feed name, a child
+ * page's clash, already taken), or null when the answer is not about the
+ * address. The server names the item's own noun.
+ */
+export function addressRefusalOf(body: Record<string, unknown>): string | null {
+    const errors = body.errors as Record<string, string[]> | undefined;
+
+    if (errors?.slug === undefined) {
+        return null;
+    }
+
+    return errors.slug[0] ?? __('This address can’t be used.');
 }

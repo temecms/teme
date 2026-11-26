@@ -276,9 +276,18 @@ function regionChecks(facts: RegionFacts): RegionCheck[] {
  */
 export function RegionChecksPanel({ facts }: { facts: RegionFacts }) {
     const checks = regionChecks(facts);
+    const failing = checks.filter((check) => check.state !== 'ok').length;
 
     return (
-        <RailSection title={__('Checks')} triggerId="rail-checks-trigger">
+        <RailSection
+            title={__('Checks')}
+            triggerId="rail-checks-trigger"
+            summary={
+                failing === 0
+                    ? __('All clear')
+                    : __n(':count to look at|:count to look at', failing)
+            }
+        >
             <ul
                 data-test="rail-region-checks"
                 className="text-small grid gap-2"

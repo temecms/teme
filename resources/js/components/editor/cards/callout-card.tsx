@@ -1,4 +1,5 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
+import { Info, Lightbulb, TriangleAlert } from 'lucide-react';
 import { SelectField } from '@/components/ui/select-field';
 import { cn } from '@/lib/utils';
 import { __ } from '@/lib/i18n';
@@ -6,10 +7,25 @@ import { CardField, CardFrame } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 
-const TONES: Record<string, string> = {
-    note: 'border-l-line',
-    tip: 'border-l-ok',
-    warning: 'border-l-warn',
+const TONES: Record<
+    string,
+    { panel: string; icon: typeof Info; iconClass: string }
+> = {
+    note: {
+        panel: 'border-l-info bg-info-soft',
+        icon: Info,
+        iconClass: 'text-info-ink',
+    },
+    tip: {
+        panel: 'border-l-ok bg-ok-soft',
+        icon: Lightbulb,
+        iconClass: 'text-ok-ink',
+    },
+    warning: {
+        panel: 'border-l-warn bg-warn-soft',
+        icon: TriangleAlert,
+        iconClass: 'text-warn-ink',
+    },
 };
 
 /**
@@ -24,6 +40,8 @@ export function CalloutCard({
 }: ReactNodeViewProps) {
     const tone = (node.attrs.tone as string | null) ?? 'note';
     const text = (node.attrs.text as string | null) ?? '';
+    const look = TONES[tone] ?? TONES.note;
+    const Icon = look.icon;
 
     return (
         <CardFrame
@@ -35,19 +53,27 @@ export function CalloutCard({
                 <CalloutSettings attrs={node.attrs} update={updateAttributes} />
             }
         >
-            <textarea
-                aria-label={__('Callout text')}
-                rows={2}
-                value={text}
-                placeholder={__('What the reader should not miss')}
-                onChange={(event) =>
-                    updateAttributes({ text: event.target.value })
-                }
+            <div
                 className={cn(
-                    'bg-surface-2 focus-visible:ring-ring text-body field-sizing-content w-full resize-none rounded-sm border-l-4 px-3 py-2 outline-none focus-visible:ring-2',
-                    TONES[tone] ?? TONES.note,
+                    'flex gap-3 rounded-md border-l-4 px-3 py-2',
+                    look.panel,
                 )}
-            />
+            >
+                <Icon
+                    aria-hidden="true"
+                    className={cn('mt-0.5 size-4 shrink-0', look.iconClass)}
+                />
+                <textarea
+                    aria-label={__('Callout text')}
+                    rows={2}
+                    value={text}
+                    placeholder={__('What the reader should not miss')}
+                    onChange={(event) =>
+                        updateAttributes({ text: event.target.value })
+                    }
+                    className="text-body field-sizing-content w-full resize-none bg-transparent outline-none focus-visible:ring-0"
+                />
+            </div>
         </CardFrame>
     );
 }

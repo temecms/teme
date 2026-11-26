@@ -121,9 +121,8 @@ function stored(values: Record<string, unknown>, field: string): string {
 }
 
 /**
- * One task on Settings › AI (I-1308) as two cells of its parent's two-column
- * grid: "Rewrite: model" and "Rewrite: fallback", full-width selects with
- * their hints.
+ * One task on Settings › AI (I-1308): the model select and its fallback
+ * side by side at the same level, each with its hint (v10 settings-ai).
  */
 export function TaskRow({ task, values, errors, note = null }: RowProps) {
     const [model, setModel] = useState(stored(values, task.modelField));
@@ -132,7 +131,10 @@ export function TaskRow({ task, values, errors, note = null }: RowProps) {
     );
 
     return (
-        <>
+        <div
+            data-test={`ai-task-${task.key}`}
+            className="col-span-full grid gap-4 sm:grid-cols-2 sm:items-start"
+        >
             <ModelSelect
                 id={`ai-model-${task.key}`}
                 label={__(':task: model', { task: task.label })}
@@ -165,6 +167,6 @@ export function TaskRow({ task, values, errors, note = null }: RowProps) {
                 hint={__('Optional.')}
                 error={errors[`values.${task.fallbackField}`]}
             />
-        </>
+        </div>
     );
 }

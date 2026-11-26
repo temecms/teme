@@ -251,3 +251,14 @@ it('passes axe on Preferences and Two-factor sign-in, every target 24 pixels or 
     expect($targets['small'])->toBe([])
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['/admin/account/preferences', '/admin/account/two-factor'])->with(['light', 'dark']);
+
+it('shows the account list beside each account page at 1440 and passes axe on every one', function (string $path): void {
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 900), $path);
+    cmWaitUntil($page, 'location.pathname === "'.$path.'" && document.querySelectorAll("h1").length === 1');
+
+    $page->assertScript('document.querySelector(\'nav[aria-label="Account"]\') !== null')
+        ->assertScript('Math.round(document.querySelector(\'nav[aria-label="Account"]\').getBoundingClientRect().width) > 0')
+        ->assertAttribute('nav[aria-label="Account"] a[href$="'.$path.'"]', 'aria-current', 'page');
+
+    expect(cmAxeViolations($page))->toBe([]);
+})->with(['/admin/account/profile', '/admin/account/preferences', '/admin/account/notifications']);

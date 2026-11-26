@@ -242,7 +242,7 @@ it('offers Appearance as a labelled segmented control in Preferences', function 
     expect(uiComponent('pages/account/preferences.tsx'))
         ->toContain('<Segmented')
         ->toContain('aria-labelledby="appearance-mode-label"')
-        ->toContain("{__('Colors')}")
+        ->toContain("{__('Colours')}")
         ->toContain("{__('Match my computer')}")
         ->toContain('Light, dark, or whatever your computer is set to. Only you see it.')
         ->not->toContain('AppearanceTabs');
