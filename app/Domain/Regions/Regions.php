@@ -20,6 +20,7 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Types\CoreTypes;
+use Closure;
 use Illuminate\Support\Facades\DB;
 
 final class Regions
@@ -28,11 +29,32 @@ final class Regions
     private array $documents = [];
 
     /**
+     * What each region drew on this page, by name.
+     *
+     * @var array<string, array{html: string|null, before: string, after: string, undeclared: bool}>
+     */
+    private array $drawn = [];
+
+    /**
      * Empties it, for a page about to be drawn.
      */
     public function start(): void
     {
         $this->documents = [];
+        $this->drawn = [];
+    }
+
+    /**
+     * What the region drew on this page, built by $build the first time it
+     * is asked and remembered after (RegionDrawing).
+     *
+     * @param  Closure(): array{html: string|null, before: string, after: string, undeclared: bool}  $build
+     *
+     * @return array{html: string|null, before: string, after: string, undeclared: bool}
+     */
+    public function drawn(string $name, Closure $build): array
+    {
+        return $this->drawn[$name] ??= $build();
     }
 
     /**
