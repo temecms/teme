@@ -203,7 +203,7 @@ final readonly class ListingViews
      * touches an account, its list is read as before bylines, straight from
      * its index, and counted from the stored counts (I-3366).
      *
-     * @param  User|object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null}  $shown
+     * @param  User|object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null, profile?: array<mixed>|null}  $shown
      */
     public function forAuthor(object $shown, int $page, ?string $language = null): ListingView
     {
@@ -232,7 +232,7 @@ final readonly class ListingViews
         }
 
         // Only an account has a profile to fill; the count is left out when it stopped at the page limit.
-        $profile = $credit->kind === Credit::ACCOUNT ? PublicProfile::ofAccount((int) $credit->id) : ['role' => null, 'coverage' => null, 'links' => []];
+        $profile = $credit->kind === Credit::ACCOUNT ? PublicProfile::shown(is_array($shown->profile ?? null) ? $shown->profile : []) : ['role' => null, 'coverage' => null, 'links' => []];
         $exact = $count < PathResolver::LAST_PAGE * $this->perPage() ? $count : null;
 
         return new ListingView(

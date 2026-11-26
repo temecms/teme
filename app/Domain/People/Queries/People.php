@@ -31,7 +31,7 @@ final class People
      *
      * @param  list<Credit>  $credits
      *
-     * @return array<string, object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null}>
+     * @return array<string, object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null, profile: array<mixed>|null}>
      */
     public function shown(array $credits): array
     {
@@ -50,7 +50,7 @@ final class People
         $bindings = [];
 
         if ($accounts !== []) {
-            $branches[] = "SELECT 'user' AS kind, u.id::text AS id, u.name, u.slug, u.bio, a.path"
+            $branches[] = "SELECT 'user' AS kind, u.id::text AS id, u.name, u.slug, u.bio, a.path, u.public_profile"
                 .' FROM users u'
                 ." LEFT JOIN paths a ON a.target_type = 'user' AND a.target_id = u.id::text AND a.is_current"
                 .' WHERE u.id IN ('.self::placeholders($accounts).')';
@@ -58,7 +58,7 @@ final class People
         }
 
         if ($guests !== []) {
-            $branches[] = "SELECT 'person' AS kind, p.id::text AS id, p.name, p.slug, p.bio, a.path"
+            $branches[] = "SELECT 'person' AS kind, p.id::text AS id, p.name, p.slug, p.bio, a.path, NULL::jsonb AS public_profile"
                 .' FROM people p'
                 ." LEFT JOIN paths a ON a.target_type = 'person' AND a.target_id = p.id::text AND a.is_current"
                 .' WHERE p.id IN ('.self::placeholders($guests).') AND p.user_id IS NULL';
@@ -121,7 +121,7 @@ final class People
      * A row of shown() as callers read it: the kind and ID as text, the
      * biography trimmed, or null when blank.
      *
-     * @return object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null}
+     * @return object{kind: string, id: string, name: string, slug: string, bio: string|null, path: string|null, profile: array<mixed>|null}
      */
     public static function row(object $row): object
     {
@@ -134,6 +134,8 @@ final class People
             'slug' => (string) $row->slug,
             'bio' => $bio,
             'path' => $row->path === null ? null : (string) $row->path,
+            // What an account chose to show on its author page, as stored; a person with no account has none.
+            'profile' => is_string($row->public_profile ?? null) ? json_decode($row->public_profile, true) : null,
         ];
     }
 

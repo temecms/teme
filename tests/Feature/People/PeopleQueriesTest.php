@@ -37,20 +37,20 @@ it('shows an account with its name, address and biography, with or without a per
     $shown = $this->people->shown([Credit::account((int) $ada->id)]);
 
     expect($shown)->toHaveKey('user:'.$ada->id)
-        ->and((array) $shown['user:'.$ada->id])->toBe(['kind' => 'user', 'id' => (string) $ada->id, 'name' => 'Ada Lovelace', 'slug' => $ada->slug, 'bio' => 'Wrote the first program.', 'path' => 'author/'.$ada->slug]);
+        ->and((array) $shown['user:'.$ada->id])->toBe(['kind' => 'user', 'id' => (string) $ada->id, 'name' => 'Ada Lovelace', 'slug' => $ada->slug, 'bio' => 'Wrote the first program.', 'path' => 'author/'.$ada->slug, 'profile' => null]);
 
     DB::table('people')->insert(['id' => strtolower((string) Str::ulid()), 'user_id' => $ada->id, 'created_at' => now(), 'updated_at' => now()]);
     DB::table('users')->where('id', $ada->id)->update(['name' => 'Ada King', 'bio' => '  ']);
 
     expect((array) $this->people->shown([Credit::account((int) $ada->id)])['user:'.$ada->id])
-        ->toBe(['kind' => 'user', 'id' => (string) $ada->id, 'name' => 'Ada King', 'slug' => $ada->slug, 'bio' => null, 'path' => 'author/'.$ada->slug]);
+        ->toBe(['kind' => 'user', 'id' => (string) $ada->id, 'name' => 'Ada King', 'slug' => $ada->slug, 'bio' => null, 'path' => 'author/'.$ada->slug, 'profile' => null]);
 });
 
 it('shows a guest with their own name, address and biography', function (): void {
     $reuters = ($this->guest)('Reuters', 'reuters', 'News agency');
 
     expect((array) $this->people->shown([Credit::person($reuters)])['person:'.$reuters])
-        ->toBe(['kind' => 'person', 'id' => $reuters, 'name' => 'Reuters', 'slug' => 'reuters', 'bio' => 'News agency', 'path' => 'author/reuters']);
+        ->toBe(['kind' => 'person', 'id' => $reuters, 'name' => 'Reuters', 'slug' => 'reuters', 'bio' => 'News agency', 'path' => 'author/reuters', 'profile' => null]);
 });
 
 it('gives a guest a slug no account has, and an account a slug no guest has', function (): void {

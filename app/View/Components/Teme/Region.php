@@ -14,12 +14,9 @@ declare(strict_types=1);
 
 namespace App\View\Components\Teme;
 
-use App\Domain\Cards\CardUsage;
-use App\Domain\Cards\DocumentRenderer;
-use App\Domain\Cards\LinkResolver;
-use App\Domain\Cards\RenderContext;
+use App\Domain\Languages\PageLanguage;
 use App\Domain\Regions\RegionDeclarations;
-use App\Domain\Regions\Regions;
+use App\Domain\Regions\RegionDraw;
 use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Themes\ActiveTheme;
 use Illuminate\Contracts\View\View;
@@ -44,6 +41,12 @@ final class Region extends Component
 
     public bool $undeclared;
 
+    /** The viewport width the region waits for, in pixels, or null when it is drawn in the page. */
+    public ?int $minWidth = null;
+
+    /** Where core's script fetches a region that waits for a width. */
+    public string $source = '';
+
     /** What plugins place before the region, cleaned, or ''. */
     public string $before = '';
 
@@ -56,18 +59,20 @@ final class Region extends Component
     public function __construct(
         ActiveTheme $active,
         RegionDeclarations $declarations,
-        Regions $regions,
-        DocumentRenderer $renderer,
+        RegionDraw $draw,
         string $name,
     ) {
         $theme = $active->get();
         $declaration = $theme === null ? null : ($declarations->for($theme)[$name] ?? null);
         $declared = $declaration !== null;
-        $document = $declared ? $regions->published($theme->code, $name) : null;
-        $html = $document === null ? '' : $renderer->html($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), region: RegionDeclarations::cardRegion($theme->code, $name, $declaration)));
+        // A region that waits for a width is drawn here all the same: its cards' styles and the hashes and hosts of its scripts are
+        // noted for this page's head and policy, but only a placeholder is printed (docs/guides/developers/themes/regions.md).
+        $html = $declared ? $draw->html($theme, $name, $declaration) : '';
 
         $this->name = $name;
         $this->html = trim($html) === '' ? null : $html;
+        $this->minWidth = $this->html === null ? null : ($declaration['minWidth'] ?? null);
+        $this->source = $this->minWidth === null ? '' : route('teme.region', [], false).'?'.http_build_query(['name' => $name, 'lang' => app(PageLanguage::class)->tag()]);
         $this->undeclared = $theme !== null && ! $declared && ! app()->isProduction();
 
         if ($declared) {

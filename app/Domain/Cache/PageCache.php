@@ -174,7 +174,7 @@ final readonly class PageCache
             $request->query->has(CreateDesignPreview::PARAMETER) => 'design preview',
             // The router answers these itself, so no page of the public site is
             // stored there, and nothing is looked up or locked for them.
-            in_array(explode('/', ltrim($request->getPathInfo(), '/'))[0], Paths::RESERVED, true) && ! PageKey::isSuggestions($request->getPathInfo()) => 'reserved',
+            in_array(explode('/', ltrim($request->getPathInfo(), '/'))[0], Paths::RESERVED, true) && ! PageKey::isStoredEndpoint($request->getPathInfo()) => 'reserved',
             default => null,
         };
     }
@@ -483,6 +483,8 @@ final readonly class PageCache
         return match (true) {
             $status === 404 => min(self::NOT_FOUND_LIFETIME, self::lifetime()),
             PageKey::isSuggestions($key->path) => min(self::SUGGEST_LIFETIME, self::lifetime()),
+            // A region's fragment is as much the site's own as a page, and lives as long (it has no other query than its name and language).
+            PageKey::isRegionFragment($key->path) => self::lifetime(),
             $key->search => min(self::SEARCH_LIFETIME, self::lifetime()),
             default => self::lifetime(),
         };
