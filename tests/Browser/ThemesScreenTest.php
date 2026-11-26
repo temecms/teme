@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -73,14 +74,14 @@ it('previews a theme from its row, focusing the panel, with no foot bar, and sto
         ->assertScript("document.querySelector('[aria-label=\"Unpublished design changes\"]') === null")
         ->click('[data-test="theme-default"] [data-test="theme-settings-link"]');
 
-    cmWaitUntil($page, "location.hash === '#theme-settings' && document.querySelector('#theme-settings #design-show_author_box') !== null");
+    cmWaitUntil($page, "location.pathname === '/admin/themes/default/settings' && document.querySelector('#theme-settings #design-show_author_box') !== null");
 
     // A change to the previewed theme's settings, waiting for its save, then Stop at once.
     $page->click('#design-show_author_box')
         ->click('[data-test="theme-stop"]');
 
     ($this->textShown)($page, 'Stopped previewing Teme Default.');
-    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-preview-panel\"]') === null");
+    cmWaitUntil($page, "location.pathname === '/admin/themes' && document.querySelector('[data-test=\"theme-preview-panel\"]') === null");
 
     // Past the page's 800 ms save delay: a timer that outlived Stop would draft the change now.
     $page->wait(1.5);
@@ -90,18 +91,16 @@ it('previews a theme from its row, focusing the panel, with no foot bar, and sto
     expect(DB::table('settings')->whereNotNull('draft_values')->exists())->toBeFalse();
 });
 
-it('passes axe on Themes in both schemes: each theme with its state, and the regions the theme in use places', function (string $scheme): void {
+it('passes axe on Themes in both schemes: the active theme in its own card, the others in the grid', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
-    $page = cmSignIn($this->admin)->navigate('/admin/themes');
+    $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/themes');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-regions\"] [data-test=\"theme-region\"]') !== null");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-good\"] [data-test=\"theme-state\"]') !== null");
 
-    // The theme in use first, then Teme Default, Fixture Quiet and Fixture Broken as found.
-    $page->assertScript("[...document.querySelectorAll('[data-test=\"theme-state\"]')].map((chip) => chip.textContent).join(', ') === 'Active, Available, Available, Incompatible'")
-        ->assertSeeIn('[data-test="theme-regions"]', 'Callout, Button · At most 5 blocks')
-        ->assertSeeIn('[data-test="theme-regions"]', 'Draft')
-        ->assertSeeIn('[data-test="theme-regions-unplaced"]', 'Nothing from other themes.')
+    $page->assertScript("document.querySelector('[data-test=\"theme-good\"] [data-test=\"theme-state\"]')?.textContent === 'Active on this site'")
+        ->assertScript("[...document.querySelectorAll('[data-test=\"theme-list\"] [data-test=\"theme-state\"]')].map((chip) => chip.textContent).join(', ') === 'Available, Available, Incompatible'")
+        ->assertSeeIn('[data-test="theme-good"]', 'region')
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);
@@ -110,7 +109,7 @@ it('passes axe on Themes in both schemes: each theme with its state, and the reg
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('passes axe while previewing in both schemes, with the previewed theme\'s regions and what it would leave unplaced', function (string $scheme): void {
+it('passes axe while previewing in both schemes, with the previewed theme\'s regions as chips', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)->navigate('/admin/themes');
@@ -122,7 +121,6 @@ it('passes axe while previewing in both schemes, with the previewed theme\'s reg
     cmWaitUntil($page, "document.activeElement?.id === 'theme-preview-heading' && document.querySelector('[data-test=\"theme-preview-regions\"]') !== null");
 
     $page->assertSeeIn('[data-test="theme-preview-regions"]', 'Fixture Quiet declares no regions.')
-        ->assertSeeIn('[data-test="theme-preview-regions-unplaced"]', 'From Fixture Good · Draft')
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);
@@ -142,7 +140,7 @@ it('activates a previewed theme with a change made a moment before, saying it is
 
     $page->click('[data-test="theme-default"] [data-test="theme-settings-link"]');
 
-    cmWaitUntil($page, "location.hash === '#theme-settings' && document.querySelector('[data-test=\"theme-activate\"]') !== null && document.querySelector('#theme-settings #design-show_author_box') !== null");
+    cmWaitUntil($page, "location.pathname === '/admin/themes/default/settings' && document.querySelector('[data-test=\"theme-activate\"]') !== null && document.querySelector('#theme-settings #design-show_author_box') !== null");
 
     // Teme Default shows the author's box by default; the change is still waiting for its save when Activate is pressed.
     $page->click('#design-show_author_box')
@@ -153,16 +151,16 @@ it('activates a previewed theme with a change made a moment before, saying it is
     cmWaitUntil($page, "document.querySelector('[data-test=\"theme-preview-panel\"]') === null");
 
     cmNavigate($page, '/admin/themes');
-    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-list\"]') !== null");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-default\"]') !== null");
 
-    $page->assertScript("document.querySelector('[data-test=\"theme-list\"]')?.firstElementChild?.getAttribute('data-test') === 'theme-default'")
-        ->assertScript("document.querySelector('[data-test=\"theme-default\"] [data-test=\"theme-state\"]')?.textContent === 'Active'");
+    $page->assertScript("document.querySelector('[data-test=\"theme-default\"] [data-test=\"theme-state\"]')?.textContent === 'Active on this site'")
+        ->assertScript("document.querySelector('[data-test=\"theme-list\"]')?.firstElementChild?.getAttribute('data-test') === 'theme-good'");
 
     expect(json_decode((string) DB::table('settings')->where('group_key', 'theme.default')->value('overrides'), true))->toMatchArray(['show_author_box' => false])
         ->and(DB::table('settings')->whereNotNull('draft_values')->exists())->toBeFalse();
 });
 
-it('takes the active theme\'s row down to its settings on Themes, headed by its name, with the brand colour left to General', function (): void {
+it('takes the active theme\'s card to its settings page, headed by its name, with no Appearance placeholder', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/themes');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"theme-good\"] [data-test=\"theme-settings-link\"]') !== null");
@@ -171,17 +169,89 @@ it('takes the active theme\'s row down to its settings on Themes, headed by its 
     $page->assertScript("document.body.innerText.includes('The site’s name, tagline and brand colour stay when you change theme.')")
         ->click('[data-test="theme-good"] [data-test="theme-settings-link"]');
 
-    cmWaitUntil($page, "location.pathname === '/admin/themes' && location.hash === '#theme-settings'");
+    cmWaitUntil($page, "location.pathname === '/admin/themes/good/settings'");
 
-    $page->assertScript("document.querySelector('#theme-settings-heading')?.textContent === 'Fixture Good settings'")
+    $page->assertScript("document.querySelector('main h1')?.textContent === 'Fixture Good settings'")
         ->assertSeeIn('[data-test="design-menus"]', 'A menu you choose here shows once you publish')
-        ->assertSeeIn('[data-test="theme-settings"]', 'Colors, fonts and spacing, with a live preview, come with the Appearance screen.');
+        ->assertScript("!document.body.innerText.includes('Appearance')")
+        ->assertSeeIn('[data-test="theme-settings-regions-list"]', 'Open Regions')
+        ->assertScript("document.querySelector('[data-test=\"theme-settings-back\"]') !== null");
+});
+
+it('draws the active theme card at 1440 with a 24px name, 3:2 pictures, four across, and Preview the site', function (): void {
+    $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/themes');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-good\"] [data-test=\"theme-preview-site\"]') !== null");
+
+    $layout = $page->script(<<<'JS'
+        () => {
+            const active = document.querySelector('[data-test="theme-good"]');
+            const name = active?.querySelector('#active-theme-heading');
+            const cards = [...document.querySelectorAll('[data-test="theme-list"] > li')];
+            const picture = cards[0]?.querySelector('img, [aria-hidden="true"]');
+            const box = picture?.getBoundingClientRect();
+            const tracks = getComputedStyle(document.querySelector('[data-test="theme-list"]'))
+                .gridTemplateColumns.split(' ')
+                .filter(Boolean).length;
+
+            return {
+                nameSize: name ? Math.round(parseFloat(getComputedStyle(name).fontSize)) : null,
+                aspect: box && box.height > 0 ? Math.round((box.width / box.height) * 100) / 100 : null,
+                columns: tracks,
+                previewSite: active?.querySelector('[data-test="theme-preview-site"]') !== null,
+                pillOverPicture: (() => {
+                    const pill = cards[0]?.querySelector('[data-test="theme-state"]');
+                    const img = cards[0]?.querySelector('img');
+                    if (!pill || !img) return false;
+                    const p = pill.getBoundingClientRect();
+                    const i = img.getBoundingClientRect();
+                    return p.top >= i.top && p.bottom <= i.bottom;
+                })(),
+            };
+        }
+        JS);
+
+    expect($layout['nameSize'])->toBe(24)
+        ->and($layout['aspect'])->toBeGreaterThan(1.4)
+        ->and($layout['aspect'])->toBeLessThan(1.6)
+        ->and($layout['columns'])->toBeGreaterThanOrEqual(4)
+        ->and($layout['previewSite'])->toBeTrue()
+        ->and($layout['pillOverPicture'])->toBeFalse();
+});
+
+it('asks before activating another theme from its settings when the switch would hide cards', function (): void {
+    config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/open'), base_path('tests/Fixtures/themes/good')]]);
+    themeActivate('open');
+    DB::table('settings')->where('group_key', 'design')->update(['version' => 1]);
+
+    $about = [
+        'type' => 'theme-card',
+        'attrs' => [
+            'id' => (string) Str::ulid(),
+            'card' => 'open:about-me',
+            'values' => ['heading' => 'Hello'],
+        ],
+    ];
+    regionSave(regionCreate($this->admin, 'open', 'own'), $this->admin, [$about]);
+
+    // Settings only open for the chosen theme (previewed, else live).
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['theme' => 'good']], (string) $this->admin->id));
+
+    $this->actingAs($this->admin)->get('/admin/themes/good/settings')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/themes/good/settings');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-activate\"]') !== null");
+    $page->click('[data-test="theme-activate"]');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"switch-warning\"]') !== null");
+    $page->assertScript("document.querySelector('[data-test=\"switch-warning\"]').innerText.includes('About me')");
 });
 
 it('keeps Themes inside the page at 375 pixels: one column of cards, nothing scrolling sideways, every target 24 pixels or more', function (): void {
     $page = cmNavigate(cmSignIn($this->admin)->resize(375, 812), '/admin/themes');
 
-    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"theme-list\"] > li').length === 4");
+    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"theme-list\"] > li').length === 3");
 
     $sizes = $page->script(<<<'JS'
         () => {

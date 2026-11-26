@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Ai\AiSettings;
+use App\Domain\Ai\UsageLimits;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -201,8 +203,9 @@ it('opens the consent dialog, lists what it asks to, and enables the plugin afte
     cmWaitUntil($page, $this->settled);
 
     $page->assertScript("document.querySelector('[data-test=\"consent-dialog\"] h2')?.textContent === 'Enable Hello 1.0.0?'")
-        ->assertScript("document.querySelector('[data-test=\"consent-dialog\"]').innerText.includes('Plugins are trusted code.')")
-        ->assertScript("document.querySelector('[data-test=\"consent-asks\"]').innerText === 'Read your posts, pages and other content, including drafts'")
+        ->assertScript("document.querySelector('[data-test=\"consent-trust\"]') !== null")
+        ->assertScript("document.querySelector('[data-test=\"consent-trust\"]').innerText.includes('Plugins are trusted code.')")
+        ->assertScript("document.querySelector('[data-test=\"consent-asks\"]').innerText.includes('Read your posts, pages and other content, including drafts')")
         ->assertScript("document.querySelector('[data-test=\"consent-confirm\"]').textContent === 'Agree and enable 1.0.0'")
         // No password box in the dialog (I-3342).
         ->assertScript("document.querySelector('[data-test=\"consent-dialog\"] input') === null");
@@ -220,6 +223,21 @@ it('opens the consent dialog, lists what it asks to, and enables the plugin afte
     $page->click('[data-test="plugin-hello"] [data-test="plugin-disable"]');
     ($this->seen)($page, 'Hello disabled. Everything it added to the admin is gone until you enable it; its data is kept.');
     expect(PluginRecord::query()->where('name', 'tests/hello')->value('state'))->toBe('disabled');
+});
+
+it('marks new access lines with New in the consent dialog of an update that asks for more', function (): void {
+    ($this->site)();
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Review access for 1.1.0');
+
+    $page->click('[data-test="plugin-widened"] [data-test="plugin-enable"]');
+    cmWaitUntil($page, $this->settled);
+
+    $page->assertScript("document.querySelector('[data-test=\"consent-trust\"]') !== null")
+        ->assertScript("document.querySelector('[data-test=\"consent-asks\"]') !== null")
+        ->assertScript("[...document.querySelectorAll('[data-test=\"consent-asks\"] [data-slot=\"status-pill\"]')].some((el) => el.textContent === 'New')");
 });
 
 it('closes the dialog with Escape and returns focus to the button that opened it', function (): void {
@@ -274,7 +292,7 @@ it('shows the empty state', function (): void {
     expect(cmAxeViolations($page))->toBe([]);
 });
 
-it('shows each plugin’s icon, its initials at 32 pixels, beside its name', function (): void {
+it('shows each plugin’s icon, its initials at 56 pixels, beside its name', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/plugins');
     ($this->seen)($page, 'Installed, not enabled yet.');
 
@@ -297,7 +315,7 @@ it('shows each plugin’s icon, its initials at 32 pixels, beside its name', fun
     expect($icon)->toBe([
         'count' => 1,
         'initials' => 'H',
-        'size' => [32, 32],
+        'size' => [56, 56],
         'hidden' => 'true',
         'rows' => 2,
         'everyRow' => true,
@@ -565,4 +583,73 @@ it('does not offer Remove its data while the plugin is enabled', function (): vo
     $page->click('[data-test="plugin-tables"] [data-test="plugin-menu"]');
     cmWaitUntil($page, "document.querySelector('[data-test=\"plugin-details\"]') !== null");
     $page->assertScript("document.querySelector('[data-test=\"plugin-remove-data\"]') === null");
+});
+
+it('lists Requires and Required by as short names, and Shows a dependent from the refuse-disable dialog', function (): void {
+    PluginFixtures::forget();
+    PluginFixtures::loadFromOriginal('relay');
+    PluginFixtures::use('relay', 'relay-pro');
+    $manifest = PluginFixtures::manifest('relay');
+    PluginRecord::factory()->enabled()->create([
+        'name' => 'tests/relay',
+        'code' => 'relay',
+        'version' => $manifest['version'],
+        'consent' => PluginFixtures::agreed($manifest),
+    ]);
+    $pro = PluginFixtures::manifest('relay-pro');
+    PluginRecord::factory()->enabled()->create([
+        'name' => 'tests/relay-pro',
+        'code' => 'relay-pro',
+        'version' => $pro['version'],
+        'consent' => PluginFixtures::agreed($pro),
+    ]);
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Relay Pro');
+
+    $page->assertSeeIn('[data-test="plugin-relay-pro"] [data-test="plugin-requires"]', 'Requires Relay')
+        ->assertSeeIn('[data-test="plugin-relay"] [data-test="plugin-required-by"]', 'Required by Relay Pro');
+
+    $page->click('[data-test="plugin-relay"] [data-test="plugin-disable"]');
+    cmWaitUntil($page, $this->settled);
+
+    $page->assertScript("document.querySelector('[data-test=\"plugin-disable-blocked\"]') !== null")
+        ->assertScript("document.querySelector('[data-test=\"plugin-disable-blocked\"]').innerText.includes('Relay Pro needs it')")
+        ->click('[data-test="plugin-show-dependent"]');
+
+    cmWaitUntil($page, "document.activeElement?.closest('[data-test=\"plugin-relay-pro\"]') !== null");
+});
+
+it('names the site’s AI budget and hourly limit as figures in the consent dialog', function (): void {
+    PluginFixtures::forget();
+    PluginFixtures::use('scribe');
+    cmSettings([UsageLimits::BUDGET => 50, UsageLimits::HOURLY => 30], AiSettings::KEY);
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Scribe');
+
+    $page->click('[data-test="plugin-scribe"] [data-test="plugin-enable"]');
+    cmWaitUntil($page, $this->settled);
+
+    $page->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]') !== null")
+        ->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]').innerText.includes('$50.00 a month')")
+        ->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]').innerText.includes('30 requests an hour')")
+        ->assertScript("document.querySelector('[data-test=\"consent-ai-controls\"]').innerText.includes('Settings › AI')");
+});
+
+it('has no accessibility issue on Plugins at 1440', function (): void {
+    ($this->site)();
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Review access for 1.1.0');
+
+    expect(cmAxeViolations($page))->toBe([])
+        ->and(cmSmallTargets($page)['small'])->toBe([]);
+
+    $page->click('[data-test="plugin-widened"] [data-test="plugin-enable"]');
+    cmWaitUntil($page, $this->settled);
+    expect(cmAxeViolations($page))->toBe([]);
 });

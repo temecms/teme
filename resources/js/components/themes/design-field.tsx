@@ -88,6 +88,7 @@ export function DesignFieldInput({
             ) : field.type === 'select' ? (
                 <SelectField
                     id={id}
+                    className="w-full"
                     value={text(value)}
                     options={Object.entries(field.options).map(
                         ([option, label]) => ({ value: option, label }),

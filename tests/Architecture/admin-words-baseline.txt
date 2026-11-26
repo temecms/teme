@@ -200,12 +200,8 @@ components/status-banner.tsx	Site notice
 components/themes/theme-list.tsx	Active
 components/themes/theme-list.tsx	Available
 components/themes/theme-list.tsx	Broken
-components/themes/theme-list.tsx	Change the brand colour in Settings › General
 components/themes/theme-list.tsx	Incompatible
-components/themes/theme-list.tsx	Installed themes
-components/themes/theme-list.tsx	No themes are installed.
 components/themes/theme-list.tsx	Previewing
-components/themes/theme-list.tsx	This is the site’s theme, but it can’t be used, so visitors see plain pages until it’s fixed or you activate another theme.
 components/themes/theme-preview-panel.tsx	. Choose them under Menus below.
 components/themes/theme-preview-panel.tsx	Activate
 components/themes/theme-preview-panel.tsx	Anyone who may change the design sees this preview until it is activated or stopped.
@@ -219,20 +215,6 @@ components/themes/theme-preview-panel.tsx	Visitors still see plain pages.
 components/themes/theme-preview-panel.tsx	Visitors still see {}.
 components/themes/theme-preview-panel.tsx	show no menu yet:
 components/themes/theme-preview-panel.tsx	’s settings and menus.
-components/themes/theme-regions.tsx	1 region
-components/themes/theme-regions.tsx	Edit in Regions
-components/themes/theme-regions.tsx	From other themes
-components/themes/theme-regions.tsx	From {}
-components/themes/theme-regions.tsx	No theme is in use, so no region is drawn.
-components/themes/theme-regions.tsx	Nothing from other themes.
-components/themes/theme-regions.tsx	Regions
-components/themes/theme-regions.tsx	Regions in {}
-components/themes/theme-regions.tsx	Text only
-components/themes/theme-regions.tsx	The places
-components/themes/theme-regions.tsx	Theme no longer installed
-components/themes/theme-regions.tsx	declares no regions.
-components/themes/theme-regions.tsx	puts the site’s own content, such as a box after each article.
-components/themes/theme-regions.tsx	{} regions
 components/types/field-sheet.tsx	. Made from the label.
 components/types/field-sheet.tsx	Add a choice
 components/types/field-sheet.tsx	Add a field to {}

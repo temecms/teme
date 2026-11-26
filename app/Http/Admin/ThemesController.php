@@ -1,10 +1,9 @@
 <?php
 
 /**
- * Site › Themes: the installed themes, a theme's preview and activation, the
- * regions each places, and the chosen theme's settings with its menu
- * places, every change drafted and published through the design's
- * Operations. It changes nothing itself.
+ * Site › Themes: the installed themes, a theme's preview and activation, and
+ * each chosen theme's settings page, every change drafted and published
+ * through the design's Operations. It changes nothing itself.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -67,22 +66,30 @@ final class ThemesController extends Controller
     }
 
     /**
-     * The old address of a theme's own settings: they are drawn on Themes,
-     * under the theme, so the theme the design names (the one previewed,
-     * else the one in use) leads there, and any other installed theme's
-     * address to the list.
+     * One theme's own settings and menu places. Only the theme the design
+     * names has them to change (the one previewed, else the one in use), so
+     * any other installed theme's address leads back to the list.
      *
      * @since 0.8.0-alpha.1
      */
-    public function settings(string $code, DesignScreen $screen, ThemeRegistry $themes): RedirectResponse
+    public function settings(string $code, Request $request, DesignScreen $screen, ThemeRegistry $themes, RegionScreens $regions, ActiveTheme $active, ThemeSwitchNotes $notes): Response|RedirectResponse
     {
         $theme = $themes->find($code) ?? abort(404);
+        $data = $screen->data();
 
-        if ($theme->code !== $screen->data()['theme'] || ! $theme->usable()) {
+        if ($theme->code !== $data['theme'] || ! $theme->usable()) {
             return to_route('themes.index');
         }
 
-        return redirect()->to(route('themes.index').'#theme-settings');
+        $current = $active->get();
+
+        return Inertia::render('themes/settings', [
+            ...$data,
+            'regions' => $regions->forTheme($theme),
+            'canEditRegions' => $request->user()?->can('regions.manage') === true,
+            // What a switch away from the active theme hides: its own cards.
+            'hiddenCards' => $current === null ? [] : $notes->hiddenByLeaving($current),
+        ]);
     }
 
     /**
