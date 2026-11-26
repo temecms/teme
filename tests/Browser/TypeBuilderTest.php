@@ -222,7 +222,7 @@ it('preloads at most 48 files on the media screen, the whole icon set staying on
         ->toBeLessThanOrEqual(48);
 
     // The set's file is the chunk Rolldown names after resources/js/lib/lucide-icons.ts. Its imports are left out:
-    // the design system's shared `ui` chunk (I-3443) is larger than the set and is preloaded on every page.
+    // the design system's shared `ui` chunk is larger than the set and is preloaded on every page.
     $manifest = collect(json_decode((string) file_get_contents(public_path('build/manifest.json')), true));
     $entry = $manifest->first(fn (array $chunk): bool => ($chunk['name'] ?? null) === 'lucide-icons');
 
