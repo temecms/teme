@@ -72,7 +72,7 @@ final class ImageServiceDeclaration
         }
 
         if (! is_string($declared['host'] ?? null) || preg_match(self::HOST, $declared['host']) !== 1) {
-            $errors[] = __('Its image service’s host must be a host name, such as images.example.com, or *. and a domain.');
+            $errors[] = __('Its image service’s host must be a host name, such as images.example.com, or *. and a domain, such as *.example.com, which covers its subdomains but not example.com itself.');
         }
 
         if ($capabilities !== null && ! in_array(Capability::MediaRead->value, $capabilities, true)) {
