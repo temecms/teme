@@ -114,6 +114,8 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
 
         // Its saved settings and its secrets are one row, `plugin.{code}`; no other group is touched.
         $group = 'plugin.'.$record->code;
+        $saved = SettingsGroupRecord::query()->find($group);
+        $secrets = count($saved->secrets ?? []);
         SettingsGroupRecord::query()->where('group_key', $group)->delete();
         DB::afterCommit(function () use ($group): void {
             Cache::memo()->forget(SettingsRepository::cacheKey($group));
@@ -129,6 +131,8 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
         $this->log->record(SecurityEventType::PluginDataRemoved, $input->actorId(), context: [
             'plugin' => $input->name,
             'tables' => $tables,
+            'settings_removed' => $saved !== null,
+            'secrets_removed' => $secrets,
         ]);
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code]));
 

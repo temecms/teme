@@ -18,6 +18,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -50,6 +51,16 @@ it('removes the plugin’s settings group and its secrets with its tables', func
         ->and(Schema::hasTable($tables[0]))->toBeFalse()
         ->and(SettingsGroupRecord::query()->find('plugin.tables'))->toBeNull()
         ->and(PluginRecord::query()->where('name', 'tests/tables')->exists())->toBeTrue();
+});
+
+it('records in the security log that settings were removed, and how many secrets, never their values', function (): void {
+    app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+    $event = DB::table('security_events')->where('type', 'plugin.data_removed')->sole();
+    $context = json_decode((string) $event->context, true);
+
+    expect($context)->toMatchArray(['plugin' => 'tests/tables', 'settings_removed' => true, 'secrets_removed' => 1])
+        ->and((string) $event->context)->not->toContain('sk-1');
 });
 
 it('leaves another plugin’s settings and secrets alone', function (): void {

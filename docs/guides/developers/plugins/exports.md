@@ -40,7 +40,7 @@ The export's `manifest.json` lists the file with the others, and its `plugin_kin
 
 ## When the plugin fails
 
-A plugin that throws, or answers a page in the wrong shape, never stops the export. Its file is dropped, its fault is recorded under Plugins, and the manifest's `left_out` list names the file, so nobody mistakes the gap for a loss. The rest of the export is written as always.
+A plugin that throws, runs a query that fails, or answers a page in the wrong shape, never stops the export: each plugin's file is read on its own, so a failed query can't spoil the rest. A page with no lines that names a next page is a fault, and so is a file name another file already has. Its file is dropped, its fault is recorded under Plugins, and the manifest's `left_out` list names the file, so nobody mistakes the gap for a loss. The rest of the export is written as always.
 
 ## Coming back in
 

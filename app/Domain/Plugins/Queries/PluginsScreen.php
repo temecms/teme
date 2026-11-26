@@ -150,7 +150,7 @@ final readonly class PluginsScreen
                 'agreedBefore' => $row->consent !== [],
                 'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || ($row->added['permissions'] ?? []) !== [] || $newImports || $newAiTasks !== [] || ($row->added['notices'] ?? []) !== [] || ($row->added['requires'] ?? []) !== [],
                 'tables' => $tables,
-                // What removing its data also takes: its saved settings, and how many secrets (I-3442).
+                // What removing its data also takes: its saved settings, and how many secrets.
                 'savedData' => $savedData,
                 'ai' => $row->ai,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables or saved settings left.
