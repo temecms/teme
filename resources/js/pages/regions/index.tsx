@@ -112,9 +112,7 @@ function RegionRow({
                 shown && 'bg-accent-soft text-on-accent-soft font-semibold',
             )}
         >
-            <span className="min-w-0 flex-1 break-words">
-                {region.label}
-            </span>
+            <span className="min-w-0 flex-1 break-words">{region.label}</span>
             {region.dirty && (
                 <span
                     className="bg-warn size-2 shrink-0 rounded-full"
@@ -200,6 +198,10 @@ function ChosenPanel({
     region: ChosenRegion;
     page: RegionsWorkspacePage;
 }) {
+    // The cards in the panel as they are now, not the saved revision's count.
+    const [liveUsed, setLiveUsed] = useState<number | null>(null);
+    const used = liveUsed ?? region.used;
+
     return (
         <section
             aria-labelledby="chosen-region"
@@ -226,7 +228,7 @@ function ChosenPanel({
                 >
                     {__n(
                         ':count of :max slot used|:count of :max slots used',
-                        region.used,
+                        used,
                         { max: region.max },
                     )}
                 </p>
@@ -278,6 +280,7 @@ function ChosenPanel({
                     region={region}
                     session={region.session}
                     page={page}
+                    onCount={setLiveUsed}
                 />
             )}
         </section>

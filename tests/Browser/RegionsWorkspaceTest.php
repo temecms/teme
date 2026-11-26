@@ -50,6 +50,8 @@ it('fills a region, adds a callout and edits it in place, moves it, saves a draf
     $page->click('[data-test="edit-card-done"]');
     cmWaitUntil($page, "document.querySelector('[data-test=\"edit-card-dialog\"]') === null");
 
+    cmWaitUntil($page, "document.querySelector('[data-test=\"region-fill\"]').textContent.includes('1 of 5 slot used')");
+
     $page->click('[data-test="region-add-card"]')
         ->click('[data-test="add-card-dialog"] [data-card="callout"]');
     cmWaitUntil($page, "document.querySelector('[data-test=\"region-card-editor\"] [data-node-view-wrapper]') !== null");
@@ -62,7 +64,7 @@ it('fills a region, adds a callout and edits it in place, moves it, saves a draf
     $page->click('[data-test="region-card-row"][data-block="callout"] button[aria-label^="Move"][aria-label$="up"]');
     cmWaitUntil($page, "document.querySelector('[data-test=\"region-card-row\"]').dataset.block === 'callout'")
         ->assertPresent('[data-test="region-fill"]')
-        ->assertScript("document.querySelector('[data-test=\"region-fill\"]').textContent.includes('slots used')", true)
+        ->assertSeeIn('[data-test="region-fill"]', '2 of 5 slots used')
         ->assertScript("document.querySelectorAll('[data-test=\"region-card-row\"]').length", 2)
         ->assertSeeIn('[data-test="region-unpublished"]', 'Changes not published yet');
 

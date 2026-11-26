@@ -1,11 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import type { JSONContent } from '@tiptap/core';
-import {
-    ChevronDown,
-    ChevronUp,
-    GripVertical,
-    Plus,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, GripVertical, Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import ContentEditorController from '@/actions/App/Http/Admin/Contents/ContentEditorController';
@@ -171,10 +166,13 @@ export function RegionPanel({
     region,
     session,
     page,
+    onCount,
 }: {
     region: ChosenRegion;
     session: EditorSession;
     page: RegionsWorkspacePage;
+    /** Told how many cards the panel holds now, as they are added and removed. */
+    onCount?: (count: number) => void;
 }) {
     const manifest: CardManifest = page.manifest;
     const [document, putDocument] = useState<JSONContent>(
@@ -241,6 +239,10 @@ export function RegionPanel({
         [document, manifest],
     );
     const full = rows.length >= region.max;
+
+    useEffect(() => {
+        onCount?.(rows.length);
+    }, [rows.length, onCount]);
     const choices = regionChoices(
         manifest,
         region.cards,
