@@ -6,8 +6,10 @@
  * granted media.read and declares one. Asked for each size's address as
  * media is drawn; core's address stands where it gives none, fails, or
  * gives one that isn't an `https://` address on its declared host or a
- * path on this site. Scoped to a request or a job, which finds the driver
- * once and records its fault once.
+ * path on this site. Each answer has CALL_BUDGET_MS: one that comes back
+ * later is dropped, and the plugin is asked no more in the request. Scoped
+ * to a request or a job, which finds the driver once and records its fault
+ * once.
  *
  * @package Teme
  * @since   next
@@ -35,6 +37,9 @@ final class ImageServices
     /** The socket's name in a recorded fault. */
     public const string SOCKET = 'image-service';
 
+    /** The time a driver has to give one address, in milliseconds. */
+    public const int CALL_BUDGET_MS = 100;
+
     /** @var array{plugin: SeoPlugin, host: string, driver: ImageService}|false|null null until looked for; false for none */
     private array|false|null $active = null;
 
@@ -61,10 +66,22 @@ final class ImageServices
         // Its being enabled, and its settings, change every image's address.
         app(RenderRecord::class)->tag('plugin:'.$active['plugin']->code);
 
-        try {
-            $given = $active['driver']->imageAddress($mediaId, $variant, strtolower(pathinfo($path, PATHINFO_EXTENSION)));
-        } catch (Throwable $failure) {
-            $this->fault($active['plugin'], $failure);
+        $driver = $active['driver'];
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        // A failure is recorded here, once, and answers null; a late answer or a skipped plugin is SeoPlugins'.
+        $given = $this->plugins->ask($active['plugin'], self::SOCKET, ImageService::class, self::CALL_BUDGET_MS, function () use ($driver, $active, $mediaId, $variant, $extension): mixed {
+            try {
+                return $driver->imageAddress($mediaId, $variant, $extension);
+            } catch (Throwable $failure) {
+                $this->fault($active['plugin'], $failure);
+
+                return null;
+            }
+        });
+
+        if (! is_string($given) && $given !== null) {
+            $this->fault($active['plugin'], new SocketAnswerRefused('An image address must be a string.'));
 
             return MediaDisks::public()->url($path);
         }
