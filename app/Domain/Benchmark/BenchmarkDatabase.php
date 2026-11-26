@@ -35,6 +35,9 @@ final class BenchmarkDatabase
             throw new RuntimeException("Refusing to run: the benchmark only touches a database whose name ends in _bench, and this one is [{$name}].");
         }
 
+        // Its migrate:fresh empties only this _bench database, so the guard on the site's own lets it through.
+        DB::prohibitDestructiveCommands(false);
+
         // The cache was built at boot on the site's own connection, so the
         // settings and permissions read, cached or forgotten here would come
         // from, and land in, the site's cache. It follows the benchmark's.
