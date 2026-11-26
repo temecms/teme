@@ -24,9 +24,11 @@ use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RegionCard;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Regions\FeaturedPosts;
+use App\Domain\Themes\ActiveTheme;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\View;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Cards\CardRegion;
 
 final class FeaturedPostsCard implements CardType, RegionCard
 {
@@ -103,6 +105,7 @@ final class FeaturedPostsCard implements CardType, RegionCard
             'heading' => $heading === '' ? null : $heading,
             'items' => $items,
             'images' => (bool) ($attrs['images'] ?? true),
+            'region' => $context->region ?? new CardRegion('', app(ActiveTheme::class)->get()->code ?? ''),
         ])->render();
     }
 
