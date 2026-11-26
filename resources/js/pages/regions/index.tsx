@@ -410,7 +410,12 @@ export default function RegionsIndex(page: RegionsWorkspacePage) {
                                 />
                             </div>
                             <div className="grid min-w-0 content-start gap-3 lg:flex-1">
-                                <ChosenPanel region={chosen} page={page} />
+                                <ChosenPanel
+                                    // A region of its own: the live count of the last one never carries over.
+                                    key={chosen.key}
+                                    region={chosen}
+                                    page={page}
+                                />
                             </div>
                         </div>
                     )}

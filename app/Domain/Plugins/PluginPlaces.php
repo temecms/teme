@@ -50,7 +50,7 @@ final readonly class PluginPlaces
             if ($this->areas->onTools($found->code)) {
                 $parts[] = __('its area is on the Tools hub as :label', ['label' => $label]);
             } else {
-                $section = $declared->menu === 'content' ? __('Content') : __('Site');
+                $section = $declared->menu === 'site' ? __('Site') : __('Content');
                 $parts[] = __('its area is in the menu under :section › :label', [
                     'section' => $section,
                     'label' => $label,

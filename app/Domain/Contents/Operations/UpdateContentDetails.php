@@ -113,6 +113,7 @@ final class UpdateContentDetails extends BaseOperation
                 'added.*' => [TermRules::usableBy($content->type, $content->language)],
                 'published_at' => ['nullable', 'date'],
             ],
+            Slugs::messages(RequiredFields::noun((string) $content->type)),
         )->validate();
 
         if ($input->slug !== null && ! Slugs::isAvailable($content->type, $input->slug, $content->id, $content->language)) {

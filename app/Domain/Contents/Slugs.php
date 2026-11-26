@@ -161,6 +161,7 @@ final class Slugs
         Validator::make(
             ['slug' => $slug],
             ['slug' => ['required', 'string', 'max:200', 'regex:'.self::RULE]],
+            self::messages(RequiredFields::noun($type)),
         )->validate();
 
         if (! self::isAvailable($type, $slug, $exceptId, $language)) {
@@ -168,5 +169,19 @@ final class Slugs
                 'slug' => __('Another :type already uses this address.', ['type' => RequiredFields::noun($type)]),
             ]);
         }
+    }
+
+    /**
+     * The words for an address that isn't one, by rule, naming the item's kind.
+     *
+     * @return array<string, string>
+     */
+    public static function messages(string $noun): array
+    {
+        return [
+            'slug.required' => __('Give the :type an address.', ['type' => $noun]),
+            'slug.max' => __('An address can be at most 200 characters.'),
+            'slug.regex' => __('An address is lower-case letters, numbers and hyphens, such as “my-first-post”, with no spaces or other marks.'),
+        ];
     }
 }

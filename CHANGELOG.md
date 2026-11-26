@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+### Changed
+
+Every built admin screen now matches the approved design.
+
+- **The shell and Home:** no site-wide notice strip under the top bar; backups and the page cache show in Home's new Site status panel. Section breadcrumbs on every screen (Site / Themes, Account / Profile, a plugin area and its pages). Tools and Settings open their lists from the menu; Customise is a menu of ticks that apply at once; an initials-only account control; accent counts; the jobs control always shown. Home's header offers + Post, + Page, Upload media and Customise; Home is highlighted only on Home.
+- **Themes:** the active theme has its own card, with Theme settings on the theme's own page (sections at the side, regions as chips, Back to themes) and a warning before a switch hides its cards; theme cards name their maker once.
+- **Plugins:** the list is a table with large icons; the consent dialog shows what a plugin adds to the admin, what it listens for and needs, and its AI budget and hourly limit; Requires and Required by under each plugin, and a dialog with Show when another plugin needs one you disable.
+- **Plugin areas:** Add in the page header; Edit and Duplicate under each name; a pager; failed blocks with Try again; statistics with the earlier period, a legend above and Show as table; a record's page with the area header, All … back and a quiet Delete; worded repeater buttons.
+- **Inbox and notifications:** kind icons, Failed marks, Mark as read that stays on the Inbox, and where each item comes from.
+- **Content:** dates that fit their column; Author, Categories and Date on the filter row with the rest under More filters; thumbnails on every type's list; borderless menu items with Open in new tab in each item's details; Regions with underline tabs, the active theme named, card actions as drawn and a live slots-used count; the media panel's fields in the design's order; Comments switched off says so.
+- **Tools:** an imported site's page has one progress card and Progress, Report and History tabs; the report groups notes under plain names, each with its items; Connect is the main way to add a site. Panel titles, search fields and figure dots as drawn.
+- **The editor, Settings and account:** the address is edited in a popover and saved with Save draft or Update, never on its own; each refused address says why in plain words. Search and social says what an empty field will use. Revoking a preview link asks first. Quote on the toolbar; Compare on one line; "Brand colour"; switches and option cards as drawn. A refused page names who may open it; the maintenance page names the update step.
+
+### Fixed
+
+- Account › Notifications shows Backup alerts again to those who manage backups.
+- AI activity pages far down the list no longer count every earlier request.
+
 ### Fixed
 
 - Editor: a taken address with Save draft is refused before any revision is written, so the autosave stays; a refused Update leaves the live address where it was. Preview and share links never move it.

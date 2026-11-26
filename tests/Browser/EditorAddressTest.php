@@ -68,3 +68,32 @@ it('opens the Address popover headed with close and copy, and keeps a typed addr
 
     expect($this->draft->refresh()->slug)->toBe('harbour-2026');
 });
+
+it('gives an emptied address the title\'s on Save draft, then nothing is pending and leaving does not ask', function (): void {
+    $this->draft->forceFill(['slug' => 'an-old-name'])->save();
+    $this->actingAs($this->editor)->get(($this->edit)($this->draft))->assertOk();
+
+    $page = cmEditorSettled(
+        cmNavigate(cmSignIn($this->editor)->resize(1440, 900), ($this->edit)($this->draft)),
+    );
+
+    $page->click('[data-test="editor-address"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="address-popover"]\') !== null');
+    $page->clear('[data-test="editor-slug"]')
+        ->keys('[data-test="editor-slug"]', 'Enter');
+
+    $page->click('[data-test="editor-save"]');
+
+    $deadline = microtime(true) + 15;
+    while (microtime(true) < $deadline && $this->draft->refresh()->slug !== 'harbour-news') {
+        usleep(200_000);
+    }
+
+    expect($this->draft->refresh()->slug)->toBe('harbour-news');
+
+    // Saved: the address shows the title's, and the way out is open without the leave dialog.
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="editor-address"]\')?.innerText.includes(\'harbour-news\') === true');
+    $page->click('[data-slot="sidebar"] a[href$="/admin/posts"]');
+    cmWaitUntil($page, '!location.pathname.endsWith(\'/edit\') && document.querySelector(\'[data-test="leave-dialog"]\') === null');
+    $page->assertNoAccessibilityIssues(3);
+});

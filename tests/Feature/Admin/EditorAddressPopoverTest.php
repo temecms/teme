@@ -191,12 +191,16 @@ it('does not move a live post\'s address from preview or a share link', function
     expect($post->refresh()->slug)->toBe($original);
 });
 
-it('keeps an emptied address pending against the title\'s address', function (): void {
-    expect(uiComponent('pages/content/edit.tsx'))
-        ->toContain('sidePending: slug !== savedSlug')
-        ->and(uiComponent('components/editor/rail/publish-panel.tsx'))
-        ->toContain('slugFromTitle')
-        ->toContain('// Empty stays empty so the server makes the title\'s address on save.');
+it('says in plain words what an address may hold, never the framework words', function (): void {
+    $draft = lifecycleDraft($this->editor, 'Harbour', 'page');
+
+    $this->actingAs($this->editor)->postJson("/admin/content/{$draft->id}/checkpoint", ['slug' => 'Not An Address!'])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.slug.0', 'An address is lower-case letters, numbers and hyphens, such as “my-first-post”, with no spaces or other marks.');
+
+    $this->actingAs($this->editor)->postJson("/admin/content/{$draft->id}/checkpoint", ['slug' => str_repeat('a', 201)])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.slug.0', 'An address can be at most 200 characters.');
 });
 
 it('says the item\'s own noun when an address is taken', function (): void {

@@ -64,11 +64,6 @@ export default function Design(page: DesignPage) {
                 : [],
         ),
     );
-    const siteCrumb = useSectionCrumb('site');
-
-    setLayoutProps({
-        breadcrumbs: [siteCrumb, { title: __('Themes'), href: themesIndex() }],
-    });
 
     return (
         <ListPage

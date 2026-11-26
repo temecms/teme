@@ -1527,80 +1527,77 @@ export default function ContentIndex(page: ContentIndexPage) {
                             onOpenChange={setDateOpen}
                         />
                     );
-                    const overflow: { key: string; applied: boolean; node: ReactNode }[] =
-                        [
-                            ...flat.map((taxonomy) => ({
-                                key: taxonomy.key,
-                                applied:
-                                    page.filters[taxonomy.key] !== undefined,
-                                node: (
-                                    <TermSearchFilter
-                                        key={taxonomy.key}
-                                        testId={`filter-${taxonomy.key}`}
-                                        taxonomy={taxonomy.key}
-                                        label={taxonomy.singular}
-                                        allLabel={__('All :plural', {
-                                            plural: taxonomy.plural.toLowerCase(),
-                                        })}
-                                        value={page.filters[taxonomy.key]}
-                                        valueName={
-                                            page.chosenTerms[taxonomy.key]
-                                        }
-                                        onChange={(value) =>
-                                            filterTo({
-                                                [taxonomy.key]: value,
-                                            })
-                                        }
-                                    />
-                                ),
-                            })),
-                            ...(siteLanguages.length > 0
-                                ? [
-                                      {
-                                          key: 'language',
-                                          applied:
-                                              page.filters.language !==
-                                              undefined,
-                                          node: (
-                                              <ChoiceFilter
-                                                  key="language"
-                                                  testId="filter-language"
-                                                  label={__('Language')}
-                                                  allLabel={__(
-                                                      'All languages',
-                                                  )}
-                                                  options={[
-                                                      ...siteLanguages.map(
-                                                          (language) => ({
-                                                              value: language.tag,
-                                                              label: language.name,
-                                                          }),
-                                                      ),
-                                                      ...siteLanguages.map(
-                                                          (language) => ({
-                                                              value: `missing:${language.tag}`,
-                                                              label: __(
-                                                                  'Missing a version in :language',
-                                                                  {
-                                                                      language:
-                                                                          language.name,
-                                                                  },
-                                                              ),
-                                                          }),
-                                                      ),
-                                                  ]}
-                                                  value={page.filters.language}
-                                                  onChange={(value) =>
-                                                      filterTo({
-                                                          language: value,
-                                                      })
-                                                  }
-                                              />
-                                          ),
-                                      },
-                                  ]
-                                : []),
-                        ];
+                    const overflow: {
+                        key: string;
+                        applied: boolean;
+                        node: ReactNode;
+                    }[] = [
+                        ...flat.map((taxonomy) => ({
+                            key: taxonomy.key,
+                            applied: page.filters[taxonomy.key] !== undefined,
+                            node: (
+                                <TermSearchFilter
+                                    key={taxonomy.key}
+                                    testId={`filter-${taxonomy.key}`}
+                                    taxonomy={taxonomy.key}
+                                    label={taxonomy.singular}
+                                    allLabel={__('All :plural', {
+                                        plural: taxonomy.plural.toLowerCase(),
+                                    })}
+                                    value={page.filters[taxonomy.key]}
+                                    valueName={page.chosenTerms[taxonomy.key]}
+                                    onChange={(value) =>
+                                        filterTo({
+                                            [taxonomy.key]: value,
+                                        })
+                                    }
+                                />
+                            ),
+                        })),
+                        ...(siteLanguages.length > 0
+                            ? [
+                                  {
+                                      key: 'language',
+                                      applied:
+                                          page.filters.language !== undefined,
+                                      node: (
+                                          <ChoiceFilter
+                                              key="language"
+                                              testId="filter-language"
+                                              label={__('Language')}
+                                              allLabel={__('All languages')}
+                                              options={[
+                                                  ...siteLanguages.map(
+                                                      (language) => ({
+                                                          value: language.tag,
+                                                          label: language.name,
+                                                      }),
+                                                  ),
+                                                  ...siteLanguages.map(
+                                                      (language) => ({
+                                                          value: `missing:${language.tag}`,
+                                                          label: __(
+                                                              'Missing a version in :language',
+                                                              {
+                                                                  language:
+                                                                      language.name,
+                                                              },
+                                                          ),
+                                                      }),
+                                                  ),
+                                              ]}
+                                              value={page.filters.language}
+                                              onChange={(value) =>
+                                                  filterTo({
+                                                      language: value,
+                                                  })
+                                              }
+                                          />
+                                      ),
+                                  },
+                              ]
+                            : []),
+                    ];
                     const promoted = overflow
                         .filter((entry) => entry.applied)
                         .map((entry) => entry.node);
@@ -1631,9 +1628,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                                         </Button>
                                     }
                                 >
-                                    <div className="grid gap-3 p-1">
-                                        {more}
-                                    </div>
+                                    <div className="grid gap-3 p-1">{more}</div>
                                 </ListPanel>
                             )}
                         </>

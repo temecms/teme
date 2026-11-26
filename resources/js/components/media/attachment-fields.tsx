@@ -241,9 +241,7 @@ export function MediaFields({
 
     const titleField = showTitle && (
         <div className="grid gap-1">
-            <Label htmlFor={`attachment-${item.id}-title`}>
-                {__('Title')}
-            </Label>
+            <Label htmlFor={`attachment-${item.id}-title`}>{__('Title')}</Label>
             <Input
                 {...field('title')}
                 id={`attachment-${item.id}-title`}
@@ -300,9 +298,7 @@ export function MediaFields({
                     key={item.id}
                     item={item}
                     offer={item.altText}
-                    currentAlt={() =>
-                        altField.current?.value ?? item.alt ?? ''
-                    }
+                    currentAlt={() => altField.current?.value ?? item.alt ?? ''}
                     onUsed={(details) => {
                         saver.accept(details);
                         onAltTextUsed(details);

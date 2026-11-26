@@ -259,9 +259,7 @@ export default function Compare({
                         </Button>
                     </form>
                     <div className="text-ink-2 text-small flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <p>
-                            {__('Before: :name', { name: nameOf(from) })}
-                        </p>
+                        <p>{__('Before: :name', { name: nameOf(from) })}</p>
                         {from.id !== workingRevisionId && (
                             <RestoreButton
                                 contentId={contentId}

@@ -19,7 +19,7 @@ use Tests\Fixtures\Import\ImportRecords;
 uses(RefreshDatabase::class);
 
 /**
- * Strings in app/Domain/Import that look like a message code but aren't one:
+ * Strings in the import folders that look like a message code but aren't one:
  * validation keys, config keys, SQL aliases, route names and note keys.
  */
 const IMPORT_NOT_CODES = [
@@ -42,16 +42,21 @@ function importWrittenCodes(): array
 {
     $codes = [];
 
-    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path('Domain/Import'))) as $file) {
-        if (! $file->isFile() || $file->getExtension() !== 'php') {
-            continue;
-        }
+    // Every folder an import phase writes from: core's import, and the fediverse's tagged import step.
+    $folders = [app_path('Domain/Import'), app_path('Domain/Fediverse/Import')];
 
-        preg_match_all("/'([a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*(?:\\.[a-z0-9-]+)?)'/", (string) file_get_contents($file->getPathname()), $matches);
+    foreach ($folders as $folder) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder)) as $file) {
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
 
-        foreach ($matches[1] as $code) {
-            if (! in_array($code, IMPORT_NOT_CODES, true)) {
-                $codes[$code] = true;
+            preg_match_all("/'([a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*(?:\\.[a-z0-9-]+)?)'/", (string) file_get_contents($file->getPathname()), $matches);
+
+            foreach ($matches[1] as $code) {
+                if (! in_array($code, IMPORT_NOT_CODES, true)) {
+                    $codes[$code] = true;
+                }
             }
         }
     }
@@ -102,8 +107,9 @@ it('has no entry for a code the importer no longer writes', function (): void {
 
 it('gives each code its own plain name, shared only by codes that mean the same thing', function (): void {
     $shared = [
-        'Addresses taken here' => ['old-address.taken', 'post.address-taken', 'post.old-addresses-taken'],
+        'Addresses taken here' => ['old-address.taken', 'post.old-addresses-taken'],
         'Menus not placed' => ['menu.not-placed', 'menus.unplaced'],
+        'Fediverse accounts already set up here' => ['fediverse.author-taken', 'fediverse.blog-taken'],
     ];
 
     $byName = [];
@@ -137,10 +143,12 @@ it('falls back to Other notes for an unknown code, keeping the message’s own w
     ]);
 });
 
-it('names the three addresses-taken codes the same way', function (): void {
-    foreach (['post.old-addresses-taken', 'old-address.taken', 'post.address-taken'] as $code) {
+it('keeps an old address taken apart from an item given another address', function (): void {
+    foreach (['post.old-addresses-taken', 'old-address.taken'] as $code) {
         expect(ImportMessageGroups::for($code)['group'])->toBe('Addresses taken here');
     }
+
+    expect(ImportMessageGroups::for('post.address-taken')['group'])->toBe('Items given another address');
 });
 
 it('folds codes that share a plain name into one group with summed counts', function (): void {
