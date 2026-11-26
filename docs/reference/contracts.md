@@ -31,6 +31,7 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Directory\VerifiedDirectory` | granted `directory.read` | 1.3.0 |
 | `Teme\Contracts\Content\Submissions` | granted `content.submissions` | 1.3.0 |
 | `Teme\Contracts\Cards\CardsChanged` | granted `pages.insert` | 1.5.0 |
+| `Teme\Contracts\Redirects\RedirectWriter` | granted `redirects` | next |
 
 ## Teme\Contracts\Admin
 
@@ -283,6 +284,27 @@ A moderator's answer for one comment: approved, held for a person to decide, or 
 - `PENDING` — Waits for a moderator. Since 0.1.0.
 - `SPAM` — Kept out of sight, for a moderator to confirm or undo. Since 0.1.0.
 - `__construct(string $status, string $reason, array $signals = [])`. Since 0.1.0.
+
+## Teme\Contracts\Console
+
+### CommandOutput
+
+`Teme\Contracts\Console\CommandOutput`, interface. Since next.
+
+Where a plugin's console command writes its lines. Teme gives one to HasCommands::runCommand() and shows what is written in the terminal.
+
+- `line(string $text): void` — Writes a plain line. Since next.
+- `info(string $text): void` — Writes a line that says something went as it should. Since next.
+- `warning(string $text): void` — Writes a line that says something needs attention but didn't stop the command. Since next.
+- `error(string $text): void` — Writes a line that says something failed. Since next.
+
+### HasCommands
+
+`Teme\Contracts\Console\HasCommands`, interface. Since next.
+
+A plugin with console commands: it runs the ones its manifest declares under `contributes.commands`. Implemented beside Plugin. Teme lists a command in `php artisan` only while the plugin is enabled, and runs it with the plugin's own doors, as the operator at the server's shell.
+
+- `runCommand(string $name, array $arguments, array $options, CommandOutput $output): int` — Runs one declared command by its name, such as `sharely:resend`. Since next.
 
 ## Teme\Contracts\Content
 
@@ -898,15 +920,25 @@ What a remote host answered: its status, its body and its headers.
 - `__construct(int $status, string $body, array $headers)`. Since 0.5.0.
 - `json(): mixed` — The body decoded as JSON. Since 0.5.0.
 
+### HttpFile
+
+`Teme\Contracts\Http\HttpFile`, class. Since next.
+
+One file in a multipart request through the outbound door. It carries either its bytes or the path of a file inside the plugin's own folder, never both.
+
+- `__construct(string $field, string $filename, string $contentType, ?string $bytes = null, ?string $path = null)`. Since next.
+
 ### OutboundHttp
 
 `Teme\Contracts\Http\OutboundHttp`, interface. Since 0.5.0.
 
-The only way out for a plugin granted http: https, to the hosts agreed to, no redirect followed, at most 10 seconds and 1 MB, or 300 seconds and 16 MB for an answer inside a long job.
+The only way out for a plugin granted http: https, to the hosts agreed to, no redirect followed, at most 10 seconds and 1 MB, or 300 seconds and 16 MB for an answer inside a long job. The body of a multipart or raw request may be 10 MB; the answer's limit stays as it is.
 
 - `get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A GET request. Since 0.5.0.
 - `postJson(string $url, array $json, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a JSON body. Since 0.5.0.
 - `postForm(string $url, array $fields, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a form body, `application/x-www-form-urlencoded`: a list value repeats its name (`hub.url=a&hub.url=b`, as WebSub needs), never `name[0]=`. Since 1.0.0.
+- `postMultipart(string $url, array $fields, array $files, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a multipart body, `multipart/form-data`: the fields and then the files, each file under its own field. Since next.
+- `postRaw(string $url, string $body, string $contentType, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request whose body is exactly the string given, with the content type given, so a plugin can sign the bytes it sends. Since next.
 
 ### RequestFailed
 
@@ -1359,7 +1391,7 @@ One person as a plugin may know them: their account ID and display name.
 
 `Teme\Contracts\Plugins\Capability`, enum. Since 1.0.0`)..
 
-What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0). DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as Teme verified it, and ContentSubmissions the Submissions door, which keeps what a visitor sends from a public form as an item waiting for review (1.3.0).
+What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0). DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as Teme verified it, and ContentSubmissions the Submissions door, which keeps what a visitor sends from a public form as an item waiting for review (1.3.0). Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects.
 
 - case `ContentRead`. Since 0.5.0.
 - case `ContentWrite`. Since 1.0.0.
@@ -1382,6 +1414,7 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `Sitemaps`. Since 1.1.0.
 - case `DirectoryRead`. Since 1.3.0.
 - case `ContentSubmissions`. Since 1.3.0.
+- case `Redirects`. Since next.
 
 ### Plugin
 
@@ -1443,6 +1476,27 @@ One place that keeps personal data, answering export and erase requests a page a
 Who a privacy request is about: an email address, lower-cased, and the account it belongs to, when one does.
 
 - `__construct(string $email, ?string $accountId = null)`. Since 0.5.0.
+
+## Teme\Contracts\Redirects
+
+### RedirectRef
+
+`Teme\Contracts\Redirects\RedirectRef`, class. Since next.
+
+A redirect a plugin added, as the redirect door tells of it: plain values, never the redirect itself.
+
+- `__construct(string $id, string $from, ?string $to, int $status, string $note = '', bool $answering = true)`. Since next.
+
+### RedirectWriter
+
+`Teme\Contracts\Redirects\RedirectWriter`, interface. Since next.
+
+A plugin's door for the site's redirects, offered when it was granted redirects. It adds a redirect from a path on the site to another path or an address, or answers 410 gone at a path; it lists the redirects it added, and removes them. It never sees, changes or removes a redirect a person or another plugin made. Each redirect it adds is written as the site and marked on Tools › Redirects as added by the plugin.
+
+- `add(string $from, string $to, int $status = 301, string $note = ''): RedirectRef` — Adds a redirect from a path on this site, and returns it. Since next.
+- `gone(string $from, string $note = ''): RedirectRef` — Makes a path on this site answer 410 gone, and returns the redirect. Since next.
+- `mine(): array` — The redirects this plugin added, oldest first. Since next.
+- `remove(array $ids): int` — Removes redirects this plugin added, by ID; an ID that is another's, a person's, or unknown is left alone. Since next.
 
 ## Teme\Contracts\Routes
 

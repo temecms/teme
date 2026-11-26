@@ -106,7 +106,8 @@
                     "pages.head",
                     "sitemaps",
                     "directory.read",
-                    "content.submissions"
+                    "content.submissions",
+                    "redirects"
                 ]
             }
         },
@@ -1296,6 +1297,75 @@
                             "type": "string",
                             "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$",
                             "description": "The host its addresses are on, served over https, which joins the img-src of the content security policy."
+                        }
+                    }
+                },
+                "commands": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "description": "Console commands the plugin adds to php artisan while it is enabled; the plugin implements HasCommands. Each name starts with the plugin's code and a colon.",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "description"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{0,31}(?::[a-z][a-z0-9-]{0,31}){0,2}$",
+                                "description": "The command's name, starting with the plugin's code and a colon, such as sharely:resend."
+                            },
+                            "description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "description": "One line saying what the command does, as php artisan list shows it."
+                            },
+                            "arguments": {
+                                "type": "array",
+                                "maxItems": 5,
+                                "items": {
+                                    "type": "object",
+                                    "required": ["name", "description"],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "pattern": "^[a-z][a-z0-9-]{0,29}$"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "maxLength": 120
+                                        },
+                                        "required": {
+                                            "type": "boolean",
+                                            "description": "Whether the command refuses to run without it; false when absent."
+                                        }
+                                    }
+                                }
+                            },
+                            "options": {
+                                "type": "array",
+                                "maxItems": 5,
+                                "items": {
+                                    "type": "object",
+                                    "required": ["name", "description"],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "pattern": "^[a-z][a-z0-9-]{0,29}$"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "maxLength": 120
+                                        },
+                                        "value": {
+                                            "type": "boolean",
+                                            "description": "Whether the option takes a value, as --limit=5; a flag, as --force, when false or absent."
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 },

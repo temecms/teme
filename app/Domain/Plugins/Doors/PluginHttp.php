@@ -5,7 +5,8 @@
  * consent covers, resolved here and refused when any address is private or
  * reserved, connected to that address only (no second lookup, so DNS can't
  * be rebound), never following a redirect, within 10 seconds and 1 MB each
- * way, with a JSON or a form body; inside a long job's run, 300 seconds and an answer of 16 MB. The lookup comes before those 10 seconds and has no limit of its own:
+ * way, with a JSON or a form body, or a multipart or raw body of up to 10 MB;
+ * inside a long job's run, 300 seconds and an answer of 16 MB. The lookup comes before those 10 seconds and has no limit of its own:
  * the system resolver's, by default 5 seconds a try, two tries a server, for
  * up to three servers, so as long as 30 seconds when DNS is down.
  *
@@ -33,6 +34,7 @@ use Psr\Http\Message\ResponseInterface;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
+use Teme\Contracts\Http\HttpFile;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
 
@@ -41,6 +43,14 @@ final readonly class PluginHttp implements OutboundHttp
     public const int MOST_SECONDS = 10;
 
     public const int MOST_BYTES = 1_048_576;
+
+    /**
+     * The largest body a multipart or raw request may send; the answer's
+     * limit stays at MOST_BYTES.
+     *
+     * @since next
+     */
+    public const int MOST_REQUEST_BYTES = 10_485_760;
 
     /**
      * The largest answer inside a long job's run; a request stays at MOST_BYTES.
@@ -60,6 +70,7 @@ final readonly class PluginHttp implements OutboundHttp
      * @param  int  $maxBytes  answer size cap; defaults to 1 MB for http, 16 MB inside a long job, media may pass the upload limit; a request's body stays at 1 MB
      * @param  int  $mostSeconds  the upper limit for each call: 10 normally, 300 inside a long job (I-3445)
      * @param  (Closure(): list<string>)|null  $settingHosts  the exact hosts agreed in its settings, read at each call (docs/plans/plugin-sockets-1.md)
+     * @param  string|null  $ownPath  the plugin's own folder, the only place a multipart file may be read from
      */
     public function __construct(
         private array $hosts,
@@ -67,6 +78,7 @@ final readonly class PluginHttp implements OutboundHttp
         private int $maxBytes = self::MOST_BYTES,
         private int $mostSeconds = self::MOST_SECONDS,
         private ?Closure $settingHosts = null,
+        private ?string $ownPath = null,
     ) {}
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
@@ -86,14 +98,45 @@ final readonly class PluginHttp implements OutboundHttp
     {
         self::checkFields($fields);
 
-        return $this->send('POST', $url, fn (string $host): string => self::formBody($fields, $host, self::MOST_BYTES), 'application/x-www-form-urlencoded', $headers, $timeoutSeconds);
+        return $this->send('POST', $url, fn (string $host): string => self::formBody($fields, $host, self::MOST_BYTES), 'application/x-www-form-urlencoded', $headers, $timeoutSeconds, true);
+    }
+
+    /**
+     * @since next
+     */
+    public function postMultipart(string $url, array $fields, array $files, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
+    {
+        self::checkFields($fields);
+        $sizes = array_map(fn (mixed $file): int => $this->fileSize($file), $files);
+        $boundary = 'teme-'.bin2hex(random_bytes(16));
+
+        return $this->send('POST', $url, fn (string $host): string => self::multipartBody($fields, $files, $sizes, $boundary, $host), 'multipart/form-data; boundary='.$boundary, $headers, $timeoutSeconds, true);
+    }
+
+    /**
+     * @since next
+     */
+    public function postRaw(string $url, string $body, string $contentType, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
+    {
+        if (trim($contentType) === '' || preg_match('/[\r\n]/', $contentType) === 1) {
+            throw new InvalidArgumentException('A raw body needs a content type on one line.');
+        }
+
+        return $this->send('POST', $url, function (string $host) use ($body): string {
+            if (strlen($body) > self::MOST_REQUEST_BYTES) {
+                throw self::requestTooLarge($host);
+            }
+
+            return $body;
+        }, $contentType, $headers, $timeoutSeconds, true);
     }
 
     /**
      * @param  (Closure(string): string)|null  $body  the body for the host checked, built before any lookup
      * @param  array<string, string>  $headers
+     * @param  bool  $ownContentType  the body's content type is the one sent, so one the plugin passes is dropped
      */
-    private function send(string $method, string $url, ?Closure $body, string $contentType, array $headers, int $timeoutSeconds): HttpAnswer
+    private function send(string $method, string $url, ?Closure $body, string $contentType, array $headers, int $timeoutSeconds, bool $ownContentType = false): HttpAnswer
     {
         // Parsed once, by the parser Guzzle sends with, so the host checked is the host connected to.
         try {
@@ -107,7 +150,7 @@ final readonly class PluginHttp implements OutboundHttp
         $address = $this->publicAddress($host);
         $seconds = max(1, min($timeoutSeconds, $this->mostSeconds));
 
-        $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0 && ($contentType !== 'application/x-www-form-urlencoded' || strcasecmp($name, 'content-type') !== 0), ARRAY_FILTER_USE_KEY))
+        $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0 && (! $ownContentType || strcasecmp($name, 'content-type') !== 0), ARRAY_FILTER_USE_KEY))
             ->setHandler(new CurlHandler)
             ->withoutRedirecting()
             ->timeout($seconds)
@@ -238,6 +281,92 @@ final readonly class PluginHttp implements OutboundHttp
         }
 
         return $body;
+    }
+
+    /**
+     * Returns the bytes of a multipart body, refused before any lookup or
+     * connection when it passes 10 MB, each file read only once its size, and
+     * the sizes before it, are known to fit.
+     *
+     * @param  array<string, string|list<string>>  $fields
+     * @param  list<HttpFile>  $files
+     * @param  list<int>  $sizes  each file's size in bytes, in order
+     */
+    private static function multipartBody(array $fields, array $files, array $sizes, string $boundary, string $host): string
+    {
+        $parts = [];
+        $total = 0;
+
+        foreach ($fields as $name => $value) {
+            foreach (is_array($value) ? $value : [$value] as $one) {
+                $parts[] = '--'.$boundary."\r\nContent-Disposition: form-data; name=\"".self::quoted($name)."\"\r\n\r\n".$one."\r\n";
+                $total += strlen($one);
+            }
+        }
+
+        $total += array_sum($sizes) + (count($files) + count($parts)) * (strlen($boundary) + 200);
+
+        if ($total > self::MOST_REQUEST_BYTES) {
+            throw self::requestTooLarge($host);
+        }
+
+        foreach ($files as $file) {
+            $parts[] = '--'.$boundary."\r\nContent-Disposition: form-data; name=\"".self::quoted($file->field).'"; filename="'.self::quoted($file->filename)."\"\r\nContent-Type: ".$file->contentType."\r\n\r\n".($file->bytes ?? (string) file_get_contents((string) $file->path))."\r\n";
+        }
+
+        $body = implode('', $parts).'--'.$boundary."--\r\n";
+
+        if (strlen($body) > self::MOST_REQUEST_BYTES) {
+            throw self::requestTooLarge($host);
+        }
+
+        return $body;
+    }
+
+    /**
+     * A field or file name as a multipart header carries it: a quote or a
+     * line break written as its percent code, as a browser writes it.
+     */
+    private static function quoted(string $name): string
+    {
+        return str_replace(['"', "\r", "\n"], ['%22', '%0D', '%0A'], $name);
+    }
+
+    /**
+     * Returns a file's size in bytes, refused before any lookup when the
+     * file isn't a file, a path isn't inside the plugin's own folder, or
+     * the content type has a line break in it.
+     */
+    private function fileSize(mixed $file): int
+    {
+        if (! $file instanceof HttpFile) {
+            throw new InvalidArgumentException('A multipart request’s files are HttpFile values.');
+        }
+
+        if (preg_match('/[\r\n]/', $file->contentType) === 1) {
+            throw new InvalidArgumentException('A file’s content type is on one line.');
+        }
+
+        if ($file->bytes !== null) {
+            return strlen($file->bytes);
+        }
+
+        $own = $this->ownPath === null ? false : realpath($this->ownPath);
+        $path = realpath((string) $file->path);
+
+        if ($own === false || $path === false || ! is_file($path) || ! str_starts_with(str_replace('\\', '/', $path), rtrim(str_replace('\\', '/', $own), '/').'/')) {
+            throw new InvalidArgumentException('A file’s path must be a file inside the plugin’s own folder.');
+        }
+
+        return (int) filesize($path);
+    }
+
+    private static function requestTooLarge(string $host): RequestFailed
+    {
+        return new RequestFailed(__('The request to :host was larger than :size MB, so Teme didn’t send it.', [
+            'host' => $host,
+            'size' => intdiv(self::MOST_REQUEST_BYTES, 1024 * 1024),
+        ]));
     }
 
     private static function tooLargeWords(string $host, int $maxBytes): string

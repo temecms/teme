@@ -15,7 +15,7 @@
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `requires.plugins` | object | no | Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions", "redirects" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -192,6 +192,17 @@
 | `contributes.imageService` | object | no | An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService. |  |
 | `contributes.imageService.label` | string | yes | The service's name, as the consent names it. |  |
 | `contributes.imageService.host` | string | yes | The host its addresses are on, served over https, which joins the img-src of the content security policy. | ^(?:\*\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ |
+| `contributes.commands` | array | no | Console commands the plugin adds to php artisan while it is enabled; the plugin implements HasCommands. Each name starts with the plugin's code and a colon. |  |
+| `contributes.commands[].name` | string | yes | The command's name, starting with the plugin's code and a colon, such as sharely:resend. | ^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{0,31}(?::[a-z][a-z0-9-]{0,31}){0,2}$ |
+| `contributes.commands[].description` | string | yes | One line saying what the command does, as php artisan list shows it. |  |
+| `contributes.commands[].arguments` | array | no |  |  |
+| `contributes.commands[].arguments[].name` | string | yes |  | ^[a-z][a-z0-9-]{0,29}$ |
+| `contributes.commands[].arguments[].description` | string | yes |  |  |
+| `contributes.commands[].arguments[].required` | boolean | no | Whether the command refuses to run without it; false when absent. |  |
+| `contributes.commands[].options` | array | no |  |  |
+| `contributes.commands[].options[].name` | string | yes |  | ^[a-z][a-z0-9-]{0,29}$ |
+| `contributes.commands[].options[].description` | string | yes |  |  |
+| `contributes.commands[].options[].value` | boolean | no | Whether the option takes a value, as --limit=5; a flag, as --force, when false or absent. |  |
 | `contributes.notices` | array | no | Kinds of notice the plugin sends through Notices, with notices.send; never required. |  |
 | `contributes.notices[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
 | `contributes.notices[].label` | string | yes | The choice as Account › Notifications words it. |  |
