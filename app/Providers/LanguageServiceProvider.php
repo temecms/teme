@@ -18,6 +18,7 @@ use App\Domain\Languages\LanguagesGroup;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Settings\SettingsRegistry;
+use App\Domain\Site\SiteAddresses;
 use App\Domain\Site\SiteLanguage;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
@@ -33,6 +34,7 @@ final class LanguageServiceProvider extends ServiceProvider
         $this->app->scoped(SiteLanguage::class);
         // Set once per request, so a second request in one process starts unset.
         $this->app->scoped(PageLanguage::class);
+        $this->app->scoped(SiteAddresses::class);
     }
 
     public function boot(): void
