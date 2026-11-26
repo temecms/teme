@@ -42,7 +42,8 @@ export type RedirectRow = {
     statusLabel: string;
     to: RedirectTo;
     note: string;
-    origin: 'manual' | 'import';
+    origin: 'manual' | 'import' | 'plugin';
+    addedBy: string | null;
     hits: number;
     lastHitAt: string | null;
     on: boolean;
@@ -67,7 +68,7 @@ export type RedirectsPage = {
     filters: {
         on: 'on' | 'off' | null;
         status: number | null;
-        origin: 'manual' | 'import' | null;
+        origin: 'manual' | 'import' | 'plugin' | null;
     };
     /** The statuses a redirect can answer with, for the filter. */
     statuses: { value: number; label: string }[];

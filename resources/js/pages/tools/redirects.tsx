@@ -384,7 +384,11 @@ export default function Redirects(page: RedirectsPage) {
             owner: 'core',
             header: __('Origin'),
             cell: (row) =>
-                row.origin === 'import' ? __('Imported') : __('Added here'),
+                row.origin === 'import'
+                    ? __('Imported')
+                    : row.origin === 'plugin'
+                      ? __('Added by :plugin', { plugin: row.addedBy ?? '' })
+                      : __('Added here'),
         },
         {
             id: 'hits',
@@ -643,6 +647,7 @@ export default function Redirects(page: RedirectsPage) {
                         options={[
                             { value: 'manual', label: __('Added here') },
                             { value: 'import', label: __('Imported') },
+                            { value: 'plugin', label: __('Added by a plugin') },
                         ]}
                         onValueChange={(next) =>
                             router.visit(address({ origin: next || null }), {

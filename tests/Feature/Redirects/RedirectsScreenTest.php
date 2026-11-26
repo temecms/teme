@@ -47,6 +47,7 @@ it('lists every redirect newest first, where it sends readers in words, and what
             'to' => ['kind' => 'content', 'address' => '/ferry-fares/', 'title' => 'Ferry fares', 'contentId' => $fares->id, 'mediaId' => null],
             'note' => 'From the print edition',
             'origin' => 'import',
+            'addedBy' => null,
             'hits' => 12,
             'lastHitAt' => '2026-10-08T08:30:00+00:00',
             'on' => true,

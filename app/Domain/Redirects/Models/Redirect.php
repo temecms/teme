@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $target
  * @property string|null $target_path
  * @property string $origin
+ * @property string|null $plugin
  * @property bool $enabled
  * @property string $note
  * @property int $hits

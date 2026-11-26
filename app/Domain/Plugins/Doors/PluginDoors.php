@@ -11,7 +11,8 @@
  * granted content.submissions, the people reader
  * when it was granted people.read, SiteAi when it was granted ai and
  * declares AI tasks, HookSender when it declares hooks of its own, and
- * Notices for its declared kinds when it was granted notices.send.
+ * Notices for its declared kinds when it was granted notices.send, and
+ * RedirectWriter when it was granted redirects.
  * Bound as the loader's PluginServices.
  *
  * @package Teme
@@ -65,6 +66,7 @@ use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Redirects\RedirectWriter;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -169,6 +171,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::PeopleRead->value, $capabilities, true)) {
             $offered[PeopleReader::class] = new PluginPeopleReader($this->authors);
+        }
+
+        if (in_array(Capability::Redirects->value, $capabilities, true)) {
+            $offered[RedirectWriter::class] = new PluginRedirects($code);
         }
 
         $manifest = $this->registry->find($name)?->manifest;
