@@ -8,7 +8,7 @@
  * the kit's call it before the first refresh, and it stops the whole run.
  *
  * @package Teme
- * @since   next
+ * @since   1.6.1
  * @license MIT
  */
 

@@ -17,6 +17,7 @@ namespace App\Providers;
 use App\Domain\Api\ApiPaths;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Policies\ContentPolicy;
+use App\Domain\Deployment\DestructiveCommands;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Search\PostgresSiteSearch;
 use App\Domain\Status\StatusChecks;
@@ -24,9 +25,10 @@ use App\Domain\Users\Actors;
 use App\Http\Standalone\ErrorReference;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -115,6 +117,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
-        DB::prohibitDestructiveCommands($this->app->isProduction());
+        DestructiveCommands::guardDefault($this->app->isProduction());
+        Event::listen(CommandStarting::class, fn (CommandStarting $event) => DestructiveCommands::starting($event, $this->app->isProduction()));
     }
 }
