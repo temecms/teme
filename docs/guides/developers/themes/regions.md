@@ -3,7 +3,7 @@ title: Regions, site code and featured posts
 type: how-to
 audience: theme
 summary: How a theme sets aside regions for the site's own content, where an administrator's own HTML goes, and how to draw pinned posts on the latest posts page.
-rests_on: [app/Domain/Regions, app/View/Components/Teme/Region.php, app/Domain/SiteCode, docs/reference/theme.md, docs/reference/theme-manifest.md, themes/default]
+rests_on: [app/Domain/Regions, app/Http/Site/RegionFragmentController.php, app/View/Components/Teme/Region.php, app/Domain/SiteCode, docs/reference/theme.md, docs/reference/theme-manifest.md, themes/default]
 ---
 
 # Regions, site code and featured posts
@@ -23,18 +23,36 @@ Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-c
 - `max` is the most top-level blocks the region holds, 1 to 50; 50 when you leave it out.
 - `group` is optional: the heading Content › Regions lists the region under, such as `"Ad placements"`, at most 40 characters. Regions without one are listed under Regions.
 - `size` is optional: the space the region gives, width x height in pixels, such as `"300x600"` for a sidebar. Teme tells it to the cards placed there and never refuses a card for it; an ad plugin's card may list that size's ads first.
+- `minWidth` is optional: the narrowest viewport, 200 to 4000 pixels, the region is drawn at. See *A region drawn only from a width*, below.
 
-`php artisan teme:theme:check` refuses a region without a label, a card Teme doesn't know, a `max` outside that range, a `group` that isn't a name of 1 to 40 characters, or a `size` that isn't two numbers joined by `x`. A plugin's key is checked by its shape only, since the plugin may not be installed where the theme is checked. Teme holds a region's document to its declaration when it is saved and again when it is published, against the declaration as it is then.
+`php artisan teme:theme:check` refuses a region without a label, a card Teme doesn't know, a `max` outside that range, a `group` that isn't a name of 1 to 40 characters, a `size` that isn't two numbers joined by `x`, or a `minWidth` that isn't a whole number from 200 to 4000. A plugin's key is checked by its shape only, since the plugin may not be installed where the theme is checked. Teme holds a region's document to its declaration when it is saved and again when it is published, against the declaration as it is then.
 
 ### Draw a region
 
 Place the component where the region belongs, naming its slug, as the default theme's single template does: `<x-teme::region name="after-content" />`.
 
-It draws the region's published content with the same renderer as an article, and records its cards for the page's head. It draws nothing for a region that is empty or unpublished, so don't wrap it in markup that would show empty. Outside production it draws a note when you name a region your manifest doesn't declare. See [the region component](../../../reference/theme.md#x-temeregion) in the generated reference.
+It draws the region's published content with the same renderer as an article, and records its cards for the page's head. It draws nothing for a region that is empty or unpublished. To leave out markup that belongs around it, such as a heading or a label, wrap that markup in `@regionHasContent('after-content')` and `@endregionHasContent`; see [Addresses, listings and bodies in a template](template-data.md#does-a-region-have-anything-to-draw). Outside production it draws a note when you name a region your manifest doesn't declare. See [the region component](../../../reference/theme.md#x-temeregion) in the generated reference.
 
 A plugin's card is drawn inside `<div class="card-plugin card-plugin-{code}-{id}" data-plugin-card="{code}:{id}">`. Plugins load no stylesheet of their own yet, so style the cards your theme expects, by those classes. See [Cards for a theme's regions](../plugins/cards.md).
 
 Each theme's regions are its own. When the site switches themes, the old theme's regions are kept, read-only, and show again if it switches back.
+
+### A region drawn only from a width
+
+A half-page ad beside an article is meant for wide screens, but hiding it with CSS still loads its script on a phone. Declare the region with `minWidth` and it isn't loaded at all below that width:
+
+```json
+"half-page": { "label": "Half page", "size": "300x600", "minWidth": 1440 }
+```
+
+Place it as any region, with `<x-teme::region name="half-page" />`. The page carries an empty placeholder, `<div class="teme-region teme-region-half-page" data-region="half-page" data-teme-region-min="1440" data-teme-region-src="…">`, and none of the region's content: no markup, no card, no script. Core's own small script, which the page carries once, whatever the number of placeholders, fetches the content when the viewport is at least `minWidth` wide, once, and puts it in the placeholder, running any scripts in it. If the visitor widens the window later, it loads then. A region with nothing published draws no placeholder and fetches nothing.
+
+What your theme needs to know:
+
+- Style the placeholder as you style the region, by its classes. Before the content arrives it is empty, so give it the `size` the region declares (`min-height`, `width`) if the layout must not move when it fills.
+- The fetched content is the region exactly as it would have been drawn in the page, in the page's language, and the page's content security policy already allows its scripts: the page notes their hashes and hosts, as it does for a region drawn in place.
+- The fetch is a plain GET to `/_teme/region?name=…&lang=…`. The page cache stores each answer like a page, one for each region and language, and removes it when the region changes.
+- Plugins' insertions placed before or after the region are drawn around the placeholder as usual, at every width.
 
 ### Cards your theme brings
 

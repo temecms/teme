@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\Media\Operations;
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Hooks\Payloads;
 use App\Domain\Media\Jobs\GenerateMediaVariants;
 use App\Domain\Media\Models\Media;
 use App\Domain\Media\Operations\Input\UpdateMediaDetailsInput;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use LogicException;
 use Teme\Contracts\Cache\CacheKeysFor;
+use Teme\Contracts\Media\MediaUpdated;
 use Teme\Contracts\Operations\OperationInput;
 
 final class UpdateMediaDetails extends BaseOperation
@@ -88,6 +90,10 @@ final class UpdateMediaDetails extends BaseOperation
 
         $shownChanged = $media->isDirty();
         $media->save();
+
+        if ($shownChanged) {
+            $this->notifyAfterCommit(MediaUpdated::class, fn (): MediaUpdated => new MediaUpdated(Payloads::media($media), $input->actorId()));
+        }
 
         // A page draws its alt text, title and focal point (I-263).
         if ($shownChanged) {

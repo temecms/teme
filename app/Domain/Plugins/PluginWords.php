@@ -31,6 +31,15 @@ final readonly class PluginWords
         'ContentVisibilityChanged' => 'an item made private or public',
         'ContentDeleted' => 'an item deleted for good',
         'MediaStored' => 'a file uploaded or replaced',
+        'MediaUpdated' => 'a file’s details changed',
+        'MediaTrashed' => 'a file moved to the trash',
+        'MediaRestored' => 'a file taken out of the trash',
+        'MediaDeleted' => 'a file deleted for good',
+        'TermCreated' => 'a category or tag created',
+        'TermUpdated' => 'a category or tag changed',
+        'TermDeleted' => 'a category or tag deleted',
+        'TermAssigned' => 'an item’s categories or tags changed',
+        'PagesPurged' => 'the public pages a change purged',
         'CommentStatusChanged' => 'a comment’s status changed',
         'SettingsChanged' => 'a setting changed',
         'ArticleLinks' => 'an article’s links drawn',
@@ -69,6 +78,7 @@ final readonly class PluginWords
             Capability::Sitemaps->value => __('Add its own sitemaps to your site’s sitemap index'),
             Capability::DirectoryRead->value => __('Read the plugins and themes listed in Teme’s directory, as Teme verified them'),
             Capability::ContentSubmissions->value => __('Keep what visitors send from its public forms, as items waiting for someone to review them'),
+            Capability::Redirects->value => __('Add redirects from old addresses of your site, and remove the ones it added'),
             default => $capability,
         });
     }

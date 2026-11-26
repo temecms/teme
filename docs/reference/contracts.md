@@ -31,6 +31,7 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Directory\VerifiedDirectory` | granted `directory.read` | 1.3.0 |
 | `Teme\Contracts\Content\Submissions` | granted `content.submissions` | 1.3.0 |
 | `Teme\Contracts\Cards\CardsChanged` | granted `pages.insert` | 1.5.0 |
+| `Teme\Contracts\Redirects\RedirectWriter` | granted `redirects` | next |
 
 ## Teme\Contracts\Admin
 
@@ -180,6 +181,14 @@ A change to something the public site shows, as the page cache is told of it: wh
 - `SITE` — The whole site, as a repair of what every list counts on changes it; its ID is `*`. Since 0.1.0.
 - `__construct(string $subject, string $id, array $keys)`. Since 0.1.0.
 
+### PagesPurged
+
+`Teme\Contracts\Cache\PagesPurged`, class. Since next.
+
+The public pages a change purged from the page cache, and the CDN purge queued for them. Sent once for each purge, after the change is saved and never inside its transaction, so a plugin can purge an outside cache of its own. Nothing is sent when the page cache is off. The tags are what a purge is made of, so purge an outside cache by tag. The addresses are only the cached pages core warms again, and are empty when warming is off, so never rely on them being complete.
+
+A hook: its parameters are in the [hooks reference](hooks.md#pagespurged).
+
 ## Teme\Contracts\Cards
 
 ### CardChoice
@@ -205,6 +214,7 @@ One placed plugin card: its node's ID, the values of its fields as stored, the r
 The theme's region a card is placed in. Its size is the theme's advice, such as 300x600 for a sidebar ad: a card may read it, to list that size's ads first, and core never refuses a card for it.
 
 - `__construct(string $slug, string $theme, ?string $size = null, ?int $width = null, ?int $height = null)`. Since 1.5.0.
+- `__toString(): string` — The region's slug, so a view may print the region or compare it with a name: `$region == 'sidebar'`. Since next.
 
 ### CardsChanged
 
@@ -275,6 +285,27 @@ A moderator's answer for one comment: approved, held for a person to decide, or 
 - `PENDING` — Waits for a moderator. Since 0.1.0.
 - `SPAM` — Kept out of sight, for a moderator to confirm or undo. Since 0.1.0.
 - `__construct(string $status, string $reason, array $signals = [])`. Since 0.1.0.
+
+## Teme\Contracts\Console
+
+### CommandOutput
+
+`Teme\Contracts\Console\CommandOutput`, interface. Since next.
+
+Where a plugin's console command writes its lines. Teme gives one to HasCommands::runCommand() and shows what is written in the terminal.
+
+- `line(string $text): void` — Writes a plain line. Since next.
+- `info(string $text): void` — Writes a line that says something went as it should. Since next.
+- `warning(string $text): void` — Writes a line that says something needs attention but didn't stop the command. Since next.
+- `error(string $text): void` — Writes a line that says something failed. Since next.
+
+### HasCommands
+
+`Teme\Contracts\Console\HasCommands`, interface. Since next.
+
+A plugin with console commands: it runs the ones its manifest declares under `contributes.commands`. Implemented beside Plugin. Teme lists a command in `php artisan` only while the plugin is enabled, and runs it with the plugin's own doors, as the operator at the server's shell.
+
+- `runCommand(string $name, array $arguments, array $options, CommandOutput $output): int` — Runs one declared command by its name, such as `sharely:resend`. Since next.
 
 ## Teme\Contracts\Content
 
@@ -611,6 +642,27 @@ One change the person may use, with a label and a short explanation.
 - `ID` — A suggestion's id. Since 1.0.0.
 - `__construct(string $id, string $label, string $detail, SuggestedChange $change)`. Since 1.0.0.
 
+## Teme\Contracts\Export
+
+### HasExportKinds
+
+`Teme\Contracts\Export\HasExportKinds`, interface. Since next.
+
+A plugin whose manifest declares `contributes.exports`: each export it declares becomes one more NDJSON file in the site's export, named `plugin_{code}_{id}.ndjson`, listed in the export's manifest. The plugin hands over what it already keeps; core writes the file. Never put a secret in a line: an export leaves the site.
+
+- `exportKinds(): array` — The plugin's exports, by declared export id. Since next.
+
+### PluginExportKind
+
+`Teme\Contracts\Export\PluginExportKind`, interface. Since next.
+
+One of a plugin's exports: its format version, its fields in words, and its lines a page at a time, as plain arrays. A line's values are text, numbers, booleans, null, or lists and maps of those; a line never sets `kind` or `version`, which core writes first.
+
+- `MOST_LINES` — The most lines one page may hold. Since next.
+- `version(): int` — This export's format version: 1, raised whenever what a line holds changes. Since next.
+- `fields(): array` — Every key a line may hold, in order, with what it holds, in words. Since next.
+- `lines(?string $after): array` — One page of lines, at most 1,000: the first page when $after is null, else the page after the `next` the previous page gave. Since next.
+
 ## Teme\Contracts\Fediverse
 
 ### ActivityHandler
@@ -722,6 +774,15 @@ A hook: its parameters are in the [hooks reference](hooks.md#feedschanged).
 A plugin granted pages.head that adds `<meta>` tags to public pages' heads. Core escapes and draws them; a plugin's tag wins over core's own with the same name or property, except `robots`, which is laid over core's and can only make the page more private.
 
 - `headMeta(HeadPage $page): array` — Its tags for this page, at most 20, answered within 100 ms; none where it adds nothing. Since 1.1.0.
+
+### HasPageTitle
+
+`Teme\Contracts\Head\HasPageTitle`, interface. Since next.
+
+A plugin granted pages.head that answers the title of a public page: the words in `<title>`. The social title and the structured data's name follow it, so the page names itself one way everywhere. Asked within 100 ms. One plugin answers a page: the first enabled that gives a title.
+
+- `MOST_CHARACTERS` — The longest title core accepts, in characters. Since next.
+- `pageTitle(HeadPage $page, string $coreTitle): ?string` — The page's title, as plain text of 1 to 200 characters, or null to leave it to core, whose own title is given. Since next.
 
 ### HeadMeta
 
@@ -890,15 +951,25 @@ What a remote host answered: its status, its body and its headers.
 - `__construct(int $status, string $body, array $headers)`. Since 0.5.0.
 - `json(): mixed` — The body decoded as JSON. Since 0.5.0.
 
+### HttpFile
+
+`Teme\Contracts\Http\HttpFile`, class. Since next.
+
+One file in a multipart request through the outbound door. It carries either its bytes or the path of a file inside the plugin's own folder, never both.
+
+- `__construct(string $field, string $filename, string $contentType, ?string $bytes = null, ?string $path = null)`. Since next.
+
 ### OutboundHttp
 
 `Teme\Contracts\Http\OutboundHttp`, interface. Since 0.5.0.
 
-The only way out for a plugin granted http: https, to the hosts agreed to, no redirect followed, at most 10 seconds and 1 MB, or 300 seconds and 16 MB for an answer inside a long job.
+The only way out for a plugin granted http: https, to the hosts agreed to, no redirect followed, at most 10 seconds and 1 MB, or 300 seconds and 16 MB for an answer inside a long job. The body of a multipart or raw request may be 10 MB; the answer's limit stays as it is.
 
 - `get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A GET request. Since 0.5.0.
 - `postJson(string $url, array $json, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a JSON body. Since 0.5.0.
 - `postForm(string $url, array $fields, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a form body, `application/x-www-form-urlencoded`: a list value repeats its name (`hub.url=a&hub.url=b`, as WebSub needs), never `name[0]=`. Since 1.0.0.
+- `postMultipart(string $url, array $fields, array $files, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a multipart body, `multipart/form-data`: the fields and then the files, each file under its own field. Since next.
+- `postRaw(string $url, string $body, string $contentType, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request whose body is exactly the string given, with the content type given, so a plugin can sign the bytes it sends. Since next.
 
 ### RequestFailed
 
@@ -1200,6 +1271,14 @@ A driver that gives the address of an image's size from an outside image service
 
 - `imageAddress(string $mediaId, string $variant, string $format): ?string` — The address of this size of this image in this format: an absolute `https://` address on the host the plugin's manifest declares for its image service, or a path on this site starting with a single `/`. Since next.
 
+### MediaDeleted
+
+`Teme\Contracts\Media\MediaDeleted`, class. Since next.
+
+A file was deleted for good, after it had been in the trash. Its payload is the file as it was before its row went. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediadeleted).
+
 ### MediaRef
 
 `Teme\Contracts\Media\MediaRef`, class. Since 0.5.0.
@@ -1208,6 +1287,14 @@ A media item as a hook tells of it: plain values read after the change was saved
 
 - `__construct(string $id, string $kind, string $mimeType, string $filename, string $title, int $sizeBytes, ?int $width, ?int $height)`. Since 0.5.0.
 
+### MediaRestored
+
+`Teme\Contracts\Media\MediaRestored`, class. Since next.
+
+A file was taken out of the trash and is live again. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediarestored).
+
 ### MediaStored
 
 `Teme\Contracts\Media\MediaStored`, class. Since 0.5.0.
@@ -1215,6 +1302,22 @@ A media item as a hook tells of it: plain values read after the change was saved
 A file was stored in the media library: a new upload, or a new file in place of an item's old one. Sent after the change is saved, never during an import run.
 
 A hook: its parameters are in the [hooks reference](hooks.md#mediastored).
+
+### MediaTrashed
+
+`Teme\Contracts\Media\MediaTrashed`, class. Since next.
+
+A file was moved to the trash. Its files stay, so restoring it brings every use back. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediatrashed).
+
+### MediaUpdated
+
+`Teme\Contracts\Media\MediaUpdated`, class. Since next.
+
+A file's details were changed: its title, alt text, caption, credit, licence or focal point. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#mediaupdated).
 
 ### MediaWriter
 
@@ -1319,7 +1422,7 @@ One person as a plugin may know them: their account ID and display name.
 
 `Teme\Contracts\Plugins\Capability`, enum. Since 1.0.0`)..
 
-What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0). DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as Teme verified it, and ContentSubmissions the Submissions door, which keeps what a visitor sends from a public form as an item waiting for review (1.3.0).
+What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0). DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as Teme verified it, and ContentSubmissions the Submissions door, which keeps what a visitor sends from a public form as an item waiting for review (1.3.0). Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects.
 
 - case `ContentRead`. Since 0.5.0.
 - case `ContentWrite`. Since 1.0.0.
@@ -1342,6 +1445,7 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `Sitemaps`. Since 1.1.0.
 - case `DirectoryRead`. Since 1.3.0.
 - case `ContentSubmissions`. Since 1.3.0.
+- case `Redirects`. Since next.
 
 ### Plugin
 
@@ -1404,6 +1508,27 @@ Who a privacy request is about: an email address, lower-cased, and the account i
 
 - `__construct(string $email, ?string $accountId = null)`. Since 0.5.0.
 
+## Teme\Contracts\Redirects
+
+### RedirectRef
+
+`Teme\Contracts\Redirects\RedirectRef`, class. Since next.
+
+A redirect a plugin added, as the redirect door tells of it: plain values, never the redirect itself.
+
+- `__construct(string $id, string $from, ?string $to, int $status, string $note = '', bool $answering = true)`. Since next.
+
+### RedirectWriter
+
+`Teme\Contracts\Redirects\RedirectWriter`, interface. Since next.
+
+A plugin's door for the site's redirects, offered when it was granted redirects. It adds a redirect from a path on the site to another path or an address, or answers 410 gone at a path; it lists the redirects it added, and removes them. It never sees, changes or removes a redirect a person or another plugin made. Each redirect it adds is written as the site and marked on Tools › Redirects as added by the plugin.
+
+- `add(string $from, string $to, int $status = 301, string $note = ''): RedirectRef` — Adds a redirect from a path on this site, and returns it. Since next.
+- `gone(string $from, string $note = ''): RedirectRef` — Makes a path on this site answer 410 gone, and returns the redirect. Since next.
+- `mine(): array` — The redirects this plugin added, oldest first. Since next.
+- `remove(array $ids): int` — Removes redirects this plugin added, by ID; an ID that is another's, a person's, or unknown is left alone. Since next.
+
 ## Teme\Contracts\Routes
 
 ### InboundVerifier
@@ -1455,7 +1580,7 @@ One item found: its content ID, and a snippet of its text.
 
 A page of hits, and how many there are in all.
 
-- `__construct(array $hits, int $total, bool $totalCapped)`. Since 0.1.0.
+- `__construct(array $hits, int $total, bool $totalCapped, array $counts = [])`. Since 0.1.0.
 
 ### SearchRequest
 
@@ -1463,7 +1588,7 @@ A page of hits, and how many there are in all.
 
 What a reader asked: the query as typed, the page wanted, its size, and the language searched.
 
-- `__construct(string $query, int $page, int $perPage, ?array $types = null, ?string $language = null)`. Since 0.1.0.
+- `__construct(string $query, int $page, int $perPage, ?array $types = null, ?string $language = null, bool $counts = false)`. Since 0.1.0.
 
 ### SiteSearch
 
@@ -1732,6 +1857,48 @@ One step of a Steps card: its title, its words as plain text and as the page dra
 One Steps card in an article, for how-to content: its summary, how long it takes, what it needs, and its numbered steps. Core adds no HowTo markup of its own; a plugin may build one from it.
 
 - `__construct(string $id, string $nodeId, string $summary, ?string $totalTime, array $materials, array $tools, array $steps)`. Since 1.1.0.
+
+## Teme\Contracts\Taxonomy
+
+### TermAssigned
+
+`Teme\Contracts\Taxonomy\TermAssigned`, class. Since next.
+
+An item's terms changed: terms were added to it or taken off it. Sent once for the item and the change, after the change is saved, with what moved in each taxonomy that changed, and never for a save that left the item's terms as they were. Terms deleted outright are not named as removed. It is not sent during an import run.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termassigned).
+
+### TermCreated
+
+`Teme\Contracts\Taxonomy\TermCreated`, class. Since next.
+
+A category or tag was created. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termcreated).
+
+### TermDeleted
+
+`Teme\Contracts\Taxonomy\TermDeleted`, class. Since next.
+
+A category or tag was deleted. Its payload is the term as it was before its row went. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termdeleted).
+
+### TermRef
+
+`Teme\Contracts\Taxonomy\TermRef`, class. Since next.
+
+A category or tag as a hook tells of it: plain values, never the term itself.
+
+- `__construct(string $id, string $taxonomy, string $name, string $slug, ?string $parentId, ?string $language)`. Since next.
+
+### TermUpdated
+
+`Teme\Contracts\Taxonomy\TermUpdated`, class. Since next.
+
+A category or tag was renamed, or its slug, parent or description changed. Sent after the change is saved. An import run does not send it yet.
+
+A hook: its parameters are in the [hooks reference](hooks.md#termupdated).
 
 ## Teme\Contracts\Themes
 

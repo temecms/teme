@@ -60,7 +60,8 @@ final readonly class PostgresSiteSearch implements SiteSearch
 
         // A search lists what its types have published, whoever asks it (I-263).
         if ($query !== '') {
-            app(RenderRecord::class)->tag(...array_map(PageTags::listOf(...), $types));
+            // The counts cover every searchable type, so a page that shows them depends on each one's list, whichever section it is filtered to.
+            app(RenderRecord::class)->tag(...array_map(PageTags::listOf(...), $request->counts ? $this->searchable(null) : $types));
         }
 
         if ($query === '' || $types === [] || $request->page < 1 || $request->perPage < 1) {
@@ -89,9 +90,10 @@ final readonly class PostgresSiteSearch implements SiteSearch
         );
         $total = min($counted, $cap);
         $offset = ($request->page - 1) * $request->perPage;
+        $counts = $request->counts ? $this->countsByType($config, $query, $now, $request->language, $this->searchable(null)) : [];
 
         if ($offset >= $total) {
-            return new SearchHits([], $total, $counted > $cap);
+            return new SearchHits([], $total, $counted > $cap, $counts);
         }
 
         // Only the newest matches, as many as the cap, are ranked, among
@@ -118,7 +120,35 @@ final readonly class PostgresSiteSearch implements SiteSearch
             array_map(fn (object $row): SearchHit => new SearchHit((string) $row->id, Snippet::fromHeadline((string) $row->snippet)), $rows),
             $total,
             $counted > $cap,
+            $counts,
         );
+    }
+
+    /**
+     * How many matches each searchable type has, in one grouped statement
+     * over the same newest-first candidates the search ranks, so each count
+     * stops at the cap as the total does.
+     *
+     * @param  list<string>  $searchable  every searchable type, since a filter on one type still counts the others
+     *
+     * @return array<string, int>
+     */
+    private function countsByType(string $config, string $query, mixed $now, ?string $language, array $searchable): array
+    {
+        [$matches, $languageBindings] = $this->matches($language);
+        $everyType = '{'.implode(',', $searchable).'}';
+        $cap = (int) config('search.total_cap', 1000);
+        $rows = DB::select(
+            'SELECT type, count(*) AS matched FROM (SELECT c.type FROM contents c WHERE '.$matches.' '.self::NEWEST_FIRST.' LIMIT ?) t GROUP BY type',
+            [$config, $query, $now, $everyType, ...$languageBindings, $cap],
+        );
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $counts[(string) $row->type] = (int) $row->matched;
+        }
+
+        return $counts;
     }
 
     /**

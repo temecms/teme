@@ -121,7 +121,7 @@ final class RedirectScreenController extends Controller
                 default => null,
             },
             'status' => RedirectStatus::tryFrom($request->integer('status'))?->value,
-            'origin' => in_array($origin, ['manual', 'import'], true) ? $origin : null,
+            'origin' => in_array($origin, ['manual', 'import', 'plugin'], true) ? $origin : null,
         ];
     }
 

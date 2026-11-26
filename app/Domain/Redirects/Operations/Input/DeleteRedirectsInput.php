@@ -1,7 +1,8 @@
 <?php
 
 /**
- * What DeleteRedirects needs: the redirects, and who is asking.
+ * What DeleteRedirects needs: the redirects, and who is asking: a person, or
+ * a plugin's code, which may remove only the redirects it added.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -22,6 +23,7 @@ final readonly class DeleteRedirectsInput implements OperationInput
     public function __construct(
         public array $redirectIds,
         public ?string $actorId = null,
+        public ?string $plugin = null,
     ) {}
 
     public function actorId(): ?string

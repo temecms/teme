@@ -33,6 +33,7 @@ use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
 use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\Settings\Models\SettingsGroupRecord;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Plugins\Capability;
 
@@ -85,6 +86,8 @@ final readonly class PluginsScreen
             $newAiTasks = $row->consent === [] ? [] : ($row->added['aiTasks'] ?? []);
 
             $tables = $record === null ? [] : $this->tables($record);
+            $saved = SettingsGroupRecord::query()->find('plugin.'.$row->code);
+            $savedData = ['saved' => $saved !== null, 'secrets' => count($saved->secrets ?? [])];
             // Its manifest's words in the person's language, from its own lang folder (docs/plans/plugin-sockets-2.md).
             $words = ManifestText::for($row->code);
             $locale = app()->getLocale();
@@ -147,9 +150,11 @@ final readonly class PluginsScreen
                 'agreedBefore' => $row->consent !== [],
                 'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || ($row->added['permissions'] ?? []) !== [] || $newImports || $newAiTasks !== [] || ($row->added['notices'] ?? []) !== [] || ($row->added['requires'] ?? []) !== [],
                 'tables' => $tables,
+                // What removing its data also takes: its saved settings, and how many secrets.
+                'savedData' => $savedData,
                 'ai' => $row->ai,
-                // Same rule as RemovePluginData: disabled (or code gone) and tables left.
-                'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
+                // Same rule as RemovePluginData: disabled (or code gone) and tables or saved settings left.
+                'canRemoveData' => ($tables !== [] || $savedData['saved']) && (! $enabled || $row->state === PluginState::CodeGone),
                 // Installed from the admin, or part of the site's build (I-211).
                 'origin' => $origins[$row->name]['origin'] ?? 'image',
                 'source' => $origins[$row->name]['source'] ?? null,

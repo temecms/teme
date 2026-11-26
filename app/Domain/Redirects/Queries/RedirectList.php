@@ -20,6 +20,7 @@ use App\Domain\Addresses\AddressSettings;
 use App\Domain\Media\MediaDisks;
 use App\Domain\Media\MediaUrls;
 use App\Domain\Media\Models\Media;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Redirects\RedirectStatus;
 use App\Domain\Redirects\RedirectTarget;
 use Carbon\CarbonImmutable;
@@ -31,7 +32,7 @@ use stdClass;
 
 /**
  * @phpstan-type RedirectTo array{kind: string|null, address: string|null, title: string|null, contentId: string|null, mediaId: string|null}
- * @phpstan-type RedirectRow array{id: string, from: string, pattern: bool, status: int, statusLabel: string, to: RedirectTo, note: string, origin: string, hits: int, lastHitAt: string|null, on: bool, state: string, stateLabel: string}
+ * @phpstan-type RedirectRow array{id: string, from: string, pattern: bool, status: int, statusLabel: string, to: RedirectTo, note: string, origin: string, addedBy: string|null, hits: int, lastHitAt: string|null, on: bool, state: string, stateLabel: string}
  */
 final readonly class RedirectList
 {
@@ -42,9 +43,9 @@ final readonly class RedirectList
     private const int MOST = 200;
 
     /** The columns a row is drawn from. */
-    private const array COLUMNS = ['id', 'source', 'kind', 'status', 'target_kind', 'target', 'note', 'origin', 'hits', 'last_hit_at', 'enabled'];
+    private const array COLUMNS = ['id', 'source', 'kind', 'status', 'target_kind', 'target', 'note', 'origin', 'plugin', 'hits', 'last_hit_at', 'enabled'];
 
-    public function __construct(private RedirectStates $states) {}
+    public function __construct(private RedirectStates $states, private PluginRegistry $plugins) {}
 
     /**
      * Returns a page of redirects, newest first, at most $perPage (1 to
@@ -189,6 +190,7 @@ final readonly class RedirectList
         // Not files(): the architecture tests read that name as listing a folder.
         $media = $this->mediaTargets($found->where('target_kind', RedirectTarget::MEDIA)->pluck('target')->map(strval(...))->values()->all());
         $states = $this->states->of($found->pluck('id')->map(strval(...))->values()->all());
+        $adders = $this->adders($found->pluck('plugin')->filter()->map(strval(...))->unique()->values()->all());
         $rows = [];
 
         foreach ($found as $row) {
@@ -209,6 +211,7 @@ final readonly class RedirectList
                 },
                 'note' => (string) $row->note,
                 'origin' => (string) $row->origin,
+                'addedBy' => $row->plugin === null ? null : ($adders[(string) $row->plugin] ?? (string) $row->plugin),
                 'hits' => (int) $row->hits,
                 'lastHitAt' => $row->last_hit_at === null ? null : CarbonImmutable::parse((string) $row->last_hit_at)->utc()->toIso8601String(),
                 'on' => (bool) $row->enabled,
@@ -281,5 +284,32 @@ final readonly class RedirectList
         }
 
         return $media;
+    }
+
+    /**
+     * The name of each plugin that added one of these redirects, by its code;
+     * a plugin no longer on the site is left out, and its code shown instead.
+     *
+     * @param  list<string>  $codes
+     *
+     * @return array<string, string>
+     */
+    private function adders(array $codes): array
+    {
+        if ($codes === []) {
+            return [];
+        }
+
+        $labels = [];
+
+        foreach (DB::table('plugins')->whereIn('code', $codes)->pluck('name', 'code') as $code => $name) {
+            $label = $this->plugins->find((string) $name)?->manifest?->label();
+
+            if ($label !== null) {
+                $labels[(string) $code] = $label;
+            }
+        }
+
+        return $labels;
     }
 }

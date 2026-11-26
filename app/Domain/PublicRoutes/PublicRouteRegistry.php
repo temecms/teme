@@ -138,13 +138,13 @@ final class PublicRouteRegistry
     }
 
     /**
-     * Query parameter names any enabled cacheable entry declares, plus `s`.
+     * Query parameter names any enabled cacheable entry declares, plus the search's `s` and its `section`.
      *
      * @return list<string>
      */
     public function cacheQueryNames(): array
     {
-        $names = ['s'];
+        $names = ['s', 'section'];
 
         foreach ($this->all() as $route) {
             if (! $route->isCacheable()) {
@@ -159,6 +159,20 @@ final class PublicRouteRegistry
         }
 
         return array_values(array_unique($names));
+    }
+
+    /**
+     * Whether an enabled cacheable entry declares this query parameter itself.
+     */
+    public function declaresQuery(string $name): bool
+    {
+        foreach ($this->all() as $route) {
+            if ($route->isCacheable() && in_array($name, (array) ($route->cache['query'] ?? []), true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

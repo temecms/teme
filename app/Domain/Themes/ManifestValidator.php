@@ -331,6 +331,10 @@ final class ManifestValidator
                 $errors[] = "The region \"{$slug}\" gives its size as width x height in pixels, such as 300x600.";
             }
 
+            if (array_key_exists('minWidth', $region) && (! is_int($region['minWidth']) || $region['minWidth'] < RegionDeclarations::MIN_WIDTH_LEAST || $region['minWidth'] > RegionDeclarations::MIN_WIDTH_MOST)) {
+                $errors[] = "The region \"{$slug}\" is drawn from a width of ".RegionDeclarations::MIN_WIDTH_LEAST.' to '.RegionDeclarations::MIN_WIDTH_MOST.' pixels, so minWidth must be a whole number in that range.';
+            }
+
             if (array_key_exists('max', $region) && (! is_int($region['max']) || $region['max'] < 1 || $region['max'] > 50)) {
                 $errors[] = "The region \"{$slug}\" may hold 1 to 50 cards, so max must be a whole number in that range.";
             }

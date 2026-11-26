@@ -38,6 +38,9 @@ final class ExportFolder
     /** @var list<ExportFile> */
     private array $open = [];
 
+    /** @var array<int, string> The path of each open file, by the file's object id. */
+    private array $paths = [];
+
     private bool $hasMediaFolder = false;
 
     private bool $settled = false;
@@ -68,15 +71,36 @@ final class ExportFolder
 
     public function ndjson(ExportKind $kind): ExportFile
     {
-        if (preg_match('/^[a-z][a-z_]*$/', $kind->name()) !== 1) {
-            throw new LogicException("An export kind is named in lowercase letters and underscores: [{$kind->name()}].");
+        if (preg_match('/^[a-z][a-z0-9_]*$/', $kind->name()) !== 1) {
+            throw new LogicException("An export kind is named in lowercase letters, digits and underscores: [{$kind->name()}].");
         }
 
         $path = "{$this->staging}/{$kind->name()}.ndjson";
         $file = new ExportFile($kind, $path, $this->createFile($path));
         $this->open[] = $file;
+        $this->paths[spl_object_id($file)] = $path;
 
         return $file;
+    }
+
+    /**
+     * Closes a file that failed part way and deletes it, so the export goes
+     * on without it and its name is in no manifest. A file already finished
+     * is not removed.
+     */
+    public function remove(ExportFile $file): void
+    {
+        $path = $this->paths[spl_object_id($file)] ?? null;
+
+        if ($path === null) {
+            return;
+        }
+
+        $file->abandon();
+        @unlink($path);
+        $this->files = array_values(array_filter($this->files, fn (string $made): bool => $made !== $path));
+        $this->open = array_values(array_filter($this->open, fn (ExportFile $open): bool => $open !== $file));
+        unset($this->paths[spl_object_id($file)]);
     }
 
     /**

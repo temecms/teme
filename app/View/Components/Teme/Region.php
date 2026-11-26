@@ -14,17 +14,10 @@ declare(strict_types=1);
 
 namespace App\View\Components\Teme;
 
-use App\Domain\Cards\CardUsage;
-use App\Domain\Cards\DocumentRenderer;
-use App\Domain\Cards\LinkResolver;
-use App\Domain\Cards\RenderContext;
-use App\Domain\Regions\RegionDeclarations;
-use App\Domain\Regions\Regions;
-use App\Domain\Site\Insertions\PageInsertions;
-use App\Domain\Themes\ActiveTheme;
+use App\Domain\Languages\PageLanguage;
+use App\Domain\Regions\RegionDrawing;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
-use Teme\Contracts\Insertions\PagePosition;
 
 /**
  * `<x-teme::region name="after-content" />`: the site's own content a theme
@@ -44,6 +37,12 @@ final class Region extends Component
 
     public bool $undeclared;
 
+    /** The viewport width the region waits for, in pixels, or null when it is drawn in the page. */
+    public ?int $minWidth = null;
+
+    /** Where core's script fetches a region that waits for a width. */
+    public string $source = '';
+
     /** What plugins place before the region, cleaned, or ''. */
     public string $before = '';
 
@@ -53,35 +52,17 @@ final class Region extends Component
     /**
      * @param  string  $name  the region's slug, as the theme's manifest declares it
      */
-    public function __construct(
-        ActiveTheme $active,
-        RegionDeclarations $declarations,
-        Regions $regions,
-        DocumentRenderer $renderer,
-        string $name,
-    ) {
-        $theme = $active->get();
-        $declaration = $theme === null ? null : ($declarations->for($theme)[$name] ?? null);
-        $declared = $declaration !== null;
-        $document = $declared ? $regions->published($theme->code, $name) : null;
-        $html = $document === null ? '' : $renderer->html($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), region: RegionDeclarations::cardRegion($theme->code, $name, $declaration)));
+    public function __construct(RegionDrawing $drawing, string $name)
+    {
+        $drawn = $drawing->for($name);
 
         $this->name = $name;
-        $this->html = trim($html) === '' ? null : $html;
-        $this->undeclared = $theme !== null && ! $declared && ! app()->isProduction();
-
-        if ($declared) {
-            $insertions = app(PageInsertions::class);
-
-            foreach ($insertions->at(PagePosition::REGION) as $entry) {
-                $at = $entry['insertion']->at;
-
-                if (($at->args['slug'] ?? null) === $name) {
-                    $html = $insertions->draw($entry);
-                    ($at->args['where'] ?? 'after') === 'before' ? $this->before .= $html : $this->after .= $html;
-                }
-            }
-        }
+        $this->html = $drawn['html'];
+        $this->undeclared = $drawn['undeclared'];
+        $this->before = $drawn['before'];
+        $this->after = $drawn['after'];
+        $this->minWidth = $drawn['minWidth'];
+        $this->source = $this->minWidth === null ? '' : route('teme.region', [], false).'?'.http_build_query(['name' => $name, 'lang' => app(PageLanguage::class)->tag()]);
     }
 
     public function render(): View

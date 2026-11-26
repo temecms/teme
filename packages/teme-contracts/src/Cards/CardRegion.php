@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Teme\Contracts\Cards;
 
+use Stringable;
+
 /**
  * The theme's region a card is placed in. Its size is the theme's advice,
  * such as 300x600 for a sidebar ad: a card may read it, to list that
@@ -20,7 +22,7 @@ namespace Teme\Contracts\Cards;
  *
  * @since 1.5.0
  */
-final readonly class CardRegion
+final readonly class CardRegion implements Stringable
 {
     /**
      * @param  string  $slug  the region's slug, as the theme's manifest declares it
@@ -38,4 +40,15 @@ final readonly class CardRegion
         public ?int $width = null,
         public ?int $height = null,
     ) {}
+
+    /**
+     * The region's slug, so a view may print the region or compare it with a
+     * name: `$region == 'sidebar'`. An empty string outside a region.
+     *
+     * @since next
+     */
+    public function __toString(): string
+    {
+        return $this->slug;
+    }
 }

@@ -24,6 +24,12 @@ final readonly class UpdateProfileInput implements OperationInput
         public ?string $actorId,
         /** The bio to show under their articles; null leaves it as it is, '' clears it. */
         public ?string $bio = null,
+        /**
+         * The facts to show on their public author page (App\Domain\People\PublicProfile); null leaves them, [] clears them.
+         *
+         * @var array<mixed>|null
+         */
+        public ?array $publicProfile = null,
     ) {}
 
     public function actorId(): ?string

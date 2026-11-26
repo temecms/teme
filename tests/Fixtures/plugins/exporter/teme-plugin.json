@@ -1,0 +1,16 @@
+{
+    "manifest": 1,
+    "name": "tests/exporter",
+    "code": "exporter",
+    "label": "Exporter",
+    "description": "A plugin the tests enable, which adds a file of its own to the site's export.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Exporter\\Exporter",
+    "capabilities": [],
+    "contributes": {
+        "exports": [
+            { "id": "bookings", "noun": "booking|bookings" }
+        ]
+    }
+}

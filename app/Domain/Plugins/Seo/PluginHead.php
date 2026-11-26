@@ -20,18 +20,13 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Seo;
 
 use App\Domain\Cache\RenderRecord;
-use App\Domain\Cards\ArticleCards;
 use App\Domain\Site\Document\DocumentPage;
 use App\Domain\Site\Document\HeadContributor;
 use App\Domain\Site\Document\JsonLdNode;
 use App\Domain\Site\Document\MetaTag;
 use App\Domain\Site\Document\Precedence;
 use App\Domain\Site\Head\PageHead;
-use App\Domain\Site\SiteLanguage;
-use App\Domain\Site\ViewModels\ArticleView;
-use App\Domain\StructuredData\GraphAddresses;
 use App\Domain\StructuredData\Vocabulary;
-use Closure;
 use Teme\Contracts\Head\HasHeadMeta;
 use Teme\Contracts\Head\HeadMeta;
 use Teme\Contracts\Head\HeadPage;
@@ -50,15 +45,11 @@ final readonly class PluginHead implements HeadContributor
     /** The most nodes one plugin may add to a page. */
     public const int MOST_NODES = 50;
 
-    /** The kinds of page plugins are asked about, as ViewIntent names them. */
-    private const array KINDS = ['single' => 'article', 'latest' => 'latest', 'archive' => 'archive', 'taxonomy' => 'term', 'author' => 'author', 'date' => 'date', 'search' => 'search'];
-
     public function __construct(
         private SeoPlugins $plugins,
         private PageHead $heads,
-        private SiteLanguage $language,
+        private HeadPages $pages,
         private Vocabulary $vocabulary,
-        private ArticleCards $cards,
         private RenderRecord $record,
     ) {}
 
@@ -72,11 +63,11 @@ final readonly class PluginHead implements HeadContributor
         $asked = array_values(array_filter($this->plugins->all(), fn (SeoPlugin $plugin): bool => $plugin->grants(Capability::PagesHead->value)
             && ($plugin->running instanceof HasHeadMeta || $plugin->running instanceof HasStructuredData)));
 
-        if ($asked === [] || $page->intent === null || ! isset(self::KINDS[$page->intent->kind])) {
+        if ($asked === [] || $page->intent === null || ! isset(HeadPages::KINDS[$page->intent->kind])) {
             return [];
         }
 
-        $facts = $this->facts($page);
+        $facts = $this->pages->for($page, $this->heads->for($page));
 
         if ($facts === null) {
             return [];
@@ -100,50 +91,6 @@ final readonly class PluginHead implements HeadContributor
         }
 
         return $entries;
-    }
-
-    /**
-     * What every plugin is told about the page, given its own values; null
-     * for a page with no address of its own.
-     *
-     * @return (Closure(SeoPlugin): HeadPage)|null
-     */
-    private function facts(DocumentPage $page): ?Closure
-    {
-        $values = $this->heads->for($page);
-        $address = $values->url;
-
-        if ($address === null || $address === '') {
-            return null;
-        }
-
-        $intent = $page->intent;
-        $model = $page->model;
-        $kind = $intent !== null && $intent->isFront && in_array($intent->kind, ['single', 'latest'], true) ? 'home' : self::KINDS[$intent !== null ? $intent->kind : 'single'];
-        $home = GraphAddresses::home();
-        $path = '/'.ltrim((string) parse_url($address, PHP_URL_PATH), '/');
-        $language = $this->language->tag();
-        $pageNumber = (int) request()->query('page', '1');
-
-        if (! $model instanceof ArticleView) {
-            return fn (SeoPlugin $plugin): HeadPage => new HeadPage($kind, $path, $address, $home, $language, $intent?->type, pageNumber: max(1, $pageNumber));
-        }
-
-        [$faqs, $steps] = $this->cards->for($model->revisionId, $address);
-
-        return fn (SeoPlugin $plugin): HeadPage => new HeadPage(
-            kind: $kind,
-            path: $path,
-            address: $address,
-            home: $home,
-            language: $language,
-            type: $model->type,
-            contentId: $model->id,
-            title: $model->title,
-            own: PluginSearchFields::valuesOf($plugin->code, $model->fields),
-            faqs: $faqs,
-            steps: $steps,
-        );
     }
 
     /**

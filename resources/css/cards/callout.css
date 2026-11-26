@@ -1,19 +1,25 @@
 /* The callout card (CalloutCard): linked only on pages that draw one (I-248). */
-.card-callout {
-    margin-block: var(--teme-space-5, 2rem);
-    padding: var(--teme-space-3, 1rem) var(--teme-space-4, 1.5rem);
-    border-inline-start: 4px solid var(--teme-rule, #d4d4d4);
-    background: color-mix(in srgb, var(--teme-rule, #d4d4d4) 20%, transparent);
-}
+@layer teme.core {
+    .card-callout {
+        margin-block: var(--teme-space-5, 2rem);
+        padding: var(--teme-space-3, 1rem) var(--teme-space-4, 1.5rem);
+        border-inline-start: 4px solid var(--teme-rule, #d4d4d4);
+        background: color-mix(
+            in srgb,
+            var(--teme-rule, #d4d4d4) 20%,
+            transparent
+        );
+    }
 
-.card-callout p {
-    margin: 0;
-}
+    .card-callout p {
+        margin: 0;
+    }
 
-.card-callout--tip {
-    border-inline-start-color: var(--teme-accent, #1a5fb4);
-}
+    .card-callout--tip {
+        border-inline-start-color: var(--teme-accent, #1a5fb4);
+    }
 
-.card-callout--warning {
-    border-inline-start-color: #b35c00;
+    .card-callout--warning {
+        border-inline-start-color: #b35c00;
+    }
 }

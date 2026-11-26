@@ -16,7 +16,7 @@ namespace App\Domain\Export;
 
 interface ExportKind
 {
-    /** The file's name without `.ndjson`, and every line's `kind`: lowercase letters and underscores. */
+    /** The file's name without `.ndjson`, and every line's `kind`: lowercase letters, digits and underscores, starting with a letter. */
     public function name(): string;
 
     /** This kind's format version: 1, raised whenever what a line holds changes. */

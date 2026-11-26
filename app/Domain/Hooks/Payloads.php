@@ -24,11 +24,13 @@ use App\Domain\Media\Models\Media;
 use App\Domain\Seo\TitlesAndListing;
 use App\Domain\Site\Head\RobotsMeta;
 use App\Domain\Site\SiteLanguage;
+use App\Domain\Taxonomy\Models\Term;
 use Carbon\CarbonInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Media\MediaRef;
+use Teme\Contracts\Taxonomy\TermRef;
 
 final class Payloads
 {
@@ -86,6 +88,21 @@ final class Payloads
 
         return $content->translation_group !== null
             && Content::query()->whereKey($addresses->frontPageId)->value('translation_group') === $content->translation_group;
+    }
+
+    /**
+     * Returns the term as hooks tell of it.
+     */
+    public static function term(Term $term): TermRef
+    {
+        return new TermRef(
+            (string) $term->id,
+            (string) $term->taxonomy,
+            (string) $term->name,
+            (string) $term->slug,
+            $term->parent_id === null ? null : (string) $term->parent_id,
+            $term->language === null ? null : (string) $term->language,
+        );
     }
 
     /**

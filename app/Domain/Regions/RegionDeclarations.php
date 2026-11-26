@@ -41,6 +41,11 @@ final readonly class RegionDeclarations
     /** A region's size: width x height in pixels (docs/guides/developers/themes/regions.md). */
     public const string SIZE = '/^[1-9]\d{1,4}x[1-9]\d{1,4}$/';
 
+    /** The narrowest and the widest viewport a region may wait for, in pixels. */
+    public const int MIN_WIDTH_LEAST = 200;
+
+    public const int MIN_WIDTH_MOST = 4000;
+
     public function __construct(private ActiveTheme $active) {}
 
     /**
@@ -49,7 +54,7 @@ final readonly class RegionDeclarations
      * names, core cards by name, plugins' as "{code}:{id}" and the theme's
      * own, which the manifest names by id, as "{theme}:{id}".
      *
-     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null, group: string|null}>
+     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null, group: string|null, minWidth: int|null}>
      */
     public function for(Theme $theme): array
     {
@@ -69,6 +74,7 @@ final readonly class RegionDeclarations
                 'max' => is_int($region['max'] ?? null) ? $region['max'] : self::MAX,
                 'size' => is_string($size) && preg_match(self::SIZE, $size) === 1 ? $size : null,
                 'group' => $group === '' ? null : $group,
+                'minWidth' => is_int($region['minWidth'] ?? null) && $region['minWidth'] >= self::MIN_WIDTH_LEAST && $region['minWidth'] <= self::MIN_WIDTH_MOST ? $region['minWidth'] : null,
             ];
         }
 
@@ -121,7 +127,7 @@ final readonly class RegionDeclarations
     /**
      * The active theme's regions, or none when no theme is usable.
      *
-     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null, group: string|null}>
+     * @return array<string, array{label: string, cards: '*'|list<string>, max: int, size: string|null, group: string|null, minWidth: int|null}>
      */
     public function forActive(): array
     {

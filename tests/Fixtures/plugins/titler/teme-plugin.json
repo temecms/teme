@@ -1,0 +1,11 @@
+{
+    "manifest": 1,
+    "name": "tests/titler",
+    "code": "titler",
+    "label": "Titler",
+    "description": "A plugin the tests enable beside SEO Kit, which only answers page titles.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Titler\\Titler",
+    "capabilities": ["pages.head"]
+}

@@ -95,6 +95,53 @@ final readonly class DocumentRenderer
     }
 
     /**
+     * The document's top-level blocks, each as the page draws it: its node
+     * type, its attributes (a card's with its declared defaults) and its
+     * HTML, from the same prose and card renderers html() uses, so a block's
+     * HTML is the piece of the body it stands for. Plugin insertions are
+     * not blocks: they are placed by html() alone.
+     *
+     * @param  array<mixed>  $document
+     *
+     * @return list<array{type: string, attrs: array<string, mixed>, html: string}>
+     */
+    public function blocks(array $document, ?RenderContext $context = null): array
+    {
+        $context ??= new RenderContext(app(LinkResolver::class));
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region);
+        $editor = $this->editor($context);
+        $blocks = [];
+        $heading = 1;
+
+        foreach (array_values((array) ($document['content'] ?? [])) as $node) {
+            if (! is_array($node)) {
+                continue;
+            }
+
+            $type = (string) ($node['type'] ?? '');
+            $card = $this->cards->find($type);
+
+            if ($card === null) {
+                if ($type === 'heading') {
+                    $heading = (int) ($node['attrs']['level'] ?? 2);
+                }
+
+                $blocks[] = ['type' => $type, 'attrs' => (array) ($node['attrs'] ?? []), 'html' => $editor->setContent(['type' => 'doc', 'content' => [$node]])->getHTML()];
+
+                continue;
+            }
+
+            $context->usage?->record($card->name());
+            $attrs = $this->withDefaults($card, (array) ($node['attrs'] ?? []));
+            $blocks[] = ['type' => $type, 'attrs' => $attrs, 'html' => $card instanceof OutlinedCard
+                ? $card->renderInOutline($attrs, $context, max(2, min(6, $heading + 1)))
+                : $card->renderHtml($attrs, $context)];
+        }
+
+        return $blocks;
+    }
+
+    /**
      * @param  list<mixed>  $run
      */
     private function prose(array $run, RenderContext $context): string
@@ -103,9 +150,15 @@ final readonly class DocumentRenderer
             return '';
         }
 
+        return $this->editor($context)->setContent(['type' => 'doc', 'content' => $run])->getHTML();
+    }
+
+    /** The prose editor, drawing links as the context resolves them. */
+    private function editor(RenderContext $context): Editor
+    {
         // The PHP StarterKit has no Link and no Underline, unlike the
         // JavaScript one (study L, §2.10), so both are registered here.
-        $editor = new Editor(['extensions' => [
+        return new Editor(['extensions' => [
             new StarterKit,
             new Underline,
             new Highlight,
@@ -120,8 +173,6 @@ final readonly class DocumentRenderer
             new TextAlign(['types' => ['heading', 'paragraph']]),
             new LinkMark($context),
         ]]);
-
-        return $editor->setContent(['type' => 'doc', 'content' => $run])->getHTML();
     }
 
     /**

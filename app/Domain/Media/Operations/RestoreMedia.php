@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\Domain\Media\Operations;
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Hooks\Payloads;
 use App\Domain\Media\MediaCounts;
 use App\Domain\Media\MediaState;
 use App\Domain\Media\Models\Media;
@@ -23,6 +24,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Cache\CacheKeysFor;
+use Teme\Contracts\Media\MediaRestored;
 use Teme\Contracts\Operations\OperationInput;
 
 final class RestoreMedia extends BaseOperation
@@ -51,6 +53,7 @@ final class RestoreMedia extends BaseOperation
         $before = MediaState::of($media);
         $media->restore();
         MediaCounts::apply($before, MediaState::of($media));
+        $this->notifyAfterCommit(MediaRestored::class, fn (): MediaRestored => new MediaRestored(Payloads::media($media), $input->actorId()));
 
         // A restored image draws again (I-263).
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::MEDIA, (string) $media->id, [PageTags::media((string) $media->id)]));

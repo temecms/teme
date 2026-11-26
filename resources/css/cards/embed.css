@@ -1,44 +1,46 @@
 /* The embed card (EmbedCard): linked only on pages that draw one (I-248). */
-.card-embed {
-    margin-block: var(--teme-space-5, 2rem);
-    margin-inline: 0;
-}
+@layer teme.core {
+    .card-embed {
+        margin-block: var(--teme-space-5, 2rem);
+        margin-inline: 0;
+    }
 
-.card-embed iframe {
-    display: block;
-    inline-size: 100%;
-    border: 0;
-}
+    .card-embed iframe {
+        display: block;
+        inline-size: 100%;
+        border: 0;
+    }
 
-.card-embed--video iframe {
-    aspect-ratio: 16 / 9;
-    block-size: auto;
-}
+    .card-embed--video iframe {
+        aspect-ratio: 16 / 9;
+        block-size: auto;
+    }
 
-.card-embed--audio iframe {
-    block-size: 10rem;
-}
+    .card-embed--audio iframe {
+        block-size: 10rem;
+    }
 
-.card-embed--link a {
-    display: grid;
-    gap: var(--teme-space-1, 0.25rem);
-    padding: var(--teme-space-3, 1rem);
-    border: 1px solid var(--teme-rule, #d4d4d4);
-    color: inherit;
-    text-decoration: none;
-}
+    .card-embed--link a {
+        display: grid;
+        gap: var(--teme-space-1, 0.25rem);
+        padding: var(--teme-space-3, 1rem);
+        border: 1px solid var(--teme-rule, #d4d4d4);
+        color: inherit;
+        text-decoration: none;
+    }
 
-.card-embed--link img {
-    inline-size: 100%;
-    block-size: auto;
-}
+    .card-embed--link img {
+        inline-size: 100%;
+        block-size: auto;
+    }
 
-.card-embed__title {
-    font-weight: 600;
-}
+    .card-embed__title {
+        font-weight: 600;
+    }
 
-.card-embed__host,
-.card-embed figcaption {
-    color: var(--teme-muted, #595959);
-    font-size: var(--teme-step--1, 0.875rem);
+    .card-embed__host,
+    .card-embed figcaption {
+        color: var(--teme-muted, #595959);
+        font-size: var(--teme-step--1, 0.875rem);
+    }
 }

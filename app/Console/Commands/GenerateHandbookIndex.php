@@ -45,7 +45,10 @@ final class GenerateHandbookIndex extends Command
         'plugins/content-read.md',
         'plugins/submissions.md',
         'plugins/directory.md',
+        'plugins/redirects.md',
+        'plugins/outbound-files.md',
         'plugins/jobs.md',
+        'plugins/commands.md',
         'plugins/public-routes.md',
         'plugins/root-files.md',
         'plugins/import.md',
@@ -62,8 +65,11 @@ final class GenerateHandbookIndex extends Command
         'plugins/editor-panels.md',
         'plugins/seo.md',
         'plugins/image-service.md',
+        'plugins/exports.md',
         'plugins/content-types.md',
         'themes/languages.md',
+        'themes/template-data.md',
+        'themes/archive-pages.md',
         'outside/management-api.md',
     ];
 

@@ -3,7 +3,8 @@
 /**
  * Adds a redirect, for whoever holds redirects.manage (I-850, I-694): from
  * an address on this site to an address, another site's address, an item or
- * a media file, or answering 410 or 451. Refused when its source is taken or
+ * a media file, or answering 410 or 451. A plugin granted redirects adds
+ * one as the site, marked with its code. Refused when its source is taken or
  * it would make a loop or a chain (I-859); recorded in the security log; the
  * stored "not found" pages it replaces purged after commit. Returns its ID
  * and its state, which may be waiting (I-858).
@@ -19,6 +20,7 @@ namespace App\Domain\Redirects\Operations;
 
 use App\Domain\Redirects\Models\Redirect;
 use App\Domain\Redirects\Operations\Input\CreateRedirectInput;
+use App\Domain\Redirects\PluginRedirectGrant;
 use App\Domain\Redirects\Queries\RedirectStates;
 use App\Domain\Redirects\RedirectChanges;
 use App\Domain\Redirects\RedirectLookup;
@@ -44,6 +46,12 @@ final class CreateRedirect extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var CreateRedirectInput $input */
+        if ($input->plugin !== null) {
+            PluginRedirectGrant::require($input->plugin);
+
+            return;
+        }
+
         $actor = app(Actors::class)->find($input->actorId());
 
         if ($actor === null || ! $actor->can('redirects.manage')) {
@@ -74,9 +82,9 @@ final class CreateRedirect extends BaseOperation
         }
 
         $actor = $input->actorId() === null ? null : (int) $input->actorId();
-        $redirect = Redirect::query()->create([...$proposal->columns(), 'origin' => 'manual', 'enabled' => true, 'created_by' => $actor, 'updated_by' => $actor]);
+        $redirect = Redirect::query()->create([...$proposal->columns(), 'origin' => $input->plugin === null ? 'manual' : 'plugin', 'plugin' => $input->plugin, 'enabled' => true, 'created_by' => $actor, 'updated_by' => $actor]);
 
-        $this->changes->record(SecurityEventType::RedirectCreated, $input->actorId(), RedirectChanges::described($redirect));
+        $this->changes->record(SecurityEventType::RedirectCreated, $input->actorId(), [...RedirectChanges::described($redirect), ...($input->plugin === null ? [] : ['plugin' => $input->plugin])]);
         $this->purgeAfterCommit(RedirectChanges::purged([$redirect->only(['source', 'kind'])]));
 
         return ['id' => $redirect->id, ...$this->states->of([$redirect->id])[$redirect->id]];

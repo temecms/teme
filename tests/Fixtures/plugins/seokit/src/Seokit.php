@@ -9,6 +9,7 @@ use Teme\Contracts\Editor\CheckedItem;
 use Teme\Contracts\Editor\CheckResult;
 use Teme\Contracts\Editor\HasEditorChecks;
 use Teme\Contracts\Head\HasHeadMeta;
+use Teme\Contracts\Head\HasPageTitle;
 use Teme\Contracts\Head\HeadMeta;
 use Teme\Contracts\Head\HeadPage;
 use Teme\Contracts\Hooks\Hooks;
@@ -22,7 +23,7 @@ use Teme\Contracts\StructuredData\HasStructuredData;
  * A fixture plugin that answers every SEO socket. The tests set what each
  * answers and read what each was asked.
  */
-final class Seokit implements HasEditorChecks, HasHeadMeta, HasSitemaps, HasStructuredData, Plugin
+final class Seokit implements HasEditorChecks, HasHeadMeta, HasPageTitle, HasSitemaps, HasStructuredData, Plugin
 {
     /** @var (Closure(CheckedItem): mixed)|null */
     public static ?Closure $checks = null;
@@ -32,6 +33,9 @@ final class Seokit implements HasEditorChecks, HasHeadMeta, HasSitemaps, HasStru
 
     /** @var (Closure(HeadPage): mixed)|null */
     public static ?Closure $nodes = null;
+
+    /** @var (Closure(HeadPage, string): mixed)|null */
+    public static ?Closure $title = null;
 
     /** @var list<CheckedItem> */
     public static array $checked = [];
@@ -44,6 +48,7 @@ final class Seokit implements HasEditorChecks, HasHeadMeta, HasSitemaps, HasStru
         self::$checks = null;
         self::$meta = null;
         self::$nodes = null;
+        self::$title = null;
         self::$checked = [];
         self::$pages = [];
         NewsSitemap::reset();
@@ -82,6 +87,14 @@ final class Seokit implements HasEditorChecks, HasHeadMeta, HasSitemaps, HasStru
     {
         /** @var list<GraphNode> */
         return self::$nodes === null ? [] : (self::$nodes)($page);
+    }
+
+    public function pageTitle(HeadPage $page, string $coreTitle): ?string
+    {
+        self::$pages[] = $page;
+
+        /** @var string|null */
+        return self::$title === null ? null : (self::$title)($page, $coreTitle);
     }
 
     /**

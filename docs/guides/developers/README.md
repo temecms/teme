@@ -27,7 +27,10 @@ It does not cover running a server or writing content. Those have their own guid
 - [Reading content](plugins/content-read.md)
 - [What visitors send from a public form](plugins/submissions.md)
 - [Reading Teme's directory](plugins/directory.md)
+- [Adding redirects from a plugin](plugins/redirects.md)
+- [Sending files and raw bodies](plugins/outbound-files.md)
 - [Jobs and schedules](plugins/jobs.md)
+- [Console commands from a plugin](plugins/commands.md)
 - [Public routes](plugins/public-routes.md)
 - [Files at the site's root](plugins/root-files.md)
 - [The plugin import socket](plugins/import.md)
@@ -44,8 +47,11 @@ It does not cover running a server or writing content. Those have their own guid
 - [A panel in the editor](plugins/editor-panels.md)
 - [Search engine plugins](plugins/seo.md)
 - [An image service](plugins/image-service.md)
+- [Your plugin's data in the site export](plugins/exports.md)
 - [Content types from your plugin](plugins/content-types.md)
 - [Languages in a theme](themes/languages.md)
+- [Addresses, listings and bodies in a template](themes/template-data.md)
+- [Archive pages, author profiles and listing data](themes/archive-pages.md)
 - [The management API](outside/management-api.md)
 
 ## Generated reference

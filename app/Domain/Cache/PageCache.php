@@ -18,6 +18,7 @@ namespace App\Domain\Cache;
 use App\Domain\Addresses\Paths;
 use App\Domain\Cache\Jobs\WarmPages;
 use App\Domain\Design\Operations\CreateDesignPreview;
+use App\Domain\Hooks\HookDispatcher;
 use Illuminate\Cache\NoLock;
 use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ use Illuminate\Http\Response as PageResponse;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Sleep;
 use Symfony\Component\HttpFoundation\Response;
+use Teme\Contracts\Cache\PagesPurged;
 use Throwable;
 
 final readonly class PageCache
@@ -34,6 +36,12 @@ final readonly class PageCache
      * probes at one address, short enough for an article published there.
      */
     public const int NOT_FOUND_LIFETIME = 10;
+
+    /**
+     * Seconds the answer to a search suggestion lives: a few words typed
+     * are asked again and again, and the items change slowly.
+     */
+    public const int SUGGEST_LIFETIME = 60;
 
     /**
      * Seconds a search's page lives at most (D7): its key comes from the
@@ -168,7 +176,7 @@ final readonly class PageCache
             $request->query->has(CreateDesignPreview::PARAMETER) => 'design preview',
             // The router answers these itself, so no page of the public site is
             // stored there, and nothing is looked up or locked for them.
-            in_array(explode('/', ltrim($request->getPathInfo(), '/'))[0], Paths::RESERVED, true) => 'reserved',
+            in_array(explode('/', ltrim($request->getPathInfo(), '/'))[0], Paths::RESERVED, true) && ! PageKey::isStoredEndpoint($request->getPathInfo()) => 'reserved',
             default => null,
         };
     }
@@ -453,7 +461,28 @@ final readonly class PageCache
             WarmPages::dispatch($warm);
         }
 
+        $this->pagesPurged($tags, $warm);
+
         return $removed;
+    }
+
+    /**
+     * Tells plugins which pages this purge touched, once for the purge, and
+     * only when one listens. It runs after commit, through PublicChanges::purge(),
+     * so a failure is core's to report and never undoes the purge (rule 6).
+     *
+     * @param  list<string>  $tags
+     * @param  list<string>  $addresses
+     */
+    private function pagesPurged(array $tags, array $addresses): void
+    {
+        $dispatcher = app(HookDispatcher::class);
+
+        if (! $dispatcher->wants(PagesPurged::class)) {
+            return;
+        }
+
+        $dispatcher->notify(new PagesPurged($tags, $addresses));
     }
 
     /**
@@ -476,6 +505,9 @@ final readonly class PageCache
     {
         return match (true) {
             $status === 404 => min(self::NOT_FOUND_LIFETIME, self::lifetime()),
+            PageKey::isSuggestions($key->path) => min(self::SUGGEST_LIFETIME, self::lifetime()),
+            // A region's fragment is as much the site's own as a page, and lives as long (it has no other query than its name and language).
+            PageKey::isRegionFragment($key->path) => self::lifetime(),
             $key->search => min(self::SEARCH_LIFETIME, self::lifetime()),
             default => self::lifetime(),
         };

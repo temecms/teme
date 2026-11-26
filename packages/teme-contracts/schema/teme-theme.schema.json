@@ -103,7 +103,7 @@
         },
         "regions": {
             "type": "object",
-            "description": "The places the theme puts the site's own content: slug, then label, group, cards, max and size. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are.",
+            "description": "The places the theme puts the site's own content: slug, then label, group, cards, max, size and minWidth. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are.",
             "propertyNames": { "pattern": "^[a-z0-9-]+$" },
             "additionalProperties": {
                 "type": "object",
@@ -133,6 +133,12 @@
                         "minimum": 1,
                         "maximum": 50,
                         "description": "How many cards the region holds; 50 when absent."
+                    },
+                    "minWidth": {
+                        "type": "integer",
+                        "minimum": 200,
+                        "maximum": 4000,
+                        "description": "The narrowest viewport, in pixels, the region is drawn at. Below it nothing of the region is loaded, scripts included; the page carries a placeholder that core's script fills when the viewport reaches this width."
                     }
                 }
             }

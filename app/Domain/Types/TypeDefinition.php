@@ -26,11 +26,17 @@ final readonly class TypeDefinition
     private const array KNOWN = [
         'key', 'singular', 'plural', 'segment', 'icon', 'single', 'public', 'archive',
         'searchable', 'taxonomies', 'supports', 'comments', 'pattern', 'permissions',
+        'archive_heading', 'archive_intro',
     ];
+
+    /** The longest archive heading, in characters. */
+    public const int HEADING_LENGTH = 120;
 
     /**
      * @param  list<string>  $taxonomies
      * @param  list<string>  $supports
+     * @param  string|null  $archiveHeading  the heading of the type's archive page; null, the plural
+     * @param  array<mixed>|null  $archiveIntro  the archive page's opening text, a Tiptap document; null, none
      */
     public function __construct(
         public string $key,
@@ -47,6 +53,8 @@ final readonly class TypeDefinition
         public ?string $pattern = null,
         public bool $single = false,
         public string $permissions = self::SHARED,
+        public ?string $archiveHeading = null,
+        public ?array $archiveIntro = null,
     ) {}
 
     /**
@@ -108,6 +116,14 @@ final readonly class TypeDefinition
             $problems[] = '[permissions] must be shared or own.';
         }
 
+        if (array_key_exists('archive_heading', $raw) && ! ($raw['archive_heading'] === null || is_string($raw['archive_heading']))) {
+            $problems[] = '[archive_heading] must be text or null.';
+        }
+
+        if (array_key_exists('archive_intro', $raw) && ! ($raw['archive_intro'] === null || is_array($raw['archive_intro']))) {
+            $problems[] = '[archive_intro] must be a document or null.';
+        }
+
         foreach (array_keys($raw) as $field) {
             if (! in_array($field, self::KNOWN, true)) {
                 $problems[] = "[{$field}] isn’t part of a version 1 type.";
@@ -118,7 +134,7 @@ final readonly class TypeDefinition
             throw new InvalidTypeDefinition($problems);
         }
 
-        /** @var array{key: string, singular: string, plural: string, segment: string, icon?: string, single?: bool, public?: bool, archive?: bool, searchable?: bool, taxonomies?: list<string>, supports?: list<string>, comments?: ?string, pattern?: ?string, permissions?: string} $raw */
+        /** @var array{key: string, singular: string, plural: string, segment: string, icon?: string, single?: bool, public?: bool, archive?: bool, searchable?: bool, taxonomies?: list<string>, supports?: list<string>, comments?: ?string, pattern?: ?string, permissions?: string, archive_heading?: ?string, archive_intro?: ?array<mixed>} $raw */
         return new self(
             key: $raw['key'],
             singular: $raw['singular'],
@@ -134,6 +150,8 @@ final readonly class TypeDefinition
             pattern: $raw['pattern'] ?? null,
             single: $raw['single'] ?? false,
             permissions: $raw['permissions'] ?? self::SHARED,
+            archiveHeading: $raw['archive_heading'] ?? null,
+            archiveIntro: $raw['archive_intro'] ?? null,
         );
     }
 
@@ -186,13 +204,17 @@ final readonly class TypeDefinition
             pattern: is_string($raw['pattern'] ?? null) ? $raw['pattern'] : null,
             single: $flag('single', false),
             permissions: is_string($permissions) && in_array($permissions, [self::SHARED, self::OWN], true) ? $permissions : self::SHARED,
+            archiveHeading: is_string($raw['archive_heading'] ?? null) ? $raw['archive_heading'] : null,
+            archiveIntro: is_array($raw['archive_intro'] ?? null) ? $raw['archive_intro'] : null,
         );
     }
 
     /**
      * The definition in the file's key order.
      *
-     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string}
+     * The archive's own heading and intro follow only when set, so a type that has none is written as before.
+     *
+     * @return array{key: string, singular: string, plural: string, segment: string, icon: string, single: bool, public: bool, archive: bool, searchable: bool, taxonomies: list<string>, supports: list<string>, comments: ?string, pattern: ?string, permissions: string, archive_heading?: string, archive_intro?: array<mixed>}
      */
     public function toArray(): array
     {
@@ -211,6 +233,8 @@ final readonly class TypeDefinition
             'comments' => $this->comments,
             'pattern' => $this->pattern,
             'permissions' => $this->permissions,
+            ...($this->archiveHeading === null ? [] : ['archive_heading' => $this->archiveHeading]),
+            ...($this->archiveIntro === null ? [] : ['archive_intro' => $this->archiveIntro]),
         ];
     }
 
@@ -236,6 +260,8 @@ final readonly class TypeDefinition
             comments: $this->comments === null ? null : Discussion::from($this->comments),
             stored: true,
             abilities: $this->permissions === self::OWN ? TypePermissions::names($this->key) : [],
+            archiveHeading: $this->archiveHeading,
+            archiveIntro: $this->archiveIntro,
         );
     }
 
@@ -271,6 +297,8 @@ final readonly class TypeDefinition
             pattern: $pattern,
             single: $this->single,
             permissions: $this->permissions,
+            archiveHeading: $this->archiveHeading,
+            archiveIntro: $this->archiveIntro,
         );
     }
 
@@ -294,6 +322,8 @@ final readonly class TypeDefinition
             pattern: $this->pattern,
             single: $this->single,
             permissions: $this->permissions,
+            archiveHeading: $this->archiveHeading,
+            archiveIntro: $this->archiveIntro,
         );
     }
 

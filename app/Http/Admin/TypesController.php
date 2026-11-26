@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Cards\CardProse;
 use App\Domain\Types\Operations\CreateType;
 use App\Domain\Types\Operations\DeleteType;
 use App\Domain\Types\Operations\Input\CreateTypeInput;
@@ -102,6 +103,10 @@ final class TypesController extends Controller
     {
         $comments = $request->string('comments')->trim()->toString();
         $pattern = $request->string('pattern')->trim()->toString();
+        $heading = $request->string('archive_heading')->trim()->toString();
+        $intro = $request->input('archive_intro');
+        // The form sends the document as one JSON string.
+        $intro = is_string($intro) && $intro !== '' ? json_decode($intro, true) : $intro;
 
         return new TypeDefinition(
             key: $key ?? $request->string('key')->trim()->toString(),
@@ -118,6 +123,8 @@ final class TypesController extends Controller
             pattern: $key === null && $pattern !== '' ? $pattern : null,
             single: $request->boolean('single'),
             permissions: $request->string('permissions')->trim()->toString() === TypeDefinition::OWN ? TypeDefinition::OWN : TypeDefinition::SHARED,
+            archiveHeading: $heading === '' ? null : $heading,
+            archiveIntro: is_array($intro) && CardProse::text($intro) !== '' ? $intro : null,
         );
     }
 

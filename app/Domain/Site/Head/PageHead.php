@@ -22,6 +22,7 @@ use App\Domain\Cards\LinkResolver;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\Rules\CanonicalChoice;
 use App\Domain\Plugins\Images\ImageServices;
+use App\Domain\Plugins\Seo\PluginPageTitle;
 use App\Domain\Seo\SocialCards;
 use App\Domain\Seo\TitlesAndListing;
 use App\Domain\Site\Document\DocumentPage;
@@ -55,7 +56,8 @@ final class PageHead
             return $this->values;
         }
 
-        $this->values = $this->resolve($page);
+        // A plugin's title, when one gives it, goes in here, so everything that reads the head agrees.
+        $this->values = app(PluginPageTitle::class)->apply($page, $this->resolve($page));
         $this->model = $page->model;
 
         return $this->values;
