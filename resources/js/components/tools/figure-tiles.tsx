@@ -7,7 +7,7 @@ export type FigureTile = {
     /** A count, words such as a sum of money, or null while it isn't counted yet: drawn as a dash, its label tagged Soon. */
     value: number | string | null;
     /** A coloured dot before the label: what the figure counts is fine, worth a look, or wrong. */
-    tone?: 'ok' | 'warn' | 'danger' | 'neutral';
+    tone?: 'ok' | 'warn' | 'danger' | 'neutral' | 'accent';
 };
 
 const DOTS = {
@@ -15,6 +15,7 @@ const DOTS = {
     warn: 'bg-warn',
     danger: 'bg-danger',
     neutral: 'bg-neutral-dot',
+    accent: 'bg-accent',
 } as const;
 
 /**

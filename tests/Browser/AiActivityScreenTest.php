@@ -9,6 +9,7 @@ use App\Domain\Ai\AiUsage;
 use App\Domain\Ai\Operations\Input\SettleAiActivityInput;
 use App\Domain\Ai\Operations\SettleAiActivity;
 use App\Domain\Ai\UsageLimits;
+use App\Domain\Support\Queries\Cursor;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -145,4 +146,26 @@ it('follows a revision in the History pane to its request', function (): void {
 
     $page->assertPathIs('/admin/tools/ai-activity')
         ->assertQueryStringHas('row', $this->used);
+});
+
+it('tells where a page sits at 1440, and drops the range but keeps the pager once a page is deeper than 10,000 rows', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/ai-activity');
+    $page->resize(1440, 900);
+    cmWaitUntil($page, "document.querySelector('[data-test=\"ai-activity-range\"]') !== null");
+
+    $page->assertSeeIn('[data-test="ai-activity-range"]', '1 to 3, requests, newest first.')
+        ->assertNoAccessibilityIssues(3);
+
+    actvFiller($this->editor, 10100);
+    $row = DB::table('ai_activity')->orderByDesc('created_at')->orderByDesc('id')->skip(10050)->first();
+    $cursor = Cursor::encode([$row->created_at, $row->id]);
+
+    $page->navigate('/admin/tools/ai-activity?after='.urlencode($cursor));
+    $page->resize(1440, 900);
+    cmWaitUntil($page, "document.querySelector('[data-test=\"ai-activity-pager\"]') !== null");
+
+    $page->assertPresent('[data-test="ai-activity-pager"]')
+        ->assertMissing('[data-test="ai-activity-range"]')
+        ->assertSee('Older')
+        ->assertNoAccessibilityIssues(3);
 });

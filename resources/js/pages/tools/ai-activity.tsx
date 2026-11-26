@@ -56,8 +56,14 @@ function Summary({
             key: 'spent',
             label: __('Spent'),
             value: formatCost(summary.costMicrounits),
+            tone: summary.costMicrounits > 0 ? 'accent' : 'neutral',
         },
-        { key: 'requests', label: __('Requests'), value: summary.requests },
+        {
+            key: 'requests',
+            label: __('Requests'),
+            value: summary.requests,
+            tone: 'neutral',
+        },
         ...(budget === null
             ? []
             : [
@@ -65,7 +71,9 @@ function Summary({
                       key: 'left',
                       label: __('Left of the budget'),
                       value: formatCost(left),
-                      tone: summary.reached ? 'danger' : 'ok',
+                      tone: summary.reached
+                          ? ('danger' as const)
+                          : ('ok' as const),
                   } satisfies FigureTile,
               ]),
         ...(summary.current
@@ -75,6 +83,7 @@ function Summary({
                       label: __('Monthly budget'),
                       value:
                           budget === null ? __('None set') : formatCost(budget),
+                      tone: 'neutral' as const,
                   },
               ]
             : []),
@@ -86,7 +95,7 @@ function Summary({
             data-test="ai-activity-summary"
         >
             <PanelHeader>
-                <h2 id="ai-activity-month" className="text-lead font-semibold">
+                <h2 id="ai-activity-month" className="text-body font-semibold">
                     {summary.current
                         ? __('This month: :month', { month: summary.label })
                         : summary.label}
@@ -305,6 +314,8 @@ export default function AiActivity(page: AiActivityPage) {
         rows,
         newer,
         older,
+        from,
+        to,
         filters,
         people,
         tasks,
@@ -655,21 +666,46 @@ export default function AiActivity(page: AiActivityPage) {
                     }
                 />
 
-                {(newer !== null || older !== null) && (
-                    <Pager
-                        newer={
-                            newer
-                                ? index({ query: { ...keep, before: newer } })
-                                      .url
-                                : null
-                        }
-                        older={
-                            older
-                                ? index({ query: { ...keep, after: older } })
-                                      .url
-                                : null
-                        }
-                    />
+                {(from !== null || newer !== null || older !== null) && (
+                    <div
+                        className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
+                        data-test="ai-activity-pager"
+                    >
+                        {from !== null && to !== null ? (
+                            <p
+                                className="text-small text-ink-3 tabular-nums"
+                                data-test="ai-activity-range"
+                            >
+                                {__(':from to :to, requests, newest first.', {
+                                    from: from.toLocaleString(),
+                                    to: to.toLocaleString(),
+                                })}
+                            </p>
+                        ) : (
+                            <span />
+                        )}
+                        {(newer !== null || older !== null) && (
+                            <Pager
+                                newer={
+                                    newer
+                                        ? index({
+                                              query: {
+                                                  ...keep,
+                                                  before: newer,
+                                              },
+                                          }).url
+                                        : null
+                                }
+                                older={
+                                    older
+                                        ? index({
+                                              query: { ...keep, after: older },
+                                          }).url
+                                        : null
+                                }
+                            />
+                        )}
+                    </div>
                 )}
 
                 <AiActivityDetails

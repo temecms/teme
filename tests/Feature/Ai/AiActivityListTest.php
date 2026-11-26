@@ -35,10 +35,10 @@ beforeEach(function (): void {
     $this->list = fn (array $request = []): array => app(AiActivityList::class)->page(new AiActivityRequest(...$request));
     $this->ids = fn (array $page): array => array_column($page['rows'], 'id');
 
-    // The plan PostgreSQL makes for a page's rows, with the rival plans ruled out, so a few hundred rows show whether an index can answer it.
+    // The plan PostgreSQL makes for a page's rows, with the rival plans ruled out, so a few hundred rows show whether an index can answer it. Skip the count that names the range.
     $this->plan = function (array $request): string {
         $statement = collect(planStatements(fn () => ($this->list)($request)))
-            ->first(fn (array $entry): bool => str_contains($entry['query'], 'from "ai_activity" as "a"'));
+            ->first(fn (array $entry): bool => str_contains($entry['query'], 'from "ai_activity" as "a"') && str_contains(strtolower($entry['query']), 'order by'));
 
         expect($statement)->not->toBeNull();
 
@@ -66,6 +66,9 @@ it('shows a request as one row: who, which task and option, which item, how it e
     $page = ($this->list)();
 
     expect($page['rows'])->toHaveCount(1)
+        ->and($page['from'])->toBe(1)
+        ->and($page['to'])->toBe(1)
+        ->and($page['total'])->toBeNull()
         ->and($page['rows'][0])->toBe([
             'id' => $id,
             'at' => '2026-11-12T14:03:22+00:00',
@@ -121,7 +124,10 @@ it('pages by keyset, forward and back, with no gap and no overlap (I-140)', func
         ->and(($this->ids)($backTwo))->toBe(($this->ids)($two))
         ->and($backTwo['older'])->not->toBeNull()
         ->and(($this->ids)($backOne))->toBe(($this->ids)($one))
-        ->and($backOne['newer'])->toBeNull();
+        ->and($backOne['newer'])->toBeNull()
+        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 3, null])
+        ->and([$two['from'], $two['to'], $two['total']])->toBe([4, 6, null])
+        ->and([$three['from'], $three['to'], $three['total']])->toBe([7, 7, null]);
 });
 
 it('ignores a cursor that doesn\'t read as a moment and a row, and shows the newest page', function (string $case): void {
@@ -289,7 +295,7 @@ it('finds one request by its ID, though it is far from the first page, and none 
         ->and(app(AiActivityList::class)->find('not an id'))->toBeNull();
 });
 
-it('reads the same number of statements for every page, with no offset and no count', function (): void {
+it('pages with no offset, counting only for the range the screen names', function (): void {
     $image = mediaUpload($this->eze, mediaJpeg(), 'Harbour.jpg');
 
     foreach (range(1, 30) as $n) {
@@ -310,10 +316,12 @@ it('reads the same number of statements for every page, with no offset and no co
     $sql = strtolower(implode("\n", array_column([...$first, ...$second], 'query')));
 
     expect($one['rows'])->toHaveCount(20)
+        ->and([$one['from'], $one['to'], $one['total']])->toBe([1, 20, null])
         ->and(count($first))->toBe(4)
-        ->and(count($second))->toBe(count($first))
+        ->and(count($second))->toBe(5)
         ->and($sql)->not->toContain('offset')
-        ->and($sql)->not->toContain('count(');
+        // One ahead count on the second page only; no full filtered total.
+        ->and(substr_count($sql, 'count('))->toBe(1);
 });
 
 it('answers a page by the index on the moment and the ID, with no sort, after a cursor too (I-140)', function (): void {
@@ -368,4 +376,25 @@ it('holds a page to 1 to 200 rows', function (): void {
     expect($big['rows'])->toHaveCount(200)
         ->and($big['older'])->not->toBeNull()
         ->and(($this->list)(['perPage' => 0])['rows'])->toHaveCount(1);
+});
+
+it('counts at most 10,000 rows ahead, so a page deeper than that shows no range but still pages on', function (): void {
+    ($this->fill)();
+    $template = (array) DB::table('ai_activity')->first();
+    $columns = implode(', ', array_map(fn (string $column): string => '"'.$column.'"', array_keys($template)));
+    $select = implode(', ', array_map(fn (string $column): string => match ($column) {
+        'id' => "lpad(to_hex(g), 26, '0')",
+        'created_at' => "now() - (g || ' seconds')::interval - interval '1 day'",
+        default => '"'.$column.'"',
+    }, array_keys($template)));
+    DB::statement("INSERT INTO ai_activity ({$columns}) SELECT {$select} FROM ai_activity, generate_series(1, 10100) AS g WHERE ai_activity.id = ?", [$template['id']]);
+
+    $near = ($this->list)(['perPage' => 50]);
+    $row = DB::table('ai_activity')->orderByDesc('created_at')->orderByDesc('id')->skip(10050)->first();
+    $deep = ($this->list)(['perPage' => 50, 'after' => Cursor::encode([$row->created_at, $row->id])]);
+
+    expect($near['from'])->toBe(1)
+        ->and($deep['rows'])->not->toBeEmpty()
+        ->and([$deep['from'], $deep['to']])->toBe([null, null])
+        ->and($deep['older'])->not->toBeNull();
 });

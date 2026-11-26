@@ -157,12 +157,17 @@ export function HubPage({
             ))}
             {pluginCards.length > 0 && (
                 <section aria-labelledby="hub-from-plugins" className="mt-8">
-                    <h2
-                        id="hub-from-plugins"
-                        className="text-lead text-ink mb-4 font-semibold"
-                    >
-                        {__('From plugins')}
-                    </h2>
+                    <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <h2
+                            id="hub-from-plugins"
+                            className="text-lead text-ink font-semibold"
+                        >
+                            {__('From plugins')}
+                        </h2>
+                        <span className="text-small text-ink-3">
+                            {__('Each names its plugin.')}
+                        </span>
+                    </div>
                     <ul
                         className="grid grid-cols-(--hub-cols) gap-4"
                         style={GRID}

@@ -188,7 +188,7 @@ function Section({
     return (
         <Panel aria-labelledby={id}>
             <PanelHeader>
-                <h2 id={id} className="text-lead font-semibold">
+                <h2 id={id} className="text-body font-semibold">
                     {title}
                 </h2>
             </PanelHeader>
