@@ -27,6 +27,7 @@ use App\Domain\Export\ExportManifest;
 use App\Domain\Export\ExportSnapshot;
 use App\Domain\Export\MediaTally;
 use App\Domain\Export\Operations\Input\ExportSiteInput;
+use App\Domain\Plugins\Exports\PluginKind;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -93,10 +94,29 @@ final class ExportSite extends BaseOperation
         $media = new MediaTally;
         $context = new ExportContext($folder, $media, $input->pageSize);
         $files = [];
+        $pluginKinds = [];
+        $leftOut = [];
 
         try {
             foreach ($this->kinds->all() as $kind) {
                 $file = $folder->ndjson($kind);
+
+                // A plugin's file never stops the export: one that fails is left out, and said so.
+                if ($kind instanceof PluginKind) {
+                    try {
+                        foreach ($kind->lines($context) as $line) {
+                            $file->write($line);
+                        }
+
+                        $files[] = $file->close();
+                        $pluginKinds[] = $kind->toManifest();
+                    } catch (Throwable $failure) {
+                        $folder->remove($file);
+                        $leftOut[] = $kind->failed($failure);
+                    }
+
+                    continue;
+                }
 
                 foreach ($kind->lines($context) as $line) {
                     $file->write($line);
@@ -107,7 +127,7 @@ final class ExportSite extends BaseOperation
 
             $typesFile = $folder->writeTypesFile(TypesFile::json());
 
-            $folder->writeManifest(ExportManifest::make($files, $typesFile, $media, ExportJson::now()));
+            $folder->writeManifest(ExportManifest::make($files, $typesFile, $media, ExportJson::now(), $pluginKinds, $leftOut));
 
             $counts = [];
 

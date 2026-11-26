@@ -2,8 +2,8 @@
 
 /**
  * The kinds an export writes, in order: each before the kinds that refer
- * to it, so an importer can read the files in turn (I-365). A test binds
- * its own list.
+ * to it, so an importer can read the files in turn (I-365), then the files
+ * the enabled plugins declare. A test binds its own list.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -24,6 +24,8 @@ use App\Domain\Export\Kinds\PeopleKind;
 use App\Domain\Export\Kinds\RedirectsKind;
 use App\Domain\Export\Kinds\SettingsKind;
 use App\Domain\Export\Kinds\TermsKind;
+use App\Domain\Plugins\Exports\PluginKind;
+use App\Domain\Plugins\Exports\PluginKinds;
 
 final readonly class ExportKinds
 {
@@ -37,7 +39,7 @@ final readonly class ExportKinds
     private array $kinds;
 
     /**
-     * @param  list<ExportKind>|null  $kinds  null for the core kinds
+     * @param  list<ExportKind>|null  $kinds  null for the core kinds, then the enabled plugins' own
      */
     public function __construct(?array $kinds = null)
     {
@@ -47,9 +49,21 @@ final readonly class ExportKinds
             foreach (self::CORE as $class) {
                 $kinds[] = app($class);
             }
+
+            array_push($kinds, ...app(PluginKinds::class)->all());
         }
 
         $this->kinds = $kinds;
+    }
+
+    /**
+     * The kinds core writes, without any plugin's: what the format reference describes.
+     *
+     * @return list<ExportKind>
+     */
+    public function core(): array
+    {
+        return array_values(array_filter($this->kinds, fn (ExportKind $kind): bool => ! $kind instanceof PluginKind));
     }
 
     /**

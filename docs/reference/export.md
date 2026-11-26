@@ -212,6 +212,10 @@ Kind `settings`, version 1. Every settings group, in the order they are register
 | `group` | The group's key, such as `general`. |
 | `values` | Its settings, key by key, as an object: each one's saved value, or its default. |
 
+## Files plugins add
+
+A plugin that declares `contributes.exports` adds one file for each, named `plugin_<code>_<id>.ndjson`, after the files above. It reads like any of them: each line starts with its `kind` and `version`, then the plugin's own keys. The manifest lists the file with the others, and its `plugin_kinds` gives the plugin's Composer name and the fields it documents. A plugin that fails is left out, and the manifest's `left_out` says so; the rest of the export is unharmed.
+
 ## `manifest.json`
 
 Written last; an export folder without one is incomplete.
@@ -230,6 +234,7 @@ Written last; an export folder without one is incomplete.
 | `media.bytes` | Their size together. |
 | `media.missing` | The IDs of media items whose original couldn't be read. |
 | `media.differs` | The IDs of media items whose original has changed since it was uploaded. |
+| `plugin_kinds` | The files plugins added, each with its `kind`, the Composer name of its `plugin`, its `description` and its `fields`, in the plugin's own words. A plugin's file is named `plugin_<code>_<id>.ndjson`. |
 | `left_out` | What the export leaves out, and why: a list of `what` and `why`. |
 
 ## What the export leaves out

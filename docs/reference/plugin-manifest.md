@@ -183,6 +183,9 @@
 | `contributes.searchSection.fields[].min` | number | no | A number field's least value. |  |
 | `contributes.searchSection.fields[].max` | number | no | A number field's greatest value. |  |
 | `contributes.searchSection.fields[].summary` | boolean | no | Whether the field's value shows in the tab's one-line summary; the first field's does when none says. |  |
+| `contributes.exports` | array | no | Files the plugin adds to the site's export, each named plugin_{code}_{id}.ndjson; the plugin implements HasExportKinds. |  |
+| `contributes.exports[].id` | string | yes | The export's id, in its file name. | ^[a-z][a-z0-9-]{1,23}$ |
+| `contributes.exports[].noun` | string | yes | What one line is, one and many, such as booking\|bookings. | ^[^\|]{1,40}\\|[^\|]{1,40}$ |
 | `contributes.sitemaps` | array | no | Sitemaps the plugin adds to the site's sitemap index, each at sitemap-plugin-{code}-{id}.xml. Needs sitemaps. |  |
 | `contributes.sitemaps[].id` | string | yes | The sitemap's id, in its address. | ^[a-z][a-z0-9-]{1,23}$ |
 | `contributes.sitemaps[].label` | string | yes | What it lists, as the consent names it. |  |

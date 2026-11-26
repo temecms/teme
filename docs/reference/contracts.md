@@ -611,6 +611,27 @@ One change the person may use, with a label and a short explanation.
 - `ID` — A suggestion's id. Since 1.0.0.
 - `__construct(string $id, string $label, string $detail, SuggestedChange $change)`. Since 1.0.0.
 
+## Teme\Contracts\Export
+
+### HasExportKinds
+
+`Teme\Contracts\Export\HasExportKinds`, interface. Since next.
+
+A plugin whose manifest declares `contributes.exports`: each export it declares becomes one more NDJSON file in the site's export, named `plugin_{code}_{id}.ndjson`, listed in the export's manifest. The plugin hands over what it already keeps; core writes the file. Never put a secret in a line: an export leaves the site.
+
+- `exportKinds(): array` — The plugin's exports, by declared export id. Since next.
+
+### PluginExportKind
+
+`Teme\Contracts\Export\PluginExportKind`, interface. Since next.
+
+One of a plugin's exports: its format version, its fields in words, and its lines a page at a time, as plain arrays. A line's values are text, numbers, booleans, null, or lists and maps of those; a line never sets `kind` or `version`, which core writes first.
+
+- `MOST_LINES` — The most lines one page may hold. Since next.
+- `version(): int` — This export's format version: 1, raised whenever what a line holds changes. Since next.
+- `fields(): array` — Every key a line may hold, in order, with what it holds, in words. Since next.
+- `lines(?string $after): array` — One page of lines, at most 1,000: the first page when $after is null, else the page after the `next` the previous page gave. Since next.
+
 ## Teme\Contracts\Fediverse
 
 ### ActivityHandler

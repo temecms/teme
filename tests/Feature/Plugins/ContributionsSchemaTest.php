@@ -20,7 +20,7 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $feedLink = $contributes['feedLinks']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'aiTasks', 'notices', 'hooks', 'permissions', 'settingsSections', 'area', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'types', 'cards'])
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'aiTasks', 'notices', 'hooks', 'permissions', 'settingsSections', 'area', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'types', 'cards'])
         ->and($contributes['types']['pattern'])->toBe($between(PluginTypesFile::PATH))
         ->and($contributes['imageService']['properties']['host']['pattern'])->toBe($between(ImageServiceDeclaration::HOST))
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
