@@ -258,7 +258,10 @@ it('applies a Customise menu tick at once and keeps the entry out of the sidebar
     $page->click('[data-test="personalise-media"]');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="nav-media"]\') === null');
 
-    $page->assertNotPresent('[data-test="nav-media"]');
+    // The menu stays open for the next tick; axe is checked once it is closed.
+    $page->assertNotPresent('[data-test="nav-media"]')
+        ->keys('[data-test="personalise-menu-panel"]', 'Escape')
+        ->assertNotPresent('[role="menu"]');
     shellSettled($page, 'header[data-slot="app-header"] button');
     $page->assertNoAccessibilityIssues(3);
 });
