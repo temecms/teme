@@ -26,7 +26,7 @@ final class TestDatabaseGuard
     public const string SUFFIX = '_test';
 
     /**
-     * Stops the run, once, with the reason, when this application would
+     * Stops the run with the reason, printed once, when this application would
      * refresh a database that isn't a test database. Exiting rather than
      * throwing stops the whole run: a throw would fail each test in turn,
      * and the first would already have reached the refresh had it not.
@@ -34,19 +34,32 @@ final class TestDatabaseGuard
     public static function enforce(Application $app): void
     {
         $connection = (string) $app['config']->get('database.default');
+        $token = $app->bound(ParallelTesting::class) ? $app->make(ParallelTesting::class)->token() : false;
         $refusal = self::refusal(
             $app->configurationIsCached() ? $app->getCachedConfigPath() : null,
             self::database((array) $app['config']->get("database.connections.{$connection}", [])),
-            $app->bound(ParallelTesting::class) ? $app->make(ParallelTesting::class)->token() : false,
+            $token,
         );
 
         if ($refusal === null) {
             return;
         }
 
-        fwrite(STDERR, PHP_EOL.$refusal.PHP_EOL.PHP_EOL);
+        if (self::speaks($token)) {
+            fwrite(STDERR, PHP_EOL.$refusal.PHP_EOL.PHP_EOL);
+        }
 
         exit(1);
+    }
+
+    /**
+     * Whether this process prints the refusal: a run on its own does, and
+     * under parallel testing only the first worker does, so the message
+     * shows once while every worker still stops.
+     */
+    public static function speaks(string|int|false|null $parallelToken): bool
+    {
+        return $parallelToken === false || $parallelToken === null || (string) $parallelToken === '1';
     }
 
     /**
