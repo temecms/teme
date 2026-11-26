@@ -358,7 +358,7 @@ it('says beside the meta description where the page’s description comes from: 
     $page = cmOpenSearch(cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit)));
     ($this->shows)($page, '#editor-seo-description-count', 'characters, from the excerpt');
     ($this->shows)($page, '[data-test="serp"]', 'Dearer crossings from October.');
-    $page->assertAttribute('#editor-seo-description', 'placeholder', 'Dearer crossings from October.');
+    $page->assertAttribute('#editor-seo-description', 'placeholder', 'Using the excerpt: Dearer crossings from October.');
 
     $page->type('#editor-seo-description', 'What the new fares mean for commuters.');
     ($this->shows)($page, '#editor-seo-description-count', '38 characters · about 155 show');

@@ -54,11 +54,12 @@ it('draws Settings › Discussion as titled panels, the switch acting at once an
     cmWaitUntil($page, "(() => { const bar = document.querySelector('[data-test=\"save-bar\"]').getBoundingClientRect(); const form = document.querySelector('[data-test=\"save-bar\"]').closest('form').getBoundingClientRect(); return Math.abs(bar.bottom - form.bottom) <= 1; })()");
 });
 
-it('puts each switch beside its words with the hint under them, and each number in a 128px box with its unit (the approved design)', function (): void {
+it('puts each switch beside its words, 13px semibold, with the hint under the row, and each number in a 128px box with its unit (the approved design)', function (): void {
     $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/settings/discussion');
 
     cmWaitUntil($page, "document.querySelector('#field-hold_all') !== null")
-        ->assertScript("(() => { const box = document.querySelector('#field-hold_all').getBoundingClientRect(); const label = document.querySelector('label[for=\"field-hold_all\"]').getBoundingClientRect(); const hint = document.querySelector('#field-hold_all-hint').getBoundingClientRect(); return box.right <= label.left && Math.abs(box.top - label.top) <= 4 && hint.top >= label.bottom - 1 && hint.left >= label.left - 1; })()")
+        ->assertScript("(() => { const box = document.querySelector('#field-hold_all').getBoundingClientRect(); const label = document.querySelector('label[for=\"field-hold_all\"]').getBoundingClientRect(); const hint = document.querySelector('#field-hold_all-hint').getBoundingClientRect(); return box.right <= label.left && Math.abs(box.top - label.top) <= 4 && hint.top >= Math.max(box.bottom, label.bottom) - 1 && Math.abs(hint.left - box.left) <= 1; })()")
+        ->assertScript("(() => { const style = getComputedStyle(document.querySelector('label[for=\"field-hold_all\"]')); return style.fontSize === '13px' && Number(style.fontWeight) === 600; })()")
         ->assertScript("Math.round(document.querySelector('#field-thread_depth').getBoundingClientRect().width)", 128)
         ->assertScript("document.querySelector('#field-thread_depth').parentElement.querySelector('[data-test=\"field-unit\"]').textContent.trim()", 'levels')
         ->assertScript("document.querySelector('#field-keep_ip_days').parentElement.querySelector('[data-test=\"field-unit\"]').textContent.trim()", 'days')

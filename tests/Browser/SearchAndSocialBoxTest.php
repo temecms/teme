@@ -218,7 +218,7 @@ it('draws an empty meta description three lines tall, saying the excerpt stands 
 
     expect($field['value'])->toBe('')
         ->and($field['lines'])->toBeGreaterThanOrEqual(3)
-        ->and($field['placeholder'])->toBe('Dearer crossings from October.');
+        ->and($field['placeholder'])->toBe('Using the excerpt: Dearer crossings from October.');
 });
 
 it('folds the whole box down to a 52-pixel header strip naming the result\'s title and how many things to check', function (): void {

@@ -160,9 +160,13 @@ it('passes axe on a finished import’s report, every target 24 pixels or more, 
     ['source' => $source] = ImportRecords::finishedImport($this->admin->id);
 
     $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source}");
+    tiWaitUntil($page, tiPresent('[data-test="import-tab-report"]'));
+    $page->click('[data-test="import-tab-report"]');
     tiWaitUntil($page, tiPresent('[data-test="import-report"]'));
-    $page->assertPresent('[data-test="import-message-check.not-found"]')
-        ->assertPresent('[data-test="import-tab-report"]')
+    // The report folds its three errors (a failed download, a refused post, an address answering "not found")
+    // into one Failed group; the two warnings keep a plain-named group of their own.
+    $page->assertPresent('[data-test="import-message-groups"] [data-test^="import-message-"]')
+        ->assertScript("[...document.querySelectorAll('[data-test=\"import-message-groups\"] > li button')].map((row) => row.textContent.replace(/\s+/g, ' ').trim()).some((row) => row.includes('Error') && row.includes('Failed') && row.endsWith('3'))", true)
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);
