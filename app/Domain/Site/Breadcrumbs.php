@@ -16,12 +16,14 @@ declare(strict_types=1);
 namespace App\Domain\Site;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Addresses\TypeArchives;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Themes\ActiveTheme;
+use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
 final readonly class Breadcrumbs
@@ -47,13 +49,16 @@ final readonly class Breadcrumbs
      * The trail to an item: home, its parents that readers can see, then
      * the item (I-3363); for an item with none, home, its primary
      * category's parents and the category, then the item. A parent at the
-     * home page's address is left out: Home stands for it.
+     * home page's address is left out: Home stands for it. An item of a type
+     * that doesn't nest and has an archive page of its own goes through that
+     * page instead: home, the archive, the item.
      *
      * @param  list<Crumb>  $ancestors  the item's live parents, the top first
+     * @param  string|null  $type  the item's type key
      *
      * @return list<Crumb>
      */
-    public function toItem(string $title, string $url, ?string $categoryId, array $ancestors = []): array
+    public function toItem(string $title, string $url, ?string $categoryId, array $ancestors = [], ?string $type = null): array
     {
         if ($ancestors !== []) {
             $home = $this->home();
@@ -61,7 +66,31 @@ final readonly class Breadcrumbs
             return [$home, ...array_values(array_filter($ancestors, fn (Crumb $crumb): bool => $crumb->url !== $home->url)), new Crumb($title, $url)];
         }
 
+        $archive = $type === null ? null : $this->archive($type);
+
+        if ($archive !== null) {
+            return [$this->home(), $archive, new Crumb($title, $url)];
+        }
+
         return [$this->home(), ...($categoryId === null ? [] : $this->terms($categoryId)), new Crumb($title, $url)];
+    }
+
+    /**
+     * The step for a type's own archive page, in the page's language: its
+     * plural name at its address; null for a type that nests, one with no
+     * archive page of its own, and the first public type with an archive,
+     * whose list is the latest posts, so its trail keeps its category.
+     */
+    private function archive(string $type): ?Crumb
+    {
+        $types = app(ContentTypeRegistry::class);
+        $path = $types->has($type) && ! $types->get($type)->hierarchical ? TypeArchives::path($type) : null;
+
+        if ($path === null || ! in_array($type, TypeArchives::types(), true)) {
+            return null;
+        }
+
+        return new Crumb($types->get($type)->plural, Addresses::toUrl(ListingViews::prefixed(app(PageLanguage::class)->stored(), $path)));
     }
 
     /**
