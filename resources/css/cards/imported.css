@@ -1,6 +1,5 @@
 /* The Imported content card (ImportedContentCard): linked only on pages that draw one (I-248). */
 @layer teme.core {
-
     /* The theme's prose spaces its own children; these are the card's, at the default theme's rhythm. */
     .card-imported > * + * {
         margin-block-start: 1.1em;

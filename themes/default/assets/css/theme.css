@@ -159,11 +159,47 @@
     }
 
     /* Core's own cards, in the teme.core layer, are left out of the broad rules below so they keep their own spacing and colours. */
-    .site :where(h1, h2, h3, p, ul, ol, figure, blockquote, dl, dd):where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .site
+        :where(h1, h2, h3, p, ul, ol, figure, blockquote, dl, dd):where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         margin: 0;
     }
 
-    .site :where(ul, ol):where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .site
+        :where(ul, ol):where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         padding: 0;
     }
 
@@ -176,7 +212,25 @@
             text-decoration-color 0.15s ease;
     }
 
-    .site :focus-visible:where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .site
+        :focus-visible:where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         outline: 3px solid var(--link);
         outline-offset: 2px;
     }
@@ -755,11 +809,46 @@
         max-inline-size: var(--wide);
     }
 
-    .prose > * + *:where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-button, .card-callout))) {
+    .prose
+        > *
+        + *:where(
+            :not(
+                :is(
+                    .card-image,
+                    .card-gallery,
+                    .card-embed,
+                    .card-faq,
+                    .card-steps,
+                    .card-snippet,
+                    .card-audio,
+                    .card-video,
+                    .card-button,
+                    .card-callout
+                )
+            )
+        ) {
         margin-block-start: 1.1em;
     }
 
-    .prose :where(h2, h3, h4):where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .prose
+        :where(h2, h3, h4):where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         font-family: var(--teme-font-heading);
         line-height: 1.2;
         letter-spacing: -0.01em;
@@ -767,15 +856,70 @@
         text-wrap: balance;
     }
 
-    .prose h2:where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .prose
+        h2:where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         font-size: var(--teme-step-3);
     }
 
-    .prose h3:where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .prose
+        h3:where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         font-size: var(--teme-step-2);
     }
 
-    .prose :where(h2, h3, h4) + *:where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .prose
+        :where(h2, h3, h4)
+        + *:where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         margin-block-start: 0.6em;
     }
 
@@ -787,7 +931,25 @@
         font-style: italic;
     }
 
-    .prose :where(ul, ol):where(:not(:is(.card-image, .card-gallery, .card-embed, .card-faq, .card-steps, .card-snippet, .card-audio, .card-video, .card-imported, .card-button, .card-callout) *)) {
+    .prose
+        :where(ul, ol):where(
+            :not(
+                :is(
+                        .card-image,
+                        .card-gallery,
+                        .card-embed,
+                        .card-faq,
+                        .card-steps,
+                        .card-snippet,
+                        .card-audio,
+                        .card-video,
+                        .card-imported,
+                        .card-button,
+                        .card-callout
+                    )
+                    *
+            )
+        ) {
         padding-inline-start: 1.25em;
     }
 
