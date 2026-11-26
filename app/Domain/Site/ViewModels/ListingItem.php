@@ -34,6 +34,7 @@ final readonly class ListingItem
      * @param  ImageRef|null  $image  its featured image; null for none, and for a protected item
      * @param  string  $type  the item's content type key
      * @param  array<string, FieldView>  $fieldViews  its published fields as a template draws them, by handle; none for a protected item
+     * @param  int|null  $readingMinutes  the minutes its body takes to read, the estimate its article gives; null for a protected item
      */
     public function __construct(
         public string $title,
@@ -46,6 +47,7 @@ final readonly class ListingItem
         public ?ImageRef $image,
         public string $type = '',
         public array $fieldViews = [],
+        public ?int $readingMinutes = null,
     ) {}
 
     /**

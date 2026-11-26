@@ -338,7 +338,7 @@ final readonly class ListingViews
             ->whereNull('contents.deleted_at')
             // Private items are read in the admin, never here (I-1700).
             ->where('contents.visibility', '<>', 'private')
-            ->get(['contents.id', 'contents.type', 'contents.language', 'contents.author_id', 'contents.published_at', 'contents.fields', 'content_revisions.title', 'paths.path', 'contents.visibility'])
+            ->get(['contents.id', 'contents.type', 'contents.language', 'contents.author_id', 'contents.published_at', 'contents.fields', 'content_revisions.title', 'content_revisions.word_count', 'paths.path', 'contents.visibility'])
             ->keyBy('id');
 
         $fields = $rows->map(fn (object $row): array => (array) json_decode((string) $row->fields, true))->all();
@@ -389,6 +389,8 @@ final readonly class ListingViews
                 },
                 type: (string) $row->type,
                 fieldViews: $views[(string) $id] ?? [],
+                // From the revision's stored word count, as the article's is; a protected item's length is no more shown than its words.
+                readingMinutes: $protected ? null : ReadingTime::minutes((int) $row->word_count),
             );
         }
 
@@ -563,14 +565,14 @@ final readonly class ListingViews
     /**
      * How many of a listing's items there are: the stored count while the
      * site has one language, which holds every item, else counted (D1).
-     *
-     * @param  list<string>  $types
      * Whether the number is exact comes with it: a count stops at the
      * deepest page served, and says so by not being exact.
-     */
-    private function count(Builder $items, array $types, ?string $language, int $authorId = 0): array
+     *
+     * @param  list<string>  $types
      *
      * @return array{0: int, 1: bool}
+     */
+    private function count(Builder $items, array $types, ?string $language, int $authorId = 0): array
     {
         if ($language === null && ! app(SiteLanguages::class)->isMultilingual()) {
             return [ContentCounts::published($types, $authorId), true];
