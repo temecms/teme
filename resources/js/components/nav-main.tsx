@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { ChevronDown, Plug } from 'lucide-react';
 import { useState } from 'react';
 import { showToast } from '@/components/flash-toast';
@@ -308,7 +308,6 @@ function SubEntry({
  */
 export function NavMain({ items: all }: { items: AdminNavEntry[] }) {
     const { currentUrl } = useCurrentUrl();
-    const { contentTypes } = usePage().props;
     // A page is within an entry when it is the entry's page or under its address.
     // Home's address is the admin's root, which every page is under: Home is current there only.
     const within = (href: string): boolean => {
@@ -355,14 +354,6 @@ export function NavMain({ items: all }: { items: AdminNavEntry[] }) {
     const { isMobile, state, overlayOpen } = useSidebar();
     const onRail = !isMobile && state === 'collapsed' && !overlayOpen;
 
-    // A content list for a stored type has no menu entry of its own: Types is current.
-    const topSegment = currentUrl.match(/^\/admin\/([^/?#]+)/)?.[1];
-    const storedSegments = new Set(
-        contentTypes.filter((type) => type.stored).map((type) => type.segment),
-    );
-    const customTypeUnderTypes =
-        topSegment !== undefined && storedSegments.has(topSegment);
-
     const entry = (item: AdminNavEntry) => {
         if (item.soon) {
             return (
@@ -377,10 +368,7 @@ export function NavMain({ items: all }: { items: AdminNavEntry[] }) {
         const isHub = hubScreens.length > 0;
         const hubCurrent = hubScreens.some((screen) => within(screen.href));
         const childOpen = item.children.some((child) => within(child.href));
-        const entryCurrent =
-            within(item.href) ||
-            hubCurrent ||
-            (item.key === 'types' && customTypeUnderTypes);
+        const entryCurrent = within(item.href) || hubCurrent;
         // Hub screens open from the chevron, or while the person is on a hub page.
         const listOpen = isHub && (hubOpen[item.key] === true || hubCurrent);
 

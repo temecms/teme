@@ -21,6 +21,7 @@ use App\Http\Standalone\StandalonePage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -207,11 +208,16 @@ final class AdminErrorPage
                 continue;
             }
 
-            $ability = substr($middleware, 4);
-            $parts = explode(',', $ability);
-            $ability = $parts[0];
+            $parts = explode(',', substr($middleware, 4));
 
-            return $ability !== '' ? $ability : null;
+            // Only a stored permission can be named and its roles listed: an
+            // ability that takes arguments (the route's own models) or is a
+            // gate written in code leaves the general reason.
+            if (count($parts) > 1 || $parts[0] === '' || ! Permission::query()->where('name', $parts[0])->exists()) {
+                return null;
+            }
+
+            return $parts[0];
         }
 
         return null;

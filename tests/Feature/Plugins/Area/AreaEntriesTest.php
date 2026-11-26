@@ -129,6 +129,8 @@ it('shows neither the entry nor the card to a person without the area’s permis
 it('puts the area’s own icon on its menu entry in Content, with no second plug mark', function (): void {
     $manifest = PluginFixtures::manifest('placard');
     $manifest['contributes']['area']['icon'] = 'send';
+    // An area the plugin places in Content.
+    $manifest['contributes']['area']['menu'] = 'content';
     $folder = PluginFixtures::copy('placard', [
         'name' => 'tests/placard-icon',
         'code' => 'placardicon',

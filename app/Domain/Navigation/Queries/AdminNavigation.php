@@ -224,11 +224,6 @@ final readonly class AdminNavigation
         $listed = array_values(array_filter(app(ContentTypeRegistry::class)->all(), fn (ContentType $type): bool => $type->listed));
 
         foreach ($listed as $type) {
-            // A type stored in the admin is opened from Types, not as its own menu entry.
-            if ($type->stored) {
-                continue;
-            }
-
             $entries[] = new NavEntry(
                 $type->segment, $type->plural, $type->icon, NavSection::Content, 100 * (count($entries) + 1),
                 route: 'content.index', routeParameters: ['type' => $type->segment], ability: $type->ability('create'),

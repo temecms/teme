@@ -84,7 +84,7 @@ it('offers Open inbox as a button beside the Inbox heading', function (): void {
     $source = ($this->flat)('pages/account/notifications.tsx');
     $heading = ($this->at)($source, "{__('Inbox')}");
 
-    expect(($this->at)($source, 'Open inbox', $heading))->toBeLessThan(($this->at)($source, '{notices.length === 0'))
+    expect(($this->at)($source, 'Open inbox', $heading))->toBeLessThan(($this->at)($source, '{(notices.length > 0'))
         ->and(($this->at)($source, 'asChild', $heading))->toBeLessThan(($this->at)($source, 'Open inbox', $heading))
         ->and($source)->not->toContain('Open your inbox');
 });

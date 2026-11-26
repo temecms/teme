@@ -1,5 +1,5 @@
 ---
-title: The banners at the top of the admin
+title: The site's status messages
 audience: editors
 kind: task
 who: Whoever the banner is for; most are for administrators
@@ -7,23 +7,25 @@ screens:
   - dashboard
   - types.index
 sources:
-  - resources/js/components/status-banner.tsx
+  - resources/js/components/header/site-status.tsx
+  - resources/js/components/header/status-sheet.tsx
+  - resources/js/components/dashboard/site-status-panel.tsx
   - app/Domain/Status
   - app/Domain/Seo
   - app/Domain/Addresses/AddressSettingsGroup.php
   - resources/js/pages/types
 ---
 
-# The banners at the top of the admin
+# The site's status messages
 
-A banner under the header tells you about something wrong or in progress that you can fix. This page says what each means and what to do.
+When something is wrong or in progress that you can fix, the **Site status** mark in the top bar shows how many things need a look. Choose it to read them, each with what to do. Home's **Site status** panel lists the same checks, with a tick beside those that pass. This page says what each message means and what to do.
 
-## To act on a banner
+## To act on a message
 
-- One banner shows at a time: the most serious. When you have dealt with it, the next one, if any, takes its place.
-- Only people who can fix the problem see it. An editor sees the menu banner; an administrator sees all of them.
-- A banner has no dismiss. It goes when the problem does.
-- Some banners have a button that takes you where you can fix it. Others have none, because the fix is on the server: tell whoever runs the server what the banner says.
+- The most serious comes first.
+- Only people who can fix the problem see it. An editor sees the menu message; an administrator sees all of them.
+- A message has no dismiss. It goes when the problem does.
+- Some messages have a button that takes you where you can fix it. Others have none, because the fix is on the server: tell whoever runs the server what the message says.
 
 ## What to do when the banner says the theme can't be used
 

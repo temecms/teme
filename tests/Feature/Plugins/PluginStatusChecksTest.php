@@ -42,6 +42,7 @@ it('shows a plugin’s notice as a banner to plugins.manage holders, linking to 
         'actionUrl' => route('settings.show', ['group' => 'plugin.example-sync']),
         'label' => 'Example sync',
         'plugin' => 'Example sync',
+        'key' => 'plugin-example-sync',
     ])
         ->and($checks->forUser($editor))->toBeNull()
         ->and(exampleCheck(new StatusNotice('error', 'The workspace refused the token.'))->banner()?->toArray())->toBe([
@@ -51,6 +52,7 @@ it('shows a plugin’s notice as a banner to plugins.manage holders, linking to 
             'actionUrl' => null,
             'label' => '',
             'plugin' => null,
+            'key' => '',
         ]);
 });
 

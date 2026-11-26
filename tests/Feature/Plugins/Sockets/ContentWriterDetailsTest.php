@@ -150,7 +150,7 @@ it('refuses a create, writing nothing, when a detail is refused', function (Clos
     expect(($this->written)())->toBe($before);
 })->with([
     'a taken slug' => [fn (LanguageSite $site): NewItem => new NewItem('post', 'Another hello', cwBody(), slug: 'hello'), 'Another post already uses this address.'],
-    'a slug that isn’t one' => [fn (LanguageSite $site): NewItem => new NewItem('post', 'Bad', cwBody(), slug: 'Not A Slug'), 'slug'],
+    'a slug that isn’t one' => [fn (LanguageSite $site): NewItem => new NewItem('post', 'Bad', cwBody(), slug: 'Not A Slug'), 'An address is lower-case letters, numbers and hyphens'],
     'crediting another account without the right' => [fn (LanguageSite $site): NewItem => new NewItem('post', 'Mine', cwBody(), credits: [(string) $site->admin->id]), 'Only someone who may edit anyone', 'author'],
     'a person who isn’t an account' => [fn (LanguageSite $site): NewItem => new NewItem('post', 'Nobody', cwBody(), credits: ['person:abc']), 'A credit names an account by its ID.'],
     'a translation in the same language' => [fn (LanguageSite $site): NewItem => new NewItem('post', 'Hello twice', cwBody(), translationOf: $site->post), 'Each language can have one version.'],
