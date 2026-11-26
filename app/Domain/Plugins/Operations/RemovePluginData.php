@@ -1,11 +1,12 @@
 <?php
 
 /**
- * Drops a plugin's recorded tables (I-3442): a person who holds
- * plugins.manage, after their password, or the operator. The plugin must
- * be disabled, or its code gone. Works from the row alone, so a plugin
- * whose code is gone can still have its tables removed. Keeps the row and
- * its consent. Returns the tables dropped.
+ * Drops a plugin's recorded tables (I-3442) and removes its saved
+ * settings group and stored secrets: a person who holds plugins.manage,
+ * after their password, or the operator. The plugin must be disabled, or
+ * its code gone. Works from the row alone, so a plugin whose code is gone
+ * can still have its data removed. Keeps the row and its consent. Field
+ * values in items stay until the type is removed. Returns the tables dropped.
  *
  * @package Teme
  * @since   0.8.0-alpha.1
@@ -25,9 +26,12 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
+use App\Domain\Settings\Models\SettingsGroupRecord;
+use App\Domain\Settings\SettingsRepository;
 use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
 use App\Domain\Site\Insertions\Scripts\PluginScript;
 use App\Domain\Support\Operations\BaseOperation;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
@@ -63,7 +67,7 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => ['Disable it before you remove its data.']]);
         }
 
-        if ($this->migrations->ownedTables($record->migrations) === []) {
+        if ($this->migrations->ownedTables($record->migrations) === [] && ! $this->hasSettings($record->code)) {
             throw ValidationException::withMessages(['plugin' => ['It has no tables to remove.']]);
         }
     }
@@ -84,7 +88,7 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => ['Disable it before you remove its data.']]);
         }
 
-        if ($this->migrations->ownedTables($record->migrations) === []) {
+        if ($this->migrations->ownedTables($record->migrations) === [] && ! $this->hasSettings($record->code)) {
             throw ValidationException::withMessages(['plugin' => ['It has no tables to remove.']]);
         }
 
@@ -108,6 +112,16 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
 
         $record->fill(['migrations' => []])->save();
 
+        // Its saved settings and its secrets are one row, `plugin.{code}`; no other group is touched.
+        $group = 'plugin.'.$record->code;
+        $saved = SettingsGroupRecord::query()->find($group);
+        $secrets = count($saved->secrets ?? []);
+        SettingsGroupRecord::query()->where('group_key', $group)->delete();
+        DB::afterCommit(function () use ($group): void {
+            Cache::memo()->forget(SettingsRepository::cacheKey($group));
+            Cache::memo()->forget(SettingsRepository::cacheKey($group, translations: true));
+        });
+
         // Its scripts' approvals go with its data (docs/plans/plugin-sockets-2.md, B4).
         PluginScript::query()->where('plugin_code', $record->code)->delete();
 
@@ -117,6 +131,8 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
         $this->log->record(SecurityEventType::PluginDataRemoved, $input->actorId(), context: [
             'plugin' => $input->name,
             'tables' => $tables,
+            'settings_removed' => $saved !== null,
+            'secrets_removed' => $secrets,
         ]);
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code]));
 
@@ -133,6 +149,14 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
     {
         ApprovedScripts::forget();
         parent::invalidateCache($result);
+    }
+
+    /**
+     * Whether the plugin has a saved settings group, secrets included.
+     */
+    private function hasSettings(string $code): bool
+    {
+        return SettingsGroupRecord::query()->where('group_key', 'plugin.'.$code)->exists();
     }
 
     /**

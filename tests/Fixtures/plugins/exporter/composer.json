@@ -1,0 +1,6 @@
+{
+    "name": "tests/exporter",
+    "type": "teme-plugin",
+    "require": { "teme/contracts": "*" },
+    "autoload": { "psr-4": { "Tests\\Fixtures\\Plugins\\Exporter\\": "src/" } }
+}

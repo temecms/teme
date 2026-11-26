@@ -18,6 +18,7 @@ namespace App\Domain\Plugins\Contributions;
 use App\Domain\Plugins\Console\DeclaredCommands;
 use App\Domain\Plugins\Console\PluginCommands;
 use App\Domain\Plugins\Editor\PanelValidator;
+use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seo\SeoValidator;
@@ -28,6 +29,7 @@ use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Cards\HasCards;
 use Teme\Contracts\Cards\PluginCard;
 use Teme\Contracts\Head\HasHeadMeta;
+use Teme\Contracts\Head\HasPageTitle;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
@@ -73,6 +75,7 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
         array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
         array_push($errors, ...app(SeoValidator::class)->startErrors($contributes, $plugin));
+        array_push($errors, ...DeclaredExports::startErrors($contributes, $plugin));
         array_push($errors, ...ImageServiceDeclaration::startErrors($contributes, $plugin));
         array_push($errors, ...DeclaredCommands::prefixErrors($code, $contributes));
         array_push($errors, ...DeclaredCommands::startErrors($contributes, $plugin));
@@ -91,7 +94,7 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== [], searchEngines: $plugin instanceof HasHeadMeta || $plugin instanceof HasStructuredData || $plugin instanceof HasSitemaps, cards: $plugin instanceof HasCards), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== [], searchEngines: $plugin instanceof HasHeadMeta || $plugin instanceof HasPageTitle || $plugin instanceof HasStructuredData || $plugin instanceof HasSitemaps, cards: $plugin instanceof HasCards), $name);
 
             // A name its settings fill is checked when they are saved (docs/guides/developers/plugins/root-files.md).
             if ($rootFiles) {

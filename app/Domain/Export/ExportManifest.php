@@ -35,16 +35,19 @@ final class ExportManifest
         'media.bytes' => 'Their size together.',
         'media.missing' => 'The IDs of media items whose original couldn\'t be read.',
         'media.differs' => 'The IDs of media items whose original has changed since it was uploaded.',
+        'plugin_kinds' => 'The files plugins added, each with its `kind`, the Composer name of its `plugin`, its `description` and its `fields`, in the plugin\'s own words. A plugin\'s file is named `plugin_<code>_<id>.ndjson`.',
         'left_out' => 'What the export leaves out, and why: a list of `what` and `why`.',
     ];
 
     /**
      * @param  list<ExportedFile>  $files
      * @param  array{file: string, bytes: int, sha256: string}  $typesFile
+     * @param  list<array{kind: string, plugin: string, description: string, fields: array<string, string>}>  $pluginKinds
+     * @param  list<array{what: string, why: string}>  $leftOut  what a failing plugin's file left out, after core's
      *
      * @return array<string, mixed>
      */
-    public static function make(array $files, array $typesFile, MediaTally $media, string $madeAt): array
+    public static function make(array $files, array $typesFile, MediaTally $media, string $madeAt, array $pluginKinds = [], array $leftOut = []): array
     {
         return [
             'format' => self::FORMAT,
@@ -61,7 +64,8 @@ final class ExportManifest
                 'missing' => $media->missing,
                 'differs' => $media->differs,
             ],
-            'left_out' => LeftOut::ALL,
+            'plugin_kinds' => $pluginKinds,
+            'left_out' => [...LeftOut::ALL, ...$leftOut],
         ];
     }
 }

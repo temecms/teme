@@ -1233,6 +1233,28 @@
                         }
                     }
                 },
+                "exports": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "description": "Files the plugin adds to the site's export, each named plugin_{code}_{id}.ndjson; the plugin implements HasExportKinds.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "noun"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,23}$",
+                                "description": "The export's id, in its file name."
+                            },
+                            "noun": {
+                                "type": "string",
+                                "pattern": "^[^|]{1,40}\\|[^|]{1,40}$",
+                                "description": "What one line is, one and many, such as booking|bookings."
+                            }
+                        }
+                    }
+                },
                 "sitemaps": {
                     "type": "array",
                     "maxItems": 4,

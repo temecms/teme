@@ -12,7 +12,7 @@ Core already writes a page's title, description, social tags, canonical address,
 
 - checks shown beside the editor's own, from `HasEditorChecks`;
 - a tab of the plugin's own values in the editor's Search and social box, which needs no code;
-- tags and structured data in the head of public pages, from `HasHeadMeta` and `HasStructuredData`;
+- tags and structured data in the head of public pages, from `HasHeadMeta` and `HasStructuredData`, and the page's title from `HasPageTitle`;
 - sitemaps in the site's sitemap index, from `HasSitemaps`.
 
 Each socket is asked within a time budget, only reads, and fails safe. A plugin that throws, answers too late or answers out of bounds never stops anyone typing, saving or loading a page. Its part is left out, and the failure is recorded as a fault under the plugin, where the plugin's row on the Plugins screen shows it. A call is never stopped part way: core times it, and drops an answer that came back late. A plugin that runs over the budget for a page's tags, its structured data or a sitemap is asked nothing more on that socket for the rest of the request, so the page or sitemap never waits on it twice, and the fault is recorded once.
@@ -85,6 +85,16 @@ A tag is a `HeadMeta`, made with `HeadMeta::name()` or `HeadMeta::property()`: a
 The `robots` tag is the exception: it is laid over core's, and can only make the page more private. Give any of `index`, `noindex`, `follow`, `nofollow`, `noarchive`, `nosnippet` and `max-image-preview:` with `none`, `standard` or `large`. Your `noindex`, `nofollow`, `noarchive` and `nosnippet` are added to core's directives, and your image preview is kept where it is smaller than core's. Your `index` and `follow` change nothing, so a page core keeps out of search, such as an item of a type hidden from search, stays `noindex`. A value with any other directive is refused and recorded, and core's stands.
 
 `HeadPage` says which page is drawn: its `kind` (`article`, `home`, `latest`, `archive`, `term`, `author`, `date` or `search`), its path and full address, the site's address in `home`, its language, and for an article its type, ID, title, the plugin's own values, and its FAQ and Steps cards. Later pages of a list carry their `pageNumber`.
+
+## The page's title
+
+A plugin that asks for `pages.head` and implements `HasPageTitle` can answer the title of a public page, the words in `<title>`. Core asks `pageTitle(HeadPage $page, string $coreTitle)` with the same `HeadPage` the head tags get and the title core would write, which comes from the item's SEO title or from Search and social's templates. Return a title, or null to leave it to core.
+
+The answer is plain text of 1 to 200 characters. An empty answer, or one over 200 characters, is refused: it is recorded as the plugin's fault and core's title is used. A title is asked within 100 ms, and a plugin that runs over is dropped for the rest of the request, with its slowness recorded once, as for the head tags.
+
+The title the browser shows, the social title and the structured data's name stay one and the same: the plugin's title becomes all three. The exception is an item whose editor typed a social title of their own, which keeps it for sharing.
+
+Only one plugin answers a page. When several are enabled, the first enabled that gives a title is the one; a plugin that answers null leaves the page to the next.
 
 ## Structured data
 
