@@ -16,7 +16,7 @@ use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Notification;
 
 /**
- * A category or tag was created.
+ * A category or tag was created. Sent after the change is saved. An import run does not send it yet.
  *
  * @since next
  */

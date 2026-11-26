@@ -20,8 +20,10 @@ use Teme\Contracts\Hooks\Notification;
  * The public pages a change purged from the page cache, and the CDN purge
  * queued for them. Sent once for each purge, after the change is saved and
  * never inside its transaction, so a plugin can purge an outside cache of its
- * own. The addresses are those core knows of: the cached pages the change
- * drew again, which can be none when the cache warms no pages.
+ * own. Nothing is sent when the page cache is off. The tags are what a purge
+ * is made of, so purge an outside cache by tag. The addresses are only the
+ * cached pages core warms again, and are empty when warming is off, so never
+ * rely on them being complete.
  *
  * @since next
  */

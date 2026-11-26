@@ -16,7 +16,7 @@ use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Notification;
 
 /**
- * A file's details were changed: its title, alt text, caption, credit, licence or focal point. Sent after the change is saved, never during an import run.
+ * A file's details were changed: its title, alt text, caption, credit, licence or focal point. Sent after the change is saved. An import run does not send it yet.
  *
  * @since next
  */

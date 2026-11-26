@@ -80,9 +80,9 @@ final class UpdateTerm extends BaseOperation
             $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::TERM, (string) $id, [...$before, ...($after[(string) $id] ?? [])]));
         }
 
-        // So do the items filed under it, where an address takes {category} from its taxonomy.
         $this->notifyAfterCommit(TermUpdated::class, fn (): TermUpdated => new TermUpdated(Payloads::term($term), $input->actorId()));
 
+        // So do the items filed under it, where an address takes {category} from its taxonomy.
         if (AddressSettings::current()->termsMoveItems((string) $term->taxonomy)) {
             RecomputeAddresses::dispatch(JobActor::of($input->actorId()), (string) $term->id)->afterCommit();
         }

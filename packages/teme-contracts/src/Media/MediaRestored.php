@@ -16,7 +16,7 @@ use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Notification;
 
 /**
- * A file was taken out of the trash and is live again. Sent after the change is saved, never during an import run.
+ * A file was taken out of the trash and is live again. Sent after the change is saved. An import run does not send it yet.
  *
  * @since next
  */

@@ -16,7 +16,7 @@ use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Notification;
 
 /**
- * A category or tag was deleted. Its payload is the term as it was before its row went. Sent after the change is saved, never during an import run.
+ * A category or tag was deleted. Its payload is the term as it was before its row went. Sent after the change is saved. An import run does not send it yet.
  *
  * @since next
  */

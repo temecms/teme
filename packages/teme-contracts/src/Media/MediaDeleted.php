@@ -16,7 +16,7 @@ use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Notification;
 
 /**
- * A file was deleted for good, after it had been in the trash. Its payload is the file as it was before its row went. Sent after the change is saved, never during an import run.
+ * A file was deleted for good, after it had been in the trash. Its payload is the file as it was before its row went. Sent after the change is saved. An import run does not send it yet.
  *
  * @since next
  */

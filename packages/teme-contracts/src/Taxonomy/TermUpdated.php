@@ -16,7 +16,7 @@ use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Notification;
 
 /**
- * A category or tag was renamed, or its slug, parent or description changed. Sent after the change is saved, never during an import run.
+ * A category or tag was renamed, or its slug, parent or description changed. Sent after the change is saved. An import run does not send it yet.
  *
  * @since next
  */
