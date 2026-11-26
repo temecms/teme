@@ -153,7 +153,7 @@ final readonly class ArticleViews
             firstImageId: self::firstImage($document),
             wordCount: (int) $revision->word_count,
             revised: SiteDates::forView($saved),
-            breadcrumbs: ! $this->trail->wanted() ? null : ($url === '/' ? [$this->trail->home()] : $this->trail->toItem((string) $revision->title, $url, $section, array_map(fn (ItemLink $link): Crumb => new Crumb($link->title, $link->url), $ancestors))),
+            breadcrumbs: ! $this->trail->wanted() ? null : ($url === '/' ? [$this->trail->home()] : $this->trail->toItem((string) $revision->title, $url, $section, array_map(fn (ItemLink $link): Crumb => new Crumb($link->title, $link->url), $ancestors), (string) $content->type)),
             fieldViews: $this->fieldViews->forArticle((string) $content->type, (string) $content->id, $fields),
             parent: $parent,
             ancestors: $ancestors,
