@@ -40,7 +40,7 @@ Return one of these, or null to leave the address to core:
 
 Anything else is refused, recorded once a request as the plugin's fault, and core's address is drawn. A driver that throws is treated the same way.
 
-The driver only gives addresses. It is handed nothing that changes the site, and it is asked while pages are drawn, so keep it to string work: no network calls.
+The driver only gives addresses. It is handed nothing that changes the site, and it is asked while pages are drawn, so keep it to string work: no network calls. Each address has 100 ms: core times the call, and an answer that comes back later is dropped and core's address drawn. A driver that runs over once is asked nothing more for the rest of the request, so a page never waits on it twice, and the slowness is recorded once as the plugin's fault.
 
 ## Where the addresses go
 

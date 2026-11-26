@@ -7,6 +7,7 @@ use App\Domain\Media\MediaDisks;
 use App\Domain\Media\Models\Media;
 use App\Domain\Media\Queries\MediaLibrary;
 use App\Domain\Media\Queries\MediaLibraryRequest;
+use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Images\ImageServices;
@@ -16,7 +17,9 @@ use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seo\SeoDeclarations;
+use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Seo\SocketAnswerRefused;
+use App\Domain\Plugins\Seo\SocketTooSlow;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -166,6 +169,38 @@ it('uses core’s address where the driver gives none or fails', function (): vo
 
     expect(app(MediaLibrary::class)->page(new MediaLibraryRequest)['rows'][0]['thumbUrl'])->toBe($thumb)
         ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/imagery#image-service']);
+});
+
+it('drops an address that comes back over its budget, records it once, and asks the driver no more in the request', function (): void {
+    $faults = imageryEnabled();
+    $clock = new class implements ColumnClock
+    {
+        public int $now = 0;
+
+        public function nanoseconds(): int
+        {
+            return $this->now;
+        }
+    };
+    app()->instance(ColumnClock::class, $clock);
+    app()->forgetInstance(ImageServices::class);
+    app()->forgetInstance(SeoPlugins::class);
+    // Sleeps past the 100 ms budget on the clock core reads.
+    Imagery::$address = function () use ($clock): string {
+        $clock->now += 150_000_000;
+
+        return 'https://images.example.com/late.webp';
+    };
+    $thumb = MediaDisks::public()->url($this->image->variants['thumb']['path']);
+
+    $first = app(ImageServices::class)->address($this->image->id, 'thumb', 'a.webp');
+    $second = app(ImageServices::class)->address($this->image->id, 'w320', 'b.webp');
+
+    expect($first)->not->toContain('late.webp')
+        ->and($second)->not->toContain('late.webp')
+        ->and(Imagery::$asked)->toHaveCount(1)
+        ->and(array_map(fn (array $fault): string => $fault[1], $faults->seen))->toBe(['tests/imagery#image-service'])
+        ->and($faults->seen[0][3])->toBeInstanceOf(SocketTooSlow::class);
 });
 
 it('adds the service’s origin to the page’s content security policy, and the admin’s', function (): void {
