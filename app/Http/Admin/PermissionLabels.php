@@ -5,7 +5,7 @@
  * in-admin 403 page so both say the same thing for the same ability.
  *
  * @package Teme
- * @since   next
+ * @since   1.6.0
  * @license MIT
  */
 
