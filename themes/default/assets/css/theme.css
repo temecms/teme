@@ -2,7 +2,8 @@
  * Teme Default: a reading-first theme for a publication (1.6g), ported from
  * the adopted prototype (docs/prototypes/2026-09-22-theme-v1.source.html).
  * Every rule sits in @layer teme.theme, after core's teme.core and plugins'
- * teme.plugins (I-228); the tokens core writes are unlayered, so the
+ * teme.plugins (I-228), except the broad element rules, which sit in a sublayer
+ * of teme.core, below core's cards. The tokens core writes are unlayered, so the
  * manifest's values and the owner's accent always win.
  *
  * The fonts are the theme's own, OFL-1.1 (public/fonts). Each src is written
@@ -11,6 +12,78 @@
  * here and leaves it as written, which is intended (a path Vite could
  * resolve would be copied under a hashed name and load twice).
  */
+
+/*
+ * The theme's broad element rules sit in a sublayer of teme.core, so core's own
+ * card styles, which sit in teme.core itself, win over them wherever a card
+ * sets a property, and they apply inside a card wherever it doesn't, as they
+ * always did. A new core card needs no change here.
+ */
+@layer teme.core.elements {
+    .site :where(h1, h2, h3, p, ul, ol, figure, blockquote, dl, dd) {
+        margin: 0;
+    }
+
+    .site :where(ul, ol) {
+        padding: 0;
+    }
+
+    .site a {
+        color: var(--link);
+        text-decoration-thickness: from-font;
+        text-underline-offset: 0.15em;
+        transition:
+            color 0.15s ease,
+            text-decoration-color 0.15s ease;
+    }
+
+    .site :focus-visible {
+        outline: 3px solid var(--link);
+        outline-offset: 2px;
+    }
+
+    .site img {
+        display: block;
+        max-inline-size: 100%;
+        block-size: auto;
+    }
+
+    .prose > * + * {
+        margin-block-start: 1.1em;
+    }
+
+    .prose :where(h2, h3, h4) {
+        font-family: var(--teme-font-heading);
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        margin-block-start: 1.8em;
+        text-wrap: balance;
+    }
+
+    .prose h2 {
+        font-size: var(--teme-step-3);
+    }
+
+    .prose h3 {
+        font-size: var(--teme-step-2);
+    }
+
+    .prose :where(h2, h3, h4) + * {
+        margin-block-start: 0.6em;
+    }
+
+    .prose blockquote {
+        padding-inline-start: var(--teme-space-5);
+        border-inline-start: 3px solid var(--teme-accent);
+        font-size: var(--teme-step-2);
+        line-height: 1.4;
+        font-style: italic;
+    }
+
+    .prose :where(ul, ol) {
+        padding-inline-start: 1.25em;
+    }
+}
 
 @layer teme.theme {
     @font-face {
@@ -156,89 +229,6 @@
     .site *::before,
     .site *::after {
         box-sizing: border-box;
-    }
-
-    /* Core's own cards, in the teme.core layer, are left out of the broad rules below so they keep their own spacing and colours. */
-    .site
-        :where(h1, h2, h3, p, ul, ol, figure, blockquote, dl, dd):where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        margin: 0;
-    }
-
-    .site
-        :where(ul, ol):where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        padding: 0;
-    }
-
-    .site a:where(:not(.card-button, .card-embed--link a)) {
-        color: var(--link);
-        text-decoration-thickness: from-font;
-        text-underline-offset: 0.15em;
-        transition:
-            color 0.15s ease,
-            text-decoration-color 0.15s ease;
-    }
-
-    .site
-        :focus-visible:where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        outline: 3px solid var(--link);
-        outline-offset: 2px;
-    }
-
-    .site img {
-        display: block;
-        max-inline-size: 100%;
-        block-size: auto;
     }
 
     .teme-skip-link {
@@ -807,150 +797,6 @@
 
     .page-wide .prose {
         max-inline-size: var(--wide);
-    }
-
-    .prose
-        > *
-        + *:where(
-            :not(
-                :is(
-                    .card-image,
-                    .card-gallery,
-                    .card-embed,
-                    .card-faq,
-                    .card-steps,
-                    .card-snippet,
-                    .card-audio,
-                    .card-video,
-                    .card-button,
-                    .card-callout
-                )
-            )
-        ) {
-        margin-block-start: 1.1em;
-    }
-
-    .prose
-        :where(h2, h3, h4):where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        font-family: var(--teme-font-heading);
-        line-height: 1.2;
-        letter-spacing: -0.01em;
-        margin-block-start: 1.8em;
-        text-wrap: balance;
-    }
-
-    .prose
-        h2:where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        font-size: var(--teme-step-3);
-    }
-
-    .prose
-        h3:where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        font-size: var(--teme-step-2);
-    }
-
-    .prose
-        :where(h2, h3, h4)
-        + *:where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        margin-block-start: 0.6em;
-    }
-
-    .prose blockquote {
-        padding-inline-start: var(--teme-space-5);
-        border-inline-start: 3px solid var(--teme-accent);
-        font-size: var(--teme-step-2);
-        line-height: 1.4;
-        font-style: italic;
-    }
-
-    .prose
-        :where(ul, ol):where(
-            :not(
-                :is(
-                        .card-image,
-                        .card-gallery,
-                        .card-embed,
-                        .card-faq,
-                        .card-steps,
-                        .card-snippet,
-                        .card-audio,
-                        .card-video,
-                        .card-imported,
-                        .card-button,
-                        .card-callout
-                    )
-                    *
-            )
-        ) {
-        padding-inline-start: 1.25em;
     }
 
     /* An item's shown fields: a label and its value, side by side from 640px, one under the other below. */
