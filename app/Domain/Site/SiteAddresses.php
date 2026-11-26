@@ -40,7 +40,9 @@ final class SiteAddresses
     /**
      * The address of the page listing the latest posts, absolute: the posts
      * page when Settings › Reading names one that readers can see, else the
-     * home page, both in the page's language.
+     * home page while the home page shows the latest posts, both in the
+     * page's language; empty while a static front page is shown and no posts
+     * page is live in it, when no page lists the latest posts.
      */
     public function posts(): string
     {
@@ -50,7 +52,7 @@ final class SiteAddresses
     /**
      * Each public type's archive page, absolute, by type key, in the page's
      * language. The first public type with an archive lists the latest posts,
-     * so its address is the posts page's.
+     * so its address is the posts page's, and it has none when that is empty.
      *
      * @return array<string, string>
      */
@@ -75,14 +77,18 @@ final class SiteAddresses
     private function build(?string $stored): array
     {
         $root = rtrim(url('/'), '/');
-        $posts = $root.($this->postsPath($stored) ?? $this->home($stored));
+        $path = $this->postsPath($stored);
+        // With a static front page and no posts page that is live in this language, no page lists the latest posts.
+        $posts = $path !== null ? $root.$path : (AddressSettings::current()->frontShows === AddressSettings::FRONT_PAGE ? '' : $root.$this->home($stored));
         $archives = [];
 
         foreach (ListingTypes::withArchive() as $index => $type) {
             $path = TypeArchives::path($type);
 
             if ($index === 0) {
-                $archives[$type] = $posts;
+                if ($posts !== '') {
+                    $archives[$type] = $posts;
+                }
             } elseif ($path !== null) {
                 $archives[$type] = $root.Addresses::toUrl(ListingViews::prefixed($stored, $path));
             }
