@@ -23,8 +23,8 @@ use Illuminate\Http\Request;
 
 final readonly class PageKey
 {
-    /** The query parameters a public page's answer depends on without plugins: PathResolver reads `s` (1.6h). */
-    public const array QUERY = ['s'];
+    /** The query parameters a public page's answer depends on without plugins: PathResolver reads `s` (1.6h) and, for a search, `section`. */
+    public const array QUERY = ['s', 'section'];
 
     /**
      * @param  bool  $search  whether the key keeps a query the reader wrote: a search's page, or an API answer with parameters

@@ -24,6 +24,7 @@ final readonly class SearchRequest
     /**
      * @param  list<string>|null  $types  content type keys to search; null means every type the site marks searchable
      * @param  string|null  $language  the language searched, as stored: null for the site's default (since 0.6.0)
+     * @param  bool  $counts  whether to count the matches of each type, across every type searched and not only $types, so a page can offer them as filters (since next)
      *
      * @since 0.1.0
      */
@@ -33,5 +34,6 @@ final readonly class SearchRequest
         public int $perPage,
         public ?array $types = null,
         public ?string $language = null,
+        public bool $counts = false,
     ) {}
 }
