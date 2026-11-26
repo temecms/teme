@@ -39,6 +39,7 @@ You need only two settings to start: `TEME_IMAGE` and `APP_URL`. Everything else
 | `TEME_VERIFY_DB_PORT` | `DB_PORT` | Its port. |
 | `TEME_VERIFY_DB_USERNAME` | `DB_USERNAME` | Its role. |
 | `TEME_VERIFY_DB_PASSWORD` | `DB_PASSWORD` | Its password. |
+| `TEME_ALLOW_DATABASE_WIPE` | off | `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `migrate:rollback` and `db:wipe` empty a database, so Teme refuses them on any database whose name doesn't end in `_test`, and on every database in production. Set this to `1` for one run, after a backup, when you really mean to empty the site's database. Never leave it set. |
 | `PGCONNECT_TIMEOUT` | `3` in the recipe | How long, in seconds, a connection waits for PostgreSQL before it gives up, so a health check never holds a worker for minutes. |
 
 ## Secrets from files
