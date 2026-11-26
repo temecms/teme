@@ -132,14 +132,14 @@ final class RunScheduledPublication extends BaseOperation
      */
     private function failForChangedCode(ScheduledPublication $schedule, Content $content): array
     {
-        $reason = __('the region’s Custom HTML code on the site changed after it was scheduled, and changed code goes live only when a person publishes it. Check the code, then publish it by hand.');
+        $reason = ScheduledPublication::FAILURE_CODE_CHANGED;
         $schedule->update(['failed_at' => Date::now(), 'failure_reason' => $reason]);
 
         $this->inbox->execute(new SendToInboxInput(
             recipientId: (string) $schedule->created_by,
             kind: 'schedule.failed',
             title: __('Not published: :title', ['title' => Str::limit((string) $content->title, 200)]),
-            text: __('The publication you scheduled didn’t run: :reason', ['reason' => $reason]),
+            text: __('The publication you scheduled didn’t run: :reason', ['reason' => ScheduledPublication::failureWords($reason)]),
             link: new InboxLink('content.edit', ['content' => (string) $content->id]),
             actorId: (string) $schedule->created_by,
         ));

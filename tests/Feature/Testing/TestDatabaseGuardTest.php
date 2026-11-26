@@ -37,6 +37,15 @@ it('reads the database a DB_URL names, which wins over DB_DATABASE, so a host UR
         ->and(TestDatabaseGuard::database(['driver' => 'pgsql', 'url' => null, 'database' => 'teme_test']))->toBe('teme_test');
 });
 
+it('prints the refusal from one process only: a lone run, or the first parallel worker', function (): void {
+    expect(TestDatabaseGuard::speaks(false))->toBeTrue()
+        ->and(TestDatabaseGuard::speaks(null))->toBeTrue()
+        ->and(TestDatabaseGuard::speaks('1'))->toBeTrue()
+        ->and(TestDatabaseGuard::speaks(1))->toBeTrue()
+        ->and(TestDatabaseGuard::speaks('2'))->toBeFalse()
+        ->and(TestDatabaseGuard::speaks(12))->toBeFalse();
+});
+
 it('refuses a cached configuration, saying config:clear fixes it', function (): void {
     $cache = tempnam(sys_get_temp_dir(), 'config');
 
@@ -53,7 +62,7 @@ it('refuses a cached configuration, saying config:clear fixes it', function (): 
 
 it('stops the whole run once, before any test refreshes the site’s database', function (): void {
     $run = new Process(
-        [PHP_BINARY, 'vendor/bin/pest', 'tests/Fixtures/TestGuard/SiteDatabaseTest.php'],
+        [PHP_BINARY, 'vendor/bin/pest', 'tests/Fixtures/TestGuard/site-database.php'],
         base_path(),
         ['DB_DATABASE' => 'teme_site', 'TEST_TOKEN' => false, 'LARAVEL_PARALLEL_TESTING' => false],
     );

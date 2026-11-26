@@ -23,6 +23,7 @@ use App\Domain\Cards\References;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentAutosave;
 use App\Domain\Contents\Models\ContentRevision;
+use App\Domain\Contents\Models\ScheduledPublication;
 use App\Domain\Contents\Operations\TranslateContent;
 use App\Domain\Contents\ReaderPasswords;
 use App\Domain\Contents\Visibility;
@@ -314,7 +315,7 @@ final readonly class EditorSession
         return [
             'runAt' => Carbon::parse($latest->run_at)->utc()->toIso8601String(),
             'heldReason' => $latest->failed_at === null ? $latest->held_reason : null,
-            'failedReason' => $latest->failed_at === null ? null : (string) $latest->failure_reason,
+            'failedReason' => $latest->failed_at === null ? null : ScheduledPublication::failureWords((string) $latest->failure_reason),
         ];
     }
 
