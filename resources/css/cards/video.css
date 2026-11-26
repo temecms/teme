@@ -1,18 +1,20 @@
 /* The video card (VideoCard): linked only on pages that draw one (I-248). */
-.card-video {
-    margin-block: var(--teme-space-5, 2rem);
-    margin-inline: 0;
-}
+@layer teme.core {
+    .card-video {
+        margin-block: var(--teme-space-5, 2rem);
+        margin-inline: 0;
+    }
 
-.card-video video {
-    display: block;
-    inline-size: 100%;
-    block-size: auto;
-    background: var(--teme-rule, #d4d4d4);
-}
+    .card-video video {
+        display: block;
+        inline-size: 100%;
+        block-size: auto;
+        background: var(--teme-rule, #d4d4d4);
+    }
 
-.card-video figcaption {
-    margin-block-start: var(--teme-space-2, 0.5rem);
-    color: var(--teme-muted, #595959);
-    font-size: var(--teme-step--1, 0.875rem);
+    .card-video figcaption {
+        margin-block-start: var(--teme-space-2, 0.5rem);
+        color: var(--teme-muted, #595959);
+        font-size: var(--teme-step--1, 0.875rem);
+    }
 }
