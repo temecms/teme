@@ -329,13 +329,14 @@ export default function ImportShow({
 
                 {step !== 'plan' && run !== null && (
                     <>
-                        {latest && step === 'import' && (
-                            <RunProgress
-                                run={run}
-                                job={job}
-                                onSeeReport={() => setTab('report')}
-                            />
-                        )}
+                        {latest &&
+                            (step === 'import' || run.state === 'finished') && (
+                                <RunProgress
+                                    run={run}
+                                    job={job}
+                                    onSeeReport={() => setTab('report')}
+                                />
+                            )}
 
                         <Panel
                             data-test="import-tabs-panel"
@@ -386,8 +387,7 @@ export default function ImportShow({
                                             warningCount={
                                                 report === null
                                                     ? run.counts.warnings
-                                                    : report.levels.warning +
-                                                      report.levels.error
+                                                    : report.levels.warning
                                             }
                                             onReviewWarnings={() =>
                                                 setTab('report')

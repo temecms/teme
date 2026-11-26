@@ -666,20 +666,24 @@ export default function AiActivity(page: AiActivityPage) {
                     }
                 />
 
-                {from !== null && to !== null && (
+                {(from !== null || newer !== null || older !== null) && (
                     <div
                         className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
                         data-test="ai-activity-pager"
                     >
-                        <p
-                            className="text-small text-ink-3 tabular-nums"
-                            data-test="ai-activity-range"
-                        >
-                            {__(':from to :to, requests, newest first.', {
-                                from: from.toLocaleString(),
-                                to: to.toLocaleString(),
-                            })}
-                        </p>
+                        {from !== null && to !== null ? (
+                            <p
+                                className="text-small text-ink-3 tabular-nums"
+                                data-test="ai-activity-range"
+                            >
+                                {__(':from to :to, requests, newest first.', {
+                                    from: from.toLocaleString(),
+                                    to: to.toLocaleString(),
+                                })}
+                            </p>
+                        ) : (
+                            <span />
+                        )}
                         {(newer !== null || older !== null) && (
                             <Pager
                                 newer={

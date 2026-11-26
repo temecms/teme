@@ -37,6 +37,9 @@ final readonly class AiActivityList
     /** The most rows a page holds. */
     public const int MOST = 200;
 
+    /** The most rows counted before a page to say where it sits; deeper pages show no range. */
+    public const int RANGE_LIMIT = 10000;
+
     /** A moment as PostgreSQL writes one, which is what a cursor carries. */
     private const string MOMENT = '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,6})?[+-]\d{2}(:\d{2})?$/';
 
@@ -64,7 +67,8 @@ final readonly class AiActivityList
      * size (1 to 200), narrowed by its person, task, month and plugin; with the cursor
      * that opens the page of newer rows, or null at the first page, and the
      * one that opens the page of older rows, or null at the last; and where
-     * the rows sit in the filtered list ("1 to 10, requests, newest first").
+     * the rows sit in the filtered list ("1 to 10, requests, newest first"), or null
+     * when the page sits more than 10,000 rows deep.
      * The page no longer carries a full filtered total: counting every match
      * twice per request was ruled out for speed.
      *
@@ -103,13 +107,22 @@ final readonly class AiActivityList
 
         if ($count > 0 && $first !== null) {
             // How many newer rows sit before this page: none when there is no cursor.
+            // Counting stops one past RANGE_LIMIT, so a deep page costs the same as a shallow one.
             $ahead = $cursor === null
                 ? 0
-                : (int) (clone $filtered)
-                    ->whereRaw('(a.created_at, a.id) > (?::timestamptz, ?)', [(string) $first->created_at, (string) $first->id])
-                    ->count();
-            $from = $ahead + 1;
-            $to = $ahead + $count;
+                : (int) DB::query()->fromSub(
+                    (clone $filtered)
+                        ->whereRaw('(a.created_at, a.id) > (?::timestamptz, ?)', [(string) $first->created_at, (string) $first->id])
+                        ->select('a.id')
+                        ->limit(self::RANGE_LIMIT + 1),
+                    'ahead',
+                )->count();
+
+            // Beyond the limit the position is no longer told: the pager still works, without a range.
+            if ($ahead <= self::RANGE_LIMIT) {
+                $from = $ahead + 1;
+                $to = $ahead + $count;
+            }
         }
 
         return [

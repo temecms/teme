@@ -377,3 +377,24 @@ it('holds a page to 1 to 200 rows', function (): void {
         ->and($big['older'])->not->toBeNull()
         ->and(($this->list)(['perPage' => 0])['rows'])->toHaveCount(1);
 });
+
+it('counts at most 10,000 rows ahead, so a page deeper than that shows no range but still pages on', function (): void {
+    ($this->fill)();
+    $template = (array) DB::table('ai_activity')->first();
+    $columns = implode(', ', array_map(fn (string $column): string => '"'.$column.'"', array_keys($template)));
+    $select = implode(', ', array_map(fn (string $column): string => match ($column) {
+        'id' => "lpad(to_hex(g), 26, '0')",
+        'created_at' => "now() - (g || ' seconds')::interval - interval '1 day'",
+        default => '"'.$column.'"',
+    }, array_keys($template)));
+    DB::statement("INSERT INTO ai_activity ({$columns}) SELECT {$select} FROM ai_activity, generate_series(1, 10100) AS g WHERE ai_activity.id = ?", [$template['id']]);
+
+    $near = ($this->list)(['perPage' => 50]);
+    $row = DB::table('ai_activity')->orderByDesc('created_at')->orderByDesc('id')->skip(10050)->first();
+    $deep = ($this->list)(['perPage' => 50, 'after' => Cursor::encode([$row->created_at, $row->id])]);
+
+    expect($near['from'])->toBe(1)
+        ->and($deep['rows'])->not->toBeEmpty()
+        ->and([$deep['from'], $deep['to']])->toBe([null, null])
+        ->and($deep['older'])->not->toBeNull();
+});

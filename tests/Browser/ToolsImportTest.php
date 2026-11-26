@@ -410,3 +410,33 @@ it('keeps Connect primary on Import and the host in the crumb of a finished site
 
     expect($crumb)->toContain('old.example');
 });
+
+it('shows See the report on a finished run’s progress card at 1440, and opens the Report tab from it', function (): void {
+    $source = ImportRecords::source(['created_by' => $this->admin->id]);
+    $run = ImportRecords::run($source, [
+        'state' => 'finished',
+        'phase' => 'check',
+        'started_by' => $this->admin->id,
+        'started_at' => now()->subHour(),
+        'ended_at' => now()->subMinutes(30),
+        'created_at' => now()->subHour(),
+        'updated_at' => now()->subMinutes(30),
+        'created_count' => 2,
+        'warning_count' => 1,
+    ]);
+    ImportRecords::message($run, null, 'user.subscriber', 'A subscriber.', 'warning');
+    ImportRecords::message($run, null, 'object.refused', 'Teme refused it.', 'error');
+
+    $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source}?run={$run}");
+    $page->resize(1440, 900);
+    tiWaitUntil($page, tiPresent('[data-test="import-see-report"]'));
+
+    $page->click('[data-test="import-tab-progress"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-progress-steps"]'));
+    $page->assertSeeIn('[data-test="import-review-warnings"]', 'Review warnings')
+        ->assertNoAccessibilityIssues(3);
+
+    $page->click('[data-test="import-see-report"]');
+    tiWaitUntil($page, tiPresent('[data-test="import-report"]'));
+    $page->assertNoJavaScriptErrors();
+});
