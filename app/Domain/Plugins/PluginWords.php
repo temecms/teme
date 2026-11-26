@@ -38,6 +38,7 @@ final readonly class PluginWords
         'TermCreated' => 'a category or tag created',
         'TermUpdated' => 'a category or tag changed',
         'TermDeleted' => 'a category or tag deleted',
+        'PagesPurged' => 'the public pages a change purged',
         'CommentStatusChanged' => 'a comment’s status changed',
         'SettingsChanged' => 'a setting changed',
         'ArticleLinks' => 'an article’s links drawn',

@@ -37,6 +37,7 @@ use Teme\Contracts\Feeds\FeedsChanged;
 use Teme\Contracts\Hooks\Hook;
 use Teme\Contracts\Media\MediaDeleted;
 use Teme\Contracts\Media\MediaRestored;
+use Teme\Contracts\Cache\PagesPurged;
 use Teme\Contracts\Media\MediaStored;
 use Teme\Contracts\Media\MediaTrashed;
 use Teme\Contracts\Media\MediaUpdated;
@@ -66,6 +67,7 @@ final class HookCatalogue
         TermCreated::class,
         TermUpdated::class,
         TermDeleted::class,
+        PagesPurged::class,
         CommentStatusChanged::class,
         SettingsChanged::class,
         CollectPersonalDataHolders::class,

@@ -18,6 +18,7 @@ namespace App\Domain\Cache;
 use App\Domain\Addresses\Paths;
 use App\Domain\Cache\Jobs\WarmPages;
 use App\Domain\Design\Operations\CreateDesignPreview;
+use App\Domain\Hooks\HookDispatcher;
 use Illuminate\Cache\NoLock;
 use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ use Illuminate\Http\Response as PageResponse;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Sleep;
 use Symfony\Component\HttpFoundation\Response;
+use Teme\Contracts\Cache\PagesPurged;
 use Throwable;
 
 final readonly class PageCache
@@ -453,7 +455,28 @@ final readonly class PageCache
             WarmPages::dispatch($warm);
         }
 
+        $this->pagesPurged($tags, $warm);
+
         return $removed;
+    }
+
+    /**
+     * Tells plugins which pages this purge touched, once for the purge, and
+     * only when one listens. It runs after commit, through PublicChanges::purge(),
+     * so a failure is core's to report and never undoes the purge (rule 6).
+     *
+     * @param  list<string>  $tags
+     * @param  list<string>  $addresses
+     */
+    private function pagesPurged(array $tags, array $addresses): void
+    {
+        $dispatcher = app(HookDispatcher::class);
+
+        if (! $dispatcher->wants(PagesPurged::class)) {
+            return;
+        }
+
+        $dispatcher->notify(new PagesPurged($tags, $addresses));
     }
 
     /**
