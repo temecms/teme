@@ -71,7 +71,10 @@ export function RemoveDataDialog({
                                     {plugin.savedData.secrets > 0
                                         ? __(
                                               'Its saved settings and :count stored secrets',
-                                              { count: plugin.savedData.secrets },
+                                              {
+                                                  count: plugin.savedData
+                                                      .secrets,
+                                              },
                                           )
                                         : __('Its saved settings')}
                                 </li>
