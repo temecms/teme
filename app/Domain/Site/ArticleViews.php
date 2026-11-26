@@ -37,6 +37,7 @@ use App\Domain\Site\Insertions\PlanBuilder;
 use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
 use App\Domain\Site\Links\ArticleLinkAttributes;
 use App\Domain\Site\ViewModels\ArticleView;
+use App\Domain\Site\ViewModels\Block;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ItemLink;
 use App\Domain\Site\ViewModels\TermLink;
@@ -111,14 +112,19 @@ final readonly class ArticleViews
         $url = Addresses::relativeUrl($content) ?? '';
         $plan = $this->insertionPlan($content, $revision, $document, $language, $credits, $fields, $drawInsertions, $url);
         $links = app(LinkResolver::class);
+        // Plugins are asked about links only where they may insert: published renders, never a preview.
+        $linkAttributes = $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [];
         $body = $this->renderer->html($document, new RenderContext(
             $links,
             usage: app(CardUsage::class),
             leadNodeId: $lead['nodeId'],
             insertions: $plan,
-            // Plugins are asked about links only where they may insert: published renders, never a preview.
-            linkAttributes: $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [],
+            linkAttributes: $linkAttributes,
         ));
+        $blocks = array_map(
+            fn (array $block): Block => new Block($block['type'], $block['attrs'], $block['html']),
+            $this->renderer->blocks($document, new RenderContext($links, leadNodeId: $lead['nodeId'], linkAttributes: $linkAttributes)),
+        );
 
         // A draft never published has no first publication yet: the revision's own time stands in.
         $published = SiteDates::inSite($content->published_at ?? $revision->created_at);
@@ -158,15 +164,16 @@ final readonly class ArticleViews
             parent: $parent,
             ancestors: $ancestors,
             children: $children,
+            siblings: $siblings,
+            previous: $previous,
+            next: $next,
+            blocks: $blocks,
         );
     }
 
     /**
      * The cleaned insertion plan for a published article page, or null when
      * previews, opt-out, or no contributor gave anything (I-064).
-            siblings: $siblings,
-            previous: $previous,
-            next: $next,
      *
      * @param  array<mixed>  $document
      * @param  list<object>  $credits

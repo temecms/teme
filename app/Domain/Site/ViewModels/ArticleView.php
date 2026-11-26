@@ -36,6 +36,7 @@ final readonly class ArticleView
      * @param  list<ItemLink>  $children  the published items under it, in their order, at most 100
      * @param  list<ItemLink>  $siblings  the published items of its type under the same parent, itself among them, in menu order, at most 100; none for a type that doesn't nest
      * @param  ItemLink|null  $previous  the sibling before it in menu order; null for the first, and for a type that doesn't nest
+     * @param  list<Block>  $blocks  the body's top-level blocks in order, each its type, attributes and HTML, drawn by the renderer `bodyHtml` is drawn by; plugin insertions are not among them
      * @param  ItemLink|null  $next  the sibling after it in menu order; null for the last, and for a type that doesn't nest
      */
     public function __construct(
@@ -93,6 +94,7 @@ final readonly class ArticleView
         public array $siblings = [],
         public ?ItemLink $previous = null,
         public ?ItemLink $next = null,
+        public array $blocks = [],
     ) {}
 
     /**
