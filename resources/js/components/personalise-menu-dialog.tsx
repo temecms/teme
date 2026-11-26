@@ -1,24 +1,18 @@
 import { router } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, GripVertical, Pin } from 'lucide-react';
-import { useState } from 'react';
-import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState, type ReactNode } from 'react';
 import {
-    Dialog,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
 import { savePreferences } from '@/lib/preferences';
 import type { AdminNavEntry } from '@/types';
-import { __ } from '@/lib/i18n';
-
-/** The most entries a person may pin (nav.pinned's limit). */
-const MAX_PINNED = 5;
 
 const headings: Record<AdminNavEntry['section'], string> = {
     home: 'Home',
@@ -27,279 +21,131 @@ const headings: Record<AdminNavEntry['section'], string> = {
 };
 
 /**
- * Personalise menu (I-217): each person hides, reorders within a section and
- * pins their own entries. It rearranges only what they may open, and
- * changes nothing for anyone else; hidden entries stay in the palette.
+ * Customise menu: a small menu of ticks that show or hide entries and apply
+ * at once. No move, pin, reset or save. Hidden entries stay in the command
+ * palette. Existing pins are left alone.
  */
 export function PersonaliseMenuDialog({
     nav,
-    pinned: initialPinned,
-    storedOrder,
     open,
     onOpenChange,
+    trigger,
 }: {
     nav: AdminNavEntry[];
-    pinned: string[];
-    /** Their saved nav.order, kept as it is unless they reorder. */
-    storedOrder: string[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    trigger: ReactNode;
 }) {
     const sections = (
         Object.keys(headings) as AdminNavEntry['section'][]
     ).filter((section) => nav.some((entry) => entry.section === section));
-    const byKey = new Map(nav.map((entry) => [entry.key, entry]));
-    const [order, setOrder] = useState(() =>
-        Object.fromEntries(
-            sections.map((section) => [
-                section,
-                nav
-                    .filter((entry) => entry.section === section)
-                    .map((entry) => entry.key),
-            ]),
-        ),
-    );
-    const [reordered, setReordered] = useState(false);
     const [hidden, setHidden] = useState(() =>
         nav.filter((entry) => entry.hidden).map((entry) => entry.key),
     );
-    const [pinned, setPinned] = useState(initialPinned);
-    const [dragging, setDragging] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [problem, setProblem] = useState<string | null>(null);
 
-    // Within one section only: an entry never moves to another.
-    const move = (section: string, key: string, to: number) => {
-        const keys = [...order[section]];
-        const from = keys.indexOf(key);
-
-        if (from === -1 || to < 0 || to >= keys.length || to === from) {
+    const applyHidden = async (next: string[]) => {
+        if (saving) {
             return;
         }
 
-        keys.splice(from, 1);
-        keys.splice(to, 0, key);
-        setOrder({ ...order, [section]: keys });
-        setReordered(true);
-    };
-
-    const save = async (values: {
-        'nav.hidden': string[];
-        'nav.order': string[];
-        'nav.pinned': string[];
-    }) => {
+        const previous = hidden;
+        setHidden(next);
         setSaving(true);
         setProblem(null);
-        const saved = await savePreferences(values);
+        // Only touch nav.hidden; leave nav.pinned as the person left it.
+        const saved = await savePreferences({
+            'nav.hidden': next,
+        });
         setSaving(false);
 
         if (!saved) {
-            setProblem("Couldn't save your menu. Try again in a moment.");
+            setHidden(previous);
+            setProblem(__("Couldn't save your menu. Try again in a moment."));
 
             return;
         }
 
-        onOpenChange(false);
-        router.reload();
+        // Stays open: only the menu's own props are fetched again, so ticking can go on.
+        router.reload({ only: ['nav'] });
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <ResponsiveDialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{__('Customise menu')}</DialogTitle>
-                    <DialogDescription>
+        <DropdownMenu open={open} onOpenChange={onOpenChange}>
+            <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+            <DropdownMenuContent
+                align="start"
+                side="top"
+                className="flex max-h-(--radix-dropdown-menu-content-available-height) w-72 flex-col overflow-hidden"
+                data-test="personalise-menu-panel"
+            >
+                <ScrollArea>
+                    <DropdownMenuLabel className="text-body text-ink font-semibold">
+                        {__('Customise menu')}
+                    </DropdownMenuLabel>
+                    <p className="text-caption text-ink-2 px-2 pb-2">
                         {__(
-                            'Changes apply to your menu only. Pin up to :count entries to the top. Hidden entries stay in search (Ctrl K).',
-                            { count: MAX_PINNED },
+                            'Only you see these changes. The command palette still finds hidden entries.',
                         )}
-                    </DialogDescription>
-                </DialogHeader>
+                    </p>
 
-                {sections.map((section) => (
-                    <fieldset key={section} className="grid gap-1">
-                        <legend className="text-ink-2 mb-1 text-[11px] font-medium">
-                            {headings[section]}
-                        </legend>
-                        <ul className="grid">
-                            {order[section].map((key, index) => {
-                                const entry = byKey.get(key);
+                    {problem !== null && (
+                        <p
+                            role="alert"
+                            className="text-danger-ink text-small px-2 pb-2"
+                        >
+                            {problem}
+                        </p>
+                    )}
 
-                                if (entry === undefined) {
-                                    return null;
-                                }
+                    {sections.map((section) => (
+                        <DropdownMenuGroup key={section}>
+                            <DropdownMenuLabel className="text-caption text-ink-3 font-semibold">
+                                {headings[section]}
+                            </DropdownMenuLabel>
+                            {nav
+                                .filter((entry) => entry.section === section)
+                                .map((entry) => {
+                                    const Icon = navIcon(entry.icon);
+                                    const isHidden = hidden.includes(entry.key);
 
-                                const Icon = navIcon(entry.icon);
-                                const isHidden = hidden.includes(key);
-                                const isPinned = pinned.includes(key);
-
-                                return (
-                                    <li
-                                        key={key}
-                                        draggable
-                                        onDragStart={() => setDragging(key)}
-                                        onDragEnd={() => setDragging(null)}
-                                        onDragOver={(event) => {
-                                            if (
-                                                dragging !== null &&
-                                                order[section].includes(
-                                                    dragging,
-                                                )
-                                            ) {
-                                                event.preventDefault();
-                                            }
-                                        }}
-                                        onDrop={() => {
-                                            if (dragging !== null) {
-                                                move(section, dragging, index);
-                                            }
-                                        }}
-                                        className="border-line flex items-center gap-2 border-b py-1 last:border-b-0"
-                                    >
-                                        <GripVertical
-                                            aria-hidden
-                                            className="text-ink-2 size-4 cursor-grab"
-                                        />
-                                        <Checkbox
-                                            id={`show-${key}`}
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={entry.key}
+                                            data-test={`personalise-${entry.key}`}
                                             checked={!isHidden}
+                                            aria-busy={saving}
+                                            onSelect={(event) =>
+                                                event.preventDefault()
+                                            }
                                             onCheckedChange={(checked) => {
-                                                setHidden((current) =>
+                                                void applyHidden(
                                                     checked
-                                                        ? current.filter(
+                                                        ? hidden.filter(
                                                               (hid) =>
-                                                                  hid !== key,
+                                                                  hid !==
+                                                                  entry.key,
                                                           )
-                                                        : [...current, key],
+                                                        : [
+                                                              ...hidden,
+                                                              entry.key,
+                                                          ],
                                                 );
-
-                                                // A hidden entry is not pinned.
-                                                if (!checked) {
-                                                    setPinned((current) =>
-                                                        current.filter(
-                                                            (pin) =>
-                                                                pin !== key,
-                                                        ),
-                                                    );
-                                                }
                                             }}
                                             aria-label={__('Show :label', {
                                                 label: entry.label,
                                             })}
-                                        />
-                                        <Label
-                                            htmlFor={`show-${key}`}
-                                            className="flex flex-1 items-center gap-2 text-[13px] font-normal"
                                         >
                                             <Icon className="size-4" />
                                             {entry.label}
-                                        </Label>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            aria-label={__('Move :label up', {
-                                                label: entry.label,
-                                            })}
-                                            disabled={index === 0}
-                                            onClick={() =>
-                                                move(section, key, index - 1)
-                                            }
-                                        >
-                                            <ChevronUp />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            aria-label={__('Move :label down', {
-                                                label: entry.label,
-                                            })}
-                                            disabled={
-                                                index ===
-                                                order[section].length - 1
-                                            }
-                                            onClick={() =>
-                                                move(section, key, index + 1)
-                                            }
-                                        >
-                                            <ChevronDown />
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            aria-pressed={isPinned}
-                                            disabled={
-                                                isHidden ||
-                                                (!isPinned &&
-                                                    pinned.length >= MAX_PINNED)
-                                            }
-                                            onClick={() =>
-                                                setPinned((current) =>
-                                                    isPinned
-                                                        ? current.filter(
-                                                              (pin) =>
-                                                                  pin !== key,
-                                                          )
-                                                        : [...current, key],
-                                                )
-                                            }
-                                        >
-                                            <Pin />
-                                            {isPinned
-                                                ? __('Pinned')
-                                                : __('Pin')}
-                                        </Button>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </fieldset>
-                ))}
-
-                <DialogFooter className="items-center">
-                    {problem && (
-                        <p role="alert" className="text-danger-ink text-xs">
-                            {problem}
-                        </p>
-                    )}
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={saving}
-                        onClick={() =>
-                            void save({
-                                'nav.hidden': [],
-                                'nav.order': [],
-                                'nav.pinned': [],
-                            })
-                        }
-                    >
-                        {__('Reset to default')}
-                    </Button>
-                    <span className="flex-1" />
-                    <Button
-                        type="button"
-                        disabled={saving}
-                        onClick={() =>
-                            void save({
-                                'nav.hidden': hidden,
-                                // Only once they reorder, so an entry added
-                                // later keeps its own place until then.
-                                'nav.order': reordered
-                                    ? sections.flatMap(
-                                          (section) => order[section],
-                                      )
-                                    : storedOrder,
-                                'nav.pinned': pinned,
-                            })
-                        }
-                    >
-                        {__('Save')}
-                    </Button>
-                </DialogFooter>
-            </ResponsiveDialogContent>
-        </Dialog>
+                                        </DropdownMenuCheckboxItem>
+                                    );
+                                })}
+                        </DropdownMenuGroup>
+                    ))}
+                </ScrollArea>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }

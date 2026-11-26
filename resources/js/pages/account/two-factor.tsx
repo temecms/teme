@@ -21,7 +21,7 @@ import { OTP_MAX_LENGTH, useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { edit as editSecurity } from '@/routes/security';
-import { confirm, edit, enable } from '@/routes/two-factor';
+import { confirm, enable } from '@/routes/two-factor';
 
 type Props = {
     canManageTwoFactor?: boolean;
@@ -59,7 +59,6 @@ export default function TwoFactor({
     );
 
     setLayoutProps({
-        breadcrumbs: [{ title, href: edit() }],
         title,
         description,
     });

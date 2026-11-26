@@ -52,9 +52,10 @@ it('names the drawer under 768 pixels as the main menu', function (): void {
         ->not->toContain('Displays the mobile sidebar.');
 });
 
-it('puts Search or jump to… at the top of the sidebar, opening the palette', function (): void {
+it('puts Search or jump to at the top of the sidebar, opening the palette', function (): void {
     expect(uiComponent('components/app-sidebar.tsx'))
-        ->toContain('Search or jump to…')
+        ->toContain('Search or jump to')
+        ->not->toContain('Search or jump to…')
         ->toContain('teme:palette')
         ->toContain('data-test="palette-button"');
 });
@@ -78,24 +79,25 @@ it('moves the account menu to the header', function (): void {
 
     expect($menu)->toContain('data-test="account-menu-button"')
         ->toContain('Account: ')
-        ->toContain('Later (I-1393)')
+        ->toContain('size-8')
+        ->not->toContain('ChevronDown')
         ->and(uiComponent('components/user-menu-content.tsx'))
         ->toContain('Sign out')
         ->toContain('data-test="logout-button"')
-        ->toContain('Profile')
+        ->toContain('Your account')
         ->toContain('Security')
-        ->toContain('Preferences');
+        ->toContain('Preferences')
+        ->toContain('Notifications');
 });
 
-it('lays the page out as a header, then the banner, then the main content', function (): void {
+it('lays the page out as a header, then the main content, with no follow-you banner', function (): void {
     $layout = uiComponent('layouts/app/app-sidebar-layout.tsx');
     $header = strpos($layout, '<AppSidebarHeader');
-    $banner = strpos($layout, '<StatusBanner');
     $content = strpos($layout, '<AppContent');
 
     expect($header)->toBeInt()
-        ->and($banner)->toBeGreaterThan($header)
-        ->and($content)->toBeGreaterThan($banner)
+        ->and($content)->toBeGreaterThan($header)
+        ->and($layout)->not->toContain('<StatusBanner')
         ->and(uiComponent('components/app-content.tsx'))
         ->toContain('<main')
         ->toContain('id="main-content"')
@@ -105,17 +107,6 @@ it('lays the page out as a header, then the banner, then the main content', func
 it('has one shell, so no variant of it remains', function (): void {
     expect(uiComponent('types/ui.ts'))->not->toContain('AppVariant')
         ->and(uiComponent('components/app-shell.tsx'))->not->toContain('variant');
-});
-
-it('draws the banner as a labelled region with its text in the foreground colour', function (): void {
-    $banner = uiComponent('components/status-banner.tsx');
-
-    expect($banner)->toContain('role="region"')
-        ->toContain('aria-label="Site notice"')
-        ->toContain('data-test="site-notice"')
-        ->toContain('Later (I-1392)')
-        ->not->toContain('role="status"')
-        ->not->toContain('Dismiss');
 });
 
 it('draws the trail of a page in the top bar, the page itself last, and no trail above the page', function (): void {
@@ -236,6 +227,8 @@ it('frames Account with one h1, its line and a sub-navigation, and the pages no 
 it('names the account frame\'s list and links', function (): void {
     expect(uiComponent('layouts/account/layout.tsx'))
         ->toContain('<AccountNav />')
+        ->toContain("__('Account')")
+        ->toContain('breadcrumbs:')
         ->not->toContain('Your profile, sign-in and interface preferences')
         ->and(uiComponent('layouts/account/account-nav.tsx'))
         ->toContain("aria-label={__('Account')}")

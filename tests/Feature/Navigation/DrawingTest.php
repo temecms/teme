@@ -123,8 +123,8 @@ it('draws nothing for an unbound slot in production', function (): void {
 
 it('names the unbound slots in the Status banner until each has a menu', function (): void {
     $this->actingAs($this->editor)->get('/admin')->assertInertia(fn (Assert $page) => $page
-        ->where('statusBanner.level', 'warning')
-        ->where('statusBanner.message', fn (string $message): bool => str_contains($message, 'Header') && str_contains($message, 'Footer')));
+        ->where('siteStatus.0.level', 'warning')
+        ->where('siteStatus.0.message', fn (string $message): bool => str_contains($message, 'Header') && str_contains($message, 'Footer')));
 
     $nav = navCreate($this->editor);
 
@@ -132,5 +132,5 @@ it('names the unbound slots in the Status banner until each has a menu', functio
         app(BindNavigationSlot::class)->execute(new BindNavigationSlotInput('good', $slot, $nav->id, (string) $this->editor->id));
     }
 
-    $this->actingAs($this->editor)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('statusBanner', null));
+    $this->actingAs($this->editor)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('siteStatus', []));
 });

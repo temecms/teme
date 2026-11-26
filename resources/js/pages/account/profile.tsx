@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Notice } from '@/components/ui/notice';
 import { Textarea } from '@/components/ui/textarea';
 import { __ } from '@/lib/i18n';
-import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 
 /** One fact the site sets, with the line saying who changes it. */
@@ -53,7 +52,6 @@ export default function Profile({
     const description = __('Your name, email address and biography.');
 
     setLayoutProps({
-        breadcrumbs: [{ title, href: edit() }],
         title,
         description,
     });

@@ -24,6 +24,16 @@ final readonly class SearchLanguageRebuilding implements StatusCheck
 {
     public function __construct(private SiteLanguage $language) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'search-language-rebuilding';
+    }
+
     public function ability(): string
     {
         return 'settings.general.manage';

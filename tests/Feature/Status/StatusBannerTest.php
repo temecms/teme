@@ -22,10 +22,10 @@ it('tells administrators when the theme cannot be used, and why', function (): v
     $admin = User::factory()->create()->assignRole('administrator');
 
     $this->actingAs($admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
-        ->where('statusBanner.level', 'error')
-        ->where('statusBanner.message', fn (string $m): bool => str_contains($m, '"broken"'))
-        ->where('statusBanner.actionLabel', 'Choose a theme')
-        ->where('statusBanner.actionUrl', route('themes.index')));
+        ->where('siteStatus.0.level', 'error')
+        ->where('siteStatus.0.message', fn (string $m): bool => str_contains($m, '"broken"'))
+        ->where('siteStatus.0.actionLabel', 'Choose a theme')
+        ->where('siteStatus.0.actionUrl', route('themes.index')));
 });
 
 it('shows nothing when all is well, and nothing to people who cannot fix it', function (): void {
@@ -39,9 +39,9 @@ it('shows nothing when all is well, and nothing to people who cannot fix it', fu
         app(BindNavigationSlot::class)->execute(new BindNavigationSlotInput('default', $slot, $nav->id, (string) $admin->id));
     }
 
-    $this->actingAs($admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('statusBanner', null));
+    $this->actingAs($admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('siteStatus', []));
 
     themeActivate('broken');
     $author = User::factory()->create()->assignRole('author');
-    $this->actingAs($author)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('statusBanner', null));
+    $this->actingAs($author)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('siteStatus', []));
 });

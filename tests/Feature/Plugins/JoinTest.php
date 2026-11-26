@@ -326,7 +326,7 @@ it('leaves no listener, settings page, link or banner behind for a plugin that f
         return [
             'settings page' => $this->actingAs($admin)->get('/admin/settings/plugin.contributor')->status(),
             'link' => in_array('Contributor settings', array_column($tools['tools'], 'label'), true),
-            'banner' => $tools['statusBanner']['message'] ?? null,
+            'banner' => ($tools['siteStatus'][0] ?? null)['message'] ?? null,
             'heard' => count($this->sent) > $before,
         ];
     };

@@ -25,6 +25,12 @@ import type { DesignPage } from '@/types';
 export default function Design(page: DesignPage) {
     const { errors: pageErrors } = usePage().props;
     const design = useDesignDraft(page);
+    const siteCrumb = useSectionCrumb('site');
+    const title = __('Themes');
+
+    setLayoutProps({
+        breadcrumbs: [siteCrumb, { title, href: themesIndex() }],
+    });
     const active = page.themes.find((theme) => theme.state === 'active');
     // The theme the draft or the live value names: the previewed one, else the active one.
     const chosen = page.themes.find((theme) => theme.code === page.theme);
@@ -66,7 +72,7 @@ export default function Design(page: DesignPage) {
 
     return (
         <ListPage
-            title={__('Themes')}
+            title={title}
             description={__(
                 'How the public site looks. A theme draws the site; it adds no features of its own.',
             )}
@@ -95,7 +101,7 @@ export default function Design(page: DesignPage) {
                 )
             }
         >
-            <Head title={__('Themes')} />
+            <Head title={title} />
 
             <p
                 className="text-small text-ink-2"

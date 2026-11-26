@@ -734,7 +734,7 @@ function SidebarMenuBadge({
       data-slot="sidebar-menu-badge"
       data-sidebar="menu-badge"
       className={cn(
-        badgeVariants({ variant: "secondary" }),
+        badgeVariants({ variant: "default" }),
         "pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 select-none",
         "group-data-[collapsible=icon]:hidden",
         className

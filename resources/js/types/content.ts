@@ -70,6 +70,8 @@ export type ContentTypeInfo = {
     icon: string;
     /** Whether this person may create one: the palette offers New {singular} only then. */
     canCreate: boolean;
+    /** Stored in the admin: Types is current on its list; no menu entry of its own. */
+    stored: boolean;
 };
 
 /** A taxonomy the list's type uses: its pickers, columns and filters. */

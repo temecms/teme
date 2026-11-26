@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { Panel } from '@/components/ui/panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import { index as pluginsIndex } from '@/routes/plugins';
 import type { PluginEnablePost, PluginRowPage, PluginsPage } from '@/types';
@@ -215,8 +216,11 @@ export default function Plugins({
     // What opened a dialog, so closing it puts focus back there.
     const [opener, setOpener] = useState<HTMLElement | null>(null);
 
+    const siteCrumb = useSectionCrumb('site');
+    const title = __('Plugins');
+
     setLayoutProps({
-        breadcrumbs: [{ title: __('Plugins'), href: pluginsIndex() }],
+        breadcrumbs: [siteCrumb, { title, href: pluginsIndex() }],
     });
 
     // Closing a dialog gives focus back to the button that opened it.

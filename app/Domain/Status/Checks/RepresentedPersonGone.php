@@ -26,6 +26,16 @@ final readonly class RepresentedPersonGone implements StatusCheck
 {
     public function __construct(private SettingsReader $settings) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'represented-person-gone';
+    }
+
     public function ability(): string
     {
         return SearchAndSocial::ABILITY;

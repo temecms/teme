@@ -32,6 +32,16 @@ function srlCheck(string $label, string $level, int $priority): StatusCheck
     {
         public function __construct(private string $label, private string $level, private int $priority) {}
 
+        /**
+         * The check's stable key, matched by Home's summary rows.
+         *
+         * @since next
+         */
+        public function key(): string
+        {
+            return 'test';
+        }
+
         public function ability(): string
         {
             return 'settings.general.manage';
@@ -71,8 +81,8 @@ it('shares a core banner with its label and no plugin', function (): void {
     $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus.0.label', 'Testing')
         ->where('siteStatus.0.plugin', null)
-        ->where('statusBanner.label', 'Testing')
-        ->where('statusBanner.plugin', null));
+        ->where('siteStatus.0.label', 'Testing')
+        ->where('siteStatus.0.plugin', null));
 });
 
 it('labels a plugin’s banner with the plugin’s name, for those who manage plugins', function (): void {
@@ -87,7 +97,7 @@ it('labels a plugin’s banner with the plugin’s name, for those who manage pl
 
     $this->actingAs($editor)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus', [])
-        ->where('statusBanner', null));
+        ->where('siteStatus', []));
 });
 
 it('keeps the most pressing first', function (): void {

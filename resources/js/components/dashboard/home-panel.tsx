@@ -6,6 +6,7 @@ import { DashboardPanelRows } from '@/components/dashboard/dashboard-panel';
 import type { Section } from '@/components/dashboard/home-layout';
 import { panelSpanClass } from '@/components/dashboard/panel-grid';
 import { QuickDraft } from '@/components/dashboard/quick-draft';
+import { SiteStatusPanel } from '@/components/dashboard/site-status-panel';
 import { usePanelDrag } from '@/components/dashboard/use-panel-drag';
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
@@ -49,8 +50,8 @@ const SIZE_LABELS: Record<PanelSize, string> = {
 };
 
 /**
- * One Home panel frame: its name, count, plugin mark, Customize controls, and
- * body by kind — rows, quick draft, failed, or empty while customizing.
+ * One Home panel frame: its name, count, plugin mark, Customise controls, and
+ * body by kind — rows, quick draft, site status, failed, or empty while customising.
  */
 export function HomePanel({
     entry,
@@ -257,6 +258,8 @@ export function HomePanel({
                 <PanelBody>
                     {entry.kind === 'quick-draft' ? (
                         <QuickDraft />
+                    ) : entry.kind === 'site-status' ? (
+                        <SiteStatusPanel />
                     ) : retrying ? (
                         <div className="grid gap-2">
                             <Skeleton className="h-4 w-3/4" />

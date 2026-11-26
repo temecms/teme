@@ -92,14 +92,13 @@ final class HandleInertiaRequests extends Middleware
                 'user' => $this->currentUser->find($userId),
             ],
             'nav' => $nav,
-            // Not a section: the section set stays closed (I-216). The
-            // sidebar draws a Pinned group from these keys, looked up in nav.
-            'navPinned' => $this->adminNavigation->pinnedFor($request->user(), $nav),
             'settingsNav' => $this->settingsNavigation->forUser($userId),
-            // The one banner at the top of every screen, such as a theme that can't be used (I-221), or null.
-            'statusBanner' => fn (): ?array => ($bannersFor()[0] ?? null)?->toArray(),
             // The top bar's site status: every banner, the most pressing first (I-3397).
             'siteStatus' => fn (): array => array_map(fn (StatusBanner $banner): array => $banner->toArray(), $bannersFor()),
+            // Whether this person may act on any status check (Home's Site status panel).
+            'siteStatusCanAct' => fn (): bool => $request->user() !== null && app(StatusChecks::class)->canAct($request->user()),
+            // Whether the page cache is on, so Home's Site status row says what is true.
+            'pageCacheOn' => fn (): bool => (bool) config('page_cache.enabled'),
             // The header's jobs button and bell (I-104): only for someone
             // the verified routes behind both panels will answer.
             'headerCounts' => function () use ($request): ?array {
@@ -126,7 +125,7 @@ final class HandleInertiaRequests extends Middleware
      * menu makes for the same entry — so the palette offers New {singular}
      * only then, never for a type with one item only, whose item the menu opens.
      *
-     * @return list<array{key: string, singular: string, plural: string, segment: string, icon: string, canCreate: bool}>
+     * @return list<array{key: string, singular: string, plural: string, segment: string, icon: string, canCreate: bool, stored: bool}>
      */
     private function contentTypes(Request $request): array
     {
@@ -140,6 +139,8 @@ final class HandleInertiaRequests extends Middleware
             'segment' => $type->segment,
             'icon' => $type->icon,
             'canCreate' => ! $type->single && (bool) $user?->can($type->ability('create')),
+            // Stored types have no menu entry of their own; Types is current on their lists.
+            'stored' => $type->stored,
         ], $listed));
     }
 

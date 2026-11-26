@@ -7,6 +7,7 @@ use App\Domain\Navigation\NavEntry;
 use App\Domain\Navigation\NavigationRegistry;
 use App\Domain\Navigation\NavSection;
 use App\Domain\Navigation\Queries\AdminNavigation;
+use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
@@ -39,7 +40,8 @@ it('shows an administrator every core entry, in section order, with the taxonomi
         ->and(array_column($nav[1]['children'], 'label'))->toBe(['Categories', 'Tags'])
         ->and($nav[1]['children'][0]['href'])->toBe(route('terms.index', ['taxonomy' => 'categories'], false))
         ->and($nav[1]['children'][0]['icon'])->toBe('folder')
-        ->and($nav[2]['children'])->toBe([])
+        ->and(array_column($nav[2]['children'], 'key'))->toBe(['pages.tree'])
+        ->and($nav[2]['children'][0]['href'])->toBe(route('content.tree', ['type' => 'pages'], false))
         ->and($nav[3]['href'])->toBe(route('media.index', [], false))
         ->and($nav[7]['href'])->toBe(route('themes.index', [], false))
         ->and($nav[7]['icon'])->toBe('brush')
@@ -50,6 +52,19 @@ it('shows an administrator every core entry, in section order, with the taxonomi
         ->and($nav[10]['href'])->toBe(route('taxonomies.index', [], false))
         ->and($nav[10]['icon'])->toBe('tags')
         ->and($nav[11]['href'])->toBe(route('users.index', [], false));
+});
+
+it('keeps a stored type out of the menu and marks its segment so Types can be current', function (): void {
+    ctStoreRow(ctDefinition());
+    app(ContentTypeRegistry::class)->refreshStored();
+    $admin = User::factory()->create()->assignRole('administrator');
+
+    $props = $this->actingAs($admin)->get(route('dashboard'))->viewData('page')['props'];
+    $film = collect($props['contentTypes'])->firstWhere('segment', 'films');
+
+    expect(array_column($props['nav'], 'key'))->not->toContain('films')
+        ->and($film)->not->toBeNull()
+        ->and($film['stored'])->toBeTrue();
 });
 
 it('shows people only what they may open', function (string $role, array $keys): void {
@@ -94,7 +109,7 @@ it('builds the sidebar from the server, not from a list in the browser', functio
         ->and($source)->toContain('usePage().props');
 });
 
-it('shows Comments with how many wait on the items the person looks after, and leaves it out while comments are off (D18, D19)', function (): void {
+it('shows Comments with how many wait on the items the person looks after, and keeps it while comments are off', function (): void {
     $author = User::factory()->create()->assignRole('author');
     $editor = User::factory()->create()->assignRole('editor');
     cmComment(cmItem($author, 'Harbour news'), 'pending');
@@ -107,7 +122,7 @@ it('shows Comments with how many wait on the items the person looks after, and l
 
     cmSettings(['comments' => 'off'], 'modules');
 
-    expect($comments($editor))->toBeNull();
+    expect($comments($editor))->toMatchArray(['label' => 'Comments', 'href' => route('comments.index', [], false)]);
 });
 
 it('adds a child\'s badge to its parent\'s, and gives an entry with no provider none (I-220, D19)', function (): void {

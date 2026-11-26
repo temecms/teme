@@ -27,6 +27,16 @@ final readonly class NavigationSlotsBound implements StatusCheck
         private ThemeSlotSettings $slots,
     ) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'navigation-slots-bound';
+    }
+
     public function ability(): string
     {
         return 'navigation.manage';

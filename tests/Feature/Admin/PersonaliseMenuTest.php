@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Navigation\Queries\AdminNavigation;
+use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,14 +32,14 @@ it('hides an entry for that person only, and it stays in the palette', function 
         ->and($theirs['media']['hidden'])->toBeFalse();
 });
 
-it('sends the pinned keys as their own prop, never as a section', function (): void {
+it('no longer shares pinned keys; Customise menu dropped the Pinned group', function (): void {
     lscrPrefer($this->admin, ['nav.pinned' => ['media', 'posts']]);
 
     $props = $this->actingAs($this->admin)->get(route('dashboard'))->viewData('page')['props'];
 
-    expect($props['navPinned'])->toBe(['media', 'posts'])
-        ->and(array_column($props['nav'], 'section'))->each->toBeIn(['home', 'content', 'site'])
-        ->and(array_column($props['nav'], 'key'))->toContain('media', 'posts');
+    expect($props)->not->toHaveKey('navPinned')
+        ->and(PreferencesFor::user($this->admin)['nav.pinned'])->toBe(['media', 'posts'])
+        ->and(array_column($props['nav'], 'section'))->each->toBeIn(['home', 'content', 'site']);
 });
 
 it('reorders entries within their own section and never moves one to another', function (): void {
@@ -55,7 +56,7 @@ it('reorders entries within their own section and never moves one to another', f
         ->and($nav->pluck('section', 'key')->sortKeys()->all())->toBe($default->pluck('section', 'key')->sortKeys()->all());
 });
 
-it('pins at most five entries to the top, and never an entry the person may not open', function (): void {
+it('pins at most five entries, and drops a pin the person may not open', function (): void {
     expect(fn () => lscrPrefer($this->admin, ['nav.pinned' => ['dashboard', 'posts', 'pages', 'media', 'categories', 'tags']]))
         ->toThrow(ValidationException::class);
 
@@ -63,10 +64,8 @@ it('pins at most five entries to the top, and never an entry the person may not 
     $this->admin->syncRoles(['editor']);
 
     // Their role changed: Users is no longer theirs to open, so its pin drops silently.
-    $props = $this->actingAs($this->admin->refresh())->get(route('dashboard'))->assertOk()->viewData('page')['props'];
-
-    expect($props['navPinned'])->toBe(['media'])
-        ->and(array_column($props['nav'], 'key'))->not->toContain('users');
+    expect(app(AdminNavigation::class)->pinnedFor($this->admin->refresh(), app(AdminNavigation::class)->forUser($this->admin->id)))
+        ->toBe(['media']);
 });
 
 it('ignores keys nothing registers, so a removed entry leaves no hole', function (): void {
@@ -82,7 +81,7 @@ it('ignores keys nothing registers, so a removed entry leaves no hole', function
 
     $props = $this->actingAs($this->admin->refresh())->get(route('dashboard'))->assertOk()->viewData('page')['props'];
 
-    expect($props['navPinned'])->toBe(['posts'])
+    expect(app(AdminNavigation::class)->pinnedFor($this->admin, $props['nav']))->toBe(['posts'])
         ->and(collect($props['nav'])->where('section', 'content')->pluck('key')->first())->toBe('media')
         ->and(collect($props['nav'])->pluck('hidden')->unique()->values()->all())->toBe([false]);
 });

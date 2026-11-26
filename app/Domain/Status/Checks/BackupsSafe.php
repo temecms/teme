@@ -26,6 +26,16 @@ final readonly class BackupsSafe implements StatusCheck
 {
     public function __construct(private BackupStatus $status) {}
 
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'backups';
+    }
+
     public function ability(): string
     {
         return 'backups.manage';

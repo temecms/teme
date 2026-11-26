@@ -55,13 +55,33 @@ function Failed({ line }: { line: string }) {
  * A plugin's own area (docs/plans/plugin-sockets-2.md, A9): headed by the
  * area's own label, with the plugin's name in the badge beside it, its
  * pages as in-page navigation, then each block top to bottom, each loading
- * on its own. The top bar names only its parent, Tools for an area placed
- * there, so it repeats nothing.
+ * on its own. The top bar names the area and the current page (design
+ * system 4.31).
  */
 export default function PluginArea(props: PluginAreaPageProps) {
-    const { plugin, area, tabs, current, blocks, asks, parent } = props;
+    const { plugin, area, tabs, current, blocks, asks } = props;
+    const areaHome =
+        tabs[0]?.href ?? PluginAreaController.show.url({ code: plugin.code });
+    // The area's home page is the area alone; other pages add the tab after it.
+    const onHome =
+        tabs[0] !== undefined && (tabs[0].current || current.id === tabs[0].id);
 
-    setLayoutProps({ breadcrumbs: parent === null ? [] : [parent] });
+    setLayoutProps({
+        breadcrumbs: onHome
+            ? [{ title: area.label, href: areaHome }]
+            : [
+                  { title: area.label, href: areaHome },
+                  {
+                      title: current.label,
+                      href:
+                          tabs.find((one) => one.current)?.href ??
+                          PluginAreaController.show.url({
+                              code: plugin.code,
+                              page: current.id,
+                          }),
+                  },
+              ],
+    });
 
     const ask = (block: string, next: AreaTableAsk) =>
         router.get(

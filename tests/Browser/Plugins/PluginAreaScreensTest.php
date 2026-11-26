@@ -78,6 +78,61 @@ afterEach(function (): void {
     PluginFixtures::forget();
 });
 
+it('crumbs the area root as Ads alone, keeps the menu current on records and Settings, and names the plugin for screen readers', function (): void {
+    $id = ($this->id)('Ad 02');
+    $admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
+    $this->actingAs($admin)->get('/admin/plugin/placard')->assertOk();
+    $this->actingAs($admin)->get('/admin/plugin/placard/settings')->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-figures"]\') !== null');
+    shellSettled($page, '[data-test="crumbs"]');
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const crumbs = [...document.querySelectorAll('[data-test="crumbs"] li')]
+                .map((li) => (li.textContent ?? '').replace(/\s+/g, ' ').trim())
+                .filter((text) => text !== '/' && text !== '');
+            return crumbs.length === 1 && crumbs[0].includes('Ads');
+        }
+        JS)
+        ->assertScript(<<<'JS'
+            () => {
+                const entry = document.querySelector('[data-test="nav-plugin.placard"]');
+                const sr = entry?.querySelector('.sr-only')?.textContent ?? '';
+                return entry !== null && sr.includes('Placard');
+            }
+            JS);
+
+    $page = cmNavigate($page, "/admin/plugin/placard/records/ad/{$id}");
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="record-form"]\') !== null');
+    shellSettled($page, '[data-test="crumbs"]');
+    $page->assertScript(<<<'JS'
+        () => {
+            const text = document.querySelector('[data-test="crumbs"]')?.innerText ?? '';
+            return text.includes('Ads') && text.includes('Ad 02');
+        }
+        JS)
+        ->assertScript(<<<'JS'
+            () => [...document.querySelectorAll('[data-test="nav-plugin.placard"]')]
+                .some((el) => el.getAttribute('aria-current') === 'page')
+            JS);
+
+    // Settings needs plugins.manage or settings.view; an administrator holds both.
+    $settings = cmNavigate(cmSignIn($admin)->resize(1440, 900), '/admin/plugin/placard/settings');
+    cmWaitUntil($settings, "location.pathname === '/admin/plugin/placard/settings'");
+    shellSettled($settings, '[data-test="crumbs"]');
+    $settings->assertScript(<<<'JS'
+        () => {
+            const text = document.querySelector('[data-test="crumbs"]')?.innerText ?? '';
+            const current = [...document.querySelectorAll('[data-test="nav-plugin.placard"]')]
+                .some((el) => el.getAttribute('aria-current') === 'page');
+            return text.includes('Ads') && text.includes('Settings') && current;
+        }
+        JS)
+        ->assertNoAccessibilityIssues(3);
+});
+
 it('opens the area from its menu entry, switches pages in place, and draws each block', function (int $width): void {
     $page = cmNavigate(cmSignIn($this->editor)->resize($width, 900), '/admin');
 

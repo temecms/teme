@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Status\Checks\BackupsSafe;
+use App\Domain\Status\Checks\PageCacheCdnPurges;
+use App\Domain\Status\Checks\PageCacheFolderShared;
 use App\Domain\Status\StatusBanner;
 use App\Domain\Status\StatusCheck;
 use App\Domain\Status\StatusChecks;
@@ -26,6 +29,16 @@ function sstCheck(string $ability, ?StatusBanner $banner): StatusCheck
     return new class($ability, $banner) implements StatusCheck
     {
         public function __construct(private string $ability, private ?StatusBanner $banner) {}
+
+        /**
+         * The check's stable key, matched by Home's summary rows.
+         *
+         * @since next
+         */
+        public function key(): string
+        {
+            return 'test';
+        }
 
         public function ability(): string
         {
@@ -65,9 +78,23 @@ it('shares every banner as the site status, the theme that cannot be used first,
     $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus.0.level', 'error')
         ->where('siteStatus.0.message', fn (string $message): bool => str_contains($message, '"broken"'))
-        ->where('statusBanner.message', fn (string $message): bool => str_contains($message, '"broken"')));
+        ->where('siteStatus.0.message', fn (string $message): bool => str_contains($message, '"broken"')));
 
     $this->actingAs($this->author)->get('/admin')->assertInertia(fn (Assert $page) => $page
         ->where('siteStatus', [])
-        ->where('statusBanner', null));
+        ->where('siteStatus', []));
+});
+
+it('tells Home whether the page cache is on, from the setting itself', function (): void {
+    config(['page_cache.enabled' => true]);
+    $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('pageCacheOn', true));
+
+    config(['page_cache.enabled' => false]);
+    $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('pageCacheOn', false));
+});
+
+it('gives each core check its own key, the two page-cache checks sharing one', function (): void {
+    expect(app(BackupsSafe::class)->key())->toBe('backups')
+        ->and(app(PageCacheCdnPurges::class)->key())->toBe('page-cache')
+        ->and(app(PageCacheFolderShared::class)->key())->toBe('page-cache');
 });

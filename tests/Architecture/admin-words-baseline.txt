@@ -100,8 +100,6 @@ components/header/inbox-bell.tsx	Open your inbox
 components/header/inbox-bell.tsx	Your inbox couldn’t be loaded. Try again in a moment.
 components/header/jobs-button.tsx	Cancel
 components/header/jobs-button.tsx	Cancel {}
-components/header/jobs-button.tsx	Long tasks you start show their progress here.
-components/header/jobs-button.tsx	No jobs yet
 components/header/jobs-button.tsx	Retry
 components/header/jobs-button.tsx	Retry {}
 components/header/jobs-button.tsx	See everyone’s jobs in Tools › Jobs
@@ -196,7 +194,6 @@ components/seo/who-publishes.tsx	One place. A business with several needs a plug
 components/seo/who-publishes.tsx	Owned by
 components/seo/who-publishes.tsx	The business
 components/seo/who-publishes.tsx	This person no longer has an account, so search engines are told nobody in particular publishes the site. Choose someone else, or Nobody in particular.
-components/status-banner.tsx	Site notice
 components/themes/theme-list.tsx	Active
 components/themes/theme-list.tsx	Available
 components/themes/theme-list.tsx	Broken

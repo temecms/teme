@@ -64,7 +64,7 @@ it('shows the warning in the banner slot to administrators, and to no editor (I-
     $editor = User::factory()->create()->assignRole('editor');
 
     $this->actingAs($this->admin)->get('/admin')->assertInertia(fn (Assert $page) => $page
-        ->where('statusBanner.level', 'warning')
-        ->where('statusBanner.actionLabel', 'Choose who publishes the site'));
-    $this->actingAs($editor)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('statusBanner', null));
+        ->where('siteStatus.0.level', 'warning')
+        ->where('siteStatus.0.actionLabel', 'Choose who publishes the site'));
+    $this->actingAs($editor)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('siteStatus', []));
 });

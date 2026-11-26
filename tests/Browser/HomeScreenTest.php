@@ -13,6 +13,7 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Tests\Fixtures\Backups\HealthyBackups;
 
 uses(RefreshDatabase::class);
 
@@ -37,19 +38,61 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('dashboard'))->assertOk();
 });
 
-it('greets the person and offers New post, Upload media and Customize', function (): void {
+it('greets the person and offers + Post, + Page, Upload media and Customise', function (): void {
     $page = cmSignIn($this->editor)->resize(1280, 900);
     shellSettled($page, '[data-slot="page-header"]');
 
     $page->assertSee('Good ')
         ->assertSee('Ngozi')
-        ->assertSee('New Post')
+        ->assertSee('+ Post')
+        ->assertSee('+ Page')
         ->assertSee('Upload media')
-        ->assertSee('Customize');
+        ->assertSee('Customise')
+        ->assertScript(<<<'JS'
+            () => {
+                const header = document.querySelector('[data-slot="page-header"]');
+                if (!header) {
+                    return false;
+                }
+                const text = header.innerText;
+                const hasIcons = [...header.querySelectorAll('svg')].length >= 3;
+                return text.includes('+ Post') && text.includes('+ Page') && hasIcons;
+            }
+            JS);
 
     $contributor = cmSignIn($this->contributor)->resize(1280, 900);
     shellSettled($contributor, '[data-slot="page-header"]');
     $contributor->assertDontSee('Upload media');
+});
+
+it('shows the Site status panel summary for someone who can act, and a quiet line for an author', function (): void {
+    HealthyBackups::seed();
+    $admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
+    $author = User::factory()->create(['name' => 'Chidi Author'])->assignRole('author');
+    $this->actingAs($admin)->get(route('dashboard'))->assertOk();
+    $this->actingAs($author)->get(route('dashboard'))->assertOk();
+
+    $adminPage = cmSignIn($admin)->resize(1440, 900);
+    shellSettled($adminPage, '[data-test="home-site-status"]');
+    // Three summary rows; each is a tick or a problem+link from siteStatus keys.
+    $adminPage->assertVisible('[data-test="home-site-status-all"]')
+        ->assertVisible('[data-test="home-site-status-backups"]')
+        ->assertVisible('[data-test="home-site-status-cache"]')
+        ->assertScript(<<<'JS'
+            () => {
+                const text = (key) => document.querySelector(`[data-test="home-site-status-${key}"]`)?.innerText ?? '';
+                return text('backups').includes('Backups are current')
+                    && (text('cache').includes('Page cache is on') || text('cache').includes('Page cache is off'))
+                    // "All checks pass" only while every row does.
+                    && (!text('cache').includes('Page cache is off') || !text('all').includes('All checks pass'));
+            }
+            JS)
+        ->assertNoAccessibilityIssues(3);
+
+    $authorPage = cmSignIn($author)->resize(1440, 900);
+    shellSettled($authorPage, '[data-test="home-site-status"]');
+    $authorPage->assertSeeIn('[data-test="home-site-status"]', 'Nothing here for you to act on')
+        ->assertDontSee('All checks pass');
 });
 
 it('greets the person with their whole name, not only the first word', function (): void {
@@ -115,7 +158,7 @@ it('shows one row of five figures, each with its status dot, and the date ending
             return figures.length === 5 && top.size === 1 && dots.join() === 'ok,neutral-dot,info,warn,accent';
         }
         JS)
-        ->assertScript('() => /[A-Za-z]+, [A-Za-z]+ \\d+\\. Your work first/.test(document.body.innerText)');
+        ->assertScript('() => /[A-Za-z]+ \\d+ [A-Za-z]+\\. Your work first/.test(document.body.innerText)');
 });
 
 it('draws Your work and leaves out From plugins when no plugin has a panel', function (): void {

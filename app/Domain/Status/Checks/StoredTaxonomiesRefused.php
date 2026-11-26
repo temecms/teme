@@ -21,6 +21,16 @@ use App\Domain\Types\TypeAccess;
 
 final readonly class StoredTaxonomiesRefused implements StatusCheck
 {
+    /**
+     * The check's stable key, matched by Home's summary rows.
+     *
+     * @since next
+     */
+    public function key(): string
+    {
+        return 'stored-taxonomies-refused';
+    }
+
     public function ability(): string
     {
         return TypeAccess::MANAGE;

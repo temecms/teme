@@ -10,7 +10,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { PluginMark } from '@/components/ui/plugin-mark';
 import { __ } from '@/lib/i18n';
-import { edit as editNotifications } from '@/routes/notifications';
 
 type Notice = {
     /** The preference key: `notifications.` and the kind's key. */
@@ -89,7 +88,6 @@ export default function Notifications({
     ];
 
     setLayoutProps({
-        breadcrumbs: [{ title, href: editNotifications() }],
         title,
         description,
     });

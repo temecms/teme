@@ -41,6 +41,8 @@ final class DashboardServiceProvider extends ServiceProvider
             $registry->register(new DashboardPanel('scheduled', 'Scheduled', 400, Scheduled::class, ['create'], 'scheduled', size: 'small'));
             $registry->register(new DashboardPanel('my_recent_edits', 'You edited recently', 500, MyRecentEdits::class, ['create'], size: 'small'));
             $registry->register(new DashboardPanel('quick_draft', 'Quick draft', 600, null, ['create'], size: 'small', kind: 'quick-draft'));
+            // Same checks as the top-bar site status: summary lines on Home (small packs with other smalls).
+            $registry->register(new DashboardPanel('site_status', 'Site status', 50, null, [], size: 'small', kind: 'site-status'));
 
             return $registry;
         });

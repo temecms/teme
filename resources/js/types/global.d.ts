@@ -20,13 +20,12 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             nav: AdminNavEntry[];
-            /** The entry keys this person pinned, in order; looked up in `nav`. */
-            navPinned: string[];
             settingsNav: SettingsNavItem[];
-            /** The one banner this person should see, such as a theme that can't be used (I-221). */
-            statusBanner: StatusBanner | null;
             /** Every status check's banner this person may act on, the most pressing first (I-3397). */
             siteStatus: StatusBanner[];
+            /** Whether this person may act on any status check (Home's Site status panel). */
+            siteStatusCanAct: boolean;
+            pageCacheOn: boolean;
             /** The header's jobs button and bell (I-104); null for anyone not signed in and verified. */
             headerCounts: HeaderCounts | null;
             contentTypes: ContentTypeInfo[];

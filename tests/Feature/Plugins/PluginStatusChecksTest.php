@@ -57,6 +57,16 @@ it('shows a plugin’s notice as a banner to plugins.manage holders, linking to 
 it('ranks every plugin banner below Teme’s own', function (): void {
     $core = new readonly class implements StatusCheck
     {
+        /**
+         * The check's stable key, matched by Home's summary rows.
+         *
+         * @since next
+         */
+        public function key(): string
+        {
+            return 'test';
+        }
+
         public function ability(): string
         {
             return 'plugins.manage';
