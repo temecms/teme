@@ -14,8 +14,8 @@ This page covers what a template can read beyond the basics, so it needn't count
 
 `$site` holds the address of the page that lists the latest posts, and of every public type's archive page, so a menu or a "see all" link never writes `{{ $site->url }}blog/` by hand:
 
-- `$site->postsUrl` is the posts page's address when Settings › Reading names one, and the home page's otherwise, in the page's language.
-- `$site->archives` maps each public type's key to its archive page's address, in the page's language. The first public type's, which lists the latest posts, is `$site->postsUrl`; a type with no archive page has no key.
+- `$site->postsUrl` is the posts page's address when Settings › Reading names one, and the home page's while the home page shows the latest posts, in the page's language. It is an empty string while a static front page is shown and no posts page is live in the language, since no page lists the latest posts then, so test it before you link to it.
+- `$site->archives` maps each public type's key to its archive page's address, in the page's language. The first public type's, which lists the latest posts, is `$site->postsUrl`, and has no key while that is empty; a type with no archive page has no key. Both are read from the database only when a template reads them, so a page that never does pays nothing.
 
 ```blade
 <a href="{{ $site->postsUrl }}">{{ __('All posts') }}</a>
@@ -39,7 +39,7 @@ For a type that nests, such as pages, `$page` holds the items under the same par
 - `$page->siblings` lists the published items of its type under the same parent, the page itself among them, in menu order, at most 100. Top-level pages are siblings of each other.
 - `$page->previous` and `$page->next` are the sibling before and after it in menu order, or `null` at the ends. They are right however many siblings there are.
 
-Each is an item link with its `title`, `url` and `type`. A type that doesn't nest has none.
+Each is an item link with its `title`, `url` and `type`. A type that doesn't nest has none. They are read, and the page set aside when a sibling changes, only when a template reads them, so an article template that doesn't use them costs nothing for them.
 
 ```blade
 @foreach ($page->siblings as $sibling)
@@ -91,7 +91,7 @@ The page's own `pagination` keeps the chosen section on every page. The search t
 
 ## The body as blocks
 
-`$page->bodyHtml` stays one string of HTML. `$page->blocks` is the same body as a list of its top-level blocks, so a theme made of sections doesn't parse the HTML. Each block has its `type`, such as `paragraph`, `heading`, `horizontalRule` or a card's name, its `attrs`, such as a heading's `level`, and its `html`, drawn by the renderer `bodyHtml` is drawn by, so the blocks joined are the body. Insertions that plugins place in the body aren't blocks.
+`$page->bodyHtml` stays one string of HTML. `$page->blocks` is the same body as a list of its top-level blocks, so a theme made of sections doesn't parse the HTML. Each block has its `type`, such as `paragraph`, `heading`, `horizontalRule` or a card's name, its `attrs`, such as a heading's `level`, and its `html`, drawn by the renderer `bodyHtml` is drawn by, so the blocks joined are the body. Insertions that plugins place in the body aren't blocks. The blocks are drawn the first time a template reads `$page->blocks`, and the cards in them are recorded for the page then, so a theme that draws only the blocks still gets its cards' styles; a template that reads only `bodyHtml` never draws them twice.
 
 ```blade
 @foreach ($page->blocks as $block)
@@ -103,16 +103,16 @@ Block HTML is core's own, safe to print with `{!! !!}`.
 
 ## Which region a card is drawn in
 
-A view that draws a core card, such as your `views/cards/featured-posts.blade.php`, gets `$region` beside `$heading`, `$items` and `$images`, as your own cards' views already do: the region's `slug`, `theme`, `size`, `width` and `height`. `$region` also prints as the slug, so `$region == 'sidebar'` works. A card drawn outside a region has an empty slug.
+A view that draws a core card, such as your `views/cards/featured-posts.blade.php`, gets `$region`, the region's slug as a string, beside `$heading`, `$items` and `$images`, and `$regionInfo`, the region's `slug`, `theme`, `size`, `width` and `height`. A card drawn outside a region has an empty slug. Your own cards' views get the same `$regionInfo`; their `$region` stays the same object as before, which prints as the slug too.
 
 ```blade
-@php($tag = $region == 'sidebar' ? 'ol' : 'ul')
+@php($tag = $region === 'sidebar' ? 'ol' : 'ul')
 <{{ $tag }}>@foreach ($items as $item)<li><a href="{{ $item->url }}">{{ $item->title }}</a></li>@endforeach</{{ $tag }}>
 ```
 
 ## Does a region have anything to draw
 
-`@regionHasContent('sidebar')` is true when `<x-teme::region name="sidebar" />` would draw anything: the region's published content, or something a plugin places before or after it. It uses the region the component draws, so asking costs no second read. Use it for a band that belongs to the content, such as a heading or an advertisement's label. A region the theme doesn't declare has nothing.
+`@regionHasContent('sidebar')` is true when `<x-teme::region name="sidebar" />` would draw anything: the region's published content, or something a plugin places before or after it. It uses the region the component draws, so asking costs no second read. Use it for a band that belongs to the content, such as a heading or an advertisement's label. It is false for a region the theme doesn't declare, which has nothing to draw.
 
 ```blade
 @regionHasContent('sidebar')

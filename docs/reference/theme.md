@@ -130,10 +130,11 @@ One article as its template sees it, as `$page`, from its published revision, or
 | `$parent` | `?ItemLink` | the item it sits under, while readers can see it; null at the top, for a type that doesn't nest, and while its parent is hidden |
 | `$ancestors` | `list<ItemLink>` | the items above it that readers can see, the top first; the trail is made from them |
 | `$children` | `list<ItemLink>` | the published items under it, in their order, at most 100 |
-| `$siblings` | `list<ItemLink>` | the published items of its type under the same parent, itself among them, in menu order, at most 100; none for a type that doesn't nest |
-| `$previous` | `?ItemLink` | the sibling before it in menu order; null for the first, and for a type that doesn't nest |
-| `$next` | `?ItemLink` | the sibling after it in menu order; null for the last, and for a type that doesn't nest |
-| `$blocks` | `list<Block>` | the body's top-level blocks in order, each its type, attributes and HTML, drawn by the renderer `bodyHtml` is drawn by; plugin insertions are not among them |
+| `$siblings` | `list<ItemLink>` | The published items of its type under the same parent, itself among them, in menu order, at most 100. Top-level pages are siblings of each other. None for a type that doesn't nest. Read from the database the first time a template asks, never otherwise. |
+| `$previous` | `?ItemLink` | The sibling before it in menu order; null for the first, and for a type that doesn't nest. Read when a template asks. |
+| `$next` | `?ItemLink` | The sibling after it in menu order; null for the last, and for a type that doesn't nest. Read when a template asks. |
+| `$blocks` | `list<Block>` | The body's top-level blocks in order, each its type, attributes and HTML, drawn by the renderer `bodyHtml` is drawn by; plugin insertions are not among them. Drawn the first time a template asks, never otherwise. |
+| `withUrl()` | `(string $url): self` | The same article at another address. |
 | `field()` | `(string $handle): ?FieldView` | One of this type's fields by its handle, as a FieldView that prints as its text, with the type's default when nothing is stored; null for a handle the type doesn't have, because one template may serve several types. |
 | `shownFields()` | `(?string $where): list<FieldView>` | The fields to list `after` or `before` the article, or with no place both, in order: those the site set to show there that hold something. |
 
@@ -434,8 +435,8 @@ The site as every theme view sees it, as `$site`: its name and tagline, its home
 | `$locale` | `string` | the site's default language as a locale for PHP, such as pt_BR |
 | `$language` | `string` | the site's default language as the BCP 47 tag `lang` takes, such as pt-BR |
 | `$year` | `int` | the current year on the site's clock |
-| `$postsUrl` | `string` | the address of the page listing the latest posts, in the page's language: the posts page when Settings › Reading names one, else the home page |
-| `$archives` | `array<string, string>` | the address of each public type's archive page, by type key, in the page's language; the first public type's, which lists the latest posts, is $postsUrl |
+| `$postsUrl` | `string` | The address of the page listing the latest posts, in the page's language: the posts page when Settings › Reading names one, else the home page while it shows the latest posts; an empty string while a static front page is shown and no posts page is live, since no page lists them. Read the first time a template asks, never otherwise. |
+| `$archives` | `array<string, string>` | The address of each public type's archive page, by type key, in the page's language; the first public type's, which lists the latest posts, is `$postsUrl` and has no key while that is empty. Read the first time a template asks, never otherwise. |
 
 ### Subject
 

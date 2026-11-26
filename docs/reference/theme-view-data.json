@@ -214,6 +214,9 @@
                 "(string $where): list<FieldView>"
             ]
         },
+        "ArticleView::withUrl()": {
+            "type": "(string $url): self"
+        },
         "Block::$attrs": {
             "type": "array<string, mixed>"
         },
