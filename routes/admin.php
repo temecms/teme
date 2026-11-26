@@ -622,6 +622,9 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::get('latest', [InboxController::class, 'latest'])->name('latest');
             Route::post('read', [InboxController::class, 'readAll'])->name('read-all');
             // An item's ID is lower case (HasUlids, I-418).
+            Route::post('{item}/read', [InboxController::class, 'read'])
+                ->where('item', '[0-9a-hjkmnp-tv-z]{26}')
+                ->name('read');
             Route::post('{item}/open', [InboxController::class, 'open'])
                 ->where('item', '[0-9a-hjkmnp-tv-z]{26}')
                 ->name('open');

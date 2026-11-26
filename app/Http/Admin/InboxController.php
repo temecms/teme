@@ -75,6 +75,23 @@ final class InboxController extends Controller
         return redirect($found['href'] ?? route('inbox.index', [], false));
     }
 
+    /**
+     * Marks one of this person's items read and stays where they were, so
+     * Mark as read never follows the item's link.
+     */
+    public function read(Request $request, string $item, InboxFor $inbox, MarkInboxRead $mark): RedirectResponse
+    {
+        $person = $request->user();
+        abort_if($person === null, 403);
+
+        // Someone else's item answers as one that doesn't exist.
+        abort_if($inbox->find($person, $item) === null, 404);
+
+        $mark->execute(new MarkInboxReadInput((string) $person->getAuthIdentifier(), $item));
+
+        return redirect()->back(fallback: route('inbox.index'));
+    }
+
     public function readAll(Request $request, MarkInboxRead $mark): RedirectResponse
     {
         $mark->execute(new MarkInboxReadInput((string) $request->user()?->getAuthIdentifier()));

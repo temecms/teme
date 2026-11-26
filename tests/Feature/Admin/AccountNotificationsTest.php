@@ -70,6 +70,26 @@ it('has no row for a required kind and ignores a save that names one', function 
     expect($admin->refresh()->preferences)->toBe([]);
 });
 
+it('gates Backup alerts on backups.manage, so an administrator sees it and an editor does not', function (): void {
+    // Always sent is drawn in the page from shared capabilities; the wrong gate was the notice kind backups.alert (issue 755).
+    expect(uiComponent('pages/account/notifications.tsx'))
+        ->toContain("capabilities.includes('backups.manage')")
+        ->not->toContain("capabilities.includes('backups.alert')");
+
+    $admin = User::factory()->create()->assignRole('administrator');
+    $editor = User::factory()->create()->assignRole('editor');
+
+    $this->actingAs($admin)->get(route('notifications.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('auth.user.capabilities', fn ($caps): bool => collect($caps)->contains('backups.manage')));
+
+    $this->actingAs($editor)->get(route('notifications.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('auth.user.capabilities', fn ($caps): bool => ! collect($caps)->contains('backups.manage')));
+});
+
 it('draws a switched-off row disabled with its line, and keeps its stored choice when the other row is saved', function (): void {
     cmSettings(['email_moderators' => false]);
 

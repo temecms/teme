@@ -144,7 +144,7 @@ function asAreaField(field: FieldDefinition): AreaField {
         fields: (field.fields ?? []).map(asAreaField),
         minItems: field.min ?? 0,
         maxItems: field.max ?? 20,
-        itemLabel: field.itemLabel ?? __('Item'),
+        itemLabel: field.itemLabel ?? '',
         itemTitle: field.itemTitle ?? null,
         empty:
             field.type === 'boolean'
@@ -281,7 +281,7 @@ export function PluginActionsPanel({
                         key={action.id}
                         className="flex flex-wrap items-center justify-between gap-3 px-6 py-4"
                     >
-                        <div className="grid gap-0.5">
+                        <div className="grid min-w-0 flex-1 gap-0.5">
                             <span className="text-body font-medium">
                                 {action.label}
                             </span>

@@ -17,7 +17,7 @@ function stepsPastCap(url: string): number {
  * The page numbers to draw: the first, the last, the current one and one
  * either side, with null for each gap.
  */
-function numbersFor(current: number, last: number): (number | null)[] {
+export function numbersFor(current: number, last: number): (number | null)[] {
     const wanted = new Set(
         [1, last, current - 1, current, current + 1].filter(
             (number) => number >= 1 && number <= last,

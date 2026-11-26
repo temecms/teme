@@ -1,10 +1,13 @@
-import { Deferred, Head, router, setLayoutProps } from '@inertiajs/react';
+import { Deferred, Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { PluginAreaPage } from '@/components/patterns/plugin-area-page';
 import { AreaActions } from '@/components/plugins/area/area-actions';
 import { AreaChart } from '@/components/plugins/area/area-chart';
 import { AreaFigures } from '@/components/plugins/area/area-figures';
-import { AreaTable } from '@/components/plugins/area/area-table';
+import { AreaTable, areaTableAdd } from '@/components/plugins/area/area-table';
+import { Button } from '@/components/ui/button';
+import { ErrorState } from '@/components/ui/error-state';
 import { Notice } from '@/components/ui/notice';
 import { Panel } from '@/components/ui/panel';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +17,7 @@ import type {
     AreaFiguresData,
     AreaRowsData,
     AreaTableAsk,
+    AreaTableBlock,
     PluginAreaPageProps,
 } from '@/types/plugin-area';
 
@@ -42,11 +46,14 @@ function BlockSkeleton({ block }: { block: AreaBlock }) {
     );
 }
 
-/** A block that couldn't be shown: one line, in its place. */
-function Failed({ line }: { line: string }) {
+/**
+ * A block that couldn't be shown (design-system §4.25): the octagon, the
+ * full line naming what failed, and Try again.
+ */
+function Failed({ line, onRetry }: { line: string; onRetry: () => void }) {
     return (
         <Panel data-test="area-block-failed">
-            <p className="text-body text-ink-2 px-5 py-4">{line}</p>
+            <ErrorState message={line} onRetry={onRetry} className="pt-5" />
         </Panel>
     );
 }
@@ -57,6 +64,7 @@ function Failed({ line }: { line: string }) {
  * pages as in-page navigation, then each block top to bottom, each loading
  * on its own. The top bar names the area and the current page (design
  * system 4.31).
+ * Add for a table sits in the page header.
  */
 export default function PluginArea(props: PluginAreaPageProps) {
     const { plugin, area, tabs, current, blocks, asks } = props;
@@ -98,6 +106,19 @@ export default function PluginArea(props: PluginAreaPageProps) {
             },
         );
 
+    const retry = (block: string) =>
+        router.reload({
+            only: [`block_${block}`],
+        });
+
+    const tableBlocks = blocks.filter(
+        (block): block is AreaTableBlock => block.type === 'table',
+    );
+    const add =
+        tableBlocks[0] !== undefined
+            ? areaTableAdd(plugin, tableBlocks[0])
+            : null;
+
     return (
         <>
             <Head title={`${current.label} · ${area.label}`} />
@@ -106,16 +127,50 @@ export default function PluginArea(props: PluginAreaPageProps) {
                 title={area.label}
                 showTitle
                 description={area.description || undefined}
-                pages={tabs.map((one) => ({
-                    href:
-                        one.href ??
-                        PluginAreaController.show.url({
-                            code: plugin.code,
-                            page: one.id,
-                        }),
-                    label: one.label,
-                    current: one.current,
-                }))}
+                actions={
+                    add !== null ? (
+                        <Button asChild variant="primary">
+                            <Link href={add.href} data-test="area-table-add">
+                                <Plus aria-hidden="true" />
+                                {add.label}
+                            </Link>
+                        </Button>
+                    ) : undefined
+                }
+                pages={tabs.map((one) => {
+                    let count = one.count;
+                    // The current page's first table total fills the tab when the server sent none.
+                    if (count === undefined && one.current) {
+                        const table = blocks.find(
+                            (block): block is AreaTableBlock =>
+                                block.type === 'table',
+                        );
+                        const data =
+                            table === undefined
+                                ? undefined
+                                : (props[
+                                      `block_${table.id}` as `block_${string}`
+                                  ] as AreaRowsData | undefined);
+                        if (
+                            data !== undefined &&
+                            typeof data.total === 'number'
+                        ) {
+                            count = data.total;
+                        }
+                    }
+
+                    return {
+                        href:
+                            one.href ??
+                            PluginAreaController.show.url({
+                                code: plugin.code,
+                                page: one.id,
+                            }),
+                        label: one.label,
+                        current: one.current,
+                        count,
+                    };
+                })}
             >
                 <div className="grid gap-6" data-test="area-blocks">
                     {blocks.map((block) => {
@@ -166,7 +221,12 @@ export default function PluginArea(props: PluginAreaPageProps) {
                                     }
 
                                     if (data.failed !== null) {
-                                        return <Failed line={data.failed} />;
+                                        return (
+                                            <Failed
+                                                line={data.failed}
+                                                onRetry={() => retry(block.id)}
+                                            />
+                                        );
                                     }
 
                                     if (block.type === 'figures') {

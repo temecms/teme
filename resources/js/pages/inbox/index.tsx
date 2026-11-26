@@ -1,9 +1,11 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import InboxController from '@/actions/App/Http/Admin/InboxController';
 import { InboxList } from '@/components/inbox/inbox-list';
 import { Pager } from '@/components/list/pager';
 import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
+import { adminLocale } from '@/lib/dates';
+import { __ } from '@/lib/i18n';
 import { index } from '@/routes/inbox';
 import type { InboxPage } from '@/types/jobs';
 
@@ -15,10 +17,14 @@ export default function Inbox({
     unread,
     siteTimezone,
 }: InboxPage) {
+    setLayoutProps({ breadcrumbs: [{ title: __('Inbox'), href: index() }] });
+
     return (
         <ListPage
-            title="Inbox"
-            description="Results of background work you started, such as imports. Each is kept for 90 days."
+            title={__('Inbox')}
+            description={__(
+                'Results of background work you started, such as imports, and notices from plugins. Each is kept for 90 days.',
+            )}
             actions={
                 unread > 0 && (
                     <>
@@ -26,8 +32,10 @@ export default function Inbox({
                             data-test="inbox-unread"
                             className="text-ink-2 text-small"
                         >
-                            {unread >= 100 ? '99+' : unread.toLocaleString()}{' '}
-                            unread
+                            {unread >= 100
+                                ? '99+'
+                                : unread.toLocaleString(adminLocale())}{' '}
+                            {__('unread')}
                         </span>
                         <Form
                             {...InboxController.readAll.form()}
@@ -40,7 +48,7 @@ export default function Inbox({
                                     data-test="inbox-read-all"
                                     disabled={processing}
                                 >
-                                    Mark all as read
+                                    {__('Mark all as read')}
                                 </Button>
                             )}
                         </Form>
@@ -48,7 +56,7 @@ export default function Inbox({
                 )
             }
         >
-            <Head title="Inbox" />
+            <Head title={__('Inbox')} />
 
             <div className="grid gap-4">
                 <InboxList rows={rows} siteTimezone={siteTimezone} />
@@ -58,7 +66,3 @@ export default function Inbox({
         </ListPage>
     );
 }
-
-Inbox.layout = {
-    breadcrumbs: [{ title: 'Inbox', href: index() }],
-};

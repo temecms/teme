@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Inbox\Queries;
 
+use App\Domain\Navigation\ToolsHub;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Queries\Cursor;
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 use stdClass;
 
 /**
- * @phpstan-type InboxRow array{id: string, title: string, text: string|null, href: string|null, read: bool, at: string, owner: string, plugin: string|null}
+ * @phpstan-type InboxRow array{id: string, title: string, text: string|null, href: string|null, read: bool, at: string, owner: string, plugin: string|null, kind: string, result: string|null, place: string|null}
  */
 final readonly class InboxFor
 {
@@ -43,7 +44,7 @@ final readonly class InboxFor
     private const string ID = '/^[0-9a-hjkmnp-tv-z]{26}$/';
 
     /** The columns an item is drawn from. */
-    private const array COLUMNS = ['id', 'owner', 'body', 'read_at', 'created_at'];
+    private const array COLUMNS = ['id', 'kind', 'owner', 'body', 'read_at', 'created_at'];
 
     /**
      * Returns a page of this person's items, newest first, at most $perPage
@@ -149,23 +150,50 @@ final readonly class InboxFor
         $rows = [];
         $plugins = self::pluginLabels($found);
 
+        $places = app(ToolsHub::class);
+
         foreach ($found as $row) {
             $body = json_decode((string) $row->body, true);
             $body = is_array($body) ? $body : [];
+            $kind = (string) $row->kind;
+            $link = $body['link'] ?? null;
 
             $rows[] = [
                 'id' => (string) $row->id,
                 'title' => is_string($body['title'] ?? null) ? $body['title'] : '',
                 'text' => is_string($body['text'] ?? null) ? $body['text'] : null,
-                'href' => self::href($person, $body['link'] ?? null),
+                'href' => self::href($person, $link),
                 'read' => $row->read_at !== null,
                 'at' => CarbonImmutable::parse((string) $row->created_at)->utc()->toIso8601String(),
                 'owner' => (string) $row->owner,
                 'plugin' => $plugins[(string) $row->owner] ?? null,
+                'kind' => $kind,
+                'result' => self::result($kind),
+                'place' => is_array($link) && is_string($link['route'] ?? null) ? $places->placeFor($link['route']) : null,
             ];
         }
 
         return $rows;
+    }
+
+    /**
+     * How the inbox draws this kind: failed, finished, warning, or none.
+     */
+    private static function result(string $kind): ?string
+    {
+        if (str_ends_with($kind, '.failed') || $kind === 'failed') {
+            return 'failed';
+        }
+
+        if (str_ends_with($kind, '.finished') || $kind === 'finished') {
+            return 'finished';
+        }
+
+        if (str_ends_with($kind, '.warning') || $kind === 'warning') {
+            return 'warning';
+        }
+
+        return null;
     }
 
     /**

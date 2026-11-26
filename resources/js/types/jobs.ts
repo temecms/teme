@@ -1,3 +1,6 @@
+/** How an inbox item's work ended, from its kind; null for a plain notice. */
+export type InboxResult = 'failed' | 'finished' | 'warning';
+
 /** One item in a person's inbox, as the inbox draws it. */
 export type InboxRow = {
     id: string;
@@ -11,6 +14,12 @@ export type InboxRow = {
     owner: string;
     /** The plugin's own name when a plugin sent it; otherwise null. */
     plugin: string | null;
+    /** The stored kind key, such as job.finished. */
+    kind: string;
+    /** Drawn as the kind icon and the Failed pill; null for a plain notice. */
+    result: InboxResult | null;
+    /** Where the work lived, such as "Tools › Backups"; null with no link. */
+    place: string | null;
 };
 
 export type InboxPage = {
