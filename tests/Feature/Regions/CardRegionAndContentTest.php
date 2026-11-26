@@ -22,13 +22,13 @@ beforeEach(function (): void {
     $this->editor = User::factory()->create()->assignRole('editor');
 });
 
-it('tells a core card\'s view the region it is drawn in, as a theme\'s own cards are told', function (): void {
+it('tells a core card\'s view the region\'s name as a string, and the region\'s other values as regionInfo', function (): void {
     pageArticle($this->editor, 'A story');
     config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/open')]]);
     themeActivate('open');
     $html = (new FeaturedPostsCard)->renderHtml([], new RenderContext(app(LinkResolver::class), region: new CardRegion('sidebar', 'open', '300x600', 300, 600)));
 
-    expect($html)->toContain('data-region="sidebar"')->toContain('data-region-text="sidebar"')->toContain('data-theme="open"');
+    expect($html)->toContain('data-region="sidebar"')->toContain('data-region-compare="yes"')->toContain('data-theme="open"')->toContain('data-size="300x600"');
 });
 
 it('gives a card drawn outside any region an empty slug, never nothing', function (): void {

@@ -1,1 +1,1 @@
-<section class="card-featured-posts" data-region="{{ $region->slug }}" data-region-text="{{ $region }}" data-theme="{{ $region->theme }}">{{ count($items) }} items</section>
+<section class="card-featured-posts" data-region="{{ $region }}" data-region-compare="{{ $region == 'sidebar' ? 'yes' : 'no' }}" data-theme="{{ $regionInfo->theme }}" data-size="{{ $regionInfo->size }}">{{ count($items) }} items</section>

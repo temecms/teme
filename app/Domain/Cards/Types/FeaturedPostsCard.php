@@ -101,11 +101,14 @@ final class FeaturedPostsCard implements CardType, RegionCard
         // A theme may draw the list its own way (docs/architecture/themes.md).
         $view = View::exists('theme::cards.featured-posts') ? 'theme::cards.featured-posts' : 'teme::cards.featured-posts';
 
+        $region = $context->region ?? new CardRegion('', app(ActiveTheme::class)->get()->code ?? '');
+
         return view($view, [
             'heading' => $heading === '' ? null : $heading,
             'items' => $items,
             'images' => (bool) ($attrs['images'] ?? true),
-            'region' => $context->region ?? new CardRegion('', app(ActiveTheme::class)->get()->code ?? ''),
+            'region' => $region->slug,
+            'regionInfo' => $region,
         ])->render();
     }
 
