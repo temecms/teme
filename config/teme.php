@@ -210,4 +210,11 @@ return [
     'fediverse' => [
         'deliver_outside_production' => (bool) env('TEME_FEDIVERSE_DELIVER_OUTSIDE_PRODUCTION', false),
     ],
+
+    /*
+     * The commands that empty a database (migrate:fresh, db:wipe and the
+     * like) run only on a test or benchmark database, unless this is set
+     * for one run (issue 792).
+     */
+    'allow_database_wipe' => (bool) env('TEME_ALLOW_DATABASE_WIPE', false),
 ];
