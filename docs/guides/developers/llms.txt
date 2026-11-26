@@ -40,5 +40,6 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [An image service](plugins/image-service.md): How a plugin gives the address of each image size from an outside image service, one that resizes or converts images when they are asked for, in place of the sizes core made at upload.
 - [Content types from your plugin](plugins/content-types.md): How a plugin brings its own content types, taxonomies and fields in a teme-types file, what happens on enable, update, disable and removal, and how it takes over types a site already has.
 - [Languages in a theme](themes/languages.md): What a multilingual site gives a theme, from the page's language and direction, its other language versions, the language switcher, and the theme's own words.
+- [Addresses, listings and bodies in a template](themes/template-data.md): The values and tags a template can read for the site's own addresses, breadcrumbs, a page's siblings, a type's items, a listing's totals, reading time, search sections, the body's blocks, and for knowing which region a card is drawn in.
 - [The management API](outside/management-api.md): For a service outside the site, not a plugin, with keys and abilities, the endpoints, the problems it answers, and its limits.
 

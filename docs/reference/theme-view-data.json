@@ -58,6 +58,18 @@
         "<x-teme::inline-script> type": {
             "type": "string"
         },
+        "<x-teme::items> limit": {
+            "type": "int"
+        },
+        "<x-teme::items> order": {
+            "type": "string"
+        },
+        "<x-teme::items> partial": {
+            "type": "?string"
+        },
+        "<x-teme::items> type": {
+            "type": "string"
+        },
         "<x-teme::languages> hideCurrent": {
             "type": "bool"
         },
@@ -97,6 +109,9 @@
         "ArticleView::$authors": {
             "type": "list<Person>"
         },
+        "ArticleView::$blocks": {
+            "type": "list<Block>"
+        },
         "ArticleView::$bodyHtml": {
             "type": "string"
         },
@@ -130,7 +145,13 @@
         "ArticleView::$leadIsFeatured": {
             "type": "bool"
         },
+        "ArticleView::$next": {
+            "type": "?ItemLink"
+        },
         "ArticleView::$parent": {
+            "type": "?ItemLink"
+        },
+        "ArticleView::$previous": {
             "type": "?ItemLink"
         },
         "ArticleView::$published": {
@@ -150,6 +171,9 @@
         },
         "ArticleView::$revisionId": {
             "type": "string"
+        },
+        "ArticleView::$siblings": {
+            "type": "list<ItemLink>"
         },
         "ArticleView::$standfirst": {
             "type": "?string"
@@ -189,6 +213,15 @@
             "was": [
                 "(string $where): list<FieldView>"
             ]
+        },
+        "Block::$attrs": {
+            "type": "array<string, mixed>"
+        },
+        "Block::$html": {
+            "type": "string"
+        },
+        "Block::$type": {
+            "type": "string"
         },
         "CommentFormView::$action": {
             "type": "string"
@@ -400,6 +433,9 @@
         "ListingItem::$publishedText": {
             "type": "string"
         },
+        "ListingItem::$readingMinutes": {
+            "type": "?int"
+        },
         "ListingItem::$standfirst": {
             "type": "?string"
         },
@@ -429,6 +465,9 @@
         },
         "ListingView::$subject": {
             "type": "?Subject"
+        },
+        "ListingView::$total": {
+            "type": "?int"
         },
         "NotFoundView::$path": {
             "type": "string"
@@ -520,6 +559,12 @@
         "RespondView::$title": {
             "type": "string"
         },
+        "SearchDetails::$allTotal": {
+            "type": "int"
+        },
+        "SearchDetails::$allUrl": {
+            "type": "?string"
+        },
         "SearchDetails::$empty": {
             "type": "bool"
         },
@@ -528,6 +573,12 @@
         },
         "SearchDetails::$results": {
             "type": "list<SearchResult>"
+        },
+        "SearchDetails::$section": {
+            "type": "?string"
+        },
+        "SearchDetails::$sections": {
+            "type": "list<SearchSection>"
         },
         "SearchDetails::$total": {
             "type": "int"
@@ -541,6 +592,24 @@
         "SearchResult::$snippetHtml": {
             "type": "string"
         },
+        "SearchSection::$count": {
+            "type": "int"
+        },
+        "SearchSection::$current": {
+            "type": "bool"
+        },
+        "SearchSection::$label": {
+            "type": "string"
+        },
+        "SearchSection::$type": {
+            "type": "string"
+        },
+        "SearchSection::$url": {
+            "type": "string"
+        },
+        "SiteView::$archives": {
+            "type": "array<string, string>"
+        },
         "SiteView::$language": {
             "type": "string"
         },
@@ -548,6 +617,9 @@
             "type": "string"
         },
         "SiteView::$name": {
+            "type": "string"
+        },
+        "SiteView::$postsUrl": {
             "type": "string"
         },
         "SiteView::$tagline": {
