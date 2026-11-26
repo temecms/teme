@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.6.1] — 2026-11-26
+
 ### Fixed
 
 - Running the tests can no longer empty a site's database: the test run stops before it touches a database when Laravel's configuration is cached or the database's name doesn't end in `_test` (#754).

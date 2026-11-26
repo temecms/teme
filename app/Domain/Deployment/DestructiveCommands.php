@@ -7,7 +7,7 @@
  * TEME_ALLOW_DATABASE_WIPE set, and never in production unless so allowed.
  *
  * @package Teme
- * @since   next
+ * @since   1.6.1
  * @license MIT
  */
 
