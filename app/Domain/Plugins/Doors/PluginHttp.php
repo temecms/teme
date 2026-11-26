@@ -354,7 +354,7 @@ final readonly class PluginHttp implements OutboundHttp
         $own = $this->ownPath === null ? false : realpath($this->ownPath);
         $path = realpath((string) $file->path);
 
-        if ($own === false || $path === false || ! is_file($path) || ! str_starts_with($path, rtrim($own, '/').'/')) {
+        if ($own === false || $path === false || ! is_file($path) || ! str_starts_with(str_replace('\\', '/', $path), rtrim(str_replace('\\', '/', $own), '/').'/')) {
             throw new InvalidArgumentException('A file’s path must be a file inside the plugin’s own folder.');
         }
 

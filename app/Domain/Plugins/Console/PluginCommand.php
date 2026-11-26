@@ -46,6 +46,12 @@ final class PluginCommand extends Command
         }
     }
 
+    /** The name of the plugin that added this command. */
+    public function owner(): string
+    {
+        return $this->owner;
+    }
+
     /**
      * Runs the plugin's answer for this command, as the operator at the shell.
      */

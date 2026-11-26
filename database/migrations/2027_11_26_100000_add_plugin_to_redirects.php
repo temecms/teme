@@ -41,6 +41,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        // The older check allows no plugin's redirect, so those go first.
+        DB::table('redirects')->where('origin', 'plugin')->delete();
         DB::statement('DROP INDEX IF EXISTS redirects_plugin_index');
         DB::statement(<<<'SQL'
             ALTER TABLE redirects

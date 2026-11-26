@@ -24,6 +24,7 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Console\CommandNames;
 use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
@@ -118,6 +119,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         if ($collisions !== []) {
             throw ValidationException::withMessages(['plugin' => $collisions]);
+        }
+
+        // Nor a console command that exists: a plugin never replaces one.
+        $taken = CommandNames::taken($manifest, array_values(array_filter($others, fn (Manifest $other): bool => $other !== $manifest && $other->raw()['name'] !== $manifest->raw()['name'])));
+
+        if ($taken !== []) {
+            throw ValidationException::withMessages(['plugin' => [__('The command :name already exists, and a plugin may not replace a command.', ['name' => $taken[0]])]]);
         }
 
         // The administrator the operator names for its schedules must still manage plugins (docs/proposals/plugin-sockets-1.md).

@@ -21,7 +21,7 @@ Under `contributes.commands`, list at most ten commands:
   { "name": "sharely:resend", "description": "Resend the shares that failed", "options": [{ "name": "limit", "description": "Resend at most this many", "value": true }] } ] }
 ```
 
-- `name` starts with your plugin's `code` and a colon, as in `sharely:resend`, then lower-case words of letters, digits and hyphens; it may have up to two more colons for groups. A name that doesn't start with your code, or starts with `teme:`, keeps the plugin from being enabled, so two plugins can never claim the same command and none can take one of Teme's.
+- `name` starts with your plugin's `code` and a colon, as in `sharely:resend`, then lower-case words of letters, digits and hyphens; it may have up to two more colons for groups. A name that doesn't start with your code, or starts with `teme:`, keeps the plugin from being enabled, A name that is already a command, one of Teme's, Laravel's or another enabled plugin's, also keeps the plugin from being enabled: a plugin never replaces a command.
 - `description` is one line of up to 120 characters, as `php artisan list` shows it.
 - `arguments` and `options` are optional, at most five of each. An argument is `required` or not. An option is a flag, such as `--dry-run`, or takes a value, such as `--limit=5`, when it says `"value": true`. Their names are lower-case words, and can't be one Teme's own commands already use, such as `help`, `verbose` or `env`.
 

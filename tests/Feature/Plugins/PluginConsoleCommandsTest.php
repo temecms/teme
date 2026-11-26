@@ -13,6 +13,8 @@ use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
+use Illuminate\Console\Application;
+use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -127,3 +129,32 @@ it('says why a declaration can’t be used', function (mixed $commands, string $
     'a taken option' => [[['name' => 'sharely:a', 'description' => 'x', 'options' => [['name' => 'verbose', 'description' => 'x']]]], 'that Teme doesn’t use itself'],
     'an unknown key' => [[['name' => 'sharely:a', 'description' => 'x', 'capability' => 'http']], 'an object of a name'],
 ]);
+
+it('refuses at enable a command that already exists, and leaves the core command as it was', function (): void {
+    $folder = PluginFixtures::copy('sharely', ['code' => 'queue', 'contributes' => ['commands' => [['name' => 'queue:work', 'description' => 'Take over the worker']]]]);
+    PluginFixtures::use($folder);
+    app()->instance(Elevation::class, new OperatorElevation);
+    $before = Artisan::all()['queue:work']::class;
+
+    expect(fn () => app(EnablePlugin::class)->execute(new EnablePluginInput('tests/sharely', '1.0.0', [], [], [], null)))
+        ->toThrow(ValidationException::class, 'The command queue:work already exists')
+        ->and(PluginRecord::query()->count())->toBe(0)
+        ->and(Artisan::all()['queue:work']::class)->toBe($before);
+});
+
+it('never replaces a command that exists when it adds a plugin’s, and skips it', function (): void {
+    sharelyEnabled();
+    $artisan = new Application(app(), app('events'), '1');
+    $core = new class extends Command
+    {
+        protected $name = 'sharely:resend';
+
+        protected $description = 'Already here';
+    };
+    $artisan->add($core);
+
+    app(PluginCommands::class)->addTo($artisan);
+
+    expect($artisan->all()['sharely:resend'])->toBe($core)
+        ->and($artisan->all())->toHaveKey('sharely:fail');
+});
