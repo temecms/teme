@@ -108,7 +108,7 @@ final readonly class DocumentRenderer
     public function blocks(array $document, ?RenderContext $context = null): array
     {
         $context ??= new RenderContext(app(LinkResolver::class));
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), null, $context->leadNodeId, null, $context->linkAttributes, $context->region);
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region);
         $editor = $this->editor($context);
         $blocks = [];
         $heading = 1;
@@ -131,6 +131,7 @@ final readonly class DocumentRenderer
                 continue;
             }
 
+            $context->usage?->record($card->name());
             $attrs = $this->withDefaults($card, (array) ($node['attrs'] ?? []));
             $blocks[] = ['type' => $type, 'attrs' => $attrs, 'html' => $card instanceof OutlinedCard
                 ? $card->renderInOutline($attrs, $context, max(2, min(6, $heading + 1)))

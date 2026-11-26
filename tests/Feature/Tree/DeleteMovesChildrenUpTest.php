@@ -83,8 +83,8 @@ it('sets aside the new parent\'s page and each moved page\'s at once', function 
 
     upDelete($this->tree->archived, (string) $this->tree->editor->id);
 
-    // About now lists Archived child, whose own page names a new parent; Team's page lists its siblings, Archived child among them now.
-    expect(cacheKept(...$pages))->toBe([]);
+    // About now lists Archived child, whose own page names a new parent; Team's is untouched.
+    expect(cacheKept(...$pages))->toBe(['/about/team/']);
     cacheOff($folder);
 });
 

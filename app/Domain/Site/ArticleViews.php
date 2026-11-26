@@ -121,18 +121,13 @@ final readonly class ArticleViews
             insertions: $plan,
             linkAttributes: $linkAttributes,
         ));
-        $blocks = array_map(
-            fn (array $block): Block => new Block($block['type'], $block['attrs'], $block['html']),
-            $this->renderer->blocks($document, new RenderContext($links, leadNodeId: $lead['nodeId'], linkAttributes: $linkAttributes)),
-        );
-
         // A draft never published has no first publication yet: the revision's own time stands in.
         $published = SiteDates::inSite($content->published_at ?? $revision->created_at);
         $saved = SiteDates::inSite($revision->created_at);
         $updated = $saved->greaterThanOrEqualTo($published->addHours(self::UPDATED_AFTER_HOURS)) ? $saved : null;
 
         [$kicker, $tags, $section] = $this->terms((string) $content->type, array_map('strval', (array) $revision->terms), $fields[BuiltInFields::PRIMARY_CATEGORY] ?? null);
-        [$ancestors, $parent, $children, $siblings, $previous, $next] = $this->family($content);
+        [$ancestors, $parent, $children] = $this->family($content);
 
         return new ArticleView(
             id: (string) $content->id,
@@ -164,10 +159,7 @@ final readonly class ArticleViews
             parent: $parent,
             ancestors: $ancestors,
             children: $children,
-            siblings: $siblings,
-            previous: $previous,
-            next: $next,
-            blocks: $blocks,
+            later: $this->later($content, $document, $lead['nodeId'], $linkAttributes),
         );
     }
 
@@ -291,21 +283,50 @@ final readonly class ArticleViews
     /**
      * The live items above it, the top first, its parent among them while
      * readers can see it, and those under it, each read once and only for a
-     * type that nests (I-3363); with them its siblings, in menu order, and
-     * the sibling before it and the one after.
+     * type that nests.
      *
-     * @return array{0: list<ItemLink>, 1: ItemLink|null, 2: list<ItemLink>, 3: list<ItemLink>, 4: ItemLink|null, 5: ItemLink|null}
+     * @return array{0: list<ItemLink>, 1: ItemLink|null, 2: list<ItemLink>}
      */
     private function family(Content $content): array
     {
-        if (! $this->types->has((string) $content->type) || ! $this->types->get((string) $content->type)->hierarchical) {
-            return [[], null, [], [], null, null];
+        if (! $this->nests($content)) {
+            return [[], null, []];
         }
 
         $id = (string) $content->id;
         [$ancestors, $parent] = $content->parent_id === null ? [[], null] : $this->family->lineage($id);
 
-        return [$ancestors, $parent, $this->family->children($id), $this->family->siblings($content), $this->family->neighbour($content, true), $this->family->neighbour($content, false)];
+        return [$ancestors, $parent, $this->family->children($id)];
+    }
+
+    /**
+     * The values a template pays for only when it reads them: the item's
+     * siblings, the one before and the one after it, and the body as blocks.
+     * Each runs, tags the page and records its cards, at its first read.
+     *
+     * @param  array<mixed>  $document
+     * @param  array<string, mixed>  $linkAttributes
+     *
+     * @return array<string, Deferred>
+     */
+    private function later(Content $content, array $document, ?string $leadNodeId, array $linkAttributes): array
+    {
+        $nests = $this->nests($content);
+
+        return [
+            'siblings' => new Deferred(fn (): array => $nests ? $this->family->siblings($content) : []),
+            'previous' => new Deferred(fn (): ?ItemLink => $nests ? $this->family->neighbour($content, true) : null),
+            'next' => new Deferred(fn (): ?ItemLink => $nests ? $this->family->neighbour($content, false) : null),
+            'blocks' => new Deferred(fn (): array => array_map(
+                fn (array $block): Block => new Block($block['type'], $block['attrs'], $block['html']),
+                $this->renderer->blocks($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), leadNodeId: $leadNodeId, linkAttributes: $linkAttributes)),
+            )),
+        ];
+    }
+
+    private function nests(Content $content): bool
+    {
+        return $this->types->has((string) $content->type) && $this->types->get((string) $content->type)->hierarchical;
     }
 
     /**
