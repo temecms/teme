@@ -336,3 +336,64 @@ it('says a rollback can’t put the removed cards back', function (): void {
 
     expect(fn () => $migration->down())->toThrow(RuntimeException::class, 'can’t be undone');
 });
+
+/*
+ * A scheduled publish whose region's live code changed after it was
+ * scheduled (issue 735). Every change to the live revision made in the admin
+ * cancels the schedule, so the change is made below the admin, as a restored
+ * backup would make it.
+ */
+describe('a scheduled publish', function (): void {
+    beforeEach(function (): void {
+        ($this->ad)();
+        scElevated(fn () => listsPublish($this->region, $this->admin));
+        $this->live = (string) $this->region->fresh()->published_revision_id;
+        $this->changeLiveCode = function (): void {
+            $document = (array) json_decode((string) DB::table('content_revisions')->where('id', $this->live)->value('document'), true);
+            $document['content'][0]['attrs']['code'] = '<b>changed</b>';
+            DB::table('content_revisions')->where('id', $this->live)->update(['document' => json_encode($document)]);
+        };
+        $this->scheduleText = function (User $by): void {
+            $session = EditorSession::for($this->region->id, (string) $by->id);
+            docSave($this->region, $by, docWith(docText('Scheduled text'), ...$session->document['content']));
+            schedFor($this->region, $by, now()->addMinute()->toIso8601String());
+        };
+    });
+
+    it('fails, never retries and tells the scheduler when the live code changed after scheduling', function (string $who): void {
+        $by = $this->{$who};
+        ($this->scheduleText)($by);
+        ($this->changeLiveCode)();
+        $logged = count(scLog());
+        $this->travel(2)->minutes();
+
+        $this->artisan('teme:content:run-due-publications')->assertSuccessful();
+        $this->travel(20)->minutes();
+        $this->artisan('teme:content:run-due-publications')->assertSuccessful();
+
+        $row = schedRow($this->region);
+        $inbox = DB::table('inbox_items')->where('user_id', $by->id)->get();
+
+        expect($this->region->fresh()->published_revision_id)->toBe($this->live)
+            ->and($row->failed_at)->not->toBeNull()
+            ->and($row->completed_at)->toBeNull()
+            ->and($row->attempts)->toBe(1)
+            ->and($row->failure_reason)->toBe('code-changed')
+            ->and(EditorSession::for($this->region->id, (string) $by->id)?->schedule['failedReason'])->toContain('Custom HTML code')
+            ->and($inbox)->toHaveCount(1)
+            ->and($inbox[0]->kind)->toBe('schedule.failed')
+            ->and(json_decode($inbox[0]->body, true)['link']['route'])->toBe('content.edit')
+            ->and(scLog())->toHaveCount($logged);
+    })->with(['an editor' => 'editor', 'an administrator' => 'admin']);
+
+    it('publishes as before when the live code is unchanged', function (): void {
+        ($this->scheduleText)($this->editor);
+        $this->travel(2)->minutes();
+
+        $this->artisan('teme:content:run-due-publications')->assertSuccessful();
+
+        expect($this->region->fresh()->published_revision_id)->toBe($this->region->fresh()->working_revision_id)
+            ->and(schedRow($this->region)->completed_at)->not->toBeNull()
+            ->and(DB::table('inbox_items')->count())->toBe(0);
+    });
+});

@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
 
+use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\PluginKeys;
@@ -111,7 +112,8 @@ final class SeoDeclarations
     /**
      * The consent's lines for the checks and the section the manifest
      * declares, labels in the admin's language and types by their plural
-     * names. The checks are left out while content.read isn't agreed.
+     * names, and the image service's (ImageServiceDeclaration). The checks
+     * are left out while content.read isn't agreed.
      *
      * @param  list<string>|null  $agreed  the capabilities agreed, or null for what it asks
      *
@@ -143,7 +145,8 @@ final class SeoDeclarations
             $lines[] = PluginWords::sitemaps(array_map(fn (array $sitemap): string => $words->text($sitemap['label'], $locale), $sitemaps));
         }
 
-        return $lines;
+        // Shown with these, where the Plugins screen and teme:plugins:enable read them.
+        return [...$lines, ...ImageServiceDeclaration::consentWords($manifest, $agreed)];
     }
 
     /**

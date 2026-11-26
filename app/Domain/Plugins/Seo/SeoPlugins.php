@@ -33,6 +33,7 @@ final readonly class SeoPlugins
         private LoadedPlugins $loaded,
         private ListenerFaults $faults,
         private ColumnClock $clock,
+        private SlowSockets $slow,
     ) {}
 
     /**
@@ -88,13 +89,20 @@ final readonly class SeoPlugins
     /**
      * What the plugin answers within its time, or null: a failure, or an
      * answer that came too late, is recorded as its fault and dropped.
-     * The answer is whatever the plugin returned, which its contract's
-     * types don't promise, so the caller checks every part of it.
+     * A plugin that ran over a socket's budget once is asked nothing more
+     * on it in this request, and its fault is recorded once. A call is
+     * never stopped part way: the time is read around it. The answer is
+     * whatever the plugin returned, which its contract's types don't
+     * promise, so the caller checks every part of it.
      *
      * @param  Closure(): mixed  $call
      */
     public function ask(SeoPlugin $plugin, string $socket, string $contract, int $budgetMs, Closure $call): mixed
     {
+        if ($this->slow->isOver($plugin->name, $socket)) {
+            return null;
+        }
+
         $started = $this->clock->nanoseconds();
 
         try {
@@ -108,6 +116,7 @@ final readonly class SeoPlugins
         $took = intdiv($this->clock->nanoseconds() - $started, 1_000_000);
 
         if ($took > $budgetMs) {
+            $this->slow->markOver($plugin->name, $socket);
             $this->fault($plugin, $socket, $contract, new SocketTooSlow($plugin->name, $socket, $budgetMs, $took));
 
             return null;

@@ -71,6 +71,12 @@ final class RunDuePublications extends Command
                     continue;
                 }
 
+                if (isset($result['failed'])) {
+                    $this->error("Failed {$row['id']}: {$result['failed']}");
+
+                    continue;
+                }
+
                 if (! $result['published']) {
                     $this->line("Skipped {$row['id']}: it was no longer waiting to run.");
 

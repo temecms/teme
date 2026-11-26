@@ -94,7 +94,7 @@ final class MediaLibrary
                 'width' => $row->width === null ? null : (int) $row->width,
                 'height' => $row->height === null ? null : (int) $row->height,
                 'sizeBytes' => (int) $row->size_bytes,
-                'thumbUrl' => MediaUrls::variant((array) json_decode((string) $row->variants, true)),
+                'thumbUrl' => MediaUrls::variant((array) json_decode((string) $row->variants, true), mediaId: (string) $row->id),
                 'processing' => (string) $row->processing,
                 'uses' => (int) $row->working_uses + (int) $row->published_uses,
                 'hasAlt' => trim((string) $row->alt) !== '',

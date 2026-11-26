@@ -28,6 +28,7 @@ final class EditorGuide
         'status-banners.md',
         'backups.md',
         'import-from-an-export-file.md',
+        'import-from-a-live-site.md',
     ];
 
     /** What a page is: the index, or a set of tasks. */

@@ -135,7 +135,7 @@ final class EmbedCard implements CardType
     {
         $item = is_string($mediaId) ? ($context->media[$mediaId] ?? null) : null;
 
-        return $item === null ? null : MediaUrls::variant($item['variants']);
+        return $item === null ? null : MediaUrls::variant($item['variants'], mediaId: $mediaId);
     }
 
     /**

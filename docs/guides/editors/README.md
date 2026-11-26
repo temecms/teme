@@ -55,6 +55,7 @@ Pages, such as About and Contact, are the site's structure, so editors and admin
 - [To clear the page cache](page-cache.md)
 - [To act on a banner at the top of the admin](status-banners.md)
 - [To see whether the backups are safe](backups.md)
+- [To import a WordPress site from the live site](import-from-a-live-site.md)
 - [To import a WordPress site from its export file](import-from-an-export-file.md)
 
 ## Names in bold are the words on screen
@@ -65,4 +66,4 @@ For every setting and its default, see the [settings reference](../../reference/
 
 ## What this guide leaves out
 
-Connecting a live WordPress site to import it, themes and plugins are an administrator's work and are not here yet. Importing from a WordPress export file is.
+Themes and plugins are an administrator's work and are not here yet. Importing a WordPress site, from the live site or from its export file, is.

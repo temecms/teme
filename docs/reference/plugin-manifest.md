@@ -189,6 +189,9 @@
 | `contributes.structuredData` | object | no | The schema.org terms the plugin's graph nodes use beyond the graph's own list. Needs pages.head. |  |
 | `contributes.structuredData.types` | array | no | schema.org types, such as FAQPage. |  |
 | `contributes.structuredData.properties` | array | no | schema.org properties, such as acceptedAnswer. |  |
+| `contributes.imageService` | object | no | An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService. |  |
+| `contributes.imageService.label` | string | yes | The service's name, as the consent names it. |  |
+| `contributes.imageService.host` | string | yes | The host its addresses are on, served over https, which joins the img-src of the content security policy. | ^(?:\*\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ |
 | `contributes.notices` | array | no | Kinds of notice the plugin sends through Notices, with notices.send; never required. |  |
 | `contributes.notices[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
 | `contributes.notices[].label` | string | yes | The choice as Account › Notifications words it. |  |

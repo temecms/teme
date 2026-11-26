@@ -276,7 +276,7 @@ final readonly class RedirectList
         foreach (Media::withTrashed()->whereIn('id', $ids)->get() as $file) {
             $media[$file->id] = [
                 'title' => $file->name,
-                'address' => $file->trashed() ? null : ($file->isImage() ? MediaUrls::largest($file->variants) : MediaDisks::public()->url($file->original_path)),
+                'address' => $file->trashed() ? null : ($file->isImage() ? MediaUrls::largest($file->variants, (string) $file->id) : MediaDisks::public()->url($file->original_path)),
             ];
         }
 

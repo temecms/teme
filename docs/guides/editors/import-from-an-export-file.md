@@ -12,7 +12,7 @@ sources:
 
 # Import from an export file
 
-Teme can move a WordPress site across in two ways. Connecting the live site with the Teme Companion plugin brings everything. Its export file brings the site's content, and needs nothing installed on the old site. Use the file when the plugin can't be installed there, or the old site is gone. Open **Tools › Import**.
+Teme can move a WordPress site across in two ways. Connecting the live site with the Teme Companion plugin brings everything: see [Import from a live site](import-from-a-live-site.md). Its export file brings the site's content, and needs nothing installed on the old site. Use the file when the plugin can't be installed there, or the old site is gone. Open **Tools › Import**.
 
 The file brings posts, pages and custom types with their categories, tags and authors, comments, menus and featured images. Every item keeps its address: each one answers at the same address on Teme.
 
@@ -39,7 +39,7 @@ The plan lists what isn't in an export file, under **Not in an export file**:
 - **Widgets and theme settings**: set up in Teme’s theme.
 - **Spam comments**: WordPress leaves them out of the export.
 
-To bring these too, connect the live site with Teme Companion instead.
+To bring these too, [connect the live site](import-from-a-live-site.md) with Teme Companion instead.
 
 If the plan has the wrong file, choose **Use another file**.
 

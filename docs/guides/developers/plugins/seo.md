@@ -15,7 +15,7 @@ Core already writes a page's title, description, social tags, canonical address,
 - tags and structured data in the head of public pages, from `HasHeadMeta` and `HasStructuredData`;
 - sitemaps in the site's sitemap index, from `HasSitemaps`.
 
-Each socket is asked within a time budget, only reads, and fails safe. A plugin that throws, answers too late or answers out of bounds never stops anyone typing, saving or loading a page. Its part is left out, and the failure is recorded as a fault under the plugin, where the plugin's row on the Plugins screen shows it.
+Each socket is asked within a time budget, only reads, and fails safe. A plugin that throws, answers too late or answers out of bounds never stops anyone typing, saving or loading a page. Its part is left out, and the failure is recorded as a fault under the plugin, where the plugin's row on the Plugins screen shows it. A call is never stopped part way: core times it, and drops an answer that came back late. A plugin that runs over the budget for a page's tags, its structured data or a sitemap is asked nothing more on that socket for the rest of the request, so the page or sitemap never waits on it twice, and the fault is recorded once.
 
 The handbook's example plugin answers all four, in `docs/guides/developers/examples/plugins/seo-sockets`.
 
@@ -82,6 +82,8 @@ A plugin that asks for `pages.head` and implements `HasHeadMeta` adds tags to th
 
 A tag is a `HeadMeta`, made with `HeadMeta::name()` or `HeadMeta::property()`: a name or property and its content, nothing else. Core escapes both and never writes a script. A key is letters and digits, with `:`, `.`, `_` or `-` between them, at most 100 characters, and the content is at most 1,000 bytes. Give at most 20 tags a page. A plugin's tag replaces core's tag of the same name or property.
 
+The `robots` tag is the exception: it is laid over core's, and can only make the page more private. Give any of `index`, `noindex`, `follow`, `nofollow`, `noarchive`, `nosnippet` and `max-image-preview:` with `none`, `standard` or `large`. Your `noindex`, `nofollow`, `noarchive` and `nosnippet` are added to core's directives, and your image preview is kept where it is smaller than core's. Your `index` and `follow` change nothing, so a page core keeps out of search, such as an item of a type hidden from search, stays `noindex`. A value with any other directive is refused and recorded, and core's stands.
+
 `HeadPage` says which page is drawn: its `kind` (`article`, `home`, `latest`, `archive`, `term`, `author`, `date` or `search`), its path and full address, the site's address in `home`, its language, and for an article its type, ID, title, the plugin's own values, and its FAQ and Steps cards. Later pages of a list carry their `pageNumber`.
 
 ## Structured data
@@ -129,7 +131,7 @@ A plugin that asks for `sitemaps` declares each sitemap, at most four, and imple
 Core lists each in the sitemap index as `sitemap-plugin-{code}-{id}.xml`. `starts()` returns the key each later page starts at, if the sitemap has more than one page, and each is listed as `sitemap-plugin-{code}-{id}.{key}.xml`. A key is 1 to 26 lower-case letters and digits. `entries()` is asked for the page that starts at a key, or at the beginning for null, and returns at most 1,000 `SitemapEntry`:
 
 - `SitemapEntry::path()`, a path on this site and, optionally, when it last changed;
-- `SitemapEntry::item()`, an item by ID, listed at its address only while it is published and listed, with its own last change.
+- `SitemapEntry::item()`, an item by ID, listed at its address only while it is published and listed, with its own last change. As in core's sitemaps, an item of a type hidden from search, or of a type that isn't public, is left out.
 
 Each call has two seconds. Pages are cached and purged as core's are: when a listed item changes, when the plugin is turned on or off, and when its settings are saved.
 

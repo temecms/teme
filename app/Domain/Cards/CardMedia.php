@@ -21,6 +21,7 @@ namespace App\Domain\Cards;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Media\MediaDisks;
+use App\Domain\Plugins\Images\ImageServices;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -111,6 +112,7 @@ final class CardMedia
         }
 
         $disk = MediaDisks::public();
+        $images = app(ImageServices::class);
 
         foreach (DB::table('media')->whereIn('id', $ids)->whereNull('deleted_at')
             ->get(['id', 'kind', 'mime_type', 'original_path', 'title', 'alt', 'width', 'height', 'variants', 'focal_x', 'focal_y', 'created_at']) as $item) {
@@ -119,7 +121,8 @@ final class CardMedia
             foreach ((array) json_decode((string) $item->variants, true) as $key => $variant) {
                 $variants[(string) $key] = [
                     'path' => (string) $variant['path'],
-                    'url' => $disk->url((string) $variant['path']),
+                    // A plugin's image service may give the address (docs/guides/developers/plugins/image-service.md).
+                    'url' => $images->address((string) $item->id, (string) $key, (string) $variant['path']),
                     'width' => (int) $variant['width'],
                     'height' => (int) $variant['height'],
                     'bytes' => (int) ($variant['bytes'] ?? 0),

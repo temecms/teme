@@ -39,10 +39,10 @@ final class PersonPictures
             ->whereIn('users.id', $userIds)
             ->whereNull('media.deleted_at')
             ->where('media.kind', 'image')
-            ->get(['users.id', 'media.variants']) as $row) {
+            ->get(['users.id', 'media.id as media_id', 'media.variants']) as $row) {
             /** @var array<string, array{path: string, width: int, height: int, bytes: int}> $variants */
             $variants = (array) json_decode((string) $row->variants, true, flags: JSON_THROW_ON_ERROR);
-            $url = MediaUrls::variant($variants);
+            $url = MediaUrls::variant($variants, mediaId: (string) $row->media_id);
 
             if ($url !== null) {
                 $pictures[(int) $row->id] = $url;
