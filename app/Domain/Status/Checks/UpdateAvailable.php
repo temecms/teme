@@ -26,7 +26,7 @@ final readonly class UpdateAvailable implements StatusCheck
     /**
      * The check's stable key, matched by Home's summary rows.
      *
-     * @since next
+     * @since 1.6.0
      */
     public function key(): string
     {

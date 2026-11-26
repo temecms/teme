@@ -20,7 +20,7 @@ interface StatusCheck
      * A stable key for the check, not its translated label, so Home's
      * summary rows can tell which checks they own.
      *
-     * @since next
+     * @since 1.6.0
      */
     public function key(): string;
 

@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-11-26
+
 ### Changed
 
 Every built admin screen now matches the approved design.

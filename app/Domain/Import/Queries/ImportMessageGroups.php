@@ -6,7 +6,7 @@
  * one raw line per code. Unknown codes fall back to “Other notes”.
  *
  * @package Teme
- * @since   next
+ * @since   1.6.0
  * @license MIT
  */
 
