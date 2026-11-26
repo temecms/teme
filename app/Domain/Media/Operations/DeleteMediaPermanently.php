@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
 
+use App\Domain\Hooks\Payloads;
 use App\Domain\Media\Jobs\DeleteMediaFiles;
 use App\Domain\Media\MediaCounts;
 use App\Domain\Media\MediaState;
@@ -25,6 +26,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Media\MediaDeleted;
 use Teme\Contracts\Operations\OperationInput;
 
 final class DeleteMediaPermanently extends BaseOperation
@@ -65,8 +67,10 @@ final class DeleteMediaPermanently extends BaseOperation
             'public' => [...($media->isImage() ? [] : [$media->original_path]), ...array_column($media->variants, 'path')],
         ];
 
+        $deleted = Payloads::media($media);
         MediaCounts::apply(MediaState::of($media), null);
         $media->forceDelete();
+        $this->notifyAfterCommit(MediaDeleted::class, fn (): MediaDeleted => new MediaDeleted($deleted, $input->actorId()));
 
         DeleteMediaFiles::dispatch($files)->afterCommit();
 

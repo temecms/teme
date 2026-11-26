@@ -23,7 +23,7 @@ it('marks every hook with one verb, a @since and its contract', function (string
     $verbs = array_filter([Notification::class, Transform::class, Gate::class, Resolve::class, Collect::class], fn (string $verb): bool => $class->implementsInterface($verb));
 
     expect($verbs)->toHaveCount(1)
-        ->and((string) $class->getDocComment())->toMatch('/@since \d+\.\d+\.\d+/')
+        ->and((string) $class->getDocComment())->toMatch('/@since (next|\d+\.\d+\.\d+)/')
         ->and($class->getAttributes(HookContract::class))->toHaveCount(1)
         ->and($class->isFinal() && $class->isReadOnly())->toBeTrue();
 })->with(fn (): array => HookCatalogue::HOOKS);
@@ -90,7 +90,7 @@ it('lists every hook class the contracts package has, and no other', function ()
 it('gives every hook a unique short name', function (): void {
     $names = array_map(fn (string $hook): string => (new ReflectionClass($hook))->getShortName(), HookCatalogue::HOOKS);
 
-    expect($names)->toHaveCount(20)->and(array_unique($names))->toBe($names);
+    expect($names)->toHaveCount(24)->and(array_unique($names))->toBe($names);
 });
 
 it('gives an item reference its first values in this order, and anything added later at the end with a default (I-3360, contracts rule)', function (): void {

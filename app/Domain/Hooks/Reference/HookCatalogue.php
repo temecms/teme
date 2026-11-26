@@ -35,7 +35,11 @@ use Teme\Contracts\Fediverse\CollectObjectBuilders;
 use Teme\Contracts\Fediverse\ObjectBuilt;
 use Teme\Contracts\Feeds\FeedsChanged;
 use Teme\Contracts\Hooks\Hook;
+use Teme\Contracts\Media\MediaDeleted;
+use Teme\Contracts\Media\MediaRestored;
 use Teme\Contracts\Media\MediaStored;
+use Teme\Contracts\Media\MediaTrashed;
+use Teme\Contracts\Media\MediaUpdated;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
 use Teme\Contracts\Settings\SettingsChanged;
 
@@ -52,6 +56,10 @@ final class HookCatalogue
         ContentVisibilityChanged::class,
         ContentDeleted::class,
         MediaStored::class,
+        MediaUpdated::class,
+        MediaTrashed::class,
+        MediaRestored::class,
+        MediaDeleted::class,
         CommentStatusChanged::class,
         SettingsChanged::class,
         CollectPersonalDataHolders::class,
