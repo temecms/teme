@@ -40,6 +40,6 @@ A public route's handler is built with none of your plugin's doors, so reading y
 
 ## Remove them
 
-Disabling a plugin keeps its tables and their rows, so enabling it again finds them. To drop them, disable the plugin first; then someone who manages plugins removes its data from its row in **Plugins**, after their password, or the operator runs `teme:plugins:remove-data` with its Composer name. Teme drops the tables it recorded for that plugin, and keeps the plugin's row and what was agreed to. It reads the tables from that record alone, so it works even when the plugin's code is gone.
+Disabling a plugin keeps its tables and their rows, so enabling it again finds them. To drop them, disable the plugin first; then someone who manages plugins removes its data from its row in **Plugins**, after their password, or the operator runs `teme:plugins:remove-data` with its Composer name. Teme drops the tables it recorded for that plugin, and also removes the plugin's saved settings and the secrets stored with them, and keeps the plugin's row and what was agreed to. The confirm step lists what will go. Another plugin's settings are never touched. The values a plugin's own fields hold inside items are not removed here: rewriting items is not part of this step, so they stay until the type that added the fields is removed. It reads the tables from that record alone, so it works even when the plugin's code is gone.
 
 Next: [Public routes](public-routes.md), and [Jobs and schedules](jobs.md).

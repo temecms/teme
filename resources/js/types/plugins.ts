@@ -73,6 +73,8 @@ export type PluginRowPage = {
     agreedBefore: boolean;
     asksMore: boolean;
     tables: PluginTableRow[];
+    /** What removing its data also takes: its saved settings, and how many secrets. */
+    savedData: { saved: boolean; secrets: number };
     canRemoveData: boolean;
     /** Part of the site's build, or installed here from the admin (I-211). */
     origin: ExtensionOrigin;

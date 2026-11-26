@@ -18,6 +18,7 @@ use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\Operations\RemovePluginData;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
@@ -30,7 +31,7 @@ final class RemovePluginDataCommand extends Command
     protected $signature = 'teme:plugins:remove-data {name : The plugin’s Composer name} {--force : Drop without asking}';
 
     /** @var string */
-    protected $description = 'Remove a disabled plugin’s database tables';
+    protected $description = 'Remove a disabled plugin’s database tables, saved settings and secrets';
 
     public function handle(PluginRegistry $registry, PluginMigrations $migrations, RemovePluginData $remove): int
     {
@@ -46,7 +47,9 @@ final class RemovePluginDataCommand extends Command
 
         $tables = $migrations->ownedTables($record->migrations);
 
-        if ($tables === []) {
+        $hasSettings = SettingsGroupRecord::query()->where('group_key', 'plugin.'.$record->code)->exists();
+
+        if ($tables === [] && ! $hasSettings) {
             $this->components->error(__(':label has no tables to remove.', ['label' => $label]));
 
             return self::FAILURE;
@@ -59,6 +62,10 @@ final class RemovePluginDataCommand extends Command
             $this->line($rows === null
                 ? "  {$table}"
                 : '  '.__(':table (about :count rows)', ['table' => $table, 'count' => $rows]));
+        }
+
+        if ($hasSettings) {
+            $this->line('  '.__('Its saved settings and secrets.'));
         }
 
         if (! $this->option('force') && ! $this->confirm(__('Remove these tables and everything in them?'))) {
@@ -77,7 +84,7 @@ final class RemovePluginDataCommand extends Command
             return self::FAILURE;
         }
 
-        $this->components->info(__('Removed :n tables from :label.', ['n' => count($dropped), 'label' => $label]));
+        $this->components->info(__('Removed :n tables, and its saved settings and secrets, from :label.', ['n' => count($dropped), 'label' => $label]));
 
         return self::SUCCESS;
     }

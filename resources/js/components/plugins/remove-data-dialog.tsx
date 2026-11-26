@@ -44,7 +44,7 @@ export function RemoveDataDialog({
                         </DialogTitle>
                         <DialogDescription>
                             {__(
-                                'These tables and everything in them are deleted. This can’t be undone.',
+                                'These tables, any saved settings and stored secrets, and everything in them are deleted. This can’t be undone.',
                             )}
                         </DialogDescription>
                     </DialogHeader>
@@ -66,6 +66,16 @@ export function RemoveDataDialog({
                                           })}
                                 </li>
                             ))}
+                            {plugin.savedData.saved && (
+                                <li data-test="remove-data-settings">
+                                    {plugin.savedData.secrets > 0
+                                        ? __(
+                                              'Its saved settings and :count stored secrets',
+                                              { count: plugin.savedData.secrets },
+                                          )
+                                        : __('Its saved settings')}
+                                </li>
+                            )}
                         </ul>
                     </ScrollArea>
                     <DialogFooter>
