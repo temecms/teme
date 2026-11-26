@@ -100,7 +100,7 @@ The **Report** says what came across, by kind, with each warning and error. It e
 
 **Download the full report** gives you every item as a spreadsheet; **Download what needs attention**, only the ones that failed or have a warning. Fix them on WordPress or here, then catch up.
 
-Each import of the site is listed under **Past imports**, newest first, with its own report.
+Each import of the site is listed on the **History** tab, newest first, with its own report.
 
 ## To bring what changed
 
