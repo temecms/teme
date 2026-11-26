@@ -12,10 +12,12 @@ use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Seo\SocketAnswerRefused;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\Fixtures\Export\ExportAs;
 use Tests\Fixtures\Plugins\Exporter\Exporter;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -140,4 +142,62 @@ it('refuses a plugin that declares exports it doesn’t hand over', function ():
     expect(DeclaredExports::startErrors(['exports' => [['id' => 'bookings', 'noun' => 'booking|bookings']]], new stdClass))
         ->toHaveCount(1)
         ->and(DeclaredExports::startErrors([], new Exporter))->toBe(['It hands over exports but declares none.']);
+});
+
+it('leaves out a plugin whose query fails, and the export still finishes', function (): void {
+    ['faults' => $faults] = ($this->enable)();
+    Exporter::$lines = fn (?string $after): array => ['lines' => array_map(fn (object $row): array => (array) $row, DB::select('select * from no_such_table')), 'next' => null];
+
+    ExportAs::operator($this->folder);
+    $manifest = ExportAs::manifest($this->folder);
+
+    expect(file_exists("{$this->folder}/plugin_exporter_bookings.ndjson"))->toBeFalse()
+        ->and(file_exists("{$this->folder}/settings.ndjson"))->toBeTrue()
+        ->and($faults->seen)->toHaveCount(1)
+        ->and(collect($manifest['left_out'])->last()['what'])->toContain('plugin_exporter_bookings.ndjson');
+});
+
+it('refuses a page with no lines that says there is another, a repeated next, and a plugin that never finishes', function (string $case): void {
+    ['faults' => $faults] = ($this->enable)();
+    $count = 0;
+    Exporter::$lines = match ($case) {
+        'empty' => fn (?string $after): array => ['lines' => [], 'next' => 'more'],
+        'repeat' => fn (?string $after): array => ['lines' => [['id' => 1]], 'next' => 'same'],
+        'never' => function (?string $after) use (&$count): array {
+            $count++;
+
+            return ['lines' => [['id' => $count]], 'next' => (string) $count];
+        },
+    };
+
+    ExportAs::operator($this->folder);
+
+    expect(file_exists("{$this->folder}/plugin_exporter_bookings.ndjson"))->toBeFalse()
+        ->and($faults->seen)->toHaveCount(1)
+        ->and($faults->seen[0][3])->toBeInstanceOf(SocketAnswerRefused::class);
+})->with(['empty', 'repeat', 'never']);
+
+it('skips a second file whose name is taken, as that plugin’s fault, and goes on', function (): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+    app()->instance(LoadedPlugins::class, new LoadedPlugins);
+    $faults = new SeoSocketFaults;
+    app()->instance(ListenerFaults::class, $faults);
+    $one = PluginFixtures::copy('exporter', ['name' => 'tests/clash', 'code' => 'clash', 'plugin' => 'Tests\\Fixtures\\Plugins\\Exporter\\ClashA', 'contributes' => ['exports' => [['id' => 'bookings-list', 'noun' => 'booking|bookings']]]], ['name' => 'tests/clash']);
+    $two = PluginFixtures::copy('exporter', ['name' => 'tests/clash-bookings', 'code' => 'clash-bookings', 'plugin' => 'Tests\\Fixtures\\Plugins\\Exporter\\ClashB', 'contributes' => ['exports' => [['id' => 'list', 'noun' => 'booking|bookings']]]], ['name' => 'tests/clash-bookings']);
+    PluginFixtures::use($one, $two);
+
+    foreach (['tests/clash', 'tests/clash-bookings'] as $name) {
+        $manifest = app(PluginRegistry::class)->find($name)?->manifest;
+        app(EnablePlugin::class)->execute(new EnablePluginInput($name, '1.0.0', [], [], [], null));
+    }
+
+    app(PluginLoader::class)->load();
+    ExportAs::operator($this->folder);
+    $manifest = ExportAs::manifest($this->folder);
+
+    expect(array_column($manifest['plugin_kinds'], 'plugin'))->toBe(['tests/clash'])
+        ->and(file_exists("{$this->folder}/plugin_clash_bookings_list.ndjson"))->toBeTrue()
+        ->and($faults->seen)->toHaveCount(1)
+        ->and($faults->seen[0][0])->toBe('tests/clash-bookings')
+        ->and(ExportAs::leftovers($this->folder))->toBe([]);
 });

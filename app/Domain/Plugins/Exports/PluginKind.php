@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Exports;
 
 use App\Domain\Export\ExportContext;
+use App\Domain\Export\ExportJson;
 use App\Domain\Export\ExportKind;
 use App\Domain\Plugins\Seo\SeoPlugin;
 use App\Domain\Plugins\Seo\SeoPlugins;
@@ -31,6 +32,11 @@ final class PluginKind implements ExportKind
     public const int MOST_PAGES = 100_000;
 
     private ?PluginExportKind $kind = null;
+
+    private ?int $version = null;
+
+    /** @var array<string, string>|null */
+    private ?array $fields = null;
 
     /**
      * @param  Closure(): array<array-key, mixed>  $given  what the plugin's exportKinds() answers, asked once
@@ -50,7 +56,7 @@ final class PluginKind implements ExportKind
 
     public function version(): int
     {
-        return max(1, $this->resolve()->version());
+        return $this->version ??= max(1, $this->resolve()->version());
     }
 
     public function description(): string
@@ -67,43 +73,77 @@ final class PluginKind implements ExportKind
 
     public function fields(): array
     {
-        return $this->resolve()->fields();
+        return $this->fields ??= $this->resolve()->fields();
     }
 
+    /**
+     * Every failure from here is the plugin's, thrown as PluginKindFailed:
+     * what the plugin throws, and what it answers that core refuses. The
+     * folder's own failures, such as a full disk, happen where the lines are
+     * written, never in here.
+     */
     public function lines(ExportContext $context): iterable
     {
-        $kind = $this->resolve();
-        $after = null;
+        try {
+            $kind = $this->resolve();
+            // Asked before the first line, so the writer never calls the plugin for them.
+            $this->version();
+            $this->fields();
+            $after = null;
 
-        for ($pages = 1; $pages <= self::MOST_PAGES; $pages++) {
-            $answer = self::asked($kind, $after);
-            $lines = is_array($answer) ? ($answer['lines'] ?? null) : null;
-            $next = is_array($answer) ? ($answer['next'] ?? null) : null;
+            for ($pages = 1; $pages <= self::MOST_PAGES; $pages++) {
+                $answer = self::asked($kind, $after);
+                $lines = is_array($answer) ? ($answer['lines'] ?? null) : null;
+                $next = is_array($answer) ? ($answer['next'] ?? null) : null;
 
-            if (! is_array($answer) || ! is_array($lines) || ! array_is_list($lines) || count($lines) > PluginExportKind::MOST_LINES || ($next !== null && (! is_string($next) || $next === ''))) {
-                throw new SocketAnswerRefused('A page of lines must be {"lines": a list of at most 1000 lines, "next": a text or null}.');
-            }
-
-            foreach ($lines as $line) {
-                if (! is_array($line)) {
-                    throw new SocketAnswerRefused('A line must be an array.');
+                if (! is_array($answer) || ! is_array($lines) || ! array_is_list($lines) || count($lines) > PluginExportKind::MOST_LINES || ($next !== null && (! is_string($next) || $next === ''))) {
+                    throw new SocketAnswerRefused('A page of lines must be {"lines": a list of at most 1000 lines, "next": a text or null}.');
                 }
 
-                yield $line;
+                if ($lines === [] && $next !== null) {
+                    throw new SocketAnswerRefused('A page with no lines can’t say there is a page after it.');
+                }
+
+                foreach ($lines as $line) {
+                    if (! is_array($line)) {
+                        throw new SocketAnswerRefused('A line must be an array.');
+                    }
+
+                    if (array_key_exists('kind', $line) || array_key_exists('version', $line)) {
+                        throw new SocketAnswerRefused('A line can’t set its own kind or version.');
+                    }
+
+                    // Written as the writer will write it, so a value that can't be JSON is the plugin's fault, not the disk's.
+                    ExportJson::line(['kind' => $this->name(), 'version' => $this->version(), ...$line]);
+
+                    yield $line;
+                }
+
+                if ($next === null) {
+                    return;
+                }
+
+                if ($next === $after) {
+                    throw new SocketAnswerRefused('A page said the page after it starts where it did.');
+                }
+
+                $after = $next;
             }
 
-            if ($next === null) {
-                return;
-            }
-
-            if ($next === $after) {
-                throw new SocketAnswerRefused('A page said the page after it starts where it did.');
-            }
-
-            $after = $next;
+            throw new SocketAnswerRefused('The export never said it was done.');
+        } catch (PluginKindFailed $failed) {
+            throw $failed;
+        } catch (Throwable $failure) {
+            throw new PluginKindFailed($failure->getMessage(), $failure);
         }
+    }
 
-        throw new SocketAnswerRefused('The export never said it was done.');
+    /**
+     * Notes a file that can't be written because its name is taken, as this plugin's fault.
+     */
+    public function nameTaken(): PluginKindFailed
+    {
+        return new PluginKindFailed("Another file is already named {$this->name()}.", new SocketAnswerRefused("Two exports can’t share the file name {$this->name()}."));
     }
 
     /**
@@ -112,9 +152,9 @@ final class PluginKind implements ExportKind
      *
      * @return array{what: string, why: string}
      */
-    public function failed(Throwable $failure): array
+    public function failed(PluginKindFailed $failure): array
     {
-        $this->plugins->fault($this->plugin, 'export', HasExportKinds::class, $failure);
+        $this->plugins->fault($this->plugin, 'export', HasExportKinds::class, $failure->getPrevious() ?? $failure);
 
         return [
             'what' => "{$this->plugin->label}’s ".explode('|', $this->noun)[1]." ({$this->name()}.ndjson)",

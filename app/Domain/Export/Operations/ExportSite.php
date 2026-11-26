@@ -28,6 +28,7 @@ use App\Domain\Export\ExportSnapshot;
 use App\Domain\Export\MediaTally;
 use App\Domain\Export\Operations\Input\ExportSiteInput;
 use App\Domain\Plugins\Exports\PluginKind;
+use App\Domain\Plugins\Exports\PluginKindFailed;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -96,27 +97,44 @@ final class ExportSite extends BaseOperation
         $files = [];
         $pluginKinds = [];
         $leftOut = [];
+        $names = [];
 
         try {
             foreach ($this->kinds->all() as $kind) {
-                $file = $folder->ndjson($kind);
-
                 // A plugin's file never stops the export: one that fails is left out, and said so.
                 if ($kind instanceof PluginKind) {
+                    $file = null;
+
                     try {
-                        foreach ($kind->lines($context) as $line) {
-                            $file->write($line);
+                        if (isset($names[$kind->name()])) {
+                            throw $kind->nameTaken();
                         }
+
+                        $file = $folder->ndjson($kind);
+
+                        // Its own savepoint: a failed statement in the plugin's code can't abort the export's transaction.
+                        DB::transaction(function () use ($kind, $context, $file): void {
+                            foreach ($kind->lines($context) as $line) {
+                                $file->write($line);
+                            }
+                        });
 
                         $files[] = $file->close();
                         $pluginKinds[] = $kind->toManifest();
-                    } catch (Throwable $failure) {
-                        $folder->remove($file);
+                        $names[$kind->name()] = true;
+                    } catch (PluginKindFailed $failure) {
+                        if ($file !== null) {
+                            $folder->remove($file);
+                        }
+
                         $leftOut[] = $kind->failed($failure);
                     }
 
                     continue;
                 }
+
+                $file = $folder->ndjson($kind);
+                $names[$kind->name()] = true;
 
                 foreach ($kind->lines($context) as $line) {
                     $file->write($line);
