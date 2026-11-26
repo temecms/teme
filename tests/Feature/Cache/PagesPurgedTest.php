@@ -77,3 +77,30 @@ it('sends nothing when the change is rolled back', function (): void {
         ->toThrow(RuntimeException::class)
         ->and($heard->getArrayCopy())->toBe([]);
 });
+
+it('sends one PagesPurged when an item is published, with that item’s address', function (): void {
+    $story = addrPublished($this->author, 'Big story');
+    addrGet('/big-story/')->assertHeader('X-Teme-Cache', 'MISS');
+    docSave($story, $this->author, docWith(docText('A longer story.')));
+    cacheWarmOn();
+    $heard = pagesPurgedRecord();
+
+    listsPublish($story, $this->author);
+
+    expect($heard)->toHaveCount(1)
+        ->and($heard[0]['payload']->addresses)->toBe(['http://localhost/big-story/'])
+        ->and($heard[0]['payload']->tags)->toContain(PageTags::url('/big-story/'));
+});
+
+it('sends PagesPurged with no addresses when the cache warms none', function (): void {
+    $story = addrPublished($this->author, 'Big story');
+    addrGet('/big-story/')->assertHeader('X-Teme-Cache', 'MISS');
+    config(['page_cache.warm.enabled' => false]);
+    $heard = pagesPurgedRecord();
+
+    app(TrashContent::class)->execute(new ContentActionInput((string) $story->id, (string) $this->editor->id));
+
+    expect($heard)->toHaveCount(1)
+        ->and($heard[0]['payload']->addresses)->toBe([])
+        ->and($heard[0]['payload']->tags)->toContain(PageTags::url('/big-story/'));
+});
