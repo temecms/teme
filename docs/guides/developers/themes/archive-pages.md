@@ -21,10 +21,12 @@ Both are `null` on every other listing, so check before you print:
 
 ```blade
 <h1>{{ $page->heading ?? $page->subject->title }}</h1>
+```
 
-@if ($page->introHtml)
-    <div class="archive-intro">{!! $page->introHtml !!}</div>
-@endif
+Print the intro where the page opens, unescaped, since it is already drawn:
+
+```blade
+@if ($page->introHtml)<div class="archive-intro">{!! $page->introHtml !!}</div>@endif
 ```
 
 Only types the site made in Site › Types have these. A type a plugin or the code declares has no heading or intro of its own, and keeps its plural name.
@@ -59,3 +61,48 @@ Each link has a `label` and a `url`; print both with `{{ }}`:
 ```blade
 @if ($page->subject->publishedCount !== null){{ $page->subject->publishedCount }} published@endif
 ```
+
+## Search suggestions for an overlay
+
+A search overlay that shows matches while a visitor types asks `GET /_teme/suggest`. It is read-only, and it gives the first of the public search's own results, so it shows the same items, with the same visibility, as the search page would: nothing unpublished, private or protected.
+
+| Parameter | What it is |
+|---|---|
+| `q` | What the visitor has typed. Shorter than two characters gives no items; only the first 200 characters are read |
+| `lang` | The page's language tag, `$language->tag`. Leave it out, or give the default's, for the default language; one that isn't a shown language of the site is read as the default's |
+
+The answer is JSON, with at most eight items, best match first:
+
+```json
+{"query": "heron", "items": [{"title": "Herons return to the creek", "url": "/herons-return/", "type": "post"}]}
+```
+
+Each `url` is generated from the site's address when the answer is drawn, so it is correct on every domain. Print `title` as text, never as HTML.
+
+Answers are kept by the page cache for a minute, one for each `q` and `lang`, and an item that changes removes the answers it was in. A reader is allowed sixty drawn answers a minute; past that the address answers 429, so wait for the visitor to pause typing (a debounce of 200 milliseconds is plenty). The page's content security policy already allows the request, since it goes to the site's own address. This is a whole script:
+
+```js
+// docs/guides/developers/examples/themes/search-suggest.js
+const input = document.querySelector('[data-suggest-input]');
+const list = document.querySelector('[data-suggest-list]');
+const language = input.dataset.language;
+let timer;
+
+input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+        const query = input.value.trim();
+        const url = '/_teme/suggest?q=' + encodeURIComponent(query) + (language ? '&lang=' + encodeURIComponent(language) : '');
+        const answer = await (await fetch(url)).json();
+
+        list.replaceChildren(...answer.items.map((item) => {
+            const link = document.createElement('a');
+            link.href = item.url;
+            link.textContent = item.title;
+            return link;
+        }));
+    }, 200);
+});
+```
+
+The markup it expects is an `<input data-suggest-input data-language="{{ $language->tag }}">` beside an empty `<div data-suggest-list></div>`; the full search at `/?s=` stays available for the visitor who presses Enter.

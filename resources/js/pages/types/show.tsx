@@ -465,13 +465,15 @@ function TypeForm({
 
                             <Section id="type-section-archive">
                                 <FormPanel
-                                    title="Archive page"
-                                    description="The heading and opening text of the page listing every published item. Themes draw them above the list."
+                                    title={__('Archive page')}
+                                    description={__(
+                                        'The heading and opening text of the page listing every published item. Themes draw them above the list.',
+                                    )}
                                 >
                                     <Field
                                         id="type-archive-heading"
                                         name="archive_heading"
-                                        label="Heading"
+                                        label={__('Heading')}
                                         value={archiveHeading}
                                         error={errors.archive_heading}
                                         onChange={setArchiveHeading}

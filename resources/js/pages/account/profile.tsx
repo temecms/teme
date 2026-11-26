@@ -228,7 +228,9 @@ export default function Profile({
                                                     'Link :number address',
                                                     { number: index + 1 },
                                                 )}
-                                                placeholder="https://"
+                                                placeholder={__(
+                                                    'https://example.org',
+                                                )}
                                             />
                                             <InputError
                                                 message={

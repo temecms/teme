@@ -26,6 +26,9 @@ final readonly class PageKey
     /** The query parameters a public page's answer depends on without plugins: PathResolver reads `s` (1.6h). */
     public const array QUERY = ['s'];
 
+    /** The address of the search suggestions a theme's overlay asks for. */
+    public const string SUGGESTIONS = '/_teme/suggest';
+
     /**
      * @param  bool  $search  whether the key keeps a query the reader wrote: a search's page, or an API answer with parameters
      */
@@ -64,7 +67,12 @@ final readonly class PageKey
 
         // An API answer depends on every parameter its route takes, and the
         // API refuses any other, so a stored answer is never one a typo made.
-        $names = ApiPaths::is($path) ? array_map(strval(...), array_keys($parameters)) : $registry->cacheQueryNames();
+        $names = match (true) {
+            ApiPaths::is($path) => array_map(strval(...), array_keys($parameters)),
+            // The suggestions' answer depends on the query and the language, and on nothing else.
+            self::isSuggestions($path) => ['q', 'lang'],
+            default => $registry->cacheQueryNames(),
+        };
         $kept = [];
 
         foreach ($names as $name) {
@@ -85,6 +93,14 @@ final readonly class PageKey
         $suffix = $accept === null ? '' : '|accept:'.$accept;
 
         return new self(strtolower($request->getSchemeAndHttpHost()).$path.$query.$suffix, $path, $kept !== []);
+    }
+
+    /**
+     * Whether this path is the suggestions' address, read as the router reads it.
+     */
+    public static function isSuggestions(string $path): bool
+    {
+        return rtrim(strtolower(rawurldecode($path)), '/') === self::SUGGESTIONS;
     }
 
     /**
