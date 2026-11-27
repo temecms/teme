@@ -17,12 +17,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\ChooseSlotProviderInput;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Plugins\Slots\SlotProviders;
+use App\Domain\Search\PostgresSiteSearch;
 use App\Domain\Support\Operations\BaseOperation;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -77,6 +79,11 @@ final class ChooseSlotProvider extends BaseOperation
             ->map(fn (string $code): string => 'plugin:'.$code)
             ->values()
             ->all();
+
+        // Searches drawn by either engine, or by core while none was chosen, change with the engine: the lists go.
+        if ($input->slot === PluginSlots::SEARCH) {
+            $codes = [...$codes, ...array_map(PageTags::listOf(...), app(PostgresSiteSearch::class)->searchable(null))];
+        }
 
         if ($codes !== []) {
             $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'slot:'.$input->slot, $codes));

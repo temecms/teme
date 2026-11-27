@@ -56,7 +56,8 @@ final readonly class RoutedSiteSearch implements SiteSearch
 
         // The lists the engine's answer draws are the ones core would draw, so a publish purges the same cached pages.
         if (trim($request->query) !== '') {
-            app(RenderRecord::class)->tag(...array_map(PageTags::listOf(...), $this->core->searchable($request->counts ? null : $request->types)));
+            // Tagged with the engine's plugin too, so switching engines purges the pages it answered (ChooseSlotProvider).
+            app(RenderRecord::class)->tag('plugin:'.$engine['plugin']->code, ...array_map(PageTags::listOf(...), $this->core->searchable($request->counts ? null : $request->types)));
         }
 
         // A failure or a late answer is recorded by SeoPlugins::ask, once; the search then falls back to core's.

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\ChooseSlotProvider;
@@ -117,4 +118,24 @@ it('requires search.read of a plugin that fills the search slot', function (): v
 
     expect($validator->errors(['provides' => ['search']], '1.0.0', ['content.read']))->not->toBeEmpty()
         ->and($validator->errors(['provides' => ['search']], '1.0.0', ['search.read']))->toBe([]);
+});
+
+it('purges the cached search lists when the search engine changes', function (): void {
+    $folder = cacheOn();
+
+    try {
+        PluginFixtures::use('searcher');
+        $manifest = app(PluginRegistry::class)->find('tests/searcher')?->manifest;
+        app()->instance(Elevation::class, new OperatorElevation);
+        app(EnablePlugin::class)->execute(new EnablePluginInput('tests/searcher', '1.0.0', $manifest?->capabilities() ?? [], [], [], null));
+        app(PluginLoader::class)->load();
+
+        cacheShown(['/search-page/' => [PageTags::listOf('post')], '/elsewhere/' => ['some-other-tag']]);
+
+        app(ChooseSlotProvider::class)->execute(new ChooseSlotProviderInput(slot: PluginSlots::SEARCH, plugin: 'tests/searcher', actorId: null));
+
+        expect(cacheKept('/search-page/', '/elsewhere/'))->toBe(['/elsewhere/']);
+    } finally {
+        cacheOff($folder);
+    }
 });

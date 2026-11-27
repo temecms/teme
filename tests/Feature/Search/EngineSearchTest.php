@@ -173,3 +173,12 @@ it('keeps listening for publishes before an engine is chosen, so one chosen late
 
     expect(Searcher::$indexed)->toHaveKey($id);
 });
+
+it('tags an engine-answered search page with its plugin, so switching the engine purges it', function (): void {
+    Searcher::$answer = fn (SearchRequest $request): SearchHits => new SearchHits([], 0, false);
+
+    app(RenderRecord::class)->start(0);
+    app(SiteSearch::class)->search(new SearchRequest('manger', 1, 10, ['post']));
+
+    expect(app(RenderRecord::class)->tags())->toContain('plugin:searcher');
+});
