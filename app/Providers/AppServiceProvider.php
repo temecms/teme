@@ -19,7 +19,7 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Policies\ContentPolicy;
 use App\Domain\Deployment\DestructiveCommands;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
-use App\Domain\Search\PostgresSiteSearch;
+use App\Domain\Search\RoutedSiteSearch;
 use App\Domain\Status\StatusChecks;
 use App\Domain\Users\Actors;
 use App\Http\Standalone\ErrorReference;
@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(ErrorReference::class);
 
         // Core's search; a plugin may bind another engine behind the contract.
-        $this->app->bind(SiteSearch::class, PostgresSiteSearch::class);
+        $this->app->bind(SiteSearch::class, RoutedSiteSearch::class);
     }
 
     public function boot(): void

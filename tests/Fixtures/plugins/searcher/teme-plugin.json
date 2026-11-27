@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "tests/searcher",
+    "code": "searcher",
+    "label": "Searcher",
+    "description": "A plugin the tests enable, which answers the site's searches from its own engine.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Searcher\\Searcher",
+    "capabilities": [],
+    "contributes": {
+        "provides": ["search"]
+    }
+}

@@ -17,13 +17,14 @@ namespace App\Domain\Plugins\Slots;
 
 use Teme\Contracts\Comments\HasCommentCheck;
 use Teme\Contracts\Media\HasImageService;
+use Teme\Contracts\Search\HasSearchEngine;
 
 final class PluginSlots
 {
     /** The image service's slot: the driver that gives images' addresses. */
     public const string IMAGE_SERVICE = 'image-service';
 
-    /** The search engine's slot. Its contract comes with issue 780. */
+    /** The search engine's slot: a plugin answers the site's searches. */
     public const string SEARCH = 'search';
 
     /** The comment check's slot: a plugin judges each comment before it is saved. */
@@ -41,7 +42,7 @@ final class PluginSlots
     {
         return [
             self::IMAGE_SERVICE => ['label' => 'Image service', 'contract' => HasImageService::class, 'default' => true],
-            self::SEARCH => ['label' => 'Search', 'contract' => null, 'default' => true],
+            self::SEARCH => ['label' => 'Search', 'contract' => HasSearchEngine::class, 'default' => true],
             self::COMMENT_CHECK => ['label' => 'Comment check', 'contract' => HasCommentCheck::class, 'default' => false],
         ];
     }

@@ -90,10 +90,9 @@ it('refuses a person without plugins.manage, and writes nothing', function (): v
     expect(DB::table('plugin_slot_choices')->count())->toBe(0);
 });
 
-it('refuses a slot that core does not declare or that has no contract yet', function (): void {
-    expect(PluginSlotDeclaration::errors(['search']))->not->toBeEmpty()
-        ->and(PluginSlotDeclaration::errors(['nope']))->not->toBeEmpty()
-        ->and(PluginSlotDeclaration::errors(['image-service']))->toBe([]);
+it('refuses a slot that core does not declare', function (): void {
+    expect(PluginSlotDeclaration::errors(['nope']))->not->toBeEmpty()
+        ->and(PluginSlotDeclaration::errors(['image-service', 'search', 'comment-check']))->toBe([]);
 });
 
 it('refuses a plugin that names a slot it does not implement', function (): void {

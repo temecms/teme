@@ -173,7 +173,7 @@ final readonly class PostgresSiteSearch implements SiteSearch
      *
      * @return list<string>
      */
-    private function searchable(?array $requested): array
+    public function searchable(?array $requested): array
     {
         $searchable = array_values(array_map(
             fn (ContentType $type): string => $type->key,

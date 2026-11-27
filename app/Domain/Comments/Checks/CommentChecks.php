@@ -23,7 +23,6 @@ use Teme\Contracts\Comments\CommentCandidate;
 use Teme\Contracts\Comments\HasCommentCheck;
 use Teme\Contracts\Comments\ModerationVerdict;
 use Teme\Contracts\Plugins\Capability;
-use Throwable;
 
 final class CommentChecks
 {
@@ -56,15 +55,9 @@ final class CommentChecks
 
             $running = $plugin->running;
 
-            // A failure is recorded here, once; a late answer or a skipped plugin is SeoPlugins'.
-            return $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($plugin, $running, $comment): ?ModerationVerdict {
-                try {
-                    $answer = $running->check($comment);
-                } catch (Throwable $failure) {
-                    $this->plugins->fault($plugin, self::SOCKET, HasCommentCheck::class, $failure);
-
-                    return null;
-                }
+            // A failure, a late answer or a skipped plugin is recorded by SeoPlugins::ask; no opinion then.
+            return $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($running, $comment): ?ModerationVerdict {
+                $answer = $running->check($comment);
 
                 return $answer instanceof ModerationVerdict ? $answer : null;
             });
