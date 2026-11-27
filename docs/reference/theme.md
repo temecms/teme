@@ -29,7 +29,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `title_separator` | string | no | Between the parts of a page's title; – when absent. |
 | `layout` | object | no | The content, wide and full widths in pixels. |
 | `images` | object | no | Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses. |
-| `fonts` | array | no | The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there. |
+| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each (family, weight, style, src as the same-origin theme file, font-display swap) and preloads at most one. Each file is relative to the theme's public folder and exists there. A theme that writes its own @font-face rules leaves this key out. |
 | `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. For a theme's own names, use custom_tokens. |
 | `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. |
 | `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |
@@ -519,7 +519,7 @@ A field reaches a template as a `FieldView`, from `$page->field('handle')` or a 
 
 ### `<x-teme::document>`
 
-`<x-teme::document>`: core's document shell around every public page, so a template writes only its own markup. It writes the `lang` and `dir`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, the theme's tokens and its dark ones, with the site's accent, lightened for the dark scheme, the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link. It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
+`<x-teme::document>`: core's document shell around every public page, so a template writes only its own markup. It writes the `lang` and `dir`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, `@font-face` rules from the manifest's fonts, the theme's tokens and its dark ones, with the site's accent, lightened for the dark scheme, the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link. It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
 
 No attributes.
 

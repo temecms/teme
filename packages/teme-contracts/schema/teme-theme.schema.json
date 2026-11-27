@@ -228,7 +228,7 @@
         },
         "fonts": {
             "type": "array",
-            "description": "The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there.",
+            "description": "The theme's fonts. Core writes an @font-face for each (family, weight, style, src as the same-origin theme file, font-display swap) and preloads at most one. Each file is relative to the theme's public folder and exists there. A theme that writes its own @font-face rules leaves this key out.",
             "items": {
                 "type": "object",
                 "required": ["family", "file"],

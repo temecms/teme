@@ -42,11 +42,12 @@ use Illuminate\View\Component;
  * so a template writes only its own markup. It writes the `lang`
  * and `dir`,
  * the colour scheme, the title, the head's typed entries (DocumentMeta, the
- * robots value among them), the one preloaded font, the theme's tokens and
- * its dark ones, with the site's accent, lightened for the dark scheme,
- * the theme's assets, the styles of the cards the page drew, the
- * page's JSON-LD graph, the three placements, with their fragments, the skip
- * link and its style, the speculation rules, and core's small script, which in a browser that
+ * robots value among them), the one preloaded font, `@font-face` rules from
+ * the manifest's fonts, the theme's tokens and its dark ones, with the
+ * site's accent, lightened for the dark scheme, the theme's assets, the
+ * styles of the cards the page drew, the page's JSON-LD graph, the three
+ * placements, with their fragments, the skip link and its style, the
+ * speculation rules, and core's small script, which in a browser that
  * signed in asks who is reading and adds the "Edit" link.
  * It reads the page from ComposerRegistry, where PublicPage started it,
  * never the template's variables.
@@ -142,6 +143,8 @@ final class Document extends Component
             $accent === '' ? null : Contrast::accentSchemes($accent, $manifest),
             $variation['custom_tokens'] ?? $manifest?->customTokens() ?? [],
             $manifest?->customTokensDark() ?? [],
+            $code,
+            $manifest?->fonts() ?? [],
         );
         $this->assets = $assets->tags();
         $this->replacedCards = $manifest?->replacedCards() ?? [];
@@ -214,27 +217,56 @@ final class Document extends Component
      * for the dark scheme, chosen or the reader's own, or '' for
      * none. With the site's accent set, each scheme takes its pair, the dark
      * one lightened, in place of the theme's accent and on-accent. A theme's
-     * own tokens (issue 370) follow the core list in each scheme.
+     * own tokens (issue 370) follow the core list in each scheme. Each fonts
+     * entry becomes an `@font-face` rule (issue 372); a theme that writes its
+     * own faces leaves fonts out.
      *
      * @param  array<string, string>  $tokens
      * @param  array<string, string>  $tokensDark
      * @param  array{light: array{accent: string, onAccent: string, ratio: float}, dark: array{accent: string, onAccent: string, ratio: float}|null}|null  $schemes
      * @param  array<string, string>  $custom
      * @param  array<string, string>  $customDark
+     * @param  list<array{family: string, file: string, weight: string, style: string, preload: bool}>  $fonts
      */
-    private function styleOf(array $tokens, array $tokensDark, ?array $schemes, array $custom = [], array $customDark = []): string
+    private function styleOf(array $tokens, array $tokensDark, ?array $schemes, array $custom = [], array $customDark = [], ?string $code = null, array $fonts = []): string
     {
+        $faces = $this->fontFaces($code, $fonts);
         $lightCore = $schemes === null ? $tokens : $this->withAccent($tokens, $schemes['light']);
         $light = $this->declarations([...$lightCore, ...$custom]);
         $darkCore = $tokensDark === [] && $customDark === [] ? [] : ($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
         $dark = $this->declarations([...$darkCore, ...$customDark]);
-        $style = $light === '' ? '' : ':root{'.$light.'}';
+        $style = $faces.($light === '' ? '' : ':root{'.$light.'}');
 
         if ($dark !== '') {
             $style .= ':root[data-scheme="dark"]{'.$dark.'}@media (prefers-color-scheme: dark){:root[data-scheme="auto"]{'.$dark.'}}';
         }
 
         return $style;
+    }
+
+    /**
+     * `@font-face` rules for the theme's fonts (issue 372), or '' when it
+     * declares none. Family is quoted; src is the same-origin theme address.
+     *
+     * @param  list<array{family: string, file: string, weight: string, style: string, preload: bool}>  $fonts
+     */
+    private function fontFaces(?string $code, array $fonts): string
+    {
+        if ($code === null || $fonts === []) {
+            return '';
+        }
+
+        $rules = [];
+
+        foreach ($fonts as $font) {
+            if (preg_match('/[;{}<>]/', $font['family'].$font['weight'].$font['style'].$font['file']) === 1) {
+                continue;
+            }
+
+            $rules[] = '@font-face{font-family:"'.$font['family'].'";font-weight:'.$font['weight'].';font-style:'.$font['style'].';src:url('.asset("themes/{$code}/{$font['file']}").') format("woff2");font-display:swap}';
+        }
+
+        return implode('', $rules);
     }
 
     /**

@@ -43,7 +43,7 @@
 | `layout.wide` | integer | yes |  |  |
 | `layout.full` | integer\|null | no | Null for the whole viewport. |  |
 | `images` | object | no | Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses. |  |
-| `fonts` | array | no | The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there. |  |
+| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each (family, weight, style, src as the same-origin theme file, font-display swap) and preloads at most one. Each file is relative to the theme's public folder and exists there. A theme that writes its own @font-face rules leaves this key out. |  |
 | `fonts[].family` | string | yes |  |  |
 | `fonts[].file` | string | yes |  |  |
 | `fonts[].weight` | string\|integer | no | Any number or text, such as 400 or "400 700". |  |
