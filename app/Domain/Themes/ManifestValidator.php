@@ -59,7 +59,10 @@ final class ManifestValidator
     public const string SETTING_KEY = '/^[a-z][a-z0-9_]{1,40}$/';
 
     /** The setting types a theme may declare. */
-    public const array SETTING_TYPES = ['select', 'boolean', 'text', 'color'];
+    public const array SETTING_TYPES = ['select', 'boolean', 'text', 'color', 'number', 'image', 'menu', 'links', 'url', 'textarea'];
+
+    /** How many links a links setting may hold. */
+    public const int MOST_LINKS = 12;
 
     private const string COLOR = '/^#[0-9a-fA-F]{6}$/';
 
@@ -105,11 +108,17 @@ final class ManifestValidator
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
         'custom_tokens', 'custom_tokens_dark', 'styles',
-        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
+        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'site_icon', 'screenshots',
     ];
 
     /** The setting core adds when a theme declares styles (issue 371). */
     public const string STYLE_SETTING = 'style';
+
+    /**
+     * The manifest's `site_icon`: a path inside the theme's public folder,
+     * with no `..`, to a .png, .jpg, .jpeg, .webp or .svg picture.
+     */
+    public const string SITE_ICON = '~^(?!/)(?!(?:.*/)?\.\.(?:/|$))[^\\\\\s:]+\.(?:png|jpe?g|webp|svg)$~i';
 
     public function __construct(private readonly CardRegistry $cards) {}
 
@@ -169,6 +178,10 @@ final class ManifestValidator
 
         if (array_key_exists('screenshot', $manifest) && (! is_string($manifest['screenshot']) || preg_match(self::SCREENSHOT, $manifest['screenshot']) !== 1)) {
             $errors[] = 'screenshot must be a path inside the theme, with no .., to a .png, .jpg or .webp image.';
+        }
+
+        if (array_key_exists('site_icon', $manifest) && (! is_string($manifest['site_icon']) || preg_match(self::SITE_ICON, $manifest['site_icon']) !== 1)) {
+            $errors[] = 'site_icon must be a path inside the theme\'s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture.';
         }
 
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
@@ -431,7 +444,7 @@ final class ManifestValidator
         $type = $setting['type'] ?? null;
 
         if (! is_string($type) || ! in_array($type, self::SETTING_TYPES, true)) {
-            $errors[] = "The setting \"{$key}\" has type \"{$this->show($type)}\": a theme setting is a select, boolean, text or color.";
+            $errors[] = "The setting \"{$key}\" has type \"{$this->show($type)}\": a theme setting is a select, boolean, text, color, number, image, menu, links, url or textarea.";
             $type = null;
         }
 
@@ -447,6 +460,10 @@ final class ManifestValidator
             $errors[] = "The setting \"{$key}\" needs a fieldset: ".implode(', ', Setting::FIELDSETS).'.';
         }
 
+        if (array_key_exists('group', $setting) && (! is_string($setting['group']) || trim($setting['group']) === '')) {
+            $errors[] = "The setting \"{$key}\" has an empty group: leave it out, or name the group.";
+        }
+
         $options = $this->settingOptions($setting['options'] ?? null);
 
         if ($type === 'select' && $options === null) {
@@ -457,19 +474,64 @@ final class ManifestValidator
             $errors[] = "The setting \"{$key}\" has options, which only a select takes.";
         }
 
+        array_push($errors, ...$this->numberBounds($key, $type, $setting));
+
         if (! array_key_exists('default', $setting)) {
             $errors[] = "The setting \"{$key}\" needs a default.";
-        } elseif ($type !== null && ($type !== 'select' || $options !== null) && ! $this->validDefault($type, $setting['default'], $options ?? [])) {
+        } elseif ($type !== null && ($type !== 'select' || $options !== null) && ! $this->validDefault($type, $setting['default'], $options ?? [], $setting)) {
             $errors[] = match ($type) {
                 'select' => "The setting \"{$key}\" has a default that isn't one of its options.",
                 'boolean' => "The setting \"{$key}\" needs a default of true or false.",
-                'text' => "The setting \"{$key}\" needs a default that is text.",
+                'text', 'textarea' => "The setting \"{$key}\" needs a default that is text.",
+                'menu' => "The setting \"{$key}\" needs a default that is an empty string.",
+                'number' => "The setting \"{$key}\" needs a default that is a whole number".(isset($setting['min'], $setting['max']) ? ' between its min and max.' : '.'),
+                'image' => "The setting \"{$key}\" needs a default of \"\".",
+                'url' => "The setting \"{$key}\" needs a default of \"\" or an http(s) address.",
+                'links' => "The setting \"{$key}\" needs a default that is a list of at most ".self::MOST_LINKS.' links, each with a label and an address.',
                 default => "The setting \"{$key}\" needs a default of \"\" or a colour written #rrggbb.",
             };
         }
 
         if (array_key_exists('visible_when', $setting)) {
             array_push($errors, ...$this->visibleWhen($key, $setting['visible_when'], $earlier));
+        }
+
+        return $errors;
+    }
+
+    /**
+     * A number setting's min, max, step and unit, when present.
+     *
+     * @param  array<array-key, mixed>  $setting
+     *
+     * @return list<string>
+     */
+    private function numberBounds(string $key, ?string $type, array $setting): array
+    {
+        if ($type !== 'number') {
+            foreach (['min', 'max', 'step', 'unit'] as $bound) {
+                if (array_key_exists($bound, $setting)) {
+                    return ["The setting \"{$key}\" has {$bound}, which only a number takes."];
+                }
+            }
+
+            return [];
+        }
+
+        $errors = [];
+
+        foreach (['min', 'max', 'step'] as $bound) {
+            if (array_key_exists($bound, $setting) && (! is_int($setting[$bound]) || ($bound === 'step' && $setting[$bound] < 1))) {
+                $errors[] = "The setting \"{$key}\" needs a whole-number {$bound}".($bound === 'step' ? ' of at least 1.' : '.');
+            }
+        }
+
+        if (isset($setting['min'], $setting['max']) && is_int($setting['min']) && is_int($setting['max']) && $setting['min'] > $setting['max']) {
+            $errors[] = "The setting \"{$key}\" has a min greater than its max.";
+        }
+
+        if (array_key_exists('unit', $setting) && (! is_string($setting['unit']) || trim($setting['unit']) === '')) {
+            $errors[] = "The setting \"{$key}\" has an empty unit: leave it out, or name the unit.";
         }
 
         return $errors;
@@ -502,15 +564,42 @@ final class ManifestValidator
 
     /**
      * @param  array<string, string>  $options
+     * @param  array<array-key, mixed>  $setting
      */
-    private function validDefault(string $type, mixed $default, array $options): bool
+    private function validDefault(string $type, mixed $default, array $options, array $setting = []): bool
     {
         return match ($type) {
             'select' => is_string($default) && array_key_exists($default, $options),
             'boolean' => is_bool($default),
-            'text' => is_string($default),
+            'text', 'textarea' => is_string($default),
+            'menu' => $default === '',
+            'image' => $default === '',
+            'url' => $default === '' || (is_string($default) && preg_match('~^https?://[^\s]+$~i', $default) === 1),
+            'number' => is_int($default)
+                && (! isset($setting['min']) || ! is_int($setting['min']) || $default >= $setting['min'])
+                && (! isset($setting['max']) || ! is_int($setting['max']) || $default <= $setting['max']),
+            'links' => $this->validLinksDefault($default),
             default => $default === '' || (is_string($default) && preg_match(self::COLOR, $default) === 1),
         };
+    }
+
+    /** Whether a links setting's default is a short list of labelled addresses. */
+    private function validLinksDefault(mixed $default): bool
+    {
+        if (! is_array($default) || ! array_is_list($default) || count($default) > self::MOST_LINKS) {
+            return false;
+        }
+
+        foreach ($default as $link) {
+            if (! is_array($link)
+                || ! is_string($link['label'] ?? null)
+                || ! is_string($link['address'] ?? null)
+                || preg_match('~^https?://[^\s]+$~i', $link['address']) !== 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

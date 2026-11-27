@@ -10,6 +10,10 @@ rests_on: [app/Domain/Site/SiteAddresses.php, app/Domain/Site/ViewModels, app/Do
 
 This page covers what a template can read beyond the basics, so it needn't count, parse or hard-code. Every value is worked out for the page's language and for what a reader may see: nothing unpublished, private or in the trash reaches a template, and every address is made from the site's current address when the page is drawn, so none is stored. Each type and field is listed in the [theme reference](../../../reference/theme.md). It describes `main` today.
 
+## Theme settings a template reads
+
+`$themeSettings` is the active theme's own settings, key to value, without its menu places. An `image` setting is `{url, alt}` or `null` when none is chosen; a `menu` setting is the menu's tree (each item with `label`, `url`, `current`, and the rest) or `null`; a `links` setting is a list of `{label, address}`; numbers, text, urls and the older types keep the stored value. The list is built once per page.
+
 ## The posts page and each archive's address
 
 `$site` holds the address of the page that lists the latest posts, and of every public type's archive page, so a menu or a "see all" link never writes `{{ $site->url }}blog/` by hand:

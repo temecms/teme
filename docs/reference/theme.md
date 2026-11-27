@@ -24,7 +24,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `templates` | object | no | Content type, then template slug, then label. Every slug but default needs views/templates/single-{type}-{slug}.blade.php: only the theme's files can say whether it exists. |
 | `navigations` | object | no | The places the theme draws a menu: slot, then label. |
 | `regions` | object | no | The places the theme puts the site's own content: slug, then label, group, cards, max, size and minWidth. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are. |
-| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. |
+| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. A number may give min, max, step and unit; a links default is a list of label and address, at most 12; group names a foldable section inside the fieldset. |
 | `assets` | object | no | The theme's Vite build. |
 | `title_separator` | string | no | Between the parts of a page's title; – when absent. |
 | `layout` | object | no | The content, wide and full widths in pixels. |
@@ -39,6 +39,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. |
 | `icon` | string | no | The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. |
+| `site_icon` | string | no | The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this. |
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |

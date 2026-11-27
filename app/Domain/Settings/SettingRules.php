@@ -71,6 +71,7 @@ final class SettingRules
                 $presence, 'integer',
                 ...($setting->min !== null ? ['min:'.$setting->min] : []),
                 ...($setting->max !== null ? ['max:'.$setting->max] : []),
+                ...($setting->step !== null ? ['multiple_of:'.$setting->step] : []),
             ],
             SettingType::Boolean => ['required', 'boolean'],
             SettingType::Select => [$presence, Rule::in(array_keys($setting->options))],

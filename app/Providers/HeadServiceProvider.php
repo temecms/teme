@@ -19,6 +19,7 @@ use App\Domain\Seo\TitlesAndListing;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Site\Head\HeadTags;
 use App\Domain\Site\Head\PageHead;
+use App\Domain\Site\Head\SiteIcons;
 use App\Domain\Site\Policy\PagePolicy;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,6 +30,6 @@ final class HeadServiceProvider extends ServiceProvider
         $this->app->tag([TitlesAndListing::class], SearchAndSocial::SECTIONS);
         $this->app->scoped(PageHead::class);
         $this->app->scoped(PagePolicy::class);
-        $this->app->tag([HeadTags::class], DocumentMeta::CONTRIBUTORS);
+        $this->app->tag([HeadTags::class, SiteIcons::class], DocumentMeta::CONTRIBUTORS);
     }
 }

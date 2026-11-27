@@ -37,6 +37,17 @@ final class MediaVariants
     public const array SHARE = ['social' => [1200, 630], 'crop-16x9' => [1200, 675], 'crop-4x3' => [1200, 900], 'crop-1x1' => [1200, 1200]];
 
     /**
+     * The site-icon sizes an image gets once it is chosen as design.site_icon
+     * (issue 388): square favicon and home-screen sizes. Queued like share
+     * images; never made during a page view.
+     *
+     * @var array<string, array{0: int, 1: int}>
+     *
+     * @since next
+     */
+    public const array ICONS = ['icon-32' => [32, 32], 'icon-180' => [180, 180], 'icon-192' => [192, 192], 'icon-512' => [512, 512]];
+
+    /**
      * A share image's size for an original this big: its ratio at the
      * largest the original allows, never enlarged.
      *

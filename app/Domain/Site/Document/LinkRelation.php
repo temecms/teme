@@ -23,11 +23,33 @@ enum LinkRelation: string
     case Alternate = 'alternate';
 
     /**
+     * The site's favicon and sized icons. Core only: HeadCleaner drops a
+     * plugin's icon links (issue 388).
+     *
+     * @since next
+     */
+    case Icon = 'icon';
+
+    /**
+     * The icon a home screen uses. Core only (issue 388).
+     *
+     * @since next
+     */
+    case AppleTouchIcon = 'apple-touch-icon';
+
+    /**
+     * The web app manifest that names the 192 and 512 icons. Core only.
+     *
+     * @since next
+     */
+    case Manifest = 'manifest';
+
+    /**
      * Whether a page has one link of this kind at most: every kind but
-     * alternate, of which a page has one an address, such as its feeds.
+     * alternate and icon, of which a page has one an address or size.
      */
     public function single(): bool
     {
-        return $this !== self::Alternate;
+        return ! in_array($this, [self::Alternate, self::Icon], true);
     }
 }

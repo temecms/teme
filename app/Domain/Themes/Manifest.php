@@ -148,6 +148,17 @@ final readonly class Manifest
     }
 
     /**
+     * The theme's default site icon, relative to its public folder, or ''
+     * when it declares none. The design setting wins over this (issue 388).
+     *
+     * @since next
+     */
+    public function siteIcon(): string
+    {
+        return $this->string('site_icon');
+    }
+
+    /**
      * The theme's Vite manifest, relative to the theme, or '' when it has no built assets.
      */
     public function assetsManifest(): string

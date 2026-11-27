@@ -18,6 +18,7 @@ namespace App\Http\Admin\Contents;
 
 use App\Domain\Cards\CardUsage;
 use App\Domain\Contents\Queries\WorkingPreview;
+use App\Domain\Design\SiteDesign;
 use App\Domain\Menus\SlotMenus;
 use App\Domain\Regions\Regions;
 use App\Domain\Site\ArticleViews;
@@ -50,6 +51,7 @@ final class ContentPreviewController extends Controller
         app(PageWarnings::class)->start();
         app(CardUsage::class)->start();
         app(SlotMenus::class)->start($request->getPathInfo());
+        app(SiteDesign::class)->start($request->getPathInfo());
         app(Regions::class)->start();
 
         $page = $articles->ofRevision($preview['contentId'], $preview['revisionId']);

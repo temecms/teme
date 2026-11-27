@@ -18,10 +18,13 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Cards\CardUsage;
+use App\Domain\Design\SiteDesign;
+use App\Domain\Design\SiteIconSizes;
 use App\Domain\Design\ThemeSettings;
 use App\Domain\Menus\SlotMenus;
 use App\Domain\Regions\RegionDrawing;
 use App\Domain\Regions\Regions;
+use App\Domain\Settings\Events\SettingsChanged;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Site\PageWarnings;
 use App\Domain\Status\Checks\NavigationSlotsBound;
@@ -34,6 +37,7 @@ use App\Domain\Themes\ThemeAssets;
 use App\Domain\Themes\ThemeRegistry;
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -47,6 +51,7 @@ final class ThemeServiceProvider extends ServiceProvider
         $this->app->scoped(PageWarnings::class);
         $this->app->scoped(CardUsage::class);
         $this->app->scoped(SlotMenus::class);
+        $this->app->scoped(SiteDesign::class);
         $this->app->scoped(Regions::class);
     }
 
@@ -73,6 +78,9 @@ final class ThemeServiceProvider extends ServiceProvider
         // Each theme's own settings and navigation slots, as its
         // theme.{code} settings group.
         $this->app->make(ThemeSettings::class)->register($this->app->make(ThemeRegistry::class));
+
+        // Favicon sizes for design.site_icon, queued after publish (issue 388).
+        Event::listen(SettingsChanged::class, SiteIconSizes::class);
 
         // Administrators are told when the site's theme can't draw it.
         $this->app->make(StatusChecks::class)->register(ThemeUsable::class);

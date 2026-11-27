@@ -18,6 +18,7 @@ namespace App\Domain\Design\Queries;
 use App\Domain\Addresses\Addresses;
 use App\Domain\Addresses\AddressSettings;
 use App\Domain\Addresses\ListingTypes;
+use App\Domain\Cards\CardMedia;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Menus\Models\Navigation;
@@ -37,6 +38,7 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
+use Teme\Contracts\Settings\SettingType;
 use UnexpectedValueException;
 
 final readonly class DesignScreen
@@ -51,6 +53,7 @@ final readonly class DesignScreen
         private SettingsRegistry $registry,
         private SettingsReader $settings,
         private ExtensionsScreen $extensions,
+        private CardMedia $media,
     ) {}
 
     /**
@@ -61,8 +64,9 @@ final readonly class DesignScreen
      *     theme: string,
      *     preview: array{code: string, name: string, version: string, changed: bool}|null,
      *     themeGroup: string|null,
-     *     fieldsets: array<string, list<array{key: string, type: string, label: string, description: string, options: array<string, string>, visibleWhen: array<string, mixed>}>>,
+     *     fieldsets: array<string, list<array{key: string, type: string, label: string, description: string, options: array<string, string>, visibleWhen: array<string, mixed>, group: string|null, min: int|null, max: int|null, step: int|null, unit: string|null, fields?: list<array<string, mixed>>, itemTitle?: string|null}>>,
      *     values: array{design: array<string, mixed>, theme: array<string, mixed>},
+     *     media: array<string, array<string, mixed>|null>,
      *     slots: list<array{slot: string, key: string, label: string, navigationId: string}>,
      *     menus: list<array{id: string, name: string}>,
      *     draft: array{by: string|null, at: string}|null,
@@ -82,6 +86,10 @@ final readonly class DesignScreen
         // The theme the site names first, as people look for it first; the rest as found.
         usort($themes, fn (Theme $a, Theme $b): int => ($b->code === $liveTheme) <=> ($a->code === $liveTheme));
         $origins = $this->extensions->origins(array_column(array_map(fn (Theme $theme): array => [$theme->code, $theme->path], $themes), 1, 0));
+        $fieldsets = $this->fieldsets($definition->settings ?? []);
+        $themeMedia = $this->mediaOf($definition->settings ?? [], $themeValues);
+        $siteIconId = (string) ($design['site_icon'] ?? '');
+        $siteIconMedia = $siteIconId === '' ? [] : $this->media->forIds([$siteIconId]);
 
         return [
             'themes' => array_map(fn (Theme $theme): array => [
@@ -103,8 +111,12 @@ final readonly class DesignScreen
             'theme' => $chosenCode,
             'preview' => $chosen === null || $chosen->code === $liveTheme ? null : $this->preview($chosen),
             'themeGroup' => $definition?->key,
-            'fieldsets' => $this->fieldsets($definition->settings ?? []),
+            'fieldsets' => $fieldsets,
             'values' => ['design' => $design, 'theme' => $themeValues],
+            'media' => [
+                ...$themeMedia,
+                'site_icon' => $siteIconMedia[$siteIconId] ?? null,
+            ],
             'slots' => $this->slots($definition->settings ?? [], $themeValues),
             'menus' => Navigation::query()->orderBy('name')->orderBy('id')->get(['id', 'name'])
                 ->map(fn (Navigation $menu): array => ['id' => $menu->id, 'name' => $menu->name])->values()->all(),
@@ -234,30 +246,116 @@ final readonly class DesignScreen
 
     /**
      * The theme's own settings, by fieldset, in manifest order; its slots
-     * have none, and are shown as the menus section.
+     * have none, and are shown as the menus section. A setting's group is
+     * the foldable section it sits in; settings without one stay at the top.
      *
      * @param  list<Setting>  $settings
      *
-     * @return array<string, list<array{key: string, type: string, label: string, description: string, options: array<string, string>, visibleWhen: array<string, mixed>}>>
+     * @return array<string, list<array{key: string, type: string, label: string, description: string, options: array<string, string>, visibleWhen: array<string, mixed>, group: string|null, min: int|null, max: int|null, step: int|null, unit: string|null, fields?: list<array<string, mixed>>, itemTitle?: string|null}>>
      */
     private function fieldsets(array $settings): array
     {
         $fieldsets = array_fill_keys(Setting::FIELDSETS, []);
+        $declared = $this->declaredSettings();
 
         foreach ($settings as $setting) {
             if ($setting->fieldset !== null) {
-                $fieldsets[$setting->fieldset][] = [
+                $raw = $declared[$setting->key] ?? [];
+                $field = [
                     'key' => $setting->key,
-                    'type' => $setting->type->value,
+                    'type' => $this->fieldType($setting, $raw),
                     'label' => $setting->label,
                     'description' => $setting->description === $setting->label ? '' : $setting->description,
                     'options' => $setting->options,
                     'visibleWhen' => $setting->visibleWhen,
+                    'group' => $setting->group,
+                    'min' => $setting->min,
+                    'max' => $setting->max,
+                    'step' => $setting->step,
+                    'unit' => $setting->unit,
                 ];
+
+                if ($setting->type === SettingType::Repeater) {
+                    $field['fields'] = array_map(fn (Setting $child): array => [
+                        'key' => $child->key,
+                        'type' => $child->type->value,
+                        'label' => $child->label,
+                        'description' => $child->description === $child->label ? '' : $child->description,
+                        'options' => $child->options,
+                        'visibleWhen' => $child->visibleWhen,
+                        'group' => null,
+                        'min' => $child->min,
+                        'max' => $child->max,
+                        'step' => null,
+                        'unit' => $child->unit,
+                    ], $setting->fields);
+                    $field['itemTitle'] = $setting->itemTitle;
+                }
+
+                $fieldsets[$setting->fieldset][] = $field;
             }
         }
 
         return $fieldsets;
+    }
+
+    /**
+     * Each media setting's chosen image, or null when none or gone.
+     *
+     * @param  list<Setting>  $settings
+     * @param  array<string, mixed>  $values
+     *
+     * @return array<string, array<string, mixed>|null>
+     */
+    private function mediaOf(array $settings, array $values): array
+    {
+        $chosen = [];
+
+        foreach ($settings as $setting) {
+            if ($setting->type === SettingType::Media) {
+                $chosen[$setting->key] = (string) ($values[$setting->key] ?? '');
+            }
+        }
+
+        $images = $this->media->forIds(array_values($chosen));
+
+        return array_map(fn (string $id): ?array => $images[$id] ?? null, $chosen);
+    }
+
+    /**
+     * The chosen theme's declared settings, keyed by key, for presentation
+     * details the Setting declaration does not keep (step, menu type).
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function declaredSettings(): array
+    {
+        $code = (string) $this->values(self::DESIGN_GROUP)['theme'];
+        $declared = [];
+
+        foreach ($this->themes->find($code)?->manifest?->settings() ?? [] as $setting) {
+            if (is_string($setting['key'] ?? null)) {
+                $declared[$setting['key']] = $setting;
+            }
+        }
+
+        return $declared;
+    }
+
+    /**
+     * The control type the settings screen draws: a menu stays "menu" even
+     * though it is stored as text; an image is the media control.
+     *
+     * @param  array<string, mixed>  $raw
+     */
+    private function fieldType(Setting $setting, array $raw): string
+    {
+        return match ($raw['type'] ?? $setting->type->value) {
+            'menu' => 'menu',
+            'image' => 'media',
+            'links' => 'repeater',
+            default => $setting->type->value,
+        };
     }
 
     /**
