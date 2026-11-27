@@ -38,8 +38,11 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Teme\Contracts\Import\ImportItem;
+use Teme\Contracts\Import\ImportKind;
+use Teme\Contracts\Import\ImportMenuItemType;
 use Teme\Contracts\Import\ImportReader;
 use Teme\Contracts\Import\ImportReaderRefused;
+use Teme\Contracts\Import\ImportTaxonomy;
 use Throwable;
 
 final class ReadImportFile implements ShouldQueue
@@ -192,6 +195,14 @@ final class ReadImportFile implements ShouldQueue
             return;
         }
 
+        $unknown = $this->unknownWord($items);
+
+        if ($unknown !== null) {
+            $this->refuseReader($unknown);
+
+            return;
+        }
+
         $ids = app(AssignImportReaderIds::class)->execute(new AssignImportReaderIdsInput(
             (string) $probe->siteAddress,
             (string) $file->reader,
@@ -206,6 +217,27 @@ final class ReadImportFile implements ShouldQueue
         }
 
         app(FinishReadingImportFile::class)->execute(new FinishReadingImportFileInput($this->fileId, $this->actor->userId));
+    }
+
+    /**
+     * The sentence that refuses a file for a word a reader gave that Teme
+     * doesn't know, or null when every word is one Teme knows.
+     *
+     * @param  list<ImportItem>  $items
+     */
+    private function unknownWord(array $items): ?string
+    {
+        foreach ($items as $item) {
+            if ($item->kind === ImportKind::TERM && ! ImportTaxonomy::valid((string) ($item->fields['taxonomy'] ?? 'category'))) {
+                return 'A term of this file has a taxonomy Teme doesn’t know.';
+            }
+
+            if ($item->kind === ImportKind::MENU_ITEM && ! in_array($item->itemType, ImportMenuItemType::all(), true)) {
+                return 'A menu item of this file has a type Teme doesn’t know.';
+            }
+        }
+
+        return null;
     }
 
     private function refuseReader(string $sentence): void

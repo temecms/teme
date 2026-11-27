@@ -46,6 +46,19 @@ final class ReaderRows
         'spam' => 'spam',
     ];
 
+    /** The taxonomy words a reader may give, and the words the engine's rows keep for them. */
+    private const array TAXONOMIES = [
+        'category' => 'category',
+        'tag' => 'post_tag',
+    ];
+
+    /** The menu item types a reader may give, and the words the engine's rows keep for them. */
+    private const array MENU_ITEM_TYPES = [
+        'content' => 'post_type',
+        'term' => 'taxonomy',
+        'link' => 'custom',
+    ];
+
     /** Teme's status words, and the words the engine's rows keep for them. */
     private const array STATUSES = [
         'published' => 'publish',
@@ -204,7 +217,7 @@ final class ReaderRows
      */
     private function term(ImportItem $item): array
     {
-        $taxonomy = (string) ($item->fields['taxonomy'] ?? 'category');
+        $taxonomy = self::TAXONOMIES[(string) ($item->fields['taxonomy'] ?? 'category')] ?? (string) $item->fields['taxonomy'];
         $name = $item->title !== '' ? $item->title : (string) ($item->fields['name'] ?? '');
         $slug = $item->slug !== '' ? $item->slug : $name;
         $id = $this->idOf($item);
@@ -317,8 +330,8 @@ final class ReaderRows
     private function menuItem(ImportItem $item): array
     {
         $object = match ($item->itemType) {
-            'post_type' => $this->contentId($item->objectId) ?? 0,
-            'taxonomy' => $this->terms[(string) $item->objectId]['id'] ?? 0,
+            'content' => $this->contentId($item->objectId) ?? 0,
+            'term' => $this->terms[(string) $item->objectId]['id'] ?? 0,
             default => 0,
         };
 
@@ -327,10 +340,10 @@ final class ReaderRows
             'id' => $this->idOf($item),
             'parent' => $item->parentId === null ? 0 : ($this->ids[self::key(ImportKind::MENU_ITEM, $item->parentId)] ?? 0),
             'order' => $item->order,
-            'type' => (string) $item->itemType,
-            'object' => (string) ($item->fields['object'] ?? ''),
+            'type' => self::MENU_ITEM_TYPES[(string) $item->itemType] ?? 'custom',
+            'object' => $this->objectWord($item),
             'object_id' => $object,
-            'url' => $item->itemType === 'custom' ? (string) ($item->fields['url'] ?? '') : '',
+            'url' => $item->itemType === 'link' ? (string) ($item->fields['url'] ?? '') : '',
             'title' => $item->title,
             'target' => '',
             'attr_title' => '',
@@ -366,6 +379,31 @@ final class ReaderRows
             'metadata' => null,
             'backup_sizes' => [],
         ];
+    }
+
+    /**
+     * The engine's word for what a menu item's object is: a post's or page's
+     * type, a term's taxonomy, or nothing for a link.
+     */
+    private function objectWord(ImportItem $item): string
+    {
+        return match ($item->itemType) {
+            'content' => $this->contentKind($item->objectId) ?? '',
+            'term' => $this->terms[(string) $item->objectId]['taxonomy'] ?? '',
+            default => '',
+        };
+    }
+
+    /**
+     * The kind of the post or page a source ID names, as the engine's word for it.
+     */
+    private function contentKind(?string $sourceId): ?string
+    {
+        if ($sourceId === null) {
+            return null;
+        }
+
+        return isset($this->ids[self::key(ImportKind::POST, $sourceId)]) ? 'post' : (isset($this->ids[self::key(ImportKind::PAGE, $sourceId)]) ? 'page' : null);
     }
 
     /**

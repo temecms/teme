@@ -199,8 +199,8 @@ it('imports a reader’s menus with their items, each item pointing at its post 
 
     $export = fakeSiteExport();
     $export['items'][] = ['kind' => 'menu', 'id' => 'm1', 'title' => 'Main', 'slug' => 'main'];
-    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'post_type', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'];
-    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi2', 'menuId' => 'm1', 'itemType' => 'custom', 'url' => 'https://example.com/x', 'order' => 2, 'title' => 'Example', 'parentId' => 'mi1'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'content', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi2', 'menuId' => 'm1', 'itemType' => 'link', 'url' => 'https://example.com/x', 'order' => 2, 'title' => 'Example', 'parentId' => 'mi1'];
 
     $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
     readerReadToEnd($file);
@@ -252,4 +252,34 @@ it('refuses a reader’s file for a site already imported from another system', 
 
     expect($file->refresh()->state)->toBe('refused')
         ->and($file->refused)->toBe('This site was imported from another system, so this file can’t join its import.');
+});
+
+it('refuses a menu item type a reader’s file doesn’t know, in the neutral words', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'menu', 'id' => 'm1', 'title' => 'Main', 'slug' => 'main'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'post_type', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('A menu item of this file has a type Teme doesn’t know.');
+});
+
+it('imports a reader’s tag in the engine’s taxonomy word, and a menu item of type content', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'term', 'id' => 't2', 'taxonomy' => 'tag', 'name' => 'Tips', 'slug' => 'tips'];
+    $export['items'][] = ['kind' => 'menu', 'id' => 'm1', 'title' => 'Main', 'slug' => 'main'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'content', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and(DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'taxonomy' = 'post_tag'")->exists())->toBeTrue()
+        ->and(DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'type' = 'post_type'")->exists())->toBeTrue();
 });

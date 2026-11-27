@@ -169,7 +169,7 @@ it('carries a comment’s post and spam status, and a menu item’s menu, type, 
             ['kind' => ImportKind::POST, 'id' => 'i1', 'title' => 'Hello', 'status' => 'published'],
             ['kind' => ImportKind::COMMENT, 'id' => 'c1', 'postId' => 'i1', 'status' => 'spam', 'content' => 'Buy now', 'authorName' => 'Sam', 'authorEmail' => 'sam@example.com', 'authorUrl' => 'https://example.com', 'authorIp' => '192.0.2.1'],
             ['kind' => ImportKind::MENU, 'id' => 'm1', 'title' => 'Main', 'slug' => 'main'],
-            ['kind' => ImportKind::MENU_ITEM, 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'post_type', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'],
+            ['kind' => ImportKind::MENU_ITEM, 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'content', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'],
         ],
     ]);
     $reader = new FakeImportReader;
@@ -184,7 +184,7 @@ it('carries a comment’s post and spam status, and a menu item’s menu, type, 
         ->and($menu->fields)->toBe(['slug' => 'main'])
         ->and($item->kind)->toBe(ImportKind::MENU_ITEM)
         ->and($item->menuId)->toBe('m1')
-        ->and($item->itemType)->toBe('post_type')
+        ->and($item->itemType)->toBe('content')
         ->and($item->objectId)->toBe('i1')
         ->and($item->order)->toBe(1);
 
