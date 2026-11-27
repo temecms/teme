@@ -136,6 +136,7 @@ final class FakeImportReader implements ImportReader
             ImportKind::MEDIA => ['url' => $raw['url'] ?? '', 'mime' => $raw['mime'] ?? '', 'alt' => $raw['alt'] ?? ''],
             ImportKind::COMMENT => ['authorName' => $raw['authorName'] ?? '', 'authorEmail' => $raw['authorEmail'] ?? '', 'authorUrl' => $raw['authorUrl'] ?? '', 'authorIp' => $raw['authorIp'] ?? ''],
             ImportKind::MENU => ['slug' => $raw['slug'] ?? ''],
+            ImportKind::MENU_ITEM => ['url' => $raw['url'] ?? '', 'object' => $raw['object'] ?? ''],
             default => [],
         };
 

@@ -193,3 +193,28 @@ it('imports a reader’s comments onto their posts, with a spam comment kept as 
     expect($comments->map(fn ($row) => [json_decode($row->body, true)['content'][0]['content'][0]['text'], $row->author_name, $row->status])->all())
         ->toBe([['Buy now', 'Bot', 'spam'], ['Nice one', 'Sam', 'approved']]);
 });
+
+it('imports a reader’s menus with their items, each item pointing at its post and its parent item', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'menu', 'id' => 'm1', 'title' => 'Main', 'slug' => 'main', 'placement' => 'primary'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'post_type', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi2', 'menuId' => 'm1', 'itemType' => 'custom', 'url' => 'https://example.com/x', 'order' => 2, 'title' => 'Example', 'parentId' => 'mi1'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    FileImports::run($file->refresh());
+
+    $navigation = DB::table('navigations')->where('name', 'Main')->first();
+    $hello = DB::table('contents')->where('title', 'Hello')->value('id');
+    $items = DB::table('navigation_items')->where('navigation_id', $navigation->id)->orderBy('position')->get(['id', 'label', 'kind', 'target_id', 'url', 'parent_id']);
+
+    $byLabel = $items->keyBy('label');
+
+    expect($navigation)->not->toBeNull()
+        ->and($items->count())->toBe(2)
+        ->and($byLabel['Hello']->target_id)->toBe($hello)
+        ->and($byLabel['Example']->url)->toBe('https://example.com/x')
+        ->and($byLabel['Example']->parent_id)->toBe($byLabel['Hello']->id);
+});

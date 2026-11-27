@@ -71,14 +71,15 @@ final class ReaderRows
     /** @var array<string, int> the ID each reader comment has, by its source ID */
     private array $comments = [];
 
-    /** @var array<string, int> the ID each reader menu has, by its source ID */
+    /** @var array<string, int> the ID each reader menu's term has, by its source ID */
     private array $menus = [];
+
+    /** @var array<string, int> the ID each reader menu item has, by its source ID */
+    private array $menuItems = [];
 
     private int $nextContent = 1;
 
     private int $nextComment = 1;
-
-    private int $nextMenu = 1;
 
     private int $nextMenuItem = 1;
 
@@ -118,6 +119,8 @@ final class ReaderRows
         foreach ($items as $item) {
             if ($item->kind === ImportKind::TERM) {
                 $rows[] = $this->term($item);
+            } elseif ($item->kind === ImportKind::MENU) {
+                $rows[] = $this->menu($item);
             }
         }
 
@@ -132,8 +135,8 @@ final class ReaderRows
         foreach ($items as $item) {
             if ($item->kind === ImportKind::COMMENT) {
                 $this->comments[$item->id] = $this->nextComment++;
-            } elseif ($item->kind === ImportKind::MENU) {
-                $this->menus[$item->id] = $this->nextMenu++;
+            } elseif ($item->kind === ImportKind::MENU_ITEM) {
+                $this->menuItems[$item->id] = $this->nextMenuItem++;
             }
         }
 
@@ -144,8 +147,8 @@ final class ReaderRows
                 $rows[] = ['list' => ItemRows::MEDIA, 'id' => $this->media[$item->id], 'payload' => $this->media($item)];
             } elseif ($item->kind === ImportKind::COMMENT && isset($this->posts[(string) $item->postId])) {
                 $rows[] = ['list' => ItemRows::COMMENTS, 'id' => $this->comments[$item->id], 'payload' => $this->comment($item)];
-            } elseif ($item->kind === ImportKind::MENU) {
-                $rows[] = ['list' => ItemRows::MENUS, 'id' => $this->menus[$item->id], 'payload' => $this->menu($item, $items)];
+            } elseif ($item->kind === ImportKind::MENU_ITEM && isset($this->menus[(string) $item->menuId])) {
+                $rows[] = ['list' => ItemRows::MENU_ITEMS, 'id' => $this->menuItems[$item->id], 'payload' => $this->menuItem($item)];
             }
         }
 
@@ -270,57 +273,50 @@ final class ReaderRows
     }
 
     /**
-     * A menu with its items, each item's object resolved to the post or term
-     * it points at. The menu's place is chosen on the import plan, so a
+     * A menu, as the term of its navigation: the engine assembles its items
+     * into the menu. Where it is placed is chosen on the import plan, so a
      * reader's placement is carried but not used.
      *
-     * @param  list<ImportItem>  $items
+     * @return array{list: string, id: int, payload: array<string, mixed>}
+     */
+    private function menu(ImportItem $item): array
+    {
+        $id = $this->nextName--;
+        $this->menus[$item->id] = $id;
+        $slug = (string) ($item->fields['slug'] ?? '');
+        $name = $item->title !== '' ? $item->title : $slug;
+
+        return ['list' => ItemRows::OTHER_TERMS, 'id' => $id, 'payload' => TermRows::payload($id, 'nav_menu', $name, $slug !== '' ? $slug : $name, '', 0, null)];
+    }
+
+    /**
+     * A menu item in the engine's menu item rows: in its menu, under its
+     * parent item, pointing at the post or term it names.
      *
      * @return array<string, mixed>
      */
-    private function menu(ImportItem $menu, array $items): array
+    private function menuItem(ImportItem $item): array
     {
-        $own = [];
-
-        foreach ($items as $item) {
-            if ($item->kind !== ImportKind::MENU_ITEM || $item->menuId !== $menu->id) {
-                continue;
-            }
-
-            $object = match ($item->itemType) {
-                'post_type' => $this->posts[(string) $item->objectId] ?? 0,
-                'taxonomy' => $this->terms[(string) $item->objectId]['id'] ?? 0,
-                default => 0,
-            };
-            $own[$item->id] = [
-                'id' => $this->nextMenuItem++,
-                'parent' => 0,
-                'order' => $item->order,
-                'type' => (string) $item->itemType,
-                'object' => (string) ($item->fields['object'] ?? ''),
-                'object_id' => $object,
-                'url' => $item->itemType === 'custom' ? (string) ($item->fields['url'] ?? '') : '',
-                'label' => $item->title,
-                'label_is_custom' => $item->title !== '',
-                'target' => '',
-                'attr_title' => '',
-                'classes' => [],
-                'xfn' => '',
-                'invalid' => false,
-            ];
-        }
-
-        foreach ($items as $item) {
-            if ($item->kind === ImportKind::MENU_ITEM && isset($own[$item->id]) && $item->parentId !== null && isset($own[$item->parentId])) {
-                $own[$item->id]['parent'] = $own[$item->parentId]['id'];
-            }
-        }
+        $object = match ($item->itemType) {
+            'post_type' => $this->posts[(string) $item->objectId] ?? 0,
+            'taxonomy' => $this->terms[(string) $item->objectId]['id'] ?? 0,
+            default => 0,
+        };
 
         return [
-            'id' => $this->menus[$menu->id],
-            'name' => $menu->title,
-            'slug' => (string) ($menu->fields['slug'] ?? ''),
-            'items' => array_values($own),
+            'menu' => $this->menus[(string) $item->menuId],
+            'id' => $this->menuItems[$item->id],
+            'parent' => $item->parentId === null ? 0 : ($this->menuItems[$item->parentId] ?? 0),
+            'order' => $item->order,
+            'type' => (string) $item->itemType,
+            'object' => (string) ($item->fields['object'] ?? ''),
+            'object_id' => $object,
+            'url' => $item->itemType === 'custom' ? (string) ($item->fields['url'] ?? '') : '',
+            'title' => $item->title,
+            'target' => '',
+            'attr_title' => '',
+            'classes' => [],
+            'xfn' => '',
         ];
     }
 
