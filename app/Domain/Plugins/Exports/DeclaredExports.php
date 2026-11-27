@@ -6,7 +6,7 @@
  * over for them (docs/guides/developers/plugins/exports.md).
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

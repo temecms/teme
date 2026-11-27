@@ -79,7 +79,7 @@ it('says the highest version this checkout’s contracts offer', function (): vo
 
     $this->artisan('teme:docs:contracts', ['--output' => $path])->assertSuccessful();
 
-    expect((string) file_get_contents($path))->toContain('This checkout offers contracts up to **1.5.0**.');
+    expect((string) file_get_contents($path))->toContain('This checkout offers contracts up to **1.7.0**.');
 });
 
 it('fails naming a type that has no @since', function (): void {

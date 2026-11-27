@@ -6,7 +6,7 @@
  * to it.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

@@ -4,7 +4,7 @@
  * A link a person chose to show on their public author page.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

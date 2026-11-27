@@ -4,7 +4,7 @@
  * A plugin's door for the site's redirects: add, list and remove its own.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -22,7 +22,7 @@ use Teme\Contracts\Content\WriteRefused;
  * person or another plugin made. Each redirect it adds is written as the
  * site and marked on Tools › Redirects as added by the plugin.
  *
- * @since next
+ * @since 1.7.0
  */
 interface RedirectWriter
 {
@@ -38,7 +38,7 @@ interface RedirectWriter
      *                      address Teme can't use, a path the site itself uses, one that already has
      *                      a redirect, or one that would make a loop or a chain; nothing was written
      *
-     * @since next
+     * @since 1.7.0
      */
     public function add(string $from, string $to, int $status = 301, string $note = ''): RedirectRef;
 
@@ -50,7 +50,7 @@ interface RedirectWriter
      *
      * @throws WriteRefused when it is refused, as add() is; nothing was written
      *
-     * @since next
+     * @since 1.7.0
      */
     public function gone(string $from, string $note = ''): RedirectRef;
 
@@ -59,7 +59,7 @@ interface RedirectWriter
      *
      * @return list<RedirectRef>
      *
-     * @since next
+     * @since 1.7.0
      */
     public function mine(): array;
 
@@ -69,7 +69,7 @@ interface RedirectWriter
      *
      * @param  list<string>  $ids
      *
-     * @since next
+     * @since 1.7.0
      */
     public function remove(array $ids): int;
 }

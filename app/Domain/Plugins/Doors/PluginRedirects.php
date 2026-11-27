@@ -5,7 +5,7 @@
  * redirects through the redirect Operations, as the site.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

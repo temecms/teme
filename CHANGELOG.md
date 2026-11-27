@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-11-26
+
 ### Added
 
 **For plugin authors**

@@ -165,7 +165,6 @@ Since 1.0.0. Registered by `core`.
 | `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
 | `code` | nullable, string, max:65535, Closure | — |
 | `origins` | array, max:20 | `[]` |
-| `on` | boolean | `true` |
 
 Refers to: nothing.
 

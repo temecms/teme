@@ -5,7 +5,7 @@
  * theme's search overlay. It reads only, through Suggestions.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

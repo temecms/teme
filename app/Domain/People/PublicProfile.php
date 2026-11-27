@@ -7,7 +7,7 @@
  * Nothing else about an account is read here.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

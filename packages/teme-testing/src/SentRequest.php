@@ -51,7 +51,7 @@ final readonly class SentRequest
      * Returns the first value of a header as sent, whatever its case, or null
      * when the request carried none.
      *
-     * @since next
+     * @since 1.7.0
      */
     public function header(string $name): ?string
     {
@@ -71,7 +71,7 @@ final readonly class SentRequest
      *
      * @return list<array{name: string, filename: string|null, contentType: string|null, body: string}>
      *
-     * @since next
+     * @since 1.7.0
      */
     public function multipart(): array
     {

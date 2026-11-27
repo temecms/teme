@@ -107,6 +107,6 @@ enum Capability: string
     /** @since 1.3.0 */
     case ContentSubmissions = 'content.submissions';
 
-    /** @since next */
+    /** @since 1.7.0 */
     case Redirects = 'redirects';
 }

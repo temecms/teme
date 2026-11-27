@@ -4,7 +4,7 @@
  * A file was taken out of the trash and is live again.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -18,7 +18,7 @@ use Teme\Contracts\Hooks\Notification;
 /**
  * A file was taken out of the trash and is live again. Sent after the change is saved. An import run does not send it yet.
  *
- * @since next
+ * @since 1.7.0
  */
 #[HookContract(capability: 'media.read')]
 final readonly class MediaRestored implements Notification
@@ -27,7 +27,7 @@ final readonly class MediaRestored implements Notification
      * @param  MediaRef  $media  the media item, as it is after the change
      * @param  string|null  $actorId  the account ID of the person who restored it, or null when no signed-in person did
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __construct(
         public MediaRef $media,

@@ -48,7 +48,7 @@ final readonly class PluginHttp implements OutboundHttp
      * The largest body a multipart or raw request may send; the answer's
      * limit stays at MOST_BYTES.
      *
-     * @since next
+     * @since 1.7.0
      */
     public const int MOST_REQUEST_BYTES = 10_485_760;
 
@@ -102,7 +102,7 @@ final readonly class PluginHttp implements OutboundHttp
     }
 
     /**
-     * @since next
+     * @since 1.7.0
      */
     public function postMultipart(string $url, array $fields, array $files, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
@@ -114,7 +114,7 @@ final readonly class PluginHttp implements OutboundHttp
     }
 
     /**
-     * @since next
+     * @since 1.7.0
      */
     public function postRaw(string $url, string $body, string $contentType, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {

@@ -5,7 +5,7 @@
  * its lines a page at a time, as plain arrays.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -19,17 +19,17 @@ namespace Teme\Contracts\Export;
  * numbers, booleans, null, or lists and maps of those; a line never sets
  * `kind` or `version`, which core writes first.
  *
- * @since next
+ * @since 1.7.0
  */
 interface PluginExportKind
 {
-    /** The most lines one page may hold. @since next */
+    /** The most lines one page may hold. @since 1.7.0 */
     public const int MOST_LINES = 1_000;
 
     /**
      * This export's format version: 1, raised whenever what a line holds changes.
      *
-     * @since next
+     * @since 1.7.0
      */
     public function version(): int;
 
@@ -38,7 +38,7 @@ interface PluginExportKind
      *
      * @return array<string, string>
      *
-     * @since next
+     * @since 1.7.0
      */
     public function fields(): array;
 
@@ -49,7 +49,7 @@ interface PluginExportKind
      *
      * @return array{lines: list<array<string, mixed>>, next: string|null}
      *
-     * @since next
+     * @since 1.7.0
      */
     public function lines(?string $after): array;
 }

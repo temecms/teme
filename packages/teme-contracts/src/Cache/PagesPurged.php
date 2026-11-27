@@ -5,7 +5,7 @@
  * queued for them.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -25,7 +25,7 @@ use Teme\Contracts\Hooks\Notification;
  * cached pages core warms again, and are empty when warming is off, so never
  * rely on them being complete.
  *
- * @since next
+ * @since 1.7.0
  */
 #[HookContract(capability: 'content.read')]
 final readonly class PagesPurged implements Notification
@@ -34,7 +34,7 @@ final readonly class PagesPurged implements Notification
      * @param  list<string>  $tags  the cache tags the change purged, each once, sorted
      * @param  list<string>  $addresses  the public addresses the purge touched, as absolute URLs, where core knows them
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __construct(
         public array $tags,

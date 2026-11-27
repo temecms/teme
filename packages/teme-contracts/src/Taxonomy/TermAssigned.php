@@ -4,7 +4,7 @@
  * An item's terms changed: terms were added to it or taken off it, in one or more taxonomies.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -23,7 +23,7 @@ use Teme\Contracts\Hooks\Notification;
  * as they were. Terms deleted outright are not named as removed. It is not sent
  * during an import run.
  *
- * @since next
+ * @since 1.7.0
  */
 #[HookContract(capability: 'content.read')]
 final readonly class TermAssigned implements Notification
@@ -33,7 +33,7 @@ final readonly class TermAssigned implements Notification
      * @param  array<string, array{added: list<string>, removed: list<string>}>  $changes  for each taxonomy that changed, keyed by its name such as category, the IDs of the terms added to the item and taken off it
      * @param  string|null  $actorId  the account ID of the person who made the change, or null when no signed-in person did
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __construct(
         public ItemRef $item,

@@ -4,7 +4,7 @@
  * A plugin granted pages.head that answers the title of a public page.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -18,11 +18,11 @@ namespace Teme\Contracts\Head;
  * it, so the page names itself one way everywhere. Asked within 100 ms.
  * One plugin answers a page: the first enabled that gives a title.
  *
- * @since next
+ * @since 1.7.0
  */
 interface HasPageTitle
 {
-    /** The longest title core accepts, in characters. @since next */
+    /** The longest title core accepts, in characters. @since 1.7.0 */
     public const int MOST_CHARACTERS = 200;
 
     /**
@@ -30,7 +30,7 @@ interface HasPageTitle
      * leave it to core, whose own title is given. An empty or longer answer
      * is refused, recorded as the plugin's fault, and core's title is used.
      *
-     * @since next
+     * @since 1.7.0
      */
     public function pageTitle(HeadPage $page, string $coreTitle): ?string;
 }
