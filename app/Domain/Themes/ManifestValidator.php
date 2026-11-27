@@ -81,6 +81,12 @@ final class ManifestValidator
     ];
 
     /**
+     * A theme's own token name: lower-case letters, digits and hyphens
+     * (issue 370).
+     */
+    public const string CUSTOM_TOKEN = '/^[a-z][a-z0-9-]*$/';
+
+    /**
      * The top-level keys `errors()` reads, in its order (I-246: the tokens are
      * a fixed vocabulary, so a colour scheme or a type pairing is only a swap
      * of values).
@@ -90,6 +96,7 @@ final class ManifestValidator
     public const array KEYS = [
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
+        'custom_tokens', 'custom_tokens_dark',
         'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
     ];
 
@@ -142,6 +149,8 @@ final class ManifestValidator
         array_push($errors, ...$this->fonts($manifest, $themePath));
         array_push($errors, ...$this->tokens($manifest, 'tokens'));
         array_push($errors, ...$this->tokens($manifest, 'tokens_dark'));
+        array_push($errors, ...$this->customTokens($manifest, 'custom_tokens'));
+        array_push($errors, ...$this->customTokens($manifest, 'custom_tokens_dark'));
         array_push($errors, ...$this->speculation($manifest));
         array_push($errors, ...$this->breadcrumbs($manifest));
         array_push($errors, ...$this->csp($manifest));
@@ -733,6 +742,51 @@ final class ManifestValidator
                 $errors[] = "The token \"{$name}\"{$where} must have a CSS value, with no ; { } < or >.";
             } elseif (in_array($name, self::HEX_TOKENS, true) && preg_match(self::HEX, $value) !== 1) {
                 $errors[] = "The token \"{$name}\"{$where} must be a hex colour, #rgb or #rrggbb: Teme checks the accent's contrast against it.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * A theme's own tokens beyond the core list (issue 370): names of
+     * lower-case letters, digits and hyphens that are not a core token,
+     * with the same value rule as core tokens.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function customTokens(array $manifest, string $key): array
+    {
+        if (! array_key_exists($key, $manifest)) {
+            return [];
+        }
+
+        $tokens = $manifest[$key];
+
+        if (! is_array($tokens) || (array_is_list($tokens) && $tokens !== [])) {
+            return ["{$key} must map each token name to its value."];
+        }
+
+        $errors = [];
+        $where = $key === 'custom_tokens' ? '' : " in {$key}";
+
+        foreach ($tokens as $name => $value) {
+            if (! is_string($name) || preg_match(self::CUSTOM_TOKEN, $name) !== 1) {
+                $errors[] = "The custom token name \"{$name}\"{$where} must be lower-case letters, digits and hyphens, starting with a letter.";
+
+                continue;
+            }
+
+            if (in_array($name, self::TOKENS, true)) {
+                $errors[] = "The custom token \"{$name}\"{$where} is a core token name: put it under tokens, or pick another name.";
+
+                continue;
+            }
+
+            if (! is_string($value) || trim($value) === '' || preg_match('/[;{}<>]/', $value) === 1) {
+                $errors[] = "The custom token \"{$name}\"{$where} must have a CSS value, with no ; { } < or >.";
             }
         }
 

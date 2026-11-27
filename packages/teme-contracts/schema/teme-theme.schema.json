@@ -251,7 +251,7 @@
         },
         "tokens": {
             "type": "object",
-            "description": "Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours.",
+            "description": "Core design tokens only: base, contrast, accent, on-accent, muted, rule, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. For a theme's own names, use custom_tokens.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -294,7 +294,7 @@
         },
         "tokens_dark": {
             "type": "object",
-            "description": "The same tokens and rules, for the theme's dark scheme.",
+            "description": "The same core tokens and rules, for the theme's dark scheme.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -334,6 +334,22 @@
                     "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
                 }
             }
+        },
+        "custom_tokens": {
+            "type": "object",
+            "description": "The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens.",
+            "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "custom_tokens_dark": {
+            "type": "object",
+            "description": "The theme's own dark-scheme tokens, same name and value rules as custom_tokens.",
+            "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 }
         },
         "speculation": {
             "type": "boolean",

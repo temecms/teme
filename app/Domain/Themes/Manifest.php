@@ -297,6 +297,33 @@ final readonly class Manifest
     }
 
     /**
+     * The theme's own tokens beyond the core list (issue 370), name => CSS
+     * value, or [] when it ships none. Written after the core tokens as
+     * `--teme-<name>`.
+     *
+     * @return array<string, string>
+     *
+     * @since next
+     */
+    public function customTokens(): array
+    {
+        return $this->tokenMap('custom_tokens');
+    }
+
+    /**
+     * The theme's own dark-scheme tokens beyond the core list (issue 370),
+     * or [] when it ships none.
+     *
+     * @return array<string, string>
+     *
+     * @since next
+     */
+    public function customTokensDark(): array
+    {
+        return $this->tokenMap('custom_tokens_dark');
+    }
+
+    /**
      * Whether pages carry speculation rules; a theme may only opt out.
      */
     public function speculation(): bool
@@ -395,6 +422,16 @@ final readonly class Manifest
         $value = $this->raw[$key] ?? null;
 
         return is_string($value) ? $value : '';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function tokenMap(string $key): array
+    {
+        $tokens = $this->raw[$key] ?? null;
+
+        return is_array($tokens) ? array_filter($tokens, fn (mixed $value, mixed $name): bool => is_string($name) && is_string($value), ARRAY_FILTER_USE_BOTH) : [];
     }
 
     /**

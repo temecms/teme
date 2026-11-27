@@ -133,7 +133,13 @@ final class Document extends Component
         $this->preload = $this->preloadOf($code, $manifest?->preloadedFont()['file'] ?? null);
         $this->scheme = $design->scheme();
         $accent = $design->accent();
-        $this->tokens = $this->styleOf($manifest?->tokens() ?? [], $manifest?->tokensDark() ?? [], $accent === '' ? null : Contrast::accentSchemes($accent, $manifest));
+        $this->tokens = $this->styleOf(
+            $manifest?->tokens() ?? [],
+            $manifest?->tokensDark() ?? [],
+            $accent === '' ? null : Contrast::accentSchemes($accent, $manifest),
+            $manifest?->customTokens() ?? [],
+            $manifest?->customTokensDark() ?? [],
+        );
         $this->assets = $assets->tags();
         $this->replacedCards = $manifest?->replacedCards() ?? [];
         $this->speculation = ($manifest?->speculation() ?? true) && ! SignedInMarker::present(request())
@@ -204,16 +210,21 @@ final class Document extends Component
      * The theme's tokens as custom properties on :root, then its dark ones
      * for the dark scheme, chosen or the reader's own, or '' for
      * none. With the site's accent set, each scheme takes its pair, the dark
-     * one lightened, in place of the theme's accent and on-accent.
+     * one lightened, in place of the theme's accent and on-accent. A theme's
+     * own tokens (issue 370) follow the core list in each scheme.
      *
      * @param  array<string, string>  $tokens
      * @param  array<string, string>  $tokensDark
      * @param  array{light: array{accent: string, onAccent: string, ratio: float}, dark: array{accent: string, onAccent: string, ratio: float}|null}|null  $schemes
+     * @param  array<string, string>  $custom
+     * @param  array<string, string>  $customDark
      */
-    private function styleOf(array $tokens, array $tokensDark, ?array $schemes): string
+    private function styleOf(array $tokens, array $tokensDark, ?array $schemes, array $custom = [], array $customDark = []): string
     {
-        $light = $this->declarations($schemes === null ? $tokens : $this->withAccent($tokens, $schemes['light']));
-        $dark = $tokensDark === [] ? '' : $this->declarations($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
+        $lightCore = $schemes === null ? $tokens : $this->withAccent($tokens, $schemes['light']);
+        $light = $this->declarations([...$lightCore, ...$custom]);
+        $darkCore = $tokensDark === [] && $customDark === [] ? [] : ($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
+        $dark = $this->declarations([...$darkCore, ...$customDark]);
         $style = $light === '' ? '' : ':root{'.$light.'}';
 
         if ($dark !== '') {

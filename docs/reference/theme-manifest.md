@@ -49,12 +49,14 @@
 | `fonts[].weight` | string\|integer | no | Any number or text, such as 400 or "400 700". |  |
 | `fonts[].style` | string | no |  | "normal", "italic", "oblique" |
 | `fonts[].preload` |  | no | Only true preloads the font; any other value, or none, does not. |  |
-| `tokens` | object | no | Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours. |  |
+| `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. For a theme's own names, use custom_tokens. |  |
 | `tokens.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
-| `tokens_dark` | object | no | The same tokens and rules, for the theme's dark scheme. |  |
+| `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. |  |
 | `tokens_dark.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens_dark.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
+| `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |  |
+| `custom_tokens_dark` | object | no | The theme's own dark-scheme tokens, same name and value rules as custom_tokens. |  |
 | `speculation` | boolean | no | A theme may only opt out: false leaves the prerendering rules out. |  |
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |  |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][gG]\|[wW][eE][bB][pP])$ |
