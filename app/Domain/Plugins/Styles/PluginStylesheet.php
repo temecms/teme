@@ -69,15 +69,7 @@ final class PluginStylesheet
      */
     public static function wrap(string $css): string
     {
-        $stripped = self::outsideCommentsAndStrings($css);
-
-        if (preg_match('/@(import|namespace)\b/i', $stripped) === 1) {
-            throw new InvalidArgumentException('A stylesheet may not import another or declare a namespace.');
-        }
-
-        if (! self::balanced($stripped)) {
-            throw new InvalidArgumentException('A stylesheet’s braces do not balance.');
-        }
+        self::check($css);
 
         $charset = '';
 
@@ -141,34 +133,171 @@ final class PluginStylesheet
     }
 
     /**
-     * The sheet with its comments and its strings removed, so its braces and its at-rules are read as the CSS says.
+     * Reads the sheet once, left to right, as the CSS tokenizer does: comments, strings, escapes
+     * and unquoted url() are skipped as the text they are, so a brace or an at-rule hidden in
+     * one of them can't change the reading. Refuses an @import or @namespace, and braces that
+     * don't balance in order.
+     *
+     * @throws InvalidArgumentException
      */
-    private static function outsideCommentsAndStrings(string $css): string
-    {
-        $css = preg_replace('#/\*.*?\*/#s', '', $css) ?? $css;
-
-        return preg_replace('/"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'/s', '""', $css) ?? $css;
-    }
-
-    /**
-     * Whether every opening brace has its closing one, in order.
-     */
-    private static function balanced(string $css): bool
+    private static function check(string $css): void
     {
         $depth = 0;
+        $length = strlen($css);
+        $index = 0;
 
-        foreach (str_split($css) as $character) {
+        while ($index < $length) {
+            $character = $css[$index];
+
+            if ($character === '/' && ($css[$index + 1] ?? '') === '*') {
+                $end = strpos($css, '*/', $index + 2);
+                $index = $end === false ? $length : $end + 2;
+
+                continue;
+            }
+
+            if ($character === '"' || $character === "'") {
+                $index = self::endOfString($css, $index);
+
+                continue;
+            }
+
+            if ($character === '@') {
+                [$name, $index] = self::identifierAt($css, $index + 1);
+
+                if (in_array($name, ['import', 'namespace'], true)) {
+                    throw new InvalidArgumentException('A stylesheet may not import another or declare a namespace.');
+                }
+
+                continue;
+            }
+
+            if ($character === '\\' || self::isNameCharacter($character)) {
+                [$name, $end] = self::identifierAt($css, $index);
+
+                if ($end === $index) {
+                    $index++;
+
+                    continue;
+                }
+
+                $index = $name === 'url' && ($css[$end] ?? '') === '(' ? self::endOfUnquotedUrl($css, $end + 1) : $end;
+
+                continue;
+            }
+
             if ($character === '{') {
                 $depth++;
             } elseif ($character === '}') {
                 $depth--;
 
                 if ($depth < 0) {
-                    return false;
+                    throw new InvalidArgumentException('A stylesheet’s braces do not balance.');
                 }
+            }
+
+            $index++;
+        }
+
+        if ($depth !== 0) {
+            throw new InvalidArgumentException('A stylesheet’s braces do not balance.');
+        }
+    }
+
+    /**
+     * The index just past a string that starts at the given quote, which ends at its
+     * matching quote, at a newline, or at the end of the sheet.
+     */
+    private static function endOfString(string $css, int $start): int
+    {
+        $quote = $css[$start];
+        $length = strlen($css);
+
+        for ($index = $start + 1; $index < $length; $index++) {
+            if ($css[$index] === '\\') {
+                $index++;
+            } elseif ($css[$index] === $quote) {
+                return $index + 1;
+            } elseif ($css[$index] === "\n") {
+                return $index;
             }
         }
 
-        return $depth === 0;
+        return $length;
+    }
+
+    /**
+     * The index just past the ')' that closes an unquoted url( whose contents start at the given index,
+     * or the start of a quoted url, which is then read as a string.
+     */
+    private static function endOfUnquotedUrl(string $css, int $start): int
+    {
+        $index = $start;
+
+        while ($index < strlen($css) && in_array($css[$index], [' ', "\t", "\n", "\r", "\f"], true)) {
+            $index++;
+        }
+
+        if (($css[$index] ?? '') === '"' || ($css[$index] ?? '') === "'") {
+            return $index;
+        }
+
+        while ($index < strlen($css) && $css[$index] !== ')') {
+            $index += $css[$index] === '\\' ? 2 : 1;
+        }
+
+        return $index + 1;
+    }
+
+    /**
+     * The name that starts at the given index, with its escapes decoded and lower-cased, and the
+     * index just past it. A hex escape takes up to six digits and one following space, as CSS does.
+     *
+     * @return array{0: string, 1: int}
+     */
+    private static function identifierAt(string $css, int $start): array
+    {
+        $name = '';
+        $index = $start;
+        $length = strlen($css);
+
+        while ($index < $length) {
+            $character = $css[$index];
+
+            if ($character === '\\') {
+                if ($index + 1 >= $length || $css[$index + 1] === "\n") {
+                    break;
+                }
+
+                if (preg_match('/\G([0-9a-fA-F]{1,6})([ \t\n]|\r\n)?/', $css, $hex, 0, $index + 1) === 1) {
+                    $code = hexdec($hex[1]);
+                    $valid = $code > 0 && $code <= 0x10FFFF && ($code < 0xD800 || $code > 0xDFFF);
+                    $name .= mb_chr($valid ? $code : 0xFFFD, 'UTF-8');
+                    $index += 1 + strlen($hex[0]);
+                } else {
+                    $name .= $css[$index + 1];
+                    $index += 2;
+                }
+
+                continue;
+            }
+
+            if (! self::isNameCharacter($character)) {
+                break;
+            }
+
+            $name .= $character;
+            $index++;
+        }
+
+        return [strtolower($name), $index];
+    }
+
+    /**
+     * Whether a character can be part of a CSS name, without an escape.
+     */
+    private static function isNameCharacter(string $character): bool
+    {
+        return preg_match('/[A-Za-z0-9_\-]/', $character) === 1 || ord($character) >= 0x80;
     }
 }

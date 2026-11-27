@@ -114,6 +114,10 @@ it('answers 404 for a sheet that imports another, or whose braces do not balance
     'a missing closing brace' => ['.a{color:red'],
     'an extra closing brace' => ['.a{color:red}}'],
     'an import hidden after a comment' => ['/* hi */ @import url("x.css");'],
+    'a comment opener inside a string hides a brace' => ['a{content:"/*"} } .x{color:red; /* "*/ }'],
+    'a brace inside an unquoted url' => ['a{b:url({)} } .x{}'],
+    'an escaped brace' => ['a{} \\{ } .x{}'],
+    'an import spelled with a hex escape' => ['@\\69 mport url("other.css");'],
 ]);
 
 it('wraps a leading @charset first, and reads braces inside comments and strings as nothing', function (): void {
