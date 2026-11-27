@@ -76,7 +76,7 @@ final readonly class ImportScreen
         $labels = [];
 
         foreach (ImportSource::query()->where('kind', '!=', 'wordpress')->get() as $source) {
-            $labels[(string) $source->id] = $readers->find((string) $source->kind)?->label ?? (string) $source->kind;
+            $labels[(string) $source->id] = $readers->find((string) $source->kind)->label ?? (string) $source->kind;
         }
 
         return $labels;

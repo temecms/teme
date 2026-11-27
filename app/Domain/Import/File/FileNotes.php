@@ -35,7 +35,7 @@ final class FileNotes
     /**
      * Returns each note of a file report as a row: its kind, its plain name, how many items it counts, the first few IDs and its sentence.
      *
-     * @param  array<string, mixed>  $notes  the file report's `notes`
+     * @param  array<array-key, mixed>  $notes  the file report's `notes`, as decoded from JSON
      *
      * @return list<array{kind: string, group: string, count: int, examples: list<string>, sentence: string}>
      *

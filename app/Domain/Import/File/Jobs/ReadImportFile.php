@@ -197,7 +197,7 @@ final class ReadImportFile implements ShouldQueue
                     $given[$cursor] = true;
                 }
 
-                if (CarbonImmutable::now()->greaterThanOrEqualTo($deadline)) {
+                if (self::outOfTime($deadline)) {
                     $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
 
                     return;
@@ -235,7 +235,7 @@ final class ReadImportFile implements ShouldQueue
             $this->actor->userId,
         ));
 
-        if (CarbonImmutable::now()->greaterThanOrEqualTo($deadline)) {
+        if (self::outOfTime($deadline)) {
             $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
 
             return;
@@ -243,7 +243,7 @@ final class ReadImportFile implements ShouldQueue
 
         $rows = ReaderRows::build($items, $this->blocks(), $ids);
 
-        if (CarbonImmutable::now()->greaterThanOrEqualTo($deadline)) {
+        if (self::outOfTime($deadline)) {
             $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
 
             return;
@@ -519,5 +519,16 @@ final class ReadImportFile implements ShouldQueue
             'images' => ['total' => $counted['images']['total'] + $more['images']['total'], 'own' => $counted['images']['own'] + $more['images']['own'], 'hosts' => $counted['images']['hosts']],
             'dropped' => [...$counted['dropped'], ...$more['dropped']],
         ];
+    }
+
+    /**
+     * Whether the reader's time is up. Asked again after each stage, since
+     * each takes time: never a value to remember between calls.
+     *
+     * @phpstan-impure
+     */
+    private static function outOfTime(CarbonImmutable $deadline): bool
+    {
+        return CarbonImmutable::now()->greaterThanOrEqualTo($deadline);
     }
 }

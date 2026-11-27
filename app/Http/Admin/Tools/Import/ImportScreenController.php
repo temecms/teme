@@ -37,10 +37,10 @@ final class ImportScreenController extends Controller
         return Inertia::render('tools/import/index', [
             'sites' => $screen->sites(),
             'sourceReaders' => $screen->readerLabels($readers),
-            'readers' => array_values(array_map(
+            'readers' => array_map(
                 fn (ImportReaderOffer $offer): array => ['key' => $offer->key(), 'label' => $offer->label, 'fileTypes' => $offer->fileTypes],
                 $readers->all(),
-            )),
+            ),
             'companion' => ['version' => CompanionPlugin::VERSION, 'releases' => CompanionPlugin::RELEASES],
             'siteTimezone' => $settings->string('general', 'timezone'),
             'maxFileMb' => max(1, (int) config('teme.import.max_file_mb')),
