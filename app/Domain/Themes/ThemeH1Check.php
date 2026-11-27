@@ -28,18 +28,18 @@ final class ThemeH1Check
     public function __construct(private readonly ActiveTheme $active, private readonly ThemeRegistry $themes) {}
 
     /**
-     * What the check finds for this theme: the errors, and the warnings for
-     * a page it could not check. A theme that cannot draw the site is left
-     * to the checker's other errors.
+     * What the check finds for this theme: whether it ran, the errors, and
+     * the warnings for a page it could not check. A theme that cannot draw
+     * the site is left to the checker's other errors (`ran` false).
      *
      * @param  Closure(string): string  $draw  the HTML the public site answers at an address
      *
-     * @return array{errors: list<string>, warnings: list<string>}
+     * @return array{ran: bool, errors: list<string>, warnings: list<string>}
      */
     public function run(Theme $theme, Closure $draw): array
     {
         if (! $theme->usable()) {
-            return ['errors' => [], 'warnings' => []];
+            return ['ran' => false, 'errors' => [], 'warnings' => []];
         }
 
         $errors = [];
@@ -49,7 +49,11 @@ final class ThemeH1Check
             $single = $this->singlePath();
         } catch (Throwable) {
             // No readable database, such as a theme's own CI: no page can be drawn.
-            return ['errors' => [], 'warnings' => [__('The heading check didn\'t run: the site\'s database could not be read.')]];
+            return [
+                'ran' => false,
+                'errors' => [],
+                'warnings' => [__('The heading check didn\'t run: the site\'s database could not be read.')],
+            ];
         }
 
         $pages = ['The home page' => '/'];
@@ -76,7 +80,7 @@ final class ThemeH1Check
             }
         });
 
-        return ['errors' => $errors, 'warnings' => $warnings];
+        return ['ran' => true, 'errors' => $errors, 'warnings' => $warnings];
     }
 
     /**

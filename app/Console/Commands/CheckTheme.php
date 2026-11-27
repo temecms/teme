@@ -55,7 +55,7 @@ final class CheckTheme extends Command
         $code = (string) ($this->argument('code') ?? $active->chosen());
         $theme = $themes->find($code);
         $report = $theme === null
-            ? ['code' => $code, 'errors' => ["No theme has the code \"{$code}\"."], 'warnings' => [], 'files' => [], 'css' => 0, 'js' => 0]
+            ? ['code' => $code, 'errors' => ["No theme has the code \"{$code}\"."], 'warnings' => [], 'files' => [], 'css' => 0, 'js' => 0, 'headingsRan' => false]
             : $this->check($theme);
 
         $this->option('json')
@@ -66,7 +66,7 @@ final class CheckTheme extends Command
     }
 
     /**
-     * @return array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int}
+     * @return array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int, headingsRan: bool}
      */
     private function check(Theme $theme): array
     {
@@ -77,6 +77,7 @@ final class CheckTheme extends Command
         $headings = app(ThemeH1Check::class)->run($theme, $this->draw(...));
         $errors = [...$errors, ...$headings['errors']];
         $warnings = $headings['warnings'];
+        $headingsRan = $headings['ran'];
         $manifest = $theme->manifest;
         $built = $manifest?->assetsManifest() ?? '';
         $entries = $manifest?->assetEntries() ?? [];
@@ -124,7 +125,15 @@ final class CheckTheme extends Command
             $warnings[] = sprintf('JavaScript is %.1f KB compressed, over the %d KB budget.', $js / 1024, self::JS_BUDGET / 1024);
         }
 
-        return ['code' => $theme->code, 'errors' => $errors, 'warnings' => $warnings, 'files' => array_values($files), 'css' => $css, 'js' => $js];
+        return [
+            'code' => $theme->code,
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'files' => array_values($files),
+            'css' => $css,
+            'js' => $js,
+            'headingsRan' => $headingsRan,
+        ];
     }
 
     /**
@@ -193,7 +202,7 @@ final class CheckTheme extends Command
     }
 
     /**
-     * @param  array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int}  $report
+     * @param  array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int, headingsRan: bool}  $report
      */
     private function show(array $report): void
     {
@@ -210,16 +219,7 @@ final class CheckTheme extends Command
         $this->components->twoColumnDetail('CSS', sprintf('%.1f KB of %d KB', $report['css'] / 1024, self::CSS_BUDGET / 1024));
         $this->components->twoColumnDetail('JavaScript', sprintf('%.1f KB of %d KB', $report['js'] / 1024, self::JS_BUDGET / 1024));
 
-        $unrun = null;
-
         foreach ($report['warnings'] as $warning) {
-            // A check that could not run is said instead of "The theme passes" (issue 686).
-            if (str_starts_with($warning, 'The heading check didn\'t run:')) {
-                $unrun = $warning;
-
-                continue;
-            }
-
             $this->components->warn($warning);
         }
 
@@ -229,6 +229,9 @@ final class CheckTheme extends Command
             return;
         }
 
-        $this->components->info($unrun ?? 'The theme passes.');
+        // When the heading check could not run, its warn line is enough (issue 686).
+        if ($report['headingsRan']) {
+            $this->components->info('The theme passes.');
+        }
     }
 }
