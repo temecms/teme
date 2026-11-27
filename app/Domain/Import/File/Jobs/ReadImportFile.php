@@ -90,7 +90,7 @@ final class ReadImportFile implements ShouldQueue
         }
 
         if ($file->reader !== null) {
-            $this->readReader($file);
+            $this->readReader($file, $deadline);
 
             return;
         }
@@ -154,7 +154,7 @@ final class ReadImportFile implements ShouldQueue
      * rows in one record. A refusal stops the file with its sentence; any
      * other failure is recorded as the plugin's fault and stops it too.
      */
-    private function readReader(ImportFile $file): void
+    private function readReader(ImportFile $file, CarbonImmutable $deadline): void
     {
         $readers = app(ImportReaders::class);
         $offer = $readers->find((string) $file->reader);
@@ -172,11 +172,28 @@ final class ReadImportFile implements ShouldQueue
             $probe = $reader->probe($path);
             $items = [];
             $cursor = null;
+            $given = [];
 
             do {
                 $page = $reader->page($path, $cursor, self::ITEMS);
                 array_push($items, ...$page->items);
                 $cursor = $page->nextCursor;
+
+                if ($cursor !== null && isset($given[$cursor])) {
+                    $this->refuseReader('The import reader repeated a page of this file, so Teme stopped reading it.');
+
+                    return;
+                }
+
+                if ($cursor !== null) {
+                    $given[$cursor] = true;
+                }
+
+                if (CarbonImmutable::now()->greaterThanOrEqualTo($deadline)) {
+                    $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+
+                    return;
+                }
             } while ($cursor !== null);
         } catch (ImportReaderRefused $refusal) {
             $this->refuseReader($refusal->getMessage());

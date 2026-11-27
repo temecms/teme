@@ -21,6 +21,7 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
+use Carbon\Carbon;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -320,8 +321,43 @@ it('lists the import readers on Tools › Import, for the upload to choose one',
     readersEnabled();
 
     $this->actingAs($this->admin)->get(route('tools.importer.index'))
-        ->assertInertia(fn ($page) => $page->has('readers', 1)
+        ->assertInertia(fn ($page) => $page->has('readers', 3)
             ->where('readers.0.key', fixtureReaderKey())
             ->where('readers.0.label', 'Fake export')
             ->where('readers.0.fileTypes', ['json']));
+});
+
+/**
+ * The key an upload names for the fixture reader with the given reader ID.
+ */
+function readerKeyOf(string $readerId): string
+{
+    foreach (app(ImportReaders::class)->all() as $offer) {
+        if ($offer->readerId === $readerId) {
+            return $offer->key();
+        }
+    }
+
+    throw new RuntimeException("No reader {$readerId}.");
+}
+
+it('refuses a reader that hands back a cursor it has already been given', function (): void {
+    readersEnabled();
+
+    $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), readerKeyOf('stuck'));
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('The import reader repeated a page of this file, so Teme stopped reading it.');
+});
+
+it('refuses a file a reader takes longer than a read may take, rather than running out of time', function (): void {
+    readersEnabled();
+
+    $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), readerKeyOf('slow'));
+    readerReadToEnd($file);
+    Carbon::setTestNow();
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('This file took too long to read in one go, so Teme couldn’t finish reading it.');
 });
