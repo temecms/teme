@@ -61,6 +61,7 @@ final readonly class PluginWords
             Capability::ImportWordPress->value => self::imports($imports),
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
+            Capability::CommentsCheck->value => __('Read comments’ text, names, email addresses and addresses before they are saved, to judge whether they are spam'),
             Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
             Capability::PagesInsert->value => __('Add content to every page of your site: in the head, at the top and bottom of the page, between items on lists, in the theme’s regions, and fixed to the screen’s edge'),
             Capability::ContentLinks->value => __('Change how links in your articles behave: nofollow, new tab'),

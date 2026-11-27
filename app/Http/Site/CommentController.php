@@ -16,8 +16,12 @@ declare(strict_types=1);
 namespace App\Http\Site;
 
 use App\Domain\Cache\SignedInMarker;
+use App\Domain\Comments\Checks\CommentChecks;
+use App\Domain\Comments\CommenterToken;
+use App\Domain\Comments\CommentText;
 use App\Domain\Comments\Operations\Input\SubmitCommentInput;
 use App\Domain\Comments\Operations\SubmitComment;
+use App\Domain\Comments\ReturningCommenter;
 use App\Domain\Site\CommentViews;
 use App\Domain\Site\ItemLanguage;
 use App\Domain\Site\RespondViews;
@@ -27,6 +31,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use Teme\Contracts\Comments\CommentCandidate;
 
 final class CommentController extends Controller
 {
@@ -37,7 +42,7 @@ final class CommentController extends Controller
      * when core's script asks (1.8b′). Spam and a filled honeypot read as held
      * (I-592).
      */
-    public function store(Request $request, SubmitComment $submit, CommentViews $views): Response
+    public function store(Request $request, SubmitComment $submit, CommentViews $views, CommentChecks $checks): Response
     {
         $post = CommentPost::from($request);
         $answer = CommentAnswers::for($request);
@@ -59,6 +64,22 @@ final class CommentController extends Controller
         $actor = SignedInMarker::present($request) ? $request->user()?->getAuthIdentifier() : null;
         $parentId = $post->parent === '' ? null : $post->parent;
 
+        // A plugin's check is asked here, before the save's transaction, never inside it (docs/guides/developers/plugins/comment-check.md).
+        $checked = $checks->verdict(new CommentCandidate(
+            contentId: $target->id,
+            parentId: $parentId,
+            text: trim($post->text),
+            links: CommentText::links(CommentText::toDocument(trim($post->text))),
+            authorName: $post->name,
+            authorEmail: $post->email === '' ? null : $post->email,
+            authorUrl: $post->url === '' ? null : $post->url,
+            authorUserId: $actor === null ? null : (string) $actor,
+            ip: $request->ip(),
+            userAgent: $request->userAgent(),
+            returning: ReturningCommenter::isReturning($post->email === '' ? null : $post->email, $post->token === '' ? null : CommenterToken::hash($post->token), $actor === null ? null : (int) $actor),
+            itemUrl: null,
+        ));
+
         try {
             $submitted = $submit->execute(new SubmitCommentInput(
                 contentId: $target->id,
@@ -71,6 +92,7 @@ final class CommentController extends Controller
                 ip: $request->ip(),
                 userAgent: $request->userAgent(),
                 actorId: $actor === null ? null : (string) $actor,
+                checked: $checked,
             ));
         } catch (AuthorizationException $refused) {
             return $answer->refused($target, $refused->getMessage(), 403);

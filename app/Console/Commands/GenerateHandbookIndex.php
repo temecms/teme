@@ -66,6 +66,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/seo.md',
         'plugins/image-service.md',
         'plugins/provider-slots.md',
+        'plugins/comment-check.md',
         'plugins/exports.md',
         'plugins/content-types.md',
         'themes/languages.md',

@@ -32,6 +32,7 @@ final readonly class CommentCandidate
      * @param  int  $links  the web addresses linked in them
      * @param  string|null  $authorUserId  the account, when its writer is signed in
      * @param  string|null  $itemUrl  the item's public address
+     * @param  array<string, string>  $signals  hidden form fields the comment form carried, by name, as the plugin's check reads them
      *
      * @since 0.1.0
      */
@@ -48,5 +49,6 @@ final readonly class CommentCandidate
         public ?string $userAgent,
         public bool $returning,
         public ?string $itemUrl,
+        public array $signals = [],
     ) {}
 }

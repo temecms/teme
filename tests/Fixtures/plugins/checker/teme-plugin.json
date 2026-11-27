@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "tests/checker",
+    "code": "checker",
+    "label": "Checker",
+    "description": "A plugin the tests enable, which judges each comment before it is saved.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Checker\\Checker",
+    "capabilities": ["comments.check"],
+    "contributes": {
+        "provides": ["comment-check"]
+    }
+}

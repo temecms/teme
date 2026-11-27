@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations\Input;
 
+use Teme\Contracts\Comments\ModerationVerdict;
 use Teme\Contracts\Operations\OperationInput;
 
 final readonly class SubmitCommentInput implements OperationInput
@@ -31,6 +32,7 @@ final readonly class SubmitCommentInput implements OperationInput
         public ?string $ip = null,
         public ?string $userAgent = null,
         public ?string $actorId = null,
+        public ?ModerationVerdict $checked = null,
     ) {}
 
     public function actorId(): ?string

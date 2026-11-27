@@ -107,7 +107,8 @@
                     "sitemaps",
                     "directory.read",
                     "content.submissions",
-                    "redirects"
+                    "redirects",
+                    "comments.check"
                 ]
             }
         },

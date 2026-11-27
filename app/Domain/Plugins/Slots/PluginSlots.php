@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Slots;
 
+use Teme\Contracts\Comments\HasCommentCheck;
 use Teme\Contracts\Media\HasImageService;
 
 final class PluginSlots
@@ -25,7 +26,7 @@ final class PluginSlots
     /** The search engine's slot. Its contract comes with issue 780. */
     public const string SEARCH = 'search';
 
-    /** The comment check's slot. Its contract comes with issue 360. */
+    /** The comment check's slot: a plugin judges each comment before it is saved. */
     public const string COMMENT_CHECK = 'comment-check';
 
     /** Most slots a plugin may fill in one manifest. */
@@ -41,7 +42,7 @@ final class PluginSlots
         return [
             self::IMAGE_SERVICE => ['label' => 'Image service', 'contract' => HasImageService::class, 'default' => true],
             self::SEARCH => ['label' => 'Search', 'contract' => null, 'default' => true],
-            self::COMMENT_CHECK => ['label' => 'Comment check', 'contract' => null, 'default' => false],
+            self::COMMENT_CHECK => ['label' => 'Comment check', 'contract' => HasCommentCheck::class, 'default' => false],
         ];
     }
 

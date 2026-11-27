@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Comments\Operations;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\CommentDocument;
 use App\Domain\Comments\CommentEmails;
 use App\Domain\Comments\CommenterToken;
@@ -145,6 +146,9 @@ final class SubmitComment extends BaseOperation
                 itemUrl: Addresses::urlFor($item),
             )));
         }
+
+        // A plugin's check, asked before the save, merges strictest first; core's judgment above still applies (docs/guides/developers/plugins/comment-check.md).
+        $verdict = CommentChecks::strictest($input->checked, $verdict) ?? $verdict;
 
         // From the clock, so the thread's path order is the order of writing (D16).
         $id = strtolower((string) Str::ulid(now()));
