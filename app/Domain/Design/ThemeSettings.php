@@ -88,8 +88,8 @@ final readonly class ThemeSettings
             'image' => Setting::media($key, $label, $description, '1.8.0')->default(''),
             'menu' => Setting::text($key, $label, $description, '1.8.0')->default((string) $default),
             'links' => Setting::repeater($key, $label, $description, '1.8.0', [
-                Setting::text('label', 'Label', 'The link’s label.', '1.8.0'),
-                Setting::url('address', 'Address', 'The link’s address.', '1.8.0'),
+                Setting::text('label', 'Label', 'The link’s label.', '1.8.0')->required(),
+                Setting::url('address', 'Address', 'The link’s address.', '1.8.0')->required(),
             ])->max(ManifestValidator::MOST_LINKS)->itemTitle('label')->default(is_array($default) ? $default : []),
             'url' => Setting::url($key, $label, $description, '1.8.0')->default((string) $default),
             'textarea' => Setting::textarea($key, $label, $description, '1.8.0')->default((string) $default),

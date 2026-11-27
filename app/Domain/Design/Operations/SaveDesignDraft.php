@@ -74,8 +74,21 @@ final class SaveDesignDraft extends BaseOperation
                     continue;
                 }
 
+                $key = (string) $key;
                 $rules[$key] = SettingRules::for($setting);
                 $labels[$key] = $setting->label;
+
+                // A repeater's items and fields, as SettingRules::validateValues
+                // does for live settings (theme links among them).
+                if ($setting->type === SettingType::Repeater) {
+                    $values[$key] = $values[$key] === '' || $values[$key] === null ? [] : $values[$key];
+                    $rules["{$key}.*"] = ['array'];
+
+                    foreach ($setting->fields as $field) {
+                        $rules["{$key}.*.{$field->key}"] = SettingRules::for($field);
+                        $labels["{$key}.*.{$field->key}"] = $field->label;
+                    }
+                }
             }
 
             // One group at a time, keyed by setting key: a group key such as

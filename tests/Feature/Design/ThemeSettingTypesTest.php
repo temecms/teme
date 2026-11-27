@@ -189,3 +189,28 @@ it('gives the template an image\'s address and alt, and a menu\'s items as navig
         ->and($settings['footer_menu'])->toBeArray()
         ->and($settings['footer_menu'][0]['label'] ?? null)->toBe('About');
 });
+
+it('refuses too many links, a javascript address, and a link with no label', function (): void {
+    $group = typedTheme([
+        ['key' => 'social', 'type' => 'links', 'label' => 'Social', 'fieldset' => 'site', 'default' => []],
+    ]);
+
+    $tooMany = array_map(
+        fn (int $n): array => ['label' => "Link {$n}", 'address' => "https://example.test/{$n}"],
+        range(1, 13),
+    );
+
+    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
+        $group => ['social' => $tooMany],
+    ], (string) $this->admin->id)))->toThrow(ValidationException::class);
+
+    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
+        $group => ['social' => [['label' => 'X', 'address' => 'javascript:alert(1)']]],
+    ], (string) $this->admin->id)))->toThrow(ValidationException::class);
+
+    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
+        $group => ['social' => [['label' => '', 'address' => 'https://example.test/']]],
+    ], (string) $this->admin->id)))->toThrow(ValidationException::class);
+
+    expect(DB::table('settings')->where('group_key', $group)->value('draft_values'))->toBeNull();
+});
