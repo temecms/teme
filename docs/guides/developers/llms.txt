@@ -28,6 +28,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Public routes](plugins/public-routes.md): How a plugin answers addresses on the public site, which paths it may take, how inbound posts are verified, cached and limited, what Teme answers before a handler runs, and which addresses Teme answers itself.
 - [Files at the site's root](plugins/root-files.md): How a plugin declares a small text file at the site's root, such as a verification key, which core serves without running the plugin's code.
 - [The plugin import socket](plugins/import.md): How a plugin brings its own data across when a site moves from WordPress, declaring exactly what it reads and receiving it from Teme's import.
+- [Import readers](plugins/import-readers.md): How a plugin teaches Teme's import engine to read another system's export file, so that the engine's plan, runs, map, report and redirects serve that system as they serve WordPress.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
 - [Content on every page](plugins/page-insertions.md): How a plugin with pages.insert places markup in the head, at the top and bottom of every page, between list items, around a theme's regions and fixed to the screen's edge, and what core cleans, caps and leaves out.
 - [Cards for a theme's regions](plugins/cards.md): How a plugin with pages.insert offers cards that editors place in a theme's regions, with fields core draws, options it gives while a card is filled in, and markup it draws on the public page.
@@ -55,5 +56,6 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Scripts in a theme under the page policy](themes/scripts.md): What a theme's JavaScript may do under Teme's content security policy, the compressed script budget, and how the default theme stays small.
 - [Archive pages, author profiles and listing data](themes/archive-pages.md): What a theme reads on a type's archive page and an author's page, and how its script asks for search suggestions and for any listing's next page as data.
 - [Tokens, styles and fonts](themes/tokens-and-styles.md): How a theme declares core tokens, its own custom tokens, named style variations, fonts with face and unicode_range, and how the site brand colour becomes --teme-brand.
+- [Overriding core's components](themes/components.md): How a theme replaces one of the six pieces core draws on every page, which data each one hands its view, what a comment-form override must keep, and how the contract number keeps an override in step with core.
 - [The management API](outside/management-api.md): For a service outside the site, not a plugin, with keys and abilities, the endpoints, the problems it answers, and its limits.
 

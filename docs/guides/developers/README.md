@@ -34,6 +34,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Public routes](plugins/public-routes.md)
 - [Files at the site's root](plugins/root-files.md)
 - [The plugin import socket](plugins/import.md)
+- [Import readers](plugins/import-readers.md)
 - [Content inside articles](plugins/insertions.md)
 - [Content on every page](plugins/page-insertions.md)
 - [Cards for a theme's regions](plugins/cards.md)
@@ -61,6 +62,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Scripts in a theme under the page policy](themes/scripts.md)
 - [Archive pages, author profiles and listing data](themes/archive-pages.md)
 - [Tokens, styles and fonts](themes/tokens-and-styles.md)
+- [Overriding core's components](themes/components.md)
 - [The management API](outside/management-api.md)
 
 ## Generated reference

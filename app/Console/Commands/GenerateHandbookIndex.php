@@ -52,6 +52,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/public-routes.md',
         'plugins/root-files.md',
         'plugins/import.md',
+        'plugins/import-readers.md',
         'plugins/insertions.md',
         'plugins/page-insertions.md',
         'plugins/cards.md',
@@ -79,6 +80,7 @@ final class GenerateHandbookIndex extends Command
         'themes/scripts.md',
         'themes/archive-pages.md',
         'themes/tokens-and-styles.md',
+        'themes/components.md',
         'outside/management-api.md',
     ];
 
