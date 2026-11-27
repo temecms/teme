@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Reader;
 
+use App\Domain\Contents\Slugs;
 use App\Domain\Import\File\ContentBlocks;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\File\Paragraphs;
@@ -151,7 +152,7 @@ final class ReaderRows
         $rows = [];
 
         foreach ($items as $item) {
-            if ($item->kind === ImportKind::PERSON && ($item->fields['login'] ?? '') !== '') {
+            if ($item->kind === ImportKind::PERSON) {
                 $person = $this->person($item);
 
                 if ($person !== null) {
@@ -190,14 +191,15 @@ final class ReaderRows
      */
     private function person(ImportItem $item): ?array
     {
-        $login = (string) $item->fields['login'];
+        $given = (string) ($item->fields['login'] ?? '');
 
-        if (isset($this->logins[$login])) {
-            $this->people[$item->id] = $this->logins[$login];
+        if ($given !== '' && isset($this->logins[$given])) {
+            $this->people[$item->id] = $this->logins[$given];
 
             return null;
         }
 
+        $login = $given !== '' ? $given : $this->freeLogin($item);
         $id = $this->idOf($item);
         $this->logins[$login] = $id;
         $this->people[$item->id] = $id;
@@ -211,6 +213,24 @@ final class ReaderRows
                 'author_display_name' => (string) ($item->fields['displayName'] ?? ''),
             ]),
         ];
+    }
+
+    /**
+     * A login for a person who has none, made from their name as the
+     * WordPress import makes a slug, with a number when another person of the
+     * file already has it, so two people are never merged into one.
+     */
+    private function freeLogin(ImportItem $item): string
+    {
+        $name = trim((string) ($item->fields['displayName'] ?? '')) ?: trim($item->title);
+        $base = Slugs::fromText($name !== '' ? $name : $item->id) ?: 'author';
+        $login = $base;
+
+        for ($number = 2; isset($this->logins[$login]); $number++) {
+            $login = $base.'-'.$number;
+        }
+
+        return $login;
     }
 
     /**

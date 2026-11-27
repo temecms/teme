@@ -487,3 +487,20 @@ it('gives reader IDs to no one, and writes nothing, when the person may not impo
         ->toThrow(AuthorizationException::class)
         ->and(DB::table('import_reader_ids')->count())->toBe(0);
 });
+
+it('imports a reader’s person with no login as an author, keeps their posts, and makes them once', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'person', 'id' => 'p2', 'displayName' => 'Guest Writer', 'email' => 'guest@example.com'];
+    $export['items'][3]['authorId'] = 'p2';
+
+    FileImports::run(readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey())->refresh());
+    FileImports::run(readerUploaded('site-again.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey())->refresh());
+
+    $guest = DB::table('users')->where('email', 'guest@example.com')->first();
+
+    expect($guest)->not->toBeNull()
+        ->and(DB::table('users')->where('email', 'guest@example.com')->count())->toBe(1)
+        ->and(DB::table('contents')->where('title', 'Hello')->value('author_id'))->toBe($guest->id);
+});
