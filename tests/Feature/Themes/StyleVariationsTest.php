@@ -96,6 +96,30 @@ it('shows a draft style on its preview only', function (): void {
         ->assertSee('themes/skinned/fonts/body.woff2', false);
 });
 
+it('overlays a style\'s tokens on the base instead of replacing them', function (): void {
+    file_put_contents($this->folder.'/teme-theme.json', (string) json_encode(pageManifest([
+        'code' => 'skinned',
+        'name' => 'Skinned',
+        'fonts' => [
+            ['family' => 'Body', 'file' => 'fonts/body.woff2', 'weight' => '400', 'style' => 'normal', 'preload' => true],
+        ],
+        'tokens' => ['base' => '#ffffff', 'accent' => '#b3261e', 'contrast' => '#111111'],
+        'custom_tokens' => ['surface' => '#f5f5f5', 'radius' => '0.25rem'],
+        'styles' => [
+            'classic' => [
+                'label' => 'Classic',
+                'tokens' => ['accent' => '#0b5394'],
+                'custom_tokens' => ['surface' => '#e8eef5'],
+            ],
+        ],
+    ])));
+    themeActivate('skinned');
+    pageArticle($this->author, 'Overlay style');
+
+    expect(addrGet('/overlay-style/')->assertOk()->getContent())
+        ->toContain('--teme-base:#ffffff;--teme-accent:#0b5394;--teme-contrast:#111111;--teme-surface:#e8eef5;--teme-radius:0.25rem');
+});
+
 it('refuses a style whose fonts file is not declared, or a setting that shadows style', function (): void {
     $errors = app(ManifestValidator::class)->errors(pageManifest([
         'fonts' => [['family' => 'Body', 'file' => 'fonts/newsreader.woff2', 'weight' => '400', 'style' => 'normal', 'preload' => true]],

@@ -133,16 +133,18 @@ final class Document extends Component
         $this->title = $titles->for($model, $composers->intent()->isFront ?? false);
         $chosen = $design->style();
         $variation = $chosen === null ? null : ($manifest?->styles()[$chosen] ?? null);
-        $preloadFile = $variation['fonts'] ?? $manifest?->preloadedFont()['file'] ?? null;
+        $preloadFile = is_array($variation) ? ($variation['fonts'] ?? null) : null;
+        $preloadFile ??= $manifest?->preloadedFont()['file'] ?? null;
         $this->preload = $this->preloadOf($code, $preloadFile);
         $this->scheme = $design->scheme();
         $brand = $design->brand();
         $useBrand = $brand !== '' && $design->usesBrandAsAccent();
+        // A style's tokens overlay the base ([...base, ...style]), never replace.
         $this->tokens = $this->styleOf(
-            $variation['tokens'] ?? $manifest?->tokens() ?? [],
-            $variation['tokens_dark'] ?? $manifest?->tokensDark() ?? [],
+            [...($manifest?->tokens() ?? []), ...(is_array($variation) ? ($variation['tokens'] ?? []) : [])],
+            [...($manifest?->tokensDark() ?? []), ...(is_array($variation) ? ($variation['tokens_dark'] ?? []) : [])],
             $useBrand ? Contrast::accentSchemes($brand, $manifest) : null,
-            $variation['custom_tokens'] ?? $manifest?->customTokens() ?? [],
+            [...($manifest?->customTokens() ?? []), ...(is_array($variation) ? ($variation['custom_tokens'] ?? []) : [])],
             $manifest?->customTokensDark() ?? [],
             $code,
             $manifest?->fonts() ?? [],
