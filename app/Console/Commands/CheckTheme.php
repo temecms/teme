@@ -28,8 +28,11 @@ use App\Domain\Themes\ThemeH1Check;
 use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Themes\ThemeScripts;
 use App\Http\Site\PublicPage;
+use FilesystemIterator;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 
 final class CheckTheme extends Command
@@ -144,14 +147,36 @@ final class CheckTheme extends Command
     }
 
     /**
-     * Whether the theme's listing templates, those it has, call
-     * x-teme::between-items; true for a theme with none.
+     * Whether any of the theme's views call x-teme::between-items, including
+     * skin folders a root template only includes; true when it has no views.
      */
     private static function drawsBetweenItems(string $path): bool
     {
-        $listings = array_filter(array_map(fn (string $name): string => "{$path}/views/templates/{$name}.blade.php", ['archive', 'latest', 'search']), is_file(...));
+        $views = self::viewFiles("{$path}/views");
 
-        return $listings === [] || array_any($listings, fn (string $file): bool => str_contains((string) file_get_contents($file), 'x-teme::between-items'));
+        return $views === [] || array_any($views, fn (string $file): bool => str_contains((string) file_get_contents($file), 'x-teme::between-items'));
+    }
+
+    /**
+     * Every Blade view under the theme's views folder.
+     *
+     * @return list<string>
+     */
+    private static function viewFiles(string $views): array
+    {
+        if (! is_dir($views)) {
+            return [];
+        }
+
+        $files = [];
+
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($views, FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ($file->isFile() && str_ends_with($file->getFilename(), '.blade.php')) {
+                $files[] = $file->getPathname();
+            }
+        }
+
+        return $files;
     }
 
     /**
@@ -184,12 +209,25 @@ final class CheckTheme extends Command
         $this->components->twoColumnDetail('CSS', sprintf('%.1f KB of %d KB', $report['css'] / 1024, self::CSS_BUDGET / 1024));
         $this->components->twoColumnDetail('JavaScript', sprintf('%.1f KB of %d KB', $report['js'] / 1024, self::JS_BUDGET / 1024));
 
+        $unrun = null;
+
         foreach ($report['warnings'] as $warning) {
+            // A check that could not run is said instead of "The theme passes" (issue 686).
+            if (str_starts_with($warning, 'The heading check didn\'t run:')) {
+                $unrun = $warning;
+
+                continue;
+            }
+
             $this->components->warn($warning);
         }
 
-        $report['errors'] === []
-            ? $this->components->info('The theme passes.')
-            : $this->components->error(sprintf('The theme has %d %s.', count($report['errors']), count($report['errors']) === 1 ? 'error' : 'errors'));
+        if ($report['errors'] !== []) {
+            $this->components->error(sprintf('The theme has %d %s.', count($report['errors']), count($report['errors']) === 1 ? 'error' : 'errors'));
+
+            return;
+        }
+
+        $this->components->info($unrun ?? 'The theme passes.');
     }
 }

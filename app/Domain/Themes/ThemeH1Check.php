@@ -49,7 +49,7 @@ final class ThemeH1Check
             $single = $this->singlePath();
         } catch (Throwable) {
             // No readable database, such as a theme's own CI: no page can be drawn.
-            return ['errors' => [], 'warnings' => [__('The pages were not checked for an <h1>: the site\'s database could not be read.')]];
+            return ['errors' => [], 'warnings' => [__('The heading check didn\'t run: the site\'s database could not be read.')]];
         }
 
         $pages = ['The home page' => '/'];
