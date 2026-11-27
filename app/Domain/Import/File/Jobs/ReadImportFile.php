@@ -236,12 +236,57 @@ final class ReadImportFile implements ShouldQueue
         ));
         $rows = ReaderRows::build($items, $this->blocks(), $ids);
         $facts = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
+        $counted = self::noFacts();
+        $counted['notes'] = $this->notesOf($items, $probe->languages);
 
-        if (! $this->keep(0, count($items), $rows, self::noFacts(), $facts)) {
+        if (! $this->keep(0, count($items), $rows, $counted, $facts)) {
             return;
         }
 
         app(FinishReadingImportFile::class)->execute(new FinishReadingImportFileInput($this->fileId, $this->actor->userId));
+    }
+
+    /**
+     * What a reader's file holds that Teme doesn't bring, counted and named
+     * for the report: comments on posts the file doesn't have, menu items in
+     * menus it doesn't have, and a file in more than one language, whose items
+     * come across in the site's default language.
+     *
+     * @param  list<ImportItem>  $items
+     * @param  list<string>  $languages
+     *
+     * @return array<string, array{count: int, examples: list<string>, sentence: string}>
+     */
+    private function notesOf(array $items, array $languages): array
+    {
+        $posts = [];
+        $menus = [];
+
+        foreach ($items as $item) {
+            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
+                $posts[$item->id] = true;
+            } elseif ($item->kind === ImportKind::MENU) {
+                $menus[$item->id] = true;
+            }
+        }
+
+        $notes = [];
+        $comments = array_values(array_filter($items, fn (ImportItem $item): bool => $item->kind === ImportKind::COMMENT && ! isset($posts[(string) $item->postId])));
+        $menuItems = array_values(array_filter($items, fn (ImportItem $item): bool => $item->kind === ImportKind::MENU_ITEM && ! isset($menus[(string) $item->menuId])));
+
+        if ($comments !== []) {
+            $notes['comment'] = ['count' => count($comments), 'examples' => array_map(fn (ImportItem $item): string => $item->id, array_slice($comments, 0, 5)), 'sentence' => 'Comments on posts that aren’t in this file weren’t brought.'];
+        }
+
+        if ($menuItems !== []) {
+            $notes['menu-item'] = ['count' => count($menuItems), 'examples' => array_map(fn (ImportItem $item): string => $item->id, array_slice($menuItems, 0, 5)), 'sentence' => 'Menu items in menus that aren’t in this file weren’t brought.'];
+        }
+
+        if (count(array_unique($languages)) > 1) {
+            $notes['language'] = ['count' => 1, 'examples' => [], 'sentence' => 'This file has more than one language, and its items come across in the site’s default language.'];
+        }
+
+        return $notes;
     }
 
     /**
@@ -331,11 +376,11 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
-     * @return array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>}
+     * @return array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes: array<string, array{count: int, examples: list<string>, sentence: string}>}
      */
     private static function noFacts(): array
     {
-        return ['seo' => [], 'images' => ['total' => 0, 'own' => 0, 'hosts' => []], 'dropped' => []];
+        return ['seo' => [], 'images' => ['total' => 0, 'own' => 0, 'hosts' => []], 'dropped' => [], 'notes' => []];
     }
 
     /**

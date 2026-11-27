@@ -118,11 +118,23 @@ final class RecordImportFileRows extends BaseOperation
 
         $dropped = is_array($kept['dropped'] ?? null) ? $kept['dropped'] : [];
 
+        $notes = is_array($kept['notes'] ?? null) ? $kept['notes'] : [];
+
+        foreach ($facts['notes'] ?? [] as $kind => $note) {
+            $held = is_array($notes[$kind] ?? null) ? $notes[$kind] : ['count' => 0, 'examples' => [], 'sentence' => $note['sentence']];
+            $notes[$kind] = [
+                'count' => (int) $held['count'] + $note['count'],
+                'examples' => array_slice([...$held['examples'], ...$note['examples']], 0, 5),
+                'sentence' => $held['sentence'],
+            ];
+        }
+
         $payload = [
             'seo' => $seo,
             'images' => $images,
             'dropped' => array_slice([...$dropped, ...$facts['dropped']], 0, self::DROPPED),
             'dropped_count' => (int) ($kept['dropped_count'] ?? 0) + count($facts['dropped']),
+            'notes' => $notes,
         ];
 
         DB::table('import_file_rows')->upsert(

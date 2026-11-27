@@ -133,7 +133,7 @@ final class FakeImportReader implements ImportReader
         $fields = match ($kind) {
             ImportKind::PERSON => ['login' => $raw['login'] ?? '', 'email' => $raw['email'] ?? '', 'displayName' => $raw['displayName'] ?? ''],
             ImportKind::TERM => ['taxonomy' => $raw['taxonomy'] ?? 'category', 'name' => $raw['name'] ?? '', 'description' => $raw['description'] ?? ''],
-            ImportKind::MEDIA => ['url' => $raw['url'] ?? '', 'mime' => $raw['mime'] ?? '', 'alt' => $raw['alt'] ?? ''],
+            ImportKind::MEDIA => ['url' => $raw['url'] ?? '', 'mime' => $raw['mime'] ?? '', 'alt' => $raw['alt'] ?? '', 'caption' => $raw['caption'] ?? '', 'description' => $raw['description'] ?? ''],
             ImportKind::COMMENT => ['authorName' => $raw['authorName'] ?? '', 'authorEmail' => $raw['authorEmail'] ?? '', 'authorUrl' => $raw['authorUrl'] ?? '', 'authorIp' => $raw['authorIp'] ?? ''],
             ImportKind::MENU => ['slug' => $raw['slug'] ?? ''],
             ImportKind::MENU_ITEM => ['url' => $raw['url'] ?? ''],

@@ -504,3 +504,59 @@ it('imports a reader’s person with no login as an author, keeps their posts, a
         ->and(DB::table('users')->where('email', 'guest@example.com')->count())->toBe(1)
         ->and(DB::table('contents')->where('title', 'Hello')->value('author_id'))->toBe($guest->id);
 });
+
+it('counts and names a reader’s comments whose post isn’t in the file, in the report', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'comment', 'id' => 'c7', 'postId' => 'gone', 'status' => 'published', 'content' => 'Lost', 'authorName' => 'Sam'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->report['notes']['comment']['count'])->toBe(1)
+        ->and($file->report['notes']['comment']['examples'])->toBe(['c7'])
+        ->and($file->report['notes']['comment']['sentence'])->toContain('aren’t in this file');
+});
+
+it('counts and names a reader’s menu items whose menu isn’t in the file, in the report', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi9', 'menuId' => 'nope', 'itemType' => 'content', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->report['notes']['menu-item']['count'])->toBe(1)
+        ->and($file->report['notes']['menu-item']['examples'])->toBe(['mi9']);
+});
+
+it('says once, in the report, that a reader’s items come across in the site’s default language', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['languages'] = ['en', 'fr'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->report['notes']['language']['count'])->toBe(1)
+        ->and($file->report['notes']['language']['sentence'])->toContain('site’s default language');
+});
+
+it('carries a reader’s media caption and description', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][2]['caption'] = 'A harbour at dusk';
+    $export['items'][2]['description'] = 'Taken in January';
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $media = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'media')->value('payload'), true);
+
+    expect($media['caption'])->toBe('A harbour at dusk')
+        ->and($media['description'])->toBe('Taken in January');
+});

@@ -128,7 +128,7 @@ it('carries a person, a term and a media item’s fields in the neutral shape', 
 
     expect($reader->fetch($path, 'p1')->fields)->toBe(['login' => 'ada', 'email' => 'ada@example.com', 'displayName' => 'Ada'])
         ->and($reader->fetch($path, 't1')->fields)->toBe(['taxonomy' => 'category', 'name' => 'News', 'description' => ''])
-        ->and($reader->fetch($path, 'm1')->fields)->toBe(['url' => 'https://old.example.com/a.jpg', 'mime' => 'image/jpeg', 'alt' => 'A']);
+        ->and($reader->fetch($path, 'm1')->fields)->toBe(['url' => 'https://old.example.com/a.jpg', 'mime' => 'image/jpeg', 'alt' => 'A', 'caption' => '', 'description' => '']);
 
     unlink($path);
 });
