@@ -129,13 +129,13 @@ it('draws Reading\'s default-number note straight after Items per page, before t
 it('reads the brand color\'s contrast as it is typed, and saves it on General', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/settings/general');
 
-    cmWaitUntil($page, 'document.querySelector("#field-accent") !== null');
+    cmWaitUntil($page, 'document.querySelector("#field-brand") !== null');
 
-    $page->type('#field-accent', '#ffeb3b');
+    $page->type('#field-brand', '#ffeb3b');
 
     cmWaitUntil($page, 'document.querySelector(\'[data-test="brand-colour"]\')?.textContent.includes("The brand colour reaches only")');
 
-    $page->type('#field-accent', '#0b5394');
+    $page->type('#field-brand', '#0b5394');
 
     cmWaitUntil($page, 'document.querySelector("#brand-colour-readout")?.textContent.includes("to 1, readable")');
 
@@ -146,7 +146,7 @@ it('reads the brand color\'s contrast as it is typed, and saves it on General', 
     $page->assertPathIs('/admin/settings/general')
         ->navigate('/admin/settings/general');
 
-    cmWaitUntil($page, 'document.querySelector("#field-accent")?.value === "#0b5394"');
+    cmWaitUntil($page, 'document.querySelector("#field-brand")?.value === "#0b5394"');
 });
 
 it('draws General with its Brand colour, passing axe and the target size, in both schemes', function (string $scheme): void {

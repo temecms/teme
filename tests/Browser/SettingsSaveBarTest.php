@@ -35,20 +35,20 @@ beforeEach(function (): void {
 
 it('shows one bar only once General changes, and saves the brand color with it, naming a refused color under its field', function (): void {
     $page = cmNavigate(cmSignIn($this->admin), '/admin/settings/general');
-    cmWaitUntil($page, 'document.querySelector("#field-accent") !== null');
+    cmWaitUntil($page, 'document.querySelector("#field-brand") !== null');
 
     $page->assertScript('document.querySelectorAll(\'[data-test="save-bar"]\').length === 1 && document.querySelector(\'[data-test="save-bar"]\').hidden')
         ->assertScript('document.querySelector(\'[data-test="brand-colour"] button[type="submit"]\') === null')
         ->type('#field-site_title', 'The Garden City Ledger')
-        ->type('#field-accent', '#ffeb3b');
+        ->type('#field-brand', '#ffeb3b');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
 
     $page->click('[data-test="settings-save"]');
-    cmWaitUntil($page, 'document.querySelector("#field-accent-error")?.textContent.includes("The brand colour reaches only")');
+    cmWaitUntil($page, 'document.querySelector("#field-brand-error")?.textContent.includes("The brand colour reaches only")');
 
     expect(app(SettingsReader::class)->string('general', 'site_title'))->not->toBe('The Garden City Ledger');
 
-    $page->type('#field-accent', '#0b5394')->click('[data-test="settings-save"]');
+    $page->type('#field-brand', '#0b5394')->click('[data-test="settings-save"]');
     cmWaitUntil($page, 'document.body.textContent.includes("Settings saved.")');
 
     expect(app(SettingsReader::class)->string('general', 'site_title'))->toBe('The Garden City Ledger')
