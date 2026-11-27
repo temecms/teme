@@ -28,6 +28,8 @@ export type PieceUploadResult =
 
 export type PieceUploadOptions = {
     file: File;
+    /** The key of the import reader that reads the file; absent for WordPress's export. */
+    reader?: string;
     urls: PieceUploadUrls;
     onProgress?: (done: number, total: number) => void;
     onRetrying?: (pieceBytes: number) => void;
@@ -129,7 +131,11 @@ export async function uploadInPieces(
             ...baseHeaders,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: options.file.name, size: total }),
+        body: JSON.stringify({
+            name: options.file.name,
+            size: total,
+            reader: options.reader ?? null,
+        }),
         signal: options.signal,
     });
     const startAnswer = await readAnswer(startResponse);

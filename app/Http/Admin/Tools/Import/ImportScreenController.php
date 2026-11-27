@@ -20,6 +20,8 @@ use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Import\Tracking\ImportRunJobs;
 use App\Domain\Jobs\Queries\TrackedJobList;
 use App\Domain\Media\Downloads\FileDownloader;
+use App\Domain\Plugins\Readers\ImportReaderOffer;
+use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Support\Network\AddressRefused;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -30,10 +32,14 @@ use Teme\Contracts\Settings\SettingsReader;
 
 final class ImportScreenController extends Controller
 {
-    public function index(ImportScreen $screen, SettingsReader $settings): Response
+    public function index(ImportScreen $screen, SettingsReader $settings, ImportReaders $readers): Response
     {
         return Inertia::render('tools/import/index', [
             'sites' => $screen->sites(),
+            'readers' => array_values(array_map(
+                fn (ImportReaderOffer $offer): array => ['key' => $offer->key(), 'label' => $offer->label, 'fileTypes' => $offer->fileTypes],
+                $readers->all(),
+            )),
             'companion' => ['version' => CompanionPlugin::VERSION, 'releases' => CompanionPlugin::RELEASES],
             'siteTimezone' => $settings->string('general', 'timezone'),
             'maxFileMb' => max(1, (int) config('teme.import.max_file_mb')),

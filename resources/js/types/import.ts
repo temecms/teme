@@ -25,6 +25,15 @@ export type ImportIndexPage = {
     siteTimezone: string;
     /** Largest export upload, in megabytes. */
     maxFileMb: number;
+    /** The import readers a plugin offers, which can read an uploaded file instead of WordPress's export. */
+    readers: ImportReaderChoice[];
+};
+
+/** An import reader a plugin offers, as the upload chooses it. */
+export type ImportReaderChoice = {
+    key: string;
+    label: string;
+    fileTypes: string[];
 };
 
 /** The export file a site reads from now. */

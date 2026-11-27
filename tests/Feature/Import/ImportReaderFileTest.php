@@ -315,3 +315,13 @@ it('carries a reader’s excerpt, sticky flag, featured picture, menu order, ter
         ->and($media['parent'])->toBe($post['id'])
         ->and($media['author'])->toBe(DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'users')->value(DB::raw("(payload->>'id')::bigint")));
 });
+
+it('lists the import readers on Tools › Import, for the upload to choose one', function (): void {
+    readersEnabled();
+
+    $this->actingAs($this->admin)->get(route('tools.importer.index'))
+        ->assertInertia(fn ($page) => $page->has('readers', 1)
+            ->where('readers.0.key', fixtureReaderKey())
+            ->where('readers.0.label', 'Fake export')
+            ->where('readers.0.fileTypes', ['json']));
+});

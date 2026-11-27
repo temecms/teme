@@ -23,6 +23,7 @@ use InvalidArgumentException;
 use LogicException;
 use Teme\Contracts\Import\ImportItem;
 use Teme\Contracts\Import\ImportKind;
+use Teme\Contracts\Import\ImportTaxonomy;
 
 /**
  * The adapter of the import socket. A reader's source IDs are strings, and
@@ -48,8 +49,8 @@ final class ReaderRows
 
     /** The taxonomy words a reader may give, and the words the engine's rows keep for them. */
     private const array TAXONOMIES = [
-        'category' => 'category',
-        'tag' => 'post_tag',
+        ImportTaxonomy::CATEGORY => 'category',
+        ImportTaxonomy::TAG => 'post_tag',
     ];
 
     /** The menu item types a reader may give, and the words the engine's rows keep for them. */

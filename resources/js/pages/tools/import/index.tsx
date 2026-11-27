@@ -30,6 +30,7 @@ export default function ImportIndex({
     companion,
     siteTimezone,
     maxFileMb,
+    readers,
 }: ImportIndexPage) {
     const [way, setWay] = useState<ImportWay>(null);
 
@@ -174,7 +175,7 @@ export default function ImportIndex({
                     />
                 )}
 
-                {way === 'upload' && <UploadForm maxFileMb={maxFileMb} />}
+                {way === 'upload' && <UploadForm maxFileMb={maxFileMb} readers={readers} />}
             </ListPage>
         </>
     );
