@@ -73,7 +73,7 @@ final class FinishReadingImportFile extends BaseOperation
         $this->count($file->id);
 
         $source = ImportSource::query()->where('address', $address)->lockForUpdate()->first();
-        $source ??= ImportSource::query()->create(['address' => $address, 'created_by' => $input->actorId() === null ? null : (int) $input->actorId()]);
+        $source ??= ImportSource::query()->create(['address' => $address, 'created_by' => $input->actorId() === null ? null : (int) $input->actorId(), 'kind' => $file->reader ?? 'wordpress']);
 
         $file->forceFill([
             'report' => FileReport::build($file->id, $address, $file->made_at),

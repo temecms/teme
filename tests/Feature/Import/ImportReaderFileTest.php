@@ -1,0 +1,177 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Import\File\ContentBlocks;
+use App\Domain\Import\File\Jobs\ReadImportFile;
+use App\Domain\Import\ImportRunState;
+use App\Domain\Import\Models\ImportFile;
+use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Operations\Input\StartImportUploadInput;
+use App\Domain\Import\Operations\StartImportUpload;
+use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Operations\DisablePlugin;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginLoader;
+use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Readers\ImportReaders;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\JobActor;
+use App\Domain\Support\Security\OperatorElevation;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Tests\Fixtures\Import\ExportFiles;
+use Tests\Fixtures\Import\FileImports;
+use Tests\Fixtures\Plugins\PluginFixtures;
+
+require_once dirname(__DIR__, 2).'/Fixtures/plugins/readers/src/Readers.php';
+
+uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    $this->seed(RoleSeeder::class);
+    $this->admin = User::factory()->create()->assignRole('administrator');
+    Storage::fake('local');
+    app()->instance(ContentBlocks::class, ExportFiles::blocks());
+});
+
+/**
+ * Enables the readers fixture, which reads the fake export, agreeing to what it asks.
+ */
+function readersEnabled(): void
+{
+    app()->instance(Elevation::class, new OperatorElevation);
+    app()->instance(LoadedPlugins::class, new LoadedPlugins);
+
+    PluginFixtures::use('readers');
+    $manifest = app(PluginRegistry::class)->find('tests/readers')?->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/readers', '1.0.0', $manifest?->capabilities() ?? [], [], [], null));
+    app(PluginLoader::class)->load();
+
+    app()->forgetInstance(Elevation::class);
+    app()->forgetInstance(ImportReaders::class);
+}
+
+/**
+ * The key of the fixture's reader, which an upload and a file name.
+ */
+function fixtureReaderKey(): string
+{
+    return app(ImportReaders::class)->all()[0]->key();
+}
+
+/**
+ * A fake export of a site: a person, a term, a picture, a post and a draft page.
+ *
+ * @return array<string, mixed>
+ */
+function fakeSiteExport(): array
+{
+    return [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'person', 'id' => 'p1', 'login' => 'ada', 'email' => 'ada@example.com', 'displayName' => 'Ada'],
+            ['kind' => 'term', 'id' => 't1', 'taxonomy' => 'category', 'name' => 'News', 'slug' => 'news'],
+            ['kind' => 'media', 'id' => 'm1', 'url' => 'https://old.example.com/a.jpg', 'mime' => 'image/jpeg', 'alt' => 'A'],
+            ['kind' => 'post', 'id' => 'i1', 'title' => 'Hello', 'slug' => 'hello', 'status' => 'published', 'publishedAt' => '2026-01-02 03:04:05', 'oldAddress' => 'https://old.example.com/hello/', 'content' => '<p>Hi there</p>', 'authorId' => 'p1', 'termIds' => ['t1']],
+            ['kind' => 'page', 'id' => 'i2', 'title' => 'About', 'slug' => 'about', 'status' => 'draft', 'content' => 'About us', 'format' => 'plain'],
+        ],
+    ];
+}
+
+/**
+ * An uploaded reader file, not yet read, holding the given bytes.
+ */
+function readerUploaded(string $name, string $bytes, string $reader): ImportFile
+{
+    $file = ImportFile::query()->create([
+        'uploaded_by' => test()->admin->id,
+        'name' => $name,
+        'size_bytes' => strlen($bytes),
+        'received_bytes' => strlen($bytes),
+        'sha256' => hash('sha256', $bytes),
+        'state' => 'reading',
+        'reader' => $reader,
+    ]);
+
+    Storage::disk('local')->put($file->path(), $bytes);
+
+    return $file;
+}
+
+/**
+ * Reads the file to its end as its uploader.
+ */
+function readerReadToEnd(ImportFile $file): void
+{
+    (new ReadImportFile($file->id, JobActor::person($file->uploaded_by)))->handle();
+}
+
+it('reads a reader’s file into a ready file and a source of the reader’s kind', function (): void {
+    readersEnabled();
+
+    $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $file->refresh();
+    $source = ImportSource::query()->findOrFail($file->source_id);
+
+    expect($file->state)->toBe('ready')
+        ->and($file->site_address)->toBe('https://old.example.com')
+        ->and($source->address)->toBe('https://old.example.com')
+        ->and($source->kind)->toBe(fixtureReaderKey())
+        ->and(DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'content')->count())->toBe(2);
+});
+
+it('imports a reader’s file through the engine: posts, pages, terms, people and pictures', function (): void {
+    readersEnabled();
+
+    $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $run = FileImports::run($file->refresh());
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(DB::table('contents')->where('title', 'Hello')->where('status', 'published')->exists())->toBeTrue()
+        ->and(DB::table('contents')->where('title', 'About')->where('status', 'draft')->exists())->toBeTrue();
+});
+
+it('refuses a reader’s file it can’t read, with the reader’s sentence', function (): void {
+    readersEnabled();
+
+    $file = readerUploaded('site.json', '<rss></rss>', fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('This file isn’t a fake export: it isn’t JSON.');
+});
+
+it('refuses a file of a type the reader doesn’t read, and a reader that is no longer on the site', function (): void {
+    readersEnabled();
+
+    $start = fn (string $name, ?string $reader): mixed => app(StartImportUpload::class)->execute(
+        new StartImportUploadInput($name, 10, (string) $this->admin->id, $reader),
+    );
+
+    expect(fn () => $start('site.xml', fixtureReaderKey()))->toThrow(ValidationException::class)
+        ->and(fn () => $start('site.json', 'reader:gone/fake-export'))->toThrow(ValidationException::class);
+});
+
+it('offers no reader once its plugin is off', function (): void {
+    readersEnabled();
+    expect(app(ImportReaders::class)->forFileName('site.json'))->not->toBeNull();
+
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/readers', (string) $this->admin->id));
+    app()->forgetInstance(ImportReaders::class);
+
+    expect(app(ImportReaders::class)->all())->toBe([]);
+});

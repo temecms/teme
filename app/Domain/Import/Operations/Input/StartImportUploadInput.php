@@ -21,6 +21,7 @@ final readonly class StartImportUploadInput implements OperationInput
         public string $name,
         public int $sizeBytes,
         public ?string $actorId,
+        public ?string $reader = null,
     ) {}
 
     public function actorId(): ?string

@@ -67,6 +67,22 @@ final class FinishImportUpload extends BaseOperation
         }
 
         $absolute = Storage::disk('local')->path($file->path());
+
+        // A reader's file is judged by the reader when it is read, not by the WordPress export's head.
+        if ($file->reader !== null) {
+            $sha256 = hash_file('sha256', $absolute);
+
+            if ($sha256 === false) {
+                throw ValidationException::withMessages([
+                    'file' => 'Teme couldn’t read the export file after the upload. Try again.',
+                ]);
+            }
+
+            $file->forceFill(['sha256' => $sha256, 'state' => 'reading', 'refused' => null])->save();
+
+            return ['fileId' => (string) $file->id, 'refused' => false, 'actorId' => $input->actorId()];
+        }
+
         $handle = fopen($absolute, 'rb');
 
         if ($handle === false) {

@@ -38,6 +38,7 @@ final class ImportFileController extends Controller
             $request->string('name')->toString(),
             $request->integer('size'),
             self::actor($request),
+            $request->filled('reader') ? $request->string('reader')->toString() : null,
         ));
 
         return response()->json($result);

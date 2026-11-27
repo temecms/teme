@@ -26,12 +26,18 @@ use App\Domain\Import\Operations\Input\RecordImportFileRowsInput;
 use App\Domain\Import\Operations\Input\RefuseImportFileInput;
 use App\Domain\Import\Operations\RecordImportFileRows;
 use App\Domain\Import\Operations\RefuseImportFile;
+use App\Domain\Import\Reader\ReaderRows;
+use App\Domain\Plugins\Readers\ImportReaders;
+use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Support\Security\JobActor;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Teme\Contracts\Import\ImportReader;
+use Teme\Contracts\Import\ImportReaderRefused;
+use Throwable;
 
 final class ReadImportFile implements ShouldQueue
 {
@@ -74,6 +80,12 @@ final class ReadImportFile implements ShouldQueue
         $file = ImportFile::query()->find($this->fileId);
 
         if ($file === null || $file->state !== 'reading' || $file->deleted_at !== null) {
+            return;
+        }
+
+        if ($file->reader !== null) {
+            $this->readReader($file);
+
             return;
         }
 
@@ -133,11 +145,68 @@ final class ReadImportFile implements ShouldQueue
 
     /**
      * Keeps the items from $from up to $to; false when another read has moved the file on.
-     *
-     * @param  list<array{list: string, id: int, payload: array<string, mixed>}>  $rows
-     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>}  $counted
-     * @param  array{siteAddress: string|null, version: string, madeAt: string|null}  $channel
      */
+    /**
+     * Reads a file a plugin's import reader reads: the whole file, then its
+     * rows in one record. A refusal stops the file with its sentence; any
+     * other failure is recorded as the plugin's fault and stops it too.
+     */
+    private function readReader(ImportFile $file): void
+    {
+        $readers = app(ImportReaders::class);
+        $offer = $readers->find((string) $file->reader);
+
+        if ($offer === null) {
+            $this->refuseReader('That import reader isn’t on this site any more.');
+
+            return;
+        }
+
+        $path = Storage::disk('local')->path($file->path());
+
+        try {
+            $reader = $readers->reader($offer);
+            $probe = $reader->probe($path);
+            $items = [];
+            $cursor = null;
+
+            do {
+                $page = $reader->page($path, $cursor, self::ITEMS);
+                array_push($items, ...$page->items);
+                $cursor = $page->nextCursor;
+            } while ($cursor !== null);
+        } catch (ImportReaderRefused $refusal) {
+            $this->refuseReader($refusal->getMessage());
+
+            return;
+        } catch (Throwable $failure) {
+            app(SeoPlugins::class)->fault($offer->plugin, 'import-reader', ImportReader::class, $failure);
+            $this->refuseReader('The import reader couldn’t read this file.');
+
+            return;
+        }
+
+        if (trim((string) $probe->siteAddress) === '') {
+            $this->refuseReader('This export doesn’t name its site, so Teme can’t tell where it came from.');
+
+            return;
+        }
+
+        $rows = ReaderRows::build($items, $this->blocks());
+        $facts = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
+
+        if (! $this->keep(0, count($items), $rows, self::noFacts(), $facts)) {
+            return;
+        }
+
+        app(FinishReadingImportFile::class)->execute(new FinishReadingImportFileInput($this->fileId, $this->actor->userId));
+    }
+
+    private function refuseReader(string $sentence): void
+    {
+        app(RefuseImportFile::class)->execute(new RefuseImportFileInput($this->fileId, $sentence, $this->actor->userId));
+    }
+
     private function keep(int $from, int $to, array $rows, array $counted, array $channel): bool
     {
         return app(RecordImportFileRows::class)->execute(new RecordImportFileRowsInput(
