@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "overrides-missing",
+    "name": "Fixture Overrides Missing",
+    "version": "0.1.0",
+    "description": "A theme that declares a component override it does not ship.",
+    "requires": { "teme": "^0.1" },
+    "overrides": { "navigation": { "contract": 1 } }
+}

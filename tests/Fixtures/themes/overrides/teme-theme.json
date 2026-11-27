@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "overrides",
+    "name": "Fixture Overrides",
+    "version": "0.1.0",
+    "description": "A theme that overrides one core component it declares.",
+    "requires": { "teme": "^0.1" },
+    "overrides": { "navigation": { "contract": 1 } }
+}

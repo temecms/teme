@@ -90,7 +90,7 @@ final class ManifestValidator
     public const array KEYS = [
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
-        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
+        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'overrides', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
     ];
 
     public function __construct(private readonly CardRegistry $cards) {}
@@ -152,6 +152,7 @@ final class ManifestValidator
 
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
         array_push($errors, ...$this->cards($manifest, $themePath));
+        array_push($errors, ...$this->overrides($manifest, $themePath));
 
         $composers = $manifest['composers'] ?? [];
 
@@ -808,6 +809,52 @@ final class ManifestValidator
         return array_key_exists('breadcrumbs', $manifest) && ! is_bool($manifest['breadcrumbs'])
             ? ['breadcrumbs must be true or false.']
             : [];
+    }
+
+    /**
+     * The overrides of core's components (docs/guides/developers/themes/components.md):
+     * each names a component a theme may replace, states the contract it was
+     * written against, and ships its view under views/components/.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function overrides(array $manifest, string $themePath): array
+    {
+        if (! array_key_exists('overrides', $manifest)) {
+            return [];
+        }
+
+        $overrides = $manifest['overrides'];
+
+        if (! is_array($overrides) || array_is_list($overrides)) {
+            return ['overrides must map each component the theme overrides to {"contract": N}.'];
+        }
+
+        $errors = [];
+
+        foreach ($overrides as $name => $declaration) {
+            $name = (string) $name;
+
+            if (! array_key_exists($name, ComponentOverrides::CLASSES)) {
+                $errors[] = "overrides names \"{$this->show($name)}\", which isn't a component a theme can override.";
+
+                continue;
+            }
+
+            if (! is_array($declaration) || ! is_int($declaration['contract'] ?? null) || $declaration['contract'] < 1) {
+                $errors[] = "overrides.{$name} must give the contract the override was written against, a whole number from 1.";
+
+                continue;
+            }
+
+            if (! is_file("{$themePath}/views/components/{$name}.blade.php")) {
+                $errors[] = "overrides {$name}, but views/components/{$name}.blade.php is missing.";
+            }
+        }
+
+        return $errors;
     }
 
     /**

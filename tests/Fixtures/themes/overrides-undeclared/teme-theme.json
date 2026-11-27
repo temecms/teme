@@ -1,0 +1,8 @@
+{
+    "manifest": 1,
+    "code": "overrides-undeclared",
+    "name": "Fixture Overrides Undeclared",
+    "version": "0.1.0",
+    "description": "A theme that ships a component view without declaring it.",
+    "requires": { "teme": "^0.1" }
+}

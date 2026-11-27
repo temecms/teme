@@ -23,6 +23,7 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\PathResolver;
 use App\Domain\Site\ReaderKeys;
 use App\Domain\Themes\ActiveTheme;
+use App\Domain\Themes\ComponentOverrides;
 use App\Domain\Themes\Theme;
 use App\Domain\Themes\ThemeH1Check;
 use App\Domain\Themes\ThemeRegistry;
@@ -109,6 +110,8 @@ final class CheckTheme extends Command
             $warnings[] = __('Lists don’t call x-teme::between-items, so plugins can’t place content between items.');
         }
 
+        $warnings = [...$warnings, ...$this->overrideWarnings($theme)];
+
         $css = array_sum(array_map(fn (array $file): int => str_ends_with($file['file'], '.css') ? $file['bytes'] : 0, $files));
         $js = array_sum(array_map(fn (array $file): int => str_ends_with($file['file'], '.js') ? $file['bytes'] : 0, $files));
 
@@ -121,6 +124,42 @@ final class CheckTheme extends Command
         }
 
         return ['code' => $theme->code, 'errors' => $errors, 'warnings' => $warnings, 'files' => array_values($files), 'css' => $css, 'js' => $js];
+    }
+
+    /**
+     * Warnings about the theme's overrides of core's components: one for each
+     * declared override written against an older contract than core's, and one
+     * for each view under views/components/ the manifest doesn't declare, which
+     * core's component draws in its place. Returns [] when there are none.
+     *
+     * @return list<string>
+     */
+    private function overrideWarnings(Theme $theme): array
+    {
+        $declared = $theme->manifest?->overrides() ?? [];
+        $warnings = [];
+
+        foreach ($declared as $name => $contract) {
+            if (! array_key_exists($name, ComponentOverrides::CLASSES)) {
+                continue;
+            }
+
+            $core = app(ComponentOverrides::class)->contractOf($name);
+
+            if ($contract < $core) {
+                $warnings[] = "The override of {$name} is written against contract {$contract}, and core is at contract {$core}. Check it against the components guide, then declare contract {$core}.";
+            }
+        }
+
+        foreach (glob($theme->path.'/views/components/*.blade.php') ?: [] as $file) {
+            $name = basename($file, '.blade.php');
+
+            if (! array_key_exists($name, $declared)) {
+                $warnings[] = "views/components/{$name}.blade.php isn't declared under overrides, so core's {$name} is drawn instead.";
+            }
+        }
+
+        return $warnings;
     }
 
     /**

@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "overrides-inline",
+    "name": "Fixture Overrides Inline",
+    "version": "0.1.0",
+    "description": "A theme whose component override carries an inline script.",
+    "requires": { "teme": "^0.1" },
+    "overrides": { "navigation": { "contract": 1 } }
+}

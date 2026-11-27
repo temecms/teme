@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\View\Components\Teme;
 
 use App\Domain\Media\ImageMarkup;
+use App\Domain\Themes\ComponentOverrides;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
@@ -26,6 +27,9 @@ use Illuminate\View\Component;
  */
 final class Image extends Component
 {
+    /** The contract a theme's override of this component is written against (docs/guides/developers/themes/components.md). */
+    public const int CONTRACT = 1;
+
     /**
      * @param  string  $id  the media item's ID
      * @param  string  $context  the image context the theme's manifest gives a sizes value for, such as feature
@@ -43,7 +47,7 @@ final class Image extends Component
 
     public function render(): View
     {
-        return view('teme::components.image');
+        return view(app(ComponentOverrides::class)->view('image', 'teme::components.image'));
     }
 
     /**
