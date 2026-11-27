@@ -64,11 +64,6 @@ final readonly class ImportScreen
     public function __construct(private ImportRuns $runs, private ImportPhases $phases, private ImportRunJobs $tracking) {}
 
     /**
-     * Returns the sites Teme knows, newest first: each with where it stands, the Teme Companion version it last reported, whether its password is forgotten, its latest import's start and the address of its page.
-     *
-     * @return list<array{id: string, address: string, host: string, state: string, stateLabel: string, pluginVersion: string, forgotten: bool, lastImportAt: string|null, href: string, kind: 'companion'|'file', uploadedAt: string|null}>
-     */
-    /**
      * The label of the import reader behind each site an import reader's file
      * made, by site ID; a site from WordPress has no entry. A reader no longer
      * on the site is named by its key.
@@ -87,9 +82,9 @@ final readonly class ImportScreen
     }
 
     /**
-     * Each site Teme knows, with where its import stands.
+     * Returns the sites Teme knows, newest first: each with where it stands, the Teme Companion version it last reported, whether its password is forgotten, its latest import's start and the address of its page.
      *
-     * @return list<array<string, mixed>>
+     * @return list<array{id: string, address: string, host: string, state: string, stateLabel: string, pluginVersion: string, forgotten: bool, lastImportAt: string|null, href: string, kind: 'companion'|'file', uploadedAt: string|null}>
      */
     public function sites(): array
     {
