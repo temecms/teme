@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "js-mid",
+    "name": "Fixture JS Mid",
+    "version": "0.1.0",
+    "description": "A usable theme whose JavaScript sits between 5 KB and 20 KB compressed.",
+    "requires": { "teme": "^0.1" },
+    "assets": { "manifest": "public/build/manifest.json", "entries": ["assets/js/theme.js"] }
+}

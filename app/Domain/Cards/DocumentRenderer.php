@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Cards;
 
+use App\Domain\Cards\Tiptap\HeadingNode;
 use App\Domain\Cards\Tiptap\LinkMark;
 use App\Domain\Cards\Tiptap\TableCellNode;
 use App\Domain\Cards\Tiptap\TableHeaderNode;
@@ -45,7 +46,8 @@ final readonly class DocumentRenderer
     {
         $context ??= new RenderContext(app(LinkResolver::class));
         // Rebuilt with the document's media: the page's record and lead go along, or no card would see them.
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes, $context->region);
+        // Web pages share one scoped HeadingIds with regions; feeds keep their own, off the page.
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes, $context->region, $context->headings ?? $this->headingIds($context->target));
         $html = '';
         $run = [];
         $content = array_values((array) ($document['content'] ?? []));
@@ -108,7 +110,7 @@ final readonly class DocumentRenderer
     public function blocks(array $document, ?RenderContext $context = null): array
     {
         $context ??= new RenderContext(app(LinkResolver::class));
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region);
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region, $context->headings ?? $this->headingIds($context->target));
         $editor = $this->editor($context);
         $blocks = [];
         $heading = 1;
@@ -126,7 +128,7 @@ final readonly class DocumentRenderer
                     $heading = (int) ($node['attrs']['level'] ?? 2);
                 }
 
-                $blocks[] = ['type' => $type, 'attrs' => (array) ($node['attrs'] ?? []), 'html' => $editor->setContent(['type' => 'doc', 'content' => [$node]])->getHTML()];
+                $blocks[] = ['type' => $type, 'attrs' => (array) ($node['attrs'] ?? []), 'html' => $this->wrapTables($editor->setContent(['type' => 'doc', 'content' => [$node]])->getHTML(), $context)];
 
                 continue;
             }
@@ -150,7 +152,28 @@ final readonly class DocumentRenderer
             return '';
         }
 
-        return $this->editor($context)->setContent(['type' => 'doc', 'content' => $run])->getHTML();
+        return $this->wrapTables($this->editor($context)->setContent(['type' => 'doc', 'content' => $run])->getHTML(), $context);
+    }
+
+    /**
+     * Each table in a sideways-scroll region so a wide table does not widen
+     * the page; the table's own HTML is unchanged (issue 19). Feeds stay bare:
+     * readers have no page chrome to scroll inside.
+     */
+    private function wrapTables(string $html, RenderContext $context): string
+    {
+        if ($context->target === 'feed' || ! str_contains($html, '<table')) {
+            return $html;
+        }
+
+        $context->usage?->record('table');
+        $open = '<div class="table-scroll" tabindex="0" role="region" aria-label="'.e(__('Table')).'">';
+
+        return (string) preg_replace_callback(
+            '/<table\b[^>]*>.*?<\/table>/s',
+            fn (array $match): string => $open.$match[0].'</div>',
+            $html,
+        );
     }
 
     /** The prose editor, drawing links as the context resolves them. */
@@ -158,8 +181,10 @@ final readonly class DocumentRenderer
     {
         // The PHP StarterKit has no Link and no Underline, unlike the
         // JavaScript one (study L, §2.10), so both are registered here.
+        // Heading is ours: every heading gets a unique HTML id (issue 369).
         return new Editor(['extensions' => [
-            new StarterKit,
+            new StarterKit(['heading' => false]),
+            new HeadingNode($context->headings ?? $this->headingIds($context->target)),
             new Underline,
             new Highlight,
             new Subscript,
@@ -191,5 +216,11 @@ final readonly class DocumentRenderer
         }
 
         return $attrs;
+    }
+
+    /** The page's scoped heading ids for web; a fresh set for a feed. */
+    private function headingIds(string $target): HeadingIds
+    {
+        return $target === 'feed' ? new HeadingIds : app(HeadingIds::class);
     }
 }

@@ -35,6 +35,7 @@ final class ArticleView
      * @param  ItemLink|null  $parent  the item it sits under, while readers can see it; null at the top, for a type that doesn't nest, and while its parent is hidden
      * @param  list<ItemLink>  $ancestors  the items above it that readers can see, the top first; the trail is made from them
      * @param  list<ItemLink>  $children  the published items under it, in their order, at most 100
+     * @param  list<array{level: int, text: string, id: string}>  $headings  the body's level-2–4 headings in order, each with the HTML id bodyHtml writes
      */
     public function __construct(
         /** The item's ID. */
@@ -88,6 +89,7 @@ final class ArticleView
         public readonly ?ItemLink $parent = null,
         public readonly array $ancestors = [],
         public readonly array $children = [],
+        public readonly array $headings = [],
         /** @var array<string, Deferred> the values read only when a template asks: siblings, previous, next and blocks */
         private readonly array $later = [],
     ) {}

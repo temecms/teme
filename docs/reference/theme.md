@@ -134,6 +134,7 @@ One article as its template sees it, as `$page`, from its published revision, or
 | `$parent` | `?ItemLink` | the item it sits under, while readers can see it; null at the top, for a type that doesn't nest, and while its parent is hidden |
 | `$ancestors` | `list<ItemLink>` | the items above it that readers can see, the top first; the trail is made from them |
 | `$children` | `list<ItemLink>` | the published items under it, in their order, at most 100 |
+| `$headings` | `list<array{level: int, text: string, id: string}>` | the body's level-2–4 headings in order, each with the HTML id bodyHtml writes |
 | `$siblings` | `list<ItemLink>` | The published items of its type under the same parent, itself among them, in menu order, at most 100. Top-level pages are siblings of each other. None for a type that doesn't nest. Read from the database the first time a template asks, never otherwise. |
 | `$previous` | `?ItemLink` | The sibling before it in menu order; null for the first, and for a type that doesn't nest. Read when a template asks. |
 | `$next` | `?ItemLink` | The sibling after it in menu order; null for the last, and for a type that doesn't nest. Read when a template asks. |

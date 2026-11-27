@@ -381,7 +381,7 @@ With the page cache on (`docs/architecture/page-cache.md`), a public page also c
 | Command | Does |
 |---|---|
 | `teme:theme:resolve {url} {--json}` | the kind, `isFront` and every candidate for an address, without rendering; a redirect says where it goes |
-| `teme:theme:check {code?} {--json}` | a theme's errors, its built files compressed, and warnings past study Q §4's budgets (15 KB of CSS, 5 KB of JavaScript); fails on errors |
+| `teme:theme:check {code?} {--json}` | a theme's errors, its built files compressed, and a warning past study Q §4's budgets (15 KB of CSS, 20 KB of JavaScript); fails on errors |
 | `teme:themes:cache`, `teme:themes:clear` | the theme cache |
 | `teme:themes:link` | the `public/themes` links |
 

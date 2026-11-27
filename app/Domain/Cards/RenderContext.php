@@ -7,7 +7,8 @@
  * a page draws, which image card, if any, is the page's lead image, the
  * insertion plan for a published article page (I-064), and the attributes
  * plugins ask for on an article's links (docs/plans/plugin-sockets-3.md),
- * and the theme's region being drawn.
+ * the theme's region being drawn, and the heading ids collected while the
+ * body is drawn.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -40,5 +41,7 @@ final readonly class RenderContext
         public array $linkAttributes = [],
         /** The theme's region being drawn, for the cards that read it; null outside a region. */
         public ?CardRegion $region = null,
+        /** Heading ids for this document draw; made when omitted so every render still writes them. */
+        public ?HeadingIds $headings = null,
     ) {}
 }

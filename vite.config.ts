@@ -27,6 +27,7 @@ export default defineConfig({
                 'resources/css/cards/featured-posts.css',
                 'resources/css/cards/faq.css',
                 'resources/css/cards/steps.css',
+                'resources/css/cards/table.css',
             ],
             refresh: true,
         }),

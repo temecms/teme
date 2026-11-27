@@ -64,7 +64,7 @@ it('refuses a theme’s composer that returns a name core keeps for a page’s l
 
     expect(fn () => View::make("theme::partials.{$key}")->render())
         ->toThrow(ComposerKeyCollision::class, "The composer Tests\\Fixtures\\Themes\\Good\\ClaimsCoreNames of the theme reserving adds \"{$key}\" to partials.{$key}, a name kept for Teme.");
-})->with(['language', 'direction', 'alternates']);
+})->with(['language', 'direction', 'alternates', 'plugins']);
 
 it('lets the same composer add a new name of its own', function (): void {
     config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/reserving')]]);

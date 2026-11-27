@@ -20,6 +20,7 @@ use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\CardUsage;
 use App\Domain\Cards\DocumentRenderer;
+use App\Domain\Cards\HeadingIds;
 use App\Domain\Cards\LinkResolver;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Contents\Models\Content;
@@ -114,12 +115,15 @@ final readonly class ArticleViews
         $links = app(LinkResolver::class);
         // Plugins are asked about links only where they may insert: published renders, never a preview.
         $linkAttributes = $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [];
+        // Same scoped HeadingIds as regions: every heading's id, and the outline levels 2–4 (issue 369).
+        $headingIds = app(HeadingIds::class);
         $body = $this->renderer->html($document, new RenderContext(
             $links,
             usage: app(CardUsage::class),
             leadNodeId: $lead['nodeId'],
             insertions: $plan,
             linkAttributes: $linkAttributes,
+            headings: $headingIds,
         ));
         // A draft never published has no first publication yet: the revision's own time stands in.
         $published = SiteDates::inSite($content->published_at ?? $revision->created_at);
@@ -159,6 +163,7 @@ final readonly class ArticleViews
             parent: $parent,
             ancestors: $ancestors,
             children: $children,
+            headings: $headingIds->outline(),
             later: $this->later($content, $document, $lead['nodeId'], $linkAttributes),
         );
     }

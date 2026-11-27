@@ -17,6 +17,9 @@ beforeEach(function (): void {
         base_path('tests/Fixtures/themes/broken'),
         base_path('tests/Fixtures/themes/h1-none-single'),
         base_path('tests/Fixtures/themes/h1-two-home'),
+        base_path('tests/Fixtures/themes/skinned'),
+        base_path('tests/Fixtures/themes/js-mid'),
+        base_path('tests/Fixtures/themes/js-heavy'),
     ]]);
     $this->editor = User::factory()->create()->assignRole('editor');
 });
@@ -82,10 +85,29 @@ it('warns that no single page was checked when nothing is published', function (
         ->assertSuccessful();
 });
 
-it('warns instead of failing when the database cannot be read', function (): void {
+it('says the heading check did not run when the database cannot be read, and does not say the theme passes', function (): void {
     DB::connection()->beforeExecuting(fn () => throw new RuntimeException('no database'));
 
     $this->artisan('teme:theme:check', ['code' => 'good'])
-        ->expectsOutputToContain('the site\'s database could not be read')
+        ->expectsOutputToContain('The heading check didn\'t run: the site\'s database could not be read.')
+        ->doesntExpectOutputToContain('The theme passes.')
+        ->assertSuccessful();
+});
+
+it('finds x-teme::between-items in a skin folder the root template only includes', function (): void {
+    $this->artisan('teme:theme:check', ['code' => 'skinned'])
+        ->doesntExpectOutputToContain('x-teme::between-items')
+        ->assertSuccessful();
+});
+
+it('passes a theme whose JavaScript sits between 5 KB and 20 KB compressed without a budget warning', function (): void {
+    $this->artisan('teme:theme:check', ['code' => 'js-mid'])
+        ->doesntExpectOutputToContain('over the 20 KB budget')
+        ->assertSuccessful();
+});
+
+it('warns when JavaScript is over 20 KB compressed and still succeeds', function (): void {
+    $this->artisan('teme:theme:check', ['code' => 'js-heavy'])
+        ->expectsOutputToContain('over the 20 KB budget')
         ->assertSuccessful();
 });

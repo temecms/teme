@@ -44,7 +44,7 @@ it('draws the steps numbered, with the summary, the time and what it needs above
     );
 
     expect(app(DocumentRenderer::class)->html(docWith(($this->heading)(2, 'How'), $steps)))->toBe(
-        '<h2>How</h2><div class="card-steps"><p class="card-steps__summary">Brew tea.</p><p class="card-steps__time">Total time: <time datetime="PT1H5M">1 hour 5 minutes</time></p>'
+        '<h2 id="how">How</h2><div class="card-steps"><p class="card-steps__summary">Brew tea.</p><p class="card-steps__time">Total time: <time datetime="PT1H5M">1 hour 5 minutes</time></p>'
         .'<div class="card-steps__materials"><p class="card-steps__label">You’ll need</p><ul><li>Tea</li></ul></div><div class="card-steps__tools"><p class="card-steps__label">Tools</p><ul><li>Teapot</li></ul></div>'
         .'<ol class="card-steps__list"><li class="card-steps__step" id="step-01k9f0a0000000000000000s01"><h3 class="card-steps__title">Boil the water</h3><p>Fresh water.</p></li>'
         .'<li class="card-steps__step" id="step-01k9f0a0000000000000000s02"><h3 class="card-steps__title">Steep</h3></li></ol></div>',

@@ -133,6 +133,9 @@
         "ArticleView::$firstImageId": {
             "type": "?string"
         },
+        "ArticleView::$headings": {
+            "type": "list<array{level: int, text: string, id: string}>"
+        },
         "ArticleView::$id": {
             "type": "string"
         },

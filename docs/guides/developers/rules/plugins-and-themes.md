@@ -89,3 +89,4 @@ The rules come in two parts. Teme enforces the first: an author can't break them
 - A theme is looks only. A feature that would keep working after the site switches themes belongs in a plugin.
 - One `h1` per page, for the page's own title.
 - Accessible by default, as the default theme is: real landmarks and headings, visible focus, enough contrast, and links that say where they go.
+- Offer every feature a plugin may also draw—share buttons, a table of contents, breadcrumbs, related posts, an author box—as an on/off setting of your own. Never try to detect which plugins are enabled; the site chooses what you draw.
