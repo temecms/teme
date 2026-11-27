@@ -330,13 +330,18 @@ It draws nothing for a region that's empty or unpublished, and, outside producti
 
 ## Settings
 
-A theme declares **its own settings** in its manifest's `settings`, a list, each `{key, type, label, description?, fieldset, options?, default, visible_when?}`. They are edited on **Settings › Design** (`settings.design.manage`), beside the site's own `design` group (`theme` and `accent`), and read through the settings registry like any other setting: there is no parallel options API (spec §3).
+A theme declares **its own settings** in its manifest's `settings`, a list, each `{key, type, label, description?, fieldset, group?, options?, default, visible_when?, min?, max?, step?, unit?}`. They are edited on **Settings › Design** (`settings.design.manage`), beside the site's own `design` group (`theme`, `accent` and `site_icon`), and read through the settings registry like any other setting: there is no parallel options API (spec §3).
 
 - **`ThemeSettings::register()`** builds each usable theme's `theme.{code}` group at boot, and again in `themeActivate()` in the tests: the manifest's settings first, in manifest order, then its navigation slots as `ThemeSlotSettings::settings()` makes them. A setting without a description is described by its label.
-- **`type`** is `select`, `boolean`, `text` or `color` (`#rrggbb`, lower case, or `''`). `key` is `^[a-z][a-z0-9_]{1,40}$`, appears once, and **never starts with `nav_`**, which is kept for slots. `options`, an object of stored value to label, belongs to a select only; `default` must fit the type.
+- **`type`** is `select`, `boolean`, `text`, `color` (`#rrggbb`, lower case, or `''`), `number` (optional `min`/`max`/`step`/`unit`), `image` (media ID; default `""`), `menu` (menu ID; default `""`), `links` (list of `{label, address}`, at most 12), `url` or `textarea`. `key` is `^[a-z][a-z0-9_]{1,40}$`, appears once, and **never starts with `nav_`**, which is kept for slots. `options`, an object of stored value to label, belongs to a select only; `default` must fit the type.
 - **`fieldset`** is `site`, `latest` (the latest posts wherever they're served, "Latest posts", I-442), `content` or `archive`: the screen's four sections.
+- **`group`** is an optional label: settings that share one are drawn as a foldable section inside the fieldset, in manifest order; settings without a group stay at the top.
 - **`visible_when`** maps settings declared **earlier** to a value or a list of values; the screen hides the setting unless every condition holds. Hiding isn't clearing: a hidden setting keeps its value.
 - The validator refuses everything registration would throw on, so a bad manifest makes the theme unusable instead of stopping every request.
+
+**`$themeSettings` for templates** (`SiteDesign::themeSettings()`, once per page): an `image` is `{url, alt}` or `null`; a `menu` is the navigation tree (with `current` for the page) or `null`; `links` stay a list of `{label, address}`; every other type keeps its stored value.
+
+**`site_icon`.** The design group's media setting chooses the favicon; a theme may declare `site_icon` as a path inside its `public/` folder as the default. The setting wins. Favicon sizes are queued when the setting is published, never during a page view.
 
 **Two names core reads**, when the active theme declares them: **`color_scheme`** (`auto`, `light`, `dark`) for `data-scheme`, and **`featured_image_style`**, whose `hidden` means no featured-image lead (`SiteDesign`, which `Document` and `ArticleViews` ask).
 

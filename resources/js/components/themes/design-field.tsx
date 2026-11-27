@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
-import { Button } from '@/components/ui/button';
+import { RepeaterField } from '@/components/fields/repeater-field';
+import { MediaSetting } from '@/components/fields/media-setting';
 import { Field, FieldInline } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Segmented, SegmentedItem } from '@/components/ui/segmented';
@@ -8,8 +7,8 @@ import { SelectField } from '@/components/ui/select-field';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { __ } from '@/lib/i18n';
-import { largest, variant } from '@/lib/media-urls';
 import type { CardMedia, DesignField } from '@/types';
+import type { FieldDefinition } from '@/types/settings';
 
 /** Whether every condition holds: the other setting has this value, or one of these. */
 export function visible(
@@ -39,152 +38,21 @@ function short(options: Record<string, string>): boolean {
     );
 }
 
-type LinkRow = { label: string; address: string };
-
-/** A links setting as a short list of label and address rows. */
-function LinksInput({
-    field,
-    value,
-    onChange,
-}: {
-    field: DesignField;
-    value: unknown;
-    onChange: (value: unknown) => void;
-}) {
-    const rows: LinkRow[] = Array.isArray(value)
-        ? value.filter(
-              (row): row is LinkRow =>
-                  typeof row === 'object' &&
-                  row !== null &&
-                  typeof (row as LinkRow).label === 'string' &&
-                  typeof (row as LinkRow).address === 'string',
-          )
-        : [];
-    const most = field.max ?? 12;
-
-    const setRow = (index: number, patch: Partial<LinkRow>) => {
-        onChange(
-            rows.map((row, i) => (i === index ? { ...row, ...patch } : row)),
-        );
+/** A DesignField as the shared media control expects a FieldDefinition. */
+function asMediaField(field: DesignField): FieldDefinition {
+    return {
+        key: field.key,
+        type: 'media',
+        label: field.label,
+        description: field.description,
+        options: {},
+        min: null,
+        max: null,
+        maxLength: null,
+        required: false,
+        example: null,
+        unit: null,
     };
-
-    return (
-        <div className="grid gap-3" data-test="design-links">
-            {rows.map((row, index) => (
-                <div key={index} className="flex flex-wrap items-end gap-2">
-                    <Input
-                        className="min-w-40 flex-1"
-                        aria-label={__('Label for link :number', {
-                            number: index + 1,
-                        })}
-                        value={row.label}
-                        onChange={(event) =>
-                            setRow(index, { label: event.target.value })
-                        }
-                    />
-                    <Input
-                        className="min-w-40 flex-1"
-                        aria-label={__('Address for link :number', {
-                            number: index + 1,
-                        })}
-                        value={row.address}
-                        onChange={(event) =>
-                            setRow(index, { address: event.target.value })
-                        }
-                    />
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                            onChange(rows.filter((_, i) => i !== index))
-                        }
-                    >
-                        {__('Remove')}
-                    </Button>
-                </div>
-            ))}
-            {rows.length < most && (
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="justify-self-start"
-                    onClick={() =>
-                        onChange([...rows, { label: '', address: '' }])
-                    }
-                >
-                    {__('Add a link')}
-                </Button>
-            )}
-        </div>
-    );
-}
-
-/** A media setting chosen through the library picker. */
-function MediaInput({
-    field,
-    value,
-    media,
-    onChange,
-}: {
-    field: DesignField;
-    value: unknown;
-    media?: CardMedia | null;
-    onChange: (value: unknown) => void;
-}) {
-    const chosen = typeof value === 'string' ? value : '';
-    const [choosing, setChoosing] = useState(false);
-    const preview =
-        chosen !== '' && media
-            ? (variant(media.variants, 'w640') ?? largest(media.variants) ?? '')
-            : '';
-
-    return (
-        <div className="flex flex-wrap items-center gap-2">
-            {chosen === '' ? (
-                <span className="bg-surface-3 text-ink-2 text-caption inline-flex h-6 items-center rounded-sm px-2">
-                    {__('No picture chosen')}
-                </span>
-            ) : preview !== '' ? (
-                <img
-                    data-test="media-preview"
-                    src={preview}
-                    alt=""
-                    className="aspect-3/2 w-16 rounded-sm object-cover"
-                />
-            ) : null}
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                data-test={chosen === '' ? 'media-choose' : 'media-replace'}
-                onClick={() => setChoosing(true)}
-            >
-                {__('Choose picture')}
-            </Button>
-            {chosen !== '' && (
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    data-test="media-remove"
-                    onClick={() => onChange('')}
-                >
-                    {__('Remove')}
-                </Button>
-            )}
-            <MediaModal
-                open={choosing}
-                onOpenChange={setChoosing}
-                kinds={['image']}
-                action={__('Use as :setting', {
-                    setting: field.label.toLowerCase(),
-                })}
-                onChoose={(ids) => onChange(ids[0] ?? '')}
-            />
-        </div>
-    );
 }
 
 /**
@@ -224,6 +92,55 @@ export function DesignFieldInput({
                     onCheckedChange={(checked) => onChange(checked)}
                 />
             </FieldInline>
+        );
+    }
+
+    if (field.type === 'repeater') {
+        return (
+            <RepeaterField
+                id={id}
+                label={field.label}
+                help={help}
+                error={error}
+                items={
+                    Array.isArray(value)
+                        ? (value as Record<string, unknown>[])
+                        : []
+                }
+                onChange={onChange}
+                itemLabel={__('Link')}
+                itemTitle={field.itemTitle ?? null}
+                empty={{ label: '', address: '' }}
+                minItems={0}
+                maxItems={field.max ?? 12}
+            >
+                {(item, _index, change) => (
+                    <div className="flex flex-wrap gap-2">
+                        <Input
+                            className="min-w-40 flex-1"
+                            aria-label={__('Label')}
+                            value={text(item.label)}
+                            onChange={(event) =>
+                                change({
+                                    ...item,
+                                    label: event.target.value,
+                                })
+                            }
+                        />
+                        <Input
+                            className="min-w-40 flex-1"
+                            aria-label={__('Address')}
+                            value={text(item.address)}
+                            onChange={(event) =>
+                                change({
+                                    ...item,
+                                    address: event.target.value,
+                                })
+                            }
+                        />
+                    </div>
+                )}
+            </RepeaterField>
         );
     }
 
@@ -304,14 +221,12 @@ export function DesignFieldInput({
                     onChange={(event) => onChange(event.target.value)}
                 />
             ) : field.type === 'media' ? (
-                <MediaInput
-                    field={field}
+                <MediaSetting
+                    field={asMediaField(field)}
                     value={value}
                     media={media}
-                    onChange={onChange}
+                    onChange={(next) => onChange(next)}
                 />
-            ) : field.type === 'repeater' ? (
-                <LinksInput field={field} value={value} onChange={onChange} />
             ) : (
                 <Input
                     id={id}

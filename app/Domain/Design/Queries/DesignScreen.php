@@ -271,7 +271,7 @@ final readonly class DesignScreen
                     'group' => $setting->group,
                     'min' => $setting->min,
                     'max' => $setting->max,
-                    'step' => isset($raw['step']) && is_int($raw['step']) ? $raw['step'] : null,
+                    'step' => $setting->step,
                     'unit' => $setting->unit,
                 ];
 

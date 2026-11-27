@@ -457,7 +457,8 @@ final class ManifestValidator
             $errors[] = match ($type) {
                 'select' => "The setting \"{$key}\" has a default that isn't one of its options.",
                 'boolean' => "The setting \"{$key}\" needs a default of true or false.",
-                'text', 'textarea', 'menu' => "The setting \"{$key}\" needs a default that is text.",
+                'text', 'textarea' => "The setting \"{$key}\" needs a default that is text.",
+                'menu' => "The setting \"{$key}\" needs a default that is an empty string.",
                 'number' => "The setting \"{$key}\" needs a default that is a whole number".(isset($setting['min'], $setting['max']) ? ' between its min and max.' : '.'),
                 'image' => "The setting \"{$key}\" needs a default of \"\".",
                 'url' => "The setting \"{$key}\" needs a default of \"\" or an http(s) address.",
@@ -545,7 +546,8 @@ final class ManifestValidator
         return match ($type) {
             'select' => is_string($default) && array_key_exists($default, $options),
             'boolean' => is_bool($default),
-            'text', 'textarea', 'menu' => is_string($default),
+            'text', 'textarea' => is_string($default),
+            'menu' => $default === '',
             'image' => $default === '',
             'url' => $default === '' || (is_string($default) && preg_match('~^https?://[^\s]+$~i', $default) === 1),
             'number' => is_int($default)

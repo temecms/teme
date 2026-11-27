@@ -112,7 +112,8 @@ final readonly class ThemeSettings
      */
     private function number(string $key, string $label, string $description, array $declared, int $default): Setting
     {
-        $setting = Setting::number($key, $label, $description, '1.8.0')->default($default);
+        // Required so clearing the field can't store 0 when that is below min.
+        $setting = Setting::number($key, $label, $description, '1.8.0')->default($default)->required();
 
         if (isset($declared['min']) && is_int($declared['min'])) {
             $setting = $setting->min($declared['min']);
@@ -120,6 +121,10 @@ final readonly class ThemeSettings
 
         if (isset($declared['max']) && is_int($declared['max'])) {
             $setting = $setting->max($declared['max']);
+        }
+
+        if (isset($declared['step']) && is_int($declared['step']) && $declared['step'] >= 1) {
+            $setting = $setting->step($declared['step']);
         }
 
         if (isset($declared['unit']) && is_string($declared['unit']) && $declared['unit'] !== '') {

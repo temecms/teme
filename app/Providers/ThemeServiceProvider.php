@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Cards\CardUsage;
+use App\Domain\Design\SiteDesign;
 use App\Domain\Design\SiteIconSizes;
 use App\Domain\Design\ThemeSettings;
 use App\Domain\Menus\SlotMenus;
@@ -50,6 +51,7 @@ final class ThemeServiceProvider extends ServiceProvider
         $this->app->scoped(PageWarnings::class);
         $this->app->scoped(CardUsage::class);
         $this->app->scoped(SlotMenus::class);
+        $this->app->scoped(SiteDesign::class);
         $this->app->scoped(Regions::class);
     }
 

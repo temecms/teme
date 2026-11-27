@@ -37,7 +37,7 @@
 | `settings[].max` | integer | no | A number setting's greatest value. |  |
 | `settings[].step` | integer | no | A number setting's step on the form. |  |
 | `settings[].unit` | string | no | A number setting's unit, shown beside its field. |  |
-| `settings[].default` |  | yes | A select's default is one of its options; a boolean's is true or false; a text's, textarea's or menu's is text; a colour's or image's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}. |  |
+| `settings[].default` |  | yes | A select's default is one of its options; a boolean's is true or false; a text's or textarea's is text; a menu's or image's is ""; a colour's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}. |  |
 | `settings[].visible_when` | object | no | Earlier setting keys, each with a value or a list of values. |  |
 | `assets` | object | no | The theme's Vite build. |  |
 | `assets.manifest` | string | yes | A relative path inside the theme. |  |

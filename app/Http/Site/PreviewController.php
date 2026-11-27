@@ -22,6 +22,7 @@ namespace App\Http\Site;
 use App\Domain\Cards\CardUsage;
 use App\Domain\Contents\PreviewLinkViews;
 use App\Domain\Contents\Queries\PreviewLinks;
+use App\Domain\Design\SiteDesign;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Menus\SlotMenus;
 use App\Domain\Regions\Regions;
@@ -44,6 +45,7 @@ final class PreviewController extends Controller
         app(PageWarnings::class)->start();
         app(CardUsage::class)->start();
         app(SlotMenus::class)->start($request->getPathInfo());
+        app(SiteDesign::class)->start($request->getPathInfo());
         app(Regions::class)->start();
 
         $preview = $links->resolve($token);

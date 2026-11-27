@@ -214,3 +214,66 @@ it('refuses too many links, a javascript address, and a link with no label', fun
 
     expect(DB::table('settings')->where('group_key', $group)->value('draft_values'))->toBeNull();
 });
+
+it('builds theme settings once per request, and marks the current menu item', function (): void {
+    $group = typedTheme([
+        ['key' => 'footer_menu', 'type' => 'menu', 'label' => 'Footer menu', 'fieldset' => 'site', 'default' => ''],
+        ['key' => 'logo', 'type' => 'image', 'label' => 'Logo', 'fieldset' => 'site', 'default' => ''],
+    ]);
+
+    $picture = pageImage($this->admin, 200, 200);
+    $page = addrPublished($this->admin, 'About');
+    $menu = navCreate($this->admin, 'Footer');
+    navSave($this->admin, $menu, [
+        ['kind' => 'content', 'target_id' => $page->id, 'label' => 'About'],
+    ]);
+
+    DB::table('settings')->updateOrInsert(['group_key' => $group], [
+        'overrides' => json_encode([
+            'footer_menu' => $menu->id,
+            'logo' => $picture->id,
+        ]),
+        'version' => 1,
+    ]);
+    Cache::memo()->forget(SettingsRepository::cacheKey($group));
+
+    $design = app(SiteDesign::class);
+    $design->start('/about/');
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $first = $design->themeSettings();
+    $afterOne = count(DB::getQueryLog());
+    $second = $design->themeSettings();
+    $afterTen = count(DB::getQueryLog());
+
+    for ($i = 0; $i < 8; $i++) {
+        $design->themeSettings();
+    }
+
+    $afterTen = count(DB::getQueryLog());
+
+    expect($afterTen)->toBe($afterOne)
+        ->and($first)->toBe($second)
+        ->and($first['footer_menu'][0]['current'] ?? false)->toBeTrue();
+});
+
+it('refuses a cleared number below its min, a value off its step, and a non-empty menu default', function (): void {
+    $group = typedTheme([
+        ['key' => 'per_row', 'type' => 'number', 'label' => 'Per row', 'fieldset' => 'latest', 'default' => 3, 'min' => 1, 'max' => 6, 'step' => 1],
+    ]);
+
+    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
+        $group => ['per_row' => ''],
+    ], (string) $this->admin->id)))->toThrow(ValidationException::class);
+
+    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
+        $group => ['per_row' => 0],
+    ], (string) $this->admin->id)))->toThrow(ValidationException::class);
+
+    $path = base_path('tests/Fixtures/themes/good');
+
+    expect(implode("\n", app(ManifestValidator::class)->errors(designManifest([
+        ['key' => 'footer_menu', 'type' => 'menu', 'label' => 'Footer', 'fieldset' => 'site', 'default' => 'abc'],
+    ]), $path)))->toContain('"footer_menu"');
+});

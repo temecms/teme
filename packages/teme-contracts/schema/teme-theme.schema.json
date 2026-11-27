@@ -197,7 +197,7 @@
                         "description": "A number setting's unit, shown beside its field."
                     },
                     "default": {
-                        "description": "A select's default is one of its options; a boolean's is true or false; a text's, textarea's or menu's is text; a colour's or image's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}."
+                        "description": "A select's default is one of its options; a boolean's is true or false; a text's or textarea's is text; a menu's or image's is \"\"; a colour's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}."
                     },
                     "visible_when": {
                         "type": "object",

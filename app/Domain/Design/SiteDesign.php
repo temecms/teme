@@ -5,7 +5,7 @@
  * theme settings core reads by fixed name when the active theme declares
  * them, `color_scheme` and `featured_image_style` (docs/architecture/themes.md),
  * and all the active theme's own settings for its views: the one reader of
- * a theme's settings.
+ * a theme's settings. Scoped per request; themeSettings() is built once.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Design;
 
+use App\Domain\Cache\PageTags;
+use App\Domain\Cache\RenderRecord;
 use App\Domain\Media\MediaUrls;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\NavigationTree;
@@ -25,16 +27,31 @@ use App\Domain\Themes\ActiveTheme;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-final readonly class SiteDesign
+final class SiteDesign
 {
     /** The schemes `color_scheme` may name; auto follows the reader's own. */
     public const array SCHEMES = ['auto', 'light', 'dark'];
+
+    private string $path = '';
+
+    /** @var array<string, mixed>|null */
+    private ?array $themeSettings = null;
 
     public function __construct(
         private ActiveTheme $active,
         private SettingsReader $settings,
         private SettingsRegistry $registry,
     ) {}
+
+    /**
+     * Empties the memo for a page about to be drawn, whose request path
+     * marks the current item in theme menu settings.
+     */
+    public function start(string $path): void
+    {
+        $this->path = $path;
+        $this->themeSettings = null;
+    }
 
     /**
      * The site's accent colour, `#rrggbb`, or '' to use the theme's own.
@@ -69,17 +86,21 @@ final readonly class SiteDesign
      * group holds them (a design preview's drafts over the live values),
      * without its menu places; [] with no usable theme or no such group.
      * Every theme view gets them as `$themeSettings` (ThemeSettingsComposer).
-     * An image is `{url, alt}`; a menu is its items as navigation slots give
-     * them; every other type keeps its stored value.
+     * Built once per page. An image is `{url, alt}`; a menu is its items as
+     * navigation slots give them; every other type keeps its stored value.
      *
      * @return array<string, mixed>
      */
     public function themeSettings(): array
     {
+        if ($this->themeSettings !== null) {
+            return $this->themeSettings;
+        }
+
         $group = $this->group();
 
         if ($group === null) {
-            return [];
+            return $this->themeSettings = [];
         }
 
         $values = array_filter(
@@ -98,7 +119,7 @@ final readonly class SiteDesign
             };
         }
 
-        return $values;
+        return $this->themeSettings = $values;
     }
 
     /**
@@ -164,6 +185,8 @@ final readonly class SiteDesign
             return null;
         }
 
+        app(RenderRecord::class)->tag(PageTags::media($id));
+
         $variants = (array) json_decode((string) $row->variants, true);
         $url = MediaUrls::largest($variants, $id) ?? MediaUrls::variant($variants, 'thumb', $id);
 
@@ -184,6 +207,6 @@ final readonly class SiteDesign
 
         $menu = Navigation::query()->find($id);
 
-        return $menu === null ? null : NavigationTree::for($menu, '');
+        return $menu === null ? null : NavigationTree::for($menu, $this->path);
     }
 }

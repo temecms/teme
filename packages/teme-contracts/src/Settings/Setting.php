@@ -58,6 +58,12 @@ final class Setting
         public readonly ?int $min = null,
         public readonly ?int $max = null,
         public readonly ?int $maxLength = null,
+        /**
+         * A number setting's step on the form; null when any whole number in bounds is fine.
+         *
+         * @since next
+         */
+        public readonly ?int $step = null,
         public readonly bool $required = false,
         public readonly ?string $example = null,
         public readonly ?string $env = null,
@@ -352,6 +358,20 @@ final class Setting
     public function maxLength(int $maxLength): self
     {
         return $this->with(['maxLength' => $maxLength]);
+    }
+
+    /**
+     * A number setting's step: the value must be a multiple of this, at least 1.
+     *
+     * @since next
+     */
+    public function step(int $step): self
+    {
+        if ($this->type !== SettingType::Number || $step < 1) {
+            throw new InvalidArgumentException("Only number settings take a step of at least 1; [{$this->key}] is {$this->type->value}.");
+        }
+
+        return $this->with(['step' => $step]);
     }
 
     /** @since 0.1.0 */
