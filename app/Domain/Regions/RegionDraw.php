@@ -7,7 +7,7 @@
  * cards need on the page being drawn, whoever then prints the result.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

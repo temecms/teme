@@ -5,7 +5,7 @@
  * name, its content type, and its bytes or a path the plugin owns.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -20,7 +20,7 @@ use InvalidArgumentException;
  * either its bytes or the path of a file inside the plugin's own folder,
  * never both.
  *
- * @since next
+ * @since 1.7.0
  */
 final readonly class HttpFile
 {
@@ -33,7 +33,7 @@ final readonly class HttpFile
      *
      * @throws InvalidArgumentException when neither or both of $bytes and $path are given, or a name is empty
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __construct(
         public string $field,

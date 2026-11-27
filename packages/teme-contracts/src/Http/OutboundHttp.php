@@ -86,7 +86,7 @@ interface OutboundHttp
      * @throws AnswerTooLarge when the answer passes 1 MB
      * @throws RequestFailed when the request gets no answer, or its body passes 10 MB, in which case nothing is sent
      *
-     * @since next
+     * @since 1.7.0
      */
     public function postMultipart(string $url, array $fields, array $files, array $headers = [], int $timeoutSeconds = 5): HttpAnswer;
 
@@ -101,7 +101,7 @@ interface OutboundHttp
      * @throws AnswerTooLarge when the answer passes 1 MB
      * @throws RequestFailed when the request gets no answer, or its body passes 10 MB, in which case nothing is sent
      *
-     * @since next
+     * @since 1.7.0
      */
     public function postRaw(string $url, string $body, string $contentType, array $headers = [], int $timeoutSeconds = 5): HttpAnswer;
 }

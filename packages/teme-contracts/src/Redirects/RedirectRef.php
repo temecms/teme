@@ -4,7 +4,7 @@
  * A redirect a plugin added, as the redirect door tells of it: plain values.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -16,7 +16,7 @@ namespace Teme\Contracts\Redirects;
  * A redirect a plugin added, as the redirect door tells of it: plain values,
  * never the redirect itself.
  *
- * @since next
+ * @since 1.7.0
  */
 final readonly class RedirectRef
 {
@@ -28,7 +28,7 @@ final readonly class RedirectRef
      * @param  string  $note  the note it was added with, which may be empty
      * @param  bool  $answering  whether it answers readers now; false while a page already answers its address or its switch is off
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __construct(
         public string $id,

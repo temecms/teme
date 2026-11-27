@@ -9,7 +9,7 @@
  * is kept. An item's own social title still wins over it.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

@@ -4,7 +4,7 @@
  * A category or tag was created.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -18,7 +18,7 @@ use Teme\Contracts\Hooks\Notification;
 /**
  * A category or tag was created. Sent after the change is saved. An import run does not send it yet.
  *
- * @since next
+ * @since 1.7.0
  */
 #[HookContract(capability: 'content.read')]
 final readonly class TermCreated implements Notification
@@ -27,7 +27,7 @@ final readonly class TermCreated implements Notification
      * @param  TermRef  $term  the term, as it is after the change (as it was before the row went, for a deletion)
      * @param  string|null  $actorId  the account ID of the person who created it, or null when no signed-in person did
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __construct(
         public TermRef $term,

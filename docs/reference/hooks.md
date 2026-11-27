@@ -9,7 +9,7 @@ The public pages a change purged from the page cache, and the CDN purge queued f
 - **Class:** `Teme\Contracts\Cache\PagesPurged`
 - **Verb:** Notification
 - **Capability:** `content.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -270,7 +270,7 @@ A file was deleted for good, after it had been in the trash. Its payload is the 
 - **Class:** `Teme\Contracts\Media\MediaDeleted`
 - **Verb:** Notification
 - **Capability:** `media.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -284,7 +284,7 @@ A file was taken out of the trash and is live again. Sent after the change is sa
 - **Class:** `Teme\Contracts\Media\MediaRestored`
 - **Verb:** Notification
 - **Capability:** `media.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -313,7 +313,7 @@ A file was moved to the trash. Its files stay, so restoring it brings every use 
 - **Class:** `Teme\Contracts\Media\MediaTrashed`
 - **Verb:** Notification
 - **Capability:** `media.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -327,7 +327,7 @@ A file's details were changed: its title, alt text, caption, credit, licence or 
 - **Class:** `Teme\Contracts\Media\MediaUpdated`
 - **Verb:** Notification
 - **Capability:** `media.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -365,7 +365,7 @@ An item's terms changed: terms were added to it or taken off it. Sent once for t
 - **Class:** `Teme\Contracts\Taxonomy\TermAssigned`
 - **Verb:** Notification
 - **Capability:** `content.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -380,7 +380,7 @@ A category or tag was created. Sent after the change is saved. An import run doe
 - **Class:** `Teme\Contracts\Taxonomy\TermCreated`
 - **Verb:** Notification
 - **Capability:** `content.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -394,7 +394,7 @@ A category or tag was deleted. Its payload is the term as it was before its row 
 - **Class:** `Teme\Contracts\Taxonomy\TermDeleted`
 - **Verb:** Notification
 - **Capability:** `content.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|
@@ -408,7 +408,7 @@ A category or tag was renamed, or its slug, parent or description changed. Sent 
 - **Class:** `Teme\Contracts\Taxonomy\TermUpdated`
 - **Verb:** Notification
 - **Capability:** `content.read`
-- **Since:** next
+- **Since:** 1.7.0
 
 | Parameter | Description |
 |---|---|

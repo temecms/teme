@@ -6,7 +6,7 @@
  * reads only: the same drawing as the region in a page, in the language asked.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

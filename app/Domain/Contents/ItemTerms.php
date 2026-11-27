@@ -6,7 +6,7 @@
  * announces the change the same way.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -26,7 +26,7 @@ use Teme\Contracts\Taxonomy\TermAssigned;
  * Announces an item's term changes. Called from inside an Operation, so the
  * notification waits for its outermost commit like every other one.
  *
- * @since next
+ * @since 1.7.0
  */
 final class ItemTerms
 {
@@ -40,7 +40,7 @@ final class ItemTerms
      *
      * @return array<string, array{added: list<string>, removed: list<string>}>
      *
-     * @since next
+     * @since 1.7.0
      */
     public static function changes(array $before, array $after): array
     {
@@ -81,7 +81,7 @@ final class ItemTerms
      * @param  list<string>  $before  the item's terms before the change
      * @param  list<string>  $after  the item's terms after the change
      *
-     * @since next
+     * @since 1.7.0
      */
     public static function announce(Content $content, array $before, array $after, ?string $actorId): void
     {

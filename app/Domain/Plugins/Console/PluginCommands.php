@@ -6,7 +6,7 @@
  * didn't start has none, so a disabled plugin's command doesn't exist.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

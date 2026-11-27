@@ -4,7 +4,7 @@
  * A plugin with console commands: it runs the ones its manifest declares.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -18,7 +18,7 @@ namespace Teme\Contracts\Console;
  * command in `php artisan` only while the plugin is enabled, and runs it
  * with the plugin's own doors, as the operator at the server's shell.
  *
- * @since next
+ * @since 1.7.0
  */
 interface HasCommands
 {
@@ -32,7 +32,7 @@ interface HasCommands
      *
      * @return int the exit code: 0 for success, any other number for failure
      *
-     * @since next
+     * @since 1.7.0
      */
     public function runCommand(string $name, array $arguments, array $options, CommandOutput $output): int;
 }

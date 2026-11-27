@@ -28,7 +28,7 @@
         {
             "type": "path",
             "url": "packages/teme-contracts",
-            "options": { "symlink": true, "versions": { "teme/contracts": "1.5.0" } }
+            "options": { "symlink": true, "versions": { "teme/contracts": "1.7.0" } }
         },
         {
             "type": "path",

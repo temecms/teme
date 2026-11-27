@@ -5,7 +5,7 @@
  * `$article->blocks`: the node's type, its attributes and its HTML.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

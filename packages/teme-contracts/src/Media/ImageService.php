@@ -6,7 +6,7 @@
  * for, or null to leave the address to core.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -20,7 +20,7 @@ namespace Teme\Contracts\Media;
  * made at upload. Asked each time a page or a screen draws the image, so it
  * only reads: it is handed no way to change anything.
  *
- * @since next
+ * @since 1.7.0
  */
 interface ImageService
 {
@@ -34,7 +34,7 @@ interface ImageService
      * @param  string  $variant  the size's name, as core made it: `thumb`, `w320` to `w2560`, `social` or `crop-16x9`, `crop-4x3` and `crop-1x1`
      * @param  string  $format  the file format core would serve, as a lower-case extension such as `webp`
      *
-     * @since next
+     * @since 1.7.0
      */
     public function imageAddress(string $mediaId, string $variant, string $format): ?string;
 }

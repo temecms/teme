@@ -5,7 +5,7 @@
  * hands over the driver core asks for images' addresses.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -18,14 +18,14 @@ namespace Teme\Contracts\Media;
  * hands over the driver core asks for images' addresses. One driver is
  * active at a time.
  *
- * @since next
+ * @since 1.7.0
  */
 interface HasImageService
 {
     /**
      * The plugin's image service driver.
      *
-     * @since next
+     * @since 1.7.0
      */
     public function imageService(): ImageService;
 }

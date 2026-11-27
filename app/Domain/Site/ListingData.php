@@ -8,7 +8,7 @@
  * is drawn from, so the data and the page never differ.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

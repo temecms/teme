@@ -6,7 +6,7 @@
  * shown here is what the search page would show, in the language asked.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 

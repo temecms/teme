@@ -5,7 +5,7 @@
  * was saved, or, for a deletion, as they were before the row went.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -17,7 +17,7 @@ namespace Teme\Contracts\Taxonomy;
  * A category or tag as a hook tells of it: plain values, never the term
  * itself.
  *
- * @since next
+ * @since 1.7.0
  */
 final readonly class TermRef
 {
@@ -29,7 +29,7 @@ final readonly class TermRef
      * @param  string|null  $parentId  the ID of its parent term, or null when it has none
      * @param  string|null  $language  its language as a BCP 47 tag, or null when it has none
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __construct(
         public string $id,

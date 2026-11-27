@@ -45,7 +45,7 @@ final readonly class CardRegion implements Stringable
      * The region's slug, so a view may print the region or compare it with a
      * name: `$region == 'sidebar'`. An empty string outside a region.
      *
-     * @since next
+     * @since 1.7.0
      */
     public function __toString(): string
     {

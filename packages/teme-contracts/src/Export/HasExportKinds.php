@@ -5,7 +5,7 @@
  * declares becomes one more NDJSON file in the site's export.
  *
  * @package Teme
- * @since   next
+ * @since   1.7.0
  * @license MIT
  */
 
@@ -20,7 +20,7 @@ namespace Teme\Contracts\Export;
  * hands over what it already keeps; core writes the file. Never put a
  * secret in a line: an export leaves the site.
  *
- * @since next
+ * @since 1.7.0
  */
 interface HasExportKinds
 {
@@ -29,7 +29,7 @@ interface HasExportKinds
      *
      * @return array<string, PluginExportKind>
      *
-     * @since next
+     * @since 1.7.0
      */
     public function exportKinds(): array;
 }
