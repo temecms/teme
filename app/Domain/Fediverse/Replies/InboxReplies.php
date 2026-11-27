@@ -111,8 +111,10 @@ final readonly class InboxReplies
         if ($operation === UpdateFediverseReply::class) {
             $commentId = is_string($object['id'] ?? null) ? FediverseObject::query()->whereKey($object['id'])->value('comment_id') : null;
             $comment = is_string($commentId) ? Comment::query()->find($commentId) : null;
+            $document = is_string($object['content'] ?? null) ? app(RemoteWords::class)->document($object['content']) : null;
 
-            return $comment === null ? null : app(CommentChecks::class)->verdict(UpdateFediverseReply::candidate($comment, $remote));
+            // The edit's new words, not the stored ones: the check judges what would be saved.
+            return $comment === null || $document === null ? null : app(CommentChecks::class)->verdict(UpdateFediverseReply::candidate($comment, $remote, $document));
         }
 
         return null;

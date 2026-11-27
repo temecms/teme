@@ -59,7 +59,7 @@ final class CommentChecks
             return $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($running, $comment): ?ModerationVerdict {
                 $answer = $running->check($comment);
 
-                return $answer instanceof ModerationVerdict ? $answer : null;
+                return $answer instanceof ModerationVerdict ? self::known($answer) : null;
             });
         }
 
@@ -81,6 +81,18 @@ final class CommentChecks
         }
 
         return self::rank($second->status) > self::rank($first->status) ? $second : $first;
+    }
+
+    /**
+     * A plugin's verdict with a status core knows; any other status is held as pending, as SubmitComment holds one core's moderator can't name.
+     */
+    private static function known(ModerationVerdict $verdict): ModerationVerdict
+    {
+        if (in_array($verdict->status, [ModerationVerdict::APPROVED, ModerationVerdict::PENDING, ModerationVerdict::SPAM], true)) {
+            return $verdict;
+        }
+
+        return new ModerationVerdict(ModerationVerdict::PENDING, $verdict->reason, [...$verdict->signals, 'answered' => $verdict->status]);
     }
 
     private static function rank(string $status): int

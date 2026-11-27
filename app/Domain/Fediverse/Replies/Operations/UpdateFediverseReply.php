@@ -115,17 +115,19 @@ final class UpdateFediverseReply extends BaseOperation
 
     /**
      * The comment an edit would leave, as a plugin's check reads it: built with no writes, so
-     * InboxReplies can ask the check before the transaction.
+     * InboxReplies can ask the check before the transaction. $document is the edit's new words, as
+     * RemoteWords reads them; the stored body is used when none is given.
      */
-    public static function candidate(Comment $comment, RemoteActor $remote): CommentCandidate
+    public static function candidate(Comment $comment, RemoteActor $remote, ?array $document = null): CommentCandidate
     {
         $item = Content::withTrashed()->findOrFail($comment->content_id);
+        $body = $document ?? $comment->body;
 
         return new CommentCandidate(
             contentId: $comment->content_id,
             parentId: $comment->parent_id,
-            text: CommentText::plain($comment->body),
-            links: CommentText::links($comment->body),
+            text: CommentText::plain($body),
+            links: CommentText::links($body),
             authorName: $comment->author_name,
             authorEmail: null,
             authorUrl: $comment->author_url,

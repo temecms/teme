@@ -124,3 +124,12 @@ it('skips a check that answers over its budget, and asks it no more in the reque
         ->and($second)->toBeNull()
         ->and(Checker::$asked)->toBe(['First']);
 });
+
+it('holds a verdict with an unknown status as pending, never writes it', function (): void {
+    checkerEnabled();
+    Checker::$verdict = fn (CommentCandidate $comment): ModerationVerdict => new ModerationVerdict('bogus', 'Odd.');
+
+    $verdict = app(CommentChecks::class)->verdict(commentCandidateFor($this->item, 'Odd words'));
+
+    expect($verdict?->status)->toBe(ModerationVerdict::PENDING);
+});

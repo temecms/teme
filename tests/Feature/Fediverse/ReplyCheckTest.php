@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Comments\CommentStats;
 use App\Domain\Comments\Models\Comment;
 use App\Domain\Fediverse\Jobs\ProcessInboxActivity;
 use App\Domain\Fediverse\Models\FediverseObject;
@@ -89,4 +90,27 @@ it('leaves a fediverse reply to core’s moderator when no plugin fills the slot
     fcheckReply($this->post, 'https://remote.example/statuses/10', '<p>Lovely harbour.</p>');
 
     expect(Comment::query()->sole()->status)->toBe('pending');
+});
+
+it('judges an edited reply on its new words, and holds it when the plugin marks them as spam', function (): void {
+    fcheckReply($this->post, 'https://remote.example/statuses/11', '<p>Lovely harbour.</p>');
+    $comment = Comment::query()->sole();
+    $comment->forceFill(['status' => 'approved'])->save();
+    CommentStats::apply($comment, 'pending', 'approved');
+    fcheckEnabled();
+    Checker::reset();
+    Checker::$verdict = fn (CommentCandidate $candidate): ModerationVerdict => $candidate->text === 'Buy now.'
+        ? new ModerationVerdict(ModerationVerdict::SPAM, 'Spam.')
+        : new ModerationVerdict(ModerationVerdict::APPROVED, 'Fine.');
+
+    (new ProcessInboxActivity([
+        '@context' => 'https://www.w3.org/ns/activitystreams',
+        'id' => 'https://remote.example/statuses/11/activity',
+        'type' => 'Update',
+        'actor' => Inbox::ALICE,
+        'object' => ['id' => 'https://remote.example/statuses/11', 'type' => 'Note', 'attributedTo' => Inbox::ALICE, 'inReplyTo' => $this->post, 'content' => '<p>Buy now.</p>'],
+    ], Inbox::ALICE.'#main-key', Inbox::ALICE))->handle(app(FediverseDocuments::class), app(RemoteFetcher::class));
+
+    expect(Checker::$asked)->toContain('Buy now.')
+        ->and(Comment::query()->whereKey($comment->id)->value('status'))->not->toBe(ModerationVerdict::APPROVED);
 });
