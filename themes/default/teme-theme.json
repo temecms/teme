@@ -92,6 +92,14 @@
     },
     "settings": [
         {
+            "key": "use_brand_colour",
+            "type": "boolean",
+            "label": "Use the site's brand colour",
+            "description": "When on, the theme's accent follows the site's brand colour from Settings › General.",
+            "fieldset": "site",
+            "default": true
+        },
+        {
             "key": "header_layout",
             "type": "select",
             "label": "Header layout",

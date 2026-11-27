@@ -49,10 +49,10 @@
 | `fonts[].weight` | string\|integer | no | Any number or text, such as 400 or "400 700". |  |
 | `fonts[].style` | string | no |  | "normal", "italic", "oblique" |
 | `fonts[].preload` |  | no | Only true preloads the font; any other value, or none, does not. |  |
-| `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. For a theme's own names, use custom_tokens. |  |
+| `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens. |  |
 | `tokens.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
-| `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. |  |
+| `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. brand is read-only. |  |
 | `tokens_dark.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens_dark.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |  |

@@ -100,7 +100,7 @@ final readonly class SettingsPageSections
     }
 
     /**
-     * General's brand colour: the design group's accent as it is live, the
+     * General's brand colour: the design group's brand as it is live, the
      * live theme's own accent and backgrounds, the two text colours it may
      * take, how each scheme draws it (I-457), the design group's version,
      * and whether this person may change it.
@@ -110,7 +110,7 @@ final readonly class SettingsPageSections
     private function brandColour(User $viewer): array
     {
         $manifest = $this->active->get()?->manifest;
-        $value = $this->settings->string('design', 'accent');
+        $value = $this->settings->string('design', 'brand');
 
         return [
             'value' => $value,

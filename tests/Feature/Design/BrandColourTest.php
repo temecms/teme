@@ -35,7 +35,7 @@ it('saves the brand colour from General at once, through the design group, with 
         ->assertSessionHasNoErrors()
         ->assertRedirect('/admin/settings/general');
 
-    expect(app(SettingsReader::class)->string('design', 'accent'))->toBe('#0b5394')
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394')
         ->and(DB::table('settings')->where('group_key', 'design')->value('draft_values'))->toBeNull()
         ->and(DB::table('settings_changes')->where('group_key', 'design')->exists())->toBeTrue();
 });
@@ -44,7 +44,7 @@ it('refuses a colour that fails contrast on the light background, saying by how 
     expect(fn () => app(ChangeBrandColour::class)->execute(new ChangeBrandColourInput('#ffeb3b', 0, (string) $this->admin->id)))
         ->toThrow(ValidationException::class, 'The brand colour reaches only');
 
-    expect(app(SettingsReader::class)->string('design', 'accent'))->toBe('');
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('');
 });
 
 it('refuses a colour the theme being previewed fails, though the live theme passes it', function (): void {
@@ -60,17 +60,17 @@ it('refuses a colour the theme being previewed fails, though the live theme pass
     expect(fn () => app(ChangeBrandColour::class)->execute(new ChangeBrandColourInput('#767676', 0, (string) $this->admin->id)))
         ->toThrow(ValidationException::class, 'With Cream, being previewed in Themes');
 
-    expect(app(SettingsReader::class)->string('design', 'accent'))->toBe('');
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('');
     File::deleteDirectory(dirname($folder));
 });
 
 it('drops a colour waiting in Design\'s draft, and keeps the rest of the draft', function (): void {
-    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['theme' => 'quiet', 'accent' => '#1d4ed8']], (string) $this->admin->id));
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['theme' => 'quiet', 'brand' => '#1d4ed8']], (string) $this->admin->id));
 
     app(ChangeBrandColour::class)->execute(new ChangeBrandColourInput('#0b5394', 0, (string) $this->admin->id));
 
     expect(json_decode((string) DB::table('settings')->where('group_key', 'design')->value('draft_values'), true))->toBe(['theme' => 'quiet'])
-        ->and(app(SettingsReader::class)->string('design', 'accent'))->toBe('#0b5394');
+        ->and(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394');
 });
 
 it('gives the theme\'s own colour back when emptied', function (): void {
@@ -79,7 +79,7 @@ it('gives the theme\'s own colour back when emptied', function (): void {
 
     app(ChangeBrandColour::class)->execute(new ChangeBrandColourInput('', $version, (string) $this->admin->id));
 
-    expect(app(SettingsReader::class)->string('design', 'accent'))->toBe('');
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('');
 });
 
 it('refuses a form opened before the design last changed', function (): void {
@@ -89,7 +89,7 @@ it('refuses a form opened before the design last changed', function (): void {
         ->put('/admin/settings/general/brand-colour', ['accent' => '#1d4ed8', 'expected_version' => 0])
         ->assertSessionHasErrors('accent');
 
-    expect(app(SettingsReader::class)->string('design', 'accent'))->toBe('#0b5394');
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394');
 });
 
 it('writes nothing when the person may not change the design', function (): void {
@@ -101,7 +101,7 @@ it('writes nothing when the person may not change the design', function (): void
 
     $this->actingAs($person)->put('/admin/settings/general/brand-colour', ['accent' => '#0b5394', 'expected_version' => 0])->assertForbidden();
 
-    expect(app(SettingsReader::class)->string('design', 'accent'))->toBe('');
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('');
 
     // On General, the section is theirs to read, not to change.
     $this->actingAs($person)->get('/admin/settings/general')
@@ -129,5 +129,5 @@ it('draws the brand colour on General with both schemes, as the server works the
 
 it('finds the brand colour on General', function (): void {
     expect(app(FindSettings::class)->run('brand colour', $this->admin)['settings'])
-        ->toContain(['key' => 'design.accent', 'label' => 'Brand colour', 'screen' => 'General', 'href' => '/admin/settings/general#field-accent']);
+        ->toContain(['key' => 'design.brand', 'label' => 'Brand colour', 'screen' => 'General', 'href' => '/admin/settings/general#field-brand']);
 });

@@ -43,7 +43,7 @@ it('keeps a draft out of the live site until it is published', function (): void
 });
 
 it('refuses an accent that fails contrast, saying by how much', function (): void {
-    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['accent' => '#ffeb3b']], (string) $this->admin->id)))
+    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['brand' => '#ffeb3b']], (string) $this->admin->id)))
         ->toThrow(ValidationException::class, ':1');
 });
 
@@ -96,13 +96,13 @@ it('replaces a menu bound on Content › Navigation meanwhile, when the draft ch
 
 it('stores each drafted value as the live one would be stored', function (): void {
     app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
-        'design' => ['accent' => '#0B5394'],
+        'design' => ['brand' => '#0b5394'],
         'theme.good' => ['show_related' => '0'],
     ], (string) $this->admin->id));
 
     $draft = fn (string $group): array => json_decode((string) DB::table('settings')->where('group_key', $group)->value('draft_values'), true);
 
-    expect($draft('design'))->toBe(['accent' => '#0b5394'])
+    expect($draft('design'))->toBe(['brand' => '#0b5394'])
         ->and($draft('theme.good'))->toBe(['show_related' => false]);
 });
 
@@ -136,7 +136,7 @@ it('writes nothing when the person may not manage the design', function (): void
 
 it('takes an accent that passes on the light background, however it reads on the dark one (I-457)', function (): void {
     // #0b5394 reaches 7.84:1 on the fixture's white, and only 2.35:1 on its dark #141413.
-    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['accent' => '#0b5394']], (string) $this->admin->id));
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['brand' => '#0b5394']], (string) $this->admin->id));
 
-    expect(json_decode((string) DB::table('settings')->where('group_key', 'design')->value('draft_values'), true))->toBe(['accent' => '#0b5394']);
+    expect(json_decode((string) DB::table('settings')->where('group_key', 'design')->value('draft_values'), true))->toBe(['brand' => '#0b5394']);
 });

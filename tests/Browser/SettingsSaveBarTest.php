@@ -52,7 +52,7 @@ it('shows one bar only once General changes, and saves the brand color with it, 
     cmWaitUntil($page, 'document.body.textContent.includes("Settings saved.")');
 
     expect(app(SettingsReader::class)->string('general', 'site_title'))->toBe('The Garden City Ledger')
-        ->and(app(SettingsReader::class)->string('design', 'accent'))->toBe('#0b5394');
+        ->and(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394');
 });
 
 it('asks before leaving with a change, keeps it on Keep editing, and Discard puts the page back', function (): void {

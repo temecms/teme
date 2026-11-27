@@ -16,7 +16,7 @@ it('is a usable theme with every setting study Q lists', function (): void {
 
     expect($theme->usable())->toBeTrue()
         ->and(array_column($theme->manifest->settings(), 'key'))->toBe([
-            'header_layout', 'header_color', 'color_scheme', 'latest_header', 'show_featured', 'feed_layout', 'feed_images',
+            'use_brand_colour', 'header_layout', 'header_color', 'color_scheme', 'latest_header', 'show_featured', 'feed_layout', 'feed_images',
             'featured_image_style', 'show_author_box', 'show_related', 'show_reading_time', 'archive_header', 'show_card_meta',
         ]);
 });

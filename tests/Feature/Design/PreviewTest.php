@@ -25,16 +25,16 @@ beforeEach(function (): void {
 });
 
 it('shows draft design values on a signed preview link, and live values without it', function (): void {
-    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['accent' => '#0b5394']], (string) $this->admin->id));
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['brand' => '#0b5394']], (string) $this->admin->id));
     $url = app(CreateDesignPreview::class)->execute(new CreateDesignPreviewInput('/', (string) $this->admin->id));
 
     addrGet($url)->assertOk()
-        ->assertSee('--teme-accent:#0b5394', false)
+        ->assertSee('--teme-brand:#0b5394', false)
         ->assertSee('Previewing unpublished design changes')
         ->assertHeader('Cache-Control', 'no-store, private')
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 
-    addrGet('/')->assertOk()->assertDontSee('--teme-accent:#0b5394', false);
+    addrGet('/')->assertOk()->assertDontSee('--teme-brand:#0b5394', false);
 });
 
 it('refuses an expired or tampered preview link', function (): void {

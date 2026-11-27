@@ -136,15 +136,17 @@ final class Document extends Component
         $preloadFile = $variation['fonts'] ?? $manifest?->preloadedFont()['file'] ?? null;
         $this->preload = $this->preloadOf($code, $preloadFile);
         $this->scheme = $design->scheme();
-        $accent = $design->accent();
+        $brand = $design->brand();
+        $useBrand = $brand !== '' && $design->usesBrandAsAccent();
         $this->tokens = $this->styleOf(
             $variation['tokens'] ?? $manifest?->tokens() ?? [],
             $variation['tokens_dark'] ?? $manifest?->tokensDark() ?? [],
-            $accent === '' ? null : Contrast::accentSchemes($accent, $manifest),
+            $useBrand ? Contrast::accentSchemes($brand, $manifest) : null,
             $variation['custom_tokens'] ?? $manifest?->customTokens() ?? [],
             $manifest?->customTokensDark() ?? [],
             $code,
             $manifest?->fonts() ?? [],
+            $brand === '' ? null : $brand,
         );
         $this->assets = $assets->tags();
         $this->replacedCards = $manifest?->replacedCards() ?? [];
@@ -227,13 +229,20 @@ final class Document extends Component
      * @param  array<string, string>  $custom
      * @param  array<string, string>  $customDark
      * @param  list<array{family: string, file: string, weight: string, style: string, preload: bool}>  $fonts
+     * @param  string|null  $brand  the site's brand colour as `--teme-brand` (issue 261)
      */
-    private function styleOf(array $tokens, array $tokensDark, ?array $schemes, array $custom = [], array $customDark = [], ?string $code = null, array $fonts = []): string
+    private function styleOf(array $tokens, array $tokensDark, ?array $schemes, array $custom = [], array $customDark = [], ?string $code = null, array $fonts = [], ?string $brand = null): string
     {
         $faces = $this->fontFaces($code, $fonts);
         $lightCore = $schemes === null ? $tokens : $this->withAccent($tokens, $schemes['light']);
+        if ($brand !== null) {
+            $lightCore['brand'] = $brand;
+        }
         $light = $this->declarations([...$lightCore, ...$custom]);
-        $darkCore = $tokensDark === [] && $customDark === [] ? [] : ($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
+        $darkCore = $tokensDark === [] && $customDark === [] && $brand === null ? [] : ($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
+        if ($brand !== null) {
+            $darkCore['brand'] = $brand;
+        }
         $dark = $this->declarations([...$darkCore, ...$customDark]);
         $style = $faces.($light === '' ? '' : ':root{'.$light.'}');
 

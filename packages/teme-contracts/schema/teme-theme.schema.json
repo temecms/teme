@@ -251,7 +251,7 @@
         },
         "tokens": {
             "type": "object",
-            "description": "Core design tokens only: base, contrast, accent, on-accent, muted, rule, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. For a theme's own names, use custom_tokens.",
+            "description": "Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -260,6 +260,7 @@
                     "on-accent",
                     "muted",
                     "rule",
+                    "brand",
                     "font-body",
                     "font-heading",
                     "font-mono",
@@ -294,7 +295,7 @@
         },
         "tokens_dark": {
             "type": "object",
-            "description": "The same core tokens and rules, for the theme's dark scheme.",
+            "description": "The same core tokens and rules, for the theme's dark scheme. brand is read-only.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -303,6 +304,7 @@
                     "on-accent",
                     "muted",
                     "rule",
+                    "brand",
                     "font-body",
                     "font-heading",
                     "font-mono",

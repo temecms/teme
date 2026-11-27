@@ -1,7 +1,7 @@
 <?php
 
 /**
- * What core draws from the design settings: the site's accent, the two
+ * What core draws from the design settings: the site's brand colour, the two
  * theme settings core reads by fixed name when the active theme declares
  * them, `color_scheme` and `featured_image_style` (docs/architecture/themes.md),
  * and all the active theme's own settings for its views: the one reader of
@@ -34,11 +34,22 @@ final readonly class SiteDesign
     ) {}
 
     /**
-     * The site's accent colour, `#rrggbb`, or '' to use the theme's own.
+     * The site's brand colour, `#rrggbb`, or '' when unset (issue 261).
      */
-    public function accent(): string
+    public function brand(): string
     {
-        return $this->settings->string('design', 'accent');
+        return $this->settings->string('design', 'brand');
+    }
+
+    /**
+     * Whether the active theme uses the site's brand as its accent
+     * (`use_brand_colour`), so Document writes accent from brand.
+     *
+     * @since next
+     */
+    public function usesBrandAsAccent(): bool
+    {
+        return $this->themeSetting('use_brand_colour') === true;
     }
 
     /**

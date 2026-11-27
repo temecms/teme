@@ -75,10 +75,18 @@ final class ManifestValidator
      * @var list<string>
      */
     public const array TOKENS = [
-        'base', 'contrast', 'accent', 'on-accent', 'muted', 'rule', 'font-body', 'font-heading', 'font-mono',
+        'base', 'contrast', 'accent', 'on-accent', 'muted', 'rule', 'brand', 'font-body', 'font-heading', 'font-mono',
         'step--1', 'step-0', 'step-1', 'step-2', 'step-3', 'step-4', 'step-5',
         'space-1', 'space-2', 'space-3', 'space-4', 'space-5', 'space-6', 'space-7', 'space-8',
     ];
+
+    /**
+     * Core tokens a theme must not set: Document writes them from the site
+     * (issue 261).
+     *
+     * @var list<string>
+     */
+    public const array READ_ONLY_TOKENS = ['brand'];
 
     /**
      * A theme's own token name: lower-case letters, digits and hyphens
@@ -741,6 +749,12 @@ final class ManifestValidator
         foreach ($tokens as $name => $value) {
             if (! in_array($name, self::TOKENS, true)) {
                 $errors[] = "Unknown token \"{$name}\"{$where}: a theme sets only ".implode(', ', self::TOKENS).'.';
+
+                continue;
+            }
+
+            if (in_array($name, self::READ_ONLY_TOKENS, true)) {
+                $errors[] = "The token \"{$name}\"{$where} is read-only: core writes it from the site's brand colour.";
 
                 continue;
             }

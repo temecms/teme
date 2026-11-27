@@ -173,9 +173,9 @@ final class SaveDesignDraft extends BaseOperation
     }
 
     /**
-     * When this save changes the accent or the theme, the accent that would
+     * When this save changes the brand or the theme, the brand that would
      * be live must pass contrast against the light background of the theme
-     * that would be active, so a theme switch can't slip past an accent the
+     * that would be active, so a theme switch can't slip past a brand the
      * new theme fails; the dark scheme takes a lighter version of it (I-457).
      * Each is this save's, else the draft's, else the live one.
      *
@@ -186,24 +186,24 @@ final class SaveDesignDraft extends BaseOperation
     {
         $changes = $values[self::DESIGN_GROUP] ?? [];
 
-        if (! array_key_exists('accent', $changes) && ! array_key_exists('theme', $changes)) {
+        if (! array_key_exists('brand', $changes) && ! array_key_exists('theme', $changes)) {
             return;
         }
 
         $record = $records[self::DESIGN_GROUP];
         $wouldBe = fn (string $key): string => (string) ($changes[$key] ?? $record->draft_values[$key] ?? $this->live($record, $this->setting(self::DESIGN_GROUP, $key)));
 
-        $accent = $wouldBe('accent');
+        $brand = $wouldBe('brand');
 
-        if ($accent === '') {
+        if ($brand === '') {
             return;
         }
 
         $theme = $this->themes->find($wouldBe('theme'));
-        $problems = Contrast::accentProblems($accent, Contrast::bases($theme !== null && $theme->usable() ? $theme->manifest : null)['light']);
+        $problems = Contrast::accentProblems($brand, Contrast::bases($theme !== null && $theme->usable() ? $theme->manifest : null)['light']);
 
         if ($problems !== []) {
-            $field = array_key_exists('accent', $changes) ? 'accent' : 'theme';
+            $field = array_key_exists('brand', $changes) ? 'brand' : 'theme';
 
             throw ValidationException::withMessages(['groups.'.self::DESIGN_GROUP.".{$field}" => implode(' ', $problems)]);
         }
