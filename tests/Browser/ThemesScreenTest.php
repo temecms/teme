@@ -146,8 +146,8 @@ it('activates a previewed theme with a change made a moment before, saying it is
     $page->click('#design-show_author_box')
         ->click('[data-test="theme-activate"]');
 
-    // Teme Default places one region, which nobody has filled for it.
-    ($this->textShown)($page, 'Teme Default is live. 1 region stays empty until you fill it in Content › Regions.');
+    // Teme Default places three regions (after the article and the two on a static front page), which nobody has filled for it.
+    ($this->textShown)($page, 'Teme Default is live. 3 regions stay empty until you fill them in Content › Regions.');
     cmWaitUntil($page, "document.querySelector('[data-test=\"theme-preview-panel\"]') === null");
 
     cmNavigate($page, '/admin/themes');
