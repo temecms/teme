@@ -7,7 +7,9 @@ use App\Domain\Import\File\Jobs\ReadImportFile;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Operations\ConnectImportSource;
 use App\Domain\Import\Operations\FinishImportUpload;
+use App\Domain\Import\Operations\Input\ConnectImportSourceInput;
 use App\Domain\Import\Operations\Input\FinishImportUploadInput;
 use App\Domain\Import\Operations\Input\ReceiveImportPieceInput;
 use App\Domain\Import\Operations\Input\StartImportUploadInput;
@@ -32,6 +34,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Import\ExportFiles;
+use Tests\Fixtures\Import\FakeCompanion;
 use Tests\Fixtures\Import\FileImports;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -446,4 +449,16 @@ it('imports one site once, whether its export names its address with a trailing 
     expect(DB::table('contents')->whereIn('title', ['Hello', 'About'])->count())->toBe(2)
         ->and(DB::table('import_sources')->where('kind', fixtureReaderKey())->count())->toBe(1)
         ->and(DB::table('import_reader_ids')->count())->toBe(5);
+});
+
+it('refuses to connect WordPress to a site a reader’s file already imported from another system', function (): void {
+    readersEnabled();
+    importFake();
+
+    $export = fakeSiteExport();
+    $export['site'] = FakeCompanion::SITE;
+    FileImports::run(readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey())->refresh());
+
+    expect(fn () => app(ConnectImportSource::class)->execute(new ConnectImportSourceInput(FakeCompanion::SITE, FakeCompanion::USER, FakeCompanion::PASSWORD, (string) $this->admin->id)))
+        ->toThrow(ValidationException::class, 'This site was imported from another system, so it can’t be connected to WordPress here.');
 });

@@ -78,6 +78,13 @@ final class ConnectImportSource extends BaseOperation
         /** @var ConnectImportSourceInput $input */
         $probe = $this->probe ?? throw new LogicException('ConnectImportSource probes the site in validate().');
         $source = ImportSource::query()->where('address', $probe->home)->lockForUpdate()->first();
+
+        if ($source !== null && $source->kind !== 'wordpress') {
+            throw ValidationException::withMessages([
+                'address' => 'This site was imported from another system, so it can’t be connected to WordPress here.',
+            ]);
+        }
+
         $created = $source === null;
         $source ??= new ImportSource(['address' => $probe->home, 'created_by' => $input->actorId() === null ? null : (int) $input->actorId()]);
 
