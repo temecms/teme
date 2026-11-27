@@ -15,6 +15,7 @@ namespace App\View\Components\Teme;
 
 use App\Domain\Cache\SignedInMarker;
 use App\Domain\Site\ViewModels\CommentFormView;
+use App\Domain\Themes\ComponentOverrides;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
@@ -25,6 +26,9 @@ use Illuminate\View\Component;
  */
 final class CommentForm extends Component
 {
+    /** The contract a theme's override of this component is written against (docs/guides/developers/themes/components.md). */
+    public const int CONTRACT = 1;
+
     /** Whether a line stands in the form's place: signed-in people only, and this browser carries no sign-in marker. */
     public bool $closedToGuests;
 
@@ -42,6 +46,6 @@ final class CommentForm extends Component
 
     public function render(): View
     {
-        return view('teme::components.comment-form');
+        return app(ComponentOverrides::class)->render('comment-form', 'teme::components.comment-form');
     }
 }

@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "overrides-form-bare",
+    "name": "Fixture overrides-form-bare",
+    "version": "0.1.0",
+    "description": "Fixture for the component overrides review.",
+    "requires": { "teme": "^0.1" },
+    "overrides": { "comment-form": { "contract": 1 } }
+}

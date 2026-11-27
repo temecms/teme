@@ -108,7 +108,7 @@ final class ManifestValidator
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
         'custom_tokens', 'custom_tokens_dark', 'styles',
-        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'site_icon', 'screenshots',
+        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'overrides', 'composers', 'per_page', 'csp', 'icon', 'site_icon', 'screenshots',
     ];
 
     /** The setting core adds when a theme declares styles (issue 371). */
@@ -186,6 +186,7 @@ final class ManifestValidator
 
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
         array_push($errors, ...$this->cards($manifest, $themePath));
+        array_push($errors, ...$this->overrides($manifest, $themePath));
 
         $composers = $manifest['composers'] ?? [];
 
@@ -1060,6 +1061,94 @@ final class ManifestValidator
         return array_key_exists('breadcrumbs', $manifest) && ! is_bool($manifest['breadcrumbs'])
             ? ['breadcrumbs must be true or false.']
             : [];
+    }
+
+    /**
+     * The overrides of core's components (docs/guides/developers/themes/components.md):
+     * each names a component a theme may replace, states the contract it was
+     * written against, and ships its view under views/components/.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function overrides(array $manifest, string $themePath): array
+    {
+        if (! array_key_exists('overrides', $manifest)) {
+            return [];
+        }
+
+        $overrides = $manifest['overrides'];
+
+        if (! is_array($overrides) || array_is_list($overrides)) {
+            return ['overrides must map each component the theme overrides to {"contract": N}.'];
+        }
+
+        $errors = [];
+
+        foreach ($overrides as $name => $declaration) {
+            $name = (string) $name;
+
+            if (! array_key_exists($name, ComponentOverrides::CLASSES)) {
+                $errors[] = "overrides names \"{$this->show($name)}\", which isn't a component a theme can override.";
+
+                continue;
+            }
+
+            if (! is_array($declaration) || ! is_int($declaration['contract'] ?? null) || $declaration['contract'] < 1) {
+                $errors[] = "overrides.{$name} must give the contract the override was written against, a whole number from 1.";
+
+                continue;
+            }
+
+            $view = "{$themePath}/views/components/{$name}.blade.php";
+
+            if (! is_file($view)) {
+                $errors[] = "overrides {$name}, but views/components/{$name}.blade.php is missing.";
+
+                continue;
+            }
+
+            $core = ComponentOverrides::CLASSES[$name]::CONTRACT;
+
+            if ($declaration['contract'] > $core) {
+                $errors[] = "overrides.{$name} is written against contract {$declaration['contract']}, but core is at contract {$core}: this theme needs a newer Teme.";
+            }
+
+            if ($name === 'comment-form') {
+                array_push($errors, ...$this->commentFormErrors((string) file_get_contents($view)));
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * What a comment-form override must keep for its comments to be read: core's fields inside the form, a form that
+     * posts to the form's action, and the data-teme-form hook core's script finds the form by.
+     *
+     * @return list<string>
+     */
+    private function commentFormErrors(string $view): array
+    {
+        $errors = [];
+
+        if (! str_contains($view, '<x-teme::comment-form-fields')) {
+            $errors[] = 'overrides.comment-form: the view must include <x-teme::comment-form-fields :form="$form" /> inside its form.';
+        }
+
+        if (preg_match('/<form\b[^>]*\baction\s*=\s*["\']\{\{\s*\$form->action\s*\}\}["\']/i', $view) !== 1) {
+            $errors[] = 'overrides.comment-form: the form must post to {{ $form->action }}.';
+        }
+
+        // Blade's {{ }} can hold a '>' (as in ->), so the tags are read without them.
+        $markup = preg_replace('/\{\{.*?\}\}/s', '""', $view) ?? $view;
+
+        if (preg_match('/<form\b[^>]*\bdata-teme-form\b/i', $markup) !== 1) {
+            $errors[] = 'overrides.comment-form: the form must carry data-teme-form, which core\'s script finds the form by.';
+        }
+
+        return $errors;
     }
 
     /**

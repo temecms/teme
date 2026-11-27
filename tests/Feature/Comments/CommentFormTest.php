@@ -24,11 +24,11 @@ beforeEach(function (): void {
     ], $overrides));
 });
 
-it('draws core\'s fields in the form\'s order, its hidden hooks, the honeypot and the privacy line (I-578, D8)', function (): void {
+it('draws core\'s fields in the form\'s order, its hidden hooks, the honeypot with them, and the privacy line (I-578, D8)', function (): void {
     $dom = ($this->render)(($this->form)());
     $names = array_map(fn (DOMElement $field): string => $field->getAttribute('name'), iterator_to_array($dom->query('//form//input|//form//textarea') ?: []));
 
-    expect($names)->toBe(['path', 'parent', 'token', '_token', 'text', 'name', 'email', 'url', 'remember', 'subject'])
+    expect($names)->toBe(['path', 'parent', 'token', '_token', 'subject', 'text', 'name', 'email', 'url', 'remember'])
         ->and($dom->query('//form[@method="post"][@action="/_teme/comments"][@novalidate][@data-teme-form]')->length)->toBe(1)
         ->and($dom->query('//input[@name="path"][@value="/harbour-news/"]')->length)->toBe(1)
         ->and($dom->query('//div[@aria-hidden="true"][contains(@class, "teme-hp")]/input[@name="subject"][@tabindex="-1"][@autocomplete="off"]')->length)->toBe(1)

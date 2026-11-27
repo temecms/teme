@@ -41,6 +41,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `icon` | string | no | The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. |
 | `site_icon` | string | no | The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this. |
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |
+| `overrides` | object | no | Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md). |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |
 | `per_page` | integer | no | Items per page of a listing; 10 when absent. |
@@ -518,6 +519,14 @@ A field reaches a template as a `FieldView`, from `$page->field('handle')` or a 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `form` | `CommentFormView` | — | what the form is drawn with |
+
+### `<x-teme::comment-form-fields>`
+
+The fields a comment form must carry for its submission to be read: the item's address, the reply's parent, the tokens and the honeypot, with the script that shows them. It draws only inside a form that posts to the form's action.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `form` | `CommentFormView` | — | the form the fields belong to: where it posts, the item's address and the reply's parent |
 
 ### `<x-teme::document>`
 

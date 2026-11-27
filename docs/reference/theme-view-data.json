@@ -34,6 +34,9 @@
         "<x-teme::between-items> last": {
             "type": "bool"
         },
+        "<x-teme::comment-form-fields> form": {
+            "type": "CommentFormView"
+        },
         "<x-teme::comment-form> form": {
             "type": "CommentFormView"
         },

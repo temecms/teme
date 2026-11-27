@@ -403,6 +403,26 @@ final readonly class Manifest
     }
 
     /**
+     * The core components the theme overrides, by name, each with the contract
+     * the override was written against (docs/guides/developers/themes/components.md).
+     *
+     * @return array<string, int>
+     */
+    public function overrides(): array
+    {
+        $overrides = is_array($this->raw['overrides'] ?? null) ? $this->raw['overrides'] : [];
+        $declared = [];
+
+        foreach ($overrides as $name => $declaration) {
+            if (is_string($name) && is_array($declaration) && is_int($declaration['contract'] ?? null)) {
+                $declared[$name] = $declaration['contract'];
+            }
+        }
+
+        return $declared;
+    }
+
+    /**
      * The cards the theme brings for its own regions, by id, as declared
      * under cards.provides (docs/guides/developers/themes/regions.md).
      *

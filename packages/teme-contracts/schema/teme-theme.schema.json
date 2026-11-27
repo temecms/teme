@@ -455,6 +455,19 @@
                 }
             }
         },
+        "overrides": {
+            "type": "object",
+            "description": "Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md).",
+            "propertyNames": { "enum": ["region", "navigation", "languages", "image", "between-items", "comment-form"] },
+            "additionalProperties": {
+                "type": "object",
+                "required": ["contract"],
+                "additionalProperties": false,
+                "properties": {
+                    "contract": { "type": "integer", "minimum": 1, "description": "The contract number the override was written against." }
+                }
+            }
+        },
         "cards": {
             "type": "object",
             "description": "Cards the theme styles itself, and cards it brings for its own regions.",

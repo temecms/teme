@@ -16,6 +16,7 @@ namespace App\View\Components\Teme;
 
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Regions\RegionDrawing;
+use App\Domain\Themes\ComponentOverrides;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
@@ -30,6 +31,9 @@ use Illuminate\View\Component;
  */
 final class Region extends Component
 {
+    /** The contract a theme's override of this component is written against (docs/guides/developers/themes/components.md). */
+    public const int CONTRACT = 1;
+
     public string $name;
 
     /** The region's HTML, or null when there is nothing to draw. */
@@ -67,6 +71,6 @@ final class Region extends Component
 
     public function render(): View
     {
-        return view('teme::components.region');
+        return app(ComponentOverrides::class)->render('region', 'teme::components.region');
     }
 }
