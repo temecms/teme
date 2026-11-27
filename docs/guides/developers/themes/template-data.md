@@ -102,6 +102,7 @@ The page's own `pagination` keeps the chosen section on every page. The search t
 Every heading in `$page->bodyHtml` has an `id`: the heading's permanent node id when the editor stored one, otherwise one made from its words (lowercase, hyphens; `heading` when the words leave an empty slug), unique on the page (`heading-2`, `heading-3` when the same base is used again). A same-page link reaches that heading when its `href` is that id — nothing rewrites links to match. `$page->headings` lists every level-2–4 heading in order, each with `level`, `text` and `id`, from the same pass that draws the body, so a theme can draw an "In this story" list without parsing HTML:
 
 ```blade
+// docs/guides/developers/examples/themes/contents-list.blade.php
 @if ($page->headings !== [])
     <nav aria-label="{{ __('In this story') }}">
         <ol>@foreach ($page->headings as $heading)

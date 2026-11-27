@@ -1,0 +1,21 @@
+{
+    "manifest": 1,
+    "name": "teme-examples/list-actions",
+    "code": "list-actions",
+    "label": "List actions",
+    "description": "The handbook's list-actions example: a row and bulk action on the content lists that queues a job.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^1.0"
+    },
+    "plugin": "TemeExamples\\ListActions\\PingPlugin",
+    "capabilities": ["jobs"],
+    "jobs": [
+        { "key": "ping", "label": "Ping items" }
+    ],
+    "contributes": {
+        "listActions": [
+            { "id": "ping-items", "label": "Ping these", "row": true, "bulk": true, "confirm": "Ping the selected items now?", "job": "ping" }
+        ]
+    }
+}

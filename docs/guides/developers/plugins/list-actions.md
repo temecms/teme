@@ -18,11 +18,12 @@ A plugin can add actions to the admin's Posts, Pages and other content lists. A 
 ## The manifest entry
 
 ```json
-"contributes": {
-    "listActions": [
-        { "id": "ping-items", "label": "Ping these", "row": true, "bulk": true, "confirm": "Ping the selected items now?", "job": "ping" }
-    ]
-}
+// docs/guides/developers/examples/plugins/list-actions/teme-plugin.json
+    "contributes": {
+        "listActions": [
+            { "id": "ping-items", "label": "Ping these", "row": true, "bulk": true, "confirm": "Ping the selected items now?", "job": "ping" }
+        ]
+    }
 ```
 
 - `id` is 2 to 40 lower-case letters, digits and hyphens.
