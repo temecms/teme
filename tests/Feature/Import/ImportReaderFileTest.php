@@ -28,6 +28,8 @@ use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Domain\Types\Taxonomy;
+use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
 use Carbon\Carbon;
 use Database\Seeders\RoleSeeder;
@@ -604,4 +606,19 @@ it('never makes up a login another person of the file has, so a guest is not mer
         ->and($guest->id)->not->toBe($real->id)
         ->and(DB::table('contents')->where('title', 'Guest post')->value('author_id'))->toBe($guest->id)
         ->and(DB::table('contents')->where('title', 'Real post')->value('author_id'))->toBe($real->id);
+});
+
+it('imports a reader’s term in a taxonomy a plugin registered with Teme, under that taxonomy', function (): void {
+    readersEnabled();
+    app(TaxonomyRegistry::class)->register(new Taxonomy('topic', 'Topic', 'Topics', 'topics'));
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'term', 'id' => 't9', 'taxonomy' => 'topic', 'name' => 'Climate', 'slug' => 'climate'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    $run = FileImports::run($file->refresh());
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(DB::table('terms')->where('taxonomy', 'topic')->where('name', 'Climate')->exists())->toBeTrue();
 });

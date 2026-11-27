@@ -20,11 +20,11 @@ use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\File\Paragraphs;
 use App\Domain\Import\File\TermRows;
 use App\Domain\Import\File\UserRows;
+use App\Domain\Types\TaxonomyRegistry;
 use InvalidArgumentException;
 use LogicException;
 use Teme\Contracts\Import\ImportItem;
 use Teme\Contracts\Import\ImportKind;
-use Teme\Contracts\Import\ImportTaxonomy;
 
 /**
  * The adapter of the import socket. A reader's source IDs are strings, and
@@ -46,12 +46,6 @@ final class ReaderRows
         'scheduled' => '0',
         'trashed' => 'trash',
         'spam' => 'spam',
-    ];
-
-    /** The taxonomy words a reader may give, and the words the engine's rows keep for them. */
-    private const array TAXONOMIES = [
-        ImportTaxonomy::CATEGORY => 'category',
-        ImportTaxonomy::TAG => 'post_tag',
     ];
 
     /** The menu item types a reader may give, and the words the engine's rows keep for them. */
@@ -247,17 +241,31 @@ final class ReaderRows
      */
     private function term(ImportItem $item): array
     {
-        $taxonomy = self::TAXONOMIES[(string) ($item->fields['taxonomy'] ?? 'category')] ?? (string) $item->fields['taxonomy'];
+        $taxonomy = $this->taxonomyName((string) ($item->fields['taxonomy'] ?? 'category'));
         $name = $item->title !== '' ? $item->title : (string) ($item->fields['name'] ?? '');
         $slug = $item->slug !== '' ? $item->slug : $name;
         $id = $this->idOf($item);
         $this->terms[$item->id] = ['id' => $id, 'taxonomy' => $taxonomy];
+        $payload = TermRows::payload($id, $taxonomy, $name, $slug, (string) ($item->fields['description'] ?? ''), $this->ids[self::key(ImportKind::TERM, $item->parentId ?? '')] ?? 0, null);
 
         return [
             'list' => TermRows::listOf($taxonomy),
             'id' => $id,
-            'payload' => TermRows::payload($id, $taxonomy, $name, $slug, (string) ($item->fields['description'] ?? ''), $this->ids[self::key(ImportKind::TERM, $item->parentId ?? '')] ?? 0, null),
+            'payload' => [...$payload, 'reader' => true],
         ];
+    }
+
+    /**
+     * The name a reader's taxonomy goes by in the rows: the WordPress name
+     * Teme gives a taxonomy it has one for, else the taxonomy's own key, as
+     * a plugin's registered taxonomy has. Unknown words are refused before
+     * this runs (ReadImportFile::unknownWord).
+     */
+    private function taxonomyName(string $word): string
+    {
+        $taxonomy = app(TaxonomyRegistry::class)->get($word);
+
+        return $taxonomy->wordpress ?? $taxonomy->key;
     }
 
     /**
@@ -275,6 +283,7 @@ final class ReaderRows
         }
 
         return [
+            'reader' => true,
             'id' => $this->idOf($item),
             'type' => $item->kind,
             'status' => self::STATUSES[$item->status] ?? 'draft',

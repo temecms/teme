@@ -577,22 +577,26 @@ final class ContentPhase implements ListPhase, PreparesObjects
         $kept = [];
         $primaryTaxonomy = null;
 
+        // A reader's post names its taxonomies as its terms do: by WordPress's name, else by the taxonomy's key.
+        $reader = ($item['reader'] ?? false) === true;
+
         foreach ($type->taxonomies as $key) {
             $taxonomy = $this->taxonomies->get($key);
+            $name = $reader ? ($taxonomy->wordpress ?? $taxonomy->key) : $taxonomy->wordpress;
 
-            if ($taxonomy->wordpress === null) {
+            if ($name === null) {
                 continue;
             }
 
-            $kept[] = $taxonomy->wordpress;
-            $primaryTaxonomy ??= $taxonomy->hierarchical ? $taxonomy->wordpress : null;
+            $kept[] = $name;
+            $primaryTaxonomy ??= $taxonomy->hierarchical ? $name : null;
 
-            foreach (is_array($sent[$taxonomy->wordpress] ?? null) ? $sent[$taxonomy->wordpress] : [] as $value) {
+            foreach (is_array($sent[$name] ?? null) ? $sent[$name] : [] as $value) {
                 $number = self::number($value);
 
                 // An export file numbers the terms it names only on its items below zero.
                 if ($number !== 0) {
-                    $wanted[] = [$taxonomy->wordpress, $number];
+                    $wanted[] = [$name, $number];
                 }
             }
         }

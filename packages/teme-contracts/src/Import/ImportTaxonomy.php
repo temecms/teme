@@ -27,8 +27,11 @@ final class ImportTaxonomy
     public const string TAG = 'tag';
 
     /**
-     * Whether a taxonomy word is one a reader may give: categories, tags, or
-     * a plugin taxonomy's key, which is lower-case letters, digits, hyphens and underscores.
+     * Whether a word has the shape of a taxonomy word a reader may give: `category`,
+     * `tag`, or a key of 1 to 32 characters that starts with a lower-case letter and
+     * then has only lower-case letters, digits, hyphens and underscores. A word of
+     * that shape is still refused unless Teme has the taxonomy registered, which the
+     * import checks when it reads the file.
      *
      * @since next
      */
