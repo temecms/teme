@@ -28,15 +28,24 @@ final class SyncSearchEntry implements ShouldQueue
     /** The action that sends one item. */
     public const string SYNC = 'sync';
 
+    /**
+     * @param  string|null  $after  for a reindex, the last item of the chunk before this one
+     */
     public function __construct(
         public ?string $contentId,
         public string $action,
+        public ?string $after = null,
     ) {}
 
     public function handle(SearchEngineSync $sync): void
     {
         if ($this->action === self::REINDEX) {
-            $sync->reindex();
+            // One chunk now; a full chunk queues the next, so no job holds every item.
+            $next = $sync->reindexChunk($this->after);
+
+            if ($next !== null) {
+                self::dispatch(null, self::REINDEX, $next);
+            }
 
             return;
         }

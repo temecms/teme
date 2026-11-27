@@ -16,12 +16,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Search;
 
-use App\Domain\Contents\Models\Content;
 use App\Domain\Plugins\Seo\SeoPlugin;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Plugins\Slots\SlotProviders;
 use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Search\HasSearchEngine;
 use Teme\Contracts\Search\SearchEntry;
@@ -30,6 +30,9 @@ use Throwable;
 
 final readonly class SearchEngineSync
 {
+    /** How many items one reindex job sends. */
+    public const int CHUNK = 200;
+
     public function __construct(
         private SeoPlugins $plugins,
         private SlotProviders $providers,
@@ -52,25 +55,32 @@ final readonly class SearchEngineSync
     }
 
     /**
-     * Sends every published, public item to the chosen engine.
+     * Sends one chunk of the published, public items, from after the given id
+     * (the first when null), to the chosen engine. Each item comes with its
+     * published revision from the chunk's own query, so a chunk costs one
+     * query, not one for each item. Returns the last id of a full chunk, which
+     * the next chunk follows, or null when this was the last.
      */
-    public function reindex(): void
+    public function reindexChunk(?string $after, int $size = self::CHUNK): ?string
     {
         $engine = $this->engine();
 
         if ($engine === null) {
-            return;
+            return null;
         }
 
-        Content::query()->where('status', 'published')->whereNull('deleted_at')->whereNotNull('published_revision_id')->where('visibility', 'public')->orderBy('id')->chunkById(200, function ($items) use ($engine): void {
-            foreach ($items as $item) {
-                $entry = $this->entry((string) $item->id);
+        $rows = $this->published()
+            ->when($after !== null, fn (Builder $query): Builder => $query->where('contents.id', '>', $after))
+            ->orderBy('contents.id')
+            ->limit($size)
+            ->get($this->columns());
 
-                if ($entry !== null) {
-                    $this->send($engine, fn (SearchIndex $index): null => $index->index($entry));
-                }
-            }
-        });
+        foreach ($rows as $row) {
+            $entry = $this->entryFrom($row);
+            $this->send($engine, fn (SearchIndex $index): null => $index->index($entry));
+        }
+
+        return $rows->count() === $size ? (string) $rows->last()->id : null;
     }
 
     /**
@@ -78,21 +88,43 @@ final readonly class SearchEngineSync
      */
     private function entry(string $contentId): ?SearchEntry
     {
-        $item = Content::query()->where('status', 'published')->whereNull('deleted_at')->whereNotNull('published_revision_id')->where('visibility', 'public')->find($contentId);
+        $row = $this->published()->where('contents.id', $contentId)->first($this->columns());
 
-        if ($item === null) {
-            return null;
-        }
+        return $row === null ? null : $this->entryFrom($row);
+    }
 
-        $published = DB::table('content_revisions')->where('id', $item->published_revision_id)->first(['title', 'plain_text']);
+    /**
+     * The published, public items, each with its published revision's title and text.
+     */
+    private function published(): Builder
+    {
+        return DB::table('contents')
+            ->join('content_revisions', 'content_revisions.id', '=', 'contents.published_revision_id')
+            ->where('contents.status', 'published')
+            ->whereNull('contents.deleted_at')
+            ->where('contents.visibility', 'public');
+    }
 
+    /**
+     * @return list<string>
+     */
+    private function columns(): array
+    {
+        return ['contents.id', 'contents.type', 'contents.language', 'contents.published_at', 'content_revisions.title', 'content_revisions.plain_text'];
+    }
+
+    /**
+     * The search entry for one row of published().
+     */
+    private function entryFrom(object $row): SearchEntry
+    {
         return new SearchEntry(
-            contentId: (string) $item->id,
-            type: (string) $item->type,
-            language: $item->language === null ? null : (string) $item->language,
-            title: (string) ($published->title ?? ''),
-            text: (string) ($published->plain_text ?? ''),
-            publishedAt: $item->published_at === null ? null : Carbon::parse((string) $item->published_at)->toIso8601String(),
+            contentId: (string) $row->id,
+            type: (string) $row->type,
+            language: $row->language === null ? null : (string) $row->language,
+            title: (string) $row->title,
+            text: (string) $row->plain_text,
+            publishedAt: $row->published_at === null ? null : Carbon::parse((string) $row->published_at)->toIso8601String(),
         );
     }
 
