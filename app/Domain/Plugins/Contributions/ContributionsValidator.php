@@ -23,6 +23,7 @@ use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Notices\DeclaredNotices;
+use App\Domain\Plugins\Readers\ImportReaderDeclaration;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seo\SeoValidator;
 use App\Domain\Plugins\Types\PluginTypesFile;
@@ -218,7 +219,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'importReaders'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -305,6 +306,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         // Its image service (docs/guides/developers/plugins/image-service.md).
         $errors = [...$errors, ...ImageServiceDeclaration::errors($contributes, $capabilities)];
+
+        // Its import readers (docs/guides/developers/plugins/import-readers.md).
+        $errors = [...$errors, ...ImportReaderDeclaration::errors($contributes, $capabilities)];
 
         return $errors;
     }
