@@ -62,6 +62,8 @@
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |  |
 | `screenshots[].path` | string | yes | A path inside the theme, with no .., to a .png, .jpg, .jpeg or .webp picture, in any case. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP])$ |
 | `screenshots[].caption` | string | no | What the picture shows, in at most 140 characters. |  |
+| `plugin_styles` | object | no | Plugin stylesheets the theme switches off, so it styles that output itself. |  |
+| `plugin_styles.off` | array | no | Each stylesheet as its plugin's code and output: code:card:<id> or code:insertion:<id>. |  |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |  |
 | `cards.replaces` | array | no | Registered card names whose core stylesheets the theme replaces with its own. |  |
 | `cards.provides` | object | no | Cards the theme brings for its own regions, by id, at most 12. Each is drawn by views/cards/own/{id}.blade.php while the theme is active; its key is code:id, and a region's cards name it by its id. |  |

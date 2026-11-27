@@ -77,6 +77,9 @@ class AppServiceProvider extends ServiceProvider
 
         // A width region's content is asked for once per page view, by core's script; it has its own
         // tally, so a search overlay's typing never uses up a region's budget, nor the reverse.
+        // A page links a sheet per plugin output it draws, each cached by its address; this bounds a script asking for them.
+        RateLimiter::for('plugin-styles', fn (Request $request): Limit => Limit::perMinute(300)->by('plugin-styles:'.$request->ip()));
+
         RateLimiter::for('region-fragment', fn (Request $request): Limit => Limit::perMinute(60)->by('region-fragment:'.$request->ip()));
 
         // The command palette searches as someone types, debounced; sixty a

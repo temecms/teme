@@ -192,6 +192,9 @@
 | `contributes.structuredData` | object | no | The schema.org terms the plugin's graph nodes use beyond the graph's own list. Needs pages.head. |  |
 | `contributes.structuredData.types` | array | no | schema.org types, such as FAQPage. |  |
 | `contributes.structuredData.properties` | array | no | schema.org properties, such as acceptedAnswer. |  |
+| `contributes.styles` | array | no | Built stylesheets, one per card or page insertion. Linked only on a page that draws that output, in the plugins cascade layer. |  |
+| `contributes.styles[].output` | string | yes | The output the sheet styles: card:<id> or insertion:<id>. | ^(card:[a-z][a-z0-9-]{1,40}\|insertion:[a-z][a-z0-9-]{1,40})$ |
+| `contributes.styles[].file` | string | yes | A .css file inside the plugin's package, relative to its root. | ^(?!/)(?!.*\\)(?!.*(^\|/)\.\.(/\|$)).+\.css$ |
 | `contributes.imageService` | object | no | An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService. |  |
 | `contributes.imageService.label` | string | yes | The service's name, as the consent names it. |  |
 | `contributes.imageService.host` | string | yes | The host its addresses are on, served over https, which joins the img-src of the content security policy. | ^(?:\*\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ |

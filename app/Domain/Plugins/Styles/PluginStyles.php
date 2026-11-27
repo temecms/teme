@@ -18,7 +18,7 @@ namespace App\Domain\Plugins\Styles;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Themes\ActiveTheme;
-use InvalidArgumentException;
+use Illuminate\Support\Facades\Cache;
 
 final class PluginStyles
 {
@@ -60,12 +60,7 @@ final class PluginStyles
                     continue;
                 }
 
-                try {
-                    $hash = $this->sheets->hash($entry['code'], $style['file']);
-                } catch (InvalidArgumentException) {
-                    // A sheet that can't be served is refused at its own address too; the page leaves it out.
-                    $hash = null;
-                }
+                $hash = $this->servedHash($name, $manifest->version(), $entry['code'], $style['file']);
 
                 if ($hash !== null) {
                     $links[] = [
@@ -77,5 +72,16 @@ final class PluginStyles
         }
 
         return $links;
+    }
+
+    /**
+     * The hash of a declared sheet Teme serves, or null when it is refused. Cached per plugin,
+     * version and file, since a version's package doesn't change.
+     */
+    private function servedHash(string $name, string $version, string $code, string $file): ?string
+    {
+        $hash = Cache::rememberForever('plugin-styles-link:'.$name.':'.$version.':'.$file, fn (): string => (string) $this->sheets->hash($code, $file));
+
+        return $hash === '' ? null : $hash;
     }
 }

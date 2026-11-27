@@ -105,6 +105,9 @@ final class Document extends Component
     /** The head's entries, gathered once (head()). */
     private ?DocumentHead $head = null;
 
+    /** @var list<array{key: string, href: string}> the plugin stylesheets the head linked */
+    private array $headPluginStyles = [];
+
     public function __construct(
         ComposerRegistry $composers,
         ActiveTheme $active,
@@ -265,7 +268,8 @@ final class Document extends Component
     /**
      * The stylesheets of the plugin outputs the page draws, each keyed as `code:output`,
      * linked into the teme.plugins layer (docs/guides/developers/plugins/styles.md). Head and
-     * body placements are declared first, so their sheets are linked here as well.
+     * body placements are declared first, so their sheets are linked here as well. The sheets this
+     * returns are kept, so lateStyles() links only what the head did not.
      *
      * @return list<array{key: string, href: string}>
      */
@@ -273,7 +277,22 @@ final class Document extends Component
     {
         app(PageInsertions::class)->declareStyles();
 
-        return app(PluginStyles::class)->links();
+        $this->headPluginStyles = app(PluginStyles::class)->links();
+
+        return $this->headPluginStyles;
+    }
+
+    /**
+     * The stylesheets of plugin outputs drawn after the head was written, such as a fixed-edge
+     * insertion's, linked after the body's end: the outputs drawn since, not linked in the head.
+     *
+     * @return list<array{key: string, href: string}>
+     */
+    public function lateStyles(): array
+    {
+        $linked = array_column($this->headPluginStyles, 'key');
+
+        return array_values(array_filter(app(PluginStyles::class)->links(), fn (array $style): bool => ! in_array($style['key'], $linked, true)));
     }
 
     /**

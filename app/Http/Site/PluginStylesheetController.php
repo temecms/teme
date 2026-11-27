@@ -17,6 +17,7 @@ namespace App\Http\Site;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Styles\PluginStylesheet;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 final class PluginStylesheetController
@@ -26,19 +27,22 @@ final class PluginStylesheetController
      */
     public function __invoke(string $code, string $file, PluginStylesheet $sheets, ListenerFaults $faults): Response
     {
-        try {
-            $sheet = $sheets->serve($code, $file);
-        } catch (InvalidArgumentException $refused) {
-            $faults->record($code, $code.'#styles', self::class, $refused);
+        $verdict = $sheets->verdict($code, $file);
+
+        if ($verdict === null) {
+            return response('', 404);
+        }
+
+        if ($verdict['css'] === null) {
+            // Recorded once per refused content, so asking for the same sheet again adds no fault.
+            if (Cache::add('plugin-styles-fault:'.($verdict['hash'] ?? $code.'/'.$file), true)) {
+                $faults->record($verdict['name'], $code.'#styles', self::class, new InvalidArgumentException($verdict['refused'] ?? ''));
+            }
 
             return response('', 404);
         }
 
-        if ($sheet === null) {
-            return response('', 404);
-        }
-
-        return response($sheet['css'], 200, [
+        return response($verdict['css'], 200, [
             'Content-Type' => 'text/css; charset=UTF-8',
             'Cache-Control' => 'public, max-age=31536000, immutable',
         ]);

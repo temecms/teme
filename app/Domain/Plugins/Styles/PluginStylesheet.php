@@ -28,37 +28,46 @@ final class PluginStylesheet
     ) {}
 
     /**
-     * The wrapped sheet and its content hash for an enabled plugin's declared file, or
-     * a reason it isn't served: an InvalidArgumentException naming why, or null when the
-     * plugin or the file isn't one it declares.
+     * What Teme says about an enabled plugin's declared file: its plugin's Composer name, its
+     * content hash, and either the wrapped sheet or the reason it is refused. Null when the
+     * plugin is not enabled, doesn't declare the file, or its package is missing.
      *
-     * @return array{css: string, hash: string}|null
-     *
-     * @throws InvalidArgumentException when a declared file can't be served safely
+     * @return array{name: string, hash: string|null, css: string|null, refused: string|null}|null
      */
-    public function serve(string $code, string $file): ?array
+    public function verdict(string $code, string $file): ?array
     {
-        $found = $this->found($code, $file);
+        $name = $this->nameOf($code);
 
-        if ($found === null) {
+        if ($name === null || ! $this->declares($name, $file)) {
             return null;
         }
 
-        [$package, $source] = $found;
+        try {
+            $source = $this->source($name, $file);
+        } catch (InvalidArgumentException $refused) {
+            return ['name' => $name, 'hash' => null, 'css' => null, 'refused' => $refused->getMessage()];
+        }
+
+        if ($source === null) {
+            return null;
+        }
+
         $raw = (string) file_get_contents($source);
         $hash = substr(hash('sha256', $raw), 0, 12);
+        $judged = Cache::rememberForever('plugin-styles:'.$hash, fn (): array => self::judge($raw));
 
-        return ['css' => Cache::rememberForever('plugin-styles:'.$hash, fn (): string => self::wrap($raw)), 'hash' => $hash];
+        return ['name' => $name, 'hash' => $hash, 'css' => $judged['css'], 'refused' => $judged['refused']];
     }
 
     /**
-     * The hash of an enabled plugin's declared sheet, or null when it isn't served.
+     * The hash of an enabled plugin's declared sheet when Teme serves it, or null when it is
+     * refused or isn't one it declares.
      */
     public function hash(string $code, string $file): ?string
     {
-        $found = $this->found($code, $file);
+        $verdict = $this->verdict($code, $file);
 
-        return $found === null ? null : substr(hash('sha256', (string) file_get_contents($found[1])), 0, 12);
+        return $verdict === null || $verdict['css'] === null ? null : $verdict['hash'];
     }
 
     /**
@@ -73,24 +82,32 @@ final class PluginStylesheet
 
         $charset = '';
 
-        if (preg_match('/@charset\s+"[^"]*";/i', $css, $found) === 1) {
+        if (preg_match('/\A@charset\s+"[^"]*";/i', $css, $found) === 1) {
             $charset = $found[0]."\n";
+            $css = substr($css, strlen($found[0]));
         }
 
-        $body = preg_replace('/@charset\s+"[^"]*";/i', '', $css) ?? $css;
-
-        return $charset.'@layer teme.plugins {'."\n".trim($body)."\n".'}'."\n";
+        return $charset.'@layer teme.plugins {'."\n".trim($css)."\n".'}'."\n";
     }
 
     /**
-     * The package's declared file as the plugin's code and file name it, with its real path
-     * and its package's, or null when the plugin is not enabled or doesn't declare the file.
+     * The verdict on a sheet's text, cached by its hash: its wrapped form, or the reason it is refused.
      *
-     * @return array{0: string, 1: string}|null
-     *
-     * @throws InvalidArgumentException when the file is a link or sits outside the package
+     * @return array{css: string|null, refused: string|null}
      */
-    private function found(string $code, string $file): ?array
+    private static function judge(string $raw): array
+    {
+        try {
+            return ['css' => self::wrap($raw), 'refused' => null];
+        } catch (InvalidArgumentException $refused) {
+            return ['css' => null, 'refused' => $refused->getMessage()];
+        }
+    }
+
+    /**
+     * The name of the enabled plugin with this code, or null when none is enabled.
+     */
+    private function nameOf(string $code): ?string
     {
         $name = null;
 
@@ -100,12 +117,27 @@ final class PluginStylesheet
             }
         }
 
-        $manifest = $name === null ? null : ($this->registry->all()[$name]->manifest ?? null);
+        return $name;
+    }
 
-        if ($manifest === null || ! in_array($file, array_column(DeclaredStyles::entries($manifest->contributes()), 'file'), true)) {
-            return null;
-        }
+    /**
+     * Whether the plugin's manifest declares this file under contributes.styles.
+     */
+    private function declares(string $name, string $file): bool
+    {
+        $manifest = $this->registry->all()[$name]->manifest ?? null;
 
+        return $manifest !== null && in_array($file, array_column(DeclaredStyles::entries($manifest->contributes()), 'file'), true);
+    }
+
+    /**
+     * The real path of the declared file inside the plugin's package, or null when the package
+     * isn't on disk.
+     *
+     * @throws InvalidArgumentException when the file is a link or sits outside the package
+     */
+    private function source(string $name, string $file): ?string
+    {
         $path = $this->registry->all()[$name]->path;
         $root = realpath($path);
 
@@ -125,11 +157,11 @@ final class PluginStylesheet
 
         $real = realpath($path.'/'.$file);
 
-        if ($real === false || ! is_file($real) || ! str_starts_with($real, $root.'/')) {
+        if ($real === false || ! is_file($real) || ! str_starts_with($real, $root.DIRECTORY_SEPARATOR)) {
             throw new InvalidArgumentException('A stylesheet must be a plain file inside the package.');
         }
 
-        return [$root, $real];
+        return $real;
     }
 
     /**

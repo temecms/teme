@@ -14,6 +14,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -114,11 +115,59 @@ it('answers 404 for a sheet that imports another, or whose braces do not balance
     'a missing closing brace' => ['.a{color:red'],
     'an extra closing brace' => ['.a{color:red}}'],
     'an import hidden after a comment' => ['/* hi */ @import url("x.css");'],
+    'a namespace' => ['@namespace url(http://www.w3.org/1999/xhtml);.a{color:red}'],
     'a comment opener inside a string hides a brace' => ['a{content:"/*"} } .x{color:red; /* "*/ }'],
     'a brace inside an unquoted url' => ['a{b:url({)} } .x{}'],
     'an escaped brace' => ['a{} \\{ } .x{}'],
     'an import spelled with a hex escape' => ['@\\69 mport url("other.css");'],
 ]);
+
+it('answers 404 for a declared file that links to another file inside the package', function (): void {
+    $copy = PluginFixtures::copy('cardbox');
+    file_put_contents($copy.'/dist/real.css', '.a{color:red}');
+    unlink($copy.'/dist/note.css');
+    symlink('real.css', $copy.'/dist/note.css');
+    ($this->enable)($copy);
+
+    $this->get('/_teme/plugins/cardbox/dist/note.css')->assertNotFound();
+});
+
+it('answers 404 for a request whose file is not a plain path inside the package', function (string $path): void {
+    ($this->enable)(PluginFixtures::copy('cardbox'));
+
+    $this->get($path)->assertNotFound();
+})->with([
+    'a parent segment' => ['/_teme/plugins/cardbox/../../.env.css'],
+    'an encoded parent segment' => ['/_teme/plugins/cardbox/%2e%2e/%2e%2e/.env.css'],
+    'a backslash' => ['/_teme/plugins/cardbox/dist%5Cnote.css'],
+    'a NUL byte' => ['/_teme/plugins/cardbox/dist/note.css%00'],
+    'a leading slash' => ['/_teme/plugins/cardbox//dist/note.css'],
+]);
+
+it('records one fault for a refused sheet, under its plugin’s Composer name, however often it is asked for', function (): void {
+    $faults = new class implements ListenerFaults
+    {
+        /** @var list<array{0: string, 1: string}> */
+        public array $recorded = [];
+
+        public function record(string $owner, string $id, string $hook, Throwable $failure): void
+        {
+            $this->recorded[] = [$owner, $id];
+        }
+    };
+    app()->instance(ListenerFaults::class, $faults);
+    ($this->enable)(PluginFixtures::copy('cardbox', [], [], ['dist/note.css' => '@import url("x.css");.a{color:red}']));
+
+    $this->get('/_teme/plugins/cardbox/dist/note.css')->assertNotFound();
+    $this->get('/_teme/plugins/cardbox/dist/note.css')->assertNotFound();
+
+    expect($faults->recorded)->toBe([['tests/cardbox', 'cardbox#styles']]);
+});
+
+it('moves only a @charset at the very start of a sheet to its top', function (): void {
+    expect(PluginStylesheet::wrap('.a{color:red}@charset "utf-8";'))->not->toStartWith('@charset')
+        ->and(PluginStylesheet::wrap('@charset "utf-8";.a{color:red}'))->toStartWith('@charset "utf-8";'."\n".'@layer teme.plugins {');
+});
 
 it('wraps a leading @charset first, and reads braces inside comments and strings as nothing', function (): void {
     expect(PluginStylesheet::wrap('@charset "utf-8";.a::before{content:"}";}'))

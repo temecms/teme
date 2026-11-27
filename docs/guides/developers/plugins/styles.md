@@ -38,7 +38,7 @@ The sheet is sent wrapped in `@layer teme.plugins`, so a theme's own rules win o
 
 ## What the page does
 
-When a page draws a card or an insertion of a plugin, Teme records that output. The page's head then links that plugin's sheet for the output. Head, body-start, body-end and fixed-edge insertions are declared before the head is written, so their sheets are linked in the head as well. A stylesheet for an output the page does not draw is not linked.
+When a page draws a card or an insertion of a plugin, Teme records that output. The page's head then links that plugin's sheet for the output. Head, body-start and body-end insertions are declared before the head is written, so their sheets are linked in the head. A fixed-edge insertion is drawn after the body, so its sheet is linked once, after the body's end. A stylesheet for an output the page does not draw is not linked, and neither is one Teme refuses.
 
 ## Styling in the right place
 
@@ -48,4 +48,3 @@ Write the sheet's rules as they are: Teme wraps them in `@layer teme.plugins`. R
 
 - Scripts. A plugin's scripts are not loaded by this mechanism yet.
 - A stylesheet for the whole page. Only cards and insertions have one.
-- A fixed-edge insertion's sheet is declared even on a theme that draws no fixed edges, so its link may appear without any markup.

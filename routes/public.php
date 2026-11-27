@@ -57,7 +57,7 @@ Route::get('_teme/comments/pending', PendingCommentsController::class)->name('te
 
 // A plugin's declared stylesheet, wrapped in the teme.plugins layer (docs/guides/developers/plugins/styles.md).
 // Its code and its file, a path inside the package; anything not declared answers 404.
-Route::get('_teme/plugins/{code}/{file}', PluginStylesheetController::class)
+Route::middleware(['throttle:plugin-styles'])->get('_teme/plugins/{code}/{file}', PluginStylesheetController::class)
     ->where('code', '[a-z][a-z0-9-]*')
     ->where('file', '.+\.css')
     ->name('teme.plugins.styles');
