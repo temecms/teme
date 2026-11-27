@@ -124,6 +124,32 @@ export function ThemeSettings({
             data-test="theme-settings"
             className="grid max-w-(--form-max) scroll-mt-4 gap-4"
         >
+            <Section id="theme-settings-site-icon" title={__('Site icon')}>
+                <DesignFieldInput
+                    field={{
+                        key: 'site_icon',
+                        type: 'media',
+                        label: __('Site icon'),
+                        description: __(
+                            'The favicon and home-screen icon. Empty uses the active theme’s default, when it has one.',
+                        ),
+                        options: {},
+                        visibleWhen: {},
+                        group: null,
+                        min: null,
+                        max: null,
+                        step: null,
+                        unit: null,
+                    }}
+                    value={design.designValues.site_icon}
+                    media={media.site_icon}
+                    error={design.errorOf('design', 'site_icon')}
+                    onChange={(value) =>
+                        design.change('design', 'site_icon', value)
+                    }
+                />
+            </Section>
+
             {themeGroup === null ? (
                 <p className="text-small text-ink-2">
                     {__(':name has no settings or menu places of its own.', {

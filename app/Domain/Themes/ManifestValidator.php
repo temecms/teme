@@ -93,8 +93,14 @@ final class ManifestValidator
     public const array KEYS = [
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
-        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
+        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'site_icon', 'screenshots',
     ];
+
+    /**
+     * The manifest's `site_icon`: a path inside the theme's public folder,
+     * with no `..`, to a .png, .jpg, .jpeg, .webp or .svg picture.
+     */
+    public const string SITE_ICON = '~^(?!/)(?!(?:.*/)?\.\.(?:/|$))[^\\\\\s:]+\.(?:png|jpe?g|webp|svg)$~i';
 
     public function __construct(private readonly CardRegistry $cards) {}
 
@@ -151,6 +157,10 @@ final class ManifestValidator
 
         if (array_key_exists('screenshot', $manifest) && (! is_string($manifest['screenshot']) || preg_match(self::SCREENSHOT, $manifest['screenshot']) !== 1)) {
             $errors[] = 'screenshot must be a path inside the theme, with no .., to a .png, .jpg or .webp image.';
+        }
+
+        if (array_key_exists('site_icon', $manifest) && (! is_string($manifest['site_icon']) || preg_match(self::SITE_ICON, $manifest['site_icon']) !== 1)) {
+            $errors[] = 'site_icon must be a path inside the theme\'s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture.';
         }
 
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));

@@ -85,14 +85,14 @@ final readonly class ThemeSettings
             'boolean' => Setting::boolean($key, $label, $description, '0.1.0')->default((bool) $default),
             'color' => Setting::color($key, $label, $description, '0.1.0')->default(strtolower((string) $default)),
             'number' => $this->number($key, $label, $description, $declared, (int) $default),
-            'image' => Setting::media($key, $label, $description, 'next')->default(''),
-            'menu' => Setting::text($key, $label, $description, 'next')->default((string) $default),
-            'links' => Setting::repeater($key, $label, $description, 'next', [
-                Setting::text('label', 'Label', 'The link’s label.', 'next'),
-                Setting::url('address', 'Address', 'The link’s address.', 'next'),
+            'image' => Setting::media($key, $label, $description, '1.8.0')->default(''),
+            'menu' => Setting::text($key, $label, $description, '1.8.0')->default((string) $default),
+            'links' => Setting::repeater($key, $label, $description, '1.8.0', [
+                Setting::text('label', 'Label', 'The link’s label.', '1.8.0'),
+                Setting::url('address', 'Address', 'The link’s address.', '1.8.0'),
             ])->max(ManifestValidator::MOST_LINKS)->itemTitle('label')->default(is_array($default) ? $default : []),
-            'url' => Setting::url($key, $label, $description, 'next')->default((string) $default),
-            'textarea' => Setting::textarea($key, $label, $description, 'next')->default((string) $default),
+            'url' => Setting::url($key, $label, $description, '1.8.0')->default((string) $default),
+            'textarea' => Setting::textarea($key, $label, $description, '1.8.0')->default((string) $default),
             default => Setting::text($key, $label, $description, '0.1.0')->default((string) $default),
         };
 
@@ -112,7 +112,7 @@ final readonly class ThemeSettings
      */
     private function number(string $key, string $label, string $description, array $declared, int $default): Setting
     {
-        $setting = Setting::number($key, $label, $description, 'next')->default($default);
+        $setting = Setting::number($key, $label, $description, '1.8.0')->default($default);
 
         if (isset($declared['min']) && is_int($declared['min'])) {
             $setting = $setting->min($declared['min']);

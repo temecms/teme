@@ -42,15 +42,16 @@ final class DesignSettingsGroup
         $registry->replace(new SettingsGroup(
             key: 'design',
             label: 'Design',
-            description: 'How the public site looks: the theme it is drawn with, and the brand colour.',
+            description: 'How the public site looks: the theme it is drawn with, the brand colour, and the site icon.',
             section: 'site',
             ability: 'settings.design.manage',
             settings: [
                 Setting::select('theme', 'Theme', 'The theme the public site is drawn with. A theme that can\'t be used gives visitors plain pages until it is fixed.', '0.1.0', $options)->default('default'),
                 Setting::color('accent', 'Brand colour', 'The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme. Empty uses the theme’s own.', '0.1.0'),
+                Setting::media('site_icon', 'Site icon', 'The favicon and home-screen icon. Empty uses the active theme’s default, when it has one.', '1.8.0'),
             ],
             since: '0.1.0',
-            cacheTags: [PageTags::THEME],
+            cacheTags: [PageTags::THEME, PageTags::EVERYTHING],
             screen: 'themes.index',
         ));
     }

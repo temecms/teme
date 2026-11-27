@@ -71,11 +71,9 @@ function LinksInput({
     return (
         <div className="grid gap-3" data-test="design-links">
             {rows.map((row, index) => (
-                <div
-                    key={index}
-                    className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"
-                >
+                <div key={index} className="flex flex-wrap items-end gap-2">
                     <Input
+                        className="min-w-40 flex-1"
                         aria-label={__('Label for link :number', {
                             number: index + 1,
                         })}
@@ -85,6 +83,7 @@ function LinksInput({
                         }
                     />
                     <Input
+                        className="min-w-40 flex-1"
                         aria-label={__('Address for link :number', {
                             number: index + 1,
                         })}

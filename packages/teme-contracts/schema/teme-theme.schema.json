@@ -377,6 +377,12 @@
             "$comment": "@since 1.3.0",
             "description": "The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error."
         },
+        "site_icon": {
+            "type": "string",
+            "pattern": "^(?!/)(?!(?:.*/)?\\.\\.(?:/|$))[^\\\\\\s:]+\\.(?:[pP][nN][gG]|[jJ][pP][eE]?[gG]|[wW][eE][bB][pP]|[sS][vV][gG])$",
+            "$comment": "@since next",
+            "description": "The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this."
+        },
         "screenshots": {
             "type": "array",
             "maxItems": 8,

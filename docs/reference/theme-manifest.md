@@ -25,14 +25,19 @@
 | `regions.*.size` | string | no | The region's size in pixels, width x height, told to its cards; advice only. | ^[1-9]\d{1,4}x[1-9]\d{1,4}$ |
 | `regions.*.max` | integer | no | How many cards the region holds; 50 when absent. |  |
 | `regions.*.minWidth` | integer | no | The narrowest viewport, in pixels, the region is drawn at. Below it nothing of the region is loaded, scripts included; the page carries a placeholder that core's script fills when the viewport reaches this width. |  |
-| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. |  |
+| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. A number may give min, max, step and unit; a links default is a list of label and address, at most 12; group names a foldable section inside the fieldset. |  |
 | `settings[].key` | string | yes | 2 to 41 lower-case letters, digits and underscores, starting with a letter; never starting with nav_. | ^[a-z][a-z0-9_]{1,40}$ |
-| `settings[].type` | string | yes |  | "select", "boolean", "text", "color" |
+| `settings[].type` | string | yes |  | "select", "boolean", "text", "color", "number", "image", "menu", "links", "url", "textarea" |
 | `settings[].label` | string | yes |  |  |
 | `settings[].description` | string | no |  |  |
 | `settings[].fieldset` | string | yes |  | "site", "latest", "content", "archive" |
+| `settings[].group` | string | no | A titled foldable section inside the fieldset. Settings without a group stay at the top. |  |
 | `settings[].options` | object | no | Stored value, then label. Only a select takes options. |  |
-| `settings[].default` |  | yes | A select's default is one of its options; a boolean's is true or false; a text's is text; a colour's is an empty string or #rrggbb. |  |
+| `settings[].min` | integer | no | A number setting's least value. |  |
+| `settings[].max` | integer | no | A number setting's greatest value. |  |
+| `settings[].step` | integer | no | A number setting's step on the form. |  |
+| `settings[].unit` | string | no | A number setting's unit, shown beside its field. |  |
+| `settings[].default` |  | yes | A select's default is one of its options; a boolean's is true or false; a text's, textarea's or menu's is text; a colour's or image's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}. |  |
 | `settings[].visible_when` | object | no | Earlier setting keys, each with a value or a list of values. |  |
 | `assets` | object | no | The theme's Vite build. |  |
 | `assets.manifest` | string | yes | A relative path inside the theme. |  |
@@ -59,6 +64,7 @@
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |  |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][gG]\|[wW][eE][bB][pP])$ |
 | `icon` | string | no | The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP]\|[sS][vV][gG])$ |
+| `site_icon` | string | no | The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP]\|[sS][vV][gG])$ |
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |  |
 | `screenshots[].path` | string | yes | A path inside the theme, with no .., to a .png, .jpg, .jpeg or .webp picture, in any case. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP])$ |
 | `screenshots[].caption` | string | no | What the picture shows, in at most 140 characters. |  |

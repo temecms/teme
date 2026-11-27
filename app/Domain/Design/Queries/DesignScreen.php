@@ -87,6 +87,9 @@ final readonly class DesignScreen
         usort($themes, fn (Theme $a, Theme $b): int => ($b->code === $liveTheme) <=> ($a->code === $liveTheme));
         $origins = $this->extensions->origins(array_column(array_map(fn (Theme $theme): array => [$theme->code, $theme->path], $themes), 1, 0));
         $fieldsets = $this->fieldsets($definition->settings ?? []);
+        $themeMedia = $this->mediaOf($definition->settings ?? [], $themeValues);
+        $siteIconId = (string) ($design['site_icon'] ?? '');
+        $siteIconMedia = $siteIconId === '' ? [] : $this->media->forIds([$siteIconId]);
 
         return [
             'themes' => array_map(fn (Theme $theme): array => [
@@ -110,7 +113,10 @@ final readonly class DesignScreen
             'themeGroup' => $definition?->key,
             'fieldsets' => $fieldsets,
             'values' => ['design' => $design, 'theme' => $themeValues],
-            'media' => $this->mediaOf($definition->settings ?? [], $themeValues),
+            'media' => [
+                ...$themeMedia,
+                'site_icon' => $siteIconMedia[$siteIconId] ?? null,
+            ],
             'slots' => $this->slots($definition->settings ?? [], $themeValues),
             'menus' => Navigation::query()->orderBy('name')->orderBy('id')->get(['id', 'name'])
                 ->map(fn (Navigation $menu): array => ['id' => $menu->id, 'name' => $menu->name])->values()->all(),
