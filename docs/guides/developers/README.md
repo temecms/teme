@@ -51,6 +51,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Content types from your plugin](plugins/content-types.md)
 - [Languages in a theme](themes/languages.md)
 - [Addresses, listings and bodies in a template](themes/template-data.md)
+- [Scripts in a theme under the page policy](themes/scripts.md)
 - [Archive pages, author profiles and listing data](themes/archive-pages.md)
 - [The management API](outside/management-api.md)
 
