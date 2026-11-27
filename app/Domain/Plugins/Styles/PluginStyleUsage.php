@@ -2,7 +2,7 @@
 
 /**
  * The plugin outputs one public page drew, each as its plugin's code and its
- * output (`card:<id>`, `insertion:<id>` or `page`), recorded while the body
+ * output (`card:<id>` or `insertion:<id>`), recorded while the body
  * renders, so the document head links only those stylesheets. It is scoped
  * to a request, and start() empties it for each page.
  *

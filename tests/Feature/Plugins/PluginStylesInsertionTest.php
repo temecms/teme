@@ -21,6 +21,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Tests\Fixtures\Plugins\Billboard\Billboard;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -36,6 +37,7 @@ beforeEach(function (): void {
     $manifest = app(PluginRegistry::class)->all()['tests/billboard']->manifest;
     app(EnablePlugin::class)->execute(new EnablePluginInput('tests/billboard', $manifest->version(), $manifest->capabilities(), $manifest->hosts(), $manifest->hooks(), null));
     app(PluginLoader::class)->load();
+    $this->artisan('teme:plugins:link')->assertSuccessful();
     Billboard::reset();
 
     $this->author = User::factory()->create()->assignRole('author');
@@ -44,6 +46,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    File::deleteDirectory(public_path('plugins'));
     Billboard::reset();
     PluginFixtures::forget();
 
@@ -68,9 +71,10 @@ it('keeps the link on a real page-cache hit', function (): void {
         ->and($second->getContent())->toContain('data-teme-plugin-style="billboard:insertion:top"');
 });
 
-it('links an insertion’s stylesheet once, at the end of the body when the body draws it', function (): void {
+it('links an insertion’s stylesheet once, in the head, for an insertion the body draws', function (): void {
     $html = addrGet('/harbour-story/')->assertOk()->getContent();
+    $head = strpos($html, '</head>');
 
     expect(substr_count($html, 'data-teme-plugin-style="billboard:insertion:top"'))->toBe(1)
-        ->and(strpos($html, 'data-teme-plugin-style="billboard:insertion:top"'))->toBeGreaterThan(strpos($html, 'data-test="billboard-top"'));
+        ->and(strpos($html, 'data-teme-plugin-style="billboard:insertion:top"'))->toBeLessThan($head);
 });

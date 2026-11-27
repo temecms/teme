@@ -1306,7 +1306,7 @@
                 "styles": {
                     "type": "array",
                     "maxItems": 40,
-                    "description": "Built stylesheets, one per output. Linked only on a page that draws that output, from the plugin's package, in the plugins cascade layer.",
+                    "description": "Built stylesheets, one per card or page insertion. Linked only on a page that draws that output, in the plugins cascade layer.",
                     "items": {
                         "type": "object",
                         "required": ["output", "file"],
@@ -1314,12 +1314,12 @@
                         "properties": {
                             "output": {
                                 "type": "string",
-                                "pattern": "^(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40}|page)$",
-                                "description": "The output the sheet styles: card:<id>, insertion:<id>, or page."
+                                "pattern": "^(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$",
+                                "description": "The output the sheet styles: card:<id> or insertion:<id>."
                             },
                             "file": {
                                 "type": "string",
-                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css$",
+                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css\\z",
                                 "description": "A .css file inside the plugin's package, relative to its root."
                             }
                         }

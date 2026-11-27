@@ -19,6 +19,7 @@
 /tests/Browser/Screenshots
 /public/storage
 /public/themes
+/public/plugins
 /storage/*.key
 /storage/pail
 /vendor

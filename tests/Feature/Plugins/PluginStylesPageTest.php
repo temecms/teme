@@ -24,6 +24,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -46,11 +47,15 @@ beforeEach(function (): void {
         $manifest = app(PluginRegistry::class)->all()['tests/cardbox']->manifest;
         app(EnablePlugin::class)->execute(new EnablePluginInput('tests/cardbox', $manifest->version(), $manifest->capabilities(), $manifest->hosts(), [], null));
         ($this->restart)();
+        $this->artisan('teme:plugins:link')->assertSuccessful();
     };
     $this->note = fn (): array => ['type' => 'plugin-card', 'attrs' => ['id' => (string) Str::ulid(), 'card' => 'cardbox:note', 'values' => ['body' => 'Hi']]];
 });
 
-afterEach(fn () => PluginFixtures::forget());
+afterEach(function (): void {
+    File::deleteDirectory(public_path('plugins'));
+    PluginFixtures::forget();
+});
 
 it('links a plugin’s stylesheet for a card into a page that draws the card', function (): void {
     ($this->enable)();
@@ -60,7 +65,7 @@ it('links a plugin’s stylesheet for a card into a page that draws the card', f
     pageArticle($this->editor, 'A story');
 
     expect(addrGet('/a-story/')->assertOk()->getContent())
-        ->toContain('/plugins/cardbox/dist/note.css"')
+        ->toContain('/plugins/cardbox/dist/note.css?v=')
         ->toContain('data-teme-plugin-style="cardbox:card:note"');
 });
 
@@ -98,15 +103,20 @@ it('does not link a stylesheet the active theme switches off', function (): void
         ->not->toContain('data-teme-plugin-style');
 });
 
-it('keeps the link on a page served again from the page cache', function (): void {
+it('keeps the link on a real page-cache hit', function (): void {
+    $folder = cacheOn();
     ($this->enable)();
     $region = regionCreate($this->editor, 'open', 'sidebar');
     regionSave($region, $this->editor, [($this->note)()]);
     listsPublish($region, $this->editor);
     pageArticle($this->editor, 'A story');
 
-    addrGet('/a-story/')->assertOk();
+    $first = addrGet('/a-story/')->assertOk();
+    $second = addrGet('/a-story/')->assertOk();
 
-    expect(addrGet('/a-story/')->assertOk()->getContent())
-        ->toContain('data-teme-plugin-style="cardbox:card:note"');
+    expect($first->headers->get('X-Teme-Cache'))->not->toBe('HIT')
+        ->and($second->headers->get('X-Teme-Cache'))->toBe('HIT')
+        ->and($second->getContent())->toContain('data-teme-plugin-style="cardbox:card:note"');
+
+    cacheOff($folder);
 });

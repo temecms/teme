@@ -5,36 +5,18 @@
     "label": "Billboard",
     "description": "A plugin the tests use to place markup on every page: in the head, at the top and bottom, between list items, around a region and fixed to the screen's edges.",
     "version": "1.0.0",
-    "requires": {
-        "teme": "^0.5"
-    },
+    "requires": { "teme": "^0.5" },
     "plugin": "Tests\\Fixtures\\Plugins\\Billboard\\Billboard",
-    "capabilities": [
-        "pages.insert"
-    ],
+    "capabilities": ["pages.insert"],
     "contributes": {
+        "styles": [{ "output": "insertion:top", "file": "dist/top.css" }],
         "settings": [
-            {
-                "key": "label",
-                "type": "text",
-                "label": "Label",
-                "description": "What the bars say."
-            }
+            { "key": "label", "type": "text", "label": "Label", "description": "What the bars say." }
         ],
         "csp": {
-            "frame": [
-                "frames.billboard.example"
-            ],
-            "connect": [
-                "*.billboard.example"
-            ]
+            "frame": ["frames.billboard.example"],
+            "connect": ["*.billboard.example"]
         },
-        "fixedLabel": "Sponsored",
-        "styles": [
-            {
-                "output": "insertion:top",
-                "file": "dist/top.css"
-            }
-        ]
+        "fixedLabel": "Sponsored"
     }
 }

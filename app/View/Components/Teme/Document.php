@@ -28,6 +28,7 @@ use App\Domain\Site\Document\JsonLd;
 use App\Domain\Site\Document\Placement;
 use App\Domain\Site\Document\Placements;
 use App\Domain\Site\DocumentTitle;
+use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Site\SiteLanguage;
 use App\Domain\Site\ViewModels\ArticleView;
@@ -96,9 +97,6 @@ final class Document extends Component
     public string $marker;
 
     /** @var list<string> the cards whose styles the theme replaces */
-    /** @var list<string>|null the keys of the plugin stylesheets the head linked */
-    private ?array $headPluginStyleKeys = null;
-
     private array $replacedCards;
 
     /** The page being drawn, as the head's and the placements' contributors see it. */
@@ -265,32 +263,17 @@ final class Document extends Component
     }
 
     /**
-     * The stylesheets of the plugin outputs the page drew, each keyed as
-     * `code:output`, linked into the teme.plugins layer (docs/guides/developers/plugins/styles.md).
+     * The stylesheets of the plugin outputs the page draws, each keyed as `code:output`,
+     * linked into the teme.plugins layer (docs/guides/developers/plugins/styles.md). Head and
+     * body placements are declared first, so their sheets are linked here as well.
      *
      * @return list<array{key: string, href: string}>
      */
     public function pluginStyles(): array
     {
-        $links = app(PluginStyles::class)->links();
-        $this->headPluginStyleKeys ??= array_column($links, 'key');
+        app(PageInsertions::class)->declareStyles();
 
-        return $links;
-    }
-
-    /**
-     * The plugin stylesheets for outputs first drawn in the body, after the head
-     * was written: a page insertion at body start or end, which the head can't
-     * know about. Linked at the end of the body, so each is linked once.
-     *
-     * @return list<array{key: string, href: string}>
-     */
-    public function pluginStylesLater(): array
-    {
-        return array_values(array_filter(
-            app(PluginStyles::class)->links(),
-            fn (array $link): bool => ! in_array($link['key'], $this->headPluginStyleKeys ?? [], true),
-        ));
+        return app(PluginStyles::class)->links();
     }
 
     /**

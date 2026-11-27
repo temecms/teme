@@ -833,8 +833,8 @@ final class ManifestValidator
         }
 
         foreach ($off as $key) {
-            if (! is_string($key) || preg_match('/^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40}|page)$/', $key) !== 1) {
-                return ['plugin_styles.off must name each stylesheet as code:card:<id>, code:insertion:<id> or code:page.'];
+            if (! is_string($key) || preg_match('/^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$/', $key) !== 1) {
+                return ['plugin_styles.off must name each stylesheet as code:card:<id> or code:insertion:<id>.'];
             }
         }
 

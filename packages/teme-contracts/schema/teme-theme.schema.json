@@ -385,10 +385,10 @@
                 "off": {
                     "type": "array",
                     "maxItems": 100,
-                    "description": "Each stylesheet as its plugin's code and output: code:card:<id>, code:insertion:<id> or code:page.",
+                    "description": "Each stylesheet as its plugin's code and output: code:card:<id> or code:insertion:<id>.",
                     "items": {
                         "type": "string",
-                        "pattern": "^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40}|page)$"
+                        "pattern": "^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$"
                     }
                 }
             }
