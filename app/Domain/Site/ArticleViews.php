@@ -115,8 +115,8 @@ final readonly class ArticleViews
         $links = app(LinkResolver::class);
         // Plugins are asked about links only where they may insert: published renders, never a preview.
         $linkAttributes = $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [];
-        // Same pass as bodyHtml: every heading's id, and the outline levels 2–4 (issue 369).
-        $headingIds = new HeadingIds;
+        // Same scoped HeadingIds as regions: every heading's id, and the outline levels 2–4 (issue 369).
+        $headingIds = app(HeadingIds::class);
         $body = $this->renderer->html($document, new RenderContext(
             $links,
             usage: app(CardUsage::class),

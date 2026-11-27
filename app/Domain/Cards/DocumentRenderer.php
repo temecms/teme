@@ -46,7 +46,8 @@ final readonly class DocumentRenderer
     {
         $context ??= new RenderContext(app(LinkResolver::class));
         // Rebuilt with the document's media: the page's record and lead go along, or no card would see them.
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes, $context->region, $context->headings ?? new HeadingIds);
+        // Web pages share one scoped HeadingIds with regions; feeds keep their own, off the page.
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes, $context->region, $context->headings ?? $this->headingIds($context->target));
         $html = '';
         $run = [];
         $content = array_values((array) ($document['content'] ?? []));
@@ -109,7 +110,7 @@ final readonly class DocumentRenderer
     public function blocks(array $document, ?RenderContext $context = null): array
     {
         $context ??= new RenderContext(app(LinkResolver::class));
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region, $context->headings ?? new HeadingIds);
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region, $context->headings ?? $this->headingIds($context->target));
         $editor = $this->editor($context);
         $blocks = [];
         $heading = 1;
@@ -156,11 +157,12 @@ final readonly class DocumentRenderer
 
     /**
      * Each table in a sideways-scroll region so a wide table does not widen
-     * the page; the table's own HTML is unchanged (issue 19).
+     * the page; the table's own HTML is unchanged (issue 19). Feeds stay bare:
+     * readers have no page chrome to scroll inside.
      */
     private function wrapTables(string $html, RenderContext $context): string
     {
-        if (! str_contains($html, '<table')) {
+        if ($context->target === 'feed' || ! str_contains($html, '<table')) {
             return $html;
         }
 
@@ -182,7 +184,7 @@ final readonly class DocumentRenderer
         // Heading is ours: every heading gets a unique HTML id (issue 369).
         return new Editor(['extensions' => [
             new StarterKit(['heading' => false]),
-            new HeadingNode($context->headings ?? new HeadingIds),
+            new HeadingNode($context->headings ?? $this->headingIds($context->target)),
             new Underline,
             new Highlight,
             new Subscript,
@@ -214,5 +216,11 @@ final readonly class DocumentRenderer
         }
 
         return $attrs;
+    }
+
+    /** The page's scoped heading ids for web; a fresh set for a feed. */
+    private function headingIds(string $target): HeadingIds
+    {
+        return $target === 'feed' ? new HeadingIds : app(HeadingIds::class);
     }
 }

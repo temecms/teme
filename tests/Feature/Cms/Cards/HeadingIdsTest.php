@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use App\Domain\Cards\DocumentRenderer;
+use App\Domain\Cards\HeadingIds;
+use App\Domain\Cards\LinkResolver;
+use App\Domain\Cards\RenderContext;
 use App\Domain\Site\ArticleViews;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -35,6 +38,11 @@ it('makes a heading’s id from its words when it has no node id', function (): 
         ->toBe('<h2 id="whats-on">What&#039;s on</h2>');
 });
 
+it('uses heading as the id when the words make no slug', function (): void {
+    expect(($this->render)(($this->heading)(2, '!!!'), ($this->heading)(3, '…')))
+        ->toBe('<h2 id="heading">!!!</h2><h3 id="heading-2">…</h3>');
+});
+
 it('keeps heading ids unique on the page', function (): void {
     $html = ($this->render)(
         ($this->heading)(2, 'Times'),
@@ -45,6 +53,23 @@ it('keeps heading ids unique on the page', function (): void {
     expect($html)->toBe(
         '<h2 id="times">Times</h2><h3 id="times-2">Times</h3><h2 id="times-3">Times</h2>',
     );
+});
+
+it('does not reuse landmark ids core and the default theme already write', function (): void {
+    expect(($this->render)(($this->heading)(2, 'Main')))
+        ->toBe('<h2 id="main-2">Main</h2>');
+});
+
+it('shares one HeadingIds between the body and a region so the same words get different ids', function (): void {
+    $ids = app(HeadingIds::class);
+    $heading = ($this->heading)(2, 'Times');
+    $context = fn (): RenderContext => new RenderContext(app(LinkResolver::class), headings: $ids);
+
+    $body = app(DocumentRenderer::class)->html(docWith($heading), $context());
+    $region = app(DocumentRenderer::class)->html(docWith($heading), $context());
+
+    expect($body)->toBe('<h2 id="times">Times</h2>')
+        ->and($region)->toBe('<h2 id="times-2">Times</h2>');
 });
 
 it('gives ArticleView a headings list that matches the ids in bodyHtml', function (): void {

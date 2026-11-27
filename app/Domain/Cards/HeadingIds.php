@@ -1,8 +1,10 @@
 <?php
 
 /**
- * The unique HTML ids every heading on a page gets while bodyHtml is drawn,
- * and the outline (levels 2–4) a theme reads as `$page->headings`.
+ * The unique HTML ids every heading on a page gets while bodyHtml and regions
+ * are drawn, and the outline (levels 2–4) a theme reads as `$page->headings`.
+ * One instance is scoped per request so body and regions share the same used
+ * set, seeded with landmark ids core and the default theme already write.
  *
  * @package Teme
  * @since   next
@@ -18,6 +20,29 @@ use WeakMap;
 
 final class HeadingIds
 {
+    /**
+     * Landmark ids written by core components and the default theme, which a
+     * heading must not reuse (issue 369 follow-up).
+     *
+     * @var list<string>
+     */
+    public const array RESERVED = [
+        'main',
+        'content',
+        'comments',
+        'comments-h',
+        'respond',
+        'respond-h',
+        'respond-errors',
+        'page-h',
+        'related-title',
+        'echo-h',
+        'c-keep',
+        'c-subject',
+        'teme-password',
+        'teme-password-error',
+    ];
+
     /** @var array<string, true> */
     private array $used = [];
 
@@ -30,11 +55,16 @@ final class HeadingIds
     public function __construct()
     {
         $this->forNode = new WeakMap;
+
+        foreach (self::RESERVED as $id) {
+            $this->used[$id] = true;
+        }
     }
 
     /**
      * The id this heading takes: its permanent node id when present, else
-     * from its words, made unique on the page with -2, -3 when needed.
+     * from its words (or `heading` when the slug is empty), made unique on
+     * the page with -2, -3 when needed.
      */
     public function assign(object $node, ?string $permanent, string $text, int $level): string
     {

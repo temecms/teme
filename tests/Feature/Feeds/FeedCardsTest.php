@@ -102,14 +102,18 @@ it('makes a button\'s article address absolute, and writes nothing for an articl
         ->and(($this->body)($button($gone->id)))->toBe('');
 });
 
-it('draws prose as the page does, and a table stays a table (I-861)', function (string $fixture, string $needle): void {
+it('draws prose as the page does, and a table stays a bare table in a feed (I-861)', function (string $fixture, string $needle): void {
     $document = json_decode((string) file_get_contents(base_path("tests/Fixtures/Documents/{$fixture}.json")), true);
     $html = app(FeedBody::class)->html($document);
 
-    expect($html)->toContain($needle)->toBe(app(DocumentRenderer::class)->html($document));
+    expect($html)->toContain($needle)->not->toContain('table-scroll');
+
+    if ($fixture === 'prose') {
+        expect($html)->toBe(app(DocumentRenderer::class)->html($document));
+    }
 })->with([
     'prose' => ['prose', '<h2 id="food-drink">Food &amp; drink</h2>'],
-    'a table' => ['table-align', '<table>'],
+    'a table' => ['table-align', '<table><tbody>'],
 ]);
 
 it('makes an internal link absolute, and leaves an item without an address as plain text', function (): void {

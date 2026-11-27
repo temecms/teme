@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Cards\CardUsage;
+use App\Domain\Cards\HeadingIds;
 use App\Domain\Design\ThemeSettings;
 use App\Domain\Menus\SlotMenus;
 use App\Domain\Regions\RegionDrawing;
@@ -46,6 +47,7 @@ final class ThemeServiceProvider extends ServiceProvider
         $this->app->scoped(ComposerRegistry::class);
         $this->app->scoped(PageWarnings::class);
         $this->app->scoped(CardUsage::class);
+        $this->app->scoped(HeadingIds::class);
         $this->app->scoped(SlotMenus::class);
         $this->app->scoped(Regions::class);
     }

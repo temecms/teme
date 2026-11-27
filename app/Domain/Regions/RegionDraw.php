@@ -17,6 +17,7 @@ namespace App\Domain\Regions;
 
 use App\Domain\Cards\CardUsage;
 use App\Domain\Cards\DocumentRenderer;
+use App\Domain\Cards\HeadingIds;
 use App\Domain\Cards\LinkResolver;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Themes\Theme;
@@ -35,6 +36,11 @@ final readonly class RegionDraw
     {
         $document = $this->regions->published($theme->code, $name);
 
-        return $document === null ? '' : $this->renderer->html($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), region: RegionDeclarations::cardRegion($theme->code, $name, $declaration)));
+        return $document === null ? '' : $this->renderer->html($document, new RenderContext(
+            app(LinkResolver::class),
+            usage: app(CardUsage::class),
+            region: RegionDeclarations::cardRegion($theme->code, $name, $declaration),
+            headings: app(HeadingIds::class),
+        ));
     }
 }
