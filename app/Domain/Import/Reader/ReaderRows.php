@@ -79,6 +79,9 @@ final class ReaderRows
     /** @var array<string, int> the ID of the first person with each login, so a login is one person */
     private array $logins = [];
 
+    /** @var array<string, true> every login the file gives a person, so a login made up for another never takes one */
+    private array $reserved = [];
+
     /** @var array<string, array{id: int, taxonomy: string}> the ID and taxonomy of each term, by source ID */
     private array $terms = [];
 
@@ -150,6 +153,12 @@ final class ReaderRows
     private function rows(array $items, ContentBlocks $blocks): array
     {
         $rows = [];
+
+        foreach ($items as $item) {
+            if ($item->kind === ImportKind::PERSON && (string) ($item->fields['login'] ?? '') !== '') {
+                $this->reserved[(string) $item->fields['login']] = true;
+            }
+        }
 
         foreach ($items as $item) {
             if ($item->kind === ImportKind::PERSON) {
@@ -226,7 +235,7 @@ final class ReaderRows
         $base = Slugs::fromText($name !== '' ? $name : $item->id) ?: 'author';
         $login = $base;
 
-        for ($number = 2; isset($this->logins[$login]); $number++) {
+        for ($number = 2; isset($this->logins[$login]) || isset($this->reserved[$login]); $number++) {
             $login = $base.'-'.$number;
         }
 

@@ -575,3 +575,33 @@ it('stores a reader’s upload without the .xml of a WordPress export', function
     expect($file->path())->not->toEndWith('.xml')
         ->and(Storage::disk('local')->exists($file->path()))->toBeTrue();
 });
+
+it('never makes up a login another person of the file has, so a guest is not merged into a real person', function (): void {
+    readersEnabled();
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'person', 'id' => 'p2', 'displayName' => 'Ada', 'email' => 'guest@example.com'],
+            ['kind' => 'person', 'id' => 'p3', 'login' => 'ada', 'email' => 'real@example.com', 'displayName' => 'Ada Real'],
+            ['kind' => 'post', 'id' => 'i1', 'title' => 'Guest post', 'slug' => 'guest', 'status' => 'published', 'content' => '<p>Guest</p>', 'authorId' => 'p2'],
+            ['kind' => 'post', 'id' => 'i2', 'title' => 'Real post', 'slug' => 'real', 'status' => 'published', 'content' => '<p>Real</p>', 'authorId' => 'p3'],
+        ],
+    ];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    FileImports::run($file->refresh());
+
+    $guest = DB::table('users')->where('email', 'guest@example.com')->first();
+    $real = DB::table('users')->where('email', 'real@example.com')->first();
+
+    expect($guest)->not->toBeNull()
+        ->and($real)->not->toBeNull()
+        ->and($guest->id)->not->toBe($real->id)
+        ->and(DB::table('contents')->where('title', 'Guest post')->value('author_id'))->toBe($guest->id)
+        ->and(DB::table('contents')->where('title', 'Real post')->value('author_id'))->toBe($real->id);
+});
