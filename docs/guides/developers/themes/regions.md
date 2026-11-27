@@ -16,7 +16,7 @@ A region is a spot your theme sets aside for the site's own content, such as a b
 
 ### Declare a region
 
-Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-case letters, digits and hyphens. The default theme declares one: `"after-content": {"label": "After the article", "max": 5}`.
+Add each region under `regions` in `teme-theme.json`, keyed by a slug of lower-case letters, digits and hyphens. The default theme declares `after-content` after each article, and `front-top` and `front-sections` on a static front page only (`"front-top": {"label": "Front page top", "max": 3}`, `"front-sections": {"label": "Front page sections", "max": 8}`).
 
 - `label` is the name editors see. It is required.
 - `cards` is optional. Leave it out, or give `"*"`, and the region takes every card, as a WordPress widget area takes any widget: Teme's own, and every card an enabled plugin offers, which your theme never needs to know about. Give a list only where your design needs it, such as a front-page slot built for one Featured posts card: then the region takes text and the cards named. Name Teme's cards by name, such as `image`, `callout`, `button`, `site-code` or `featured-posts`, a plugin's by its key, `code:id`, such as `ads:ad-slot`, and a card your theme brings by its id, such as `about-me`.

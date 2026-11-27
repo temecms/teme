@@ -10,7 +10,7 @@ It meets an accessibility floor: one `<main>`, core's skip link first, labelled 
 |---|---|
 | `latest` | The latest posts, at the site's address or the posts page's: the lead story and the pinned posts, then the feed, then pages |
 | `single` | An article: kicker, title, standfirst, byline, featured image, body, tags, author box, the `after-content` region, the thread (`partials/comments`), related posts |
-| `single-page`, `single-page-full-width` | A page: title, featured image and body, the second at the wide measure |
+| `single-page`, `single-page-full-width` | A page: title, featured image and body, the second at the wide measure; as a static front page, also the `front-top` and `front-sections` regions |
 | `archive` | A category, tag, author or date, titled by its subject, then the feed |
 | `comments` | A later page of an item's comments: the story named and linked, then the thread |
 | `respond` | Core's pages about writing a comment: the reply page, and the answer to a form posted without JavaScript, in core's words |
@@ -42,7 +42,7 @@ The site's accent colour replaces the theme's red in both schemes; in the dark o
 ## Places
 
 - **Menus:** `primary` (the header) and `footer`, chosen under Content › Navigation or on Settings › Design.
-- **Region:** `after-content`, after the article, taking callouts, buttons, Custom HTML (code an administrator pastes into the card) and Featured posts, at most five, filled under Content › Regions.
+- **Regions:** `after-content`, after the article, at most five; `front-top` (at most three) and `front-sections` (at most eight) on a static front page only. Each takes callouts, buttons, Custom HTML (code an administrator pastes into the card) and Featured posts, filled under Content › Regions.
 - **Featured posts:** `views/cards/featured-posts.blade.php` draws the card's list with the theme's own `partials/card` (`thumb` images, `h3` titles, no byline) in place of core's plain list.
 
 ## Comments
