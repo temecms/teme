@@ -1426,7 +1426,10 @@
                                 "maxItems": 5,
                                 "uniqueItems": true,
                                 "description": "The file extensions it reads, without the dot, such as json.",
-                                "items": {"type": "string", "pattern": "^[a-z0-9]{1,8}$"}
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9]{1,8}$"
+                                }
                             }
                         }
                     }

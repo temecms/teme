@@ -157,7 +157,18 @@
                     },
                     "type": {
                         "type": "string",
-                        "enum": ["select", "boolean", "text", "color", "number", "image", "menu", "links", "url", "textarea"]
+                        "enum": [
+                            "select",
+                            "boolean",
+                            "text",
+                            "color",
+                            "number",
+                            "image",
+                            "menu",
+                            "links",
+                            "url",
+                            "textarea"
+                        ]
                     },
                     "label": { "type": "string", "minLength": 1 },
                     "description": { "type": "string", "minLength": 1 },
@@ -458,13 +469,26 @@
         "overrides": {
             "type": "object",
             "description": "Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md).",
-            "propertyNames": { "enum": ["region", "navigation", "languages", "image", "between-items", "comment-form"] },
+            "propertyNames": {
+                "enum": [
+                    "region",
+                    "navigation",
+                    "languages",
+                    "image",
+                    "between-items",
+                    "comment-form"
+                ]
+            },
             "additionalProperties": {
                 "type": "object",
                 "required": ["contract"],
                 "additionalProperties": false,
                 "properties": {
-                    "contract": { "type": "integer", "minimum": 1, "description": "The contract number the override was written against." }
+                    "contract": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "The contract number the override was written against."
+                    }
                 }
             }
         },

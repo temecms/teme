@@ -17,7 +17,12 @@ import { Field } from '@/components/ui/field';
 import { SelectField } from '@/components/ui/select-field';
 import { __ } from '@/lib/i18n';
 import { index as navigationIndex } from '@/routes/navigation';
-import type { DesignField, DesignFieldset, DesignPage, DesignSettingsPage } from '@/types';
+import type {
+    DesignField,
+    DesignFieldset,
+    DesignPage,
+    DesignSettingsPage,
+} from '@/types';
 
 /** The settings sections, in the order Themes shows them. */
 function sections(): { key: DesignFieldset; label: string }[] {
@@ -182,9 +187,7 @@ export function ThemeSettings({
                                             size="sm"
                                             variant="neutral"
                                             onClick={() =>
-                                                void design.preview(
-                                                    section.key,
-                                                )
+                                                void design.preview(section.key)
                                             }
                                         >
                                             {__('Preview')}
@@ -237,9 +240,7 @@ export function ThemeSettings({
                                                                 field.key
                                                             ]
                                                         }
-                                                        media={
-                                                            media[field.key]
-                                                        }
+                                                        media={media[field.key]}
                                                         menus={page.menus}
                                                         error={design.errorOf(
                                                             themeGroup,

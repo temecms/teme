@@ -257,9 +257,7 @@
     ],
     "assets": {
         "manifest": "public/build/manifest.json",
-        "entries": [
-            "assets/css/theme.css"
-        ]
+        "entries": ["assets/css/theme.css"]
     },
     "composers": [],
     "speculation": true,

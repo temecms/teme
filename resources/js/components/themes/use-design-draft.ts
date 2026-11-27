@@ -43,7 +43,7 @@ export function useDesignDraft(page: DesignSettingsPage) {
     };
     const designValues = {
         ...page.values.design,
-        ...(edits.design ?? {}),
+        ...edits.design,
     };
     const errorOf = (group: string, key: string): string | undefined =>
         errors[`groups.${group}.${key}`] ??

@@ -243,7 +243,9 @@ export function UploadForm({
                                         aria-label={__('Read the file with')}
                                         value={reader}
                                         onValueChange={setReader}
-                                        emptyLabel={__('WordPress export (.xml)')}
+                                        emptyLabel={__(
+                                            'WordPress export (.xml)',
+                                        )}
                                         options={readers.map((offer) => ({
                                             value: offer.key,
                                             label: offer.label,
@@ -256,11 +258,16 @@ export function UploadForm({
                             </p>
                             <p className="text-small text-ink-3">
                                 {chosenReader
-                                    ? __('The file :type that :label reads, up to :n GB.', {
-                                          type: chosenReader.fileTypes.map((type) => `.${type}`).join(', '),
-                                          label: chosenReader.label,
-                                          n: String(maxGb),
-                                      })
+                                    ? __(
+                                          'The file :type that :label reads, up to :n GB.',
+                                          {
+                                              type: chosenReader.fileTypes
+                                                  .map((type) => `.${type}`)
+                                                  .join(', '),
+                                              label: chosenReader.label,
+                                              n: String(maxGb),
+                                          },
+                                      )
                                     : __(
                                           'The .xml file from Tools › Export in WordPress, up to :n GB.',
                                           { n: String(maxGb) },
@@ -280,7 +287,9 @@ export function UploadForm({
                                     type="file"
                                     accept={
                                         chosenReader
-                                            ? chosenReader.fileTypes.map((type) => `.${type}`).join(',')
+                                            ? chosenReader.fileTypes
+                                                  .map((type) => `.${type}`)
+                                                  .join(',')
                                             : '.xml,text/xml,application/xml'
                                     }
                                     className="sr-only"

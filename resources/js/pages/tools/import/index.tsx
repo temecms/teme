@@ -60,7 +60,10 @@ export default function ImportIndex({
                             ? row.uploadedAt
                                 ? __(':reader · file, uploaded :date', {
                                       reader: sourceReaders[row.id],
-                                      date: formatInZone(row.uploadedAt, siteTimezone),
+                                      date: formatInZone(
+                                          row.uploadedAt,
+                                          siteTimezone,
+                                      ),
                                   })
                                 : sourceReaders[row.id]
                             : row.kind === 'file' && row.uploadedAt
@@ -183,7 +186,9 @@ export default function ImportIndex({
                     />
                 )}
 
-                {way === 'upload' && <UploadForm maxFileMb={maxFileMb} readers={readers} />}
+                {way === 'upload' && (
+                    <UploadForm maxFileMb={maxFileMb} readers={readers} />
+                )}
             </ListPage>
         </>
     );
