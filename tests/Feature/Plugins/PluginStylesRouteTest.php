@@ -126,6 +126,11 @@ it('answers 404 for a sheet that imports another, or whose braces do not balance
     'an escaped import followed by a form feed' => ["@\\69\fmport url(\"other.css\");"],
     'a quoted hash url' => ['a{b:#url(x")") } } .x{color:red} "}'],
     'an escaped hash url' => ['a{b:#\\75 rl(x")") } } .x{color:red} "}'],
+    'a NUL before url(' => ["a{b:\0url(x\")\") } } .x{color:red} \"}"],
+    'a NUL between a hash and url(' => ["a{b:#\0url(x\")\") } } .x{color:red} \"}"],
+    'a hex escape that takes the newline after it, inside a string' => ["a{content:\"\\41\n{\" } } .x{color:red} \"}}"],
+    'a hex escape that takes a CRLF after it, inside a string' => ["a{content:\"\\41\r\n{\" } } .x{color:red} \"}}"],
+    'a hex escape that takes a form feed after it, inside a string' => ["a{content:\"\\41\f{\" } } .x{color:red} \"}}"],
 ]);
 
 it('answers 404 for a declared file that links to another file inside the package', function (): void {

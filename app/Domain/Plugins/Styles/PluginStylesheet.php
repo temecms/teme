@@ -71,16 +71,17 @@ final class PluginStylesheet
     }
 
     /**
-     * Wraps a sheet's text in the teme.plugins layer, after refusing what can't be wrapped: @import,
-     *
-     * @namespace, and braces that don't balance. Line breaks are read as the browser reads them, so the
-     * text that is checked is the text that is served. A @charset stays inside the layer, where it is ignored.
+     * Wraps a sheet's text in the teme.plugins layer, after refusing what can't be wrapped: an import
+     * rule, a namespace rule, and braces that don't balance. The text is first read as the browser reads
+     * it: every line break becomes a line feed and a NUL becomes U+FFFD, so the text that is checked is the
+     * text that is served. A charset rule stays inside the layer, where it is ignored.
      *
      * @throws InvalidArgumentException
      */
     public static function wrap(string $css): string
     {
         $css = preg_replace('/\r\n?|\f/', "\n", $css) ?? $css;
+        $css = str_replace("\0", "\u{FFFD}", $css);
 
         self::check($css);
 
@@ -251,7 +252,8 @@ final class PluginStylesheet
 
         for ($index = $start + 1; $index < $length; $index++) {
             if ($css[$index] === '\\') {
-                $index++;
+                // A hex escape takes its digits and one white space after them; any other escape takes one character.
+                $index += preg_match('/\G[0-9a-fA-F]{1,6}[ \t\n]?/', $css, $escape, 0, $index + 1) === 1 ? strlen($escape[0]) : 1;
             } elseif ($css[$index] === $quote) {
                 return $index + 1;
             } elseif ($css[$index] === "\n") {
