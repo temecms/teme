@@ -2,9 +2,9 @@
 
 /**
  * The `design` settings group: which theme the public site is drawn with,
- * chosen from the usable themes, and the site's accent colour, which is
- * empty to use the theme's own. It is built from the themes found, so it
- * registers through replace() and can be built again when they change.
+ * chosen from the usable themes, and the site's brand colour (`design.brand`),
+ * empty to leave `--teme-brand` unset. It is built from the themes found, so
+ * it registers through replace() and can be built again when they change.
  * Site › Themes is its screen, and its Operations write it.
  *
  * @package Teme
@@ -47,7 +47,7 @@ final class DesignSettingsGroup
             ability: 'settings.design.manage',
             settings: [
                 Setting::select('theme', 'Theme', 'The theme the public site is drawn with. A theme that can\'t be used gives visitors plain pages until it is fixed.', '0.1.0', $options)->default('default'),
-                Setting::color('accent', 'Brand colour', 'The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme. Empty uses the theme’s own.', '0.1.0'),
+                Setting::color('brand', 'Brand colour', 'The site\'s identity colour: the browser tab, and --teme-brand for themes. Empty leaves the token unset. A theme may opt to use it as its accent.', 'next'),
             ],
             since: '0.1.0',
             cacheTags: [PageTags::THEME],

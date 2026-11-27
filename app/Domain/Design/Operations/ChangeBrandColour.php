@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Changes the site's brand colour, the design group's accent, from Settings ›
+ * Changes the site's brand colour, the design group's brand, from Settings ›
  * General: live at once, never as a draft. It must pass contrast against the
  * light background of the live theme and of a theme being previewed on Site ›
  * Themes (I-457); a colour waiting there goes, so publishing can't bring it back.
@@ -35,8 +35,11 @@ final class ChangeBrandColour extends BaseOperation
 {
     use ManagesDesign;
 
-    /** The setting's key in the design group. */
-    private const string KEY = 'accent';
+    /** The setting's key in the design group (issue 261). */
+    private const string KEY = 'brand';
+
+    /** The request field General's form still sends (kept for the save bar). */
+    private const string FIELD = 'accent';
 
     public function __construct(
         private readonly SettingsRegistry $registry,
@@ -54,10 +57,10 @@ final class ChangeBrandColour extends BaseOperation
     {
         /** @var ChangeBrandColourInput $input */
         $setting = $this->group()->setting(self::KEY) ?? throw new LogicException('The design group has no brand colour.');
-        $validator = Validator::make([self::KEY => $input->colour], [self::KEY => SettingRules::for($setting)], attributes: [self::KEY => 'brand colour']);
+        $validator = Validator::make([self::FIELD => $input->colour], [self::FIELD => SettingRules::for($setting)], attributes: [self::FIELD => 'brand colour']);
 
         if ($validator->fails()) {
-            throw ValidationException::withMessages([self::KEY => $validator->errors()->first(self::KEY)]);
+            throw ValidationException::withMessages([self::FIELD => $validator->errors()->first(self::FIELD)]);
         }
     }
 
@@ -114,7 +117,7 @@ final class ChangeBrandColour extends BaseOperation
                 array_unshift($problems, sprintf('With %s, being previewed in Themes:', $usable?->manifest?->name() ?? $code));
             }
 
-            throw ValidationException::withMessages([self::KEY => implode(' ', $problems)]);
+            throw ValidationException::withMessages([self::FIELD => implode(' ', $problems)]);
         }
     }
 

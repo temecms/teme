@@ -35,12 +35,12 @@ it('forces dark when the owner chooses it', function (): void {
 
 it('gives the owner\'s accent to both schemes, lightened just enough for the dark one (I-457)', function (): void {
     // #0b5394 reaches 7.57:1 on #fcfbf8; on #141413 Task 0b's darkVariant() lightens it to #4283c8.
-    designPublish(['design' => ['accent' => '#0b5394']]);
+    designPublish(['design' => ['brand' => '#0b5394']]);
 
     expect(addrGet('/')->getContent())
         ->toContain('--teme-accent:#0b5394;--teme-on-accent:#ffffff')
-        ->toContain(':root[data-scheme="dark"]{--teme-base:#141413;--teme-contrast:#eceae5;--teme-accent:#4283c8;--teme-on-accent:#111111}')
-        ->toContain('{:root[data-scheme="auto"]{--teme-base:#141413;--teme-contrast:#eceae5;--teme-accent:#4283c8;--teme-on-accent:#111111}}')
+        ->toContain(':root[data-scheme="dark"]{--teme-base:#141413;--teme-contrast:#eceae5;--teme-accent:#4283c8;--teme-on-accent:#111111;--teme-brand:#0b5394}')
+        ->toContain('{:root[data-scheme="auto"]{--teme-base:#141413;--teme-contrast:#eceae5;--teme-accent:#4283c8;--teme-on-accent:#111111;--teme-brand:#0b5394}}')
         ->not->toContain('#ff8a7a');
 });
 

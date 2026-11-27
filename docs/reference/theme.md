@@ -29,9 +29,12 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `title_separator` | string | no | Between the parts of a page's title; – when absent. |
 | `layout` | object | no | The content, wide and full widths in pixels. |
 | `images` | object | no | Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses. |
-| `fonts` | array | no | The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there. |
-| `tokens` | object | no | Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours. |
-| `tokens_dark` | object | no | The same tokens and rules, for the theme's dark scheme. |
+| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each with face true or absent (family, weight, style, src as the same-origin theme file, font-display swap, optional unicode_range) and preloads at most one. face false means preload only — the theme ships its own @font-face. Each file is relative to the theme's public folder and exists there. A theme that writes every face itself may leave this key out, or keep it for preload with face false. |
+| `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens. |
+| `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. brand is read-only. |
+| `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |
+| `custom_tokens_dark` | object | no | The theme's own dark-scheme tokens, same name and value rules as custom_tokens. |
+| `styles` | object | no | Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload. |
 | `speculation` | boolean | no | A theme may only opt out: false leaves the prerendering rules out. |
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. |
@@ -516,7 +519,7 @@ A field reaches a template as a `FieldView`, from `$page->field('handle')` or a 
 
 ### `<x-teme::document>`
 
-`<x-teme::document>`: core's document shell around every public page, so a template writes only its own markup. It writes the `lang` and `dir`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, the theme's tokens and its dark ones, with the site's accent, lightened for the dark scheme, the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link. It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
+`<x-teme::document>`: core's document shell around every public page, so a template writes only its own markup. It writes the `lang` and `dir`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, `@font-face` rules from the manifest's fonts (skipped when a font sets `face` false), the theme's tokens and custom tokens with the chosen style overlaid, `--teme-brand` from `design.brand`, and when the theme opts in with `use_brand_colour` the site's brand as accent (lightened for the dark scheme), the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link. It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
 
 No attributes.
 

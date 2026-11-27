@@ -228,7 +228,7 @@
         },
         "fonts": {
             "type": "array",
-            "description": "The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there.",
+            "description": "The theme's fonts. Core writes an @font-face for each with face true or absent (family, weight, style, src as the same-origin theme file, font-display swap, optional unicode_range) and preloads at most one. face false means preload only — the theme ships its own @font-face. Each file is relative to the theme's public folder and exists there. A theme that writes every face itself may leave this key out, or keep it for preload with face false.",
             "items": {
                 "type": "object",
                 "required": ["family", "file"],
@@ -245,13 +245,22 @@
                     },
                     "preload": {
                         "description": "Only true preloads the font; any other value, or none, does not."
+                    },
+                    "face": {
+                        "type": "boolean",
+                        "description": "Whether core writes an @font-face for this font; true when absent. false keeps preload and leaves the face to the theme."
+                    },
+                    "unicode_range": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Optional unicode-range for the @font-face core writes; omitted when face is false."
                     }
                 }
             }
         },
         "tokens": {
             "type": "object",
-            "description": "Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours.",
+            "description": "Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -260,6 +269,7 @@
                     "on-accent",
                     "muted",
                     "rule",
+                    "brand",
                     "font-body",
                     "font-heading",
                     "font-mono",
@@ -294,7 +304,7 @@
         },
         "tokens_dark": {
             "type": "object",
-            "description": "The same tokens and rules, for the theme's dark scheme.",
+            "description": "The same core tokens and rules, for the theme's dark scheme. brand is read-only.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -303,6 +313,7 @@
                     "on-accent",
                     "muted",
                     "rule",
+                    "brand",
                     "font-body",
                     "font-heading",
                     "font-mono",
@@ -332,6 +343,44 @@
                 "accent": {
                     "type": "string",
                     "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                }
+            }
+        },
+        "custom_tokens": {
+            "type": "object",
+            "description": "The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens.",
+            "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "custom_tokens_dark": {
+            "type": "object",
+            "description": "The theme's own dark-scheme tokens, same name and value rules as custom_tokens.",
+            "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "styles": {
+            "type": "object",
+            "description": "Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload.",
+            "propertyNames": {
+                "pattern": "^[a-z0-9-]+$"
+            },
+            "additionalProperties": {
+                "type": "object",
+                "required": ["label"],
+                "properties": {
+                    "label": { "type": "string", "minLength": 1 },
+                    "tokens": { "$ref": "#/properties/tokens" },
+                    "tokens_dark": { "$ref": "#/properties/tokens_dark" },
+                    "custom_tokens": { "$ref": "#/properties/custom_tokens" },
+                    "fonts": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "The file of one font declared under fonts; that font is preloaded for this style."
+                    }
                 }
             }
         },

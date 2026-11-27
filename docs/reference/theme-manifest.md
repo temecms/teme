@@ -43,18 +43,28 @@
 | `layout.wide` | integer | yes |  |  |
 | `layout.full` | integer\|null | no | Null for the whole viewport. |  |
 | `images` | object | no | Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses. |  |
-| `fonts` | array | no | The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there. |  |
+| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each with face true or absent (family, weight, style, src as the same-origin theme file, font-display swap, optional unicode_range) and preloads at most one. face false means preload only — the theme ships its own @font-face. Each file is relative to the theme's public folder and exists there. A theme that writes every face itself may leave this key out, or keep it for preload with face false. |  |
 | `fonts[].family` | string | yes |  |  |
 | `fonts[].file` | string | yes |  |  |
 | `fonts[].weight` | string\|integer | no | Any number or text, such as 400 or "400 700". |  |
 | `fonts[].style` | string | no |  | "normal", "italic", "oblique" |
 | `fonts[].preload` |  | no | Only true preloads the font; any other value, or none, does not. |  |
-| `tokens` | object | no | Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours. |  |
+| `fonts[].face` | boolean | no | Whether core writes an @font-face for this font; true when absent. false keeps preload and leaves the face to the theme. |  |
+| `fonts[].unicode_range` | string | no | Optional unicode-range for the @font-face core writes; omitted when face is false. |  |
+| `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens. |  |
 | `tokens.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
-| `tokens_dark` | object | no | The same tokens and rules, for the theme's dark scheme. |  |
+| `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. brand is read-only. |  |
 | `tokens_dark.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens_dark.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
+| `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |  |
+| `custom_tokens_dark` | object | no | The theme's own dark-scheme tokens, same name and value rules as custom_tokens. |  |
+| `styles` | object | no | Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload. |  |
+| `styles.*.label` | string | yes |  |  |
+| `styles.*.tokens` |  | no |  |  |
+| `styles.*.tokens_dark` |  | no |  |  |
+| `styles.*.custom_tokens` |  | no |  |  |
+| `styles.*.fonts` | string | no | The file of one font declared under fonts; that font is preloaded for this style. |  |
 | `speculation` | boolean | no | A theme may only opt out: false leaves the prerendering rules out. |  |
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |  |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][gG]\|[wW][eE][bB][pP])$ |

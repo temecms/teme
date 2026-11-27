@@ -75,10 +75,24 @@ final class ManifestValidator
      * @var list<string>
      */
     public const array TOKENS = [
-        'base', 'contrast', 'accent', 'on-accent', 'muted', 'rule', 'font-body', 'font-heading', 'font-mono',
+        'base', 'contrast', 'accent', 'on-accent', 'muted', 'rule', 'brand', 'font-body', 'font-heading', 'font-mono',
         'step--1', 'step-0', 'step-1', 'step-2', 'step-3', 'step-4', 'step-5',
         'space-1', 'space-2', 'space-3', 'space-4', 'space-5', 'space-6', 'space-7', 'space-8',
     ];
+
+    /**
+     * Core tokens a theme must not set: Document writes them from the site
+     * (issue 261).
+     *
+     * @var list<string>
+     */
+    public const array READ_ONLY_TOKENS = ['brand'];
+
+    /**
+     * A theme's own token name: lower-case letters, digits and hyphens
+     * (issue 370).
+     */
+    public const string CUSTOM_TOKEN = '/^[a-z][a-z0-9-]*$/';
 
     /**
      * The top-level keys `errors()` reads, in its order (I-246: the tokens are
@@ -90,8 +104,12 @@ final class ManifestValidator
     public const array KEYS = [
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
+        'custom_tokens', 'custom_tokens_dark', 'styles',
         'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
     ];
+
+    /** The setting core adds when a theme declares styles (issue 371). */
+    public const string STYLE_SETTING = 'style';
 
     public function __construct(private readonly CardRegistry $cards) {}
 
@@ -142,6 +160,9 @@ final class ManifestValidator
         array_push($errors, ...$this->fonts($manifest, $themePath));
         array_push($errors, ...$this->tokens($manifest, 'tokens'));
         array_push($errors, ...$this->tokens($manifest, 'tokens_dark'));
+        array_push($errors, ...$this->customTokens($manifest, 'custom_tokens'));
+        array_push($errors, ...$this->customTokens($manifest, 'custom_tokens_dark'));
+        array_push($errors, ...$this->styles($manifest, $themePath));
         array_push($errors, ...$this->speculation($manifest));
         array_push($errors, ...$this->breadcrumbs($manifest));
         array_push($errors, ...$this->csp($manifest));
@@ -378,6 +399,10 @@ final class ManifestValidator
 
             if (str_starts_with($key, ThemeSlotSettings::SETTING_PREFIX)) {
                 $errors[] = "The setting \"{$key}\" can't start with nav_, which is kept for navigation slots.";
+            }
+
+            if ($key === self::STYLE_SETTING && array_key_exists('styles', $manifest)) {
+                $errors[] = "The setting \"{$key}\" is kept for the theme's style variations.";
             }
 
             if (in_array($key, $declared, true)) {
@@ -685,6 +710,24 @@ final class ManifestValidator
                 $errors[] = "The font {$font['family']} has a style that isn't normal, italic or oblique.";
             }
 
+            $weight = is_scalar($font['weight'] ?? null) ? (string) $font['weight'] : '400';
+
+            if (preg_match('/[;{}<>"\\\\]/', $font['family'].$weight) === 1) {
+                $errors[] = "The font {$font['family']} needs a family and weight with no ; { } < > \" or \\.";
+            }
+
+            if (array_key_exists('face', $font) && ! is_bool($font['face'])) {
+                $errors[] = "The font {$font['family']} has a face that isn't true or false.";
+            }
+
+            if (array_key_exists('unicode_range', $font)) {
+                $range = $font['unicode_range'];
+
+                if (! is_string($range) || trim($range) === '' || preg_match('/[;{}<>"\\\\]/', $range) === 1) {
+                    $errors[] = "The font {$font['family']} needs a unicode_range with no ; { } < > \" or \\.";
+                }
+            }
+
             if (($font['preload'] ?? false) === true) {
                 $preloaded++;
             }
@@ -728,11 +771,131 @@ final class ManifestValidator
                 continue;
             }
 
+            if (in_array($name, self::READ_ONLY_TOKENS, true)) {
+                $errors[] = "The token \"{$name}\"{$where} is read-only: core writes it from the site's brand colour.";
+
+                continue;
+            }
+
             // The value goes into the page's <style>, so nothing that could end a rule or the tag.
             if (! is_string($value) || trim($value) === '' || preg_match('/[;{}<>]/', $value) === 1) {
                 $errors[] = "The token \"{$name}\"{$where} must have a CSS value, with no ; { } < or >.";
             } elseif (in_array($name, self::HEX_TOKENS, true) && preg_match(self::HEX, $value) !== 1) {
                 $errors[] = "The token \"{$name}\"{$where} must be a hex colour, #rgb or #rrggbb: Teme checks the accent's contrast against it.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * A theme's own tokens beyond the core list (issue 370): names of
+     * lower-case letters, digits and hyphens that are not a core token,
+     * with the same value rule as core tokens.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function customTokens(array $manifest, string $key): array
+    {
+        if (! array_key_exists($key, $manifest)) {
+            return [];
+        }
+
+        $tokens = $manifest[$key];
+
+        if (! is_array($tokens) || (array_is_list($tokens) && $tokens !== [])) {
+            return ["{$key} must map each token name to its value."];
+        }
+
+        $errors = [];
+        $where = $key === 'custom_tokens' ? '' : " in {$key}";
+
+        foreach ($tokens as $name => $value) {
+            if (! is_string($name) || preg_match(self::CUSTOM_TOKEN, $name) !== 1) {
+                $errors[] = "The custom token name \"{$name}\"{$where} must be lower-case letters, digits and hyphens, starting with a letter.";
+
+                continue;
+            }
+
+            if (in_array($name, self::TOKENS, true)) {
+                $errors[] = "The custom token \"{$name}\"{$where} is a core token name: put it under tokens, or pick another name.";
+
+                continue;
+            }
+
+            if (! is_string($value) || trim($value) === '' || preg_match('/[;{}<>]/', $value) === 1) {
+                $errors[] = "The custom token \"{$name}\"{$where} must have a CSS value, with no ; { } < or >.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Named token sets a theme can switch between (issue 371): each needs a
+     * label; tokens, tokens_dark and custom_tokens follow the same rules as
+     * the top-level keys; fonts names one declared font file to preload.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function styles(array $manifest, string $themePath): array
+    {
+        if (! array_key_exists('styles', $manifest)) {
+            return [];
+        }
+
+        $styles = $manifest['styles'];
+
+        if (! is_array($styles) || $styles === [] || array_is_list($styles)) {
+            return ['styles must map each style name to its label and optional tokens.'];
+        }
+
+        $errors = [];
+        $files = [];
+
+        foreach (is_array($manifest['fonts'] ?? null) ? $manifest['fonts'] : [] as $font) {
+            if (is_array($font) && is_string($font['file'] ?? null)) {
+                $files[] = $font['file'];
+            }
+        }
+
+        foreach ($styles as $name => $style) {
+            if (! is_string($name) || preg_match(self::SLUG, $name) !== 1) {
+                $errors[] = "The style name \"{$name}\" must be lower-case letters, digits and hyphens.";
+
+                continue;
+            }
+
+            if (! is_array($style) || ! is_string($style['label'] ?? null) || trim($style['label']) === '') {
+                $errors[] = "styles.{$name} needs a label.";
+
+                continue;
+            }
+
+            foreach (['tokens', 'tokens_dark'] as $key) {
+                if (array_key_exists($key, $style)) {
+                    foreach ($this->tokens([$key => $style[$key]], $key) as $error) {
+                        $errors[] = "styles.{$name}: {$error}";
+                    }
+                }
+            }
+
+            if (array_key_exists('custom_tokens', $style)) {
+                foreach ($this->customTokens(['custom_tokens' => $style['custom_tokens']], 'custom_tokens') as $error) {
+                    $errors[] = "styles.{$name}: {$error}";
+                }
+            }
+
+            if (array_key_exists('fonts', $style)) {
+                $file = $style['fonts'];
+
+                if (! is_string($file) || $file === '' || ! in_array($file, $files, true)) {
+                    $errors[] = "styles.{$name}.fonts must be the file of one font declared under fonts.";
+                }
             }
         }
 
