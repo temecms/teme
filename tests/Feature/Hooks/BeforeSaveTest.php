@@ -174,17 +174,22 @@ it('stops a schedule when a plugin refuses it, and writes no schedule', function
 });
 
 it('does not ask when a scheduled publish runs, because the schedule was asked when it was made', function (): void {
-    $content = app(CreateDraft::class)->execute(($this->draftInput)('Scheduled'));
-    hkSubscriber('acme/one')->on(BeforeSave::class, fn (BeforeSave $hook): Veto => new Veto('Never shown.'));
+    $editor = User::factory()->create()->assignRole('editor');
+    $content = lifecycleDraft($this->author, 'Scheduled');
+    docSave($content, $this->author, docWith(docText('Due now.')));
+    schedDue($content, $editor);
 
-    $published = app(PublishRevision::class)->execute(new PublishRevisionInput(
-        contentId: $content->id,
-        revisionId: $content->working_revision_id,
-        actorId: (string) $this->author->id,
-        askBeforeSave: false,
-    ));
+    $asked = 0;
+    hkSubscriber('acme/one')->on(BeforeSave::class, function () use (&$asked): Veto {
+        $asked++;
 
-    expect($published->status)->toBe('published');
+        return new Veto('Never shown.');
+    });
+
+    $this->artisan('teme:content:run-due-publications')->assertSuccessful();
+
+    expect($content->refresh()->status)->toBe('published')
+        ->and($asked)->toBe(0);
 });
 
 describe('a plugin’s own writes', function (): void {
