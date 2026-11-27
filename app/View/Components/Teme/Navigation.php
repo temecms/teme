@@ -67,6 +67,6 @@ final class Navigation extends Component
 
     public function render(): View
     {
-        return view(app(ComponentOverrides::class)->view('navigation', 'teme::components.navigation'));
+        return app(ComponentOverrides::class)->render('navigation', 'teme::components.navigation');
     }
 }

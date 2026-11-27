@@ -47,7 +47,7 @@ final class Image extends Component
 
     public function render(): View
     {
-        return view(app(ComponentOverrides::class)->view('image', 'teme::components.image'));
+        return app(ComponentOverrides::class)->render('image', 'teme::components.image');
     }
 
     /**

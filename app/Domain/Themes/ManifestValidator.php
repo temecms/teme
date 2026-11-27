@@ -849,9 +849,51 @@ final class ManifestValidator
                 continue;
             }
 
-            if (! is_file("{$themePath}/views/components/{$name}.blade.php")) {
+            $view = "{$themePath}/views/components/{$name}.blade.php";
+
+            if (! is_file($view)) {
                 $errors[] = "overrides {$name}, but views/components/{$name}.blade.php is missing.";
+
+                continue;
             }
+
+            $core = ComponentOverrides::CLASSES[$name]::CONTRACT;
+
+            if ($declaration['contract'] > $core) {
+                $errors[] = "overrides.{$name} is written against contract {$declaration['contract']}, but core is at contract {$core}: this theme needs a newer Teme.";
+            }
+
+            if ($name === 'comment-form') {
+                array_push($errors, ...$this->commentFormErrors((string) file_get_contents($view)));
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * What a comment-form override must keep for its comments to be read: core's fields inside the form, a form that
+     * posts to the form's action, and the data-teme-form hook core's script finds the form by.
+     *
+     * @return list<string>
+     */
+    private function commentFormErrors(string $view): array
+    {
+        $errors = [];
+
+        if (! str_contains($view, '<x-teme::comment-form-fields')) {
+            $errors[] = 'overrides.comment-form: the view must include <x-teme::comment-form-fields :form="$form" /> inside its form.';
+        }
+
+        if (preg_match('/<form\b[^>]*\baction\s*=\s*["\']\{\{\s*\$form->action\s*\}\}["\']/i', $view) !== 1) {
+            $errors[] = 'overrides.comment-form: the form must post to {{ $form->action }}.';
+        }
+
+        // Blade's {{ }} can hold a '>' (as in ->), so the tags are read without them.
+        $markup = preg_replace('/\{\{.*?\}\}/s', '""', $view) ?? $view;
+
+        if (preg_match('/<form\b[^>]*\bdata-teme-form\b/i', $markup) !== 1) {
+            $errors[] = 'overrides.comment-form: the form must carry data-teme-form, which core\'s script finds the form by.';
         }
 
         return $errors;

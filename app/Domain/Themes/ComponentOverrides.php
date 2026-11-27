@@ -1,11 +1,11 @@
 <?php
 
 /**
- * The core components a theme may replace with its own view (#788): the list, the
- * contract each one is at, and the choice each component makes when it draws. A
- * theme's view is used only when its manifest declares the override and ships the
- * view; anything else draws core's. The document and the script helpers are never
- * on the list (docs/guides/developers/themes/components.md).
+ * The core components a theme may replace with its own view (issue 788): the list, the
+ * contract each one is at, and the view each component draws. A theme's view is used only
+ * when its manifest declares the override and the view file is there; anything else draws
+ * core's. The document and the script helpers are never on the list
+ * (docs/guides/developers/themes/components.md).
  *
  * @package Teme
  * @since   next
@@ -22,11 +22,13 @@ use App\View\Components\Teme\Image;
 use App\View\Components\Teme\Languages;
 use App\View\Components\Teme\Navigation;
 use App\View\Components\Teme\Region;
+use Illuminate\Contracts\View\View;
 
 /**
- * Chooses which view a core component draws: the active theme's override when its
- * manifest declares it and ships the file, else core's own view. It also says the
- * contract number each component is at, which the theme check compares against.
+ * Chooses the view a core component draws: the active theme's override when its manifest
+ * declares it and ships the file, else core's own view. An override is drawn from its file
+ * path, so the theme's view composers don't run on it, as they don't run on core's own views.
+ * It also says the contract number each component is at, which the theme check compares with.
  */
 class ComponentOverrides
 {
@@ -45,21 +47,20 @@ class ComponentOverrides
         'comment-form' => CommentForm::class,
     ];
 
+    /** @var array<string, bool> whether each override file is there, by its path, read once per request */
+    private array $present = [];
+
     public function __construct(private readonly ActiveTheme $active) {}
 
     /**
-     * The view a component draws: the active theme's own view of it when the
-     * theme's manifest declares the override and ships the file, else core's.
+     * The view a component draws: the theme's override file when the active theme declares
+     * and ships it, else core's view by its name.
      */
-    public function view(string $name, string $core): string
+    public function render(string $name, string $core): View
     {
-        $theme = $this->active->get();
+        $file = $this->overrideFile($name);
 
-        if ($theme === null || ! array_key_exists($name, $theme->manifest?->overrides() ?? [])) {
-            return $core;
-        }
-
-        return is_file($theme->path.'/views/components/'.$name.'.blade.php') ? 'theme::components.'.$name : $core;
+        return $file === null ? view($core) : view()->file($file);
     }
 
     /**
@@ -68,5 +69,26 @@ class ComponentOverrides
     public function contractOf(string $name): int
     {
         return self::CLASSES[$name]::CONTRACT;
+    }
+
+    /**
+     * The path of the active theme's override view for a component, or null when the theme
+     * doesn't declare that override or doesn't ship its file.
+     */
+    public function overrideFile(string $name): ?string
+    {
+        $theme = $this->active->get();
+
+        if ($theme === null || ! array_key_exists($name, $theme->manifest?->overrides() ?? [])) {
+            return null;
+        }
+
+        $file = $theme->path.'/views/components/'.$name.'.blade.php';
+
+        if (! array_key_exists($file, $this->present)) {
+            $this->present[$file] = is_file($file);
+        }
+
+        return $this->present[$file] ? $file : null;
     }
 }

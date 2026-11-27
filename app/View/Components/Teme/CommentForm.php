@@ -46,6 +46,6 @@ final class CommentForm extends Component
 
     public function render(): View
     {
-        return view(app(ComponentOverrides::class)->view('comment-form', 'teme::components.comment-form'));
+        return app(ComponentOverrides::class)->render('comment-form', 'teme::components.comment-form');
     }
 }

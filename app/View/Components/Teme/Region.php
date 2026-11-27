@@ -71,6 +71,6 @@ final class Region extends Component
 
     public function render(): View
     {
-        return view(app(ComponentOverrides::class)->view('region', 'teme::components.region'));
+        return app(ComponentOverrides::class)->render('region', 'teme::components.region');
     }
 }

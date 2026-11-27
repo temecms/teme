@@ -58,6 +58,6 @@ final class BetweenItems extends Component
 
     public function render(): View
     {
-        return view(app(ComponentOverrides::class)->view('between-items', 'teme::components.between-items'));
+        return app(ComponentOverrides::class)->render('between-items', 'teme::components.between-items');
     }
 }

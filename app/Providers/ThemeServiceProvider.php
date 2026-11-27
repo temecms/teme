@@ -28,6 +28,7 @@ use App\Domain\Status\Checks\NavigationSlotsBound;
 use App\Domain\Status\Checks\ThemeUsable;
 use App\Domain\Status\StatusChecks;
 use App\Domain\Themes\ActiveTheme;
+use App\Domain\Themes\ComponentOverrides;
 use App\Domain\Themes\ComposerRegistry;
 use App\Domain\Themes\DesignSettingsGroup;
 use App\Domain\Themes\ThemeAssets;
@@ -43,6 +44,7 @@ final class ThemeServiceProvider extends ServiceProvider
     {
         $this->app->scoped(ThemeRegistry::class);
         $this->app->scoped(ActiveTheme::class);
+        $this->app->scoped(ComponentOverrides::class);
         $this->app->scoped(ComposerRegistry::class);
         $this->app->scoped(PageWarnings::class);
         $this->app->scoped(CardUsage::class);

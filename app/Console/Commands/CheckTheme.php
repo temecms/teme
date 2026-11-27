@@ -129,8 +129,8 @@ final class CheckTheme extends Command
     /**
      * Warnings about the theme's overrides of core's components: one for each
      * declared override written against an older contract than core's, and one
-     * for each view under views/components/ the manifest doesn't declare, which
-     * core's component draws in its place. Returns [] when there are none.
+     * for each of core's six components whose view the theme ships without
+     * declaring it. Returns [] when there are none.
      *
      * @return list<string>
      */
@@ -147,15 +147,13 @@ final class CheckTheme extends Command
             $core = app(ComponentOverrides::class)->contractOf($name);
 
             if ($contract < $core) {
-                $warnings[] = "The override of {$name} is written against contract {$contract}, and core is at contract {$core}. Check it against the components guide, then declare contract {$core}.";
+                $warnings[] = __('The override of :name is written against contract :theirs, and core is at contract :core. Check it against the components guide, then declare contract :core.', ['name' => $name, 'theirs' => $contract, 'core' => $core]);
             }
         }
 
-        foreach (glob($theme->path.'/views/components/*.blade.php') ?: [] as $file) {
-            $name = basename($file, '.blade.php');
-
-            if (! array_key_exists($name, $declared)) {
-                $warnings[] = "views/components/{$name}.blade.php isn't declared under overrides, so core's {$name} is drawn instead.";
+        foreach (array_keys(ComponentOverrides::CLASSES) as $name) {
+            if (is_file($theme->path.'/views/components/'.$name.'.blade.php') && ! array_key_exists($name, $declared)) {
+                $warnings[] = __('views/components/:name.blade.php isn’t declared under overrides, so core’s :name is drawn instead.', ['name' => $name]);
             }
         }
 

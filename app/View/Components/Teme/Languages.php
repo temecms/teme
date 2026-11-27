@@ -43,6 +43,6 @@ final class Languages extends Component
 
     public function render(): View
     {
-        return view(app(ComponentOverrides::class)->view('languages', 'teme::components.languages'));
+        return app(ComponentOverrides::class)->render('languages', 'teme::components.languages');
     }
 }
