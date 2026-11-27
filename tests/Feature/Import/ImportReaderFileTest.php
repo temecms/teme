@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use App\Domain\Import\File\ContentBlocks;
 use App\Domain\Import\File\Jobs\ReadImportFile;
+use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportFile;
+use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Operations\AssignImportReaderIds;
 use App\Domain\Import\Operations\ConnectImportSource;
@@ -28,6 +30,7 @@ use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
@@ -36,7 +39,9 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Sleep;
 use Illuminate\Validation\ValidationException;
 use Inertia\Middleware;
 use Tests\Fixtures\Import\ExportFiles;
@@ -432,6 +437,7 @@ it('refuses a file a reader takes longer than a read may take, rather than runni
 
 it('imports the sample export twice, and the second import changes nothing', function (): void {
     readersEnabled();
+    readerPicturesFake();
 
     $bytes = (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json'));
     FileImports::run(readerUploaded('sample.json', $bytes, fixtureReaderKey())->refresh());
@@ -440,6 +446,7 @@ it('imports the sample export twice, and the second import changes nothing', fun
     $terms = DB::table('terms')->orderBy('id')->get(['id', 'name'])->all();
     $people = DB::table('users')->orderBy('id')->get(['id', 'email'])->all();
     $mapped = DB::table('import_map')->count();
+    $media = DB::table('media')->orderBy('id')->get(['id', 'file_version'])->all();
 
     FileImports::run(readerUploaded('sample-again.json', $bytes, fixtureReaderKey())->refresh());
 
@@ -447,8 +454,10 @@ it('imports the sample export twice, and the second import changes nothing', fun
         ->and(DB::table('terms')->orderBy('id')->get(['id', 'name'])->all())->toEqual($terms)
         ->and(DB::table('users')->orderBy('id')->get(['id', 'email'])->all())->toEqual($people)
         ->and(DB::table('import_map')->count())->toBe($mapped)
+        ->and(DB::table('media')->orderBy('id')->get(['id', 'file_version'])->all())->toEqual($media)
         ->and(count($contents))->toBe(2)
-        ->and(count($terms))->toBe(1);
+        ->and(count($terms))->toBe(1)
+        ->and(count($media))->toBeGreaterThan(0);
 });
 
 it('names the import reader behind a site imported from a reader’s file, on Tools › Import', function (): void {
@@ -487,17 +496,36 @@ it('keeps a reader’s old address as an old address that leads to the post it w
         ->and((string) $old->target_id)->toBe($hello);
 });
 
-it('records the plan’s media choice on the run, so a run that leaves pictures for later is told apart from one that downloads them', function (): void {
+/**
+ * Lets an import download the fake export's picture: its host resolves to a public address,
+ * and every request is answered with a small JPEG. Any other request fails the test.
+ */
+function readerPicturesFake(): void
+{
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    Sleep::fake();
+    importResolve(['old.example.com' => ['93.184.216.34']]);
+    config(['teme.import.local_sources' => false]);
+    Http::preventStrayRequests();
+    Http::fake(fn () => Http::response(dlJpeg(), 200, ['Content-Type' => 'image/jpeg']));
+}
+
+it('records the plan’s media choice on the run, so a run that brings pictures in a pass after the articles is told apart from one that downloads them with them', function (): void {
     readersEnabled();
+    readerPicturesFake();
 
     $bytes = (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json'));
 
     $later = FileImports::run(readerUploaded('later.json', $bytes, fixtureReaderKey())->refresh(), ['media' => 'later']);
+    $passesAfterLater = ImportRun::query()->where('kind', ImportRunKind::MediaPass)->count();
     $download = FileImports::run(readerUploaded('download.json', $bytes, fixtureReaderKey())->refresh(), ['media' => 'download']);
 
     expect($later->choices['media'])->toBe('later')
         ->and($download->choices['media'])->toBe('download')
-        ->and(DB::table('media')->count())->toBe(0);
+        ->and($passesAfterLater)->toBe(1)
+        ->and(ImportRun::query()->where('kind', ImportRunKind::MediaPass)->count())->toBe(1)
+        ->and(DB::table('media')->count())->toBeGreaterThan(0);
 });
 
 it('writes a report of what a reader’s file holds, when the file is read', function (): void {
@@ -674,19 +702,28 @@ it('never makes up a login another person of the file has, so a guest is not mer
         ->and(DB::table('contents')->where('title', 'Real post')->value('author_id'))->toBe($real->id);
 });
 
-it('imports a reader’s term in a taxonomy a plugin registered with Teme, under that taxonomy', function (): void {
+it('imports a reader’s term in a taxonomy a plugin registered with Teme, under that taxonomy, and files a post under it where its type has it', function (): void {
     readersEnabled();
     app(TaxonomyRegistry::class)->register(new Taxonomy('topic', 'Topic', 'Topics', 'topics'));
+    $types = app(ContentTypeRegistry::class);
+    // The registry has no way to change a type that is registered, so the test sets post's taxonomies from inside it.
+    $withTopic = $types->get('post')->withTaxonomies(['category', 'tag', 'topic']);
+    (fn () => $this->types['post'] = $withTopic)->call($types);
 
     $export = fakeSiteExport();
     $export['items'][] = ['kind' => 'term', 'id' => 't9', 'taxonomy' => 'topic', 'name' => 'Climate', 'slug' => 'climate'];
+    $export['items'][3]['termIds'] = ['t1', 't9'];
 
     $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
     readerReadToEnd($file);
     $run = FileImports::run($file->refresh());
+    $term = DB::table('terms')->where('taxonomy', 'topic')->where('name', 'Climate')->first();
+    $post = DB::table('contents')->where('title', 'Hello')->first();
 
     expect($run->state)->toBe(ImportRunState::Finished)
-        ->and(DB::table('terms')->where('taxonomy', 'topic')->where('name', 'Climate')->exists())->toBeTrue();
+        ->and($term)->not->toBeNull()
+        ->and($post)->not->toBeNull()
+        ->and(DB::table('content_terms')->where('content_id', $post->id)->where('term_id', $term->id)->exists())->toBeTrue();
 });
 
 it('says in plain words which system a reader’s file came from, when a person in it has no email address', function (): void {

@@ -541,7 +541,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             return [$mapped, []];
         }
 
-        $missing = new ImportMessage('post.author-missing', 'Its author on WordPress didn’t come across as a person here, so it’s credited to the person you chose under Items whose author is gone.');
+        $missing = new ImportMessage('post.author-missing', 'Its author on the old site didn’t come across as a person here, so it’s credited to the person you chose under Items whose author is gone.');
 
         foreach ([$context->choice('owner'), $context->actorId()] as $candidate) {
             if (is_string($candidate) && ctype_digit($candidate) && User::query()->whereKey($candidate)->exists()) {
@@ -552,7 +552,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
         $first = User::role('administrator')->orderBy('id')->value('id');
 
         if ($first === null) {
-            throw new ImportFailed(ImportMessage::error('post.no-owner', 'Its author on WordPress didn’t come across, and Teme has no administrator to own it, so it wasn’t imported.'));
+            throw new ImportFailed(ImportMessage::error('post.no-owner', 'Its author on the old site didn’t come across, and Teme has no administrator to own it, so it wasn’t imported.'));
         }
 
         return [(string) $first, [$missing]];
@@ -662,7 +662,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
 
         if (count($terms) > self::MOST_TERMS) {
             $count = count($terms);
-            $messages[] = new ImportMessage('post.terms-many', "It had {$count} categories and tags on WordPress, more than the 50 Teme keeps on one item, so only the first 50 came across.", ['count' => $count]);
+            $messages[] = new ImportMessage('post.terms-many', "It had {$count} categories and tags on the old site, more than the 50 Teme keeps on one item, so only the first 50 came across.", ['count' => $count]);
             $terms = array_slice($terms, 0, self::MOST_TERMS);
             $byTermId = array_filter($byTermId, fn (string $termId): bool => in_array($termId, $terms, true));
         }
@@ -672,7 +672,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
         if ($left !== []) {
             $names = WordPressPost::listed(array_map(fn (string $name): string => mb_substr($name, 0, 40), array_slice($left, 0, 5)));
             $plural = mb_strtolower($type->plural);
-            $messages[] = new ImportMessage('post.terms-left', "It’s filed under {$names} on WordPress, which Teme’s {$plural} don’t have, so it isn’t filed under those here.", ['taxonomies' => array_slice($left, 0, 5)]);
+            $messages[] = new ImportMessage('post.terms-left', "It’s filed under {$names} on the old site, which Teme’s {$plural} don’t have, so it isn’t filed under those here.", ['taxonomies' => array_slice($left, 0, 5)]);
         }
 
         return ['terms' => $terms, 'byTermId' => $byTermId, 'primaryTaxonomy' => $primaryTaxonomy, 'messages' => $messages];

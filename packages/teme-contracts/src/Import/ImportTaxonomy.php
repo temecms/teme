@@ -31,7 +31,8 @@ final class ImportTaxonomy
      * `tag`, or a key of 1 to 32 characters that starts with a lower-case letter and
      * then has only lower-case letters, digits, hyphens and underscores. A word of
      * that shape is still refused unless Teme has the taxonomy registered, which the
-     * import checks when it reads the file.
+     * import checks when it reads the file. The taxonomies Teme keeps for itself, such as `nav_menu`
+     * and `language`, are refused even when registered.
      *
      * @since next
      */
