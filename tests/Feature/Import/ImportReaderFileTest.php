@@ -622,3 +622,21 @@ it('imports a reader’s term in a taxonomy a plugin registered with Teme, under
     expect($run->state)->toBe(ImportRunState::Finished)
         ->and(DB::table('terms')->where('taxonomy', 'topic')->where('name', 'Climate')->exists())->toBeTrue();
 });
+
+it('says in plain words which system a reader’s file came from, when a person in it has no email address', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'person', 'id' => 'p5', 'displayName' => 'No Mail'];
+    $export['items'][3]['authorId'] = 'p5';
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    $run = FileImports::run($file->refresh());
+
+    $messages = DB::table('import_messages')->where('run_id', $run->id)->where('code', 'user.no-email')->pluck('message')->all();
+
+    expect($messages)->toHaveCount(1)
+        ->and($messages[0])->toContain('Fake export')
+        ->and($messages[0])->not->toContain('WordPress');
+});
