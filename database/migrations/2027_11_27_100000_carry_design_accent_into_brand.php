@@ -11,6 +11,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cache\PageCache;
+use App\Domain\Cache\PageTags;
 use App\Domain\Settings\SettingsRepository;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Cache;
@@ -79,6 +81,11 @@ return new class extends Migration
         }
 
         Cache::memo()->forget(SettingsRepository::cacheKey('design'));
+
+        // Same tag Design publish purges: every page drawn in the design.
+        if ($movedLive) {
+            app(PageCache::class)->purge([PageTags::THEME]);
+        }
     }
 
     public function down(): void
@@ -94,12 +101,14 @@ return new class extends Migration
         /** @var array<string, mixed>|null $draft */
         $draft = $row->draft_values === null ? null : (json_decode((string) $row->draft_values, true) ?? []);
         $update = [];
+        $movedLive = false;
 
         if (array_key_exists('brand', $overrides) && ! array_key_exists('accent', $overrides)) {
             $overrides['accent'] = $overrides['brand'];
             unset($overrides['brand']);
             $update['overrides'] = json_encode($overrides);
             $update['version'] = DB::raw('version + 1');
+            $movedLive = true;
         }
 
         if (is_array($draft) && array_key_exists('brand', $draft) && ! array_key_exists('accent', $draft)) {
@@ -115,5 +124,9 @@ return new class extends Migration
         $update['updated_at'] = now();
         DB::table('settings')->where('group_key', 'design')->update($update);
         Cache::memo()->forget(SettingsRepository::cacheKey('design'));
+
+        if ($movedLive) {
+            app(PageCache::class)->purge([PageTags::THEME]);
+        }
     }
 };

@@ -33,7 +33,8 @@ it('carries a stored accent into brand so an existing site keeps its look', func
         'version' => 1,
     ]);
 
-    (require database_path('migrations/2027_11_27_100000_carry_design_accent_into_brand.php'))->up();
+    $migration = require database_path('migrations/2027_11_27_100000_carry_design_accent_into_brand.php');
+    $migration->up();
     Cache::memo()->forget(SettingsRepository::cacheKey('design'));
 
     expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394')
@@ -45,6 +46,41 @@ it('carries a stored accent into brand so an existing site keeps its look', func
     expect($html)
         ->toContain('--teme-brand:#0b5394')
         ->toContain('--teme-accent:#0b5394');
+});
+
+it('restores accent on down and carries brand again on up, purging theme pages', function (): void {
+    config(['teme.theme_paths' => [base_path('themes/default')]]);
+    themeActivate('default');
+    pageArticle($this->author, 'Migration purge');
+    cacheShown(['/migration-purge/' => ['theme'], '/unrelated/' => ['content:other']]);
+
+    DB::table('settings')->where('group_key', 'design')->update([
+        'overrides' => json_encode(['theme' => 'default', 'accent' => '#0b5394']),
+        'version' => 1,
+    ]);
+
+    $migration = require database_path('migrations/2027_11_27_100000_carry_design_accent_into_brand.php');
+    $migration->up();
+    Cache::memo()->forget(SettingsRepository::cacheKey('design'));
+
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394')
+        ->and(cacheKept('/migration-purge/', '/unrelated/'))->toBe(['/unrelated/']);
+
+    cacheShown(['/migration-purge/' => ['theme'], '/unrelated/' => ['content:other']]);
+    $migration->down();
+    Cache::memo()->forget(SettingsRepository::cacheKey('design'));
+
+    expect(json_decode((string) DB::table('settings')->where('group_key', 'design')->value('overrides'), true))
+        ->toHaveKey('accent', '#0b5394')
+        ->not->toHaveKey('brand')
+        ->and(cacheKept('/migration-purge/', '/unrelated/'))->toBe(['/unrelated/']);
+
+    cacheShown(['/migration-purge/' => ['theme'], '/unrelated/' => ['content:other']]);
+    $migration->up();
+    Cache::memo()->forget(SettingsRepository::cacheKey('design'));
+
+    expect(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394')
+        ->and(cacheKept('/migration-purge/', '/unrelated/'))->toBe(['/unrelated/']);
 });
 
 it('keeps the theme\'s own accent when Use the site\'s brand colour is off', function (): void {
