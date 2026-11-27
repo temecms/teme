@@ -9,6 +9,7 @@ use App\Domain\Fediverse\Models\FediverseObject;
 use App\Domain\Fediverse\Publishing\ContentActivities;
 use App\Domain\Fediverse\Queries\FediverseDocuments;
 use App\Domain\Fediverse\Remote\RemoteFetcher;
+use App\Domain\Fediverse\Replies\Operations\ReceiveFediverseReply;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -21,6 +22,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Teme\Contracts\Comments\CommentCandidate;
 use Teme\Contracts\Comments\ModerationVerdict;
 use Tests\Fixtures\Fediverse\Actors;
@@ -113,4 +115,45 @@ it('judges an edited reply on its new words, and holds it when the plugin marks 
 
     expect(Checker::$asked)->toContain('Buy now.')
         ->and(Comment::query()->whereKey($comment->id)->value('status'))->not->toBe(ModerationVerdict::APPROVED);
+});
+
+it('never asks the plugin about an edit to a comment core has not judged', function (): void {
+    fcheckEnabled();
+    fcheckReply($this->post, 'https://remote.example/statuses/20', '<p>Lovely harbour.</p>');
+    expect(Comment::query()->sole()->status)->toBe('pending');
+    Checker::reset();
+
+    (new ProcessInboxActivity([
+        '@context' => 'https://www.w3.org/ns/activitystreams',
+        'id' => 'https://remote.example/statuses/20/activity',
+        'type' => 'Update',
+        'actor' => Inbox::ALICE,
+        'object' => ['id' => 'https://remote.example/statuses/20', 'type' => 'Note', 'attributedTo' => Inbox::ALICE, 'inReplyTo' => $this->post, 'content' => '<p>Buy now.</p>'],
+    ], Inbox::ALICE.'#main-key', Inbox::ALICE))->handle(app(FediverseDocuments::class), app(RemoteFetcher::class));
+
+    expect(Checker::$asked)->toBe([]);
+});
+
+it('never asks the plugin about a reply the hourly limit refuses', function (): void {
+    fcheckEnabled();
+    Checker::reset();
+
+    for ($sent = 0; $sent < ReceiveFediverseReply::MAX; $sent++) {
+        RateLimiter::hit('comments:fediverse:'.sha1(Inbox::ALICE), ReceiveFediverseReply::DECAY);
+    }
+
+    fcheckReply($this->post, 'https://remote.example/statuses/21', '<p>Buy now.</p>');
+
+    expect(Checker::$asked)->toBe([])
+        ->and(Comment::query()->count())->toBe(0);
+});
+
+it('never asks the plugin about a reply that was taken already', function (): void {
+    fcheckEnabled();
+    fcheckReply($this->post, 'https://remote.example/statuses/22', '<p>Lovely harbour.</p>');
+    Checker::reset();
+
+    fcheckReply($this->post, 'https://remote.example/statuses/22', '<p>Lovely harbour.</p>');
+
+    expect(Checker::$asked)->toBe([]);
 });

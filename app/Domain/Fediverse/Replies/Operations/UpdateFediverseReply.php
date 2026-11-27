@@ -59,15 +59,35 @@ final class UpdateFediverseReply extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var FediverseReplyInput $input */
-        if (! FediverseObject::query()->whereKey($input->uri())->where('kind', FediverseObject::REPLY)->whereNull('deleted_at')->exists()) {
+        self::admit($input, record: true);
+    }
+
+    /**
+     * The checks an edit must pass before it is saved, and nothing is written:
+     * the reply it changes, that its writer made it, its words and the hourly
+     * limit. With $record the limit counts this edit; without it the limit is
+     * only read, so a plugin is asked only about an edit that will be judged.
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    public static function admit(FediverseReplyInput $input, bool $record): void
+    {
+        $object = FediverseObject::query()->whereKey($input->uri())->where('kind', FediverseObject::REPLY)->whereNull('deleted_at')->first();
+
+        if ($object === null) {
             throw ValidationException::withMessages(['object' => 'No reply of this site’s is at that address.']);
+        }
+
+        if ($object->remote_actor_id !== $input->remoteActorId) {
+            throw new AuthorizationException('Only the account that wrote a reply changes it.');
         }
 
         if (app(RemoteWords::class)->document(is_string($input->object['content'] ?? null) ? $input->object['content'] : '') === null) {
             throw ValidationException::withMessages(['object' => 'The reply holds no words, or too many.']);
         }
 
-        ReceiveFediverseReply::count(RemoteActor::query()->findOrFail($input->remoteActorId));
+        ReceiveFediverseReply::count(RemoteActor::query()->findOrFail($input->remoteActorId), $record);
     }
 
     protected function perform(OperationInput $input): string

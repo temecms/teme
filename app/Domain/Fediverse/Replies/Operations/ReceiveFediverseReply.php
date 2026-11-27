@@ -67,6 +67,20 @@ final class ReceiveFediverseReply extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var FediverseReplyInput $input */
+        self::admit($input, record: true);
+    }
+
+    /**
+     * The checks a reply must pass before it is saved, and nothing is written:
+     * its address, its writer, whether it was taken, its target, its words and
+     * the hourly limit. With $record the limit counts this reply; without it the
+     * limit is only read, so a plugin is asked only about a reply that will be kept.
+     *
+     * @throws ValidationException
+     */
+    public static function admit(FediverseReplyInput $input, bool $record): void
+    {
+        /** @var FediverseReplyInput $input */
         $remote = RemoteActor::query()->findOrFail($input->remoteActorId);
         $object = $input->object;
         $uri = $input->uri();
@@ -99,7 +113,7 @@ final class ReceiveFediverseReply extends BaseOperation
             throw ValidationException::withMessages(['object' => 'The reply holds no words, or too many.']);
         }
 
-        self::count($remote);
+        self::count($remote, $record);
     }
 
     /**
@@ -140,7 +154,7 @@ final class ReceiveFediverseReply extends BaseOperation
      *
      * @throws ValidationException
      */
-    public static function count(RemoteActor $remote): void
+    public static function count(RemoteActor $remote, bool $record = true): void
     {
         $key = 'comments:fediverse:'.sha1($remote->uri);
 
@@ -148,7 +162,9 @@ final class ReceiveFediverseReply extends BaseOperation
             throw ValidationException::withMessages(['object' => 'Dropped: the account sent too many replies in an hour.']);
         }
 
-        RateLimiter::hit($key, self::DECAY);
+        if ($record) {
+            RateLimiter::hit($key, self::DECAY);
+        }
     }
 
     protected function perform(OperationInput $input): string
