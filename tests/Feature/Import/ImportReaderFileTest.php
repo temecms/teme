@@ -462,3 +462,16 @@ it('refuses to connect WordPress to a site a reader’s file already imported fr
     expect(fn () => app(ConnectImportSource::class)->execute(new ConnectImportSourceInput(FakeCompanion::SITE, FakeCompanion::USER, FakeCompanion::PASSWORD, (string) $this->admin->id)))
         ->toThrow(ValidationException::class, 'This site was imported from another system, so it can’t be connected to WordPress here.');
 });
+
+it('refuses a reader’s term in a taxonomy Teme keeps for itself, or doesn’t have', function (string $taxonomy): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'term', 'id' => 't9', 'taxonomy' => $taxonomy, 'name' => 'Odd', 'slug' => 'odd'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('A term of this file has a taxonomy Teme doesn’t know.');
+})->with(['post_tag', 'language', 'nav_menu', 'no-such-taxonomy']);

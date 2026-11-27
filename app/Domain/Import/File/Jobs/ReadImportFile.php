@@ -33,6 +33,7 @@ use App\Domain\Import\Reader\ReaderSite;
 use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Support\Security\JobActor;
+use App\Domain\Types\TaxonomyRegistry;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -252,7 +253,7 @@ final class ReadImportFile implements ShouldQueue
     private function unknownWord(array $items): ?string
     {
         foreach ($items as $item) {
-            if ($item->kind === ImportKind::TERM && ! ImportTaxonomy::valid((string) ($item->fields['taxonomy'] ?? 'category'))) {
+            if ($item->kind === ImportKind::TERM && ! $this->taxonomyKnown((string) ($item->fields['taxonomy'] ?? 'category'))) {
                 return 'A term of this file has a taxonomy Teme doesn’t know.';
             }
 
@@ -262,6 +263,22 @@ final class ReadImportFile implements ShouldQueue
         }
 
         return null;
+    }
+
+    /**
+     * Whether a reader may give a term this taxonomy: categories and tags, or a
+     * taxonomy Teme has registered that isn't one Teme keeps for itself, such
+     * as navigation menus or languages.
+     */
+    private function taxonomyKnown(string $taxonomy): bool
+    {
+        if ($taxonomy === ImportTaxonomy::CATEGORY || $taxonomy === ImportTaxonomy::TAG) {
+            return true;
+        }
+
+        return ImportTaxonomy::valid($taxonomy)
+            && ! in_array($taxonomy, TermRows::INTERNAL, true)
+            && app(TaxonomyRegistry::class)->has($taxonomy);
     }
 
     private function refuseReader(string $sentence): void
