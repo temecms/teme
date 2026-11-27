@@ -3,7 +3,8 @@
 /**
  * The ImageEngine on Intervention Image 4, with the GD or Imagick driver. It
  * applies the camera's orientation, strips metadata, and turns animations
- * into stills from their first frame.
+ * into stills from their first frame: only that frame is ever decoded, since
+ * decoding every frame of a long animation runs out of memory (issue 806).
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -32,7 +33,7 @@ final class InterventionImageEngine implements ImageEngine
         $this->manager = new ImageManager(
             $driver === 'imagick' ? ImagickDriver::class : GdDriver::class,
             autoOrientation: true,
-            decodeAnimation: true,
+            decodeAnimation: false,
             strip: true,
         );
     }
@@ -63,7 +64,12 @@ final class InterventionImageEngine implements ImageEngine
             return null;
         }
 
-        return ['width' => $image->width(), 'height' => $image->height(), 'animated' => $image->isAnimated()];
+        // Only the first frame is decoded, so a GIF damaged after it is caught by reading its blocks.
+        if (! Animation::intact($path)) {
+            return null;
+        }
+
+        return ['width' => $image->width(), 'height' => $image->height(), 'animated' => Animation::in($path)];
     }
 
     public function variants(string $source, array $widths, int $thumbnail, int $focalX, int $focalY, string $directory, array $share = []): array

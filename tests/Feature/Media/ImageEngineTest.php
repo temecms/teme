@@ -29,6 +29,33 @@ it('reads an image without decoding more than it must', function (): void {
     expect(app(ImageEngine::class)->inspect(mediaJpeg(640, 480)))->toBe(['width' => 640, 'height' => 480, 'animated' => false]);
 });
 
+it('reads an animated GIF of many frames from its first frame, and still knows it is animated (issue 806)', function (): void {
+    $gif = mediaAnimatedGif(600, 600, 200);
+    memory_reset_peak_usage();
+    $before = memory_get_usage();
+
+    $read = app(ImageEngine::class)->inspect($gif);
+
+    // Every frame decoded would need about 288 MB; the first frame alone a few.
+    expect($read)->toBe(['width' => 600, 'height' => 600, 'animated' => true])
+        ->and(memory_get_peak_usage() - $before)->toBeLessThan(48 * 1024 * 1024);
+});
+
+it('makes the sizes of an animated GIF of many frames from its first frame (issue 806)', function (): void {
+    $gif = mediaAnimatedGif(600, 600, 200);
+    memory_reset_peak_usage();
+    $before = memory_get_usage();
+
+    $made = app(ImageEngine::class)->variants($gif, [320], 150, 50, 50, mediaWorkDirectory());
+
+    expect($made['w320']['width'])->toBe(320)
+        ->and(memory_get_peak_usage() - $before)->toBeLessThan(48 * 1024 * 1024);
+});
+
+it('knows a still GIF is not animated', function (): void {
+    expect(app(ImageEngine::class)->inspect(mediaAnimatedGif(40, 30, 1)))->toBe(['width' => 40, 'height' => 30, 'animated' => false]);
+});
+
 it('knows which formats the GD driver can read', function (): void {
     $engine = app(ImageEngine::class);
 
