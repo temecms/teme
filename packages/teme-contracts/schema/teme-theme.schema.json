@@ -351,6 +351,28 @@
             },
             "additionalProperties": { "type": "string", "minLength": 1 }
         },
+        "styles": {
+            "type": "object",
+            "description": "Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews use the chosen style over the base tokens and preload.",
+            "propertyNames": {
+                "pattern": "^[a-z0-9-]+$"
+            },
+            "additionalProperties": {
+                "type": "object",
+                "required": ["label"],
+                "properties": {
+                    "label": { "type": "string", "minLength": 1 },
+                    "tokens": { "$ref": "#/properties/tokens" },
+                    "tokens_dark": { "$ref": "#/properties/tokens_dark" },
+                    "custom_tokens": { "$ref": "#/properties/custom_tokens" },
+                    "fonts": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "The file of one font declared under fonts; that font is preloaded for this style."
+                    }
+                }
+            }
+        },
         "speculation": {
             "type": "boolean",
             "description": "A theme may only opt out: false leaves the prerendering rules out."

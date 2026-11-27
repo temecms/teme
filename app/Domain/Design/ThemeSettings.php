@@ -18,6 +18,7 @@ use App\Domain\Cache\PageTags;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Themes\Manifest;
+use App\Domain\Themes\ManifestValidator;
 use App\Domain\Themes\ThemeRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
@@ -41,6 +42,7 @@ final readonly class ThemeSettings
             }
 
             $settings = [
+                ...$this->styleSetting($manifest),
                 ...array_map($this->setting(...), $manifest->settings()),
                 ...ThemeSlotSettings::settings($manifest),
             ];
@@ -63,6 +65,33 @@ final readonly class ThemeSettings
                 screen: 'themes.index',
             ));
         }
+    }
+
+    /**
+     * The Style select core adds when the theme declares styles (issue 371),
+     * defaulting to the first style, or [] when it declares none.
+     *
+     * @return list<Setting>
+     */
+    private function styleSetting(Manifest $manifest): array
+    {
+        $styles = $manifest->styles();
+
+        if ($styles === []) {
+            return [];
+        }
+
+        $options = [];
+
+        foreach ($styles as $name => $style) {
+            $options[$name] = $style['label'];
+        }
+
+        return [
+            Setting::select(ManifestValidator::STYLE_SETTING, 'Style', 'Which look the theme draws with.', 'next', $options)
+                ->default((string) array_key_first($options))
+                ->fieldset('site'),
+        ];
     }
 
     /**

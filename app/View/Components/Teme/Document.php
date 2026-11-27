@@ -130,14 +130,17 @@ final class Document extends Component
         $this->lang = $model instanceof ArticleView ? $language->forContent($model->id) : app(PageLanguage::class)->tag();
         $this->dir = app(SiteLanguages::class)->direction($this->lang);
         $this->title = $titles->for($model, $composers->intent()->isFront ?? false);
-        $this->preload = $this->preloadOf($code, $manifest?->preloadedFont()['file'] ?? null);
+        $chosen = $design->style();
+        $variation = $chosen === null ? null : ($manifest?->styles()[$chosen] ?? null);
+        $preloadFile = $variation['fonts'] ?? $manifest?->preloadedFont()['file'] ?? null;
+        $this->preload = $this->preloadOf($code, $preloadFile);
         $this->scheme = $design->scheme();
         $accent = $design->accent();
         $this->tokens = $this->styleOf(
-            $manifest?->tokens() ?? [],
-            $manifest?->tokensDark() ?? [],
+            $variation['tokens'] ?? $manifest?->tokens() ?? [],
+            $variation['tokens_dark'] ?? $manifest?->tokensDark() ?? [],
             $accent === '' ? null : Contrast::accentSchemes($accent, $manifest),
-            $manifest?->customTokens() ?? [],
+            $variation['custom_tokens'] ?? $manifest?->customTokens() ?? [],
             $manifest?->customTokensDark() ?? [],
         );
         $this->assets = $assets->tags();

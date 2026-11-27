@@ -19,6 +19,7 @@ namespace App\Domain\Design;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Themes\ActiveTheme;
+use App\Domain\Themes\ManifestValidator;
 use Teme\Contracts\Settings\SettingsReader;
 
 final readonly class SiteDesign
@@ -38,6 +39,26 @@ final readonly class SiteDesign
     public function accent(): string
     {
         return $this->settings->string('design', 'accent');
+    }
+
+    /**
+     * The active theme's chosen style variation (issue 371), or null when
+     * the theme declares none or the value is not one of them. A design
+     * preview's draft is read through SettingsReader.
+     *
+     * @since next
+     */
+    public function style(): ?string
+    {
+        $styles = $this->active->get()?->manifest?->styles() ?? [];
+
+        if ($styles === []) {
+            return null;
+        }
+
+        $chosen = $this->themeSetting(ManifestValidator::STYLE_SETTING);
+
+        return is_string($chosen) && array_key_exists($chosen, $styles) ? $chosen : array_key_first($styles);
     }
 
     /**

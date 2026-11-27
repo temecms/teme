@@ -324,6 +324,41 @@ final readonly class Manifest
     }
 
     /**
+     * Named style variations (issue 371): name => label, tokens, tokens_dark,
+     * custom_tokens and the font file to preload, or [] when the theme has
+     * none. The first name is the default Style setting.
+     *
+     * @return array<string, array{label: string, tokens: array<string, string>|null, tokens_dark: array<string, string>|null, custom_tokens: array<string, string>|null, fonts: string|null}>
+     *
+     * @since next
+     */
+    public function styles(): array
+    {
+        $styles = $this->raw['styles'] ?? null;
+        $clean = [];
+
+        if (! is_array($styles)) {
+            return [];
+        }
+
+        foreach ($styles as $name => $style) {
+            if (! is_string($name) || ! is_array($style) || ! is_string($style['label'] ?? null)) {
+                continue;
+            }
+
+            $clean[$name] = [
+                'label' => $style['label'],
+                'tokens' => array_key_exists('tokens', $style) ? $this->mapOf($style['tokens']) : null,
+                'tokens_dark' => array_key_exists('tokens_dark', $style) ? $this->mapOf($style['tokens_dark']) : null,
+                'custom_tokens' => array_key_exists('custom_tokens', $style) ? $this->mapOf($style['custom_tokens']) : null,
+                'fonts' => is_string($style['fonts'] ?? null) ? $style['fonts'] : null,
+            ];
+        }
+
+        return $clean;
+    }
+
+    /**
      * Whether pages carry speculation rules; a theme may only opt out.
      */
     public function speculation(): bool
@@ -429,8 +464,14 @@ final readonly class Manifest
      */
     private function tokenMap(string $key): array
     {
-        $tokens = $this->raw[$key] ?? null;
+        return $this->mapOf($this->raw[$key] ?? null);
+    }
 
+    /**
+     * @return array<string, string>
+     */
+    private function mapOf(mixed $tokens): array
+    {
         return is_array($tokens) ? array_filter($tokens, fn (mixed $value, mixed $name): bool => is_string($name) && is_string($value), ARRAY_FILTER_USE_BOTH) : [];
     }
 
