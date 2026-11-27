@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Plugins\Checker;
 
 use Closure;
+use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Comments\CommentCandidate;
 use Teme\Contracts\Comments\HasCommentCheck;
 use Teme\Contracts\Comments\ModerationVerdict;
@@ -23,10 +24,14 @@ final class Checker implements HasCommentCheck, Plugin
     /** @var list<string> */
     public static array $asked = [];
 
+    /** The database transaction level each check ran at. @var list<int> */
+    public static array $levels = [];
+
     public static function reset(): void
     {
         self::$verdict = null;
         self::$asked = [];
+        self::$levels = [];
     }
 
     public function register(Hooks $hooks): void {}
@@ -34,6 +39,7 @@ final class Checker implements HasCommentCheck, Plugin
     public function check(CommentCandidate $comment): ?ModerationVerdict
     {
         self::$asked[] = $comment->text;
+        self::$levels[] = DB::transactionLevel();
 
         return self::$verdict === null ? null : (self::$verdict)($comment);
     }

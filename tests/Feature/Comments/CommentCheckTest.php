@@ -19,6 +19,8 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Comments\CommentCandidate;
 use Teme\Contracts\Comments\ModerationVerdict;
 use Tests\Fixtures\Plugins\Checker\Checker;
@@ -167,4 +169,39 @@ it('does not ask the plugin about a comment by someone who looks after the item'
     $admission = SubmitComment::admission(new SubmitCommentInput(contentId: $this->item->id, text: 'Thanks', actorId: (string) $editor->id, ip: '203.0.113.7'), record: false);
 
     expect($admission['lookedAfter'])->toBeTrue();
+});
+
+it('runs the check outside the save’s transaction, as the request found it', function (): void {
+    checkerEnabled();
+    Checker::$verdict = fn (CommentCandidate $comment): ModerationVerdict => new ModerationVerdict(ModerationVerdict::APPROVED, 'Fine.');
+    $before = DB::transactionLevel();
+
+    $this->post('/_teme/comments', ['path' => '/harbour-news/', 'text' => 'Lovely piece.', 'name' => 'Ada Guest', 'email' => 'ada@example.com', 'token' => 'browser-one-0123456789abcdef']);
+
+    expect(Checker::$levels)->toBe([$before]);
+});
+
+it('refuses to enable a check that was not granted comments.check, and asks it nothing', function (): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+    app()->instance(LoadedPlugins::class, new LoadedPlugins);
+    PluginFixtures::use('checker');
+    Checker::$verdict = fn (CommentCandidate $comment): ModerationVerdict => new ModerationVerdict(ModerationVerdict::SPAM, 'Spam.');
+
+    expect(fn () => app(EnablePlugin::class)->execute(new EnablePluginInput('tests/checker', '1.0.0', [], [], [], null)))
+        ->toThrow(ValidationException::class);
+
+    app()->forgetInstance(Elevation::class);
+    app()->forgetInstance(CommentChecks::class);
+
+    expect(app(CommentChecks::class)->verdict(commentCandidateFor($this->item, 'Buy now')))->toBeNull()
+        ->and(Checker::$asked)->toBe([]);
+});
+
+it('holds a comment the plugin marks as spam when it comes in through the comment route', function (): void {
+    checkerEnabled();
+    Checker::$verdict = fn (CommentCandidate $comment): ModerationVerdict => new ModerationVerdict(ModerationVerdict::SPAM, 'Looks like spam.');
+
+    $this->post('/_teme/comments', ['path' => '/harbour-news/', 'text' => 'Buy now', 'name' => 'Ada Guest', 'email' => 'ada@example.com', 'token' => 'browser-one-0123456789abcdef']);
+
+    expect(Comment::query()->where('body', 'like', '%Buy now%')->value('status'))->toBe(ModerationVerdict::SPAM);
 });
