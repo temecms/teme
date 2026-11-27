@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "tests/readers",
+    "code": "readers",
+    "label": "Readers",
+    "description": "A plugin the tests enable, which reads a fake export file for the import engine.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Readers\\Readers",
+    "capabilities": ["import.read"],
+    "contributes": {
+        "importReaders": [{ "id": "fake-export", "label": "Fake export", "fileTypes": ["json"] }]
+    }
+}
