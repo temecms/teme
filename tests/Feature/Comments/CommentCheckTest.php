@@ -5,11 +5,13 @@ declare(strict_types=1);
 use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\Models\Comment;
 use App\Domain\Contents\Models\Content;
+use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -92,4 +94,33 @@ it('merges verdicts strictest first, and treats no opinion as none', function ()
 
 it('asks no plugin when none fills the slot', function (): void {
     expect(app(CommentChecks::class)->verdict(commentCandidateFor($this->item, 'Hello')))->toBeNull();
+});
+
+it('skips a check that answers over its budget, and asks it no more in the request', function (): void {
+    checkerEnabled();
+    $clock = new class implements ColumnClock
+    {
+        public int $now = 0;
+
+        public function nanoseconds(): int
+        {
+            return $this->now;
+        }
+    };
+    app()->instance(ColumnClock::class, $clock);
+    app()->forgetInstance(SeoPlugins::class);
+    app()->forgetInstance(CommentChecks::class);
+    // Sleeps past the 200 ms budget on the clock core reads.
+    Checker::$verdict = function () use ($clock): ModerationVerdict {
+        $clock->now += 300_000_000;
+
+        return new ModerationVerdict(ModerationVerdict::SPAM, 'Late.');
+    };
+
+    $first = app(CommentChecks::class)->verdict(commentCandidateFor($this->item, 'First'));
+    $second = app(CommentChecks::class)->verdict(commentCandidateFor($this->item, 'Second'));
+
+    expect($first)->toBeNull()
+        ->and($second)->toBeNull()
+        ->and(Checker::$asked)->toBe(['First']);
 });
