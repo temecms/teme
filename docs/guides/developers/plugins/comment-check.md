@@ -31,7 +31,7 @@ The candidate also has `signals`, the hidden form fields a comment form carried.
 
 A check is given the commenter's words, name, email address, website, IP address and browser so it can judge spam, and nothing else. Keep nothing it sends you beyond the answer. If your check keeps a copy, a spam model's training set or a log, your site's privacy policy must say so, and the copy must be deleted when you delete the site's record of the comment.
 
-Teme does not yet tell a plugin when a commenter's data is erased, so a check that keeps anything has no way to hear about it. This is why the guide asks you to keep nothing. The site's own privacy policy must name the service that receives comments, whether or not it keeps them.
+If your check keeps anything, hear about erasure the way any plugin does: contribute a personal data holder (`Teme\Contracts\Privacy\CollectPersonalDataHolders`, whose `PersonalDataHolder` is asked to export and to erase what you keep for a person). Keeping nothing is still the simplest way. The site's own privacy policy must name the service that receives comments, whether or not it keeps them.
 
 ## Fediverse replies
 

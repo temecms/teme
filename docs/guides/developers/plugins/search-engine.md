@@ -37,7 +37,7 @@ The plugin asks for `search.read`, which the person agrees to at enable time, an
 "provides": ["search"]
 ```
 
-Teme refuses to enable a search engine that does not ask for `search.read`. The engine then receives each visitor's search words, and the text of each published item it is sent to index, and nothing else. It is sent no draft, no private or password-protected item, and no item of a type hidden from search.
+Teme refuses to enable a search engine that does not ask for `search.read`. The engine then receives each visitor's search words, and the text of each published item it is sent to index, and nothing else. It is sent no draft, and no private or password-protected item.
 
 ## Keeping the index
 
