@@ -226,7 +226,7 @@ final class ReaderRows
         return [
             'list' => TermRows::listOf($taxonomy),
             'id' => $id,
-            'payload' => TermRows::payload($id, $taxonomy, $name, $slug, (string) ($item->fields['description'] ?? ''), 0, null),
+            'payload' => TermRows::payload($id, $taxonomy, $name, $slug, (string) ($item->fields['description'] ?? ''), $this->ids[self::key(ImportKind::TERM, $item->parentId ?? '')] ?? 0, null),
         ];
     }
 
@@ -255,16 +255,16 @@ final class ReaderRows
             'modified_gmt' => $item->modifiedAt,
             'author' => $this->people[$item->authorId ?? ''] ?? 0,
             'parent' => $this->contentId($item->parentId) ?? 0,
-            'menu_order' => 0,
+            'menu_order' => $item->order,
             'comment_status' => 'closed',
             'ping_status' => 'closed',
             'password' => '',
-            'sticky' => false,
+            'sticky' => $item->sticky,
             'format' => null,
             'template' => null,
-            'featured_media' => null,
+            'featured_media' => $item->featuredMediaId === null ? null : ($this->ids[self::key(ImportKind::MEDIA, $item->featuredMediaId)] ?? null),
             'terms' => $terms,
-            'excerpt' => '',
+            'excerpt' => $item->excerpt,
             'content' => $content,
             'has_blocks' => str_contains($content, '<!-- wp:'),
             'blocks' => $blocks->tree($content),
@@ -362,8 +362,8 @@ final class ReaderRows
 
         return [
             'id' => $this->idOf($item),
-            'parent' => 0,
-            'author' => 0,
+            'parent' => $this->contentId($item->parentId) ?? 0,
+            'author' => $this->people[$item->authorId ?? ''] ?? 0,
             'date_gmt' => $item->publishedAt,
             'modified_gmt' => $item->modifiedAt,
             'status' => 'inherit',

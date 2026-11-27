@@ -55,5 +55,8 @@ final readonly class ImportItem
         public ?string $itemType = null,
         public ?string $objectId = null,
         public int $order = 0,
+        public string $excerpt = '',
+        public bool $sticky = false,
+        public ?string $featuredMediaId = null,
     ) {}
 }

@@ -160,6 +160,9 @@ final class FakeImportReader implements ImportReader
             itemType: isset($raw['itemType']) ? (string) $raw['itemType'] : null,
             objectId: isset($raw['objectId']) ? (string) $raw['objectId'] : null,
             order: (int) ($raw['order'] ?? 0),
+            excerpt: (string) ($raw['excerpt'] ?? ''),
+            sticky: (bool) ($raw['sticky'] ?? false),
+            featuredMediaId: isset($raw['featuredMediaId']) ? (string) $raw['featuredMediaId'] : null,
         );
     }
 }

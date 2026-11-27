@@ -283,3 +283,35 @@ it('imports a reader’s tag in the engine’s taxonomy word, and a menu item of
         ->and(DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'taxonomy' = 'post_tag'")->exists())->toBeTrue()
         ->and(DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'type' = 'post_type'")->exists())->toBeTrue();
 });
+
+it('carries a reader’s excerpt, sticky flag, featured picture, menu order, term parent and media parent and author', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'term', 'id' => 't2', 'taxonomy' => 'category', 'name' => 'Local', 'slug' => 'local', 'parentId' => 't1'];
+    $export['items'][3]['excerpt'] = 'A short summary';
+    $export['items'][3]['sticky'] = true;
+    $export['items'][3]['featuredMediaId'] = 'm1';
+    $export['items'][3]['order'] = 4;
+    $export['items'][2]['parentId'] = 'i1';
+    $export['items'][2]['authorId'] = 'p1';
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $post = DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'content')->whereRaw("payload->>'title' = 'Hello'")->value('payload');
+    $media = DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'media')->value('payload');
+    $local = DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'name' = 'Local'")->value('payload');
+    $post = json_decode((string) $post, true);
+    $media = json_decode((string) $media, true);
+    $local = json_decode((string) $local, true);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($post['excerpt'])->toBe('A short summary')
+        ->and($post['sticky'])->toBeTrue()
+        ->and($post['featured_media'])->toBe($media['id'])
+        ->and($post['menu_order'])->toBe(4)
+        ->and($local['parent'])->toBe(DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'name' = 'News'")->value(DB::raw("(payload->>'id')::bigint")))
+        ->and($media['parent'])->toBe($post['id'])
+        ->and($media['author'])->toBe(DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'users')->value(DB::raw("(payload->>'id')::bigint")));
+});
