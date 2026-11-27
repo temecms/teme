@@ -43,12 +43,14 @@
 | `layout.wide` | integer | yes |  |  |
 | `layout.full` | integer\|null | no | Null for the whole viewport. |  |
 | `images` | object | no | Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses. |  |
-| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each (family, weight, style, src as the same-origin theme file, font-display swap) and preloads at most one. Each file is relative to the theme's public folder and exists there. A theme that writes its own @font-face rules leaves this key out. |  |
+| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each with face true or absent (family, weight, style, src as the same-origin theme file, font-display swap, optional unicode_range) and preloads at most one. face false means preload only — the theme ships its own @font-face. Each file is relative to the theme's public folder and exists there. A theme that writes every face itself may leave this key out, or keep it for preload with face false. |  |
 | `fonts[].family` | string | yes |  |  |
 | `fonts[].file` | string | yes |  |  |
 | `fonts[].weight` | string\|integer | no | Any number or text, such as 400 or "400 700". |  |
 | `fonts[].style` | string | no |  | "normal", "italic", "oblique" |
 | `fonts[].preload` |  | no | Only true preloads the font; any other value, or none, does not. |  |
+| `fonts[].face` | boolean | no | Whether core writes an @font-face for this font; true when absent. false keeps preload and leaves the face to the theme. |  |
+| `fonts[].unicode_range` | string | no | Optional unicode-range for the @font-face core writes; omitted when face is false. |  |
 | `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens. |  |
 | `tokens.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |

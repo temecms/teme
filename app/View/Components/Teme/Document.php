@@ -256,8 +256,9 @@ final class Document extends Component
     /**
      * `@font-face` rules for the theme's fonts (issue 372), or '' when it
      * declares none. Family is quoted; src is the same-origin theme address.
+     * A font with `face` false is preloaded only; core writes no face for it.
      *
-     * @param  list<array{family: string, file: string, weight: string, style: string, preload: bool}>  $fonts
+     * @param  list<array{family: string, file: string, weight: string, style: string, preload: bool, face?: bool, unicode_range?: string|null}>  $fonts
      */
     private function fontFaces(?string $code, array $fonts): string
     {
@@ -268,11 +269,21 @@ final class Document extends Component
         $rules = [];
 
         foreach ($fonts as $font) {
-            if (preg_match('/[;{}<>]/', $font['family'].$font['weight'].$font['style'].$font['file']) === 1) {
+            if (($font['face'] ?? true) === false) {
                 continue;
             }
 
-            $rules[] = '@font-face{font-family:"'.$font['family'].'";font-weight:'.$font['weight'].';font-style:'.$font['style'].';src:url('.asset("themes/{$code}/{$font['file']}").') format("woff2");font-display:swap}';
+            if (preg_match('/[;{}<>"\\\\]/', $font['family'].$font['weight'].$font['style'].$font['file'].($font['unicode_range'] ?? '')) === 1) {
+                continue;
+            }
+
+            $rule = '@font-face{font-family:"'.$font['family'].'";font-weight:'.$font['weight'].';font-style:'.$font['style'].';src:url('.asset("themes/{$code}/{$font['file']}").') format("woff2");font-display:swap';
+
+            if (is_string($font['unicode_range'] ?? null) && $font['unicode_range'] !== '') {
+                $rule .= ';unicode-range:'.$font['unicode_range'];
+            }
+
+            $rules[] = $rule.'}';
         }
 
         return implode('', $rules);

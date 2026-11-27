@@ -710,6 +710,18 @@ final class ManifestValidator
                 $errors[] = "The font {$font['family']} has a style that isn't normal, italic or oblique.";
             }
 
+            if (array_key_exists('face', $font) && ! is_bool($font['face'])) {
+                $errors[] = "The font {$font['family']} has a face that isn't true or false.";
+            }
+
+            if (array_key_exists('unicode_range', $font)) {
+                $range = $font['unicode_range'];
+
+                if (! is_string($range) || trim($range) === '' || preg_match('/[;{}<>"\\\\]/', $range) === 1) {
+                    $errors[] = "The font {$font['family']} needs a unicode_range with no ; { } < > \" or \\.";
+                }
+            }
+
             if (($font['preload'] ?? false) === true) {
                 $preloaded++;
             }

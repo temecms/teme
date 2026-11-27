@@ -233,7 +233,7 @@ final readonly class Manifest
     /**
      * The theme's fonts, their files relative to its public folder.
      *
-     * @return list<array{family: string, file: string, weight: string, style: string, preload: bool}>
+     * @return list<array{family: string, file: string, weight: string, style: string, preload: bool, face: bool, unicode_range: string|null}>
      */
     public function fonts(): array
     {
@@ -248,6 +248,8 @@ final readonly class Manifest
                     'weight' => is_scalar($font['weight'] ?? null) ? (string) $font['weight'] : '400',
                     'style' => is_string($font['style'] ?? null) ? $font['style'] : 'normal',
                     'preload' => ($font['preload'] ?? false) === true,
+                    'face' => ($font['face'] ?? true) !== false,
+                    'unicode_range' => is_string($font['unicode_range'] ?? null) ? $font['unicode_range'] : null,
                 ];
             }
         }
@@ -258,7 +260,7 @@ final readonly class Manifest
     /**
      * The one font the page preloads, or null.
      *
-     * @return array{family: string, file: string, weight: string, style: string, preload: bool}|null
+     * @return array{family: string, file: string, weight: string, style: string, preload: bool, face: bool, unicode_range: string|null}|null
      */
     public function preloadedFont(): ?array
     {
