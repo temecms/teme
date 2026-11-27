@@ -710,6 +710,12 @@ final class ManifestValidator
                 $errors[] = "The font {$font['family']} has a style that isn't normal, italic or oblique.";
             }
 
+            $weight = is_scalar($font['weight'] ?? null) ? (string) $font['weight'] : '400';
+
+            if (preg_match('/[;{}<>"\\\\]/', $font['family'].$weight) === 1) {
+                $errors[] = "The font {$font['family']} needs a family and weight with no ; { } < > \" or \\.";
+            }
+
             if (array_key_exists('face', $font) && ! is_bool($font['face'])) {
                 $errors[] = "The font {$font['family']} has a face that isn't true or false.";
             }

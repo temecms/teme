@@ -277,7 +277,14 @@ final class Document extends Component
                 continue;
             }
 
-            $rule = '@font-face{font-family:"'.$font['family'].'";font-weight:'.$font['weight'].';font-style:'.$font['style'].';src:url('.asset("themes/{$code}/{$font['file']}").') format("woff2");font-display:swap';
+            $format = match (strtolower(pathinfo($font['file'], PATHINFO_EXTENSION))) {
+                'woff' => 'woff',
+                'ttf' => 'truetype',
+                'otf' => 'opentype',
+                default => 'woff2',
+            };
+            $href = asset("themes/{$code}/{$font['file']}");
+            $rule = '@font-face{font-family:"'.$font['family'].'";font-weight:'.$font['weight'].';font-style:'.$font['style'].';src:url("'.$href.'") format("'.$format.'");font-display:swap';
 
             if (is_string($font['unicode_range'] ?? null) && $font['unicode_range'] !== '') {
                 $rule .= ';unicode-range:'.$font['unicode_range'];
