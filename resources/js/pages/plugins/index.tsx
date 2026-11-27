@@ -1,4 +1,4 @@
-import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
 import { Plug, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import PluginsController from '@/actions/App/Http/Admin/PluginsController';
@@ -24,7 +24,10 @@ import { Panel } from '@/components/ui/panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
-import { index as pluginsIndex } from '@/routes/plugins';
+import {
+    index as pluginsIndex,
+    slots as providerChoices,
+} from '@/routes/plugins';
 import type { PluginEnablePost, PluginRowPage, PluginsPage } from '@/types';
 
 type PluginTab = 'all' | 'enabled' | 'disabled' | 'attention';
@@ -446,16 +449,27 @@ export default function Plugins({
                     'Plugins are Composer packages, added to the site’s build by whoever runs the server. Plugins don’t run on this page, so you can always disable one here.',
                 )}
                 actions={
-                    extensions !== null && (
+                    <>
                         <Button
-                            type="button"
-                            onClick={installer.openAdd}
-                            data-test="plugins-add"
+                            variant="outline"
+                            asChild
+                            data-test="plugins-slots"
                         >
-                            <Plus aria-hidden="true" />
-                            {__('Add plugin')}
+                            <Link href={providerChoices.url()}>
+                                {__('Provider choices')}
+                            </Link>
                         </Button>
-                    )
+                        {extensions !== null && (
+                            <Button
+                                type="button"
+                                onClick={installer.openAdd}
+                                data-test="plugins-add"
+                            >
+                                <Plus aria-hidden="true" />
+                                {__('Add plugin')}
+                            </Button>
+                        )}
+                    </>
                 }
             >
                 {plugins.length === 0 &&

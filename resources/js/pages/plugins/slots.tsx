@@ -1,11 +1,15 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
 import PluginSlotsController from '@/actions/App/Http/Admin/PluginSlotsController';
-import { Button } from '@/components/ui/button';
 import { ListPage } from '@/components/patterns/list-page';
+import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { SelectField } from '@/components/ui/select-field';
 import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
+import {
+    index as pluginsIndex,
+    slots as providerChoices,
+} from '@/routes/plugins';
 
 type SlotProvider = { name: string; label: string };
 
@@ -22,25 +26,27 @@ type Slot = {
  * slot with no enabled plugin says so, and core's default stands.
  */
 export default function PluginSlots({ slots }: { slots: Slot[] }) {
-    useSectionCrumb('site');
-    const { flash } = usePage<{ flash?: { status?: string } }>().props;
+    const siteCrumb = useSectionCrumb('site');
+    const title = __('Provider choices');
+
+    setLayoutProps({
+        breadcrumbs: [
+            siteCrumb,
+            { title: __('Plugins'), href: pluginsIndex.url() },
+            { title, href: providerChoices.url() },
+        ],
+    });
 
     return (
         <>
-            <Head title={__('Provider choices')} />
+            <Head title={title} />
 
             <ListPage
-                title={__('Provider choices')}
+                title={title}
                 description={__(
                     'Where a service needs exactly one provider, choose the plugin that fills it. With one enabled plugin, that plugin is used by itself. Without a choice, Teme’s own provider stays in place.',
                 )}
             >
-                {flash?.status && (
-                    <p role="status" className="text-small text-ink-2 mb-3">
-                        {flash.status}
-                    </p>
-                )}
-
                 <Panel className="divide-line divide-y overflow-hidden">
                     {slots.map((slot) => (
                         <div

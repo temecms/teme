@@ -24,6 +24,7 @@ use App\Domain\Search\Operations\ReindexSearchEngine;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -63,11 +64,17 @@ final class PluginSlotsController extends Controller
      */
     public function reindex(Request $request, ReindexSearchEngine $reindex): RedirectResponse
     {
-        $reindex->execute(new ReindexSearchEngineInput(
-            actorId: $request->user()?->getAuthIdentifier() === null ? null : (string) $request->user()->getAuthIdentifier(),
-        ));
+        try {
+            $reindex->execute(new ReindexSearchEngineInput(
+                actorId: $request->user()?->getAuthIdentifier() === null ? null : (string) $request->user()->getAuthIdentifier(),
+            ));
+        } catch (ValidationException $refused) {
+            return $this->refused($refused);
+        }
 
-        return to_route('plugins.slots')->with('status', __('The search engine is being sent every published item.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('The search engine is being sent every published item.')]);
+
+        return to_route('plugins.slots');
     }
 
     /**
@@ -77,12 +84,28 @@ final class PluginSlotsController extends Controller
     {
         $plugin = $request->input('plugin');
 
-        $choose->execute(new ChooseSlotProviderInput(
-            slot: $slot,
-            plugin: is_string($plugin) && $plugin !== '' ? $plugin : null,
-            actorId: $request->user()?->getAuthIdentifier() === null ? null : (string) $request->user()->getAuthIdentifier(),
-        ));
+        try {
+            $choose->execute(new ChooseSlotProviderInput(
+                slot: $slot,
+                plugin: is_string($plugin) && $plugin !== '' ? $plugin : null,
+                actorId: $request->user()?->getAuthIdentifier() === null ? null : (string) $request->user()->getAuthIdentifier(),
+            ));
+        } catch (ValidationException $refused) {
+            return $this->refused($refused);
+        }
 
-        return to_route('plugins.slots')->with('status', __('Saved.'));
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Saved.')]);
+
+        return to_route('plugins.slots');
+    }
+
+    /**
+     * Goes back to the screen with the first refusal as an error toast.
+     */
+    private function refused(ValidationException $refused): RedirectResponse
+    {
+        Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+        return to_route('plugins.slots');
     }
 }

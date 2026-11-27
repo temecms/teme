@@ -57,3 +57,17 @@ it('refuses a person without plugins.manage, and writes nothing', function (): v
     $this->actingAs($editor)->post('/admin/plugins/slots/'.PluginSlots::IMAGE_SERVICE, ['plugin' => 'tests/slotted'])->assertForbidden();
     expect(DB::table('plugin_slot_choices')->count())->toBe(0);
 });
+
+it('says Saved in a toast when a choice is made', function (): void {
+    $this->actingAs($this->admin)->post('/admin/plugins/slots/'.PluginSlots::IMAGE_SERVICE, ['plugin' => 'tests/slotted'])
+        ->assertRedirect()
+        ->assertInertiaFlash('toast.message', 'Saved.');
+});
+
+it('shows the refusal as an error toast, and writes nothing, for a plugin that cannot fill the slot', function (): void {
+    $this->actingAs($this->admin)->post('/admin/plugins/slots/'.PluginSlots::SEARCH, ['plugin' => 'tests/slotted'])
+        ->assertRedirect()
+        ->assertInertiaFlash('toast.type', 'error');
+
+    expect(DB::table('plugin_slot_choices')->where('slot', PluginSlots::SEARCH)->exists())->toBeFalse();
+});
