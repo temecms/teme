@@ -51,7 +51,7 @@ beforeEach(function (): void {
     app(EnablePlugin::class)->execute(new EnablePluginInput('tests/workbench', $manifest->version(), $manifest->capabilities(), [], [], null));
     app()->instance(Elevation::class, $previous);
 
-    // Warm the screens before the browser's first visit (I-638).
+    // Warm the screens before the browser's first visit.
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))->assertOk();
 });
 

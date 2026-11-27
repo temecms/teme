@@ -14,8 +14,8 @@ import BulkContentController from '@/actions/App/Http/Admin/Contents/BulkContent
 import BulkMatchingController from '@/actions/App/Http/Admin/Contents/BulkMatchingController';
 import ContentActionController from '@/actions/App/Http/Admin/Contents/ContentActionController';
 import ContentListController from '@/actions/App/Http/Admin/Contents/ContentListController';
-import PluginListActionController from '@/actions/App/Http/Admin/PluginListActionController';
 import ReviewController from '@/actions/App/Http/Admin/Contents/ReviewController';
+import PluginListActionController from '@/actions/App/Http/Admin/PluginListActionController';
 import { CommentsCell } from '@/components/comments/comments-cell';
 import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
