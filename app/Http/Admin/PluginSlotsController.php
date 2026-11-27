@@ -19,6 +19,8 @@ use App\Domain\Plugins\Operations\Input\ChooseSlotProviderInput;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Plugins\Slots\SlotProviders;
+use App\Domain\Search\Operations\Input\ReindexSearchEngineInput;
+use App\Domain\Search\Operations\ReindexSearchEngine;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,6 +47,7 @@ final class PluginSlotsController extends Controller
                 'id' => $id,
                 'label' => __($slot['label']),
                 'chosen' => $providers->chosenFor($id),
+                'notice' => $providers->noticeFor($id),
                 'providers' => $names->map(fn (string $name): array => [
                     'name' => $name,
                     'label' => $registry->find($name)?->manifest?->label() ?? $name,
@@ -53,6 +56,18 @@ final class PluginSlotsController extends Controller
         }
 
         return Inertia::render('plugins/slots', ['slots' => $slots]);
+    }
+
+    /**
+     * Asks the chosen search engine to take every published item again.
+     */
+    public function reindex(Request $request, ReindexSearchEngine $reindex): RedirectResponse
+    {
+        $reindex->execute(new ReindexSearchEngineInput(
+            actorId: $request->user()?->getAuthIdentifier() === null ? null : (string) $request->user()->getAuthIdentifier(),
+        ));
+
+        return to_route('plugins.slots')->with('status', __('The search engine is being sent every published item.'));
     }
 
     /**

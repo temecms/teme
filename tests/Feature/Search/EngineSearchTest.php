@@ -2,12 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cache\PageTags;
+use App\Domain\Cache\RenderRecord;
+use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Search\Operations\Input\ReindexSearchEngineInput;
+use App\Domain\Search\Operations\ReindexSearchEngine;
 use App\Domain\Search\PostgresSiteSearch;
+use App\Domain\Search\SearchEngineSync;
+use App\Domain\Search\SearchFeed;
 use App\Domain\Site\ListingViews;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -38,6 +45,9 @@ beforeEach(function (): void {
     app(PluginLoader::class)->load();
     app()->forgetInstance(Elevation::class);
     app()->forgetInstance(SiteSearch::class);
+
+    // Booted before the engine was chosen, so the feed subscribes now, as the next request's boot does.
+    SearchFeed::listen(app(HookDispatcher::class));
 });
 
 it('shows the hits the chosen engine gives', function (): void {
@@ -69,4 +79,36 @@ it('never shows an unpublished item the engine names', function (): void {
     $hits = app(SiteSearch::class)->search(new SearchRequest('brouillon', 1, 10));
 
     expect(app(ListingViews::class)->itemsById(array_map(fn (SearchHit $hit): string => $hit->contentId, $hits->hits)))->toBe([]);
+});
+
+it('tags the lists the search draws, so a publish purges the cached search pages', function (): void {
+    Searcher::$answer = fn (SearchRequest $request): SearchHits => new SearchHits([], 0, false);
+
+    // The page being drawn, as the cache would note it.
+    app(RenderRecord::class)->start(0);
+    app(SiteSearch::class)->search(new SearchRequest('manger', 1, 10, ['post']));
+
+    expect(app(RenderRecord::class)->tags())->toContain(PageTags::listOf('post'));
+});
+
+it('sends a published item to the engine, and drops one that is unpublished', function (): void {
+    $id = LanguageSite::version($this->site->editor, 'Ils mangeaient', 'fr', null, [], publish: true);
+
+    expect(Searcher::$indexed)->toHaveKey($id)
+        ->and(Searcher::$indexed[$id])->toBe('Ils mangeaient');
+
+    app(SearchEngineSync::class)->sync('01notanitem0000000000000000');
+
+    expect(Searcher::$removed)->toBe(['01notanitem0000000000000000']);
+});
+
+it('sends every published item again on a reindex, through the operation', function (): void {
+    $id = LanguageSite::version($this->site->editor, 'Ils mangeaient', 'fr', null, [], publish: true);
+    Searcher::$indexed = [];
+
+    app()->instance(Elevation::class, new OperatorElevation);
+
+    app(ReindexSearchEngine::class)->execute(new ReindexSearchEngineInput(null));
+
+    expect(Searcher::$indexed)->toHaveKey($id);
 });

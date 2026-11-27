@@ -218,6 +218,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->group(function (): void {
                 Route::get('/', [PluginsController::class, 'index'])->name('index');
                 Route::get('slots', [PluginSlotsController::class, 'index'])->name('slots');
+                Route::post('slots/search/reindex', [PluginSlotsController::class, 'reindex'])->name('slots.reindex');
                 Route::post('slots/{slot}', [PluginSlotsController::class, 'choose'])
                     ->where('slot', '[a-z][a-z-]{1,39}')
                     ->name('slots.choose');

@@ -1,5 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import PluginSlotsController from '@/actions/App/Http/Admin/PluginSlotsController';
+import { Button } from '@/components/ui/button';
 import { ListPage } from '@/components/patterns/list-page';
 import { Panel } from '@/components/ui/panel';
 import { SelectField } from '@/components/ui/select-field';
@@ -12,6 +13,7 @@ type Slot = {
     id: string;
     label: string;
     chosen: string | null;
+    notice: string | null;
     providers: SlotProvider[];
 };
 
@@ -48,6 +50,11 @@ export default function PluginSlots({ slots }: { slots: Slot[] }) {
                         >
                             <div className="min-w-0 flex-1">
                                 <p className="font-medium">{slot.label}</p>
+                                {slot.notice && (
+                                    <p className="text-small text-ink-2">
+                                        {slot.notice}
+                                    </p>
+                                )}
                                 {slot.providers.length === 0 && (
                                     <p className="text-small text-ink-3">
                                         {__(
@@ -56,6 +63,19 @@ export default function PluginSlots({ slots }: { slots: Slot[] }) {
                                     </p>
                                 )}
                             </div>
+                            {slot.id === 'search' && slot.chosen && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() =>
+                                        router.post(
+                                            PluginSlotsController.reindex.url(),
+                                        )
+                                    }
+                                >
+                                    {__('Send every item again')}
+                                </Button>
+                            )}
                             <SelectField
                                 aria-label={slot.label}
                                 emptyLabel={__('Teme’s own')}

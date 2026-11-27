@@ -29,4 +29,11 @@ interface HasSearchEngine
      * @since next
      */
     public function engine(): SiteSearch;
+
+    /**
+     * Where the engine keeps the published items, kept in step by core.
+     *
+     * @since next
+     */
+    public function indexer(): SearchIndex;
 }
