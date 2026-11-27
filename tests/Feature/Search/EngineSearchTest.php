@@ -20,6 +20,7 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Search\SearchHit;
 use Teme\Contracts\Search\SearchHits;
 use Teme\Contracts\Search\SearchRequest;
@@ -54,7 +55,7 @@ it('shows the hits the chosen engine gives', function (): void {
     $id = LanguageSite::version($this->site->editor, 'Ils mangeaient', 'fr', null, [], publish: true);
     Searcher::$answer = fn (SearchRequest $request): SearchHits => new SearchHits([new SearchHit($id, 'engine')], 1, false);
 
-    $hits = app(SiteSearch::class)->search(new SearchRequest('manger', 1, 10));
+    $hits = app(SiteSearch::class)->search(new SearchRequest('manger', 1, 10, null, 'fr'));
 
     expect(array_map(fn (SearchHit $hit): string => $hit->contentId, $hits->hits))->toBe([$id]);
 });
@@ -111,4 +112,32 @@ it('sends every published item again on a reindex, through the operation', funct
     app(ReindexSearchEngine::class)->execute(new ReindexSearchEngineInput(null));
 
     expect(Searcher::$indexed)->toHaveKey($id);
+});
+
+it('escapes an engine’s snippet, and lets only a mark through', function (): void {
+    $id = LanguageSite::version($this->site->editor, 'Ils mangeaient', 'fr', null, [], publish: true);
+    Searcher::$answer = fn (SearchRequest $request): SearchHits => new SearchHits([new SearchHit($id, '<mark>manger</mark> <script>alert(1)</script><b onmouseover="x()">hi</b>')], 1, false);
+
+    $hit = app(SiteSearch::class)->search(new SearchRequest('manger', 1, 10, null, 'fr'))->hits[0];
+
+    expect($hit->snippetHtml)->toBe('<mark>manger</mark> &lt;script&gt;alert(1)&lt;/script&gt;&lt;b onmouseover=&quot;x()&quot;&gt;hi&lt;/b&gt;');
+});
+
+it('never shows a password-protected item the engine names', function (): void {
+    $id = LanguageSite::version($this->site->editor, 'Ils mangeaient', 'fr', null, [], publish: true);
+    DB::table('contents')->where('id', $id)->update(['visibility' => 'protected', 'reader_password' => 'not-the-password-here']);
+    Searcher::$answer = fn (SearchRequest $request): SearchHits => new SearchHits([new SearchHit($id, 'engine')], 1, false);
+
+    $hits = app(SiteSearch::class)->search(new SearchRequest('manger', 1, 10, null, 'fr'));
+
+    expect($hits->hits)->toBe([]);
+});
+
+it('never shows an item in another language than the one searched', function (): void {
+    $id = LanguageSite::version($this->site->editor, 'Hello there', null, null, [], publish: true);
+    Searcher::$answer = fn (SearchRequest $request): SearchHits => new SearchHits([new SearchHit($id, 'engine')], 1, false);
+
+    $hits = app(SiteSearch::class)->search(new SearchRequest('hello', 1, 10, null, 'fr'));
+
+    expect($hits->hits)->toBe([]);
 });

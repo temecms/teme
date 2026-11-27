@@ -18,11 +18,14 @@ namespace App\Domain\Search;
 
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\Seo\SeoPlugin;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Plugins\Slots\SlotProviders;
+use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Search\HasSearchEngine;
+use Teme\Contracts\Search\SearchHit;
 use Teme\Contracts\Search\SearchHits;
 use Teme\Contracts\Search\SearchRequest;
 use Teme\Contracts\Search\SiteSearch;
@@ -59,7 +62,55 @@ final readonly class RoutedSiteSearch implements SiteSearch
         $hits = $this->plugins->ask($engine['plugin'], self::SOCKET, SiteSearch::class, self::CALL_BUDGET_MS, fn (): SearchHits => $engine['search']->search($request));
 
         // An engine's silence or failure is core's to answer, not the visitor's.
-        return $hits instanceof SearchHits ? $hits : $this->core->search($request);
+        return $hits instanceof SearchHits ? $this->shown($hits, $request) : $this->core->search($request);
+    }
+
+    /**
+     * The engine's hits the visitor may see: published, public, of a searched type and in the language searched.
+     * Each snippet is escaped, and only a mark survives (the snippet is printed raw on the cached page).
+     */
+    private function shown(SearchHits $hits, SearchRequest $request): SearchHits
+    {
+        $types = $this->core->searchable($request->types);
+        $ids = array_map(fn (SearchHit $hit): string => $hit->contentId, $hits->hits);
+
+        if ($ids === [] || $types === []) {
+            return new SearchHits([], 0, false);
+        }
+
+        $language = $request->language ?? app(SiteLanguages::class)->defaultTag();
+        $defaultTag = app(SiteLanguages::class)->defaultTag();
+
+        // A null language is the site's default, as core's search reads it.
+        $allowed = DB::table('contents')
+            ->whereIn('id', $ids)
+            ->where('status', 'published')
+            ->whereNull('deleted_at')
+            ->where('visibility', 'public')
+            ->whereIn('type', $types)
+            ->where(fn ($query) => $language === $defaultTag ? $query->whereNull('language')->orWhere('language', $language) : $query->where('language', $language))
+            ->pluck('id')
+            ->map(fn (mixed $id): string => (string) $id)
+            ->flip()
+            ->all();
+
+        $kept = [];
+
+        foreach ($hits->hits as $hit) {
+            if (isset($allowed[$hit->contentId])) {
+                $kept[] = new SearchHit($hit->contentId, self::escaped($hit->snippetHtml));
+            }
+        }
+
+        return new SearchHits($kept, max(0, $hits->total - (count($hits->hits) - count($kept))), false);
+    }
+
+    /**
+     * An engine's snippet, escaped, with only the marks that highlight a match left as they are.
+     */
+    private static function escaped(string $snippet): string
+    {
+        return str_replace(['&lt;mark&gt;', '&lt;/mark&gt;'], ['<mark>', '</mark>'], htmlspecialchars($snippet, ENT_QUOTES, 'UTF-8'));
     }
 
     /**
