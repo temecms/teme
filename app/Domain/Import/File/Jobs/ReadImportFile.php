@@ -343,11 +343,61 @@ final class ReadImportFile implements ShouldQueue
             }
         }
 
+        $orphans = $this->withoutParent($items, $posts, $terms, $menus);
+
+        if ($orphans !== []) {
+            $notes['parent'] = ['count' => count($orphans), 'examples' => array_slice($orphans, 0, 5), 'sentence' => 'Items whose parent isn’t in this file were placed at the top, with no parent.'];
+        }
+
         if (count(array_unique($languages)) > 1) {
             $notes['language'] = ['count' => 1, 'examples' => [], 'sentence' => 'This file has more than one language, and its items come across in the site’s default language.'];
         }
 
         return $notes;
+    }
+
+    /**
+     * The IDs, in the file's order, of the items that name a parent the file doesn't have: a post, page or
+     * picture whose parent isn't a post or page of the file, a term or comment or menu item whose parent
+     * isn't one of its own kind. A comment on a post, or a menu item in a menu, the file doesn't have is
+     * already noted, so it isn't counted here.
+     *
+     * @param  list<ImportItem>  $items
+     * @param  array<string, true>  $posts  the source IDs of the file's posts and pages
+     * @param  array<string, true>  $terms  the source IDs of the file's terms
+     * @param  array<string, true>  $menus  the source IDs of the file's menus
+     *
+     * @return list<string>
+     */
+    private function withoutParent(array $items, array $posts, array $terms, array $menus): array
+    {
+        $own = [];
+
+        foreach ($items as $item) {
+            $own[$item->kind][$item->id] = true;
+        }
+
+        $missing = [];
+
+        foreach ($items as $item) {
+            if ($item->parentId === null) {
+                continue;
+            }
+
+            $known = match ($item->kind) {
+                ImportKind::POST, ImportKind::PAGE, ImportKind::MEDIA => isset($posts[$item->parentId]),
+                ImportKind::TERM => isset($terms[$item->parentId]),
+                ImportKind::COMMENT => ! isset($posts[(string) $item->postId]) || isset($own[ImportKind::COMMENT][$item->parentId]),
+                ImportKind::MENU_ITEM => ! isset($menus[(string) $item->menuId]) || isset($own[ImportKind::MENU_ITEM][$item->parentId]),
+                default => true,
+            };
+
+            if (! $known) {
+                $missing[] = $item->id;
+            }
+        }
+
+        return $missing;
     }
 
     /**
@@ -359,6 +409,14 @@ final class ReadImportFile implements ShouldQueue
     private function unknownWord(array $items): ?string
     {
         foreach ($items as $item) {
+            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true) && ! ReaderRows::postStatusKnown($item->status)) {
+                return 'A post or page of this file has a status Teme doesn’t know.';
+            }
+
+            if ($item->kind === ImportKind::COMMENT && ! ReaderRows::commentStatusKnown($item->status)) {
+                return 'A comment of this file has a status Teme doesn’t know.';
+            }
+
             if ($item->kind === ImportKind::TERM && ! $this->taxonomyKnown((string) ($item->fields['taxonomy'] ?? 'category'))) {
                 return 'A term of this file has a taxonomy Teme doesn’t know.';
             }

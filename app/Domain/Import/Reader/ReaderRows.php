@@ -106,6 +106,22 @@ final class ReaderRows
     }
 
     /**
+     * Whether a post or page status is one of Teme's words.
+     */
+    public static function postStatusKnown(string $status): bool
+    {
+        return isset(self::STATUSES[$status]);
+    }
+
+    /**
+     * Whether a comment status is one of Teme's words.
+     */
+    public static function commentStatusKnown(string $status): bool
+    {
+        return isset(self::COMMENT_STATUSES[$status]);
+    }
+
+    /**
      * The key an item has in the IDs map: its kind and its source ID.
      */
     public static function key(string $kind, string $sourceId): string

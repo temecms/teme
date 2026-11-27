@@ -29,6 +29,7 @@ final class FileNotes
         'featured-image' => 'Featured pictures not brought',
         'menu-target' => 'Menu items with nothing to point at',
         'language' => 'More than one language',
+        'parent' => 'Items placed at the top',
     ];
 
     /**

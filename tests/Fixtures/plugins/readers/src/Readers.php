@@ -27,6 +27,7 @@ final class Readers implements HasImportReader, Plugin
         return match ($readerId) {
             'stuck' => new StuckImportReader,
             'slow' => new SlowImportReader,
+            'raw' => new RawImportReader,
             default => new FakeImportReader,
         };
     }
@@ -88,5 +89,61 @@ final class SlowImportReader implements ImportReader
     public function fetch(string $path, string $id): ImportItem
     {
         return $this->fake->fetch($path, $id);
+    }
+}
+
+/**
+ * Reads the same JSON shape as the fake export but hands each item over exactly as written, with no
+ * check of its words, so a test can give core a status or a parent that no real reader should.
+ */
+final class RawImportReader implements ImportReader
+{
+    public function probe(string $path): ImportProbe
+    {
+        $file = $this->file($path);
+
+        return new ImportProbe(system: 'Raw export', version: '1', siteAddress: (string) ($file['site'] ?? ''), languages: ['en'], counts: []);
+    }
+
+    public function page(string $path, ?string $cursor, int $limit): ImportPage
+    {
+        $items = [];
+
+        foreach ($this->file($path)['items'] ?? [] as $raw) {
+            $items[] = new ImportItem(
+                kind: (string) $raw['kind'],
+                id: (string) $raw['id'],
+                title: (string) ($raw['title'] ?? ''),
+                slug: (string) ($raw['slug'] ?? ''),
+                status: (string) ($raw['status'] ?? 'published'),
+                content: (string) ($raw['content'] ?? ''),
+                parentId: isset($raw['parentId']) ? (string) $raw['parentId'] : null,
+                postId: isset($raw['postId']) ? (string) $raw['postId'] : null,
+                menuId: isset($raw['menuId']) ? (string) $raw['menuId'] : null,
+                itemType: isset($raw['itemType']) ? (string) $raw['itemType'] : null,
+                fields: $raw,
+            );
+        }
+
+        return new ImportPage($items, null);
+    }
+
+    public function fetch(string $path, string $id): ImportItem
+    {
+        foreach ($this->page($path, null, 1000)->items as $item) {
+            if ($item->id === $id) {
+                return $item;
+            }
+        }
+
+        throw new \RuntimeException('No such item.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function file(string $path): array
+    {
+        return (array) json_decode((string) file_get_contents($path), true);
     }
 }

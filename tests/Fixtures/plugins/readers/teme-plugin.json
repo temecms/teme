@@ -34,6 +34,13 @@
                 "fileTypes": [
                     "json"
                 ]
+            },
+            {
+                "id": "raw",
+                "label": "Raw",
+                "fileTypes": [
+                    "json"
+                ]
             }
         ]
     }

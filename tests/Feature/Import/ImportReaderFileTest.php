@@ -276,6 +276,67 @@ it('refuses a menu item type a reader’s file doesn’t know, in the neutral wo
         ->and($file->refused)->toBe('A menu item of this file has a type Teme doesn’t know.');
 });
 
+it('refuses a post status a reader’s file doesn’t know, instead of making the post a draft', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'post', 'id' => 'i9', 'title' => 'Odd', 'slug' => 'odd', 'status' => 'publish', 'content' => '<p>Odd</p>'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), readerKeyOf('raw'));
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('A post or page of this file has a status Teme doesn’t know.')
+        ->and(DB::table('contents')->where('title', 'Odd')->exists())->toBeFalse();
+});
+
+it('refuses a comment status a reader’s file doesn’t know', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'comment', 'id' => 'c9', 'postId' => 'i1', 'status' => 'approved', 'content' => 'Odd', 'authorName' => 'Sam'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), readerKeyOf('raw'));
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('A comment of this file has a status Teme doesn’t know.');
+});
+
+it('counts, in one note, the items whose parent isn’t in a reader’s file', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'post', 'id' => 'i8', 'title' => 'Child', 'slug' => 'child', 'status' => 'published', 'content' => '<p>Child</p>', 'parentId' => 'gone'];
+    $export['items'][] = ['kind' => 'term', 'id' => 't8', 'taxonomy' => 'category', 'name' => 'Sub', 'slug' => 'sub', 'parentId' => 'gone'];
+    $export['items'][] = ['kind' => 'comment', 'id' => 'c8', 'postId' => 'i1', 'status' => 'published', 'content' => 'Reply', 'authorName' => 'Sam', 'parentId' => 'gone'];
+    $export['items'][] = ['kind' => 'menu', 'id' => 'm8', 'title' => 'Main', 'slug' => 'main'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi8', 'menuId' => 'm8', 'itemType' => 'link', 'url' => 'https://example.com/', 'title' => 'Out', 'parentId' => 'gone'];
+    $export['items'][] = ['kind' => 'media', 'id' => 'a8', 'title' => 'Pic', 'url' => 'https://old.example.com/pic.jpg', 'parentId' => 'gone'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), readerKeyOf('raw'));
+    readerReadToEnd($file);
+
+    $note = $file->refresh()->report['notes']['parent'] ?? null;
+
+    expect($note)->not->toBeNull()
+        ->and($note['count'])->toBe(5)
+        ->and($note['examples'])->toBe(['i8', 't8', 'c8', 'mi8', 'a8'])
+        ->and($note['sentence'])->toContain('placed at the top');
+});
+
+it('counts no parent note when every parent is in a reader’s file', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'post', 'id' => 'i8', 'title' => 'Child', 'slug' => 'child', 'status' => 'published', 'content' => '<p>Child</p>', 'parentId' => 'i1'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), readerKeyOf('raw'));
+    readerReadToEnd($file);
+
+    expect($file->refresh()->report['notes'] ?? [])->not->toHaveKey('parent');
+});
+
 it('imports a reader’s tag in the engine’s taxonomy word, and a menu item of type content', function (): void {
     readersEnabled();
 
@@ -328,7 +389,7 @@ it('lists the import readers on Tools › Import, for the upload to choose one',
     readersEnabled();
 
     $this->actingAs($this->admin)->get(route('tools.importer.index'))
-        ->assertInertia(fn ($page) => $page->has('readers', 3)
+        ->assertInertia(fn ($page) => $page->has('readers', 4)
             ->where('readers.0.key', fixtureReaderKey())
             ->where('readers.0.label', 'Fake export')
             ->where('readers.0.fileTypes', ['json']));
