@@ -24,6 +24,7 @@ use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\FinishReadingImportFileInput;
+use App\Domain\Import\Reader\ReaderSite;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -60,7 +61,7 @@ final class FinishReadingImportFile extends BaseOperation
             return null;
         }
 
-        $address = $file->site_address === null ? '' : rtrim($file->site_address, '/');
+        $address = $file->site_address === null ? '' : ReaderSite::address($file->site_address);
 
         if ($address === '') {
             DB::table('import_file_rows')->where('file_id', $file->id)->delete();

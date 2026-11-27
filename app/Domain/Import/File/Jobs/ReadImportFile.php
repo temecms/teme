@@ -29,6 +29,7 @@ use App\Domain\Import\Operations\Input\RefuseImportFileInput;
 use App\Domain\Import\Operations\RecordImportFileRows;
 use App\Domain\Import\Operations\RefuseImportFile;
 use App\Domain\Import\Reader\ReaderRows;
+use App\Domain\Import\Reader\ReaderSite;
 use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Support\Security\JobActor;
@@ -227,7 +228,7 @@ final class ReadImportFile implements ShouldQueue
         }
 
         $ids = app(AssignImportReaderIds::class)->execute(new AssignImportReaderIdsInput(
-            (string) $probe->siteAddress,
+            ReaderSite::address((string) $probe->siteAddress),
             (string) $file->reader,
             array_map(fn (ImportItem $item): array => ['kind' => $item->kind, 'id' => $item->id], $items),
             $this->actor->userId,

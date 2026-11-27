@@ -433,3 +433,17 @@ it('writes a report of what a reader’s file holds, when the file is read', fun
         ->and($report['sections']['media']['total'])->toBe(1)
         ->and($report['sections']['comments']['total'])->toBe(0);
 });
+
+it('imports one site once, whether its export names its address with a trailing slash or without', function (): void {
+    readersEnabled();
+
+    FileImports::run(readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), fixtureReaderKey())->refresh());
+
+    $withSlash = fakeSiteExport();
+    $withSlash['site'] = 'https://old.example.com/';
+    FileImports::run(readerUploaded('site-slash.json', json_encode($withSlash, JSON_THROW_ON_ERROR), fixtureReaderKey())->refresh());
+
+    expect(DB::table('contents')->whereIn('title', ['Hello', 'About'])->count())->toBe(2)
+        ->and(DB::table('import_sources')->where('kind', fixtureReaderKey())->count())->toBe(1)
+        ->and(DB::table('import_reader_ids')->count())->toBe(5);
+});
