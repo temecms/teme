@@ -175,3 +175,21 @@ it('offers no reader once its plugin is off', function (): void {
 
     expect(app(ImportReaders::class)->all())->toBe([]);
 });
+
+it('imports a reader’s comments onto their posts, with a spam comment kept as spam', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'comment', 'id' => 'c1', 'postId' => 'i1', 'status' => 'published', 'content' => 'Nice one', 'authorName' => 'Sam', 'authorEmail' => 'sam@example.com', 'publishedAt' => '2026-01-03 10:00:00'];
+    $export['items'][] = ['kind' => 'comment', 'id' => 'c2', 'postId' => 'i1', 'status' => 'spam', 'content' => 'Buy now', 'authorName' => 'Bot', 'authorEmail' => 'bot@example.com', 'publishedAt' => '2026-01-03 11:00:00'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    FileImports::run($file->refresh());
+
+    $hello = DB::table('contents')->where('title', 'Hello')->value('id');
+    $comments = DB::table('comments')->where('content_id', $hello)->orderBy('body')->get(['body', 'author_name', 'status']);
+
+    expect($comments->map(fn ($row) => [json_decode($row->body, true)['content'][0]['content'][0]['text'], $row->author_name, $row->status])->all())
+        ->toBe([['Buy now', 'Bot', 'spam'], ['Nice one', 'Sam', 'approved']]);
+});

@@ -34,6 +34,16 @@ use Teme\Contracts\Import\ImportKind;
  */
 final class ReaderRows
 {
+    /** A comment's Teme status and the words the engine's comment rows keep for it. */
+    private const array COMMENT_STATUSES = [
+        'published' => '1',
+        'draft' => '0',
+        'private' => '0',
+        'scheduled' => '0',
+        'trashed' => 'trash',
+        'spam' => 'spam',
+    ];
+
     /** Teme's status words, and the words the engine's rows keep for them. */
     private const array STATUSES = [
         'published' => 'publish',
@@ -58,7 +68,19 @@ final class ReaderRows
     /** @var array<string, int> the ID each reader media item has, by its source ID */
     private array $media = [];
 
+    /** @var array<string, int> the ID each reader comment has, by its source ID */
+    private array $comments = [];
+
+    /** @var array<string, int> the ID each reader menu has, by its source ID */
+    private array $menus = [];
+
     private int $nextContent = 1;
+
+    private int $nextComment = 1;
+
+    private int $nextMenu = 1;
+
+    private int $nextMenuItem = 1;
 
     private int $nextName = -1;
 
@@ -108,10 +130,22 @@ final class ReaderRows
         }
 
         foreach ($items as $item) {
+            if ($item->kind === ImportKind::COMMENT) {
+                $this->comments[$item->id] = $this->nextComment++;
+            } elseif ($item->kind === ImportKind::MENU) {
+                $this->menus[$item->id] = $this->nextMenu++;
+            }
+        }
+
+        foreach ($items as $item) {
             if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
                 $rows[] = ['list' => ItemRows::CONTENT, 'id' => $this->posts[$item->id], 'payload' => $this->post($item, $blocks)];
             } elseif ($item->kind === ImportKind::MEDIA) {
                 $rows[] = ['list' => ItemRows::MEDIA, 'id' => $this->media[$item->id], 'payload' => $this->media($item)];
+            } elseif ($item->kind === ImportKind::COMMENT && isset($this->posts[(string) $item->postId])) {
+                $rows[] = ['list' => ItemRows::COMMENTS, 'id' => $this->comments[$item->id], 'payload' => $this->comment($item)];
+            } elseif ($item->kind === ImportKind::MENU) {
+                $rows[] = ['list' => ItemRows::MENUS, 'id' => $this->menus[$item->id], 'payload' => $this->menu($item, $items)];
             }
         }
 
@@ -206,6 +240,87 @@ final class ReaderRows
             'comment_count' => 0,
             'status_before_trash' => null,
             'trashed_at' => null,
+        ];
+    }
+
+    /**
+     * A comment as the engine's comment rows hold it: on its post, with its
+     * parent comment and its author's fields. Teme's statuses become the
+     * words the comments keep.
+     *
+     * @return array<string, mixed>
+     */
+    private function comment(ImportItem $item): array
+    {
+        return [
+            'id' => $this->comments[$item->id],
+            'post_id' => $this->posts[(string) $item->postId],
+            'parent' => $item->parentId === null ? 0 : ($this->comments[$item->parentId] ?? 0),
+            'type' => 'comment',
+            'status' => self::COMMENT_STATUSES[$item->status] ?? '0',
+            'author_name' => (string) ($item->fields['authorName'] ?? ''),
+            'author_email' => (string) ($item->fields['authorEmail'] ?? ''),
+            'author_url' => (string) ($item->fields['authorUrl'] ?? ''),
+            'author_ip' => (string) ($item->fields['authorIp'] ?? ''),
+            'user_agent' => null,
+            'date_gmt' => $item->publishedAt,
+            'content' => $item->content,
+            'user_id' => $this->people[$item->authorId ?? ''] ?? 0,
+        ];
+    }
+
+    /**
+     * A menu with its items, each item's object resolved to the post or term
+     * it points at. The menu's place is chosen on the import plan, so a
+     * reader's placement is carried but not used.
+     *
+     * @param  list<ImportItem>  $items
+     *
+     * @return array<string, mixed>
+     */
+    private function menu(ImportItem $menu, array $items): array
+    {
+        $own = [];
+
+        foreach ($items as $item) {
+            if ($item->kind !== ImportKind::MENU_ITEM || $item->menuId !== $menu->id) {
+                continue;
+            }
+
+            $object = match ($item->itemType) {
+                'post_type' => $this->posts[(string) $item->objectId] ?? 0,
+                'taxonomy' => $this->terms[(string) $item->objectId]['id'] ?? 0,
+                default => 0,
+            };
+            $own[$item->id] = [
+                'id' => $this->nextMenuItem++,
+                'parent' => 0,
+                'order' => $item->order,
+                'type' => (string) $item->itemType,
+                'object' => (string) ($item->fields['object'] ?? ''),
+                'object_id' => $object,
+                'url' => $item->itemType === 'custom' ? (string) ($item->fields['url'] ?? '') : '',
+                'label' => $item->title,
+                'label_is_custom' => $item->title !== '',
+                'target' => '',
+                'attr_title' => '',
+                'classes' => [],
+                'xfn' => '',
+                'invalid' => false,
+            ];
+        }
+
+        foreach ($items as $item) {
+            if ($item->kind === ImportKind::MENU_ITEM && isset($own[$item->id]) && $item->parentId !== null && isset($own[$item->parentId])) {
+                $own[$item->id]['parent'] = $own[$item->parentId]['id'];
+            }
+        }
+
+        return [
+            'id' => $this->menus[$menu->id],
+            'name' => $menu->title,
+            'slug' => (string) ($menu->fields['slug'] ?? ''),
+            'items' => array_values($own),
         ];
     }
 
