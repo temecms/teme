@@ -31,6 +31,7 @@ use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Contents\Operations\SchedulePublication;
 use App\Domain\Contents\Operations\UnpublishContent;
 use App\Domain\Contents\Operations\UpdateContentDetails;
+use App\Domain\Contents\PluginWrites;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Hooks\Payloads;
@@ -166,11 +167,11 @@ final readonly class PluginContentWriter implements ContentWriter
         }
 
         try {
-            $content = app(PublishRevision::class)->execute(new PublishRevisionInput(
+            $content = app(PluginWrites::class)->within(fn (): Content => app(PublishRevision::class)->execute(new PublishRevisionInput(
                 contentId: (string) $content->id,
                 revisionId: (string) $content->working_revision_id,
                 actorId: $actingPersonId,
-            ));
+            )));
         } catch (Throwable $failure) {
             $this->refuse($failure);
         }
@@ -205,13 +206,13 @@ final readonly class PluginContentWriter implements ContentWriter
         }
 
         try {
-            app(SchedulePublication::class)->execute(new SchedulePublicationInput(
+            app(PluginWrites::class)->within(fn (): mixed => app(SchedulePublication::class)->execute(new SchedulePublicationInput(
                 contentId: (string) $content->id,
                 revisionId: (string) $content->working_revision_id,
                 action: $content->status === 'published' ? 'update' : 'publish',
                 runAt: $at->format(DateTimeImmutable::ATOM),
                 actorId: $actingPersonId,
-            ));
+            )));
         } catch (Throwable $failure) {
             $this->refuse($failure);
         }

@@ -166,9 +166,17 @@ final class HookDispatcher
     /**
      * Returns the first refusal, or null when every listener lets it go
      * ahead. A listener that fails refuses it, to be safe.
+     *
+     * With a budget, the gate fails open instead: a listener that fails,
+     * answers the wrong type or runs over the budget is recorded and passed
+     * over, so the change goes ahead.
      */
-    public function gate(Gate $hook): ?Refusal
+    public function gate(Gate $hook, ?TimeBudget $budget = null): ?Refusal
     {
+        if ($budget !== null) {
+            return $this->gateWithin($hook, $budget);
+        }
+
         $listeners = $this->enter($hook);
 
         try {
@@ -470,6 +478,63 @@ final class HookDispatcher
         if ($failOperation) {
             throw new ListenerFailed($failure->getMessage(), $failure, ['owner' => $listener->owner, 'hook' => $hook::class, 'listener' => $listener->id]);
         }
+    }
+
+    /**
+     * The gate that fails open, for a budget: each listener is asked within
+     * the budget, and one that fails, answers the wrong type or runs over is
+     * recorded and passed over; the first Veto still refuses.
+     */
+    private function gateWithin(Gate $hook, TimeBudget $budget): ?Refusal
+    {
+        $listeners = $this->enter($hook);
+
+        try {
+            foreach ($listeners as $listener) {
+                $spent = $budget->spentBefore($listener->owner);
+
+                if ($spent !== null) {
+                    $this->record($listener, $hook, $spent);
+
+                    continue;
+                }
+
+                $started = $budget->start();
+
+                try {
+                    $answer = ($listener->callback)($hook);
+                } catch (Throwable $failure) {
+                    $budget->charge($listener->owner, $started);
+                    $this->record($listener, $hook, $failure);
+
+                    continue;
+                }
+
+                $slow = $budget->charge($listener->owner, $started);
+
+                if ($slow !== null) {
+                    $this->record($listener, $hook, $slow);
+
+                    continue;
+                }
+
+                if ($answer === null) {
+                    continue;
+                }
+
+                if (! $answer instanceof Veto) {
+                    $this->record($listener, $hook, $this->wrongType($hook, '?'.Veto::class, $answer));
+
+                    continue;
+                }
+
+                return new Refusal($listener->owner, $answer->reason);
+            }
+        } finally {
+            $this->depth--;
+        }
+
+        return null;
     }
 
     private function wrongType(Hook $hook, string $wanted, mixed $given): ListenerFailed

@@ -20,6 +20,7 @@ use App\Domain\Plugins\ManifestValidator;
 use Teme\Contracts\Cache\PagesPurged;
 use Teme\Contracts\Comments\CommentStatusChanged;
 use Teme\Contracts\Content\ArticleLinks;
+use Teme\Contracts\Content\BeforeSave;
 use Teme\Contracts\Content\ContentDeleted;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Content\ContentRestored;
@@ -81,6 +82,7 @@ final class HookCatalogue
         ActorDocumentBuilt::class,
         FeedsChanged::class,
         ArticleLinks::class,
+        BeforeSave::class,
     ];
 
     /**

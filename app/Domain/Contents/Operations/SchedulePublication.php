@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
 
+use App\Domain\Contents\BeforeSaveCheck;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\Models\Content;
@@ -84,6 +85,19 @@ final class SchedulePublication extends BaseOperation
         }
 
         RequiredFields::check($type, (array) ContentRevision::query()->whereKey($input->revisionId)->value('fields'), RequiredFields::noun($type));
+
+        // Asked before the transaction opens, so a refused schedule writes nothing (BeforeSaveCheck).
+        $item = Content::query()->findOrFail($input->contentId);
+        $saved = ContentRevision::query()->whereKey($input->revisionId)->first(['title', 'document', 'fields']);
+        app(BeforeSaveCheck::class)->ask(
+            (string) $item->id,
+            $type,
+            $item->language,
+            (string) $saved?->title,
+            (array) $saved?->document,
+            (array) $saved?->fields,
+            $input->actorId,
+        );
     }
 
     /**

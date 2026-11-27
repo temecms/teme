@@ -17,6 +17,7 @@ use App\Domain\Addresses\Addresses;
 use App\Domain\Addresses\PathProjection;
 use App\Domain\Addresses\Paths;
 use App\Domain\Cache\Footprints;
+use App\Domain\Contents\BeforeSaveCheck;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\LinkProjection;
@@ -168,6 +169,20 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
         // A schedule was checked when it was made (I-3343).
         if ($input->checkRequired) {
             RequiredFields::check($content->type, (array) $revision?->fields, RequiredFields::noun($content->type));
+        }
+
+        // Asked before the transaction opens, so a refusal leaves the live item as it was (BeforeSaveCheck).
+        if ($input->askBeforeSave) {
+            $saved = ContentRevision::query()->whereKey($input->revisionId)->first(['title', 'document', 'fields']);
+            app(BeforeSaveCheck::class)->ask(
+                (string) $content->id,
+                (string) $content->type,
+                $content->language,
+                (string) $saved?->title,
+                (array) $saved?->document,
+                (array) $saved?->fields,
+                $input->actorId(),
+            );
         }
     }
 

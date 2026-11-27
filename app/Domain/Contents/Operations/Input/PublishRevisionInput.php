@@ -34,6 +34,8 @@ final readonly class PublishRevisionInput implements OperationInput
         public bool $checkRequired = true,
         public bool $keepClashingChildren = false,
         ?string $slug = null,
+        // Off when the publish is a schedule running, whose save was asked when it was made.
+        public bool $askBeforeSave = true,
     ) {
         $this->slug = $slug === null ? null : Slugs::normal($slug);
     }

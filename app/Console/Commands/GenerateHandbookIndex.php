@@ -60,6 +60,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/feeds-and-site.md',
         'plugins/ai.md',
         'plugins/your-own-hooks.md',
+        'plugins/before-save.md',
         'plugins/notices.md',
         'plugins/admin-area.md',
         'plugins/editor-panels.md',
