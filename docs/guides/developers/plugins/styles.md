@@ -37,8 +37,8 @@ When a page draws a card or insertion of a plugin, Teme records that output. The
 
 ## Styling in the right place
 
-Write the sheet's rules inside `@layer teme.plugins`, and read Teme's design tokens as `--teme-*` variables, as core's own cards do. A theme can switch a plugin's stylesheet off by naming it in the theme's own manifest, and then styles that output itself.
+Write the sheet's rules inside `@layer teme.plugins`, and read Teme's design tokens as `--teme-*` variables, as core's own cards do. A theme can switch a plugin's stylesheet off by naming it in the theme's manifest under `plugin_styles.off`, as `code:card:<id>`, and then styles that output itself.
 
 ## Not in this version
 
-Scripts. A plugin's scripts are not loaded by this mechanism yet.
+Scripts, and stylesheets for page insertions: a page insertion's output is not recorded yet.
