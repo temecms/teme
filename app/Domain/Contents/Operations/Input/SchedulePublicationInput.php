@@ -24,8 +24,6 @@ final readonly class SchedulePublicationInput implements OperationInput
         public string $action,
         public string $runAt,
         public ?string $actorId,
-        // The plugin that asks, passed on to the before-save check; null for a person.
-        public ?string $via = null,
     ) {}
 
     public function actorId(): ?string

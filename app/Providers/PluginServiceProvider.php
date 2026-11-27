@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Contents\PluginWrites;
 use App\Domain\Jobs\JobKinds;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\Columns\SystemClock;
@@ -56,6 +57,7 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->scoped(PluginCommands::class);
         // Scoped: holds the job actor for one job/request only (I-087).
         $this->app->scoped(CurrentJobActor::class);
+        $this->app->scoped(PluginWrites::class);
         // Scoped: the compiled list changes when a plugin is enabled or
         // disabled in this request; Octane and the queue forget it between.
         $this->app->scoped(PublicRouteRegistry::class);

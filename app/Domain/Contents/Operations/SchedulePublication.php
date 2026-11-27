@@ -97,7 +97,6 @@ final class SchedulePublication extends BaseOperation
             (array) $saved?->document,
             (array) $saved?->fields,
             $input->actorId,
-            via: $input->via,
         );
     }
 

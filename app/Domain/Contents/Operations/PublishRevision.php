@@ -182,7 +182,6 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
                 (array) $saved?->document,
                 (array) $saved?->fields,
                 $input->actorId(),
-                via: $input->via,
             );
         }
     }

@@ -61,7 +61,7 @@ final readonly class BeforeSaveCheck
             return;
         }
 
-        if (app(ImportMode::class)->active() || ! $this->dispatcher->wants(BeforeSave::class)) {
+        if (app(ImportMode::class)->active() || app(PluginWrites::class)->active() || ! $this->dispatcher->wants(BeforeSave::class)) {
             return;
         }
 
