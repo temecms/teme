@@ -1055,7 +1055,7 @@ The answer of a probe. Counts are keyed by ImportKind, and a kind the file doesn
 
 `Teme\Contracts\Import\ImportReader`, interface. Since next.
 
-A reader for one kind of export file. Paths are read-only copies of the uploaded file; a reader never writes to them or to the site.
+A reader for one kind of export file. Each path is the uploaded file's own path; a reader only reads it, and never writes to it or to the site, nor fetches anything from the network to answer a call.
 
 - `probe(string $path): ImportProbe` — What the file is: its system, version, languages and counts. Since next.
 - `page(string $path, ?string $cursor, int $limit): ImportPage` — A page of the file's items after the cursor, or from the start for null. Since next.

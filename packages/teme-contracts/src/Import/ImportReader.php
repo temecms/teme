@@ -15,8 +15,9 @@ declare(strict_types=1);
 namespace Teme\Contracts\Import;
 
 /**
- * A reader for one kind of export file. Paths are read-only copies of the
- * uploaded file; a reader never writes to them or to the site.
+ * A reader for one kind of export file. Each path is the uploaded file's
+ * own path; a reader only reads it, and never writes to it or to the site,
+ * nor fetches anything from the network to answer a call.
  *
  * @since next
  */

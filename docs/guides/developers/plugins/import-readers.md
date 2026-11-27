@@ -12,7 +12,11 @@ Teme's import engine is opened at one end: the end that reads the old site. A pl
 
 A reader supplies only what differs per system. It reads an export file, says what the file holds, and hands over each item in Teme's neutral shape. It writes nothing. Teme's own operations do every write, as the person who started the import.
 
-> **Status.** A reader's file can be uploaded and read. The upload accepts the reader's file types, the reader reads the file, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Two limits for now: the whole file is read in one job, so a file over 64 MB is refused when its upload starts, with a plain sentence, and menus come across unplaced, since the import plan chooses where each menu sits The import screen has no picker for a reader's file yet; the upload is reached through the import's upload operation.
+> **Status.** A reader's file can be uploaded from Tools > Import, where a picker lists the readers the plugins declare, and read. The upload accepts the reader's file types, the reader reads the file, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Three limits for now:
+>
+> - The whole file is read in one job under a 45-second deadline. A file over 64 MB is refused when its upload starts, with a plain sentence. Page-by-page reading for larger files is not in this release.
+> - Menus come across unplaced, since the import plan chooses where each menu sits.
+> - An item's language is not carried. When a file holds more than one language, every item is imported into the site's default language, and the report says so once. Per-item language is not in this release.
 
 ## Declaring a reader
 
@@ -52,20 +56,27 @@ Each item is an `ImportItem`, in Teme's words. Its `kind` is one of the kinds in
 - `oldAddress` is the item's address on the old site, so its links and redirects can be kept.
 - `content` is the item's content in the source's own markup, and `format` says which markup it is, `html` or `plain`.
 - `parentId`, `authorId` and `termIds` name other items by their source IDs.
-- `fields` holds what a kind needs beyond these. For a `person` they are `login`, `email` and `displayName`. For a `term` they are `taxonomy`, `name` and `description`. For `media` they are `url`, `mime` and `alt`.
+- `excerpt` is a post's or page's summary, and `sticky` pins a post to the front page.
+- `featuredMediaId` names the media item a post or page uses as its picture.
+- `order` is an item's position among its siblings, such as a menu item's place in its menu.
+- `fields` holds what a kind needs beyond these. For a `person` they are `login`, `email` and `displayName`. For a `term` they are `taxonomy`, `name` and `description`. For `media` they are `url`, `mime`, `alt`, `caption` and `description`.
 
 A reader may add further values to `fields` for what its system holds beyond these.
 
 ## Comments and menus
 
-Two kinds have fields of their own, new in the next release:
+Two kinds have fields of their own:
 
-- A `comment` names the post it belongs to with `postId`. Its `status` may be `spam`, which stays spam; `draft` is a held comment, and `published` an approved one. Its author's name, email, URL and IP go in `fields` as `authorName`, `authorEmail`, `authorUrl` and `authorIp`. A reply names its parent comment with `parentId`.
-- A `menu` names its title in `title` and its slug in `fields.slug`. Menus come across unplaced: the import plan chooses where each menu sits. Each `menu-item` names its menu with `menuId`, its `itemType` (`post_type`, `taxonomy` or `custom`), the post or term it points at with `objectId`, its `order`, its parent item with `parentId`, and for a custom link its `fields.url`.
+- A `comment` names the post it belongs to with `postId`. Its `status` may be `spam`, which stays spam; `draft` is a held comment, and `published` an approved one. Its author's name, email, URL and IP go in `fields` as `authorName`, `authorEmail`, `authorUrl` and `authorIp`. A reply names its parent comment with `parentId`. A comment whose post is not in the file is not imported, and the report names how many there were.
+- A `menu` names its title in `title` and its slug in `fields.slug`. Menus come across unplaced: the import plan chooses where each menu sits. Each `menu-item` names its menu with `menuId`, its `itemType` and the post, page or term it points at with `objectId`, its `order`, its parent item with `parentId`, and for a plain link its `fields.url`. The `itemType` is one of the words in `Teme\Contracts\Import\ImportMenuItemType`: `content` for a post or page, `term` for a term, and `link` for a plain link. A menu item that points at nothing in the file is not imported, and the report names how many there were.
+
+A term's `fields.taxonomy` is one of the words in `Teme\Contracts\Import\ImportTaxonomy`: `category` or `tag`, or the key of a plugin's taxonomy that Teme has registered. Any other word is refused, so a reader cannot write into a taxonomy Teme keeps for itself.
 
 ## What a reader's items become
 
-Core keeps a reader's people and terms with negative IDs and its posts, pages and pictures with positive ones, in the order the file lists them. Teme's statuses are kept as Teme's words in the reader and translated to the words the import uses inside core. A reader's own markup is converted by core, as WordPress content is; plain text is turned into paragraphs.
+Core gives each of a reader's items an ID of its own, and keeps it per site and reader: a reader's source IDs are kept apart from every other reader's and from WordPress's, so the same ID in two files is never one item. The IDs are not the file's order. Core keeps a reader's people and terms with negative IDs and its posts, pages and pictures with positive ones. Teme's statuses are kept as Teme's words in the reader and translated to the words the import uses inside core. A reader's own markup is converted by core, as WordPress content is; plain text is turned into paragraphs.
+
+A person with no login becomes an author with a login made from their name, the same way a WordPress author without a login is handled. Two people are never merged under one login: a name already taken gets a suffix. A person with no email address is not imported, and the report names them, so they can be given one or chosen on the plan.
 
 ## Trying a reader
 
