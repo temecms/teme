@@ -324,7 +324,7 @@ final readonly class ArticleViews
             'next' => new Deferred(fn (): ?ItemLink => $nests ? $this->family->neighbour($content, false) : null),
             'blocks' => new Deferred(fn (): array => array_map(
                 fn (array $block): Block => new Block($block['type'], $block['attrs'], $block['html']),
-                $this->renderer->blocks($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), leadNodeId: $leadNodeId, linkAttributes: $linkAttributes)),
+                $this->renderer->blocks($document, new RenderContext(app(LinkResolver::class), usage: app(CardUsage::class), leadNodeId: $leadNodeId, linkAttributes: $linkAttributes, headings: new HeadingIds)),
             )),
         ];
     }

@@ -39,6 +39,22 @@ final class HeadingIds
         'echo-h',
         'c-keep',
         'c-subject',
+        'search-results',
+        'c-text',
+        'c-text-hint',
+        'c-text-error',
+        'c-name',
+        'c-name-hint',
+        'c-name-error',
+        'c-email',
+        'c-email-hint',
+        'c-email-error',
+        'c-url',
+        'c-url-hint',
+        'c-url-error',
+        'search-wide',
+        'search-narrow',
+        'search-notfound',
         'teme-password',
         'teme-password-error',
     ];
@@ -82,7 +98,8 @@ final class HeadingIds
         $id = $base;
         $n = 2;
 
-        while (isset($this->used[$id])) {
+        // comment-<n> and author-<n> are the anchors the comments list writes, so a heading never takes one.
+        while (isset($this->used[$id]) || preg_match('/^(?:comment|author)-\d+$/', $id) === 1) {
             $id = $base.'-'.$n;
             $n++;
         }

@@ -102,7 +102,7 @@ it('finds x-teme::between-items in a skin folder the root template only includes
 
 it('passes a theme whose JavaScript sits between 5 KB and 20 KB compressed without a budget warning', function (): void {
     $this->artisan('teme:theme:check', ['code' => 'js-mid'])
-        ->doesntExpectOutputToContain('over the 20 KB budget')
+        ->doesntExpectOutputToContain('over the')
         ->assertSuccessful();
 });
 

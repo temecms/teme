@@ -28,7 +28,7 @@ beforeEach(function (): void {
     $this->body = fn (array ...$nodes): string => app(FeedBody::class)->html(['type' => 'doc', 'content' => $nodes]);
 });
 
-it('writes a callout, code, a button and an embed as their plain versions (I-861)', function (string $card, string $expected): void {
+it('writes a callout, code, a button and an embed as their plain versions', function (string $card, string $expected): void {
     expect(($this->body)(regionCardNode($card)))->toBe($expected);
 })->with([
     'a callout is a paragraph' => ['callout', '<p>Bring a coat: it&#039;s cold by the water.</p>'],
@@ -102,7 +102,7 @@ it('makes a button\'s article address absolute, and writes nothing for an articl
         ->and(($this->body)($button($gone->id)))->toBe('');
 });
 
-it('draws prose as the page does, and a table stays a bare table in a feed (I-861)', function (string $fixture, string $needle): void {
+it('draws prose as the page does, and a table stays a bare table in a feed', function (string $fixture, string $needle): void {
     $document = json_decode((string) file_get_contents(base_path("tests/Fixtures/Documents/{$fixture}.json")), true);
     $html = app(FeedBody::class)->html($document);
 
@@ -149,7 +149,7 @@ it('gives a card with no plain version its own words as a paragraph, and nothing
         ->and($cards->html($silent, [], $context))->toBe('');
 });
 
-it('has a plain version for every card core registers, so the next card cannot ship without one (I-861)', function (): void {
+it('has a plain version for every card core registers, so the next card cannot ship without one', function (): void {
     $cards = app(FeedCards::class);
     $missing = array_values(array_filter(array_map(fn (CardType $card): string => $card->name(), app(CardRegistry::class)->all()), fn (string $name): bool => ! $cards->has($name)));
 

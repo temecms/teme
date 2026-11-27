@@ -6,7 +6,9 @@ use App\Domain\Cards\DocumentRenderer;
 use App\Domain\Cards\HeadingIds;
 use App\Domain\Cards\LinkResolver;
 use App\Domain\Cards\RenderContext;
+use App\Domain\Regions\RegionDraw;
 use App\Domain\Site\ArticleViews;
+use App\Domain\Themes\ActiveTheme;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -94,4 +96,38 @@ it('gives ArticleView a headings list that matches the ids in bodyHtml', functio
         ->and($view->bodyHtml)->toContain('id="whats-on"')
         ->and($view->bodyHtml)->toContain('id="whats-on-2"')
         ->and($view->bodyHtml)->toContain('id="times"');
+});
+
+it('does not reuse the ids core writes for the search page, the comment form and the search box', function (string $words, string $expected): void {
+    expect(($this->render)(($this->heading)(2, $words)))->toBe('<h2 id="'.$expected.'">'.$words.'</h2>');
+})->with([
+    'the search results' => ['Search results', 'search-results-2'],
+    'a comment text field' => ['C text', 'c-text-2'],
+    'a comment text hint' => ['C text hint', 'c-text-hint-2'],
+    'a comment name error' => ['C name error', 'c-name-error-2'],
+    'a comment email field' => ['C email', 'c-email-2'],
+    'a comment url hint' => ['C url hint', 'c-url-hint-2'],
+    'the wide search box' => ['Search wide', 'search-wide-2'],
+    'the narrow search box' => ['Search narrow', 'search-narrow-2'],
+    'the search not found message' => ['Search notfound', 'search-notfound-2'],
+]);
+
+it('does not use an id that looks like a comment’s or an author’s anchor', function (): void {
+    expect(($this->render)(($this->heading)(2, 'Comment 5'), ($this->heading)(2, 'Author 12'), ($this->heading)(2, 'Comment five')))
+        ->toBe('<h2 id="comment-5-2">Comment 5</h2><h2 id="author-12-2">Author 12</h2><h2 id="comment-five">Comment five</h2>');
+});
+
+it('draws a heading in a region with an id that differs from the same words in the body', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $region = regionCreate($editor);
+    regionSave($region, $editor, [($this->heading)(2, 'Times')]);
+    listsPublish($region, $editor);
+    $article = pageArticleFromDocument($this->author, 'Guide', [($this->heading)(2, 'Times')]);
+
+    $view = app(ArticleViews::class)->published($article->refresh());
+    $drawn = app(RegionDraw::class)->html(app(ActiveTheme::class)->get(), 'after-content', ['size' => null]);
+
+    expect($view->bodyHtml)->toBe('<h2 id="times">Times</h2>')
+        ->and($drawn)->toContain('<h2 id="times-2">Times</h2>')
+        ->and($view->blocks[0]->html)->toBe('<h2 id="times">Times</h2>');
 });
