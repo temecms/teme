@@ -96,6 +96,9 @@ final class Document extends Component
     public string $marker;
 
     /** @var list<string> the cards whose styles the theme replaces */
+    /** @var list<string>|null the keys of the plugin stylesheets the head linked */
+    private ?array $headPluginStyleKeys = null;
+
     private array $replacedCards;
 
     /** The page being drawn, as the head's and the placements' contributors see it. */
@@ -269,7 +272,25 @@ final class Document extends Component
      */
     public function pluginStyles(): array
     {
-        return app(PluginStyles::class)->links();
+        $links = app(PluginStyles::class)->links();
+        $this->headPluginStyleKeys ??= array_column($links, 'key');
+
+        return $links;
+    }
+
+    /**
+     * The plugin stylesheets for outputs first drawn in the body, after the head
+     * was written: a page insertion at body start or end, which the head can't
+     * know about. Linked at the end of the body, so each is linked once.
+     *
+     * @return list<array{key: string, href: string}>
+     */
+    public function pluginStylesLater(): array
+    {
+        return array_values(array_filter(
+            app(PluginStyles::class)->links(),
+            fn (array $link): bool => ! in_array($link['key'], $this->headPluginStyleKeys ?? [], true),
+        ));
     }
 
     /**

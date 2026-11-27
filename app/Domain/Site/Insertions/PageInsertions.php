@@ -24,6 +24,7 @@ use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\PluginRecords;
+use App\Domain\Plugins\Styles\PluginStyleUsage;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Themes\ComposerRegistry;
 use App\Domain\Themes\ViewIntent;
@@ -173,7 +174,24 @@ final class PageInsertions
             $this->hosted[$code] = true;
         }
 
+        $id = $code === null ? null : $this->insertionId($code, $entry['insertion']->key);
+
+        if ($id !== null && trim($html) !== '') {
+            $this->container->make(PluginStyleUsage::class)->record($code, 'insertion:'.$id);
+        }
+
         return $html;
+    }
+
+    /**
+     * The id a plugin's insertion is declared under in its styles: the part of its key after
+     * the plugin's code and a dot, or null when the key doesn't start that way.
+     */
+    private function insertionId(string $code, string $key): ?string
+    {
+        $prefix = $code.'.';
+
+        return str_starts_with($key, $prefix) ? substr($key, strlen($prefix)) : null;
     }
 
     /**

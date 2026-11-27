@@ -33,7 +33,9 @@ Build the CSS before you publish the package. Teme doesn't build anything on the
 
 ## What the page does
 
-When a page draws a card or insertion of a plugin, Teme records that output. The document's head then links that plugin's stylesheet for the output, inside the `teme.plugins` cascade layer, so a theme's own styles still win over the plugin's. A stylesheet for an output that is not drawn on the page is not linked.
+When a page draws a card or insertion of a plugin, Teme records that output. The document's head then links that plugin's stylesheet for the output, inside the `teme.plugins` cascade layer, so a theme's own styles still win over the plugin's. A stylesheet for an output that is not drawn on the page is not linked. An insertion placed at the start or end of the body is drawn after the head is written, so its stylesheet is linked at the end of the body instead, once.
+
+An insertion's output is `insertion:<id>`, where the id is the part of its key after the plugin's code and a dot, and it must be lower-case letters, digits and hyphens to be declared.
 
 ## Styling in the right place
 
@@ -41,4 +43,4 @@ Write the sheet's rules inside `@layer teme.plugins`, and read Teme's design tok
 
 ## Not in this version
 
-Scripts, and stylesheets for page insertions: a page insertion's output is not recorded yet.
+Scripts. A plugin's scripts are not loaded by this mechanism yet.
