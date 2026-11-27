@@ -825,6 +825,56 @@
         margin-block: var(--teme-space-6);
     }
 
+    /* Tables (issue 19): header band, row rules, padding, caption; scroll sideways alone
+       or inside .table-scroll until core wraps every table. */
+    .prose .table-scroll {
+        overflow-x: auto;
+        max-inline-size: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .prose > table {
+        display: block;
+        overflow-x: auto;
+        max-inline-size: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .prose table {
+        border-collapse: collapse;
+        inline-size: max-content;
+        min-inline-size: 100%;
+        font-size: var(--teme-step-0);
+        line-height: 1.45;
+    }
+
+    .prose .table-scroll table {
+        display: table;
+    }
+
+    .prose :where(th, td) {
+        min-inline-size: 8rem;
+        padding: 0.55em 0.75em;
+        border-block-end: 1px solid var(--teme-rule);
+        text-align: start;
+        vertical-align: top;
+        overflow-wrap: normal;
+    }
+
+    .prose th {
+        background: var(--surface);
+        font-family: var(--teme-font-heading);
+        font-weight: 600;
+    }
+
+    .prose caption {
+        caption-side: bottom;
+        padding-block-start: var(--teme-space-2);
+        font: 400 var(--teme-step--1) / 1.5 var(--teme-font-heading);
+        color: var(--teme-muted);
+        text-align: start;
+    }
+
     /* An item's shown fields: a label and its value, side by side from 640px, one under the other below. */
     .field-list {
         max-inline-size: var(--measure, 68ch);
