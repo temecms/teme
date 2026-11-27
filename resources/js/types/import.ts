@@ -173,6 +173,14 @@ export type FileChoicesForm = {
     tagExample: string;
     /** The file holds Polylang's languages, which don't come across. */
     polylang: boolean;
+    /** What a reader's file holds that Teme doesn't bring; empty for WordPress's file. */
+    notes: {
+        kind: string;
+        group: string;
+        count: number;
+        examples: string[];
+        sentence: string;
+    }[];
     drafts: boolean;
     comments: boolean;
     postCount: number;

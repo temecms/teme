@@ -146,7 +146,7 @@ final readonly class ImportChoices
      *
      * @param  array<string, mixed>  $last
      *
-     * @return array{owner: string, people: list<array{value: string, label: string}>, pause: int, authors: list<array{login: string, name: string, email: string, items: int, matched: string|null, value: string}>, fileRoles: list<string>, types: list<array{key: string, label: string, count: int, type: string|null, typeLabel: string|null, value: string}>, media: string, categoryBase: string, tagBase: string, categoryExample: string, tagExample: string, polylang: bool, drafts: bool, comments: bool, postCount: int, pageCount: int, mediaCount: int}
+     * @return array{owner: string, people: list<array{value: string, label: string}>, pause: int, authors: list<array{login: string, name: string, email: string, items: int, matched: string|null, value: string}>, fileRoles: list<string>, types: list<array{key: string, label: string, count: int, type: string|null, typeLabel: string|null, value: string}>, media: string, categoryBase: string, tagBase: string, categoryExample: string, tagExample: string, polylang: bool, drafts: bool, comments: bool, notes: list<array{kind: string, group: string, count: int, examples: list<string>, sentence: string}>, postCount: int, pageCount: int, mediaCount: int}
      */
     public function fileForm(SiteAnalysis $analysis, string $fileId, string $personId, array $last = []): array
     {
@@ -187,6 +187,8 @@ final readonly class ImportChoices
             // Polylang's languages in the file: everything comes across in the default language, and the plan says so.
             'polylang' => ($analysis->polylangCount() ?? 0) > 0,
             'drafts' => (bool) $kept('drafts', true),
+            // What a reader's file holds that Teme doesn't bring, shown before the run.
+            'notes' => $this->files->notes($fileId),
             'comments' => (bool) $kept('comments', true),
             ...$this->files->counts($fileId),
         ];

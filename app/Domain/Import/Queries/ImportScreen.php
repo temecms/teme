@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
 
+use App\Domain\Import\File\FileNotes;
 use App\Domain\Import\ImportMessageLevel;
 use App\Domain\Import\ImportOutcome;
 use App\Domain\Import\ImportRunKind;
@@ -384,6 +385,24 @@ final readonly class ImportScreen
 
         $messages = array_values($grouped);
 
+        // A reader's file holds what Teme doesn't bring: each note is a warning of the run, as a WordPress import's warnings are.
+        $fileReport = $run->file_id === null ? null : ImportFile::query()->whereKey($run->file_id)->first(['report'])?->report;
+        $notes = FileNotes::rows(is_array($fileReport['notes'] ?? null) ? $fileReport['notes'] : []);
+        $noteWarnings = 0;
+
+        foreach ($notes as $note) {
+            $messages[] = [
+                'code' => 'reader.'.$note['kind'],
+                'level' => ImportMessageLevel::Warning->value,
+                'levelLabel' => 'Warning',
+                'words' => $note['examples'] === [] ? $note['sentence'] : $note['sentence'].' '.__('For example: :ids.', ['ids' => implode(', ', $note['examples'])]),
+                'count' => $note['count'],
+                'group' => $note['group'],
+                'sentence' => $note['sentence'],
+            ];
+            $noteWarnings += $note['count'];
+        }
+
         $problems = DB::table('import_messages')->where('run_id', $runId)->where('level', ImportMessageLevel::Error->value)->count();
         $check = $this->phases->find('check');
 
@@ -391,7 +410,7 @@ final readonly class ImportScreen
             'types' => $types,
             'messages' => $messages,
             'more' => $codes->count() > self::CODES,
-            'levels' => ['error' => (int) ($levels[ImportMessageLevel::Error->value] ?? 0), 'warning' => (int) ($levels[ImportMessageLevel::Warning->value] ?? 0)],
+            'levels' => ['error' => (int) ($levels[ImportMessageLevel::Error->value] ?? 0), 'warning' => (int) ($levels[ImportMessageLevel::Warning->value] ?? 0) + $noteWarnings],
             'problems' => $problems,
             'ready' => $run->state === ImportRunState::Finished && $check !== null && $check->runsIn($run->kind) ? $problems === 0 : null,
         ];

@@ -38,6 +38,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Inertia\Middleware;
 use Tests\Fixtures\Import\ExportFiles;
 use Tests\Fixtures\Import\FakeCompanion;
 use Tests\Fixtures\Import\FileImports;
@@ -425,12 +426,16 @@ it('keeps a reader’s old address as an old address that leads to the post it w
         ->and((string) $old->target_id)->toBe($hello);
 });
 
-it('lets the plan’s media choice leave a reader’s pictures for later, and records the choice', function (): void {
+it('records the plan’s media choice on the run, so a run that leaves pictures for later is told apart from one that downloads them', function (): void {
     readersEnabled();
 
-    $later = FileImports::run(readerUploaded('later.json', (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json')), fixtureReaderKey())->refresh(), ['media' => 'later']);
+    $bytes = (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json'));
+
+    $later = FileImports::run(readerUploaded('later.json', $bytes, fixtureReaderKey())->refresh(), ['media' => 'later']);
+    $download = FileImports::run(readerUploaded('download.json', $bytes, fixtureReaderKey())->refresh(), ['media' => 'download']);
 
     expect($later->choices['media'])->toBe('later')
+        ->and($download->choices['media'])->toBe('download')
         ->and(DB::table('media')->count())->toBe(0);
 });
 
@@ -681,4 +686,43 @@ it('counts and names a reader’s menu items that point at a post or term the fi
 
     expect($file->refresh()->report['notes']['menu-target']['count'])->toBe(1)
         ->and($file->report['notes']['menu-target']['examples'])->toBe(['mi4']);
+});
+
+it('shows a reader file’s notes in the run’s report, as warnings, in the screen’s props', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][3]['termIds'] = ['t1', 'gone'];
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    FileImports::run($file->refresh());
+
+    $response = $this->actingAs($this->admin)->get('/admin/tools/import/'.$file->refresh()->source_id);
+    $messages = collect($response->viewData('page')['props']['report']['messages']);
+    $note = $messages->firstWhere('group', 'Terms not brought');
+
+    expect($note)->not->toBeNull()
+        ->and($note['level'])->toBe('warning')
+        ->and($note['count'])->toBe(1)
+        ->and($note['words'])->toContain('aren’t in this file')
+        ->and($note['words'])->toContain('i1');
+});
+
+it('shows a reader file’s notes on its plan, in the plan’s props', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][3]['termIds'] = ['t1', 'gone'];
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $version = (string) app(Middleware::class)->version(request());
+    $response = $this->actingAs($this->admin)
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $version, 'X-Inertia-Partial-Component' => 'tools/import/show', 'X-Inertia-Partial-Data' => 'plan'])
+        ->get('/admin/tools/import/'.$file->refresh()->source_id);
+
+    $notes = collect($response->json('props.plan.fileForm.notes') ?? []);
+
+    expect($notes->pluck('kind')->all())->toContain('term')
+        ->and($notes->firstWhere('kind', 'term')['count'])->toBe(1);
 });
