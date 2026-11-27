@@ -1303,6 +1303,28 @@
                         }
                     }
                 },
+                "styles": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "description": "Built stylesheets, one per output. Linked only on a page that draws that output, from the plugin's package, in the plugins cascade layer.",
+                    "items": {
+                        "type": "object",
+                        "required": ["output", "file"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "output": {
+                                "type": "string",
+                                "pattern": "^(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40}|page)$",
+                                "description": "The output the sheet styles: card:<id>, insertion:<id>, or page."
+                            },
+                            "file": {
+                                "type": "string",
+                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css$",
+                                "description": "A .css file inside the plugin's package, relative to its root."
+                            }
+                        }
+                    }
+                },
                 "imageService": {
                     "type": "object",
                     "additionalProperties": false,
