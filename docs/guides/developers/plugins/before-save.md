@@ -29,13 +29,8 @@ Listening needs the `content.read` capability, which the person sees when they e
 To refuse the save, return a `Veto` with one sentence saying why. To let it through, return null.
 
 ```php
-$hooks->on(BeforeSave::class, function (BeforeSave $save): ?Veto {
-    if ($save->type === 'post' && mb_strlen($save->title) < 10) {
-        return new Veto('Give the post a title of at least ten characters.');
-    }
-
-    return null;
-});
+$hooks->on(BeforeSave::class, fn (BeforeSave $save): ?Veto => $save->type === 'post' && mb_strlen($save->title) < 10
+    ? new Veto('Give the post a title of at least ten characters.') : null);
 ```
 
 The first plugin to refuse stops the save, and its reason is shown on the screen the person saved from. Other plugins are not asked after a refusal.
