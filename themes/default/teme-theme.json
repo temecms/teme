@@ -10,7 +10,7 @@
     "requires": {
         "teme": ">=0.1.0-dev <2.0"
     },
-    "title_separator": "\u2013",
+    "title_separator": "–",
     "per_page": 12,
     "layout": {
         "content": 680,
@@ -121,7 +121,7 @@
             "key": "use_brand_colour",
             "type": "boolean",
             "label": "Use the site's brand colour",
-            "description": "When on, the theme's accent follows the site's brand colour from Settings \u203a General.",
+            "description": "When on, the theme's accent follows the site's brand colour from Settings › General.",
             "fieldset": "site",
             "default": true
         },

@@ -79,3 +79,11 @@ it('carries its reduced-motion and forced-colours rules, and a visible focus sty
 
     expect($css)->toContain('prefers-reduced-motion: reduce')->toContain('forced-colors: active')->toContain(':focus-visible');
 });
+
+it('draws the default theme with its one preload and no @font-face from core, since its own stylesheet writes the faces', function (): void {
+    $html = addrGet('/'.$this->site['longRead']->slug.'/')->getContent();
+
+    expect($html)->toContain('<link rel="preload" as="font" type="font/woff2" href="')
+        ->and($html)->toContain('newsreader-latin-opsz-normal.woff2')
+        ->and($html)->not->toContain('@font-face');
+});
