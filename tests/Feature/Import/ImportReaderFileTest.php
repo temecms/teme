@@ -373,13 +373,18 @@ it('imports the sample export twice, and the second import changes nothing', fun
     FileImports::run(readerUploaded('sample.json', $bytes, fixtureReaderKey())->refresh());
 
     $contents = DB::table('contents')->orderBy('id')->get(['id', 'title', 'status'])->all();
+    $terms = DB::table('terms')->orderBy('id')->get(['id', 'name'])->all();
+    $people = DB::table('users')->orderBy('id')->get(['id', 'email'])->all();
     $mapped = DB::table('import_map')->count();
 
     FileImports::run(readerUploaded('sample-again.json', $bytes, fixtureReaderKey())->refresh());
 
     expect(DB::table('contents')->orderBy('id')->get(['id', 'title', 'status'])->all())->toEqual($contents)
+        ->and(DB::table('terms')->orderBy('id')->get(['id', 'name'])->all())->toEqual($terms)
+        ->and(DB::table('users')->orderBy('id')->get(['id', 'email'])->all())->toEqual($people)
         ->and(DB::table('import_map')->count())->toBe($mapped)
-        ->and(count($contents))->toBe(2);
+        ->and(count($contents))->toBe(2)
+        ->and(count($terms))->toBe(1);
 });
 
 it('names the import reader behind a site imported from a reader’s file, on Tools › Import', function (): void {
@@ -418,12 +423,13 @@ it('keeps a reader’s old address as an old address that leads to the post it w
         ->and((string) $old->target_id)->toBe($hello);
 });
 
-it('records the plan’s choices on the run a reader’s file starts', function (): void {
+it('lets the plan’s media choice leave a reader’s pictures for later, and records the choice', function (): void {
     readersEnabled();
 
-    $run = FileImports::run(readerUploaded('sample.json', (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json')), fixtureReaderKey())->refresh(), ['outside_images' => ['cdn.example.com']]);
+    $later = FileImports::run(readerUploaded('later.json', (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json')), fixtureReaderKey())->refresh(), ['media' => 'later']);
 
-    expect($run->choices['outside_images'])->toBe(['cdn.example.com']);
+    expect($later->choices['media'])->toBe('later')
+        ->and(DB::table('media')->count())->toBe(0);
 });
 
 it('writes a report of what a reader’s file holds, when the file is read', function (): void {
