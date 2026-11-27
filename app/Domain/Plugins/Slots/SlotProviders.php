@@ -65,6 +65,30 @@ final readonly class SlotProviders
     }
 
     /**
+     * The slots whose chosen plugin is no longer enabled and providing, each with
+     * the plugin chosen for it. A choice cleared when its plugin was turned off
+     * is not one of these.
+     *
+     * @return array<string, string>
+     */
+    public function lost(): array
+    {
+        $lost = [];
+
+        foreach (DB::table('plugin_slot_choices')->where('plugin', '!=', '')->get(['slot', 'plugin']) as $choice) {
+            $slot = (string) $choice->slot;
+
+            if (! PluginSlots::exists($slot) || $this->providers($slot)->contains((string) $choice->plugin)) {
+                continue;
+            }
+
+            $lost[$slot] = (string) $choice->plugin;
+        }
+
+        return $lost;
+    }
+
+    /**
      * The names of the enabled plugins whose manifests provide the slot, in name order.
      *
      * @return Collection<int, string>
