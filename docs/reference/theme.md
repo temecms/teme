@@ -42,6 +42,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `site_icon` | string | no | The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this. |
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |
 | `overrides` | object | no | Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md). |
+| `plugin_styles` | object | no | Plugin stylesheets the theme switches off, so it styles that output itself. |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |
 | `per_page` | integer | no | Items per page of a listing; 10 when absent. |

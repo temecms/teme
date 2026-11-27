@@ -325,6 +325,14 @@ Asked once each time an article is drawn, on the site, in a feed or by the API, 
 
 A hook: its parameters are in the [hooks reference](hooks.md#articlelinks).
 
+### BeforeSave
+
+`Teme\Contracts\Content\BeforeSave`, class. Since next.
+
+An item is about to be saved: a new draft, a saved draft or a publish. It is asked before the Operation's transaction opens, so nothing has been written yet, and a listener that answers with a Veto stops the save and its reason is shown to the person. A listener that fails, or takes too long, lets the save through and is recorded as a fault.
+
+A hook: its parameters are in the [hooks reference](hooks.md#beforesave).
+
 ### ContentDeleted
 
 `Teme\Contracts\Content\ContentDeleted`, class. Since 0.5.0.
@@ -1543,6 +1551,7 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `Redirects`. Since 1.7.0.
 - case `CommentsCheck`. Since next.
 - case `SearchRead`. Since next.
+- case `ImportRead`. Since next.
 
 ### Plugin
 
@@ -1773,6 +1782,7 @@ One setting's declaration: its type, its default, its constraints and the docume
 - `min(int $min): self`. Since 0.1.0.
 - `max(int $max): self`. Since 0.1.0.
 - `maxLength(int $maxLength): self`. Since 0.1.0.
+- `step(int $step): self` — A number setting's step: the value must be a multiple of this, at least 1. Since next.
 - `required(): self`. Since 0.1.0.
 - `example(string $example): self`. Since 0.1.0.
 - `env(string $variable): self` — A server environment variable that, when set, supplies this secret and wins over the stored value. Since 0.1.0.
@@ -1780,6 +1790,7 @@ One setting's declaration: its type, its default, its constraints and the docume
 - `fieldset(string $fieldset): self` — The fieldset the settings screen shows this setting under, one of FIELDSETS. Since 0.1.0.
 - `visibleWhen(array $conditions): self` — Shows this setting only while every condition holds: another setting of the same group has this value, or one of these values. Since 0.1.0.
 - `section(string $id): self` — The section of a plugin's settings page this setting sits in: the id of one of the plugin's settingsSections. Since 1.0.0.
+- `group(string $label): self` — A titled foldable section inside a theme fieldset. Since next.
 
 ### SettingType
 

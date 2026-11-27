@@ -47,6 +47,25 @@ Asked once each time an article is drawn, on the site, in a feed or by the API, 
 | `links` | each link the article draws, once each |
 | `attributes` |  |
 
+## BeforeSave
+
+An item is about to be saved: a new draft, a saved draft or a publish. It is asked before the Operation's transaction opens, so nothing has been written yet, and a listener that answers with a Veto stops the save and its reason is shown to the person. A listener that fails, or takes too long, lets the save through and is recorded as a fault.
+
+- **Class:** `Teme\Contracts\Content\BeforeSave`
+- **Verb:** Gate
+- **Capability:** `content.read`
+- **Since:** next
+
+| Parameter | Description |
+|---|---|
+| `itemId` | the item's ID, or null for an item not yet created |
+| `type` | the item's content type |
+| `language` | the item's language, or null for the site's default |
+| `title` | the title as it would be saved |
+| `document` | the document as it would be saved, as Tiptap JSON |
+| `fields` |  |
+| `actorId` | the account ID of the person saving it, or null when none |
+
 ## ContentDeleted
 
 An item was deleted for good, from the trash. Only its ID, type and title are left to tell of it. Sent after the change is saved, never during an import run.

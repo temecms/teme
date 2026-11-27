@@ -48,7 +48,7 @@ final class DesignSettingsGroup
             settings: [
                 Setting::select('theme', 'Theme', 'The theme the public site is drawn with. A theme that can\'t be used gives visitors plain pages until it is fixed.', '0.1.0', $options)->default('default'),
                 Setting::color('brand', 'Brand colour', 'The site\'s identity colour: the browser tab, and --teme-brand for themes. Empty leaves the token unset. A theme may opt to use it as its accent.', 'next'),
-                Setting::media('site_icon', 'Site icon', 'The favicon and home-screen icon. Empty uses the active theme’s default, when it has one.', '1.8.0'),
+                Setting::media('site_icon', 'Site icon', 'The favicon and home-screen icon. Empty uses the active theme’s default, when it has one.', 'next'),
             ],
             since: '0.1.0',
             // Theme and accent refresh theme-tagged pages. site_icon alone
