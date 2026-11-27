@@ -28,6 +28,17 @@ If no engine is chosen, or the engine fails, or it takes longer than 300 millise
 
 A search page draws the lists of the types it searches, and it is purged when those lists change, whichever engine answered it.
 
+## What the engine receives
+
+The plugin asks for `search.read`, which the person agrees to at enable time, and lists the slot under `provides`:
+
+```json
+"capabilities": ["search.read"],
+"provides": ["search"]
+```
+
+Teme refuses to enable a search engine that does not ask for `search.read`. The engine then receives each visitor's search words, and the text of each published item it is sent to index, and nothing else. It is sent no draft, no private or password-protected item, and no item of a type hidden from search.
+
 ## Keeping the index
 
 A plugin that fills the search slot also hands over a `SearchIndex` from its `indexer()` method. Core calls it after each change, after commit: an item that is published is sent as a `SearchEntry` (its ID, type, language, title and plain text), and an item that is unpublished, trashed or deleted is dropped by ID. Only public, published items are sent. The calls are queued, so the index can be a moment behind the site.

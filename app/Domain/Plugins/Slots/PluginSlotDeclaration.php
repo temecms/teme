@@ -15,14 +15,18 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Slots;
 
+use Teme\Contracts\Plugins\Capability;
+
 final class PluginSlotDeclaration
 {
     /**
      * Why the declared slots can't be used, or nothing when they can.
      *
+     * @param  list<string>|null  $capabilities  what the manifest asks for, when known
+     *
      * @return list<string>
      */
-    public static function errors(mixed $provides): array
+    public static function errors(mixed $provides, ?array $capabilities = null): array
     {
         if (! is_array($provides) || ! array_is_list($provides)) {
             return [__('Its provides must be a list of slot names.')];
@@ -44,6 +48,11 @@ final class PluginSlotDeclaration
 
         if (count($provides) !== count(array_unique($provides))) {
             $errors[] = __('Each slot may be named once in provides.');
+        }
+
+        // The engine is handed every search the visitors make, so the plugin must say so in its capabilities.
+        if ($capabilities !== null && in_array(PluginSlots::SEARCH, $provides, true) && ! in_array(Capability::SearchRead->value, $capabilities, true)) {
+            $errors[] = __('A plugin that fills the search slot must ask for search.read.');
         }
 
         return $errors;

@@ -27,6 +27,12 @@ The text, the name, the email address, the address and the IP address of the com
 
 The candidate also has `signals`, the hidden form fields a comment form carried. This release's comment form sends none, so `signals` is always empty here. The hidden field that fills it is not in this release; it comes later (issue 805).
 
+## What the plugin may keep
+
+A check is given the commenter's words, name, email address, website, IP address and browser so it can judge spam, and nothing else. Keep nothing it sends you beyond the answer. If your check keeps a copy, a spam model's training set or a log, your site's privacy policy must say so, and the copy must be deleted when you delete the site's record of the comment.
+
+Teme does not yet tell a plugin when a commenter's data is erased, so a check that keeps anything has no way to hear about it. This is why the guide asks you to keep nothing. The site's own privacy policy must name the service that receives comments, whether or not it keeps them.
+
 ## Fediverse replies
 
 A reply that comes in from the fediverse, or an edit to one, is asked of the check the same way, before it is saved.

@@ -24,6 +24,7 @@ use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Plugins\Slots\SlotProviders;
 use Illuminate\Support\Facades\DB;
+use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Search\HasSearchEngine;
 use Teme\Contracts\Search\SearchHit;
 use Teme\Contracts\Search\SearchHits;
@@ -127,7 +128,8 @@ final readonly class RoutedSiteSearch implements SiteSearch
         }
 
         foreach ($this->plugins->all() as $plugin) {
-            if ($plugin->name !== $chosen || ! $plugin->running instanceof HasSearchEngine) {
+            // Only a plugin granted search.read is handed the visitors' words.
+            if ($plugin->name !== $chosen || ! $plugin->running instanceof HasSearchEngine || ! $plugin->grants(Capability::SearchRead->value)) {
                 continue;
             }
 

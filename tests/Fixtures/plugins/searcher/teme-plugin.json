@@ -7,7 +7,7 @@
     "version": "1.0.0",
     "requires": { "teme": "^0.5" },
     "plugin": "Tests\\Fixtures\\Plugins\\Searcher\\Searcher",
-    "capabilities": [],
+    "capabilities": ["search.read"],
     "contributes": {
         "provides": ["search"]
     }

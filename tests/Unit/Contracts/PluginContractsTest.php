@@ -249,6 +249,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'content.submissions',
         'redirects',
         'comments.check',
+        'search.read',
     ]);
 });
 

@@ -108,7 +108,8 @@
                     "directory.read",
                     "content.submissions",
                     "redirects",
-                    "comments.check"
+                    "comments.check",
+                    "search.read"
                 ]
             }
         },
@@ -1308,7 +1309,7 @@
                     "type": "array",
                     "maxItems": 3,
                     "uniqueItems": true,
-                    "description": "The provider slots the plugin fills: the administrator picks one plugin per slot in Settings (docs/guides/developers/plugins/provider-slots.md). A slot names what the plugin implements; the image service slot also needs imageService.",
+                    "description": "The provider slots the plugin fills: the administrator picks one plugin per slot in Plugins > Provider choices (docs/guides/developers/plugins/provider-slots.md). A slot names what the plugin implements; the image service slot also needs imageService.",
                     "items": {
                         "type": "string",
                         "enum": ["image-service", "search", "comment-check"]

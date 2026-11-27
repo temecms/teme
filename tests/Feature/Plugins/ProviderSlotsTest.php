@@ -111,3 +111,10 @@ it('validates provides through the contributions validator', function (): void {
     expect($validator->errors(['provides' => ['image-service']], '1.0.0', ['media.read']))->toBe([])
         ->and($validator->errors(['provides' => 'image-service'], '1.0.0'))->not->toBeEmpty();
 });
+
+it('requires search.read of a plugin that fills the search slot', function (): void {
+    $validator = app(ContributionsValidator::class);
+
+    expect($validator->errors(['provides' => ['search']], '1.0.0', ['content.read']))->not->toBeEmpty()
+        ->and($validator->errors(['provides' => ['search']], '1.0.0', ['search.read']))->toBe([]);
+});

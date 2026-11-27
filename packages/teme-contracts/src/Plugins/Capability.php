@@ -112,4 +112,7 @@ enum Capability: string
 
     /** @since next */
     case CommentsCheck = 'comments.check';
+
+    /** @since next */
+    case SearchRead = 'search.read';
 }

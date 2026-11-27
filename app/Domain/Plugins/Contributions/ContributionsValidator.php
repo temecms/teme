@@ -192,7 +192,7 @@ final class ContributionsValidator implements ContributionsCheck
             if ($surface === 'csp' && ! $inserts) {
                 $errors[] = __('A plugin’s csp is read only with content.insert or pages.insert.');
             } elseif ($surface === 'provides') {
-                array_push($errors, ...PluginSlotDeclaration::errors($contributes['provides']));
+                array_push($errors, ...PluginSlotDeclaration::errors($contributes['provides'], $capabilities));
             } elseif ($surface === 'fixedLabel') {
                 $label = $contributes['fixedLabel'];
 

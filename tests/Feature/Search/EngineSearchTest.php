@@ -21,6 +21,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Search\SearchHit;
 use Teme\Contracts\Search\SearchHits;
 use Teme\Contracts\Search\SearchRequest;
@@ -140,4 +141,13 @@ it('never shows an item in another language than the one searched', function ():
     $hits = app(SiteSearch::class)->search(new SearchRequest('hello', 1, 10, null, 'fr'));
 
     expect($hits->hits)->toBe([]);
+});
+
+it('refuses to enable a search engine that did not ask for search.read', function (): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+
+    expect(fn () => app(EnablePlugin::class)->execute(new EnablePluginInput('tests/searcher', '1.0.0', [], [], [], null)))
+        ->toThrow(ValidationException::class);
+
+    app()->forgetInstance(Elevation::class);
 });
