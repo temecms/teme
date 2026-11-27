@@ -157,12 +157,45 @@ it('answers the web manifest with 192 and 512 icons, and none when no PNG sizes 
 
     expect($icons)->toHaveCount(2)
         ->and(array_column($icons, 'sizes'))->toBe(['192x192', '512x512'])
-        ->and(array_column($icons, 'type'))->toBe(['image/webp', 'image/webp']);
+        ->and(array_column($icons, 'type'))->toBe(['image/png', 'image/png']);
 
     $response = $this->get(route('site-webmanifest'));
 
     $response->assertOk()
         ->assertHeader('Content-Type', 'application/manifest+json; charset=UTF-8');
+});
+
+it('makes the icon sizes as PNG files, and links them as PNG with the size they really have', function (): void {
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    $picture = pageImage($this->admin, 512, 512);
+    publishSiteIcon($this->admin, $picture->id);
+    addrPublished($this->admin, 'Harbour');
+
+    $variants = $picture->refresh()->variants;
+    $html = addrGet('/harbour/')->assertOk()->getContent();
+
+    expect($variants['icon-32']['path'])->toEndWith('-icon-32.png')
+        ->and($variants['icon-180']['path'])->toEndWith('-icon-180.png')
+        ->and($variants['w320']['path'])->toEndWith('.webp')
+        ->and(Storage::disk('media')->get($variants['icon-180']['path']))->toStartWith("\x89PNG")
+        ->and($html)->toContain('type="image/png"')
+        ->and($html)->not->toContain('type="image/webp"')
+        ->and($html)->toMatch('~<link rel="apple-touch-icon"[^>]*sizes="180x180"~');
+});
+
+it('names the real size of an icon made from a picture smaller than the size asked for', function (): void {
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    $picture = pageImage($this->admin, 100, 100);
+    publishSiteIcon($this->admin, $picture->id);
+
+    $variants = $picture->refresh()->variants;
+    $icons = app(SiteWebManifest::class)->data()['icons'];
+
+    expect($variants['icon-512']['width'])->toBe(100)
+        ->and(array_column($icons, 'sizes'))->toBe(['100x100', '100x100'])
+        ->and(array_column($icons, 'type'))->toBe(['image/png', 'image/png']);
 });
 
 it('purges a page that shows the site icon when that image is trashed', function (): void {
@@ -174,7 +207,10 @@ it('purges a page that shows the site icon when that image is trashed', function
     addrPublished($this->admin, 'Harbour');
     addrGet('/harbour/')->assertOk();
 
-    cacheShown(['/harbour/' => ['media:'.$picture->id], '/other/' => ['content:unrelated']]);
+    // The page recorded its own tag while it was drawn; nothing is seeded for it.
+    expect(cacheEntry('/harbour/')?->tags)->toContain('media:'.$picture->id);
+
+    cacheShown(['/other/' => ['content:unrelated']]);
     $trash = fn () => app(TrashMedia::class)->execute(new MediaActionInput($picture->id, (string) $this->admin->id));
 
     cacheRolledBack($trash);
@@ -184,6 +220,20 @@ it('purges a page that shows the site icon when that image is trashed', function
     $trash();
 
     expect(cacheKept('/harbour/', '/other/'))->toBe(['/other/']);
+
+    cacheOff($this->folder);
+});
+
+it('purges every cached page when the site icon changes, since every head shows it', function (): void {
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    $this->folder = cacheOn();
+    $picture = pageImage($this->admin, 512, 512);
+    cacheShown(['/harbour/' => ['content:harbour'], '/other/' => ['content:unrelated']]);
+
+    publishSiteIcon($this->admin, $picture->id);
+
+    expect(cacheKept('/harbour/', '/other/'))->toBe([]);
 
     cacheOff($this->folder);
 });

@@ -14,6 +14,10 @@ This page covers what a template can read beyond the basics, so it needn't count
 
 `$themeSettings` is the active theme's own settings, key to value, without its menu places. An `image` setting is `{url, alt}` or `null` when none is chosen; a `menu` setting is the menu's tree (each item with `label`, `url`, `current`, and the rest) or `null`; a `links` setting is a list of `{label, address}`; numbers, text, urls and the older types keep the stored value. The list is built once per page.
 
+In `teme-theme.json`, a setting may carry a `group`, a short label. Settings that share one are drawn together as a foldable section inside their fieldset, in manifest order; a setting with no group stays at the top. The group only changes how the screen draws them. It has no effect on `$themeSettings`.
+
+`site_icon` is a manifest key, not a setting: a path inside the theme's `public` folder to the picture the site shows as its icon until a person chooses one. The icon chosen under Settings › Design always wins over it. A chosen picture is made into PNG icons in the background, so the page names each icon with the size it really has, and a picture smaller than a size gives a smaller icon.
+
 ## The posts page and each archive's address
 
 `$site` holds the address of the page that lists the latest posts, and of every public type's archive page, so a menu or a "see all" link never writes `{{ $site->url }}blog/` by hand:

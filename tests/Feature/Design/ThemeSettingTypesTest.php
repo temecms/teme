@@ -24,6 +24,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Settings\SettingsReader;
 
@@ -34,6 +35,12 @@ beforeEach(function (): void {
     $this->admin = User::factory()->create()->assignRole('administrator');
     config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/good')]]);
     themeActivate('good');
+});
+
+afterEach(function (): void {
+    if (isset($this->typedThemeParent) && is_string($this->typedThemeParent)) {
+        File::deleteDirectory($this->typedThemeParent);
+    }
 });
 
 /**
@@ -47,6 +54,7 @@ function typedTheme(array $settings): string
 {
     $source = base_path('tests/Fixtures/themes/good');
     $parent = sys_get_temp_dir().'/teme-themes-'.bin2hex(random_bytes(4));
+    test()->typedThemeParent = $parent;
     $folder = $parent.'/typed';
     recurseCopy($source, $folder);
     $manifest = designManifest($settings);
@@ -258,7 +266,7 @@ it('builds theme settings once per request, and marks the current menu item', fu
         ->and($first['footer_menu'][0]['current'] ?? false)->toBeTrue();
 });
 
-it('refuses a cleared number below its min, a value off its step, and a non-empty menu default', function (): void {
+it('refuses a cleared number, a number below its min, and a non-empty menu default', function (): void {
     $group = typedTheme([
         ['key' => 'per_row', 'type' => 'number', 'label' => 'Per row', 'fieldset' => 'latest', 'default' => 3, 'min' => 1, 'max' => 6, 'step' => 1],
     ]);
@@ -276,4 +284,38 @@ it('refuses a cleared number below its min, a value off its step, and a non-empt
     expect(implode("\n", app(ManifestValidator::class)->errors(designManifest([
         ['key' => 'footer_menu', 'type' => 'menu', 'label' => 'Footer', 'fieldset' => 'site', 'default' => 'abc'],
     ]), $path)))->toContain('"footer_menu"');
+});
+
+it('refuses a number that is not a multiple of its step, and keeps one that is', function (): void {
+    $group = typedTheme([
+        ['key' => 'per_row', 'type' => 'number', 'label' => 'Per row', 'fieldset' => 'latest', 'default' => 2, 'min' => 2, 'max' => 8, 'step' => 2],
+    ]);
+
+    expect(fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
+        $group => ['per_row' => 3],
+    ], (string) $this->admin->id)))->toThrow(ValidationException::class)
+        ->and(DB::table('settings')->where('group_key', $group)->value('draft_values'))->toBeNull();
+
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([
+        $group => ['per_row' => 4],
+    ], (string) $this->admin->id));
+
+    expect((array) json_decode((string) DB::table('settings')->where('group_key', $group)->value('draft_values'), true))->toMatchArray(['per_row' => 4]);
+});
+
+it('refuses an image that is not a picture, a menu that does not exist, and an address that is not an address', function (): void {
+    $group = typedTheme([
+        ['key' => 'logo', 'type' => 'image', 'label' => 'Logo', 'fieldset' => 'site', 'default' => ''],
+        ['key' => 'footer_menu', 'type' => 'menu', 'label' => 'Footer menu', 'fieldset' => 'site', 'default' => ''],
+        ['key' => 'policy', 'type' => 'url', 'label' => 'Policy', 'fieldset' => 'site', 'default' => ''],
+    ]);
+    $page = addrPublished($this->admin, 'About');
+    $save = fn (array $values) => fn () => app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput([$group => $values], (string) $this->admin->id));
+
+    expect($save(['logo' => $page->id]))->toThrow(ValidationException::class)
+        ->and($save(['logo' => '01ARZ3NDEKTSV4RRFFQ69G5FAV']))->toThrow(ValidationException::class)
+        ->and($save(['footer_menu' => '01ARZ3NDEKTSV4RRFFQ69G5FAV']))->toThrow(ValidationException::class)
+        ->and($save(['policy' => 'javascript:alert(1)']))->toThrow(ValidationException::class)
+        ->and($save(['policy' => 'not an address']))->toThrow(ValidationException::class)
+        ->and(DB::table('settings')->where('group_key', $group)->value('draft_values'))->toBeNull();
 });

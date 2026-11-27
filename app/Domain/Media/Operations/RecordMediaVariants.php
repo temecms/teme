@@ -56,7 +56,7 @@ final class RecordMediaVariants extends BaseOperation
         }
 
         // Whoever used the image as an item's featured or social image may
-        // have its variants made, the share images among them (I-855).
+        // have its variants made, the share images among them.
         $item = $input->usedBy === null ? null : Content::query()->find($input->usedBy);
 
         if ($user !== null && $item !== null && Gate::forUser($user)->allows('update', $item) && ShareImageUse::usedBy((string) $media->id, (string) $item->id)) {
@@ -94,7 +94,7 @@ final class RecordMediaVariants extends BaseOperation
         ])->save();
 
         // A remake that began before the image was first used so lands
-        // without its share images: make them now (I-855). Same for the
+        // without its share images: make them now. Same for the
         // site icon's favicon sizes (issue 388).
         $needsShare = ! isset($input->variants['social']) && ShareImageUse::wanted((string) $media->id);
         $needsIcon = ! isset($input->variants['icon-32']) && SiteIconUse::wanted((string) $media->id);

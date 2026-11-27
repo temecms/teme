@@ -48,6 +48,15 @@ final class MediaVariants
     public const array ICONS = ['icon-32' => [32, 32], 'icon-180' => [180, 180], 'icon-192' => [192, 192], 'icon-512' => [512, 512]];
 
     /**
+     * The file extension a variant is stored with: site icons are PNG, because iOS reads an
+     * apple-touch-icon and some browsers read a favicon only as PNG; every other size is WebP.
+     */
+    public static function extensionOf(string $key): string
+    {
+        return array_key_exists($key, self::ICONS) ? 'png' : 'webp';
+    }
+
+    /**
      * A share image's size for an original this big: its ratio at the
      * largest the original allows, never enlarged.
      *

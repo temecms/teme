@@ -20,8 +20,8 @@ type Props = {
 
 /**
  * A media setting's control: one image from the library, chosen as a
- * featured image is (I-237) and sent as its ID in a hidden input, empty when
- * none is chosen (I-418). Design drafts may pass onChange instead of name.
+ * featured image is chosen, and sent as its ID in a hidden input, empty when
+ * none is chosen. Design drafts may pass onChange instead of name.
  */
 export function MediaSetting({
     field,

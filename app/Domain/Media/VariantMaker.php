@@ -71,10 +71,10 @@ final class VariantMaker
             return $variants;
         } finally {
             // A local temporary folder this method made, emptied by the names
-            // the engine writes (<key>.webp): nothing here lists a folder.
+            // the engine writes (<key>.webp, or <key>.png for an icon): nothing here lists a folder.
             $keys = ['thumb', ...array_keys(MediaVariants::SHARE), ...array_keys(MediaVariants::ICONS), ...array_map(fn (int $width): string => "w{$width}", MediaVariants::widthsFor($item['width']))];
 
-            foreach ([$source, ...array_map(fn (string $key): string => $work.DIRECTORY_SEPARATOR.$key.'.webp', $keys)] as $file) {
+            foreach ([$source, ...array_map(fn (string $key): string => $work.DIRECTORY_SEPARATOR.$key.'.'.MediaVariants::extensionOf($key), $keys)] as $file) {
                 if (is_file($file)) {
                     unlink($file);
                 }

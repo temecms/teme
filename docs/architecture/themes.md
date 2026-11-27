@@ -341,7 +341,7 @@ A theme declares **its own settings** in its manifest's `settings`, a list, each
 
 **`$themeSettings` for templates** (`SiteDesign::themeSettings()`, once per page): an `image` is `{url, alt}` or `null`; a `menu` is the navigation tree (with `current` for the page) or `null`; `links` stay a list of `{label, address}`; every other type keeps its stored value.
 
-**`site_icon`.** The design group's media setting chooses the favicon; a theme may declare `site_icon` as a path inside its `public/` folder as the default. The setting wins. Favicon sizes are queued when the setting is published, never during a page view.
+**`site_icon`.** The design group's media setting chooses the favicon; a theme may declare `site_icon` as a path inside its `public/` folder as the default. The setting wins. Favicon sizes are made as PNG (WebP is not read as an iOS home-screen icon), queued when the setting is published, never during a page view, and the page names each with the size it really has.
 
 **Three names core reads**, when the active theme declares them: **`color_scheme`** (`auto`, `light`, `dark`) for `data-scheme`; **`featured_image_style`**, whose `hidden` means no featured-image lead; and **`use_brand_colour`**, a boolean that opts the theme into using the site's `design.brand` as its accent (`SiteDesign`, which `Document` and `ArticleViews` ask). A theme that offers this switch must use that exact key.
 

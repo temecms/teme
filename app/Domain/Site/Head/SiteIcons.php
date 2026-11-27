@@ -75,11 +75,11 @@ final class SiteIcons implements HeadContributor
         $apple = MediaUrls::variant($variants, 'icon-180', $media->id);
 
         if ($icon32 !== null) {
-            $links[] = new LinkTag(LinkRelation::Icon, $this->absolute($icon32), type: 'image/webp', sizes: '32x32');
+            $links[] = new LinkTag(LinkRelation::Icon, $this->absolute($icon32), type: 'image/png', sizes: self::sizeOf($variants, 'icon-32'));
         }
 
         if ($apple !== null) {
-            $links[] = new LinkTag(LinkRelation::AppleTouchIcon, $this->absolute($apple), type: 'image/webp');
+            $links[] = new LinkTag(LinkRelation::AppleTouchIcon, $this->absolute($apple), type: 'image/png', sizes: self::sizeOf($variants, 'icon-180'));
         }
 
         if ($icon32 !== null || MediaUrls::variant($variants, 'icon-192', $media->id) !== null) {
@@ -87,6 +87,17 @@ final class SiteIcons implements HeadContributor
         }
 
         return $links;
+    }
+
+    /**
+     * The size a made icon really has, as the sizes attribute reads it: a picture smaller than the
+     * size asked for gives a smaller icon, and the page says so.
+     *
+     * @param  array<string, array{path: string, width: int, height: int, bytes: int}>  $variants
+     */
+    public static function sizeOf(array $variants, string $key): string
+    {
+        return (int) $variants[$key]['width'].'x'.(int) $variants[$key]['height'];
     }
 
     /**

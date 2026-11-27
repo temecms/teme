@@ -36,6 +36,6 @@ final class StorageKeys
 
     public static function variant(string $id, int $version, string $name, string $key): string
     {
-        return "{$id}/v{$version}/{$name}-{$key}.webp";
+        return "{$id}/v{$version}/{$name}-{$key}.".MediaVariants::extensionOf($key);
     }
 }

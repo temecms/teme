@@ -18,6 +18,7 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Media\MediaUrls;
 use App\Domain\Media\Models\Media;
 use App\Domain\Media\Queries\SiteIconUse;
+use App\Domain\Site\Head\SiteIcons;
 use Teme\Contracts\Settings\SettingsReader;
 
 final readonly class SiteWebManifest
@@ -51,8 +52,8 @@ final readonly class SiteWebManifest
                     if ($url !== null) {
                         $icons[] = [
                             'src' => $this->absolute($url),
-                            'sizes' => $size.'x'.$size,
-                            'type' => 'image/webp',
+                            'sizes' => SiteIcons::sizeOf($variants, 'icon-'.$size),
+                            'type' => 'image/png',
                         ];
                     }
                 }

@@ -127,8 +127,9 @@ final class InterventionImageEngine implements ImageEngine
      */
     private function write(ImageInterface $image, string $directory, string $key): array
     {
-        $file = $directory.DIRECTORY_SEPARATOR.$key.'.webp';
-        $bytes = (string) $image->encodeUsingFormat(Format::WEBP, quality: MediaVariants::QUALITY);
+        $extension = MediaVariants::extensionOf($key);
+        $file = $directory.DIRECTORY_SEPARATOR.$key.'.'.$extension;
+        $bytes = (string) ($extension === 'png' ? $image->encodeUsingFormat(Format::PNG) : $image->encodeUsingFormat(Format::WEBP, quality: MediaVariants::QUALITY));
         file_put_contents($file, $bytes);
 
         return ['file' => $file, 'width' => $image->width(), 'height' => $image->height(), 'bytes' => strlen($bytes)];
