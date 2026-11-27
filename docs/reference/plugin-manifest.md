@@ -15,7 +15,7 @@
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `requires.plugins` | object | no | Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions", "redirects" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions", "redirects", "comments.check", "search.read" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -192,6 +192,7 @@
 | `contributes.structuredData` | object | no | The schema.org terms the plugin's graph nodes use beyond the graph's own list. Needs pages.head. |  |
 | `contributes.structuredData.types` | array | no | schema.org types, such as FAQPage. |  |
 | `contributes.structuredData.properties` | array | no | schema.org properties, such as acceptedAnswer. |  |
+| `contributes.provides` | array | no | The provider slots the plugin fills: the administrator picks one plugin per slot in Plugins > Provider choices (docs/guides/developers/plugins/provider-slots.md). A slot names what the plugin implements; the image service slot also needs imageService. | "image-service", "search", "comment-check" |
 | `contributes.imageService` | object | no | An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService. |  |
 | `contributes.imageService.label` | string | yes | The service's name, as the consent names it. |  |
 | `contributes.imageService.host` | string | yes | The host its addresses are on, served over https, which joins the img-src of the content security policy. | ^(?:\*\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ |

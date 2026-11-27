@@ -124,8 +124,9 @@ it('forgets every listener of one owner, and numbers its subscriptions from 1 ag
     $dispatcher->forget('acme/one');
     $dispatcher->notify(new Pinged('x'));
 
+    // Core's search feed always listens for publishes, so the hook stays wanted; the forgotten owner's is gone.
     expect($heard)->toBe(['two'])
-        ->and($dispatcher->wants(ContentPublished::class))->toBeFalse()
+        ->and($dispatcher->wants(ContentPublished::class))->toBeTrue()
         ->and(hkSubscriber('acme/one')->on(ContentPublished::class, fn () => null)->id)->toBe('acme/one#ContentPublished#1');
 });
 
