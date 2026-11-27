@@ -43,6 +43,7 @@ use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Sitemaps\SitemapProvider;
 use App\Domain\Status\Checks\PluginsRunning;
+use App\Domain\Status\Checks\ProviderChoiceGone;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Console\Application as Console;
 use Illuminate\Support\ServiceProvider;
@@ -85,6 +86,7 @@ final class PluginServiceProvider extends ServiceProvider
     {
         $this->optimizes(optimize: 'teme:plugins:cache', clear: 'teme:plugins:clear', key: 'teme-plugins');
         $this->app->make(StatusChecks::class)->register(PluginsRunning::class);
+        $this->app->make(StatusChecks::class)->register(ProviderChoiceGone::class);
 
         // The console is built after every provider has booted, so by then each plugin that started has kept its commands.
         if ($this->app->runningInConsole()) {

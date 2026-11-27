@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Comments\Operations;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\CommentDocument;
 use App\Domain\Comments\CommentEmails;
 use App\Domain\Comments\CommenterToken;
@@ -60,29 +61,35 @@ final class SubmitComment extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var SubmitCommentInput $input */
-        if ($input->actorId() === null) {
-            if (DiscussionSettings::current()->signedInOnly) {
-                throw new AuthorizationException('Sign in to comment here.');
-            }
-
-            return;
-        }
-
-        $actor = User::query()->find($input->actorId());
-
-        if ($actor === null || $actor->suspended_at !== null) {
-            throw new AuthorizationException('Not permitted to comment.');
-        }
+        self::admitWriter($input->actorId());
     }
 
     protected function validate(OperationInput $input): void
     {
         /** @var SubmitCommentInput $input */
+        self::admission($input, record: true);
+    }
+
+    /**
+     * The cheap checks a comment must pass before it is saved, in the order a
+     * writer is told about them, and nothing is written: the writer, the item,
+     * the fields, the parent, the name and the repeat. With $record, the rate
+     * limit counts this attempt; without it the limit is only read, so a plugin
+     * is asked about a comment that will not be refused for its volume alone.
+     *
+     * @return array{item: Content, name: string, email: string, document: array<string, mixed>, lookedAfter: bool}
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    public static function admission(SubmitCommentInput $input, bool $record): array
+    {
+        $actor = self::admitWriter($input->actorId());
+
         if (! Modules::on(Modules::COMMENTS)) {
             throw ValidationException::withMessages(['contentId' => __('Comments are switched off.')]);
         }
 
-        $actor = $input->actorId() === null ? null : User::query()->findOrFail($input->actorId());
         self::checkFields($input, $actor === null);
 
         $item = self::openItem($input->contentId);
@@ -90,8 +97,10 @@ final class SubmitComment extends BaseOperation
 
         // Counted in the cache store, before the database is asked anything
         // more; whoever looks after the item's comments is never held back (D13).
-        if ($actor === null || ! CommentModeration::allows($actor, $item)) {
-            self::throttle($input->ip, $email);
+        $lookedAfter = $actor !== null && CommentModeration::allows($actor, $item);
+
+        if (! $lookedAfter) {
+            self::throttle($input->ip, $email, $record);
         }
 
         $document = CommentText::toDocument(trim($input->text));
@@ -109,6 +118,34 @@ final class SubmitComment extends BaseOperation
         if (Comment::query()->where('author_email', $email)->where('content_id', $item->id)->whereRaw('body = ?::jsonb', [json_encode($document, JSON_THROW_ON_ERROR)])->exists()) {
             throw ValidationException::withMessages(['text' => __('You’ve already said that here.')]);
         }
+
+        return ['item' => $item, 'name' => $name, 'email' => $email, 'document' => $document, 'lookedAfter' => $lookedAfter];
+    }
+
+    /**
+     * Whether this writer may comment: a guest only when comments are not
+     * signed-in-only, and a signed-in writer only with an active account.
+     * Returns the account, or null for a guest.
+     *
+     * @throws AuthorizationException
+     */
+    private static function admitWriter(?string $actorId): ?User
+    {
+        if ($actorId === null) {
+            if (DiscussionSettings::current()->signedInOnly) {
+                throw new AuthorizationException('Sign in to comment here.');
+            }
+
+            return null;
+        }
+
+        $actor = User::query()->find($actorId);
+
+        if ($actor === null || $actor->suspended_at !== null) {
+            throw new AuthorizationException('Not permitted to comment.');
+        }
+
+        return $actor;
     }
 
     protected function perform(OperationInput $input): SubmittedComment
@@ -145,6 +182,16 @@ final class SubmitComment extends BaseOperation
                 itemUrl: Addresses::urlFor($item),
             )));
         }
+
+        // A plugin's check, asked before the save, merges strictest first; core's judgment above still applies (docs/guides/developers/plugins/comment-check.md).
+        $merged = CommentChecks::strictest($input->checked, $verdict);
+
+        // The plugin is the moderator when its verdict is the stricter one.
+        if ($input->checked !== null && $merged === $input->checked) {
+            $by = (string) ($input->checked->signals['checkedBy'] ?? $by);
+        }
+
+        $verdict = $merged ?? $verdict;
 
         // From the clock, so the thread's path order is the order of writing (D16).
         $id = strtolower((string) Str::ulid(now()));
@@ -288,7 +335,7 @@ final class SubmitComment extends BaseOperation
         return preg_match('/^[a-z][a-z0-9+.-]*:(?!\d)/i', $url) === 1 ? $url : 'https://'.$url;
     }
 
-    private static function throttle(?string $ip, string $email): void
+    private static function throttle(?string $ip, string $email, bool $record): void
     {
         $keys = CommentThrottle::keys($ip, $email);
 
@@ -300,6 +347,10 @@ final class SubmitComment extends BaseOperation
                     'text' => trans_choice('{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.', $minutes, ['minutes' => $minutes]),
                 ])->status(429);
             }
+        }
+
+        if (! $record) {
+            return;
         }
 
         foreach ($keys as $key) {

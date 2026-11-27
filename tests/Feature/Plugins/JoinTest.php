@@ -289,7 +289,8 @@ it('refuses at enable, and again at subscription, a hook whose capability the pl
         // On the list, the plugin can't be used, and the first reason is the same; the other three hooks need it too.
         ->and(($this->row)('tests/contributor')?->state)->toBe(PluginState::CantBeUsed)
         ->and(($this->row)('tests/contributor')?->reason)->toBe("{$hook} needs {$capability}, which it doesn’t ask for. (and 3 more)")
-        ->and(app(HookDispatcher::class)->wants(ContentPublished::class))->toBeFalse();
+        // Core's search feed always listens for publishes, so the hook stays wanted; the refused plugin's own is not kept.
+        ->and(app(HookDispatcher::class)->wants(ContentPublished::class))->toBeTrue();
 });
 
 it('sends the plugin’s request only to the hosts its installed manifest asks for and its recorded consent covers', function (array $agreed, array $updated, PluginState $state, array $sent, array $refusals, string $reason): void {

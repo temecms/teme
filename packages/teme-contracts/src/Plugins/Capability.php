@@ -109,4 +109,10 @@ enum Capability: string
 
     /** @since 1.7.0 */
     case Redirects = 'redirects';
+
+    /** @since next */
+    case CommentsCheck = 'comments.check';
+
+    /** @since next */
+    case SearchRead = 'search.read';
 }

@@ -18,8 +18,10 @@ use App\Domain\Api\ApiPaths;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Policies\ContentPolicy;
 use App\Domain\Deployment\DestructiveCommands;
+use App\Domain\Hooks\HookDispatcher;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
-use App\Domain\Search\PostgresSiteSearch;
+use App\Domain\Search\RoutedSiteSearch;
+use App\Domain\Search\SearchFeed;
 use App\Domain\Status\StatusChecks;
 use App\Domain\Users\Actors;
 use App\Http\Standalone\ErrorReference;
@@ -51,7 +53,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(ErrorReference::class);
 
         // Core's search; a plugin may bind another engine behind the contract.
-        $this->app->bind(SiteSearch::class, PostgresSiteSearch::class);
+        $this->app->bind(SiteSearch::class, RoutedSiteSearch::class);
+
+        // The search engine hears each publish and unpublish after commit (docs/guides/developers/plugins/search-engine.md).
+        $this->app->booted(fn () => SearchFeed::listen($this->app->make(HookDispatcher::class)));
     }
 
     public function boot(): void

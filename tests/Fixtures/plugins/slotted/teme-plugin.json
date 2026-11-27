@@ -1,0 +1,15 @@
+{
+    "manifest": 1,
+    "name": "tests/slotted",
+    "code": "slotted",
+    "label": "Slotted",
+    "description": "A plugin the tests enable, which fills the image service slot and gives no addresses of its own.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Slotted\\Slotted",
+    "capabilities": ["media.read"],
+    "contributes": {
+        "imageService": { "label": "Slotted CDN", "host": "slotted.example.com" },
+        "provides": ["image-service"]
+    }
+}

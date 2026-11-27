@@ -256,7 +256,7 @@ One card a plugin offers. Core draws its fields in the editor from the manifest,
 
 A new comment as its moderator is shown it: where it was written, its words as the writer typed them and how many links they hold, who wrote it and from where, and whether an approved comment of theirs exists already (the same account, or the same email address from the same browser).
 
-- `__construct(string $contentId, ?string $parentId, string $text, int $links, string $authorName, ?string $authorEmail, ?string $authorUrl, ?string $authorUserId, ?string $ip, ?string $userAgent, bool $returning, ?string $itemUrl)`. Since 0.1.0.
+- `__construct(string $contentId, ?string $parentId, string $text, int $links, string $authorName, ?string $authorEmail, ?string $authorUrl, ?string $authorUserId, ?string $ip, ?string $userAgent, bool $returning, ?string $itemUrl, array $signals = [])`. Since 0.1.0.
 
 ### CommentModerator
 
@@ -274,6 +274,14 @@ The one moderator that judges each new comment no one approved at once: it is sh
 A comment arrived, or its status changed: approved, held, marked as spam or trashed by a moderator, or posted as a reply from the admin. Never carries the comment's text or anything about who wrote it. Sent after the change is saved, never during an import run.
 
 A hook: its parameters are in the [hooks reference](hooks.md#commentstatuschanged).
+
+### HasCommentCheck
+
+`Teme\Contracts\Comments\HasCommentCheck`, interface. Since next.
+
+Judges a comment before it is saved. Returns null for no opinion, which leaves the judgment to core's moderator. Core's block and hold lists still apply after the verdict, and the strictest verdict wins.
+
+- `check(CommentCandidate $comment): ?ModerationVerdict` — The plugin's verdict on this comment, or null for no opinion. Since next.
 
 ### ModerationVerdict
 
@@ -1446,6 +1454,8 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `DirectoryRead`. Since 1.3.0.
 - case `ContentSubmissions`. Since 1.3.0.
 - case `Redirects`. Since 1.7.0.
+- case `CommentsCheck`. Since next.
+- case `SearchRead`. Since next.
 
 ### Plugin
 
@@ -1566,6 +1576,23 @@ A handler for one declared public address: core's or a plugin's.
 
 ## Teme\Contracts\Search
 
+### HasSearchEngine
+
+`Teme\Contracts\Search\HasSearchEngine`, interface. Since next.
+
+A search engine a plugin provides. Its hits are content IDs only; the site re-checks each one's visibility before showing it, so an outside index that holds a draft never shows it.
+
+- `engine(): SiteSearch` — The engine that answers the site's searches. Since next.
+- `indexer(): SearchIndex` — Where the engine keeps the published items, kept in step by core. Since next.
+
+### SearchEntry
+
+`Teme\Contracts\Search\SearchEntry`, class. Since next.
+
+A published item as a search engine indexes it.
+
+- `__construct(string $contentId, string $type, ?string $language, string $title, string $text, ?string $publishedAt)`. Since next.
+
 ### SearchHit
 
 `Teme\Contracts\Search\SearchHit`, class. Since 0.1.0.
@@ -1581,6 +1608,15 @@ One item found: its content ID, and a snippet of its text.
 A page of hits, and how many there are in all.
 
 - `__construct(array $hits, int $total, bool $totalCapped, array $counts = [])`. Since 0.1.0.
+
+### SearchIndex
+
+`Teme\Contracts\Search\SearchIndex`, interface. Since next.
+
+Keeps a search engine's index in step with the site's published items. Core calls it after each change, so it may be behind for a moment.
+
+- `index(SearchEntry $entry): void` — Adds or replaces one published item. Since next.
+- `remove(string $contentId): void` — Drops an item that is no longer published. Since next.
 
 ### SearchRequest
 

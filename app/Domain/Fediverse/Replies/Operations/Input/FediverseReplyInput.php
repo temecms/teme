@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Domain\Fediverse\Replies\Operations\Input;
 
 use App\Domain\Fediverse\Signatures\VerifiedSender;
+use Teme\Contracts\Comments\ModerationVerdict;
 use Teme\Contracts\Operations\OperationInput;
 
 final readonly class FediverseReplyInput implements OperationInput
@@ -27,6 +28,7 @@ final readonly class FediverseReplyInput implements OperationInput
         public array $object,
         public ?VerifiedSender $sender = null,
         public ?string $actorId = null,
+        public ?ModerationVerdict $checked = null,
     ) {}
 
     public function actorId(): ?string

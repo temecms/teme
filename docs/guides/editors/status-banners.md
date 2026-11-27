@@ -114,3 +114,8 @@ The banner says a newer Teme release exists and which version the site runs. It 
 <!-- banner: PluginsRunning -->
 
 The banner says an enabled plugin can't run, and why, or that Teme disabled a plugin after it failed to start five times, or that a plugin has stopped part of its work after repeated errors. Administrators see it. Tell whoever runs the server what the banner says: the fix is in the plugin's code or in the site's build. Choose **Open Plugins** to see each plugin's state and why, under **Site › Plugins**; the link is not shown on that page itself. If a plugin's new version asks for more access, review it there.
+
+<!-- banner: ProviderChoiceGone -->
+
+The banner says a provider slot's chosen plugin is no longer enabled or installed, so Teme's own provider stands until someone chooses again. Choose **Open Provider choices** to pick another plugin for that slot, or none; the link is not shown on that page itself. A choice cleared because its plugin was turned off does not show this banner: the notice on that page says so.
+

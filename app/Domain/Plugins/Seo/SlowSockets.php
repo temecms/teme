@@ -19,7 +19,7 @@ namespace App\Domain\Plugins\Seo;
 final class SlowSockets
 {
     /** The sockets a page, a sitemap or an image asks: head tags, titles, structured data, sitemaps and image addresses. */
-    public const array ENFORCED = ['head-meta', 'head-title', 'structured-data', 'sitemaps', 'image-service'];
+    public const array ENFORCED = ['head-meta', 'head-title', 'structured-data', 'sitemaps', 'image-service', 'comment-check', 'search'];
 
     /** @var array<string, true> */
     private array $over = [];

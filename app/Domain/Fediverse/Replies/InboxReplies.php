@@ -16,6 +16,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies;
 
+use App\Domain\Comments\Checks\CommentChecks;
+use App\Domain\Comments\CommentStatus;
+use App\Domain\Comments\Models\Comment;
 use App\Domain\Fediverse\Models\FediverseObject;
 use App\Domain\Fediverse\Models\RemoteActor;
 use App\Domain\Fediverse\Operations\Input\RecordRemoteActorInput;
@@ -31,6 +34,7 @@ use App\Domain\Fediverse\Signatures\VerifiedSender;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Comments\ModerationVerdict;
 
 final readonly class InboxReplies
 {
@@ -78,7 +82,7 @@ final readonly class InboxReplies
         }
 
         try {
-            app($operation)->execute(new FediverseReplyInput($remote->id, $object, $sender));
+            app($operation)->execute(new FediverseReplyInput($remote->id, $object, $sender, checked: $this->checked($operation, $object, $remote)));
         } catch (ValidationException|AuthorizationException $refused) {
             Log::info('A fediverse reply was dropped.', [
                 'actor' => $sender->actorUri,
@@ -88,6 +92,59 @@ final readonly class InboxReplies
         }
 
         return true;
+    }
+
+    /**
+     * A plugin's comment check on the reply, asked here, before the operation's transaction (docs/guides/developers/plugins/comment-check.md).
+     * Nothing for a removal, or a reply the operation would refuse before it judges.
+     *
+     * @param  class-string  $operation
+     * @param  array<string, mixed>  $object
+     */
+    private function checked(string $operation, array $object, RemoteActor $remote): ?ModerationVerdict
+    {
+        // Nothing is built, parsed or asked for a check when no plugin fills the comment-check slot.
+        if (! app(CommentChecks::class)->wanted()) {
+            return null;
+        }
+
+        $input = new FediverseReplyInput($remote->id, $object);
+
+        if ($operation === ReceiveFediverseReply::class) {
+            // The cheap refusals first, read-only: a reply refused for any of them is never asked about.
+            try {
+                ReceiveFediverseReply::admit($input, record: false);
+            } catch (ValidationException) {
+                return null;
+            }
+
+            $candidate = ReceiveFediverseReply::candidate($remote, $object);
+
+            return $candidate === null ? null : app(CommentChecks::class)->verdict($candidate);
+        }
+
+        if ($operation === UpdateFediverseReply::class) {
+            $commentId = is_string($object['id'] ?? null) ? FediverseObject::query()->whereKey($object['id'])->value('comment_id') : null;
+            $comment = is_string($commentId) ? Comment::query()->find($commentId) : null;
+
+            // Only an approved comment with words is judged on an edit (UpdateFediverseReply::perform); any other is held without a check.
+            if ($comment === null || $comment->status !== CommentStatus::APPROVED || $comment->body === null) {
+                return null;
+            }
+
+            try {
+                UpdateFediverseReply::admit($input, record: false);
+            } catch (ValidationException|AuthorizationException) {
+                return null;
+            }
+
+            $document = is_string($object['content'] ?? null) ? app(RemoteWords::class)->document($object['content']) : null;
+
+            // The edit's new words, not the stored ones: the check judges what would be saved.
+            return $document === null ? null : app(CommentChecks::class)->verdict(UpdateFediverseReply::candidate($comment, $remote, $document));
+        }
+
+        return null;
     }
 
     /**
