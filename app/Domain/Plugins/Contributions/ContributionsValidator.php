@@ -25,6 +25,7 @@ use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seo\SeoValidator;
+use App\Domain\Plugins\Slots\PluginSlotDeclaration;
 use App\Domain\Plugins\Types\PluginTypesFile;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
@@ -190,6 +191,8 @@ final class ContributionsValidator implements ContributionsCheck
             // The hosts inserted content loads from, read only for a plugin that inserts (I-3375).
             if ($surface === 'csp' && ! $inserts) {
                 $errors[] = __('A plugin’s csp is read only with content.insert or pages.insert.');
+            } elseif ($surface === 'provides') {
+                array_push($errors, ...PluginSlotDeclaration::errors($contributes['provides']));
             } elseif ($surface === 'fixedLabel') {
                 $label = $contributes['fixedLabel'];
 
@@ -218,7 +221,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }

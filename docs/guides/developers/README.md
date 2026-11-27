@@ -47,6 +47,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [A panel in the editor](plugins/editor-panels.md)
 - [Search engine plugins](plugins/seo.md)
 - [An image service](plugins/image-service.md)
+- [Provider slots](plugins/provider-slots.md)
 - [Your plugin's data in the site export](plugins/exports.md)
 - [Content types from your plugin](plugins/content-types.md)
 - [Languages in a theme](themes/languages.md)

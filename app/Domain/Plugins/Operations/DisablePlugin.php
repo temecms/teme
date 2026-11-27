@@ -84,6 +84,9 @@ final class DisablePlugin extends BaseOperation
 
         $code = $record->code;
 
+        // A disabled plugin fills no slot, so its choice is cleared with it (docs/guides/developers/plugins/provider-slots.md).
+        DB::table('plugin_slot_choices')->where('plugin', $input->name)->delete();
+
         $record->fill([
             'state' => PluginRecord::DISABLED,
             'disabled_reason' => PluginRecord::BY_USER,
