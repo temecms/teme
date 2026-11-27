@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace App\Domain\Fediverse\Replies\Operations;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\CommentEmails;
 use App\Domain\Comments\CommentKind;
 use App\Domain\Comments\CommentPlace;
@@ -102,6 +103,38 @@ final class ReceiveFediverseReply extends BaseOperation
     }
 
     /**
+     * The comment a reply would be, as a plugin's check reads it, built with no
+     * writes so that the check can be asked before the save's transaction; null
+     * when the reply has no target or no words.
+     *
+     * @param  array<string, mixed>  $object
+     */
+    public static function candidate(RemoteActor $remote, array $object): ?CommentCandidate
+    {
+        $target = is_string($object['inReplyTo'] ?? null) ? ReplyTarget::of($object['inReplyTo']) : null;
+        $document = is_string($object['content'] ?? null) ? app(RemoteWords::class)->document($object['content']) : null;
+
+        if ($target === null || $document === null) {
+            return null;
+        }
+
+        return new CommentCandidate(
+            contentId: $target->item->id,
+            parentId: $target->parent?->id,
+            text: CommentText::plain($document),
+            links: CommentText::links($document),
+            authorName: mb_substr(trim((string) ($remote->name ?: $remote->handle ?: $remote->uri)), 0, 100),
+            authorEmail: null,
+            authorUrl: self::website($remote),
+            authorUserId: null,
+            ip: null,
+            userAgent: null,
+            returning: self::returning($remote),
+            itemUrl: null,
+        );
+    }
+
+    /**
      * Counts one reply or edit from the account, refusing it past MAX in an
      * hour; counted in the cache store, as a guest's comments are.
      *
@@ -157,6 +190,9 @@ final class ReceiveFediverseReply extends BaseOperation
             returning: self::returning($remote),
             itemUrl: Addresses::urlFor($item),
         )));
+
+        // A plugin's check was asked before the transaction, by InboxReplies; core's judgment still applies after it.
+        $verdict = CommentChecks::strictest($input->checked, $verdict) ?? $verdict;
 
         $id = strtolower((string) Str::ulid(now()));
 

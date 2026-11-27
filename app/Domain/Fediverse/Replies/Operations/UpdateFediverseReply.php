@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace App\Domain\Fediverse\Replies\Operations;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\CommentEmails;
 use App\Domain\Comments\CommentPurges;
 use App\Domain\Comments\CommentStats;
@@ -87,7 +88,7 @@ final class UpdateFediverseReply extends BaseOperation
             return $comment->id;
         }
 
-        $verdict = $this->judge($comment, RemoteActor::query()->findOrFail($input->remoteActorId));
+        $verdict = $this->judge($comment, RemoteActor::query()->findOrFail($input->remoteActorId), $input->checked);
 
         if ($verdict->status === ModerationVerdict::APPROVED && CommentText::links($document) === $links) {
             $this->purgeAfterCommit(CommentPurges::changed($comment->content_id, $comment->id));
@@ -113,14 +114,14 @@ final class UpdateFediverseReply extends BaseOperation
     }
 
     /**
-     * The bound moderator's verdict on the edited words.
+     * The comment an edit would leave, as a plugin's check reads it: built with no writes, so
+     * InboxReplies can ask the check before the transaction.
      */
-    private function judge(Comment $comment, RemoteActor $remote): ModerationVerdict
+    public static function candidate(Comment $comment, RemoteActor $remote): CommentCandidate
     {
-        $moderator = app(CommentModerator::class);
         $item = Content::withTrashed()->findOrFail($comment->content_id);
 
-        return ReceiveFediverseReply::known($moderator->name(), $moderator->judge(new CommentCandidate(
+        return new CommentCandidate(
             contentId: $comment->content_id,
             parentId: $comment->parent_id,
             text: CommentText::plain($comment->body),
@@ -133,6 +134,18 @@ final class UpdateFediverseReply extends BaseOperation
             userAgent: null,
             returning: ReceiveFediverseReply::returning($remote),
             itemUrl: Addresses::urlFor($item),
-        )));
+        );
+    }
+
+    /**
+     * The bound moderator's verdict on the edited words, with a plugin's check, asked before the transaction, merged strictest first.
+     */
+    private function judge(Comment $comment, RemoteActor $remote, ?ModerationVerdict $checked): ModerationVerdict
+    {
+        $moderator = app(CommentModerator::class);
+
+        $verdict = ReceiveFediverseReply::known($moderator->name(), $moderator->judge(self::candidate($comment, $remote)));
+
+        return CommentChecks::strictest($checked, $verdict) ?? $verdict;
     }
 }

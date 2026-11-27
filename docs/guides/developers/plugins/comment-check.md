@@ -25,6 +25,10 @@ The plugin's class implements `HasCommentCheck`, whose `check()` takes a `Commen
 
 The text, the name, the email address, the address and the IP address of the commenter, and whether they are returning. A check that answers late, or fails, gives no opinion and the comment goes on to core's moderator.
 
+## Fediverse replies
+
+A reply that comes in from the fediverse, or an edit to one, is asked of the check the same way, before it is saved.
+
 ## How verdicts combine
 
 The strictest verdict wins: spam beats pending, and pending beats approved. Core's moderator is asked after the plugin's verdict is recorded, so a comment the plugin approves can still be held or marked spam by core's lists.
