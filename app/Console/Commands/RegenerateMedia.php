@@ -23,6 +23,7 @@ use App\Domain\Media\Operations\RecordMediaVariants;
 use App\Domain\Media\Queries\ImagesNeedingVariants;
 use App\Domain\Media\Queries\MediaForProcessing;
 use App\Domain\Media\Queries\ShareImageUse;
+use App\Domain\Media\Queries\SiteIconUse;
 use App\Domain\Media\VariantMaker;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -44,7 +45,11 @@ final class RegenerateMedia extends Command
         $chunk = max(1, (int) $this->option('chunk'));
         [$done, $failed] = [0, 0];
 
-        foreach ([fn (?string $last): array => ImagesNeedingVariants::after($last, $chunk), fn (?string $last): array => ShareImageUse::lacking($last, $chunk)] as $next) {
+        foreach ([
+            fn (?string $last): array => ImagesNeedingVariants::after($last, $chunk),
+            fn (?string $last): array => ShareImageUse::lacking($last, $chunk),
+            fn (?string $last): array => SiteIconUse::lacking($last, $chunk),
+        ] as $next) {
             $last = null;
 
             while (($ids = $next($last)) !== []) {

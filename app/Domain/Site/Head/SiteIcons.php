@@ -2,9 +2,10 @@
 
 /**
  * Core's site icon links in the public head (issue 388): the design group's
- * site_icon media setting when set, else the active theme's site_icon file
- * in its public folder. PNG sizes 32, 180, 192 and 512; SVG linked as-is.
- * Plugins may not write these relations (HeadCleaner).
+ * site_icon media setting when set and its favicon variants exist, else the
+ * active theme's site_icon file in its public folder. Variants are made on
+ * the queue, never during a page view. Plugins may not write these relations
+ * (HeadCleaner).
  *
  * @package Teme
  * @since   next
@@ -15,9 +16,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Site\Head;
 
-use App\Domain\Design\SiteIconMaker;
+use App\Domain\Cache\PageTags;
+use App\Domain\Cache\RenderRecord;
 use App\Domain\Media\MediaUrls;
 use App\Domain\Media\Models\Media;
+use App\Domain\Media\Queries\SiteIconUse;
 use App\Domain\Site\Document\DocumentPage;
 use App\Domain\Site\Document\HeadContributor;
 use App\Domain\Site\Document\LinkRelation;
@@ -31,7 +34,6 @@ final class SiteIcons implements HeadContributor
     public function __construct(
         private readonly SettingsReader $settings,
         private readonly ActiveTheme $active,
-        private readonly SiteIconMaker $icons,
     ) {}
 
     public function precedence(): Precedence
@@ -41,10 +43,14 @@ final class SiteIcons implements HeadContributor
 
     public function entries(DocumentPage $page): array
     {
-        $chosen = $this->settings->string('design', 'site_icon');
+        $chosen = $this->settings->string(SiteIconUse::GROUP, SiteIconUse::KEY);
 
         if ($chosen !== '') {
-            return $this->fromMedia($chosen);
+            $fromMedia = $this->fromMedia($chosen);
+
+            if ($fromMedia !== []) {
+                return $fromMedia;
+            }
         }
 
         return $this->fromTheme();
@@ -57,38 +63,28 @@ final class SiteIcons implements HeadContributor
     {
         $media = Media::query()->whereKey($id)->where('kind', 'image')->whereNull('deleted_at')->first();
 
-        if ($media === null) {
-            return $this->fromTheme();
+        if ($media === null || str_contains(strtolower($media->mime_type), 'svg')) {
+            return [];
         }
 
-        if (str_contains(strtolower($media->mime_type), 'svg')) {
-            $variants = $this->icons->ensure($media);
-            $url = $variants === null ? null : MediaUrls::variant($variants, 'icon-svg', $media->id);
+        app(RenderRecord::class)->tag(PageTags::media($id));
 
-            return $url === null ? [] : [
-                new LinkTag(LinkRelation::Icon, $this->absolute($url), type: 'image/svg+xml'),
-            ];
-        }
-
-        $variants = $this->icons->ensure($media);
-
-        if ($variants === null) {
-            return $this->fromTheme();
-        }
-
+        $variants = (array) $media->variants;
         $links = [];
         $icon32 = MediaUrls::variant($variants, 'icon-32', $media->id);
         $apple = MediaUrls::variant($variants, 'icon-180', $media->id);
 
         if ($icon32 !== null) {
-            $links[] = new LinkTag(LinkRelation::Icon, $this->absolute($icon32), type: 'image/png', sizes: '32x32');
+            $links[] = new LinkTag(LinkRelation::Icon, $this->absolute($icon32), type: 'image/webp', sizes: '32x32');
         }
 
         if ($apple !== null) {
-            $links[] = new LinkTag(LinkRelation::AppleTouchIcon, $this->absolute($apple));
+            $links[] = new LinkTag(LinkRelation::AppleTouchIcon, $this->absolute($apple), type: 'image/webp');
         }
 
-        $links[] = new LinkTag(LinkRelation::Manifest, $this->absolute(url('/site.webmanifest')));
+        if ($icon32 !== null || MediaUrls::variant($variants, 'icon-192', $media->id) !== null) {
+            $links[] = new LinkTag(LinkRelation::Manifest, $this->absolute(route('site-webmanifest')));
+        }
 
         return $links;
     }

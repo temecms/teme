@@ -51,7 +51,9 @@ final class DesignSettingsGroup
                 Setting::media('site_icon', 'Site icon', 'The favicon and home-screen icon. Empty uses the active theme’s default, when it has one.', '1.8.0'),
             ],
             since: '0.1.0',
-            cacheTags: [PageTags::THEME, PageTags::EVERYTHING],
+            // Theme and accent refresh theme-tagged pages. site_icon alone
+            // also purges everything (SiteIconSizes), because every head shows it.
+            cacheTags: [PageTags::THEME],
             screen: 'themes.index',
         ));
     }

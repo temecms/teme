@@ -2,7 +2,7 @@
 
 /**
  * The site's web app manifest JSON: name and the 192 and 512 icons from the
- * design site_icon when it is a raster image (issue 388).
+ * design site_icon when its favicon variants already exist (issue 388).
  *
  * @package Teme
  * @since   next
@@ -13,16 +13,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Site\Queries;
 
-use App\Domain\Design\SiteIconMaker;
+use App\Domain\Cache\PageTags;
+use App\Domain\Cache\RenderRecord;
 use App\Domain\Media\MediaUrls;
 use App\Domain\Media\Models\Media;
+use App\Domain\Media\Queries\SiteIconUse;
 use Teme\Contracts\Settings\SettingsReader;
 
 final readonly class SiteWebManifest
 {
     public function __construct(
         private SettingsReader $settings,
-        private SiteIconMaker $icons,
     ) {}
 
     /**
@@ -33,24 +34,25 @@ final readonly class SiteWebManifest
     public function data(): array
     {
         $name = $this->settings->string('general', 'site_title');
-        $name = $name === '' ? 'Site' : $name;
+        $name = $name === '' ? __('Site') : $name;
         $icons = [];
-        $chosen = $this->settings->string('design', 'site_icon');
+        $chosen = $this->settings->string(SiteIconUse::GROUP, SiteIconUse::KEY);
 
         if ($chosen !== '') {
             $media = Media::query()->whereKey($chosen)->where('kind', 'image')->whereNull('deleted_at')->first();
 
             if ($media !== null && ! str_contains(strtolower($media->mime_type), 'svg')) {
-                $variants = $this->icons->ensure($media);
+                app(RenderRecord::class)->tag(PageTags::media($chosen));
+                $variants = (array) $media->variants;
 
                 foreach ([192, 512] as $size) {
-                    $url = $variants === null ? null : MediaUrls::variant($variants, 'icon-'.$size, $media->id);
+                    $url = MediaUrls::variant($variants, 'icon-'.$size, $media->id);
 
                     if ($url !== null) {
                         $icons[] = [
                             'src' => $this->absolute($url),
                             'sizes' => $size.'x'.$size,
-                            'type' => 'image/png',
+                            'type' => 'image/webp',
                         ];
                     }
                 }

@@ -39,7 +39,7 @@ final class StoreRules
      * stored (I-464): a feed, a sitemap and its stylesheet, robots.txt and
      * llms.txt, the API's answers and its problems, and a .md page.
      */
-    private const array MARKED_TYPES = ['application/rss+xml', 'application/xml', 'text/xml', 'application/xslt+xml', 'text/xsl', 'text/plain', 'application/json', 'application/activity+json', 'application/problem+json', 'text/markdown'];
+    private const array MARKED_TYPES = ['application/rss+xml', 'application/xml', 'text/xml', 'application/xslt+xml', 'text/xsl', 'text/plain', 'application/json', 'application/manifest+json', 'application/activity+json', 'application/problem+json', 'text/markdown'];
 
     /**
      * Why this response may not be stored, or null when it may.

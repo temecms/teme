@@ -79,7 +79,7 @@ Route::middleware(['public', MarkCacheable::class])->get('robots.txt', RobotsTxt
 Route::middleware(['public', MarkCacheable::class])->get('ads.txt', AdsTxtController::class)->name('ads-txt');
 
 // The web app manifest for the site icon's 192 and 512 sizes (issue 388).
-Route::middleware(['public', MarkCacheable::class])->get('site.webmanifest', SiteWebManifestController::class)->name('site-webmanifest');
+Route::middleware(['public', 'throttle:api', MarkCacheable::class])->get('site.webmanifest', SiteWebManifestController::class)->name('site-webmanifest');
 
 // Sitemaps (I-296): the index, every page of each child and the stylesheet, stored by
 // the page cache like pages; WordPress's and Yoast's index addresses sent to the index.
