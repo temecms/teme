@@ -640,3 +640,45 @@ it('says in plain words which system a reader’s file came from, when a person 
         ->and($messages[0])->toContain('Fake export')
         ->and($messages[0])->not->toContain('WordPress');
 });
+
+it('counts and names a reader’s posts that name a term the file doesn’t have, in the report', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][3]['termIds'] = ['t1', 'gone'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->report['notes']['term']['count'])->toBe(1)
+        ->and($file->report['notes']['term']['examples'])->toBe(['i1'])
+        ->and($file->report['notes']['term']['sentence'])->toContain('aren’t in this file');
+});
+
+it('counts and names a reader’s posts whose featured picture isn’t in the file, in the report', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][3]['featuredMediaId'] = 'gone-picture';
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->report['notes']['featured-image']['count'])->toBe(1)
+        ->and($file->report['notes']['featured-image']['examples'])->toBe(['i1']);
+});
+
+it('counts and names a reader’s menu items that point at a post or term the file doesn’t have, in the report', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][] = ['kind' => 'menu', 'id' => 'm5', 'title' => 'Main', 'slug' => 'main'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi4', 'menuId' => 'm5', 'itemType' => 'content', 'objectId' => 'gone', 'order' => 1, 'title' => 'Gone'];
+    $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi5', 'menuId' => 'm5', 'itemType' => 'term', 'objectId' => 't1', 'order' => 2, 'title' => 'News'];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->report['notes']['menu-target']['count'])->toBe(1)
+        ->and($file->report['notes']['menu-target']['examples'])->toBe(['mi4']);
+});

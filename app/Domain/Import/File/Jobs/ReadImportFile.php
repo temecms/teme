@@ -262,8 +262,9 @@ final class ReadImportFile implements ShouldQueue
     /**
      * What a reader's file holds that Teme doesn't bring, counted and named
      * for the report: comments on posts the file doesn't have, menu items in
-     * menus it doesn't have, and a file in more than one language, whose items
-     * come across in the site's default language.
+     * menus it doesn't have, menu items that point at nothing in the file,
+     * terms and featured pictures the file doesn't have, and a file in more
+     * than one language, whose items come across in the site's default language.
      *
      * @param  list<ImportItem>  $items
      * @param  list<string>  $languages
@@ -293,6 +294,53 @@ final class ReadImportFile implements ShouldQueue
 
         if ($menuItems !== []) {
             $notes['menu-item'] = ['count' => count($menuItems), 'examples' => array_map(fn (ImportItem $item): string => $item->id, array_slice($menuItems, 0, 5)), 'sentence' => 'Menu items in menus that aren’t in this file weren’t brought.'];
+        }
+
+        $terms = [];
+        $media = [];
+
+        foreach ($items as $item) {
+            if ($item->kind === ImportKind::TERM) {
+                $terms[$item->id] = true;
+            } elseif ($item->kind === ImportKind::MEDIA) {
+                $media[$item->id] = true;
+            }
+        }
+
+        $withoutTerm = [];
+        $withoutPicture = [];
+        $withoutTarget = [];
+
+        foreach ($items as $item) {
+            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
+                foreach ($item->termIds as $termId) {
+                    if (! isset($terms[$termId])) {
+                        $withoutTerm[] = $item->id;
+
+                        break;
+                    }
+                }
+
+                if ($item->featuredMediaId !== null && ! isset($media[$item->featuredMediaId])) {
+                    $withoutPicture[] = $item->id;
+                }
+            } elseif ($item->kind === ImportKind::MENU_ITEM && isset($menus[(string) $item->menuId])) {
+                $known = $item->itemType === ImportMenuItemType::CONTENT ? $posts : $terms;
+
+                if (in_array($item->itemType, [ImportMenuItemType::CONTENT, ImportMenuItemType::TERM], true) && ! isset($known[(string) $item->objectId])) {
+                    $withoutTarget[] = $item->id;
+                }
+            }
+        }
+
+        foreach ([
+            'term' => [$withoutTerm, 'Terms of posts and pages that aren’t in this file weren’t brought, so those posts aren’t filed under them.'],
+            'featured-image' => [$withoutPicture, 'Featured pictures that aren’t in this file weren’t brought, so those posts have none for now.'],
+            'menu-target' => [$withoutTarget, 'Menu items that point at a post, page or term that isn’t in this file were brought with nothing to point at.'],
+        ] as $kind => [$ids, $sentence]) {
+            if ($ids !== []) {
+                $notes[$kind] = ['count' => count($ids), 'examples' => array_slice($ids, 0, 5), 'sentence' => $sentence];
+            }
         }
 
         if (count(array_unique($languages)) > 1) {
