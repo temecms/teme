@@ -38,7 +38,7 @@ final class ComposerRegistry
     /** @var list<class-string<ViewComposer>> core's composers, run before any theme's */
     private const array CORE = [SiteComposer::class, LanguageComposer::class, NavigationComposer::class, ThemeSettingsComposer::class];
 
-    /** @var list<string> the names core keeps for a page's language and for plugin page output, which no theme's composer may return (I-3360, issue 20) */
+    /** @var list<string> the names core keeps for a page's language and for plugin page output, which no theme's composer may return (issue 20) */
     public const array RESERVED = ['language', 'direction', 'alternates', 'plugins'];
 
     /** @var list<ViewComposer> */
