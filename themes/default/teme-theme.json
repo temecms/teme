@@ -88,6 +88,14 @@
         "after-content": {
             "label": "After the article",
             "max": 5
+        },
+        "front-top": {
+            "label": "Front page top",
+            "max": 3
+        },
+        "front-sections": {
+            "label": "Front page sections",
+            "max": 8
         }
     },
     "settings": [
