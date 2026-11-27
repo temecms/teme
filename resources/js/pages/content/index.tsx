@@ -658,6 +658,7 @@ function pluginAction(plugin: ContentListAction, row: ContentRow): RowAction {
                           title={plugin.label}
                           description={plugin.confirm ?? ''}
                           confirmLabel={plugin.label}
+                          confirmVariant="default"
                       >
                           {button}
                       </ConfirmAction>
@@ -1896,37 +1897,42 @@ export default function ContentIndex(page: ContentIndexPage) {
                             </Button>
                         </>
                     )}
-                    {(page.listActions ?? [])
-                        .filter((plugin) => plugin.bulk)
-                        .map((plugin) => {
-                            const button = (
-                                <Button
-                                    key={`${plugin.code}:${plugin.id}`}
-                                    type="button"
-                                    variant="neutral"
-                                    size="sm"
-                                    className="bg-surface"
-                                    disabled={bulkBusy}
-                                    aria-describedby="bulk-error"
-                                    onClick={() => bulkPlugin(plugin)}
-                                >
-                                    {plugin.label}
-                                </Button>
-                            );
+                    {/* Bulk actions are for the selected items only: not while every match is chosen, nor in the trash. */}
+                    {!allMatching &&
+                        !inTrash &&
+                        (page.listActions ?? [])
+                            .filter((plugin) => plugin.bulk)
+                            .map((plugin) => {
+                                const button = (
+                                    <Button
+                                        key={`${plugin.code}:${plugin.id}`}
+                                        type="button"
+                                        variant="neutral"
+                                        size="sm"
+                                        className="bg-surface"
+                                        disabled={bulkBusy}
+                                        aria-describedby="bulk-error"
+                                        onClick={() => bulkPlugin(plugin)}
+                                    >
+                                        {plugin.label}
+                                    </Button>
+                                );
 
-                            return plugin.confirm === null ? (
-                                button
-                            ) : (
-                                <ConfirmAction
-                                    key={`${plugin.code}:${plugin.id}`}
-                                    title={plugin.label}
-                                    description={plugin.confirm}
-                                    confirmLabel={plugin.label}
-                                >
-                                    {button}
-                                </ConfirmAction>
-                            );
-                        })}
+                                return plugin.confirm === null ? (
+                                    button
+                                ) : (
+                                    <ConfirmAction
+                                        key={`${plugin.code}:${plugin.id}`}
+                                        title={plugin.label}
+                                        description={plugin.confirm}
+                                        confirmLabel={plugin.label}
+                                        confirmVariant="default"
+                                        onConfirm={() => bulkPlugin(plugin)}
+                                    >
+                                        {button}
+                                    </ConfirmAction>
+                                );
+                            })}
                     {!allMatching && (
                         <SelectAllMatching
                             page={page}
