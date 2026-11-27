@@ -560,3 +560,12 @@ it('carries a reader’s media caption and description', function (): void {
     expect($media['caption'])->toBe('A harbour at dusk')
         ->and($media['description'])->toBe('Taken in January');
 });
+
+it('stores a reader’s upload without the .xml of a WordPress export', function (): void {
+    readersEnabled();
+
+    $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), fixtureReaderKey());
+
+    expect($file->path())->not->toEndWith('.xml')
+        ->and(Storage::disk('local')->exists($file->path()))->toBeTrue();
+});
