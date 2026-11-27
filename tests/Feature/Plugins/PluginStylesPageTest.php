@@ -24,7 +24,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -43,17 +42,15 @@ beforeEach(function (): void {
         app(PluginLoader::class)->load();
     };
     $this->enable = function (): void {
-        PluginFixtures::use('cardbox');
+        PluginFixtures::use(PluginFixtures::copy('cardbox'));
         $manifest = app(PluginRegistry::class)->all()['tests/cardbox']->manifest;
         app(EnablePlugin::class)->execute(new EnablePluginInput('tests/cardbox', $manifest->version(), $manifest->capabilities(), $manifest->hosts(), [], null));
         ($this->restart)();
-        $this->artisan('teme:plugins:link')->assertSuccessful();
     };
     $this->note = fn (): array => ['type' => 'plugin-card', 'attrs' => ['id' => (string) Str::ulid(), 'card' => 'cardbox:note', 'values' => ['body' => 'Hi']]];
 });
 
 afterEach(function (): void {
-    File::deleteDirectory(public_path('plugins'));
     PluginFixtures::forget();
 });
 
@@ -65,7 +62,7 @@ it('links a plugin’s stylesheet for a card into a page that draws the card', f
     pageArticle($this->editor, 'A story');
 
     expect(addrGet('/a-story/')->assertOk()->getContent())
-        ->toContain('/plugins/cardbox/dist/note.css?v=')
+        ->toContain('/_teme/plugins/cardbox/dist/note.css?v=')
         ->toContain('data-teme-plugin-style="cardbox:card:note"');
 });
 

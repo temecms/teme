@@ -104,7 +104,6 @@ RUN chown root:root /var/www/html \
     && php artisan view:cache \
     && php artisan storage:link \
     && php artisan teme:themes:link \
-    && php artisan teme:plugins:link \
     && php artisan teme:themes:cache \
     && php artisan teme:plugins:cache \
     && php artisan teme:extensions:pins \

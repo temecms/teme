@@ -21,7 +21,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
 use Tests\Fixtures\Plugins\Billboard\Billboard;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -29,7 +28,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
-    PluginFixtures::use('billboard');
+    PluginFixtures::use(PluginFixtures::copy('billboard'));
     config(['teme.theme_paths' => []]);
     themeActivate('default');
     app()->instance(Elevation::class, new OperatorElevation);
@@ -37,7 +36,6 @@ beforeEach(function (): void {
     $manifest = app(PluginRegistry::class)->all()['tests/billboard']->manifest;
     app(EnablePlugin::class)->execute(new EnablePluginInput('tests/billboard', $manifest->version(), $manifest->capabilities(), $manifest->hosts(), $manifest->hooks(), null));
     app(PluginLoader::class)->load();
-    $this->artisan('teme:plugins:link')->assertSuccessful();
     Billboard::reset();
 
     $this->author = User::factory()->create()->assignRole('author');
@@ -46,7 +44,6 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    File::deleteDirectory(public_path('plugins'));
     Billboard::reset();
     PluginFixtures::forget();
 
@@ -77,4 +74,18 @@ it('links an insertion’s stylesheet once, in the head, for an insertion the bo
 
     expect(substr_count($html, 'data-teme-plugin-style="billboard:insertion:top"'))->toBe(1)
         ->and(strpos($html, 'data-teme-plugin-style="billboard:insertion:top"'))->toBeLessThan($head);
+});
+
+it('links the stylesheet of a fixed-edge insertion too', function (): void {
+    $original = PluginFixtures::manifest('billboard');
+    $contributes = $original['contributes'];
+    $contributes['styles'] = [['output' => 'insertion:bar', 'file' => 'dist/bar.css']];
+    PluginFixtures::use(PluginFixtures::copy('billboard', ['contributes' => $contributes], [], ['dist/bar.css' => '.billboard-bar{color:red}']));
+    $manifest = app(PluginRegistry::class)->all()['tests/billboard']->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/billboard', $manifest->version(), $manifest->capabilities(), $manifest->hosts(), $manifest->hooks(), null));
+    app(PluginLoader::class)->load();
+    Billboard::reset();
+
+    expect(addrGet('/harbour-story/')->assertOk()->getContent())
+        ->toContain('data-teme-plugin-style="billboard:insertion:bar"');
 });

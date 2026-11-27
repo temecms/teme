@@ -1,10 +1,10 @@
 <?php
 
 /**
- * The stylesheets a public page links for the plugin outputs it drew: each
- * recorded output whose enabled plugin declares a stylesheet for it under
- * contributes.styles and whose copy `teme:plugins:link` wrote, at the address
- * it is served from, with the copy's content hash as its version.
+ * The stylesheets a public page links for the plugin outputs it drew: each recorded
+ * output whose enabled plugin declares a stylesheet for it under contributes.styles.
+ * Core serves each sheet itself at its route, with the sheet's content hash as its
+ * version, so a changed file gets a new address.
  *
  * @package Teme
  * @since   next
@@ -15,27 +15,24 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Styles;
 
-use App\Console\Commands\LinkPluginStyles;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Themes\ActiveTheme;
+use InvalidArgumentException;
 
 final class PluginStyles
 {
-    /** @var array<string, array<string, string>>|null the copies `teme:plugins:link` wrote, by code and file */
-    private ?array $copies = null;
-
     public function __construct(
         private readonly PluginStyleUsage $usage,
         private readonly PluginRecords $records,
         private readonly PluginRegistry $registry,
         private readonly ActiveTheme $theme,
+        private readonly PluginStylesheet $sheets,
     ) {}
 
     /**
-     * Each stylesheet to link, as its key (`code:output`) and its address with
-     * its version, in the order the outputs were drawn; none when nothing drawn
-     * has one that was copied.
+     * Each stylesheet to link, as its key (`code:output`) and its address with its version,
+     * in the order the outputs were drawn; none when nothing drawn has a sheet that can be served.
      *
      * @return list<array{key: string, href: string}>
      */
@@ -59,35 +56,26 @@ final class PluginStyles
             }
 
             foreach (DeclaredStyles::entries($manifest->contributes()) as $style) {
-                $hash = $this->copies()[$entry['code']][$style['file']] ?? null;
+                if ($style['output'] !== $entry['output']) {
+                    continue;
+                }
 
-                if ($style['output'] === $entry['output'] && $hash !== null) {
+                try {
+                    $hash = $this->sheets->hash($entry['code'], $style['file']);
+                } catch (InvalidArgumentException) {
+                    // A sheet that can't be served is refused at its own address too; the page leaves it out.
+                    $hash = null;
+                }
+
+                if ($hash !== null) {
                     $links[] = [
                         'key' => $entry['code'].':'.$entry['output'],
-                        'href' => asset('plugins/'.$entry['code'].'/'.$style['file']).'?v='.$hash,
+                        'href' => route('teme.plugins.styles', ['code' => $entry['code'], 'file' => $style['file']]).'?v='.$hash,
                     ];
                 }
             }
         }
 
         return $links;
-    }
-
-    /**
-     * The copies `teme:plugins:link` wrote, by code and file, each with its hash; none
-     * before the command has run. Read once per request.
-     *
-     * @return array<string, array<string, string>>
-     */
-    private function copies(): array
-    {
-        if ($this->copies !== null) {
-            return $this->copies;
-        }
-
-        $path = public_path('plugins/'.LinkPluginStyles::MANIFEST);
-        $manifest = is_file($path) ? json_decode((string) file_get_contents($path), true) : null;
-
-        return $this->copies = is_array($manifest) ? $manifest : [];
     }
 }

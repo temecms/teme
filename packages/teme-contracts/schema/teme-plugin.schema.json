@@ -1319,7 +1319,7 @@
                             },
                             "file": {
                                 "type": "string",
-                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css\\z",
+                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css$",
                                 "description": "A .css file inside the plugin's package, relative to its root."
                             }
                         }

@@ -184,13 +184,13 @@ final class PageInsertions
     }
 
     /**
-     * Records the stylesheet output of each plugin insertion this page will draw at the head or
-     * the body's start and end, before the head is written, so the head links their sheets.
+     * Records the stylesheet output of each plugin insertion this page will draw at the head, the
+     * body's start and end, or a fixed edge, before the head is written, so the head links their sheets.
      * Only the insertion's own markup decides: a sheet is linked when the markup is not empty.
      */
     public function declareStyles(): void
     {
-        foreach ($this->at(PagePosition::HEAD, PagePosition::BODY_START, PagePosition::BODY_END) as $entry) {
+        foreach ($this->at(PagePosition::HEAD, PagePosition::BODY_START, PagePosition::BODY_END, PagePosition::FIXED) as $entry) {
             $id = $entry['code'] === null ? null : $this->insertionId($entry['code'], $entry['insertion']->key);
 
             if ($id !== null && trim($entry['insertion']->html) !== '') {

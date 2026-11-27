@@ -2,13 +2,13 @@
 title: Stylesheets for a plugin's output
 type: how-to
 audience: plugin
-summary: How a plugin ships a built stylesheet for its cards and its page insertions, so the sheet loads only on a page that shows that output.
-rests_on: [app/Domain/Plugins/Styles, app/Console/Commands/LinkPluginStyles.php, app/Domain/Cards/Plugin/PluginCards.php, app/Domain/Site/Insertions/PageInsertions.php, app/View/Components/Teme/Document.php, packages/teme-contracts/schema/teme-plugin.schema.json]
+summary: How a plugin ships a built stylesheet for its cards and its page insertions, so Teme serves it, wrapped in its own cascade layer, only on a page that shows that output.
+rests_on: [app/Domain/Plugins/Styles, app/Http/Site/PluginStylesheetController.php, app/Domain/Cards/Plugin/PluginCards.php, app/Domain/Site/Insertions/PageInsertions.php, app/View/Components/Teme/Document.php, packages/teme-contracts/schema/teme-plugin.schema.json]
 ---
 
 # Stylesheets for a plugin's output
 
-A plugin's cards and page insertions draw their own markup, and a plugin can't otherwise style it. A stylesheet declared here is built ahead of time, shipped in the package, and linked into a page only when that page draws the output it styles. A page with no plugin output loads none of them.
+A plugin's cards and page insertions draw their own markup, and a plugin can't otherwise style it. A stylesheet declared here is built ahead of time and shipped in the package. Teme serves it from its own address, and a page links it only when that page draws the output it styles. A page with no plugin output loads none of them.
 
 ## Declaring it
 
@@ -26,19 +26,26 @@ The plugin lists its stylesheets under `styles`, one per output:
 
 An insertion's id is the part of its key after the plugin's code and a dot, so a key `billboard.top` is `insertion:top`. An id must be lower-case letters, digits and hyphens to be declared.
 
-## Where the file comes from
+## How it is served
 
-Build the CSS before you publish the package. Teme doesn't build anything on the server. At deploy, `teme:plugins:link` copies each enabled plugin's declared stylesheets into the public folder and writes a manifest of their content hashes. Each copy is wrapped in `@layer teme.plugins`, so a theme's own rules win over it. A sheet that imports another sheet, or declares a namespace, is refused. A file that is a link, or sits behind one, is refused. A disabled plugin's copies are removed.
+Nothing is copied at deploy, and nothing is written while the site runs. Teme serves each declared sheet at `/_teme/plugins/{code}/{file}`, and answers 404 unless all of these hold:
+
+- the plugin is enabled, and the manifest declares the file;
+- the file is a plain file inside the package, with no link on its path;
+- the sheet imports nothing and declares no namespace, and its braces balance.
+
+The sheet is sent wrapped in `@layer teme.plugins`, so a theme's own rules win over it. A leading `@charset` is kept at the top. Its address carries a hash of its content as `?v=`, so a changed file gets a new address, and it is sent with long cache headers.
 
 ## What the page does
 
-When a page draws a card or a page insertion of a plugin, Teme records that output. The page's head then links that plugin's stylesheet for the output, with the copy's content hash as its version. A body insertion's sheet is linked in the head too, because the head is written after the page's insertions are known. A stylesheet for an output the page does not draw is not linked.
+When a page draws a card or an insertion of a plugin, Teme records that output. The page's head then links that plugin's sheet for the output. Head, body-start, body-end and fixed-edge insertions are declared before the head is written, so their sheets are linked in the head as well. A stylesheet for an output the page does not draw is not linked.
 
 ## Styling in the right place
 
-Write the sheet's rules as they are: the copy is already inside `@layer teme.plugins`. Read Teme's design tokens as `--teme-*` variables, as core's own cards do. A theme can switch a plugin's stylesheet off by naming it in the theme's manifest under `plugin_styles.off`, as `code:card:<id>` or `code:insertion:<id>`, and then styles that output itself.
+Write the sheet's rules as they are: Teme wraps them in `@layer teme.plugins`. Read Teme's design tokens as `--teme-*` variables, as core's own cards do. A theme can switch a plugin's stylesheet off by naming it in the theme's manifest under `plugin_styles.off`, as `code:card:<id>` or `code:insertion:<id>`, and then styles that output itself.
 
 ## Not in this version
 
 - Scripts. A plugin's scripts are not loaded by this mechanism yet.
 - A stylesheet for the whole page. Only cards and insertions have one.
+- A fixed-edge insertion's sheet is declared even on a theme that draws no fixed edges, so its link may appear without any markup.

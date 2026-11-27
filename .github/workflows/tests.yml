@@ -180,5 +180,4 @@ jobs:
           npm run build
           npm run build:themes
           php artisan teme:themes:link
-          php artisan teme:plugins:link
           vendor/bin/pest --testsuite=Browser --shard=${{ matrix.shard }}/4

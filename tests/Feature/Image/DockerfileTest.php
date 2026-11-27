@@ -186,7 +186,7 @@ it('caches events and views at build, and the configuration and routes only at s
     $runtime = implode("\n", ImageFiles::stage('runtime'));
     $environment = ImageFiles::runtimeEnvironment();
 
-    expect($runtime)->toContain('php artisan event:cache', 'php artisan view:cache', 'php artisan storage:link', 'php artisan teme:themes:link', 'php artisan teme:plugins:link', 'php artisan teme:themes:cache')
+    expect($runtime)->toContain('php artisan event:cache', 'php artisan view:cache', 'php artisan storage:link', 'php artisan teme:themes:link', 'php artisan teme:themes:cache')
         ->and(ImageFiles::text('Dockerfile'))->not->toMatch('/artisan\s+(config:cache|route:cache|optimize)\b/')
         ->and($environment['APP_CONFIG_CACHE'] ?? null)->toBe('/var/www/html/storage/framework/cache/config.php')
         ->and($environment['APP_ROUTES_CACHE'] ?? null)->toBe('/var/www/html/storage/framework/cache/routes-v7.php');

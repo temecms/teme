@@ -25,6 +25,7 @@ use App\Http\Site\Middleware\MarkCacheable;
 use App\Http\Site\Middleware\MatchDeclaredRoutes;
 use App\Http\Site\Middleware\ServeRootFiles;
 use App\Http\Site\PendingCommentsController;
+use App\Http\Site\PluginStylesheetController;
 use App\Http\Site\PolicyReportController;
 use App\Http\Site\PublicController;
 use App\Http\Site\RegionFragmentController;
@@ -53,6 +54,13 @@ Route::post('_teme/comments', [CommentController::class, 'store'])->middleware(G
 Route::get('_teme/comment/{comment}', [CommentController::class, 'show'])->where('comment', '[0-9a-z]{26}')->name('teme.comments.show');
 Route::get('_teme/comment/{comment}/reply', [CommentController::class, 'reply'])->where('comment', '[0-9a-z]{26}')->name('teme.comments.reply');
 Route::get('_teme/comments/pending', PendingCommentsController::class)->name('teme.comments.pending');
+
+// A plugin's declared stylesheet, wrapped in the teme.plugins layer (docs/guides/developers/plugins/styles.md).
+// Its code and its file, a path inside the package; anything not declared answers 404.
+Route::get('_teme/plugins/{code}/{file}', PluginStylesheetController::class)
+    ->where('code', '[a-z][a-z0-9-]*')
+    ->where('file', '.+\.css')
+    ->name('teme.plugins.styles');
 
 // The password form's post for an item protected by one (I-1700): no session and no token,
 // tries counted per address; reserved (_teme), so the page cache passes it by.
