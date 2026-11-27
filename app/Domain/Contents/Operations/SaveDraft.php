@@ -18,6 +18,7 @@ namespace App\Domain\Contents\Operations;
 
 use App\Domain\Cards\DocumentNormaliser;
 use App\Domain\Cards\PlainText;
+use App\Domain\Contents\BeforeSaveCheck;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\DraftChecks;
@@ -90,6 +91,20 @@ final class SaveDraft extends BaseOperation implements RequiresElevation
     {
         /** @var SaveDraftInput $input */
         DraftChecks::validate($input->contentId, $input->title, $input->document, $input->fields, $input->terms);
+
+        // Asked before the transaction opens, so a refusal writes nothing (BeforeSaveCheck).
+        $content = Content::query()->findOrFail($input->contentId);
+        app(BeforeSaveCheck::class)->ask(
+            (string) $content->id,
+            (string) $content->type,
+            $content->language,
+            trim($input->title),
+            DocumentNormaliser::normalise($input->document),
+            $input->fields,
+            $input->actorId,
+            $input->kind,
+            $input->via,
+        );
     }
 
     protected function perform(OperationInput $input): Content

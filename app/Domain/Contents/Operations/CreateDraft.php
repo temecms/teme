@@ -25,6 +25,7 @@ use App\Domain\Cards\OutsidePictures;
 use App\Domain\Cards\PlainText;
 use App\Domain\Comments\DiscussionSettings;
 use App\Domain\Contents\AuthorSort;
+use App\Domain\Contents\BeforeSaveCheck;
 use App\Domain\Contents\ContentCounts;
 use App\Domain\Contents\ContentState;
 use App\Domain\Contents\ItemTerms;
@@ -114,6 +115,18 @@ final class CreateDraft extends BaseOperation
         // An outside picture is the import's to write, never a new item's (#716).
         OutsidePictures::refuseAdded($input->document, []);
         OutsidePictures::refuseAddedFields($input->fields, []);
+
+        // Asked before the transaction opens, so a refusal writes nothing (BeforeSaveCheck).
+        app(BeforeSaveCheck::class)->ask(
+            null,
+            $input->type,
+            $language,
+            trim($input->title),
+            DocumentNormaliser::normalise($input->document),
+            $input->fields,
+            $input->actorId(),
+            via: $input->via,
+        );
     }
 
     protected function perform(OperationInput $input): Content
