@@ -23,7 +23,6 @@ use Teme\Contracts\Content\ContentDeleted;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Content\ContentTrashed;
 use Teme\Contracts\Content\ContentUnpublished;
-use Throwable;
 use WeakMap;
 
 final class SearchFeed
@@ -32,7 +31,8 @@ final class SearchFeed
     private const string LISTENING = 'search.content-listening';
 
     /**
-     * Subscribes core to the content hooks, once for each dispatcher.
+     * Subscribes core to the content hooks, once for each dispatcher, whether or
+     * not an engine is chosen yet: one chosen later is kept in step from then on.
      */
     public static function listen(HookDispatcher $dispatcher): void
     {
@@ -43,7 +43,7 @@ final class SearchFeed
             app()->instance(self::LISTENING, $listening);
         }
 
-        if (isset($listening[$dispatcher]) || ! self::engineChosen()) {
+        if (isset($listening[$dispatcher])) {
             return;
         }
 
@@ -54,18 +54,6 @@ final class SearchFeed
         $core->on(ContentUnpublished::class, fn (ContentUnpublished $hook) => self::queue($hook->item->id, SyncSearchEntry::SYNC));
         $core->on(ContentTrashed::class, fn (ContentTrashed $hook) => self::queue($hook->item->id, SyncSearchEntry::SYNC));
         $core->on(ContentDeleted::class, fn (ContentDeleted $hook) => self::queue($hook->id, SyncSearchEntry::SYNC));
-    }
-
-    /**
-     * Whether an engine is chosen now. Unreadable before the database is ready, which means none.
-     */
-    private static function engineChosen(): bool
-    {
-        try {
-            return app(SlotProviders::class)->chosenFor(PluginSlots::SEARCH) !== null;
-        } catch (Throwable) {
-            return false;
-        }
     }
 
     /**

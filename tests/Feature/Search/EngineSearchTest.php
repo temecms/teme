@@ -6,7 +6,9 @@ use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
@@ -150,4 +152,24 @@ it('refuses to enable a search engine that did not ask for search.read', functio
         ->toThrow(ValidationException::class);
 
     app()->forgetInstance(Elevation::class);
+});
+
+it('keeps listening for publishes before an engine is chosen, so one chosen later is kept in step', function (): void {
+    // Disabled, the searcher is no engine: listen now, then enable it again.
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/searcher', null));
+    app()->forgetInstance(HookDispatcher::class);
+    app()->forgetInstance('search.content-listening');
+    SearchFeed::listen(app(HookDispatcher::class));
+
+    $manifest = app(PluginRegistry::class)->find('tests/searcher')?->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/searcher', '1.0.0', $manifest?->capabilities() ?? [], [], [], null));
+    app(PluginLoader::class)->load();
+    app()->forgetInstance(Elevation::class);
+    app()->forgetInstance(SiteSearch::class);
+    Searcher::$indexed = [];
+
+    $id = LanguageSite::version($this->site->editor, 'Ils mangeaient', 'fr', null, [], publish: true);
+
+    expect(Searcher::$indexed)->toHaveKey($id);
 });

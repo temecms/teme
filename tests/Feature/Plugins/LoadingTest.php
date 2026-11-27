@@ -254,5 +254,6 @@ it('keeps a plugin’s subscriptions through the dispatcher, and refuses what th
 
     $subscriptions->forget('tests/hello');
 
-    expect($dispatcher->wants(ContentPublished::class))->toBeFalse();
+    // Core's search feed always listens for publishes, so the hook stays wanted; the plugin's own is gone.
+    expect($dispatcher->wants(ContentPublished::class))->toBeTrue();
 });
