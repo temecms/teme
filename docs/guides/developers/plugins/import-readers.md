@@ -16,6 +16,7 @@ A reader supplies only what differs per system. It reads an export file, says wh
 >
 > - The whole file is read in one job under a 45-second deadline. A file over 64 MB is refused when its upload starts, with a plain sentence. Page-by-page reading for larger files is not in this release.
 > - Menus come across unplaced, since the import plan chooses where each menu sits.
+> - What the file names but doesn't hold is named, not guessed: orphan comments and menu items, terms and featured pictures the file lacks, and menu items with nothing to point at. The plan lists each kind with a count and the first few IDs before the run, and the run's report lists them as warnings.
 > - An item's language is not carried. When a file holds more than one language, every item is imported into the site's default language, and the report says so once. Per-item language is not in this release.
 
 ## Declaring a reader
@@ -48,7 +49,7 @@ A reader that can't read a file throws `ImportReaderRefused::because(...)` with 
 
 ## Items
 
-Each item is an `ImportItem`, in Teme's words. Its `kind` is one of the kinds in `ImportKind`: `post`, `page`, `term`, `person`, `media`, `comment` or `menu`.
+Each item is an `ImportItem`, in Teme's words. Its `kind` is one of the kinds in `ImportKind`: `post`, `page`, `term`, `person`, `media`, `comment`, `menu` or `menu-item`.
 
 - `id` is the item's ID in the file, as a string, unique within its kind.
 - `status` is one of Teme's statuses: `published`, `draft`, `private`, `scheduled` or `trashed`.
@@ -68,7 +69,7 @@ A reader may add further values to `fields` for what its system holds beyond the
 Two kinds have fields of their own:
 
 - A `comment` names the post it belongs to with `postId`. Its `status` may be `spam`, which stays spam; `draft` is a held comment, and `published` an approved one. Its author's name, email, URL and IP go in `fields` as `authorName`, `authorEmail`, `authorUrl` and `authorIp`. A reply names its parent comment with `parentId`. A comment whose post is not in the file is not imported, and the report names how many there were.
-- A `menu` names its title in `title` and its slug in `fields.slug`. Menus come across unplaced: the import plan chooses where each menu sits. Each `menu-item` names its menu with `menuId`, its `itemType` and the post, page or term it points at with `objectId`, its `order`, its parent item with `parentId`, and for a plain link its `fields.url`. The `itemType` is one of the words in `Teme\Contracts\Import\ImportMenuItemType`: `content` for a post or page, `term` for a term, and `link` for a plain link. A menu item that points at nothing in the file is not imported, and the report names how many there were.
+- A `menu` names its title in `title` and its slug in `fields.slug`. Menus come across unplaced: the import plan chooses where each menu sits. Each `menu-item` names its menu with `menuId`, its `itemType` and the post, page or term it points at with `objectId`, its `order`, its parent item with `parentId`, and for a plain link its `fields.url`. The `itemType` is one of the words in `Teme\Contracts\Import\ImportMenuItemType`: `content` for a post or page, `term` for a term, and `link` for a plain link. A menu item that points at a post, page or term the file doesn't have is still imported, but with nothing to point at, and the report names how many there were.
 
 A term's `fields.taxonomy` is one of the words in `Teme\Contracts\Import\ImportTaxonomy`: `category` or `tag`, or the key of a plugin's taxonomy that Teme has registered. Any other word is refused, so a reader cannot write into a taxonomy Teme keeps for itself.
 
