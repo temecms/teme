@@ -396,3 +396,40 @@ it('refuses a reader’s file too large for a reader to read in one go, when it 
     expect(fn () => $start(ReadImportFile::READER_BYTES + 1))->toThrow(ValidationException::class)
         ->and($start(ReadImportFile::READER_BYTES))->not->toBeNull();
 });
+
+it('keeps a reader’s old address as an old address that leads to the post it was imported as', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['items'][3]['oldAddress'] = 'https://old.example.com/2020/hello/';
+
+    FileImports::run(readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey())->refresh());
+
+    $hello = (string) DB::table('contents')->where('title', 'Hello')->value('id');
+    $old = DB::table('paths')->where('path', '2020/hello')->where('is_current', false)->first(['target_id']);
+
+    expect($old)->not->toBeNull()
+        ->and((string) $old->target_id)->toBe($hello);
+});
+
+it('records the plan’s choices on the run a reader’s file starts', function (): void {
+    readersEnabled();
+
+    $run = FileImports::run(readerUploaded('sample.json', (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json')), fixtureReaderKey())->refresh(), ['outside_images' => ['cdn.example.com']]);
+
+    expect($run->choices['outside_images'])->toBe(['cdn.example.com']);
+});
+
+it('writes a report of what a reader’s file holds, when the file is read', function (): void {
+    readersEnabled();
+
+    $file = readerUploaded('sample.json', (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json')), fixtureReaderKey());
+    readerReadToEnd($file);
+    $report = $file->refresh()->report;
+
+    expect($report['report_version'])->toBe(1)
+        ->and($report['errors'])->toBe([])
+        ->and($report['sections']['users']['total'])->toBe(1)
+        ->and($report['sections']['media']['total'])->toBe(1)
+        ->and($report['sections']['comments']['total'])->toBe(0);
+});
