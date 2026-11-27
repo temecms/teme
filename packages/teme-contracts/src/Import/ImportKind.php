@@ -42,6 +42,9 @@ final class ImportKind
     /** @since next */
     public const string MENU = 'menu';
 
+    /** @since next */
+    public const string MENU_ITEM = 'menu-item';
+
     /**
      * Every kind a reader may map an item to.
      *
@@ -51,6 +54,6 @@ final class ImportKind
      */
     public static function all(): array
     {
-        return [self::POST, self::PAGE, self::TERM, self::PERSON, self::MEDIA, self::COMMENT, self::MENU];
+        return [self::POST, self::PAGE, self::TERM, self::PERSON, self::MEDIA, self::COMMENT, self::MENU, self::MENU_ITEM];
     }
 }

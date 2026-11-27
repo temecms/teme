@@ -160,3 +160,33 @@ it('refuses a file that isn’t a fake export, an item of an unknown kind or sta
         unlink($file);
     }
 });
+
+it('carries a comment’s post and spam status, and a menu item’s menu, type, object, order and place', function (): void {
+    $path = fakeExport([
+        'system' => 'Fake export',
+        'items' => [
+            ['kind' => ImportKind::POST, 'id' => 'i1', 'title' => 'Hello', 'status' => 'published'],
+            ['kind' => ImportKind::COMMENT, 'id' => 'c1', 'postId' => 'i1', 'status' => 'spam', 'content' => 'Buy now', 'authorName' => 'Sam', 'authorEmail' => 'sam@example.com', 'authorUrl' => 'https://example.com', 'authorIp' => '192.0.2.1'],
+            ['kind' => ImportKind::MENU, 'id' => 'm1', 'title' => 'Main', 'slug' => 'main', 'placement' => 'primary'],
+            ['kind' => ImportKind::MENU_ITEM, 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'post_type', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'],
+        ],
+    ]);
+    $reader = new FakeImportReader;
+
+    $comment = $reader->fetch($path, 'c1');
+    $menu = $reader->fetch($path, 'm1');
+    $item = $reader->fetch($path, 'mi1');
+
+    expect($comment->postId)->toBe('i1')
+        ->and($comment->status)->toBe('spam')
+        ->and($comment->fields)->toBe(['authorName' => 'Sam', 'authorEmail' => 'sam@example.com', 'authorUrl' => 'https://example.com', 'authorIp' => '192.0.2.1'])
+        ->and($menu->fields)->toBe(['slug' => 'main'])
+        ->and($menu->placement)->toBe('primary')
+        ->and($item->kind)->toBe(ImportKind::MENU_ITEM)
+        ->and($item->menuId)->toBe('m1')
+        ->and($item->itemType)->toBe('post_type')
+        ->and($item->objectId)->toBe('i1')
+        ->and($item->order)->toBe(1);
+
+    unlink($path);
+});

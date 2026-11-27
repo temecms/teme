@@ -31,7 +31,7 @@ use Teme\Contracts\Import\ImportReaderRefused;
 final class FakeImportReader implements ImportReader
 {
     /** The statuses a fake item may carry, which are Teme's. */
-    private const array STATUSES = ['published', 'draft', 'private', 'scheduled', 'trashed'];
+    private const array STATUSES = ['published', 'draft', 'private', 'scheduled', 'trashed', 'spam'];
 
     /**
      * @since next
@@ -134,6 +134,8 @@ final class FakeImportReader implements ImportReader
             ImportKind::PERSON => ['login' => $raw['login'] ?? '', 'email' => $raw['email'] ?? '', 'displayName' => $raw['displayName'] ?? ''],
             ImportKind::TERM => ['taxonomy' => $raw['taxonomy'] ?? 'category', 'name' => $raw['name'] ?? '', 'description' => $raw['description'] ?? ''],
             ImportKind::MEDIA => ['url' => $raw['url'] ?? '', 'mime' => $raw['mime'] ?? '', 'alt' => $raw['alt'] ?? ''],
+            ImportKind::COMMENT => ['authorName' => $raw['authorName'] ?? '', 'authorEmail' => $raw['authorEmail'] ?? '', 'authorUrl' => $raw['authorUrl'] ?? '', 'authorIp' => $raw['authorIp'] ?? ''],
+            ImportKind::MENU => ['slug' => $raw['slug'] ?? ''],
             default => [],
         };
 
@@ -152,6 +154,12 @@ final class FakeImportReader implements ImportReader
             authorId: isset($raw['authorId']) ? (string) $raw['authorId'] : null,
             termIds: array_map(strval(...), (array) ($raw['termIds'] ?? [])),
             fields: $fields,
+            postId: isset($raw['postId']) ? (string) $raw['postId'] : null,
+            menuId: isset($raw['menuId']) ? (string) $raw['menuId'] : null,
+            itemType: isset($raw['itemType']) ? (string) $raw['itemType'] : null,
+            objectId: isset($raw['objectId']) ? (string) $raw['objectId'] : null,
+            order: (int) ($raw['order'] ?? 0),
+            placement: isset($raw['placement']) ? (string) $raw['placement'] : null,
         );
     }
 }

@@ -19,7 +19,8 @@ namespace Teme\Contracts\Import;
  * writes it through its own Operations, as the person who started the
  * import; the reader writes nothing.
  *
- * Statuses are Teme's: published, draft, private, scheduled, trashed. Dates
+ * Statuses are Teme's: published, draft, private, scheduled, trashed, and
+ * spam for a comment. Dates
  * are UTC, as `Y-m-d H:i:s`, or null. The `fields` hold what a kind needs
  * beyond these: a term's taxonomy, a person's login and email, a media
  * item's URL and mime type, and so on, each named in the guide.
@@ -49,5 +50,11 @@ final readonly class ImportItem
         public ?string $authorId = null,
         public array $termIds = [],
         public array $fields = [],
+        public ?string $postId = null,
+        public ?string $menuId = null,
+        public ?string $itemType = null,
+        public ?string $objectId = null,
+        public int $order = 0,
+        public ?string $placement = null,
     ) {}
 }
