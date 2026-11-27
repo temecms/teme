@@ -7,8 +7,10 @@ use App\Domain\Import\File\Jobs\ReadImportFile;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Operations\AssignImportReaderIds;
 use App\Domain\Import\Operations\ConnectImportSource;
 use App\Domain\Import\Operations\FinishImportUpload;
+use App\Domain\Import\Operations\Input\AssignImportReaderIdsInput;
 use App\Domain\Import\Operations\Input\ConnectImportSourceInput;
 use App\Domain\Import\Operations\Input\FinishImportUploadInput;
 use App\Domain\Import\Operations\Input\ReceiveImportPieceInput;
@@ -29,6 +31,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Carbon\Carbon;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -475,3 +478,12 @@ it('refuses a reader’s term in a taxonomy Teme keeps for itself, or doesn’t 
     expect($file->refresh()->state)->toBe('refused')
         ->and($file->refused)->toBe('A term of this file has a taxonomy Teme doesn’t know.');
 })->with(['post_tag', 'language', 'nav_menu', 'no-such-taxonomy']);
+
+it('gives reader IDs to no one, and writes nothing, when the person may not import', function (): void {
+    readersEnabled();
+    $editor = User::factory()->create()->assignRole('editor');
+
+    expect(fn () => app(AssignImportReaderIds::class)->execute(new AssignImportReaderIdsInput('https://old.example.com', fixtureReaderKey(), [['kind' => 'post', 'id' => 'i1']], (string) $editor->id)))
+        ->toThrow(AuthorizationException::class)
+        ->and(DB::table('import_reader_ids')->count())->toBe(0);
+});
