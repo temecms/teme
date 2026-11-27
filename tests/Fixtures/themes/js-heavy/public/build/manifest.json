@@ -1,0 +1,7 @@
+{
+    "assets/js/theme.js": {
+        "file": "assets/theme-heavy.js",
+        "src": "assets/js/theme.js",
+        "isEntry": true
+    }
+}

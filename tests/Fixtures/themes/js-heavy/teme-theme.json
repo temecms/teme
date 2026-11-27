@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "js-heavy",
+    "name": "Fixture JS Heavy",
+    "version": "0.1.0",
+    "description": "A usable theme whose JavaScript is over the 20 KB compressed warning budget.",
+    "requires": { "teme": "^0.1" },
+    "assets": { "manifest": "public/build/manifest.json", "entries": ["assets/js/theme.js"] }
+}
