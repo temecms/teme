@@ -12,7 +12,9 @@ use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Images\ImageServices;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Operations\ChooseSlotProvider;
 use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\ChooseSlotProviderInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
@@ -20,6 +22,7 @@ use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Seo\SocketAnswerRefused;
 use App\Domain\Plugins\Seo\SocketTooSlow;
+use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -244,4 +247,30 @@ it('refuses a plugin that declares an image service its class doesn’t hand ove
     expect(ImageServiceDeclaration::startErrors(['imageService' => ['label' => 'CDN', 'host' => 'images.example.com']], $plain))->toHaveCount(1)
         ->and(ImageServiceDeclaration::startErrors([], new Imagery))->toBe(['It hands over an image service but declares none.'])
         ->and(ImageServiceDeclaration::startErrors(['imageService' => ['label' => 'CDN', 'host' => 'images.example.com']], new Imagery))->toBe([]);
+});
+
+it('uses core’s addresses while two image services are enabled and none is chosen, and the chosen one once it is', function (): void {
+    Imagery::reset();
+    app()->instance(Elevation::class, new OperatorElevation);
+    app()->instance(LoadedPlugins::class, new LoadedPlugins);
+    app()->instance(ListenerFaults::class, new ImageServiceFaults);
+
+    PluginFixtures::use('imagery', 'slotted');
+
+    foreach (['tests/imagery', 'tests/slotted'] as $name) {
+        $manifest = app(PluginRegistry::class)->find($name)?->manifest;
+        app(EnablePlugin::class)->execute(new EnablePluginInput($name, '1.0.0', $manifest?->capabilities() ?? [], [], [], null));
+    }
+
+    app(PluginLoader::class)->load();
+    app()->forgetInstance(ImageServices::class);
+    ($this->carded)($this->image);
+
+    expect(imageryPage('/harbour-picture/'))->not->toContain('images.example.com');
+
+    app(ChooseSlotProvider::class)->execute(new ChooseSlotProviderInput(slot: PluginSlots::IMAGE_SERVICE, plugin: 'tests/imagery', actorId: null));
+    app()->forgetInstance(Elevation::class);
+    app()->forgetInstance(ImageServices::class);
+
+    expect(imageryPage('/harbour-picture/'))->toContain('https://images.example.com/');
 });
