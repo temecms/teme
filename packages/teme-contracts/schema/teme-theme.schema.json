@@ -377,6 +377,22 @@
                 }
             }
         },
+        "plugin_styles": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Plugin stylesheets the theme switches off, so it styles that output itself.",
+            "properties": {
+                "off": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "description": "Each stylesheet as its plugin's code and output: code:card:<id>, code:insertion:<id> or code:page.",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40}|page)$"
+                    }
+                }
+            }
+        },
         "cards": {
             "type": "object",
             "description": "Cards the theme styles itself, and cards it brings for its own regions.",

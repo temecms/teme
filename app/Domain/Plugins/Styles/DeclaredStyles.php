@@ -60,6 +60,32 @@ final class DeclaredStyles
     }
 
     /**
+     * The declared stylesheets, each as its output and its file, from what
+     * the manifest's contributes gives. Entries that don't check are skipped.
+     *
+     * @param  array<array-key, mixed>  $contributes
+     *
+     * @return list<array{output: string, file: string}>
+     */
+    public static function entries(array $contributes): array
+    {
+        $styles = is_array($contributes['styles'] ?? null) ? $contributes['styles'] : [];
+        $entries = [];
+
+        foreach ($styles as $style) {
+            $style = is_array($style) ? $style : [];
+            $output = is_string($style['output'] ?? null) ? $style['output'] : '';
+            $file = is_string($style['file'] ?? null) ? $style['file'] : '';
+
+            if (preg_match(self::OUTPUT, $output) === 1 && self::isPackageCss($file)) {
+                $entries[] = ['output' => $output, 'file' => $file];
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
      * Whether a path is a relative .css path with no parent segments, no leading slash
      * and no backslashes.
      */

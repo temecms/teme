@@ -23,6 +23,9 @@
 @foreach ($cardStyles() as $card)
     <link rel="stylesheet" href="{{ $card['href'] }}" data-teme-card="{{ $card['name'] }}">
 @endforeach
+@foreach ($pluginStyles() as $style)
+    <link rel="stylesheet" href="{{ $style['href'] }}" data-teme-plugin-style="{{ $style['key'] }}">
+@endforeach
 @php($graph = $jsonLd())
 @if ($graph !== null)
     <script type="application/ld+json">{!! $graph !!}</script>

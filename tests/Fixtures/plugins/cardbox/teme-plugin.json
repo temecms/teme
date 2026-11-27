@@ -5,9 +5,13 @@
     "label": "Cardbox",
     "description": "A plugin the tests enable, which offers one card for a theme's regions.",
     "version": "1.0.0",
-    "requires": { "teme": "^0.5" },
+    "requires": {
+        "teme": "^0.5"
+    },
     "plugin": "Tests\\Fixtures\\Plugins\\Cardbox\\Cardbox",
-    "capabilities": ["pages.insert"],
+    "capabilities": [
+        "pages.insert"
+    ],
     "contributes": {
         "cards": [
             {
@@ -15,11 +19,31 @@
                 "label": "Note",
                 "description": "A short note, with one pick from a list.",
                 "icon": "sticky-note",
-                "keywords": ["note", "message"],
+                "keywords": [
+                    "note",
+                    "message"
+                ],
                 "fields": [
-                    { "key": "body", "type": "text", "label": "Text", "description": "What the note says.", "maxLength": 120 },
-                    { "key": "pick", "type": "choice", "label": "Pick", "description": "One of the plugin's picks." }
+                    {
+                        "key": "body",
+                        "type": "text",
+                        "label": "Text",
+                        "description": "What the note says.",
+                        "maxLength": 120
+                    },
+                    {
+                        "key": "pick",
+                        "type": "choice",
+                        "label": "Pick",
+                        "description": "One of the plugin's picks."
+                    }
                 ]
+            }
+        ],
+        "styles": [
+            {
+                "output": "card:note",
+                "file": "dist/note.css"
             }
         ]
     }

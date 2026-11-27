@@ -22,6 +22,7 @@ use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RegionCard;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Languages\PageLanguage;
+use App\Domain\Plugins\Styles\PluginStyleUsage;
 use App\Domain\Settings\SettingRules;
 use App\Domain\Site\Insertions\PluginMarkup;
 use Illuminate\Validation\ValidationException;
@@ -112,6 +113,10 @@ final class PluginCardNode implements CardType, RegionCard
         $values = is_array($attrs['values'] ?? null) ? $attrs['values'] : [];
         $instance = new CardInstance((string) ($attrs['id'] ?? ''), $values, $context->region ?? new CardRegion('', ''), app(PageLanguage::class)->tag());
         $html = app(PluginMarkup::class)->clean($code, $cards->draw($definition, $instance));
+
+        if (trim($html) !== '') {
+            app(PluginStyleUsage::class)->record($code, 'card:'.$definition->id);
+        }
 
         if (trim($html) === '') {
             return '';

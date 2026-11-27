@@ -1,0 +1,61 @@
+{
+    "manifest": 1,
+    "code": "styles-off",
+    "name": "Styles off",
+    "version": "0.1.0",
+    "description": "A usable theme with a region that takes every card, sized, one narrowed to the button, and one narrowed to its own card, which it brings.",
+    "requires": {
+        "teme": "^0.1"
+    },
+    "regions": {
+        "sidebar": {
+            "group": "Ad placements",
+            "label": "Sidebar",
+            "size": "300x600"
+        },
+        "narrow": {
+            "label": "Narrow",
+            "cards": [
+                "button"
+            ]
+        },
+        "own": {
+            "label": "Own",
+            "cards": [
+                "about-me"
+            ]
+        }
+    },
+    "cards": {
+        "provides": {
+            "about-me": {
+                "label": "About me",
+                "description": "A short bio.",
+                "icon": "user",
+                "keywords": [
+                    "bio"
+                ],
+                "fields": [
+                    {
+                        "key": "heading",
+                        "type": "text",
+                        "label": "Heading",
+                        "default": "About me",
+                        "maxLength": 60
+                    },
+                    {
+                        "key": "show_photo",
+                        "type": "boolean",
+                        "label": "Show the photo",
+                        "default": true
+                    }
+                ]
+            }
+        }
+    },
+    "plugin_styles": {
+        "off": [
+            "cardbox:card:note"
+        ]
+    }
+}

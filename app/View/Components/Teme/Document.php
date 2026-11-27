@@ -19,6 +19,7 @@ use App\Domain\Design\Contrast;
 use App\Domain\Design\SiteDesign;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Plugins\Styles\PluginStyles;
 use App\Domain\Site\Document\DocumentHead;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Site\Document\DocumentPage;
@@ -258,6 +259,17 @@ final class Document extends Component
         }
 
         return implode(';', $declarations);
+    }
+
+    /**
+     * The stylesheets of the plugin outputs the page drew, each keyed as
+     * `code:output`, linked into the teme.plugins layer (docs/guides/developers/plugins/styles.md).
+     *
+     * @return list<array{key: string, href: string}>
+     */
+    public function pluginStyles(): array
+    {
+        return app(PluginStyles::class)->links();
     }
 
     /**

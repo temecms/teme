@@ -315,6 +315,20 @@ final readonly class Manifest
     }
 
     /**
+     * The plugin stylesheets the theme switches off, as `code:output` keys
+     * (plugin_styles.off in the theme manifest).
+     *
+     * @return list<string>
+     */
+    public function pluginStylesOff(): array
+    {
+        $styles = $this->raw['plugin_styles'] ?? null;
+        $off = is_array($styles) ? ($styles['off'] ?? null) : null;
+
+        return is_array($off) ? array_values(array_filter($off, 'is_string')) : [];
+    }
+
+    /**
      * The cards the theme styles itself, whose core stylesheets it replaces (I-248).
      *
      * @return list<string>

@@ -91,6 +91,7 @@ final class ManifestValidator
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
         'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
+        'plugin_styles',
     ];
 
     public function __construct(private readonly CardRegistry $cards) {}
@@ -152,6 +153,7 @@ final class ManifestValidator
 
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
         array_push($errors, ...$this->cards($manifest, $themePath));
+        array_push($errors, ...$this->pluginStyles($manifest));
 
         $composers = $manifest['composers'] ?? [];
 
@@ -808,6 +810,35 @@ final class ManifestValidator
         return array_key_exists('breadcrumbs', $manifest) && ! is_bool($manifest['breadcrumbs'])
             ? ['breadcrumbs must be true or false.']
             : [];
+    }
+
+    /**
+     * The plugin stylesheets the theme switches off, as `code:output` keys
+     * (docs/guides/developers/plugins/styles.md): a list of strings.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function pluginStyles(array $manifest): array
+    {
+        if (! array_key_exists('plugin_styles', $manifest)) {
+            return [];
+        }
+
+        $off = is_array($manifest['plugin_styles']) ? ($manifest['plugin_styles']['off'] ?? null) : null;
+
+        if (! is_array($off) || ! array_is_list($off)) {
+            return ['plugin_styles.off must list the plugin stylesheets the theme switches off.'];
+        }
+
+        foreach ($off as $key) {
+            if (! is_string($key) || preg_match('/^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40}|page)$/', $key) !== 1) {
+                return ['plugin_styles.off must name each stylesheet as code:card:<id>, code:insertion:<id> or code:page.'];
+            }
+        }
+
+        return [];
     }
 
     /**
