@@ -23,7 +23,7 @@ it('documents every registered setting', function (): void {
 
             expect(trim($setting->label))->not->toBe('', "[{$name}] has no label.")
                 ->and(trim($setting->description))->not->toBe('', "[{$name}] has no description.")
-                ->and($setting->since)->toMatch('/^\d+\.\d+\.\d+$/', "[{$name}] has no since version.");
+                ->and($setting->since)->toMatch('/^(?:next|\d+\.\d+\.\d+)$/', "[{$name}] has no since version.");
         }
     }
 });
