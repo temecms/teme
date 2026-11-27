@@ -67,8 +67,7 @@ it('switches written tokens and the preloaded font when the style setting change
 
     expect($html)
         ->toContain('--teme-base:#ffffff;--teme-accent:#b3261e;--teme-surface:#f5f5f5')
-        ->toContain('themes/skinned/fonts/body.woff2')
-        ->not->toContain('themes/skinned/fonts/display.woff2');
+        ->toContain('<link rel="preload" as="font" type="font/woff2" href="'.asset('themes/skinned/fonts/body.woff2').'" crossorigin>');
 
     expect(app(SettingsReader::class)->string('theme.skinned', 'style'))->toBe('classic');
 
@@ -79,8 +78,7 @@ it('switches written tokens and the preloaded font when the style setting change
 
     expect($bold)
         ->toContain('--teme-base:#111111;--teme-accent:#ffcc00;--teme-surface:#222222')
-        ->toContain('themes/skinned/fonts/display.woff2')
-        ->not->toContain('themes/skinned/fonts/body.woff2');
+        ->toContain('<link rel="preload" as="font" type="font/woff2" href="'.asset('themes/skinned/fonts/display.woff2').'" crossorigin>');
 });
 
 it('shows a draft style on its preview only', function (): void {
