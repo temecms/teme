@@ -68,6 +68,7 @@ use App\Http\Admin\NavigationController;
 use App\Http\Admin\PluginActionController;
 use App\Http\Admin\PluginAreaController;
 use App\Http\Admin\PluginsController;
+use App\Http\Admin\PluginSlotsController;
 use App\Http\Admin\RegionsController;
 use App\Http\Admin\SearchController;
 use App\Http\Admin\Settings\AddressesController;
@@ -216,6 +217,10 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->name('plugins.')
             ->group(function (): void {
                 Route::get('/', [PluginsController::class, 'index'])->name('index');
+                Route::get('slots', [PluginSlotsController::class, 'index'])->name('slots');
+                Route::post('slots/{slot}', [PluginSlotsController::class, 'choose'])
+                    ->where('slot', '[a-z][a-z-]{1,39}')
+                    ->name('slots.choose');
                 Route::get('{code}/icon', [PluginsController::class, 'icon'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('icon');
