@@ -1,5 +1,6 @@
 import { AreaChart } from '@/components/plugins/area/area-chart';
 import { AreaFigures } from '@/components/plugins/area/area-figures';
+import { PluginCell } from '@/components/list/plugin-cell';
 import { Notice } from '@/components/ui/notice';
 import { __ } from '@/lib/i18n';
 import type { DashboardPluginBlock } from '@/types/dashboard';
@@ -9,7 +10,6 @@ import type {
     AreaRowsData,
     AreaTableBlock,
 } from '@/types/plugin-area';
-import type { PluginCellValue } from '@/types/plugin-columns';
 
 /**
  * A plugin's Home panel body: its blocks as its area draws them (figures, a
@@ -19,13 +19,20 @@ import type { PluginCellValue } from '@/types/plugin-columns';
 export function PluginPanelBlocks({
     blocks,
     label,
+    noticesOnly = false,
 }: {
     blocks: DashboardPluginBlock[];
     label: string;
+    /** Show only the notices, such as under a failed panel's error line. */
+    noticesOnly?: boolean;
 }) {
+    const shown = noticesOnly
+        ? blocks.filter((block) => block.type === 'notice')
+        : blocks;
+
     return (
         <div className="grid gap-4" data-test="home-plugin-blocks">
-            {blocks.map((block) => {
+            {shown.map((block) => {
                 if (block.type === 'notice') {
                     return (
                         <Notice
@@ -103,10 +110,12 @@ function ReadOnlyRows({
             <ul className="text-small mt-2 grid gap-1">
                 {data.rows.map((row) => (
                     <li key={row.id}>
-                        {block.columns
-                            .map((column) => cellText(row.cells[column.id]))
-                            .filter((text) => text !== '')
-                            .join(' · ')}
+                        {block.columns.map((column, index) => (
+                            <span key={column.id}>
+                                {index > 0 && ' · '}
+                                <PluginCell value={row.cells[column.id]} />
+                            </span>
+                        ))}
                     </li>
                 ))}
             </ul>
@@ -122,12 +131,4 @@ function unreadable(id: string) {
             )}
         </p>
     );
-}
-
-function cellText(cell: PluginCellValue | undefined): string {
-    if (cell === undefined) {
-        return '';
-    }
-
-    return String(cell.value);
 }

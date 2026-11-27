@@ -268,14 +268,23 @@ export function HomePanel({
                             <Skeleton className="h-4 w-2/3" />
                         </div>
                     ) : failed ? (
-                        <ErrorState
-                            message={__(
-                                "This panel couldn't load. The rest of Home is unaffected.",
+                        <>
+                            <ErrorState
+                                message={__(
+                                    "This panel couldn't load. The rest of Home is unaffected.",
+                                )}
+                                onRetry={retry}
+                                retryLabel={__('Try again')}
+                                className="px-0 pt-0 pb-0"
+                            />
+                            {entry.kind === 'plugin' && (
+                                <PluginPanelBlocks
+                                    blocks={panel?.blocks ?? []}
+                                    label={name}
+                                    noticesOnly
+                                />
                             )}
-                            onRetry={retry}
-                            retryLabel={__('Try again')}
-                            className="px-0 pt-0 pb-0"
-                        />
+                        </>
                     ) : entry.kind === 'plugin' ? (
                         <PluginPanelBlocks
                             blocks={panel?.blocks ?? []}
