@@ -25,6 +25,8 @@ The plugin's class implements `HasCommentCheck`, whose `check()` takes a `Commen
 
 The text, the name, the email address, the address and the IP address of the commenter, and whether they are returning. A check that answers late, or fails, gives no opinion and the comment goes on to core's moderator.
 
+The candidate also has `signals`, the hidden form fields a comment form carried. This release's comment form sends none, so `signals` is always empty here. The hidden field that fills it is not in this release; it comes later (issue 805).
+
 ## Fediverse replies
 
 A reply that comes in from the fediverse, or an edit to one, is asked of the check the same way, before it is saved.
