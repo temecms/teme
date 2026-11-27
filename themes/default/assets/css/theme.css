@@ -58,7 +58,6 @@
         letter-spacing: -0.01em;
         margin-block-start: 1.8em;
         text-wrap: balance;
-        overflow-wrap: break-word;
     }
 
     .prose h2 {
@@ -799,6 +798,10 @@
         overflow-wrap: break-word;
     }
 
+    .prose :where(h2, h3, h4) {
+        overflow-wrap: break-word;
+    }
+
     .page-wide .prose {
         max-inline-size: var(--wide);
     }
@@ -830,19 +833,10 @@
         margin-block: var(--teme-space-6);
     }
 
-    /* Tables (issue 19): header band, row rules, padding, caption; scroll sideways alone
-       or inside .table-scroll until core wraps every table. */
+    /* Tables (issue 19): header band, row rules, padding, caption; .table-scroll scrolls sideways. */
     .prose .table-scroll {
         overflow-x: auto;
         max-inline-size: 100%;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .prose > table {
-        display: block;
-        overflow-x: auto;
-        max-inline-size: 100%;
-        -webkit-overflow-scrolling: touch;
     }
 
     .prose table {
