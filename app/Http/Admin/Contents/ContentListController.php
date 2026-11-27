@@ -25,6 +25,7 @@ use App\Domain\Contents\Queries\SingleItem;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\Columns\DeclaredColumn;
 use App\Domain\Plugins\Columns\PluginColumns;
+use App\Domain\Plugins\Lists\ListActions;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
 use App\Domain\Support\Queries\ListPages;
@@ -45,7 +46,7 @@ use Teme\Contracts\Settings\SettingsReader;
 
 final class ContentListController extends Controller
 {
-    public function index(Request $request, string $type, ContentList $list, AuthorOptions $authors, TaxonomyRegistry $taxonomies, SettingsReader $settings, TermPicker $termPicker, PluginColumns $pluginColumns, SiteLanguages $languages): Response|RedirectResponse
+    public function index(Request $request, string $type, ContentList $list, AuthorOptions $authors, TaxonomyRegistry $taxonomies, SettingsReader $settings, TermPicker $termPicker, PluginColumns $pluginColumns, SiteLanguages $languages, ListActions $listActions): Response|RedirectResponse
     {
         $contentType = $this->type($type);
         $singleItem = $contentType->single ? SingleItem::of($contentType->key) : null;
@@ -109,6 +110,15 @@ final class ContentListController extends Controller
                 'publish' => (bool) $viewer?->can($contentType->ability('publish')),
             ],
             'bulk' => $request->session()->get('bulk'),
+            // The plugins' list actions (contributes.listActions), each offered where its row or bulk scope says; the run checks each item.
+            'listActions' => array_map(fn (array $action): array => [
+                'code' => $action['code'],
+                'id' => $action['id'],
+                'label' => $action['label'],
+                'row' => $action['row'],
+                'bulk' => $action['bulk'],
+                'confirm' => $action['confirm'],
+            ], $listActions->all()),
             'takesComments' => $takesComments,
             // Not 'taxonomies': that is the shared prop the sidebar draws, and
             // a page prop of the same name would replace it.

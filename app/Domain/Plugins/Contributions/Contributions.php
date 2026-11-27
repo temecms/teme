@@ -74,6 +74,7 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
         array_push($errors, ...$this->cardHandlers($contributes['cards'] ?? [], $plugin));
         array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
+        array_push($errors, ...$this->actionJobs($contributes['listActions'] ?? [], $jobs));
         array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
         array_push($errors, ...app(SeoValidator::class)->startErrors($contributes, $plugin));
         array_push($errors, ...DeclaredExports::startErrors($contributes, $plugin));

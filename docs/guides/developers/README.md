@@ -39,6 +39,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Cards for a theme's regions](plugins/cards.md)
 - [The fediverse](plugins/fediverse.md)
 - [List columns](plugins/list-columns.md)
+- [List actions](plugins/list-actions.md)
 - [Feeds and the site](plugins/feeds-and-site.md)
 - [The site's AI connection](plugins/ai.md)
 - [Your own hooks, and plugins that need other plugins](plugins/your-own-hooks.md)

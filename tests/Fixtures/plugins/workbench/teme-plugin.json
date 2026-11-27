@@ -25,6 +25,9 @@
         "actions": [
             { "id": "test-ping", "label": "Send a test ping", "description": "Tells the service about the home page now.", "job": "ping" }
         ],
+        "listActions": [
+            { "id": "ping-items", "label": "Ping these", "row": true, "bulk": true, "confirm": "Ping the selected items now?", "job": "ping" }
+        ],
         "lists": [
             {
                 "id": "log",

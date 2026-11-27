@@ -57,6 +57,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/cards.md',
         'plugins/fediverse.md',
         'plugins/list-columns.md',
+        'plugins/list-actions.md',
         'plugins/feeds-and-site.md',
         'plugins/ai.md',
         'plugins/your-own-hooks.md',

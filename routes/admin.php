@@ -67,6 +67,7 @@ use App\Http\Admin\MyJobsController;
 use App\Http\Admin\NavigationController;
 use App\Http\Admin\PluginActionController;
 use App\Http\Admin\PluginAreaController;
+use App\Http\Admin\PluginListActionController;
 use App\Http\Admin\PluginsController;
 use App\Http\Admin\PluginSlotsController;
 use App\Http\Admin\RegionsController;
@@ -710,6 +711,13 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::put('{taxonomy}/{term}', [TermController::class, 'update'])->name('terms.update');
                 Route::delete('{taxonomy}/{term}', [TermController::class, 'destroy'])->name('terms.destroy');
             });
+
+        // A plugin's list action (contributes.listActions), beside the content routes: any person who can
+        // open a list may ask; RunListAction checks each item they can edit (issue 118).
+        Route::post('plugins/{code}/list-actions/{action}', [PluginListActionController::class, 'run'])
+            ->where('code', ManifestValidator::CODE_PATTERN)
+            ->where('action', '[a-z][a-z0-9-]{1,39}')
+            ->name('plugins.list-actions.run');
 
         // Every listed type's screens, the stored ones too: the type is found
         // from its segment on each request, so one made after these routes

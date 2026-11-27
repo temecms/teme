@@ -735,6 +735,48 @@
                         }
                     }
                 },
+                "listActions": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "description": "Buttons on the content lists, each queuing one of the plugin's declared jobs as the person, for a row, the selected items, or both. At most two row actions. Needs jobs.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "job"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The action's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The button's words."
+                            },
+                            "row": {
+                                "type": "boolean",
+                                "description": "Offered in each row's menu, before Trash."
+                            },
+                            "bulk": {
+                                "type": "boolean",
+                                "description": "Offered in the bulk bar, for the selected items."
+                            },
+                            "confirm": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "A sentence the person reads before the job is queued."
+                            },
+                            "job": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{0,47}$",
+                                "description": "The key of the declared job it queues."
+                            }
+                        }
+                    }
+                },
                 "actions": {
                     "type": "array",
                     "maxItems": 3,
