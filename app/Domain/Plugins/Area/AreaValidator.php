@@ -74,6 +74,14 @@ final class AreaValidator
     /** The most sections a plugin's settings page splits into. */
     public const int MOST_SETTINGS_SECTIONS = 8;
 
+    /** The most panels a plugin adds to Home, and the most blocks one panel shows. @since next */
+    public const int MOST_HOME_PANELS = 3;
+
+    public const int MOST_HOME_BLOCKS = 4;
+
+    /** The kinds of block a Home panel may show: a table as its first rows, read only. @since next */
+    public const array HOME_BLOCKS = ['figures', 'chart', 'table', 'notice'];
+
     /**
      * Why the declared permissions can't be used, or nothing.
      *
@@ -219,6 +227,87 @@ final class AreaValidator
             }
 
             $pageIds[] = $id;
+        }
+
+        return array_values(array_unique($errors));
+    }
+
+    /**
+     * Why the Home panels can't be used, or nothing: each names a page of
+     * the area and one to four of its blocks, of a kind Home shows.
+     *
+     * @param  array<array-key, mixed>|null  $area  the manifest's area, read for its pages
+     *
+     * @return list<string>
+     */
+    public function homePanelErrors(mixed $panels, mixed $area): array
+    {
+        if (! is_array($panels) || ! array_is_list($panels) || $panels === [] || count($panels) > self::MOST_HOME_PANELS) {
+            return [__('A plugin adds 1 to 3 panels to Home.')];
+        }
+
+        if (! is_array($area)) {
+            return [__('A plugin’s Home panels need its area.')];
+        }
+
+        $blocksByPage = [];
+
+        foreach (is_array($area['pages'] ?? null) ? $area['pages'] : [] as $page) {
+            if (is_array($page) && is_string($page['id'] ?? null)) {
+                $blocksByPage[$page['id']] = array_column(array_filter(is_array($page['blocks'] ?? null) ? $page['blocks'] : [], is_array(...)), 'type', 'id');
+            }
+        }
+
+        $errors = [];
+        $ids = [];
+
+        foreach ($panels as $panel) {
+            $panel = is_array($panel) ? $panel : [];
+            $id = is_string($panel['id'] ?? null) ? $panel['id'] : null;
+
+            array_push($errors, ...$this->unknownKeys($panel, ['id', 'title', 'size', 'page', 'blocks']));
+
+            if (preg_match(self::ID, $id ?? '') !== 1) {
+                $errors[] = __('A Home panel’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
+            }
+
+            if ($id !== null && in_array($id, $ids, true)) {
+                $errors[] = __('Two Home panels can’t share the id :id.', ['id' => $id]);
+            }
+
+            $ids[] = $id;
+
+            if (! $this->text($panel['title'] ?? null, 40)) {
+                $errors[] = __('A Home panel needs a title of 1 to 40 characters.');
+            }
+
+            if (array_key_exists('size', $panel) && ! in_array($panel['size'], ['small', 'medium', 'large', 'full'], true)) {
+                $errors[] = __('A Home panel’s size must be small, medium, large or full.');
+            }
+
+            $page = is_string($panel['page'] ?? null) ? $panel['page'] : null;
+
+            if ($page === null || ! array_key_exists($page, $blocksByPage)) {
+                $errors[] = __('A Home panel must name a page of its area.');
+            }
+
+            $blocks = $panel['blocks'] ?? null;
+
+            if (! is_array($blocks) || ! array_is_list($blocks) || $blocks === [] || count($blocks) > self::MOST_HOME_BLOCKS) {
+                $errors[] = __('A Home panel shows 1 to 4 blocks.');
+
+                continue;
+            }
+
+            foreach ($blocks as $blockId) {
+                $type = is_string($blockId) && $page !== null ? ($blocksByPage[$page][$blockId] ?? null) : null;
+
+                if ($type === null) {
+                    $errors[] = __('A Home panel can only show blocks of its own page.');
+                } elseif (! in_array($type, self::HOME_BLOCKS, true)) {
+                    $errors[] = __('A Home panel can’t show a :type block.', ['type' => (string) $type]);
+                }
+            }
         }
 
         return array_values(array_unique($errors));

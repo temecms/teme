@@ -1603,6 +1603,47 @@
                             "description": "The kinds of record the area's tables list and its forms edit."
                         }
                     }
+                },
+                "homePanels": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "description": "Panels on the admin's Home, each built from one page's blocks of the plugin's area; shown to people with the area's permission.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "title", "page", "blocks"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$"
+                            },
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The panel's heading on Home."
+                            },
+                            "size": {
+                                "type": "string",
+                                "enum": ["small", "medium", "large", "full"],
+                                "description": "How wide the panel is drawn until a person changes it. Small when none is named."
+                            },
+                            "page": {
+                                "type": "string",
+                                "description": "The id of a page of the area that holds the blocks."
+                            },
+                            "blocks": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 4,
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "The ids of blocks on that page: figures, chart, table or notice."
+                            }
+                        }
+                    }
                 }
             }
         },

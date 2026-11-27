@@ -218,7 +218,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'homePanels', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -287,6 +287,11 @@ final class ContributionsValidator implements ContributionsCheck
 
         if (array_key_exists('area', $contributes)) {
             $errors = [...$errors, ...$area->areaErrors($contributes['area'], $contributes)];
+        }
+
+        // Panels on Home, each built from blocks of the area (docs/guides/developers/plugins/home-panels.md).
+        if (array_key_exists('homePanels', $contributes)) {
+            $errors = [...$errors, ...$area->homePanelErrors($contributes['homePanels'], $contributes['area'] ?? null)];
         }
 
         if (array_key_exists('aiTasks', $contributes)) {
