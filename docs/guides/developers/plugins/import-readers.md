@@ -34,7 +34,7 @@ A plugin that declares readers and doesn't implement that interface is refused w
 
 ## The reader
 
-`Teme\Contracts\Import\ImportReader` has three methods. Every path is a read-only copy of the uploaded file.
+`Teme\Contracts\Import\ImportReader` has three methods. Every path is the uploaded file's path. The reader only reads that file and must not write to it, or to anything on the network.
 
 - `probe(path)` says what the file is: its system, its version, its site's address, its languages, and how many items of each kind it holds. It returns an `ImportProbe`.
 - `page(path, cursor, limit)` lists items a page at a time. A `null` cursor starts the list. The reader returns at most `limit` items in an order that stays the same between calls, and a `nextCursor` for the next page, or `null` at the end. Core passes cursors back and reads nothing in them.
