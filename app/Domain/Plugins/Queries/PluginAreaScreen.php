@@ -143,6 +143,32 @@ final readonly class PluginAreaScreen
     }
 
     /**
+     * One block of a Home panel: its frame as the area draws it, and its data
+     * read under the budgets. A table on Home shows its first five rows,
+     * read only (docs/guides/developers/plugins/home-panels.md).
+     *
+     * @param  array<string, mixed>  $declared  the block as the area declares it
+     *
+     * @return array<string, mixed>
+     */
+    public function homeBlock(AreaPlugin $plugin, string $page, array $declared, string $personId): array
+    {
+        $words = fn (string $english): string => AreaWords::text($plugin->code, $english);
+        $frame = $this->blockFrame($plugin, $declared, $words);
+        $id = is_string($declared['id'] ?? null) ? $declared['id'] : '';
+        $context = AreaContexts::for($plugin->code, $personId);
+
+        $data = match ($frame['type']) {
+            'figures' => $this->reads->figures($plugin, $page, $declared, $context),
+            'chart' => $this->reads->chart($plugin, $page, $declared, $context),
+            'table' => $this->reads->rows($plugin, $declared, $this->query(['perPage' => 5], []), $context),
+            default => null,
+        };
+
+        return [...$frame, 'id' => $id, 'data' => $data];
+    }
+
+    /**
      * What a table asks of the plugin, from the request, every value held
      * to the declaration: at most the declared rows a page, page 1,000 at
      * most, a search of 100 characters, declared filters and options, and a
