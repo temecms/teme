@@ -199,6 +199,7 @@ use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
+use Intervention\Gif\Builder;
 use Pest\Browser\Playwright\Playwright;
 use PHPUnit\Framework\ExpectationFailedException;
 use Teme\Contracts\Cache\CacheKeysFor;
@@ -399,6 +400,30 @@ function mediaDamagedGif(): string
     $path = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-'.Str::random(12).'.gif';
     imagegif($image, $path);
     file_put_contents($path, substr((string) file_get_contents($path), 0, 40));
+
+    return $path;
+}
+
+/**
+ * An animated GIF of the given size and number of frames, built from one
+ * GD frame repeated: small on disk, but decoding every frame needs frames ×
+ * width × height × 4 bytes (issue 806).
+ */
+function mediaAnimatedGif(int $width = 600, int $height = 600, int $frames = 2): string
+{
+    $image = imagecreate($width, $height);
+    imagecolorallocate($image, 200, 80, 40);
+    $frame = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-'.Str::random(12).'.gif';
+    imagegif($image, $frame);
+
+    $builder = Builder::canvas($width, $height);
+
+    for ($i = 0; $i < $frames; $i++) {
+        $builder->addFrame($frame, 0.1);
+    }
+
+    $path = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-'.Str::random(12).'.gif';
+    file_put_contents($path, $builder->encode());
 
     return $path;
 }

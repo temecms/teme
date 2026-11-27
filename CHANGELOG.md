@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.7.1] — 2026-11-27
+
+### Fixed
+
+- An animated GIF with many frames no longer runs the server out of memory: an import no longer stops at "Images from other sites", and the same GIF uploads in Media. Only its first frame is read, as before (#806).
+
 ## [1.7.0] — 2026-11-26
 
 ### Added
