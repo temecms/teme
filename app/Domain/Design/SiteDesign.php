@@ -16,9 +16,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Design;
 
+use App\Domain\Media\MediaUrls;
+use App\Domain\Menus\Models\Navigation;
+use App\Domain\Menus\NavigationTree;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Themes\ActiveTheme;
+use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
 final readonly class SiteDesign
@@ -65,6 +69,8 @@ final readonly class SiteDesign
      * group holds them (a design preview's drafts over the live values),
      * without its menu places; [] with no usable theme or no such group.
      * Every theme view gets them as `$themeSettings` (ThemeSettingsComposer).
+     * An image is `{url, alt}`; a menu is its items as navigation slots give
+     * them; every other type keeps its stored value.
      *
      * @return array<string, mixed>
      */
@@ -76,11 +82,23 @@ final readonly class SiteDesign
             return [];
         }
 
-        return array_filter(
+        $values = array_filter(
             $this->settings->group($group),
             fn (string $key): bool => ! str_starts_with($key, ThemeSlotSettings::SETTING_PREFIX),
             ARRAY_FILTER_USE_KEY,
         );
+
+        $types = $this->declaredTypes();
+
+        foreach ($values as $key => $value) {
+            $values[$key] = match ($types[$key] ?? null) {
+                'image' => $this->imageOf(is_string($value) ? $value : ''),
+                'menu' => $this->menuOf(is_string($value) ? $value : ''),
+                default => $value,
+            };
+        }
+
+        return $values;
     }
 
     /**
@@ -108,5 +126,64 @@ final readonly class SiteDesign
         $group = $theme === null ? null : ThemeSlotSettings::groupKey($theme->code);
 
         return $group !== null && $this->registry->find($group) !== null ? $group : null;
+    }
+
+    /**
+     * Each of the active theme's declared setting keys to its manifest type.
+     *
+     * @return array<string, string>
+     */
+    private function declaredTypes(): array
+    {
+        $types = [];
+
+        foreach ($this->active->get()?->manifest?->settings() ?? [] as $setting) {
+            if (is_string($setting['key'] ?? null) && is_string($setting['type'] ?? null)) {
+                $types[$setting['key']] = $setting['type'];
+            }
+        }
+
+        return $types;
+    }
+
+    /**
+     * An image setting for a template: its public address and alt text, or
+     * null when none is chosen or the image is gone.
+     *
+     * @return array{url: string, alt: string}|null
+     */
+    private function imageOf(string $id): ?array
+    {
+        if ($id === '') {
+            return null;
+        }
+
+        $row = DB::table('media')->where('id', $id)->where('kind', 'image')->whereNull('deleted_at')->first(['variants', 'alt']);
+
+        if ($row === null) {
+            return null;
+        }
+
+        $variants = (array) json_decode((string) $row->variants, true);
+        $url = MediaUrls::largest($variants, $id) ?? MediaUrls::variant($variants, 'thumb', $id);
+
+        return $url === null ? null : ['url' => $url, 'alt' => (string) ($row->alt ?? '')];
+    }
+
+    /**
+     * A menu setting for a template: its tree as navigation slots give it,
+     * or null when none is chosen or the menu is gone.
+     *
+     * @return list<array{label: string, url: string|null, current: bool, opensNewTab: bool, heading: bool, children: list<mixed>}>|null
+     */
+    private function menuOf(string $id): ?array
+    {
+        if ($id === '') {
+            return null;
+        }
+
+        $menu = Navigation::query()->find($id);
+
+        return $menu === null ? null : NavigationTree::for($menu, '');
     }
 }

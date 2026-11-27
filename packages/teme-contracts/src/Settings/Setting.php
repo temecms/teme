@@ -80,6 +80,13 @@ final class Setting
         public readonly ?string $itemTitle = null,
         /** A code setting whose inline scripts wait for an administrator's approval. @since 1.0.0 */
         public readonly bool $scripts = false,
+        /**
+         * A titled foldable section inside a theme fieldset; null when the
+         * setting sits at the top of its fieldset with no group.
+         *
+         * @since next
+         */
+        public readonly ?string $group = null,
     ) {}
 
     /** @since 0.1.0 */
@@ -279,7 +286,7 @@ final class Setting
      */
     public static function repeater(string $key, string $label, string $description, string $since, array $fields): self
     {
-        $allowed = [SettingType::Text, SettingType::Textarea, SettingType::Number, SettingType::Boolean, SettingType::Select, SettingType::MultiSelect, SettingType::Email, SettingType::Color, SettingType::Code];
+        $allowed = [SettingType::Text, SettingType::Textarea, SettingType::Number, SettingType::Boolean, SettingType::Select, SettingType::MultiSelect, SettingType::Email, SettingType::Url, SettingType::Color, SettingType::Code];
 
         if ($fields === []) {
             throw new InvalidArgumentException("Repeater [{$key}] needs its fields.");
@@ -431,6 +438,20 @@ final class Setting
         }
 
         return $this->with(['section' => $id]);
+    }
+
+    /**
+     * A titled foldable section inside a theme fieldset. Empty is refused.
+     *
+     * @since next
+     */
+    public function group(string $label): self
+    {
+        if (trim($label) === '') {
+            throw new InvalidArgumentException("Setting [{$this->key}] needs a group label.");
+        }
+
+        return $this->with(['group' => $label]);
     }
 
     /**

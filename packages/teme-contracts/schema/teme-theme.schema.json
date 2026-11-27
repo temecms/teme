@@ -145,7 +145,7 @@
         },
         "settings": {
             "type": "array",
-            "description": "The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it.",
+            "description": "The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. A number may give min, max, step and unit; a links default is a list of label and address, at most 12; group names a foldable section inside the fieldset.",
             "items": {
                 "type": "object",
                 "required": ["key", "type", "label", "fieldset", "default"],
@@ -157,13 +157,18 @@
                     },
                     "type": {
                         "type": "string",
-                        "enum": ["select", "boolean", "text", "color"]
+                        "enum": ["select", "boolean", "text", "color", "number", "image", "menu", "links", "url", "textarea"]
                     },
                     "label": { "type": "string", "minLength": 1 },
                     "description": { "type": "string", "minLength": 1 },
                     "fieldset": {
                         "type": "string",
                         "enum": ["site", "latest", "content", "archive"]
+                    },
+                    "group": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "A titled foldable section inside the fieldset. Settings without a group stay at the top."
                     },
                     "options": {
                         "type": "object",
@@ -173,8 +178,26 @@
                         },
                         "description": "Stored value, then label. Only a select takes options."
                     },
+                    "min": {
+                        "type": "integer",
+                        "description": "A number setting's least value."
+                    },
+                    "max": {
+                        "type": "integer",
+                        "description": "A number setting's greatest value."
+                    },
+                    "step": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "A number setting's step on the form."
+                    },
+                    "unit": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "A number setting's unit, shown beside its field."
+                    },
                     "default": {
-                        "description": "A select's default is one of its options; a boolean's is true or false; a text's is text; a colour's is an empty string or #rrggbb."
+                        "description": "A select's default is one of its options; a boolean's is true or false; a text's, textarea's or menu's is text; a colour's or image's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}."
                     },
                     "visible_when": {
                         "type": "object",
