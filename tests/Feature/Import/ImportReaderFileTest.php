@@ -7,7 +7,11 @@ use App\Domain\Import\File\Jobs\ReadImportFile;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Operations\FinishImportUpload;
+use App\Domain\Import\Operations\Input\FinishImportUploadInput;
+use App\Domain\Import\Operations\Input\ReceiveImportPieceInput;
 use App\Domain\Import\Operations\Input\StartImportUploadInput;
+use App\Domain\Import\Operations\ReceiveImportPiece;
 use App\Domain\Import\Operations\StartImportUpload;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\DisablePlugin;
@@ -90,23 +94,17 @@ function fakeSiteExport(): array
 }
 
 /**
- * An uploaded reader file, not yet read, holding the given bytes.
+ * Uploads a reader's file through the real upload operations, as its uploader:
+ * the start, the one piece and the finish, which queues the read.
  */
 function readerUploaded(string $name, string $bytes, string $reader): ImportFile
 {
-    $file = ImportFile::query()->create([
-        'uploaded_by' => test()->admin->id,
-        'name' => $name,
-        'size_bytes' => strlen($bytes),
-        'received_bytes' => strlen($bytes),
-        'sha256' => hash('sha256', $bytes),
-        'state' => 'reading',
-        'reader' => $reader,
-    ]);
+    $actor = (string) test()->admin->id;
+    $started = app(StartImportUpload::class)->execute(new StartImportUploadInput($name, strlen($bytes), $actor, $reader));
+    app(ReceiveImportPiece::class)->execute(new ReceiveImportPieceInput($started['fileId'], 0, $bytes, $actor));
+    app(FinishImportUpload::class)->execute(new FinishImportUploadInput($started['fileId'], $actor));
 
-    Storage::disk('local')->put($file->path(), $bytes);
-
-    return $file;
+    return ImportFile::query()->findOrFail($started['fileId']);
 }
 
 /**
@@ -360,4 +358,20 @@ it('refuses a file a reader takes longer than a read may take, rather than runni
 
     expect($file->refresh()->state)->toBe('refused')
         ->and($file->refused)->toBe('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+});
+
+it('imports the sample export twice, and the second import changes nothing', function (): void {
+    readersEnabled();
+
+    $bytes = (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export.json'));
+    FileImports::run(readerUploaded('sample.json', $bytes, fixtureReaderKey())->refresh());
+
+    $contents = DB::table('contents')->orderBy('id')->get(['id', 'title', 'status'])->all();
+    $mapped = DB::table('import_map')->count();
+
+    FileImports::run(readerUploaded('sample-again.json', $bytes, fixtureReaderKey())->refresh());
+
+    expect(DB::table('contents')->orderBy('id')->get(['id', 'title', 'status'])->all())->toEqual($contents)
+        ->and(DB::table('import_map')->count())->toBe($mapped)
+        ->and(count($contents))->toBe(2);
 });
