@@ -234,7 +234,20 @@ final class ReadImportFile implements ShouldQueue
             array_map(fn (ImportItem $item): array => ['kind' => $item->kind, 'id' => $item->id], $items),
             $this->actor->userId,
         ));
+
+        if (CarbonImmutable::now()->greaterThanOrEqualTo($deadline)) {
+            $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+
+            return;
+        }
+
         $rows = ReaderRows::build($items, $this->blocks(), $ids);
+
+        if (CarbonImmutable::now()->greaterThanOrEqualTo($deadline)) {
+            $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+
+            return;
+        }
         $facts = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
         $counted = self::noFacts();
         $counted['notes'] = $this->notesOf($items, $probe->languages);
