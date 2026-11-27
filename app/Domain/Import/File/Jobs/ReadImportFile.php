@@ -20,7 +20,9 @@ use App\Domain\Import\File\TermRows;
 use App\Domain\Import\File\WxrRefused;
 use App\Domain\Import\File\WxrStream;
 use App\Domain\Import\Models\ImportFile;
+use App\Domain\Import\Operations\AssignImportReaderIds;
 use App\Domain\Import\Operations\FinishReadingImportFile;
+use App\Domain\Import\Operations\Input\AssignImportReaderIdsInput;
 use App\Domain\Import\Operations\Input\FinishReadingImportFileInput;
 use App\Domain\Import\Operations\Input\RecordImportFileRowsInput;
 use App\Domain\Import\Operations\Input\RefuseImportFileInput;
@@ -35,6 +37,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Teme\Contracts\Import\ImportItem;
 use Teme\Contracts\Import\ImportReader;
 use Teme\Contracts\Import\ImportReaderRefused;
 use Throwable;
@@ -144,9 +147,6 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
-     * Keeps the items from $from up to $to; false when another read has moved the file on.
-     */
-    /**
      * Reads a file a plugin's import reader reads: the whole file, then its
      * rows in one record. A refusal stops the file with its sentence; any
      * other failure is recorded as the plugin's fault and stops it too.
@@ -192,7 +192,13 @@ final class ReadImportFile implements ShouldQueue
             return;
         }
 
-        $rows = ReaderRows::build($items, $this->blocks());
+        $ids = app(AssignImportReaderIds::class)->execute(new AssignImportReaderIdsInput(
+            (string) $probe->siteAddress,
+            (string) $file->reader,
+            array_map(fn (ImportItem $item): array => ['kind' => $item->kind, 'id' => $item->id], $items),
+            $this->actor->userId,
+        ));
+        $rows = ReaderRows::build($items, $this->blocks(), $ids);
         $facts = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
 
         if (! $this->keep(0, count($items), $rows, self::noFacts(), $facts)) {
@@ -207,6 +213,13 @@ final class ReadImportFile implements ShouldQueue
         app(RefuseImportFile::class)->execute(new RefuseImportFileInput($this->fileId, $sentence, $this->actor->userId));
     }
 
+    /**
+     * Keeps the items from $from up to $to; false when another read has moved the file on.
+     *
+     * @param  list<array{list: string, id: int, payload: array<string, mixed>}>  $rows
+     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>}  $counted
+     * @param  array{siteAddress: string|null, version: string, madeAt: string|null}  $channel
+     */
     private function keep(int $from, int $to, array $rows, array $counted, array $channel): bool
     {
         return app(RecordImportFileRows::class)->execute(new RecordImportFileRowsInput(

@@ -3,7 +3,7 @@
 /**
  * Turns the neutral items an import reader hands over into the file rows the
  * import engine already reads: people and terms first, so content can point
- * at them, then content and media in the file's order.
+ * at them, then content, media, comments and menu items in the file's order.
  *
  * @package Teme
  * @since   next
@@ -19,16 +19,18 @@ use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\File\Paragraphs;
 use App\Domain\Import\File\TermRows;
 use App\Domain\Import\File\UserRows;
+use InvalidArgumentException;
+use LogicException;
 use Teme\Contracts\Import\ImportItem;
 use Teme\Contracts\Import\ImportKind;
 
 /**
  * The adapter of the import socket. A reader's source IDs are strings, and
- * the engine's rows use integers: people and terms take negative IDs, content
- * and media positive ones, in the order the file lists them. A reader's
- * statuses are Teme's words; the engine's rows keep the words WordPress
- * uses, so each status is translated here, inside core. Comments and menus
- * are not read this release, and are left out.
+ * the engine's rows use integers: each item's integer comes from
+ * AssignImportReaderIds, which keeps it for the same site and reader, so a
+ * re-import finds the same items. Statuses are Teme's words; the engine's
+ * rows keep the words WordPress uses, so each one is translated here, inside
+ * core.
  *
  * @since next
  */
@@ -53,52 +55,76 @@ final class ReaderRows
         'trashed' => 'trash',
     ];
 
-    /** @var array<string, int> the ID each reader person's source ID has */
+    /** @var array<string, int> the engine's ID of each item, by key() */
+    private array $ids;
+
+    /** @var array<string, int> the engine's ID of each person, by source ID */
     private array $people = [];
 
-    /** @var array<string, int> the ID each login has, so a login is one person */
+    /** @var array<string, int> the ID of the first person with each login, so a login is one person */
     private array $logins = [];
 
-    /** @var array<string, array{id: int, taxonomy: string}> the ID and taxonomy each reader term's source ID has */
+    /** @var array<string, array{id: int, taxonomy: string}> the ID and taxonomy of each term, by source ID */
     private array $terms = [];
 
-    /** @var array<string, int> the ID each reader post or page has, by its source ID */
-    private array $posts = [];
-
-    /** @var array<string, int> the ID each reader media item has, by its source ID */
-    private array $media = [];
-
-    /** @var array<string, int> the ID each reader comment has, by its source ID */
-    private array $comments = [];
-
-    /** @var array<string, int> the ID each reader menu's term has, by its source ID */
+    /** @var array<string, int> the ID of each menu, by source ID */
     private array $menus = [];
 
-    /** @var array<string, int> the ID each reader menu item has, by its source ID */
-    private array $menuItems = [];
-
-    private int $nextContent = 1;
-
-    private int $nextComment = 1;
-
-    private int $nextMenuItem = 1;
-
-    private int $nextName = -1;
+    /**
+     * @param  array<string, int>  $ids  the engine's ID of each item, by key()
+     */
+    private function __construct(array $ids)
+    {
+        $this->ids = $ids;
+    }
 
     /**
      * The rows of a file's items, each as `list`, `id` and `payload`.
      *
      * @param  list<ImportItem>  $items
+     * @param  array<string, int>  $ids  the engine's ID of each item, as AssignImportReaderIds gives them
      *
      * @return list<array{list: string, id: int, payload: array<string, mixed>}>
      *
      * @since next
      */
-    public static function build(array $items, ContentBlocks $blocks): array
+    public static function build(array $items, ContentBlocks $blocks, array $ids): array
     {
-        $rows = new self;
+        return (new self($ids))->rows($items, $blocks);
+    }
 
-        return $rows->rows($items, $blocks);
+    /**
+     * The key an item has in the IDs map: its kind and its source ID.
+     */
+    public static function key(string $kind, string $sourceId): string
+    {
+        return $kind."\0".$sourceId;
+    }
+
+    /**
+     * The counter an item's engine ID is counted in. Items in one counter
+     * never share an ID; content and media share one, as the engine's rows do.
+     */
+    public static function counterOf(string $kind): string
+    {
+        return match ($kind) {
+            ImportKind::PERSON => 'users',
+            ImportKind::TERM => 'terms',
+            ImportKind::MENU => 'menus',
+            ImportKind::POST, ImportKind::PAGE, ImportKind::MEDIA => 'content',
+            ImportKind::COMMENT => 'comments',
+            ImportKind::MENU_ITEM => 'menu-items',
+            default => throw new InvalidArgumentException("No counter for the kind {$kind}."),
+        };
+    }
+
+    /**
+     * Whether a counter counts down from -1, as people, terms and menus do,
+     * rather than up from 1.
+     */
+    public static function countsDown(string $counter): bool
+    {
+        return in_array($counter, ['users', 'terms', 'menus'], true);
     }
 
     /**
@@ -112,7 +138,11 @@ final class ReaderRows
 
         foreach ($items as $item) {
             if ($item->kind === ImportKind::PERSON && ($item->fields['login'] ?? '') !== '') {
-                $rows[] = $this->person($item);
+                $person = $this->person($item);
+
+                if ($person !== null) {
+                    $rows[] = $person;
+                }
             }
         }
 
@@ -126,29 +156,13 @@ final class ReaderRows
 
         foreach ($items as $item) {
             if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
-                $this->posts[$item->id] = $this->nextContent++;
+                $rows[] = ['list' => ItemRows::CONTENT, 'id' => $this->idOf($item), 'payload' => $this->post($item, $blocks)];
             } elseif ($item->kind === ImportKind::MEDIA) {
-                $this->media[$item->id] = $this->nextContent++;
-            }
-        }
-
-        foreach ($items as $item) {
-            if ($item->kind === ImportKind::COMMENT) {
-                $this->comments[$item->id] = $this->nextComment++;
-            } elseif ($item->kind === ImportKind::MENU_ITEM) {
-                $this->menuItems[$item->id] = $this->nextMenuItem++;
-            }
-        }
-
-        foreach ($items as $item) {
-            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
-                $rows[] = ['list' => ItemRows::CONTENT, 'id' => $this->posts[$item->id], 'payload' => $this->post($item, $blocks)];
-            } elseif ($item->kind === ImportKind::MEDIA) {
-                $rows[] = ['list' => ItemRows::MEDIA, 'id' => $this->media[$item->id], 'payload' => $this->media($item)];
-            } elseif ($item->kind === ImportKind::COMMENT && isset($this->posts[(string) $item->postId])) {
-                $rows[] = ['list' => ItemRows::COMMENTS, 'id' => $this->comments[$item->id], 'payload' => $this->comment($item)];
+                $rows[] = ['list' => ItemRows::MEDIA, 'id' => $this->idOf($item), 'payload' => $this->media($item)];
+            } elseif ($item->kind === ImportKind::COMMENT && $this->contentId($item->postId) !== null) {
+                $rows[] = ['list' => ItemRows::COMMENTS, 'id' => $this->idOf($item), 'payload' => $this->comment($item)];
             } elseif ($item->kind === ImportKind::MENU_ITEM && isset($this->menus[(string) $item->menuId])) {
-                $rows[] = ['list' => ItemRows::MENU_ITEMS, 'id' => $this->menuItems[$item->id], 'payload' => $this->menuItem($item)];
+                $rows[] = ['list' => ItemRows::MENU_ITEMS, 'id' => $this->idOf($item), 'payload' => $this->menuItem($item)];
             }
         }
 
@@ -156,17 +170,22 @@ final class ReaderRows
     }
 
     /**
-     * @return array{list: string, id: int, payload: array<string, mixed>}
+     * A person, or null when an earlier person has the same login: one login is one row.
+     *
+     * @return array{list: string, id: int, payload: array<string, mixed>}|null
      */
-    private function person(ImportItem $item): array
+    private function person(ImportItem $item): ?array
     {
         $login = (string) $item->fields['login'];
 
-        if (! isset($this->logins[$login])) {
-            $this->logins[$login] = $this->nextName--;
+        if (isset($this->logins[$login])) {
+            $this->people[$item->id] = $this->logins[$login];
+
+            return null;
         }
 
-        $id = $this->logins[$login];
+        $id = $this->idOf($item);
+        $this->logins[$login] = $id;
         $this->people[$item->id] = $id;
 
         return [
@@ -188,7 +207,7 @@ final class ReaderRows
         $taxonomy = (string) ($item->fields['taxonomy'] ?? 'category');
         $name = $item->title !== '' ? $item->title : (string) ($item->fields['name'] ?? '');
         $slug = $item->slug !== '' ? $item->slug : $name;
-        $id = $this->nextName--;
+        $id = $this->idOf($item);
         $this->terms[$item->id] = ['id' => $id, 'taxonomy' => $taxonomy];
 
         return [
@@ -213,7 +232,7 @@ final class ReaderRows
         }
 
         return [
-            'id' => $this->posts[$item->id],
+            'id' => $this->idOf($item),
             'type' => $item->kind,
             'status' => self::STATUSES[$item->status] ?? 'draft',
             'slug' => $item->slug,
@@ -222,7 +241,7 @@ final class ReaderRows
             'date_gmt' => $item->publishedAt,
             'modified_gmt' => $item->modifiedAt,
             'author' => $this->people[$item->authorId ?? ''] ?? 0,
-            'parent' => $item->parentId === null ? 0 : ($this->posts[$item->parentId] ?? 0),
+            'parent' => $this->contentId($item->parentId) ?? 0,
             'menu_order' => 0,
             'comment_status' => 'closed',
             'ping_status' => 'closed',
@@ -256,9 +275,9 @@ final class ReaderRows
     private function comment(ImportItem $item): array
     {
         return [
-            'id' => $this->comments[$item->id],
-            'post_id' => $this->posts[(string) $item->postId],
-            'parent' => $item->parentId === null ? 0 : ($this->comments[$item->parentId] ?? 0),
+            'id' => $this->idOf($item),
+            'post_id' => $this->contentId($item->postId),
+            'parent' => $item->parentId === null ? 0 : ($this->ids[self::key(ImportKind::COMMENT, $item->parentId)] ?? 0),
             'type' => 'comment',
             'status' => self::COMMENT_STATUSES[$item->status] ?? '0',
             'author_name' => (string) ($item->fields['authorName'] ?? ''),
@@ -281,7 +300,7 @@ final class ReaderRows
      */
     private function menu(ImportItem $item): array
     {
-        $id = $this->nextName--;
+        $id = $this->idOf($item);
         $this->menus[$item->id] = $id;
         $slug = (string) ($item->fields['slug'] ?? '');
         $name = $item->title !== '' ? $item->title : $slug;
@@ -298,15 +317,15 @@ final class ReaderRows
     private function menuItem(ImportItem $item): array
     {
         $object = match ($item->itemType) {
-            'post_type' => $this->posts[(string) $item->objectId] ?? 0,
+            'post_type' => $this->contentId($item->objectId) ?? 0,
             'taxonomy' => $this->terms[(string) $item->objectId]['id'] ?? 0,
             default => 0,
         };
 
         return [
             'menu' => $this->menus[(string) $item->menuId],
-            'id' => $this->menuItems[$item->id],
-            'parent' => $item->parentId === null ? 0 : ($this->menuItems[$item->parentId] ?? 0),
+            'id' => $this->idOf($item),
+            'parent' => $item->parentId === null ? 0 : ($this->ids[self::key(ImportKind::MENU_ITEM, $item->parentId)] ?? 0),
             'order' => $item->order,
             'type' => (string) $item->itemType,
             'object' => (string) ($item->fields['object'] ?? ''),
@@ -329,7 +348,7 @@ final class ReaderRows
         $path = (string) parse_url($url, PHP_URL_PATH);
 
         return [
-            'id' => $this->media[$item->id],
+            'id' => $this->idOf($item),
             'parent' => 0,
             'author' => 0,
             'date_gmt' => $item->publishedAt,
@@ -347,5 +366,27 @@ final class ReaderRows
             'metadata' => null,
             'backup_sizes' => [],
         ];
+    }
+
+    /**
+     * The engine ID of an item of the file. Every item read has one, so a missing one is a bug.
+     */
+    private function idOf(ImportItem $item): int
+    {
+        return $this->ids[self::key($item->kind, $item->id)]
+            ?? throw new LogicException("No engine ID was given to the reader item {$item->kind} {$item->id}.");
+    }
+
+    /**
+     * The engine ID of a post or page by its source ID; a post wins over a
+     * page with the same ID, which the contract keeps unique per kind only.
+     */
+    private function contentId(?string $sourceId): ?int
+    {
+        if ($sourceId === null) {
+            return null;
+        }
+
+        return $this->ids[self::key(ImportKind::POST, $sourceId)] ?? $this->ids[self::key(ImportKind::PAGE, $sourceId)] ?? null;
     }
 }

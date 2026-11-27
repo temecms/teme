@@ -218,3 +218,27 @@ it('imports a reader’s menus with their items, each item pointing at its post 
         ->and($byLabel['Example']->url)->toBe('https://example.com/x')
         ->and($byLabel['Example']->parent_id)->toBe($byLabel['Hello']->id);
 });
+
+it('keeps each reader item’s identity when a re-import reorders the file and adds one', function (): void {
+    readersEnabled();
+
+    $first = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($first);
+    FileImports::run($first->refresh());
+
+    $helloId = DB::table('contents')->where('title', 'Hello')->value('id');
+    $aboutId = DB::table('contents')->where('title', 'About')->value('id');
+
+    $export = fakeSiteExport();
+    $export['items'] = array_reverse($export['items']);
+    $export['items'][] = ['kind' => 'post', 'id' => 'i3', 'title' => 'Second', 'slug' => 'second', 'status' => 'published', 'content' => '<p>New</p>'];
+
+    $again = readerUploaded('site-again.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($again);
+    FileImports::run($again->refresh());
+
+    expect(DB::table('contents')->where('title', 'Hello')->value('id'))->toBe($helloId)
+        ->and(DB::table('contents')->where('title', 'About')->value('id'))->toBe($aboutId)
+        ->and(DB::table('contents')->where('title', 'Second')->count())->toBe(1)
+        ->and(DB::table('contents')->whereIn('title', ['Hello', 'About', 'Second'])->count())->toBe(3);
+});
