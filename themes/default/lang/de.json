@@ -6,12 +6,10 @@
     ":count results": ":count Ergebnisse",
     ":name’s comment": "Kommentar von :name",
     "About :name": "Über :name",
-    "and": "und",
     "Author": "Autor",
     "Awaiting moderation.": "Wartet auf Freigabe.",
     "By": "Von",
     "Comments": "Kommentare",
-    "comments": "Kommentare",
     "Comments are closed.": "Die Kommentare sind geschlossen.",
     "Comments on “:title”": "Kommentare zu „:title“",
     "Front page sections": "Startseiten-Abschnitte",
@@ -47,11 +45,13 @@
     "Tags": "Schlagwörter",
     "This comment was removed.": "Dieser Kommentar wurde entfernt.",
     "This page has no template of its own.": "Diese Seite hat keine eigene Vorlage.",
-    "to :name": "an :name",
     "Too many searches": "Zu viele Suchanfragen",
     "Type a word or two to search the site.": "Geben Sie ein oder zwei Wörter ein, um die Website zu durchsuchen.",
     "Updated": "Aktualisiert",
     "We couldn’t find that page": "Diese Seite konnten wir nicht finden",
     "What you wrote": "Was Sie geschrieben haben",
-    "Your comment": "Ihr Kommentar"
+    "Your comment": "Ihr Kommentar",
+    "and": "und",
+    "comments": "Kommentare",
+    "to :name": "an :name"
 }

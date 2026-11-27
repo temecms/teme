@@ -6,12 +6,10 @@
     ":count results": ":count परिणाम",
     ":name’s comment": ":name का कमेंट",
     "About :name": ":name के बारे में",
-    "and": "और",
     "Author": "लेखक",
     "Awaiting moderation.": "मॉडरेशन की प्रतीक्षा में।",
     "By": "लेखक:",
     "Comments": "कमेंट",
-    "comments": "कमेंट",
     "Comments are closed.": "कमेंट बंद हैं।",
     "Comments on “:title”": "“:title” पर कमेंट",
     "Front page sections": "मुखपृष्ठ के खंड",
@@ -47,11 +45,13 @@
     "Tags": "टैग",
     "This comment was removed.": "यह कमेंट हटा दिया गया था।",
     "This page has no template of its own.": "इस पेज का अपना कोई टेम्पलेट नहीं है।",
-    "to :name": ":name को",
     "Too many searches": "बहुत ज़्यादा खोजें",
     "Type a word or two to search the site.": "साइट में खोजने के लिए एक-दो शब्द लिखें।",
     "Updated": "अपडेट किया गया",
     "We couldn’t find that page": "हमें वह पेज नहीं मिला",
     "What you wrote": "आपने जो लिखा",
-    "Your comment": "आपका कमेंट"
+    "Your comment": "आपका कमेंट",
+    "and": "और",
+    "comments": "कमेंट",
+    "to :name": ":name को"
 }

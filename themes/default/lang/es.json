@@ -6,12 +6,10 @@
     ":count results": ":count resultados",
     ":name’s comment": "Comentario de :name",
     "About :name": "Sobre :name",
-    "and": "y",
     "Author": "Autor",
     "Awaiting moderation.": "Pendiente de moderación.",
     "By": "Por",
     "Comments": "Comentarios",
-    "comments": "comentarios",
     "Comments are closed.": "Los comentarios están cerrados.",
     "Comments on “:title”": "Comentarios en «:title»",
     "Front page sections": "Secciones de la portada",
@@ -47,11 +45,13 @@
     "Tags": "Etiquetas",
     "This comment was removed.": "Este comentario se eliminó.",
     "This page has no template of its own.": "Esta página no tiene plantilla propia.",
-    "to :name": "a :name",
     "Too many searches": "Demasiadas búsquedas",
     "Type a word or two to search the site.": "Escribe una o dos palabras para buscar en el sitio.",
     "Updated": "Actualizado",
     "We couldn’t find that page": "No hemos encontrado esa página",
     "What you wrote": "Lo que escribiste",
-    "Your comment": "Tu comentario"
+    "Your comment": "Tu comentario",
+    "and": "y",
+    "comments": "comentarios",
+    "to :name": "a :name"
 }

@@ -1,4 +1,4 @@
-{{-- A page: its title, its featured image, and its body; no byline, tags, author box or related posts. As the home page, its title is an <h2>: the site title is the page's <h1> (I-442), and it draws the front-top and front-sections regions. --}}
+{{-- A page: its title, its featured image, and its body; no byline, tags, author box or related posts. As the home page, its title is an <h2>: the site title is the page's <h1>, and it draws the front-top and front-sections regions. --}}
 @extends('theme::layouts.base')
 
 @section('main')
