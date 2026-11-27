@@ -19,23 +19,31 @@ namespace App\Domain\Plugins\Area;
 
 use App\Domain\Plugins\PluginRegistry;
 
-final readonly class PluginHomePanels
+final class PluginHomePanels
 {
     /** Where plugins' panels sort: after core's own panels, in the order they were declared. @since next */
     public const int FIRST_ORDER = 700;
 
+    /** @var list<HomePanelDeclaration>|null the declarations, read once per request */
+    private ?array $declarations = null;
+
     public function __construct(
-        private PluginAreas $areas,
-        private PluginRegistry $registry,
+        private readonly PluginAreas $areas,
+        private readonly PluginRegistry $registry,
     ) {}
 
     /**
-     * Every panel of every enabled plugin, in the order they were declared.
+     * Every panel of every enabled plugin, in the order they were declared;
+     * read from the plugins' areas once per request, then kept.
      *
      * @return list<HomePanelDeclaration>
      */
     public function declared(): array
     {
+        if ($this->declarations !== null) {
+            return $this->declarations;
+        }
+
         $declared = [];
 
         foreach ($this->areas->all() as $plugin) {
@@ -63,7 +71,7 @@ final readonly class PluginHomePanels
             }
         }
 
-        return $declared;
+        return $this->declarations = $declared;
     }
 
     /**

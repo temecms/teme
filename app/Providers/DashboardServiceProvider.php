@@ -29,6 +29,9 @@ final class DashboardServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Scoped: the plugins' Home panels are read once per request or job.
+        $this->app->scoped(PluginHomePanels::class);
+
         $this->app->singleton(DashboardRegistry::class, function (): DashboardRegistry {
             $registry = new DashboardRegistry;
 

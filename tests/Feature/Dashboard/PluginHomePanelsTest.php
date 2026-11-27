@@ -5,8 +5,11 @@ declare(strict_types=1);
 use App\Domain\Dashboard\DashboardRegistry;
 use App\Domain\Dashboard\Queries\Dashboard;
 use App\Domain\Plugins\Area\AreaValidator;
+use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
@@ -89,9 +92,62 @@ it('registers the panel as the plugin\'s own, sized as it declares', function ()
         ->and($entry->size)->toBe('medium');
 });
 
-it('leaves out the panel of a plugin that is not enabled', function (): void {
+it('shows the panel while the plugin is enabled, and removes it, layout and all, once it is disabled', function (): void {
+    ($this->start)();
+    lscrPrefer($this->editor, ['dashboard.order' => ['plugin.placard.ads']]);
+
+    expect(dashKeys($this->editor))->toContain('plugin.placard.ads');
+
+    $admin = User::factory()->create()->assignRole('administrator');
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/placard', (string) $admin->id));
+    // A request builds the registry and its scoped readers afresh; a test in one app must do the same.
+    app()->forgetInstance(DashboardRegistry::class);
+    app()->forgetScopedInstances();
+
     expect(collect(app(DashboardRegistry::class)->all())->pluck('key')->all())->not->toContain('plugin.placard.ads')
-        ->and(dashKeys($this->editor))->not->toContain('plugin.placard.ads');
+        ->and(dashKeys($this->editor))->not->toContain('plugin.placard.ads')
+        ->and(app(Dashboard::class)->forUser($this->editor)['layout']['order'])->not->toContain('plugin.placard.ads');
+});
+
+it('sends a permitted person the panel and its blocks with the Home page', function (): void {
+    ($this->start)();
+
+    $props = $this->actingAs($this->editor)->get(route('dashboard'))->assertOk()->viewData('page')['props'];
+    $panel = collect($props['panels'])->firstWhere('key', 'plugin.placard.ads');
+
+    expect($panel)->not->toBeNull()
+        ->and(collect($props['catalogue'])->firstWhere('key', 'plugin.placard.ads')['kind'])->toBe('plugin')
+        ->and(array_column($panel['blocks'], 'id'))->toBe(['totals', 'daily', 'hint']);
+});
+
+it('marks the panel failed when its blocks run over the call budget', function (): void {
+    // Each call takes 300 ms, past AreaReads' 250 ms call budget, so both reading blocks run over.
+    $clock = new class implements ColumnClock
+    {
+        public int $now = 0;
+
+        /** @var list<int> */
+        public array $steps = [];
+
+        public function nanoseconds(): int
+        {
+            if ($this->steps !== []) {
+                $this->now += array_shift($this->steps);
+            }
+
+            return $this->now;
+        }
+    };
+    app()->instance(ColumnClock::class, $clock);
+    ($this->start)();
+    $clock->steps = [0, 300_000_000, 0, 300_000_000];
+
+    $panel = dashPanel($this->editor, 'plugin.placard.ads');
+
+    expect($panel['failed'])->toBeTrue()
+        ->and($panel['blocks'][0]['data']['failed'])->toBeString()
+        ->and($panel['blocks'][1]['data']['failed'])->toBeString()
+        ->and($panel['blocks'][2]['text'])->toBe('Ads show to readers once they are active.');
 });
 
 it('hides the panel when the person hides it, and moves it when they move it', function (): void {
@@ -124,7 +180,7 @@ it('refuses a Home panel that names a page the area lacks, a block of another pa
     expect($validator->homePanelErrors([['id' => 'ads', 'title' => 'Ads', 'page' => 'overview', 'blocks' => ['totals']]], $area))->toBe([])
         ->and($validator->homePanelErrors([['id' => 'ads', 'title' => 'Ads', 'page' => 'nowhere', 'blocks' => ['totals']]], $area))->toContain('A Home panel must name a page of its area.')
         ->and($validator->homePanelErrors([['id' => 'ads', 'title' => 'Ads', 'page' => 'overview', 'blocks' => ['missing']]], $area))->toContain('A Home panel can only show blocks of its own page.')
-        ->and($validator->homePanelErrors([['id' => 'ads', 'title' => 'Ads', 'page' => 'overview', 'blocks' => ['upkeep']]], $area))->toContain('A Home panel can’t show a actions block.')
+        ->and($validator->homePanelErrors([['id' => 'ads', 'title' => 'Ads', 'page' => 'overview', 'blocks' => ['upkeep']]], $area))->toContain('A Home panel shows only figures, charts, tables and notices.')
         ->and($validator->homePanelErrors([['id' => 'ads', 'title' => 'Ads', 'page' => 'overview', 'blocks' => ['totals'], 'columns' => []]], $area))->toContain('columns isn’t something this part of an area can have.')
         ->and($validator->homePanelErrors([['id' => 'a', 'title' => 'A', 'page' => 'overview', 'blocks' => ['totals']], ['id' => 'b', 'title' => 'B', 'page' => 'overview', 'blocks' => ['totals']], ['id' => 'c', 'title' => 'C', 'page' => 'overview', 'blocks' => ['totals']], ['id' => 'd', 'title' => 'D', 'page' => 'overview', 'blocks' => ['totals']]], $area))->toBe(['A plugin adds 1 to 3 panels to Home.']);
 });

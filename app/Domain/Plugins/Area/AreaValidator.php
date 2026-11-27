@@ -74,9 +74,10 @@ final class AreaValidator
     /** The most sections a plugin's settings page splits into. */
     public const int MOST_SETTINGS_SECTIONS = 8;
 
-    /** The most panels a plugin adds to Home, and the most blocks one panel shows. @since next */
+    /** The most panels a plugin adds to Home. @since next */
     public const int MOST_HOME_PANELS = 3;
 
+    /** The most blocks one Home panel shows. @since next */
     public const int MOST_HOME_BLOCKS = 4;
 
     /** The kinds of block a Home panel may show: a table as its first rows, read only. @since next */
@@ -305,7 +306,7 @@ final class AreaValidator
                 if ($type === null) {
                     $errors[] = __('A Home panel can only show blocks of its own page.');
                 } elseif (! in_array($type, self::HOME_BLOCKS, true)) {
-                    $errors[] = __('A Home panel can’t show a :type block.', ['type' => (string) $type]);
+                    $errors[] = __('A Home panel shows only figures, charts, tables and notices.');
                 }
             }
         }
