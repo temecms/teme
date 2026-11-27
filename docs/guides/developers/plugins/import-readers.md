@@ -12,7 +12,7 @@ Teme's import engine is opened at one end: the end that reads the old site. A pl
 
 A reader supplies only what differs per system. It reads an export file, says what the file holds, and hands over each item in Teme's neutral shape. It writes nothing. Teme's own operations do every write, as the person who started the import.
 
-> **Status.** This release defines the reader's side: the contract, the manifest declaration and the consent. Uploading a reader's file and running an import from it are not wired yet, so a reader can be tested with the fake reader in the testing kit but can't import a file on a live site yet.
+> **Status.** A reader's file can be uploaded and read. The upload accepts the reader's file types, the reader reads the file, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Two limits for now: comments and menus are not read yet, and the whole file is read in one job, so a very large file is not yet supported. The import screen has no picker for a reader's file yet; the upload is reached through the import's upload operation.
 
 ## Declaring a reader
 
@@ -55,6 +55,10 @@ Each item is an `ImportItem`, in Teme's words. Its `kind` is one of the kinds in
 - `fields` holds what a kind needs beyond these. For a `person` they are `login`, `email` and `displayName`. For a `term` they are `taxonomy`, `name` and `description`. For `media` they are `url`, `mime` and `alt`.
 
 A reader may add further values to `fields` for what its system holds beyond these.
+
+## What a reader's items become
+
+Core keeps a reader's people and terms with negative IDs and its posts, pages and pictures with positive ones, in the order the file lists them. Teme's statuses are kept as Teme's words in the reader and translated to the words the import uses inside core. A reader's own markup is converted by core, as WordPress content is; plain text is turned into paragraphs.
 
 ## Trying a reader
 
