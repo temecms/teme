@@ -117,6 +117,8 @@ final class UpdateFediverseReply extends BaseOperation
      * The comment an edit would leave, as a plugin's check reads it: built with no writes, so
      * InboxReplies can ask the check before the transaction. $document is the edit's new words, as
      * RemoteWords reads them; the stored body is used when none is given.
+     *
+     * @param  array<string, mixed>|null  $document
      */
     public static function candidate(Comment $comment, RemoteActor $remote, ?array $document = null): CommentCandidate
     {

@@ -38,7 +38,16 @@ final class CommentChecks
     ) {}
 
     /**
-     * The chosen plugin's verdict on the comment, or null for no opinion.
+     * Whether a plugin fills the comment-check slot, so a check is worth asking; reads one row and nothing else.
+     */
+    public function wanted(): bool
+    {
+        return $this->providers->chosenFor(PluginSlots::COMMENT_CHECK) !== null;
+    }
+
+    /**
+     * The chosen plugin's verdict on the comment, or null for no opinion. The
+     * verdict names the plugin in its signals, as checkedBy.
      */
     public function verdict(CommentCandidate $comment): ?ModerationVerdict
     {
@@ -56,11 +65,13 @@ final class CommentChecks
             $running = $plugin->running;
 
             // A failure, a late answer or a skipped plugin is recorded by SeoPlugins::ask; no opinion then.
-            return $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($running, $comment): ?ModerationVerdict {
+            $answered = $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($running, $comment): ?ModerationVerdict {
                 $answer = $running->check($comment);
 
                 return $answer instanceof ModerationVerdict ? self::known($answer) : null;
             });
+
+            return $answered === null ? null : new ModerationVerdict($answered->status, $answered->reason, [...$answered->signals, 'checkedBy' => $plugin->name]);
         }
 
         return null;

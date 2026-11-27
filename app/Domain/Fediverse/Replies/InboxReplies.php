@@ -102,6 +102,11 @@ final readonly class InboxReplies
      */
     private function checked(string $operation, array $object, RemoteActor $remote): ?ModerationVerdict
     {
+        // Nothing is built or parsed for a check when no plugin fills the comment-check slot.
+        if (! app(CommentChecks::class)->wanted()) {
+            return null;
+        }
+
         if ($operation === ReceiveFediverseReply::class) {
             $candidate = ReceiveFediverseReply::candidate($remote, $object);
 

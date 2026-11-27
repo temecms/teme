@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\Models\Comment;
+use App\Domain\Comments\Operations\Input\SubmitCommentInput;
+use App\Domain\Comments\Operations\SubmitComment;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\LoadedPlugins;
@@ -132,4 +134,37 @@ it('holds a verdict with an unknown status as pending, never writes it', functio
     $verdict = app(CommentChecks::class)->verdict(commentCandidateFor($this->item, 'Odd words'));
 
     expect($verdict?->status)->toBe(ModerationVerdict::PENDING);
+});
+
+it('never asks the plugin about a comment refused before the check', function (): void {
+    checkerEnabled();
+    Checker::$verdict = fn (CommentCandidate $comment): ModerationVerdict => new ModerationVerdict(ModerationVerdict::APPROVED, 'Fine.');
+
+    $post = ['path' => '/harbour-news/', 'text' => 'Lovely piece.', 'name' => 'Ada Guest', 'email' => 'ada@example.com', 'token' => 'browser-one-0123456789abcdef'];
+    $this->post('/_teme/comments', $post);
+    $this->post('/_teme/comments', $post);
+
+    expect(Checker::$asked)->toBe(['Lovely piece.'])
+        ->and(Comment::query()->count())->toBe(1);
+});
+
+it('records the plugin as the one that moderated a comment it decided', function (): void {
+    checkerEnabled();
+    Checker::$verdict = fn (CommentCandidate $comment): ModerationVerdict => new ModerationVerdict(ModerationVerdict::SPAM, 'Looks like spam.');
+
+    $verdict = app(CommentChecks::class)->verdict(commentCandidateFor($this->item, 'Buy now'));
+    $submitted = cmSubmit($this->item, 'Buy now', ['checked' => $verdict]);
+
+    expect(Comment::query()->findOrFail($submitted->commentId)->moderation['by'])->toBe('tests/checker');
+});
+
+it('does not ask the plugin about a comment by someone who looks after the item', function (): void {
+    checkerEnabled();
+    $editor = User::factory()->create()->assignRole('editor');
+    Checker::$verdict = fn (CommentCandidate $comment): ModerationVerdict => new ModerationVerdict(ModerationVerdict::SPAM, 'Looks like spam.');
+
+    $this->actingAs($editor);
+    $admission = SubmitComment::admission(new SubmitCommentInput(contentId: $this->item->id, text: 'Thanks', actorId: (string) $editor->id, ip: '203.0.113.7'), record: false);
+
+    expect($admission['lookedAfter'])->toBeTrue();
 });
