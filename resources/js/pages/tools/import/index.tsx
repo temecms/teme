@@ -31,6 +31,7 @@ export default function ImportIndex({
     siteTimezone,
     maxFileMb,
     readers,
+    sourceReaders,
 }: ImportIndexPage) {
     const [way, setWay] = useState<ImportWay>(null);
 
@@ -55,16 +56,23 @@ export default function ImportIndex({
                         {row.host}
                     </Link>
                     <span className="text-small text-ink-3">
-                        {row.kind === 'file' && row.uploadedAt
-                            ? __('WordPress · export file, uploaded :date', {
-                                  date: formatInZone(
-                                      row.uploadedAt,
-                                      siteTimezone,
-                                  ),
-                              })
-                            : __('WordPress · Teme Companion :version', {
-                                  version: row.pluginVersion,
-                              })}
+                        {sourceReaders[row.id] !== undefined
+                            ? row.uploadedAt
+                                ? __(':reader · file, uploaded :date', {
+                                      reader: sourceReaders[row.id],
+                                      date: formatInZone(row.uploadedAt, siteTimezone),
+                                  })
+                                : sourceReaders[row.id]
+                            : row.kind === 'file' && row.uploadedAt
+                              ? __('WordPress · export file, uploaded :date', {
+                                    date: formatInZone(
+                                        row.uploadedAt,
+                                        siteTimezone,
+                                    ),
+                                })
+                              : __('WordPress · Teme Companion :version', {
+                                    version: row.pluginVersion,
+                                })}
                     </span>
                 </div>
             ),

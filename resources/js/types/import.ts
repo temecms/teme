@@ -27,6 +27,8 @@ export type ImportIndexPage = {
     maxFileMb: number;
     /** The import readers a plugin offers, which can read an uploaded file instead of WordPress's export. */
     readers: ImportReaderChoice[];
+    /** The label of the reader behind each site an import reader's file made, by site ID. */
+    sourceReaders: Record<string, string>;
 };
 
 /** An import reader a plugin offers, as the upload chooses it. */

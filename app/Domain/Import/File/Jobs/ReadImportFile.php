@@ -56,6 +56,12 @@ final class ReadImportFile implements ShouldQueue
      */
     public const int SECONDS = 45;
 
+    /**
+     * The largest file an import reader reads: a reader's whole file is read in one
+     * job, under the deadline, so a larger one is refused when its upload starts.
+     */
+    public const int READER_BYTES = 64 * 1024 * 1024;
+
     /** The items kept together, so a long part writes as it goes. */
     public const int ITEMS = 500;
 

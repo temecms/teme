@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
 
+use App\Domain\Import\File\Jobs\ReadImportFile;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\StartImportUploadInput;
@@ -55,6 +56,12 @@ final class StartImportUpload extends BaseOperation
             if ($offer === null) {
                 throw ValidationException::withMessages([
                     'reader' => 'That import reader isn’t on this site any more.',
+                ]);
+            }
+
+            if ($input->sizeBytes > ReadImportFile::READER_BYTES) {
+                throw ValidationException::withMessages([
+                    'name' => 'A reader reads a file of up to 64 MB in one go, and this one is larger. Split it or export less.',
                 ]);
             }
 

@@ -36,6 +36,7 @@ final class ImportScreenController extends Controller
     {
         return Inertia::render('tools/import/index', [
             'sites' => $screen->sites(),
+            'sourceReaders' => $screen->readerLabels($readers),
             'readers' => array_values(array_map(
                 fn (ImportReaderOffer $offer): array => ['key' => $offer->key(), 'label' => $offer->label, 'fileTypes' => $offer->fileTypes],
                 $readers->all(),

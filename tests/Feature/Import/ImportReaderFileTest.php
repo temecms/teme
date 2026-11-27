@@ -375,3 +375,24 @@ it('imports the sample export twice, and the second import changes nothing', fun
         ->and(DB::table('import_map')->count())->toBe($mapped)
         ->and(count($contents))->toBe(2);
 });
+
+it('names the import reader behind a site imported from a reader’s file, on Tools › Import', function (): void {
+    readersEnabled();
+    FileImports::run(readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), fixtureReaderKey())->refresh());
+
+    $source = (string) ImportSource::query()->where('kind', fixtureReaderKey())->value('id');
+
+    $this->actingAs($this->admin)->get(route('tools.importer.index'))
+        ->assertInertia(fn ($page) => $page->where('sourceReaders', [$source => 'Fake export']));
+});
+
+it('refuses a reader’s file too large for a reader to read in one go, when it starts', function (): void {
+    readersEnabled();
+
+    $start = fn (int $size): mixed => app(StartImportUpload::class)->execute(
+        new StartImportUploadInput('site.json', $size, (string) $this->admin->id, fixtureReaderKey()),
+    );
+
+    expect(fn () => $start(ReadImportFile::READER_BYTES + 1))->toThrow(ValidationException::class)
+        ->and($start(ReadImportFile::READER_BYTES))->not->toBeNull();
+});

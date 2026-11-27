@@ -26,6 +26,7 @@ use App\Domain\Import\PluginData\PluginDataLists;
 use App\Domain\Import\PluginData\PluginDataReport;
 use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Tracking\ImportRunJobs;
+use App\Domain\Plugins\Readers\ImportReaders;
 use Illuminate\Support\Facades\DB;
 
 final readonly class ImportScreen
@@ -66,6 +67,29 @@ final readonly class ImportScreen
      * Returns the sites Teme knows, newest first: each with where it stands, the Teme Companion version it last reported, whether its password is forgotten, its latest import's start and the address of its page.
      *
      * @return list<array{id: string, address: string, host: string, state: string, stateLabel: string, pluginVersion: string, forgotten: bool, lastImportAt: string|null, href: string, kind: 'companion'|'file', uploadedAt: string|null}>
+     */
+    /**
+     * The label of the import reader behind each site an import reader's file
+     * made, by site ID; a site from WordPress has no entry. A reader no longer
+     * on the site is named by its key.
+     *
+     * @return array<string, string>
+     */
+    public function readerLabels(ImportReaders $readers): array
+    {
+        $labels = [];
+
+        foreach (ImportSource::query()->where('kind', '!=', 'wordpress')->get() as $source) {
+            $labels[(string) $source->id] = $readers->find((string) $source->kind)?->label ?? (string) $source->kind;
+        }
+
+        return $labels;
+    }
+
+    /**
+     * Each site Teme knows, with where its import stands.
+     *
+     * @return list<array<string, mixed>>
      */
     public function sites(): array
     {
