@@ -12,9 +12,9 @@ Teme's public pages send a content security policy that keeps a theme's scripts 
 
 ## What the policy allows
 
-On a public page, `script-src` is `'self'` plus hashes for the small inline scripts core itself writes (the signed-in session marker, comments, regions). There is no `unsafe-eval` and no `unsafe-inline` for scripts. A theme therefore:
+On a public page, `script-src` is `'self'`, the asset host when `ASSET_URL` points elsewhere, and hashes for the small inline scripts core itself writes (the signed-in session marker, comments, regions). There is no `unsafe-eval` and no `unsafe-inline` for scripts. A theme therefore:
 
-- Loads its built JavaScript as a same-origin file from its assets, never as an inline `<script>` block in a Blade view (`php artisan teme:theme:check` refuses those).
+- Loads its built JavaScript as a file from its assets (`'self'` or that asset host), never as an inline `<script>` block in a Blade view (`php artisan teme:theme:check` refuses those).
 - Cannot use a library that evaluates strings as code. Alpine's normal build needs `unsafe-eval`; only its [CSP build](https://alpinejs.dev/advanced/csp) works here, and that build cannot evaluate expressions such as `!x`, ternaries or object literals in attributes—keep those in your script file.
 - Must not expect `eval`, `new Function`, or similar.
 
@@ -26,7 +26,7 @@ Aim lower when you can. The default theme's target is about **5 KB** compressed 
 
 ## Load a script only where it is needed
 
-Declare the script in the theme's asset entries and let `<x-teme::document>` write the tags for the active theme. Do not paste a `<script src>` into every template. If only a handful of templates need behaviour (a search form, a gallery), keep that code behind a small entry those templates alone cause to load, or gate it in the script itself so idle pages pay almost nothing.
+Declare the script in the theme's asset entries and let `<x-teme::document>` write the tags for the active theme. Do not paste a `<script src>` into every template. If only a handful of templates need behaviour (a search form, a gallery), gate it with a dynamic `import()` or a check in the script itself so idle pages pay almost nothing — not a separate entry per template.
 
 ## Checking your work
 
