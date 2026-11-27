@@ -1,3 +1,10 @@
+import type {
+    AreaBlock,
+    AreaChartData,
+    AreaFiguresData,
+    AreaRowsData,
+} from '@/types/plugin-area';
+
 /** One row of a dashboard panel: an item, a line in words, where it opens. */
 export type DashboardRow = {
     id: string;
@@ -12,7 +19,7 @@ export type DashboardRow = {
 export type PanelSize = 'small' | 'medium' | 'large' | 'full';
 
 /** What a panel draws: rows from its query, the quick draft form, or site status. */
-export type PanelKind = 'rows' | 'quick-draft' | 'site-status';
+export type PanelKind = 'rows' | 'quick-draft' | 'site-status' | 'plugin';
 
 /** One panel the person's Home screen shows; empty panels are never sent. */
 export type DashboardPanelData = {
@@ -23,6 +30,15 @@ export type DashboardPanelData = {
     seeAll: string | null;
     /** True when this panel's query failed; the rest of Home still shows. */
     failed: boolean;
+    /** A plugin's panel: its blocks, each read for the person; empty for other panels. */
+    blocks?: DashboardPluginBlock[];
+};
+
+/** One block of a plugin's Home panel: its area frame, with its data read for the person (null for a notice). */
+export type DashboardPluginBlock = AreaBlock & {
+    data: AreaFiguresData | AreaChartData | AreaRowsData | null;
+    /** True when the block couldn't be read at all. */
+    failed?: boolean;
 };
 
 /** One panel the person may see, empty or hidden, for Customize. */

@@ -27,7 +27,7 @@ final readonly class DashboardPanel
      *
      * @since 0.8.0-alpha.1
      */
-    public const array KINDS = ['rows', 'quick-draft', 'site-status'];
+    public const array KINDS = ['rows', 'quick-draft', 'site-status', 'plugin'];
 
     /**
      * @param  class-string<DashboardPanelQuery>|null  $query  the one bounded query that fills a rows panel; none for quick draft or site status
@@ -36,7 +36,7 @@ final readonly class DashboardPanel
      * @param  array<string, string>  $seeAllQuery  list filters See all adds to the tab, such as review=pending
      * @param  bool  $seeAllMine  whether See all narrows the list to the viewer's own items
      * @param  string|null  $size  how wide it is drawn until the person changes it; one of self::SIZES, or null so the registry picks Medium for core and Small for a plugin (Settled 2)
-     * @param  string  $kind  what it draws: rows from its query, the quick draft form, or the site status summary; one of self::KINDS
+     * @param  string  $kind  what it draws: rows from its query, the quick draft form, the site status summary, or a plugin's blocks; one of self::KINDS
      */
     public function __construct(
         public string $key,

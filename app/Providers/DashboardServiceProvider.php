@@ -22,12 +22,16 @@ use App\Domain\Dashboard\Panels\MyRecentEdits;
 use App\Domain\Dashboard\Panels\ReturnedToMe;
 use App\Domain\Dashboard\Panels\Scheduled;
 use App\Domain\Dashboard\Panels\WaitingForMyReview;
+use App\Domain\Plugins\Area\PluginHomePanels;
 use Illuminate\Support\ServiceProvider;
 
 final class DashboardServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Scoped: the plugins' Home panels are read once per request or job.
+        $this->app->scoped(PluginHomePanels::class);
+
         $this->app->singleton(DashboardRegistry::class, function (): DashboardRegistry {
             $registry = new DashboardRegistry;
 
@@ -43,6 +47,11 @@ final class DashboardServiceProvider extends ServiceProvider
             $registry->register(new DashboardPanel('quick_draft', 'Quick draft', 600, null, ['create'], size: 'small', kind: 'quick-draft'));
             // Same checks as the top-bar site status: summary lines on Home (small packs with other smalls).
             $registry->register(new DashboardPanel('site_status', 'Site status', 50, null, [], size: 'small', kind: 'site-status'));
+
+            // Plugins' panels come after core's, each owned by its plugin (docs/guides/developers/plugins/home-panels.md).
+            foreach (app(PluginHomePanels::class)->declared() as $declared) {
+                $registry->register($declared->panel());
+            }
 
             return $registry;
         });

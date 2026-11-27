@@ -64,6 +64,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/before-save.md',
         'plugins/notices.md',
         'plugins/admin-area.md',
+        'plugins/home-panels.md',
         'plugins/editor-panels.md',
         'plugins/seo.md',
         'plugins/image-service.md',
