@@ -129,18 +129,25 @@ it('links a fixed-edge sheet only for the first insertion on its edge', function
 });
 
 it('links no fixed-edge sheet on a theme whose manifest says it fixes no edges', function (): void {
-    $folder = storage_path('framework/testing/themes/'.bin2hex(random_bytes(6)));
-    File::copyDirectory(base_path('tests/Fixtures/themes/open'), $folder.'/open');
-    $manifest = json_decode((string) file_get_contents($folder.'/open/teme-theme.json'), true, flags: JSON_THROW_ON_ERROR);
-    file_put_contents($folder.'/open/teme-theme.json', json_encode($manifest + ['fixed' => false], JSON_THROW_ON_ERROR));
-    config(['teme.theme_paths' => [$folder.'/open']]);
-    themeActivate('open');
+    $contributes = PluginFixtures::manifest('billboard')['contributes'];
+    $contributes['styles'] = [['output' => 'insertion:bar', 'file' => 'dist/bar.css']];
+    billboardWith($contributes, ['dist/bar.css' => '.billboard-bar{color:red}']);
+
+    $root = storage_path('framework/testing/fixed-styles-themes');
+    File::deleteDirectory($root);
+    File::copyDirectory(base_path('tests/Fixtures/themes/good'), "{$root}/unfixed");
+    $manifest = (array) json_decode((string) file_get_contents("{$root}/unfixed/teme-theme.json"), true);
+    file_put_contents("{$root}/unfixed/teme-theme.json", json_encode(['code' => 'unfixed', 'requires' => ['teme' => '>=0.1.0-dev <1.0'], 'fixed' => false] + $manifest));
+    config(['teme.theme_paths' => ["{$root}/unfixed"]]);
+    themeActivate('unfixed');
 
     try {
-        expect(addrGet('/harbour-story/')->assertOk()->getContent())
+        expect((string) addrGet('/harbour-story/')->assertOk()->getContent())
+            ->toContain('data-test="billboard-top"')
+            ->not->toContain('<aside class="teme-fixed"')
             ->not->toContain('data-teme-plugin-style="billboard:insertion:bar"');
     } finally {
-        File::deleteDirectory($folder);
+        File::deleteDirectory($root);
     }
 });
 

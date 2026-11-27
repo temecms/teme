@@ -80,8 +80,18 @@ final class PluginStyles
      */
     private function servedHash(string $name, string $version, string $code, string $file): ?string
     {
-        $hash = Cache::rememberForever('plugin-styles-link:'.$name.':'.$version.':'.$file, fn (): string => (string) $this->sheets->hash($code, $file));
+        $key = 'plugin-styles-link:'.$name.':'.$version.':'.$file;
+        $hash = Cache::get($key);
 
-        return $hash === '' ? null : $hash;
+        if (! is_string($hash)) {
+            // Only a sheet Teme serves is remembered; a missing package is asked again on the next page.
+            $hash = $this->sheets->hash($code, $file);
+
+            if ($hash !== null) {
+                Cache::forever($key, $hash);
+            }
+        }
+
+        return $hash;
     }
 }

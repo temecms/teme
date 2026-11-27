@@ -53,10 +53,10 @@ final class PluginStylesheet
         }
 
         $raw = (string) file_get_contents($source);
-        $hash = substr(hash('sha256', $raw), 0, 12);
-        $judged = Cache::rememberForever('plugin-styles:'.$hash, fn (): array => self::judge($raw));
+        $digest = hash('sha256', $raw);
+        $judged = Cache::rememberForever('plugin-styles:'.$digest, fn (): array => self::judge($raw));
 
-        return ['name' => $name, 'hash' => $hash, 'css' => $judged['css'], 'refused' => $judged['refused']];
+        return ['name' => $name, 'hash' => substr($digest, 0, 12), 'css' => $judged['css'], 'refused' => $judged['refused']];
     }
 
     /**
@@ -71,23 +71,20 @@ final class PluginStylesheet
     }
 
     /**
-     * Wraps a sheet's text in the teme.plugins layer, moving a leading @charset to the top,
-     * after refusing what can't be wrapped: @import, @namespace, and braces that don't balance.
+     * Wraps a sheet's text in the teme.plugins layer, after refusing what can't be wrapped: @import,
+     *
+     * @namespace, and braces that don't balance. Line breaks are read as the browser reads them, so the
+     * text that is checked is the text that is served. A @charset stays inside the layer, where it is ignored.
      *
      * @throws InvalidArgumentException
      */
     public static function wrap(string $css): string
     {
+        $css = preg_replace('/\r\n?|\f/', "\n", $css) ?? $css;
+
         self::check($css);
 
-        $charset = '';
-
-        if (preg_match('/\A@charset\s+"[^"]*";/i', $css, $found) === 1) {
-            $charset = $found[0]."\n";
-            $css = substr($css, strlen($found[0]));
-        }
-
-        return $charset.'@layer teme.plugins {'."\n".trim($css)."\n".'}'."\n";
+        return '@layer teme.plugins {'."\n".trim($css)."\n".'}'."\n";
     }
 
     /**
@@ -190,6 +187,13 @@ final class PluginStylesheet
 
             if ($character === '"' || $character === "'") {
                 $index = self::endOfString($css, $index);
+
+                continue;
+            }
+
+            if ($character === '#') {
+                // A hash token's name is never a url( — the browser reads #url as a name, not a function.
+                [, $index] = self::identifierAt($css, $index + 1);
 
                 continue;
             }

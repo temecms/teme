@@ -120,6 +120,12 @@ it('answers 404 for a sheet that imports another, or whose braces do not balance
     'a brace inside an unquoted url' => ['a{b:url({)} } .x{}'],
     'an escaped brace' => ['a{} \\{ } .x{}'],
     'an import spelled with a hex escape' => ['@\\69 mport url("other.css");'],
+    'a carriage return inside a string' => ["a{content:\"\r} } .x{color:red} b{content:\"}"],
+    'a backslash and CRLF inside a string' => ["a{content:\"\\\r\n{\" } } .x{color:red} \"}"],
+    'an escaped import followed by a carriage return' => ["@\\69\rmport url(\"other.css\");"],
+    'an escaped import followed by a form feed' => ["@\\69\fmport url(\"other.css\");"],
+    'a quoted hash url' => ['a{b:#url(x")") } } .x{color:red} "}'],
+    'an escaped hash url' => ['a{b:#\\75 rl(x")") } } .x{color:red} "}'],
 ]);
 
 it('answers 404 for a declared file that links to another file inside the package', function (): void {
@@ -142,6 +148,7 @@ it('answers 404 for a request whose file is not a plain path inside the package'
     'a backslash' => ['/_teme/plugins/cardbox/dist%5Cnote.css'],
     'a NUL byte' => ['/_teme/plugins/cardbox/dist/note.css%00'],
     'a leading slash' => ['/_teme/plugins/cardbox//dist/note.css'],
+    'an encoded slash' => ['/_teme/plugins/cardbox/dist%2Fnote.css'],
 ]);
 
 it('records one fault for a refused sheet, under its plugin’s Composer name, however often it is asked for', function (): void {
@@ -164,14 +171,15 @@ it('records one fault for a refused sheet, under its plugin’s Composer name, h
     expect($faults->recorded)->toBe([['tests/cardbox', 'cardbox#styles']]);
 });
 
-it('moves only a @charset at the very start of a sheet to its top', function (): void {
-    expect(PluginStylesheet::wrap('.a{color:red}@charset "utf-8";'))->not->toStartWith('@charset')
-        ->and(PluginStylesheet::wrap('@charset "utf-8";.a{color:red}'))->toStartWith('@charset "utf-8";'."\n".'@layer teme.plugins {');
+it('keeps a @charset inside the layer, so no rule can be moved above it', function (): void {
+    expect(PluginStylesheet::wrap('@charset "utf-8";.a{color:red}'))->toStartWith('@layer teme.plugins {')
+        ->and(PluginStylesheet::wrap("@charset \"\n; .x{color:red} \";"))->toStartWith('@layer teme.plugins {')
+        ->and(PluginStylesheet::wrap('.a{color:red}@charset "utf-8";'))->not->toStartWith('@charset');
 });
 
-it('wraps a leading @charset first, and reads braces inside comments and strings as nothing', function (): void {
+it('wraps a @charset inside the layer, and reads braces inside comments and strings as nothing', function (): void {
     expect(PluginStylesheet::wrap('@charset "utf-8";.a::before{content:"}";}'))
-        ->toStartWith('@charset "utf-8";'."\n".'@layer teme.plugins {')
+        ->toStartWith('@layer teme.plugins {')
         ->and(PluginStylesheet::wrap('/* } */.a{color:red}'))->toContain('@layer teme.plugins {');
 });
 

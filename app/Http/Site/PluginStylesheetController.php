@@ -16,6 +16,7 @@ namespace App\Http\Site;
 
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Styles\PluginStylesheet;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
@@ -25,8 +26,13 @@ final class PluginStylesheetController
     /**
      * The sheet, as text/css with a long cache life, since its address carries its content hash.
      */
-    public function __invoke(string $code, string $file, PluginStylesheet $sheets, ListenerFaults $faults): Response
+    public function __invoke(Request $request, string $code, string $file, PluginStylesheet $sheets, ListenerFaults $faults): Response
     {
+        // A sheet has one address: an encoded slash would name the same file as a plain one, so it is refused.
+        if (str_contains(strtolower($request->getPathInfo()), '%2f')) {
+            return response('', 404);
+        }
+
         $verdict = $sheets->verdict($code, $file);
 
         if ($verdict === null) {

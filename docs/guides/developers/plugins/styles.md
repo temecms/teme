@@ -33,7 +33,7 @@ Nothing is copied at deploy, and nothing is written while the site runs. Teme se
 - the file is a plain file inside the package, with no link on its path;
 - the sheet imports nothing and declares no namespace, and its braces balance.
 
-The sheet is sent wrapped in `@layer teme.plugins`, so a theme's own rules win over it. A leading `@charset` is kept at the top. Its address carries a hash of its content as `?v=`, so a changed file gets a new address, and it is sent with long cache headers.
+The sheet is sent wrapped in `@layer teme.plugins`, so a theme's own rules win over it. Line breaks are read as the browser reads them, and a `@charset` stays inside the layer, where it is ignored; the response's `charset=UTF-8` decides the encoding. Its address carries a hash of its content as `?v=`, so a changed file gets a new address, and it is sent with long cache headers. A sheet has one address: an encoded slash in it is refused.
 
 ## What the page does
 
