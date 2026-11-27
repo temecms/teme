@@ -42,6 +42,16 @@ final readonly class SlotProviders
     }
 
     /**
+     * The notice a slot keeps when its chosen plugin was turned off, or null.
+     */
+    public function noticeFor(string $slot): ?string
+    {
+        $notice = DB::table('plugin_slot_choices')->where('slot', $slot)->value('notice');
+
+        return is_string($notice) && $notice !== '' ? $notice : null;
+    }
+
+    /**
      * Whether a manifest provides the slot: by its `provides`, or, for the image
      * service, by an imageService declaration made before `provides` existed.
      */

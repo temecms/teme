@@ -70,7 +70,8 @@ it('clears a choice when its plugin is disabled', function (): void {
 
     app(DisablePlugin::class)->execute(new DisablePluginInput('tests/slotted', null));
 
-    expect(DB::table('plugin_slot_choices')->where('slot', PluginSlots::IMAGE_SERVICE)->exists())->toBeFalse();
+    expect(DB::table('plugin_slot_choices')->where('slot', PluginSlots::IMAGE_SERVICE)->value('plugin'))->toBe('')
+        ->and(DB::table('plugin_slot_choices')->where('slot', PluginSlots::IMAGE_SERVICE)->value('notice'))->toBe('The Slotted plugin was turned off, so its choice was cleared.');
 });
 
 it('refuses a choice for a plugin that is not enabled, and writes nothing', function (): void {

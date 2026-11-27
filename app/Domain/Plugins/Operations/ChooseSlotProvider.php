@@ -65,8 +65,8 @@ final class ChooseSlotProvider extends BaseOperation
             DB::table('plugin_slot_choices')->where('slot', $input->slot)->delete();
         } else {
             DB::table('plugin_slot_choices')->upsert([
-                ['slot' => $input->slot, 'plugin' => $input->plugin, 'chosen_by' => $input->actorId === null ? null : (int) $input->actorId, 'chosen_at' => CarbonImmutable::now()],
-            ], ['slot'], ['plugin', 'chosen_by', 'chosen_at']);
+                ['slot' => $input->slot, 'plugin' => $input->plugin, 'chosen_by' => $input->actorId === null ? null : (int) $input->actorId, 'chosen_at' => CarbonImmutable::now(), 'notice' => null],
+            ], ['slot'], ['plugin', 'chosen_by', 'chosen_at', 'notice']);
         }
 
         // Images drawn by either provider change address, so the pages that drew them go (docs/guides/developers/plugins/image-service.md).

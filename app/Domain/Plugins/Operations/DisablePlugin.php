@@ -84,8 +84,9 @@ final class DisablePlugin extends BaseOperation
 
         $code = $record->code;
 
-        // A disabled plugin fills no slot, so its choice is cleared with it (docs/guides/developers/plugins/provider-slots.md).
-        DB::table('plugin_slot_choices')->where('plugin', $input->name)->delete();
+        // A disabled plugin fills no slot: its choices are cleared, and each slot keeps a notice saying so until someone chooses again.
+        $turnedOff = $this->registry->find($input->name)?->manifest?->label() ?? $input->name;
+        DB::table('plugin_slot_choices')->where('plugin', $input->name)->update(['plugin' => '', 'notice' => __('The :label plugin was turned off, so its choice was cleared.', ['label' => $turnedOff]), 'chosen_by' => null]);
 
         $record->fill([
             'state' => PluginRecord::DISABLED,
