@@ -69,11 +69,20 @@ final class FinishReadingImportFile extends BaseOperation
             return null;
         }
 
+        $kind = $file->reader ?? 'wordpress';
+        $source = ImportSource::query()->where('address', $address)->lockForUpdate()->first();
+
+        if ($source !== null && $source->kind !== $kind) {
+            DB::table('import_file_rows')->where('file_id', $file->id)->delete();
+            $file->forceFill(['state' => 'refused', 'refused' => 'This site was imported from another system, so this file can’t join its import.'])->save();
+
+            return null;
+        }
+
         $this->placeMenus($file->id);
         $this->count($file->id);
 
-        $source = ImportSource::query()->where('address', $address)->lockForUpdate()->first();
-        $source ??= ImportSource::query()->create(['address' => $address, 'created_by' => $input->actorId() === null ? null : (int) $input->actorId(), 'kind' => $file->reader ?? 'wordpress']);
+        $source ??= ImportSource::query()->create(['address' => $address, 'created_by' => $input->actorId() === null ? null : (int) $input->actorId(), 'kind' => $kind]);
 
         $file->forceFill([
             'report' => FileReport::build($file->id, $address, $file->made_at),

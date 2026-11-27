@@ -242,3 +242,14 @@ it('keeps each reader item’s identity when a re-import reorders the file and a
         ->and(DB::table('contents')->where('title', 'Second')->count())->toBe(1)
         ->and(DB::table('contents')->whereIn('title', ['Hello', 'About', 'Second'])->count())->toBe(3);
 });
+
+it('refuses a reader’s file for a site already imported from another system', function (): void {
+    readersEnabled();
+    ImportSource::query()->create(['address' => 'https://old.example.com', 'created_by' => $this->admin->id, 'kind' => 'wordpress']);
+
+    $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toBe('This site was imported from another system, so this file can’t join its import.');
+});
