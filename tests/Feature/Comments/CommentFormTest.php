@@ -24,7 +24,7 @@ beforeEach(function (): void {
     ], $overrides));
 });
 
-it('draws core\'s fields in the form\'s order, its hidden hooks, the honeypot with them, and the privacy line (I-578, D8)', function (): void {
+it('draws core\'s fields in the form\'s order, its hidden hooks, the honeypot with them, and the privacy line', function (): void {
     $dom = ($this->render)(($this->form)());
     $names = array_map(fn (DOMElement $field): string => $field->getAttribute('name'), iterator_to_array($dom->query('//form//input|//form//textarea') ?: []));
 

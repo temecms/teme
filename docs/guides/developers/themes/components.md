@@ -59,6 +59,8 @@ Comments can only be read from a form core's way, so a comment-form override mus
 
 The rest of the form (the text box, the name and email fields, the privacy line) is yours to lay out. Keep the fields' `name` attributes as core's: `text`, `name`, `email`, `url` and `remember`.
 
+Core's script posts the form in place when the form has a submit button (`<button type="submit">`) and a status line (an element with `data-teme-status`, which core's own form draws). A form that has no button or no status line is posted the ordinary way instead, with a page reload, so a comment is never lost. Keep both if you want the comment to appear without a reload.
+
 ## Contract numbers
 
 Every overridable component is at contract 1. An override states the contract it was written against, and it keeps working while core stays at that number.
