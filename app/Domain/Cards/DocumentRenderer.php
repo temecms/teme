@@ -127,7 +127,7 @@ final readonly class DocumentRenderer
                     $heading = (int) ($node['attrs']['level'] ?? 2);
                 }
 
-                $blocks[] = ['type' => $type, 'attrs' => (array) ($node['attrs'] ?? []), 'html' => $editor->setContent(['type' => 'doc', 'content' => [$node]])->getHTML()];
+                $blocks[] = ['type' => $type, 'attrs' => (array) ($node['attrs'] ?? []), 'html' => $this->wrapTables($editor->setContent(['type' => 'doc', 'content' => [$node]])->getHTML(), $context)];
 
                 continue;
             }
@@ -151,7 +151,27 @@ final readonly class DocumentRenderer
             return '';
         }
 
-        return $this->editor($context)->setContent(['type' => 'doc', 'content' => $run])->getHTML();
+        return $this->wrapTables($this->editor($context)->setContent(['type' => 'doc', 'content' => $run])->getHTML(), $context);
+    }
+
+    /**
+     * Each table in a sideways-scroll region so a wide table does not widen
+     * the page; the table's own HTML is unchanged (issue 19).
+     */
+    private function wrapTables(string $html, RenderContext $context): string
+    {
+        if (! str_contains($html, '<table')) {
+            return $html;
+        }
+
+        $context->usage?->record('table');
+        $open = '<div class="table-scroll" tabindex="0" role="region" aria-label="'.e(__('Table')).'">';
+
+        return (string) preg_replace_callback(
+            '/<table\b[^>]*>.*?<\/table>/s',
+            fn (array $match): string => $open.$match[0].'</div>',
+            $html,
+        );
     }
 
     /** The prose editor, drawing links as the context resolves them. */

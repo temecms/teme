@@ -111,5 +111,5 @@ it('draws a table cell stored with no attributes, as the database gives back "at
     docValidate($document);
 
     expect(app(DocumentRenderer::class)->html($document))
-        ->toBe('<table><tbody><tr><th><p>Stall</p></th><td><p>Oysters</p></td></tr></tbody></table>');
+        ->toBe('<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table><tbody><tr><th><p>Stall</p></th><td><p>Oysters</p></td></tr></tbody></table></div>');
 });
