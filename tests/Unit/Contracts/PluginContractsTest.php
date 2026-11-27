@@ -140,7 +140,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [StatusCheck::class, '0.5.0'],
     [StatusNotice::class, '0.5.0'],
     [ChecksStatus::class, '0.5.0'],
-    [OutboundHttp::class, '0.5.0', ['postForm' => '1.0.0', 'postMultipart' => 'next', 'postRaw' => 'next']],
+    [OutboundHttp::class, '0.5.0', ['postForm' => '1.0.0', 'postMultipart' => '1.7.0', 'postRaw' => '1.7.0']],
     [HttpAnswer::class, '0.5.0'],
     [HostRefused::class, '0.5.0'],
     [AnswerTooLarge::class, '0.5.0'],
