@@ -71,7 +71,7 @@ php artisan teme:docs:manifest
 
 A theme’s file is `teme-theme.json`. Required keys include `manifest`, `code`, `name`, `version`, `description`, and `requires`. The theme’s folder name must match `code` when the theme lives in `teme.theme_paths`.
 
-Optional keys cover templates, navigations, regions, settings, assets, fonts, and tokens. See [Theme manifest reference](../../../reference/theme-manifest.md).
+Optional keys cover templates, navigations, regions, settings, assets, fonts, and tokens. See [Theme manifest reference](../../../reference/theme-manifest.md). Core reads three settings by fixed name when you declare them: `color_scheme`, `featured_image_style`, and `use_brand_colour`. A theme that offers a switch to use the site's brand as its accent must use the exact key `use_brand_colour`. See [Tokens, styles and fonts](../themes/tokens-and-styles.md).
 
 ## Check before you ship
 

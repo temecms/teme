@@ -1,11 +1,11 @@
 <?php
 
 /**
- * What core draws from the design settings: the site's brand colour, the two
+ * What core draws from the design settings: the site's brand colour, the three
  * theme settings core reads by fixed name when the active theme declares
- * them, `color_scheme` and `featured_image_style` (docs/architecture/themes.md),
- * and all the active theme's own settings for its views: the one reader of
- * a theme's settings.
+ * them — `color_scheme`, `featured_image_style` and `use_brand_colour`
+ * (docs/architecture/themes.md) — and all the active theme's own settings for
+ * its views: the one reader of a theme's settings.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
