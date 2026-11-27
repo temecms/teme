@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, EyeOff, GripVertical } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { DashboardPanelRows } from '@/components/dashboard/dashboard-panel';
 import type { Section } from '@/components/dashboard/home-layout';
+import { PluginPanelBlocks } from '@/components/dashboard/plugin-panel-blocks';
 import { panelSpanClass } from '@/components/dashboard/panel-grid';
 import { QuickDraft } from '@/components/dashboard/quick-draft';
 import { SiteStatusPanel } from '@/components/dashboard/site-status-panel';
@@ -274,6 +275,11 @@ export function HomePanel({
                             onRetry={retry}
                             retryLabel={__('Try again')}
                             className="px-0 pt-0 pb-0"
+                        />
+                    ) : entry.kind === 'plugin' ? (
+                        <PluginPanelBlocks
+                            blocks={panel?.blocks ?? []}
+                            label={name}
                         />
                     ) : (
                         <DashboardPanelRows
