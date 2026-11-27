@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Themes\ManifestValidator;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -111,7 +112,7 @@ it('writes unicode-range when the font declares it', function (): void {
 });
 
 it('refuses a bad face or unicode_range on a font', function (): void {
-    $errors = app(\App\Domain\Themes\ManifestValidator::class)->errors(pageManifest([
+    $errors = app(ManifestValidator::class)->errors(pageManifest([
         'fonts' => [
             ['family' => 'Body', 'file' => 'fonts/newsreader.woff2', 'weight' => '400', 'style' => 'normal', 'preload' => true, 'face' => 'no', 'unicode_range' => 'U+0000;'],
         ],
@@ -123,7 +124,7 @@ it('refuses a bad face or unicode_range on a font', function (): void {
 });
 
 it('refuses a family or weight with CSS-breaking characters', function (): void {
-    $errors = app(\App\Domain\Themes\ManifestValidator::class)->errors(pageManifest([
+    $errors = app(ManifestValidator::class)->errors(pageManifest([
         'fonts' => [
             ['family' => 'Bad";}', 'file' => 'fonts/newsreader.woff2', 'weight' => '400', 'style' => 'normal', 'preload' => true],
             ['family' => 'Ok', 'file' => 'fonts/newsreader.woff2', 'weight' => '400;x', 'style' => 'normal', 'preload' => false],

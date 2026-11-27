@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Fixtures\Plugins\Readers;
 
 use Carbon\Carbon;
+use RuntimeException;
 use Teme\Contracts\Hooks\Hooks;
 use Teme\Contracts\Import\HasImportReader;
 use Teme\Contracts\Import\ImportItem;
@@ -136,7 +137,7 @@ final class RawImportReader implements ImportReader
             }
         }
 
-        throw new \RuntimeException('No such item.');
+        throw new RuntimeException('No such item.');
     }
 
     /**
