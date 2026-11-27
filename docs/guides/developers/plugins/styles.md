@@ -16,8 +16,7 @@ The plugin lists its stylesheets under `styles`, one per output:
 
 ```json
 "styles": [
-  { "output": "card:gallery", "file": "dist/gallery.css" },
-  { "output": "insertion:banner", "file": "dist/banner.css" }
+  { "output": "card:gallery", "file": "dist/gallery.css" }
 ]
 ```
 

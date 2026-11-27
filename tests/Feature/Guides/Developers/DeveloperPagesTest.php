@@ -175,7 +175,7 @@ it('keeps every long code block in the file its first line names', function (Gui
         $first = $lines[0];
 
         if (preg_match('#^//\s+(docs/guides/developers/examples/.+)$#', $first, $found) !== 1
-            && preg_match('#^#\s+(docs/guides/developers/examples/.+)$#', $first, $found) !== 1) {
+            && preg_match('~^#\s+(docs/guides/developers/examples/.+)$~', $first, $found) !== 1) {
             $problems[] = 'A code block over three lines does not name its file.';
 
             continue;
