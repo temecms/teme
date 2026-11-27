@@ -196,6 +196,10 @@
 | `contributes.imageService` | object | no | An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService. |  |
 | `contributes.imageService.label` | string | yes | The service's name, as the consent names it. |  |
 | `contributes.imageService.host` | string | yes | The host its addresses are on, served over https, which joins the img-src of the content security policy. | ^(?:\*\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ |
+| `contributes.importReaders` | array | no | Readers for another system's export files, which Teme's import engine reads: each file is probed, listed and fetched through the reader. Needs import.read; the plugin implements HasImportReader. |  |
+| `contributes.importReaders[].id` | string | yes | The reader's ID, which HasImportReader::importReader() receives. | ^[a-z][a-z0-9-]{0,39}$ |
+| `contributes.importReaders[].label` | string | yes | The reader's name, as the import screen names it. |  |
+| `contributes.importReaders[].fileTypes` | array | yes | The file extensions it reads, without the dot, such as json. |  |
 | `contributes.commands` | array | no | Console commands the plugin adds to php artisan while it is enabled; the plugin implements HasCommands. Each name starts with the plugin's code and a colon. |  |
 | `contributes.commands[].name` | string | yes | The command's name, starting with the plugin's code and a colon, such as sharely:resend. | ^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{0,31}(?::[a-z][a-z0-9-]{0,31}){0,2}$ |
 | `contributes.commands[].description` | string | yes | One line saying what the command does, as php artisan list shows it. |  |

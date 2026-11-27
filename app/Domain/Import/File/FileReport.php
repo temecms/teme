@@ -121,6 +121,7 @@ final class FileReport
             'errors' => (int) ($facts['dropped_count'] ?? 0) > 0
                 ? ['serialized' => ['dropped' => (int) $facts['dropped_count'], 'items' => is_array($facts['dropped'] ?? null) ? $facts['dropped'] : []]]
                 : [],
+            'notes' => is_array($facts['notes'] ?? null) ? $facts['notes'] : [],
         ];
     }
 

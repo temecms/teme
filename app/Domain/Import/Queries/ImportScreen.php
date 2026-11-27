@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
 
+use App\Domain\Import\File\FileNotes;
 use App\Domain\Import\ImportMessageLevel;
 use App\Domain\Import\ImportOutcome;
 use App\Domain\Import\ImportRunKind;
@@ -26,6 +27,7 @@ use App\Domain\Import\PluginData\PluginDataLists;
 use App\Domain\Import\PluginData\PluginDataReport;
 use App\Domain\Import\Source\SourceReaders;
 use App\Domain\Import\Tracking\ImportRunJobs;
+use App\Domain\Plugins\Readers\ImportReaders;
 use Illuminate\Support\Facades\DB;
 
 final readonly class ImportScreen
@@ -61,6 +63,24 @@ final readonly class ImportScreen
     private const string POSTS = 'post';
 
     public function __construct(private ImportRuns $runs, private ImportPhases $phases, private ImportRunJobs $tracking) {}
+
+    /**
+     * The label of the import reader behind each site an import reader's file
+     * made, by site ID; a site from WordPress has no entry. A reader no longer
+     * on the site is named by its key.
+     *
+     * @return array<string, string>
+     */
+    public function readerLabels(ImportReaders $readers): array
+    {
+        $labels = [];
+
+        foreach (ImportSource::query()->where('kind', '!=', 'wordpress')->get() as $source) {
+            $labels[(string) $source->id] = $readers->find((string) $source->kind)?->label ?? (string) $source->kind;
+        }
+
+        return $labels;
+    }
 
     /**
      * Returns the sites Teme knows, newest first: each with where it stands, the Teme Companion version it last reported, whether its password is forgotten, its latest import's start and the address of its page.
@@ -365,6 +385,24 @@ final readonly class ImportScreen
 
         $messages = array_values($grouped);
 
+        // A reader's file holds what Teme doesn't bring: each note is a warning of the run, as a WordPress import's warnings are.
+        $fileReport = $run->file_id === null ? null : ImportFile::query()->whereKey($run->file_id)->first(['report'])?->report;
+        $notes = FileNotes::rows(is_array($fileReport['notes'] ?? null) ? $fileReport['notes'] : []);
+        $noteWarnings = 0;
+
+        foreach ($notes as $note) {
+            $messages[] = [
+                'code' => 'reader.'.$note['kind'],
+                'level' => ImportMessageLevel::Warning->value,
+                'levelLabel' => 'Warning',
+                'words' => $note['examples'] === [] ? $note['sentence'] : $note['sentence'].' '.__('For example: :ids.', ['ids' => implode(', ', $note['examples'])]),
+                'count' => $note['count'],
+                'group' => $note['group'],
+                'sentence' => $note['sentence'],
+            ];
+            $noteWarnings += $note['count'];
+        }
+
         $problems = DB::table('import_messages')->where('run_id', $runId)->where('level', ImportMessageLevel::Error->value)->count();
         $check = $this->phases->find('check');
 
@@ -372,7 +410,7 @@ final readonly class ImportScreen
             'types' => $types,
             'messages' => $messages,
             'more' => $codes->count() > self::CODES,
-            'levels' => ['error' => (int) ($levels[ImportMessageLevel::Error->value] ?? 0), 'warning' => (int) ($levels[ImportMessageLevel::Warning->value] ?? 0)],
+            'levels' => ['error' => (int) ($levels[ImportMessageLevel::Error->value] ?? 0), 'warning' => (int) ($levels[ImportMessageLevel::Warning->value] ?? 0) + $noteWarnings],
             'problems' => $problems,
             'ready' => $run->state === ImportRunState::Finished && $check !== null && $check->runsIn($run->kind) ? $problems === 0 : null,
         ];

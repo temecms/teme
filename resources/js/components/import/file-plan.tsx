@@ -126,6 +126,29 @@ export function FilePlan({
                 </p>
             </Section>
 
+            {form.notes.length > 0 && (
+                <Section
+                    id="import-file-notes"
+                    title={__('Not brought from this file')}
+                >
+                    <ul className="grid gap-3" data-test="import-file-notes">
+                        {form.notes.map((note) => (
+                            <Missing
+                                key={note.kind}
+                                title={`${note.group} (${note.count.toLocaleString()})`}
+                            >
+                                {note.sentence}
+                                {note.examples.length > 0 &&
+                                    ' ' +
+                                        __('For example: :ids.', {
+                                            ids: note.examples.join(', '),
+                                        })}
+                            </Missing>
+                        ))}
+                    </ul>
+                </Section>
+            )}
+
             <Section
                 id="import-file-missing"
                 title={__('Not in an export file')}

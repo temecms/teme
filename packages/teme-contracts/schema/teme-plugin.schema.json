@@ -109,7 +109,8 @@
                     "content.submissions",
                     "redirects",
                     "comments.check",
-                    "search.read"
+                    "search.read",
+                    "import.read"
                 ]
             }
         },
@@ -1373,6 +1374,38 @@
                             "type": "string",
                             "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$",
                             "description": "The host its addresses are on, served over https, which joins the img-src of the content security policy."
+                        }
+                    }
+                },
+                "importReaders": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "description": "Readers for another system's export files, which Teme's import engine reads: each file is probed, listed and fetched through the reader. Needs import.read; the plugin implements HasImportReader.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "fileTypes"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{0,39}$",
+                                "description": "The reader's ID, which HasImportReader::importReader() receives."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The reader's name, as the import screen names it."
+                            },
+                            "fileTypes": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 5,
+                                "uniqueItems": true,
+                                "description": "The file extensions it reads, without the dot, such as json.",
+                                "items": {"type": "string", "pattern": "^[a-z0-9]{1,8}$"}
+                            }
                         }
                     }
                 },

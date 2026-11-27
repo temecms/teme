@@ -59,6 +59,7 @@ final readonly class PluginWords
         return self::core(fn (): string => match ($capability) {
             Capability::Ai->value => __('Use your site’s AI connection (Settings › AI) for: :tasks. What it sends goes to the AI service chosen there, and it spends your site’s AI budget.', ['tasks' => implode(', ', $aiTasks)]),
             Capability::ImportWordPress->value => self::imports($imports),
+            Capability::ImportRead->value => __('Read another system’s export file, so its content can be imported into your site'),
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
             Capability::CommentsCheck->value => __('Read comments’ text, names, email addresses, addresses, IP addresses and browsers before they are saved, to judge whether they are spam'),

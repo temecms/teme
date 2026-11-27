@@ -16,6 +16,7 @@ namespace App\Domain\Import\Phases\Users;
 
 use App\Domain\Contents\Slugs;
 use App\Domain\Import\ImportRunKind;
+use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportFailed;
@@ -29,6 +30,7 @@ use App\Domain\Import\Phases\Terms\WordPressSlugs;
 use App\Domain\Import\Phases\Terms\WordPressText;
 use App\Domain\Import\Planning\ImportChoices;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Users\ImportedHashes;
 use App\Domain\Users\Operations\ImportUser;
 use App\Domain\Users\Operations\Input\ImportUserInput;
@@ -147,6 +149,22 @@ final readonly class UsersPhase implements ListPhase
     }
 
     /**
+     * The sentence for a file's person with no email address: it names the
+     * system the file came from when a reader read it, and WordPress otherwise.
+     */
+    private function noEmailSentence(ImportContext $context): string
+    {
+        $reader = $context->readsFile() ? ImportFile::query()->whereKey($context->fileId)->value('reader') : null;
+        $system = is_string($reader) ? app(ImportReaders::class)->find($reader)?->label : null;
+
+        if ($system === null) {
+            return 'The export file has no email address for them, so they weren’t imported. Give them one in WordPress and upload a newer file, or choose who they are here on the plan.';
+        }
+
+        return "The file from {$system} has no email address for them, so they weren’t imported. Give them one on the site it came from and upload a newer file, or choose who they are here on the plan.";
+    }
+
+    /**
      * What becomes of one of an export file's authors, as the plan page
      * chose: matched to a person here, credited to another, or added with
      * the role chosen and no password (docs/architecture/import.md). A file
@@ -188,7 +206,7 @@ final readonly class UsersPhase implements ListPhase
         }
 
         if ($email === '') {
-            throw new ImportFailed(ImportMessage::error('user.no-email', 'The export file has no email address for them, so they weren’t imported. Give them one in WordPress and upload a newer file, or choose who they are here on the plan.'));
+            throw new ImportFailed(ImportMessage::error('user.no-email', $this->noEmailSentence($context)));
         }
 
         // Teme gives each address one person, so the person who has it is them.

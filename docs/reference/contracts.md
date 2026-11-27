@@ -987,6 +987,49 @@ Thrown when a request a plugin sent didn't get an answer: it timed out, was refu
 
 ## Teme\Contracts\Import
 
+### HasImportReader
+
+`Teme\Contracts\Import\HasImportReader`, interface. Since next.
+
+A plugin that reads another system's export file. Its manifest declares each reader by ID (contributes.importReaders), and this method hands over the reader for an ID.
+
+- `importReader(string $readerId): ImportReader` — The reader for one of the IDs the manifest declares. Since next.
+
+### ImportItem
+
+`Teme\Contracts\Import\ImportItem`, class. Since next.
+
+An item as a reader hands it to core. Core converts its content and writes it through its own Operations, as the person who started the import; the reader writes nothing.
+
+- `__construct(string $kind, string $id, string $title = '', string $slug = '', string $status = 'published', ?string $publishedAt = null, ?string $modifiedAt = null, ?string $oldAddress = null, string $content = '', string $format = 'html', ?string $parentId = null, ?string $authorId = null, array $termIds = [], array $fields = [], ?string $postId = null, ?string $menuId = null, ?string $itemType = null, ?string $objectId = null, int $order = 0, string $excerpt = '', bool $sticky = false, ?string $featuredMediaId = null)`. Since next.
+
+### ImportKind
+
+`Teme\Contracts\Import\ImportKind`, class. Since next.
+
+The item kinds a reader maps its items to. A reader uses only these, so core knows where each item goes.
+
+- `POST`. Since next.
+- `PAGE`. Since next.
+- `TERM`. Since next.
+- `PERSON`. Since next.
+- `MEDIA`. Since next.
+- `COMMENT`. Since next.
+- `MENU`. Since next.
+- `MENU_ITEM`. Since next.
+- `all(): array` — Every kind a reader may map an item to. Since next.
+
+### ImportMenuItemType
+
+`Teme\Contracts\Import\ImportMenuItemType`, class. Since next.
+
+The menu item types a reader may give an item.
+
+- `CONTENT` — A post or page, named by the item's objectId. Since next.
+- `TERM` — A term, named by the item's objectId. Since next.
+- `LINK` — A link to the address in fields.url. Since next.
+- `all(): array` — Every menu item type a reader may give. Since next.
+
 ### ImportOutcome
 
 `Teme\Contracts\Import\ImportOutcome`, class. Since 1.0.0.
@@ -1000,6 +1043,40 @@ What a plugin's importer made of one record: brought across, skipped with why, o
 - `skipped(string $why): self` — The record was left out on purpose, saying why in a sentence. Since 1.0.0.
 - `failed(string $sentence): self` — The record couldn't be brought across, saying why in a sentence people read in the run's report. Since 1.0.0.
 
+### ImportPage
+
+`Teme\Contracts\Import\ImportPage`, class. Since next.
+
+A page of items. Cursors are opaque to core: it passes back what the reader gave it and nothing else.
+
+- `__construct(array $items, ?string $nextCursor)`. Since next.
+
+### ImportProbe
+
+`Teme\Contracts\Import\ImportProbe`, class. Since next.
+
+The answer of a probe. Counts are keyed by ImportKind, and a kind the file doesn't hold is left out.
+
+- `__construct(string $system, ?string $version, ?string $siteAddress, array $languages, array $counts)`. Since next.
+
+### ImportReader
+
+`Teme\Contracts\Import\ImportReader`, interface. Since next.
+
+A reader for one kind of export file. Each path is the uploaded file's own path; a reader only reads it, and never writes to it or to the site, nor fetches anything from the network to answer a call.
+
+- `probe(string $path): ImportProbe` — What the file is: its system, version, languages and counts. Since next.
+- `page(string $path, ?string $cursor, int $limit): ImportPage` — A page of the file's items after the cursor, or from the start for null. Since next.
+- `fetch(string $path, string $id): ImportItem` — One item by its source ID. Since next.
+
+### ImportReaderRefused
+
+`Teme\Contracts\Import\ImportReaderRefused`, class. Since next.
+
+A reader refuses a file it can't read, such as one that isn't its system's export or one cut short. Core stops the import and shows the sentence.
+
+- `because(string $sentence): self` — A refusal with the sentence the person sees. Since next.
+
 ### ImportScope
 
 `Teme\Contracts\Import\ImportScope`, interface. Since 1.0.0.
@@ -1009,6 +1086,16 @@ What a plugin's importer may ask of the run it is part of: what the WordPress po
 - `itemFor(int $sourcePostId): ?ItemRef` — Returns what an imported WordPress post became in Teme, or null when the import didn't bring it or it is gone. Since 1.0.0.
 - `personFor(int $sourceUserId): ?string` — Returns the ID of the Teme person a WordPress user became, or null when the import didn't bring them. Since 1.0.0.
 - `isCatchUp(): bool` — Returns whether this run catches up on what changed since the last finished import, rather than bringing the whole site. Since 1.0.0.
+
+### ImportTaxonomy
+
+`Teme\Contracts\Import\ImportTaxonomy`, class. Since next.
+
+The taxonomy words a reader may give a term.
+
+- `CATEGORY`. Since next.
+- `TAG`. Since next.
+- `valid(string $taxonomy): bool` — Whether a word has the shape of a taxonomy word a reader may give: `category`, `tag`, or a key of 1 to 32 characters that starts with a lower-case letter and then has only lower-case letters, digits, hyphens and underscores. Since next.
 
 ### WordPressImporter
 

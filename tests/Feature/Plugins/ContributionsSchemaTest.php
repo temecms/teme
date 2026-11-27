@@ -7,6 +7,7 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Console\DeclaredCommands;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
+use App\Domain\Plugins\Readers\ImportReaderDeclaration;
 use App\Domain\Plugins\Types\PluginTypesFile;
 
 it('states the contributions’ types, surfaces, icons and patterns as the validator does', function (): void {
@@ -21,9 +22,10 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $feedLink = $contributes['feedLinks']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'aiTasks', 'notices', 'hooks', 'permissions', 'settingsSections', 'area', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'types', 'cards', 'commands', 'provides', 'listActions', 'homePanels'])
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'aiTasks', 'notices', 'hooks', 'permissions', 'settingsSections', 'area', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'types', 'cards', 'commands', 'provides', 'listActions', 'homePanels', 'importReaders'])
         ->and($contributes['types']['pattern'])->toBe($between(PluginTypesFile::PATH))
         ->and($contributes['imageService']['properties']['host']['pattern'])->toBe($between(ImageServiceDeclaration::HOST))
+        ->and($contributes['importReaders']['items']['properties']['id']['pattern'])->toBe($between(ImportReaderDeclaration::ID))
         ->and($contributes['commands']['maxItems'])->toBe(DeclaredCommands::MOST)
         ->and($contributes['commands']['items']['properties']['name']['pattern'])->toBe($between(DeclaredCommands::NAME))
         ->and($contributes['commands']['items']['properties']['arguments']['maxItems'])->toBe(DeclaredCommands::MOST_PARTS)

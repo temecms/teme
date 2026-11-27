@@ -67,7 +67,7 @@ final class ImportFile extends Model
      */
     public function path(): string
     {
-        return self::FOLDER.'/'.$this->id.'.xml';
+        return self::FOLDER.'/'.$this->id.($this->reader === null ? '.xml' : '');
     }
 
     /**

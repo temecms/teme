@@ -115,4 +115,7 @@ enum Capability: string
 
     /** @since next */
     case SearchRead = 'search.read';
+
+    /** @since next */
+    case ImportRead = 'import.read';
 }
