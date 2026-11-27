@@ -7,23 +7,31 @@ use App\Domain\Contents\Operations\CreateDraft;
 use App\Domain\Contents\Operations\Input\CreateDraftInput;
 use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\Input\SaveDraftInput;
+use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Contents\Operations\PublishRevision;
 use App\Domain\Contents\Operations\SaveDraft;
+use App\Domain\Contents\Operations\SchedulePublication;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
-use App\Domain\Plugins\Columns\ColumnClock;
+use App\Domain\Plugins\Doors\PluginDoors;
+use App\Domain\Plugins\Models\PluginRecord;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\BeforeSave;
+use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Content\ItemChanges;
+use Teme\Contracts\Content\NewItem;
 use Teme\Contracts\Hooks\Veto;
+use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -86,19 +94,8 @@ it('lets a save through when a listener fails, and records the fault', function 
 
 it('lets a save through when a listener runs over its time, and records the fault', function (): void {
     hkRecordFaults();
-    $clock = new class implements ColumnClock
-    {
-        public int $now = 0;
-
-        public function nanoseconds(): int
-        {
-            return $this->now;
-        }
-    };
-    app()->instance(ColumnClock::class, $clock);
-
-    hkSubscriber('acme/one')->on(BeforeSave::class, function (BeforeSave $hook) use ($clock): ?Veto {
-        $clock->now += 300_000_000;
+    hkSubscriber('acme/one')->on(BeforeSave::class, function (): ?Veto {
+        usleep(300_000);
 
         return new Veto('Too late to matter.');
     });
@@ -159,4 +156,70 @@ it('does not ask for an AI suggestion, a checkpoint, a plugin’s own write or a
 
     expect($asked)->toBe(0)
         ->and(app(HookDispatcher::class)->wants(BeforeSave::class))->toBeTrue();
+});
+
+it('stops a schedule when a plugin refuses it, and writes no schedule', function (): void {
+    $content = app(CreateDraft::class)->execute(($this->draftInput)('Later'));
+    hkSubscriber('acme/one')->on(BeforeSave::class, fn (BeforeSave $hook): Veto => new Veto('Not on a schedule yet.'));
+
+    expect(fn () => app(SchedulePublication::class)->execute(new SchedulePublicationInput(
+        contentId: $content->id,
+        revisionId: $content->working_revision_id,
+        action: 'publish',
+        runAt: now()->addDay()->toAtomString(),
+        actorId: (string) $this->author->id,
+    )))->toThrow(fn (ValidationException $failure) => expect($failure->errors()['title'])->toBe(['Not on a schedule yet.']));
+
+    expect(DB::table('scheduled_publications')->count())->toBe(0);
+});
+
+it('does not ask when a scheduled publish runs, because the schedule was asked when it was made', function (): void {
+    $content = app(CreateDraft::class)->execute(($this->draftInput)('Scheduled'));
+    hkSubscriber('acme/one')->on(BeforeSave::class, fn (BeforeSave $hook): Veto => new Veto('Never shown.'));
+
+    $published = app(PublishRevision::class)->execute(new PublishRevisionInput(
+        contentId: $content->id,
+        revisionId: $content->working_revision_id,
+        actorId: (string) $this->author->id,
+        askBeforeSave: false,
+    ));
+
+    expect($published->status)->toBe('published');
+});
+
+describe('a plugin’s own writes', function (): void {
+    beforeEach(function (): void {
+        PluginFixtures::use('writer');
+        PluginRecord::factory()->enabled()->create([
+            'name' => 'tests/writer',
+            'code' => 'writer',
+            'version' => '1.0.0',
+            'consent' => ['capabilities' => ['content.read', 'content.write'], 'hosts' => [], 'hooks' => []],
+        ]);
+    });
+
+    afterEach(fn () => PluginFixtures::forget());
+
+    it('are never asked, for a create, a change, a publish or a schedule', function (): void {
+        Date::setTestNow('2026-11-15 12:00:00');
+        $editor = User::factory()->create()->assignRole('editor');
+        $this->actingAs($editor);
+        $asked = 0;
+        hkSubscriber('acme/one')->on(BeforeSave::class, function () use (&$asked): Veto {
+            $asked++;
+
+            return new Veto('Never shown.');
+        });
+        $writer = app(PluginDoors::class)->for('tests/writer', 'writer', ['content.write'], [])[ContentWriter::class];
+
+        $item = $writer->create(new NewItem('post', 'First', ['type' => 'doc', 'content' => []]), (string) $editor->id);
+        $writer->change($item, new ItemChanges(title: 'Second'), (string) $editor->id);
+        $writer->publish($item, (string) $editor->id);
+        $later = $writer->create(new NewItem('post', 'Later', ['type' => 'doc', 'content' => []]), (string) $editor->id);
+        $writer->schedule($later, new DateTimeImmutable('2026-11-16 09:00:00'), (string) $editor->id);
+
+        expect($asked)->toBe(0);
+
+        Date::setTestNow();
+    });
 });

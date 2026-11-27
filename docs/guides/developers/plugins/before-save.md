@@ -41,8 +41,11 @@ You are asked for a save of an item by a person, when they create a draft, save 
 
 - an autosave or a checkpoint of one,
 - a suggestion from the AI assistant that a person used,
-- a write a plugin makes itself through its content writer,
 - an import run.
+
+A plugin's own writes through its content writer are not asked either: they are a write the plugin made itself, and a check on them could call back into the plugin. A scheduled publish that runs at its time is not asked again, because the schedule was asked when it was made.
+
+A bulk publish, or a publish through the management API, is asked once for each item, as each item is its own save.
 
 Each check runs before the save's transaction opens. When one Operation runs inside another's transaction, your check runs inside that transaction, so anything you do there is rolled back with it.
 

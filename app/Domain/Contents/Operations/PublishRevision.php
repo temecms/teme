@@ -172,16 +172,19 @@ final class PublishRevision extends BaseOperation implements RequiresElevation
         }
 
         // Asked before the transaction opens, so a refusal leaves the live item as it was (BeforeSaveCheck).
-        $saved = ContentRevision::query()->whereKey($input->revisionId)->first(['title', 'document', 'fields']);
-        app(BeforeSaveCheck::class)->ask(
-            (string) $content->id,
-            (string) $content->type,
-            $content->language,
-            (string) $saved?->title,
-            (array) $saved?->document,
-            (array) $saved?->fields,
-            $input->actorId(),
-        );
+        if ($input->askBeforeSave) {
+            $saved = ContentRevision::query()->whereKey($input->revisionId)->first(['title', 'document', 'fields']);
+            app(BeforeSaveCheck::class)->ask(
+                (string) $content->id,
+                (string) $content->type,
+                $content->language,
+                (string) $saved?->title,
+                (array) $saved?->document,
+                (array) $saved?->fields,
+                $input->actorId(),
+                via: $input->via,
+            );
+        }
     }
 
     protected function perform(OperationInput $input): Content

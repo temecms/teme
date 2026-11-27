@@ -19,7 +19,6 @@ use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Hooks\ListenerFailed;
 use App\Domain\Hooks\TimeBudget;
 use App\Domain\Import\ImportMode;
-use App\Domain\Plugins\Columns\ColumnClock;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\BeforeSave;
 
@@ -33,7 +32,6 @@ final readonly class BeforeSaveCheck
 
     public function __construct(
         private HookDispatcher $dispatcher,
-        private ColumnClock $clock,
     ) {}
 
     /**
@@ -70,7 +68,7 @@ final readonly class BeforeSaveCheck
         $budget = new TimeBudget(
             self::CALL_BUDGET_MS,
             self::PAGE_BUDGET_MS,
-            $this->clock->nanoseconds(...),
+            static fn (): int => (int) hrtime(true),
             fn (string $owner, int $milliseconds, int $budget): ListenerFailed => new ListenerFailed(
                 $owner.' took '.$milliseconds.' ms to check a save, over its '.$budget.' ms budget, so the save went ahead.',
             ),
