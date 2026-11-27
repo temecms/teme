@@ -52,6 +52,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Languages in a theme](themes/languages.md)
 - [Addresses, listings and bodies in a template](themes/template-data.md)
 - [Archive pages, author profiles and listing data](themes/archive-pages.md)
+- [Tokens, styles and fonts](themes/tokens-and-styles.md)
 - [The management API](outside/management-api.md)
 
 ## Generated reference

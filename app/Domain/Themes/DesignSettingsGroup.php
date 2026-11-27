@@ -2,9 +2,9 @@
 
 /**
  * The `design` settings group: which theme the public site is drawn with,
- * chosen from the usable themes, and the site's accent colour, which is
- * empty to use the theme's own. It is built from the themes found, so it
- * registers through replace() and can be built again when they change.
+ * chosen from the usable themes, and the site's brand colour (`design.brand`),
+ * empty to leave `--teme-brand` unset. It is built from the themes found, so
+ * it registers through replace() and can be built again when they change.
  * Site › Themes is its screen, and its Operations write it.
  *
  * @package Teme

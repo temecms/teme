@@ -39,13 +39,14 @@ use Illuminate\View\Component;
 
 /**
  * `<x-teme::document>`: core's document shell around every public page,
- * so a template writes only its own markup. It writes the `lang`
- * and `dir`,
+ * so a template writes only its own markup. It writes the `lang` and `dir`,
  * the colour scheme, the title, the head's typed entries (DocumentMeta, the
  * robots value among them), the one preloaded font, `@font-face` rules from
- * the manifest's fonts, the theme's tokens and its dark ones, with the
- * site's accent, lightened for the dark scheme, the theme's assets, the
- * styles of the cards the page drew, the page's JSON-LD graph, the three
+ * the manifest's fonts (skipped when a font sets `face` false), the theme's
+ * tokens and custom tokens with the chosen style overlaid, `--teme-brand`
+ * from `design.brand`, and when the theme opts in with `use_brand_colour` the
+ * site's brand as accent (lightened for the dark scheme), the theme's assets,
+ * the styles of the cards the page drew, the page's JSON-LD graph, the three
  * placements, with their fragments, the skip link and its style, the
  * speculation rules, and core's small script, which in a browser that
  * signed in asks who is reading and adds the "Edit" link.
@@ -218,12 +219,13 @@ final class Document extends Component
 
     /**
      * The theme's tokens as custom properties on :root, then its dark ones
-     * for the dark scheme, chosen or the reader's own, or '' for
-     * none. With the site's accent set, each scheme takes its pair, the dark
-     * one lightened, in place of the theme's accent and on-accent. A theme's
-     * own tokens (issue 370) follow the core list in each scheme. Each fonts
-     * entry becomes an `@font-face` rule (issue 372); a theme that writes its
-     * own faces leaves fonts out.
+     * for the dark scheme, chosen or the reader's own, or '' for none. When
+     * the theme uses the site's brand as accent, each scheme takes its pair,
+     * the dark one lightened, in place of the theme's accent and on-accent.
+     * A theme's own tokens (issue 370) follow the core list; a chosen style
+     * overlays them (issue 371). `--teme-brand` is always the site's brand
+     * when set (issue 261). Each fonts entry with face true becomes an
+     * `@font-face` rule (issue 372); face false is preload only.
      *
      * @param  array<string, string>  $tokens
      * @param  array<string, string>  $tokensDark

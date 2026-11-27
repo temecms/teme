@@ -4,7 +4,7 @@
 
 ## General
 
-The site’s name, tagline, administration email, time zone, language and brand colour.
+The site’s name, tagline, contact address, time zone, language and brand color.
 
 Changing these requires `settings.general.manage`. Since 0.1.0.
 
@@ -60,11 +60,11 @@ Changing these requires `settings.security.manage`. Since 0.1.0.
 
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
-| `security.password_min_length` | number | `15` | The fewest characters a new password may have. Applies when a password is set, never at sign-in. | 0.1.0 |
+| `security.password_min_length` | number, required | `15` | The fewest characters a new password may have. Applies when a password is set, never at sign-in. | 0.1.0 |
 | `security.password_check_breached` | boolean | `true` | Checks new passwords against Have I Been Pwned without sending the password. Turn off if your server can’t reach the internet. | 0.1.0 |
 | `security.login_attempts_per_account_ip` | number | `5` | Failed sign-ins allowed for one account from one IP address in 15 minutes. | 0.1.0 |
 | `security.login_attempts_per_ip` | number | `50` | Failed sign-ins allowed from one IP address, across all accounts, in an hour. | 0.1.0 |
-| `security.login_untrusted_attempts_per_account` | number | `10` | Failed sign-ins allowed for one account in an hour from browsers that have never signed in to it. Browsers that have are not held back by this limit. | 0.1.0 |
+| `security.login_untrusted_attempts_per_account` | number | `10` | Browsers that have signed in before are not held back by this limit. | 0.1.0 |
 | `security.session_idle_minutes` | number | `120` | Minutes without activity before a session ends. | 0.1.0 |
 | `security.session_absolute_hours` | number | `24` | Hours after signing in when a session ends, however active it is. | 0.1.0 |
 | `security.session_remember_days` | number | `14` | Days a browser stays signed in when “Remember me” is ticked. 0 removes the option. | 0.1.0 |
@@ -96,7 +96,7 @@ Changing these requires `settings.content.manage`. Since 0.1.0.
 
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
-| `content.trash_days` | number | `30` | Days an item or comment stays in the trash before it’s deleted permanently. | 0.1.0 |
+| `content.trash_days` | number, required | `30` | Days an item or comment stays in the trash before it’s deleted permanently. | 0.1.0 |
 
 ## Discussion
 
@@ -108,15 +108,15 @@ Changing these requires `settings.discussion.manage`. Since 0.1.0.
 |---|---|---|---|---|
 | `discussion.open_for` | multiselect | `["post"]` | The types whose new items take comments as they start. Unticked, new items start Closed. Each item can still be set to Open, Closed or Hidden on its own. | 0.1.0 |
 | `discussion.signed_in_only` | boolean | `false` | Off, guests comment with a name and email address. Readers can't have accounts yet, so on limits comments to the site's own people. | 0.1.0 |
-| `discussion.ask_website` | boolean | `true` | On, the comment form has an optional Website field, and a guest’s name links to it. Off, the form doesn’t ask; websites already given, imported ones too, stay linked. | 0.1.0 |
+| `discussion.ask_website` | boolean | `true` | On, the comment form has an optional Website field, and a guest’s name links to it. | 0.1.0 |
 | `discussion.close_after_days` | number | `0` | Days after an item is published when it stops taking new comments; its comments stay shown. 0 keeps comments open. | 0.1.0 |
-| `discussion.thread_depth` | number | `5` | How deep replies go, up to 10. A reply to a comment at the deepest level is placed beside it. Imported threads keep their shape. | 0.1.0 |
+| `discussion.thread_depth` | number | `5` | How deep replies go, up to 10. A reply to a comment at the deepest level is placed beside it. | 0.1.0 |
 | `discussion.per_page` | number | `50` | Comments that start a thread, oldest first, each with its replies. The first page is part of the article, so search engines read it. | 0.1.0 |
 | `discussion.hold_all` | boolean | `false` | Every new comment waits until someone approves it. | 0.1.0 |
-| `discussion.approve_returning` | boolean | `true` | On, a comment is approved at once when its email address has an approved comment sent from the same browser, and a first comment waits once. Off, a comment that passes the lists is approved. | 0.1.0 |
+| `discussion.approve_returning` | boolean | `true` | On, a comment is approved at once when its email address has an approved comment sent from the same browser, and a first comment waits once. | 0.1.0 |
 | `discussion.hold_links` | number | `2` | Many links are a sign of spam. 0 holds no comment for its links. | 0.1.0 |
 | `discussion.hold_list` | textarea | `""` | One word or phrase a line. A comment whose words, name, email address, website, IP address or browser holds one waits for approval. | 0.1.0 |
-| `discussion.block_list` | textarea | `""` | One word or phrase a line. A comment whose words, name, email address, website, IP address or browser holds one goes straight to spam. | 0.1.0 |
+| `discussion.block_list` | textarea | `""` | One word or phrase a line. A comment that holds one goes straight to spam. | 0.1.0 |
 | `discussion.email_moderators` | boolean | `true` | Sent to editors and administrators, and to the author of the post or page if they can publish it. | 0.1.0 |
 | `discussion.email_authors` | boolean | `true` | Each person can turn either email off for themselves in Account › Notifications. | 0.1.0 |
 | `discussion.keep_ip_days` | number | `60` | Each comment’s IP address and browser are erased after this many days, imported comments’ too. Only editors and administrators see them. | 0.1.0 |
@@ -130,10 +130,10 @@ Changing these requires `settings.seo.manage`. Since 0.1.0.
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
 | `seo.title_separator` | text | `""` | Goes between the parts of every title. Empty uses the one the active theme suggests. | 0.1.0 |
-| `seo.title_type_post` | text | `"{title} {sep} {site}"` | The title search results and browser tabs show for each one, made from tokens such as {title}, {sep} and {site}. An item’s own SEO title takes its place, word for word. | 0.1.0 |
-| `seo.hide_type_post` | boolean | `false` | Marks every one noindex, so search engines leave them out. One item can also be hidden on its own, in the editor. | 0.1.0 |
-| `seo.title_type_page` | text | `"{title} {sep} {site}"` | The title search results and browser tabs show for each one, made from tokens such as {title}, {sep} and {site}. An item’s own SEO title takes its place, word for word. | 0.1.0 |
-| `seo.hide_type_page` | boolean | `false` | Marks every one noindex, so search engines leave them out. One item can also be hidden on its own, in the editor. | 0.1.0 |
+| `seo.title_type_post` | text | `"{title} {sep} {site}"` | The title search results and browser tabs show for each post, made from tokens such as {title}, {sep} and {site}. A post’s own SEO title takes its place, word for word. | 0.1.0 |
+| `seo.hide_type_post` | boolean | `false` | Marks every post noindex, so search engines leave them out. One post can also be hidden on its own, in the editor. | 0.1.0 |
+| `seo.title_type_page` | text | `"{title} {sep} {site}"` | The title search results and browser tabs show for each page, made from tokens such as {title}, {sep} and {site}. A page’s own SEO title takes its place, word for word. | 0.1.0 |
+| `seo.hide_type_page` | boolean | `false` | Marks every page noindex, so search engines leave them out. One page can also be hidden on its own, in the editor. | 0.1.0 |
 | `seo.title_home` | text | `"{site} {sep} {page} {sep} {tagline}"` | The title of the site’s address. {page} gives “Page 2 of 7” from the second page on, and empty tokens and doubled separators are dropped. | 0.1.0 |
 | `seo.title_taxonomy_category` | text | `"{title} {sep} {page} {sep} {site}"` | The title of each archive. {title} is the archive’s own name. | 0.1.0 |
 | `seo.hide_taxonomy_category` | boolean | `false` | Marks every archive noindex, so search engines leave them out. | 0.1.0 |
@@ -146,6 +146,16 @@ Changing these requires `settings.seo.manage`. Since 0.1.0.
 | `seo.title_search` | text | `"{title} {sep} {page} {sep} {site}"` | The title of a search’s results, which search engines are always asked not to list. {title} names the words searched; {search} gives the words alone, as plain text. | 0.1.0 |
 | `seo.title_not_found` | text | `"{title} {sep} {site}"` | The title of the page shown for an address with nothing at it. | 0.1.0 |
 | `seo.discourage_search_engines` | boolean | `false` | Every page asks search engines not to list it and the sitemap is switched off, so search engines drop the site. For a site that isn’t ready to be found. | 0.1.0 |
+| `seo.site_verification` | pairs | `[]` | Google’s name is google-site-verification, Bing’s msvalidate.01, Yandex’s yandex-verification, Pinterest’s p:domain_verify and Facebook’s facebook-domain-verification. | 0.1.0 |
+| `seo.default_social_image` | media | `""` | On the card when something is shared that has no image of its own: no social image, no featured image and none in its body. Archives and the home page use it too. 1200 × 630 pixels suits most services. | 0.1.0 |
+| `seo.feed_items` | number | `10` | How many of the newest items each feed holds, from 1 to 100. | 0.1.0 |
+| `seo.feed_content` | select | `"full"` | The full text can be read in a feed reader; the excerpt sends readers to the site to read on. | 0.1.0 |
+| `seo.robots_extra_rules` | textarea | `""` | Each line is checked: User-agent, Allow, Disallow or Sitemap, or # for a note. | 0.1.0 |
+| `seo.api_enabled` | boolean | `false` | They see only what readers see, at http://localhost/api/v1: posts, pages and your own types, with their fields, terms and images. Never drafts, private items or what’s behind a password. | 0.3.0 |
+| `seo.llms_txt` | boolean | `false` | A short guide at http://localhost/llms.txt, for AI assistants and coding tools that someone points at it, with a plain-text copy of each listed post and page. It lists only what search engines may list. | 0.3.0 |
+| `seo.discourage_ai_training` | boolean | `false` | It’s a request, not a lock: well-behaved crawlers follow it. Search engines are still let in. | 0.1.0 |
+| `seo.not_found_log_size` | number | `10000` | When the log is full, the address seen least recently makes room. From 1,000 to 100,000. | 0.1.0 |
+| `seo.not_found_log_ignore` | textarea | `"*.php\n.*\n*/.*"` | One per line, as the address after the site’s, and * stands for anything, slashes included. Bots probe every site for PHP files and names starting with a dot, so those are ignored to begin with. | 0.1.0 |
 | `seo.publisher_type` | select | `""` | Search engines are told it publishes the site and every article on it. Choose the most specific kind that fits. Nobody in particular names no publisher. | 0.1.0 |
 | `seo.publisher_name` | text | `""` | As the organization calls itself. Empty uses the site’s title. | 0.1.0 |
 | `seo.publisher_alternate_name` | text | `""` | A shorter name or initials it also goes by, if any. Search engines may show it in place of the name. | 0.1.0 |
@@ -169,16 +179,6 @@ Changing these requires `settings.seo.manage`. Since 0.1.0.
 | `seo.schema_article_type_post` | select | `"BlogPosting"` | What kind of article search engines are told each of them is, if any, unless one says otherwise in the editor. | 0.1.0 |
 | `seo.schema_page_type_page` | select | `"WebPage"` | What search engines are told each of them is, unless one says otherwise in the editor. | 0.1.0 |
 | `seo.schema_article_type_page` | select | `"none"` | What kind of article search engines are told each of them is, if any, unless one says otherwise in the editor. | 0.1.0 |
-| `seo.default_social_image` | media | `""` | On the card when something is shared that has no image of its own: no social image, no featured image and none in its body. Archives and the home page use it too. 1200 × 630 pixels suits most services. | 0.1.0 |
-| `seo.site_verification` | pairs | `[]` | One name and content pair per service. | 0.1.0 |
-| `seo.feed_items` | number | `10` | How many of the newest items each feed holds, from 1 to 100. | 0.1.0 |
-| `seo.feed_content` | select | `"full"` | The full text can be read in a feed reader; the excerpt sends readers to the site to read on. | 0.1.0 |
-| `seo.robots_extra_rules` | textarea | `""` | Added to the robots.txt Teme writes, after its own rules. Each line is checked: User-agent, Allow, Disallow or Sitemap, or # for a note. | 0.1.0 |
-| `seo.discourage_ai_training` | boolean | `false` | Asks each AI training crawler on Teme’s list not to use the site, while still letting search engines in. It’s a request, not a lock: well-behaved crawlers follow it. It also keeps the site out of answers in Google’s Gemini apps, but not out of Google’s AI Overviews, which are part of Search, or pages a reader asks an assistant to fetch. | 0.1.0 |
-| `seo.api_enabled` | boolean | `false` | Apps, other sites and tools can read your published content as data through the API, at https://example.com/api/v1: posts, pages and your own types, with their fields, terms and images. They see only what readers see: never drafts, private items, what’s behind a password, or fields you hide on the site. | 0.3.0 |
-| `seo.llms_txt` | boolean | `false` | A short guide to your site at https://example.com/llms.txt, for AI assistants and coding tools that someone points at it, with a plain-text copy of each listed post and page at its address followed by .md. It lists only what search engines may list, and nothing while the site discourages search engines. | 0.3.0 |
-| `seo.not_found_log_size` | number | `10000` | When the log is full, the address seen least recently makes room. From 1,000 to 100,000. | 0.1.0 |
-| `seo.not_found_log_ignore` | textarea | `"*.php\n.*\n*/.*"` | One per line, as the address after the site’s, and * stands for anything, slashes included. Bots probe every site for PHP files and names starting with a dot, so those are ignored to begin with. | 0.1.0 |
 
 ## Backups
 
@@ -214,9 +214,9 @@ Changing these requires `settings.media.manage`. Since 0.1.0.
 
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
-| `media.max_upload_mb` | number | `64` | The biggest file, in megabytes, anyone can upload. Your server’s own upload limit must be at least this large. | 0.1.0 |
-| `media.max_megapixels` | number | `50` | The most megapixels an uploaded image may have. It stops a small file that would expand to gigabytes in memory. | 0.1.0 |
-| `media.import_downloads` | number | `4` | The most media files an import from an export file downloads at the same time. It goes only as fast as the queue workers allow: each worker fetches one file, so set the server’s workers to match. The old site gets that many requests at once. | 1.5.0 |
+| `media.max_upload_mb` | number, required | `64` | The biggest file, in megabytes, anyone can upload. Your server’s own upload limit must be at least this large. | 0.1.0 |
+| `media.max_megapixels` | number, required | `50` | The most megapixels an uploaded image may have. It stops a small file that would expand to gigabytes in memory. | 0.1.0 |
+| `media.import_downloads` | number, required | `4` | The most media files an import from an export file downloads at the same time. It goes only as fast as the queue workers allow: each worker fetches one file, so set the server’s workers to match. The old site gets that many requests at once. | 1.5.0 |
 
 ## AI
 
@@ -256,7 +256,7 @@ Changing these requires `settings.ai.manage`. Since 0.1.0.
 | `ai.alt_text_fallback` | text | `""` | Asked once when the first model can’t be reached or is busy, written provider:model. Optional. | 0.1.0 |
 | `ai.metadata_model` | text | `""` | The provider and model that answer, written provider:model. Empty switches Metadata off. | 0.1.0 |
 | `ai.metadata_fallback` | text | `""` | Asked once when the first model can’t be reached or is busy, written provider:model. Optional. | 0.1.0 |
-| `ai.hourly_limit` | number | `60` | How many times one person may ask AI for a suggestion in an hour. | 0.1.0 |
+| `ai.hourly_limit` | number, required | `60` | How many times one person may ask AI for a suggestion in an hour. | 0.1.0 |
 | `ai.monthly_budget` | number | `0` | When this month’s recorded cost reaches it, AI is unavailable to everyone until the month ends. Requests already running may pass it a little. 0 means no budget. | 0.1.0 |
 
 ## Design
@@ -268,7 +268,7 @@ Changing these requires `settings.design.manage`. Since 0.1.0.
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
 | `design.theme` | select | `"default"` | The theme the public site is drawn with. A theme that can't be used gives visitors plain pages until it is fixed. | 0.1.0 |
-| `design.accent` | color | `""` | The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme. Empty uses the theme’s own. | 0.1.0 |
+| `design.brand` | color | `""` | The site's identity colour: the browser tab, and --teme-brand for themes. Empty leaves the token unset. A theme may opt to use it as its accent. | next |
 
 ## Teme Default
 
@@ -278,6 +278,7 @@ Changing these requires `settings.design.manage`. Since 0.1.0.
 
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
+| `theme.default.use_brand_colour` | boolean | `true` | When on, the theme's accent follows the site's brand colour from Settings › General. | 0.1.0 |
 | `theme.default.header_layout` | select | `"left"` | Header layout | 0.1.0 |
 | `theme.default.header_color` | select | `"page"` | Header and footer colour | 0.1.0 |
 | `theme.default.color_scheme` | select | `"auto"` | Colour scheme | 0.1.0 |
@@ -303,6 +304,16 @@ Changing these requires `updates.manage`. Since 1.0.0.
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
 | `updates.dokploy_api_key` | secret | — | Lets Teme change and deploy this site’s service on Dokploy when you update from Tools › Updates. In Dokploy, open your profile, make an API key, and paste it here. It is kept encrypted and never shown again. The server can set it instead, as TEME_DOKPLOY_TOKEN. | 1.0.0 |
+
+## Plugin and theme directory
+
+Whether Add plugin and Add theme show the packages listed in Teme’s directory.
+
+Changing these requires `extensions.install`. Since 1.2.0.
+
+| Setting | Type | Default | Description | Since |
+|---|---|---|---|---|
+| `directory.enabled` | boolean | `true` | On, Add plugin and Add theme list the directory’s packages and can install them; each list is checked against the directory’s signature first. Off, Teme asks nothing of the directory and installs nothing from it. | 1.2.0 |
 
 ## Management API
 

@@ -59,7 +59,7 @@
 | `tokens_dark.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |  |
 | `custom_tokens_dark` | object | no | The theme's own dark-scheme tokens, same name and value rules as custom_tokens. |  |
-| `styles` | object | no | Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews use the chosen style over the base tokens and preload. |  |
+| `styles` | object | no | Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload. |  |
 | `styles.*.label` | string | yes |  |  |
 | `styles.*.tokens` |  | no |  |  |
 | `styles.*.tokens_dark` |  | no |  |  |

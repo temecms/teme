@@ -364,7 +364,7 @@
         },
         "styles": {
             "type": "object",
-            "description": "Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews use the chosen style over the base tokens and preload.",
+            "description": "Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload.",
             "propertyNames": {
                 "pattern": "^[a-z0-9-]+$"
             },
