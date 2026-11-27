@@ -274,6 +274,11 @@ final class ContributionsValidator implements ContributionsCheck
         $errors = [...$errors, ...$this->actionErrors(is_array($actions) ? $actions : [null])];
 
         $listActions = $contributes['listActions'] ?? [];
+
+        if ($listActions !== [] && $capabilities !== null && ! in_array(Capability::Jobs->value, $capabilities, true)) {
+            $errors[] = __('A plugin’s list actions need jobs.');
+        }
+
         $errors = [...$errors, ...$this->listActionErrors(is_array($listActions) ? $listActions : [null])];
 
         $lists = $contributes['lists'] ?? [];

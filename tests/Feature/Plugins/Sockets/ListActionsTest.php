@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Contents\Models\Content;
 use App\Domain\Jobs\Models\TrackedJob;
+use App\Domain\Plugins\Contributions\Contributions;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\Lists\ListActions;
@@ -133,4 +134,39 @@ it('queues a row action posted from a content list, as the person who clicked', 
         ->assertSessionHasNoErrors();
 
     expect(TrackedJob::query()->sole()->started_by)->toBe($this->admin->id);
+});
+
+it('lets an author queue a list action on their own item, leaving out someone else’s', function (): void {
+    $this->actingAs($this->author)
+        ->post(route('plugins.list-actions.run', ['code' => 'workbench', 'action' => 'ping-items']), ['items' => [(string) $this->own->id, (string) $this->others->id], 'bulk' => true])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors()
+        ->assertInertiaFlash('toast.type', 'success');
+
+    expect(TrackedJob::query()->sole()->payload)->toEqual(['action' => 'ping-items', 'items' => [(string) $this->own->id]])
+        ->and(TrackedJob::query()->sole()->started_by)->toBe($this->author->id);
+});
+
+it('counts a repeated item once, so nothing is reported left out', function (): void {
+    $result = app(RunListAction::class)->execute(new RunListActionInput('workbench', 'ping-items', (string) $this->admin->id, [(string) $this->others->id, (string) $this->others->id], bulk: true));
+
+    expect($result['skipped'])->toBe(0)
+        ->and(TrackedJob::query()->sole()->payload)->toEqual(['action' => 'ping-items', 'items' => [(string) $this->others->id]]);
+});
+
+it('gives the Tools › Jobs link only to someone who can open it', function (): void {
+    $this->actingAs($this->author)
+        ->post(route('plugins.list-actions.run', ['code' => 'workbench', 'action' => 'ping-items']), ['item' => (string) $this->own->id])
+        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Ping these queued.']);
+});
+
+it('refuses, at enable, a list action naming a job the plugin doesn’t declare', function (): void {
+    $errors = app(Contributions::class)->add('tests/undeclared', 'undeclared', 'Undeclared', '1.0.0', ['listActions' => [['id' => 'go', 'label' => 'Go', 'row' => true, 'job' => 'nope']]], new stdClass, []);
+
+    expect($errors)->toContain('Its action "go" queues the job "nope", which it doesn’t declare.');
+});
+
+it('refuses a list action from a plugin without the jobs capability', function (): void {
+    expect(app(ContributionsValidator::class)->errors(['listActions' => [['id' => 'go', 'label' => 'Go', 'row' => true, 'job' => 'ping']]], '1.0.0', ['content.read']))
+        ->toContain('A plugin’s list actions need jobs.');
 });

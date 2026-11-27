@@ -89,7 +89,9 @@ final class RunListAction extends BaseOperation
         $contents = Content::query()->whereIn('id', $input->itemIds)->get()->keyBy(fn (Content $content): string => (string) $content->id);
         $editable = [];
 
-        foreach (array_values(array_unique($input->itemIds)) as $itemId) {
+        $items = array_values(array_unique($input->itemIds));
+
+        foreach ($items as $itemId) {
             $content = $contents->get($itemId);
 
             if ($content !== null && $this->policy->update($person, $content)) {
@@ -109,7 +111,7 @@ final class RunListAction extends BaseOperation
             new QueueOptions(uniqueKey: self::uniqueKey($action['id'], $editable)),
         );
 
-        return ['job' => $id, 'label' => $action['label'], 'skipped' => count($input->itemIds) - count($editable)];
+        return ['job' => $id, 'label' => $action['label'], 'skipped' => count($items) - count($editable)];
     }
 
     /**

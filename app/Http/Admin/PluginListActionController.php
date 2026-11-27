@@ -39,12 +39,16 @@ final class PluginListActionController extends Controller
             return back();
         }
 
+        // The link to Tools › Jobs is offered only to people who can open it.
+        $canFollow = (bool) $request->user()?->can('jobs.manage');
+        $message = $done['skipped'] === 0
+            ? ($canFollow ? __(':label queued. Follow it in Tools › Jobs.', ['label' => $done['label']]) : __(':label queued.', ['label' => $done['label']]))
+            : __(':label queued for the items you can edit; :count left out.', ['label' => $done['label'], 'count' => $done['skipped']]);
+
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => $done['skipped'] === 0
-                ? __(':label queued. Follow it in Tools › Jobs.', ['label' => $done['label']])
-                : __(':label queued for the items you can edit; :count left out.', ['label' => $done['label'], 'count' => $done['skipped']]),
-            'link' => ['label' => __('Tools › Jobs'), 'href' => route('tools.jobs.index', [], false)],
+            'message' => $message,
+            ...($canFollow ? ['link' => ['label' => __('Tools › Jobs'), 'href' => route('tools.jobs.index', [], false)]] : []),
         ]);
 
         return back();
