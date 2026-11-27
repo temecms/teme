@@ -34,7 +34,7 @@ it('renders prose as clean HTML', function (): void {
         ['type' => 'bulletList', 'content' => [['type' => 'listItem', 'content' => [docText('Friday')]]]],
     ));
 
-    expect($html)->toBe('<h2>What&#039;s on</h2><p>Three days of <strong>music</strong> by the quay.</p><ul><li><p>Friday</p></li></ul>');
+    expect($html)->toBe('<h2 id="whats-on">What&#039;s on</h2><p>Three days of <strong>music</strong> by the quay.</p><ul><li><p>Friday</p></li></ul>');
 });
 
 it('renders an image card from the media item, never from a stored URL', function (): void {

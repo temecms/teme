@@ -108,7 +108,7 @@ it('draws prose as the page does, and a table stays a table (I-861)', function (
 
     expect($html)->toContain($needle)->toBe(app(DocumentRenderer::class)->html($document));
 })->with([
-    'prose' => ['prose', '<h2>Food &amp; drink</h2>'],
+    'prose' => ['prose', '<h2 id="food-drink">Food &amp; drink</h2>'],
     'a table' => ['table-align', '<table>'],
 ]);
 

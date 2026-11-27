@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Cards;
 
+use App\Domain\Cards\Tiptap\HeadingNode;
 use App\Domain\Cards\Tiptap\LinkMark;
 use App\Domain\Cards\Tiptap\TableCellNode;
 use App\Domain\Cards\Tiptap\TableHeaderNode;
@@ -45,7 +46,7 @@ final readonly class DocumentRenderer
     {
         $context ??= new RenderContext(app(LinkResolver::class));
         // Rebuilt with the document's media: the page's record and lead go along, or no card would see them.
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes, $context->region);
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions, $context->linkAttributes, $context->region, $context->headings ?? new HeadingIds);
         $html = '';
         $run = [];
         $content = array_values((array) ($document['content'] ?? []));
@@ -108,7 +109,7 @@ final readonly class DocumentRenderer
     public function blocks(array $document, ?RenderContext $context = null): array
     {
         $context ??= new RenderContext(app(LinkResolver::class));
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region);
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, null, $context->linkAttributes, $context->region, $context->headings ?? new HeadingIds);
         $editor = $this->editor($context);
         $blocks = [];
         $heading = 1;
@@ -158,8 +159,10 @@ final readonly class DocumentRenderer
     {
         // The PHP StarterKit has no Link and no Underline, unlike the
         // JavaScript one (study L, §2.10), so both are registered here.
+        // Heading is ours: every heading gets a unique HTML id (issue 369).
         return new Editor(['extensions' => [
-            new StarterKit,
+            new StarterKit(['heading' => false]),
+            new HeadingNode($context->headings ?? new HeadingIds),
             new Underline,
             new Highlight,
             new Subscript,

@@ -2,7 +2,7 @@
 title: Addresses, listings and bodies in a template
 type: how-to
 audience: theme
-summary: The values and tags a template can read for the site's own addresses, breadcrumbs, a page's siblings, a type's items, a listing's totals, reading time, search sections, the body's blocks, and for knowing which region a card is drawn in.
+summary: The values and tags a template can read for the site's own addresses, breadcrumbs, a page's siblings, a type's items, a listing's totals, reading time, search sections, heading ids and a contents list, the body's blocks, and for knowing which region a card is drawn in.
 rests_on: [app/Domain/Site/SiteAddresses.php, app/Domain/Site/ViewModels, app/Domain/Site/Breadcrumbs.php, app/Domain/Site/PageFamily.php, app/View/Components/Teme/Items.php, app/Domain/Regions/RegionDrawing.php, app/Domain/Cards/DocumentRenderer.php, resources/css/cards, docs/reference/theme.md, themes/default]
 ---
 
@@ -87,6 +87,20 @@ The page's own `pagination` keeps the chosen section on every page. The search t
 @foreach ($page->search->sections as $section)
     <a href="{{ $section->url }}">{{ $section->label }} ({{ $section->count }})</a>
 @endforeach
+```
+
+## Headings and a contents list
+
+Every heading in `$page->bodyHtml` has an `id`: the heading's permanent node id when the editor stored one, otherwise one made from its words (lowercase, hyphens), unique on the page (`-2`, `-3` when the same words appear again). Same-page links in the body use that same id. `$page->headings` lists every level-2–4 heading in order, each with `level`, `text` and `id`, from the same pass that draws the body, so a theme can draw an "In this story" list without parsing HTML:
+
+```blade
+@if ($page->headings !== [])
+    <nav aria-label="{{ __('In this story') }}">
+        <ol>@foreach ($page->headings as $heading)
+            <li><a href="#{{ $heading['id'] }}">{{ $heading['text'] }}</a></li>
+        @endforeach</ol>
+    </nav>
+@endif
 ```
 
 ## The body as blocks
