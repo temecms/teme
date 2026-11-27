@@ -58,6 +58,7 @@
         letter-spacing: -0.01em;
         margin-block-start: 1.8em;
         text-wrap: balance;
+        overflow-wrap: break-word;
     }
 
     .prose h2 {
@@ -603,6 +604,7 @@
         font: 700 var(--teme-step-2) / 1.2 var(--teme-font-heading);
         letter-spacing: -0.01em;
         text-wrap: balance;
+        overflow-wrap: break-word;
     }
 
     .card-title a {
@@ -727,6 +729,7 @@
         font: 700 var(--teme-step-4) / 1.1 var(--teme-font-heading);
         letter-spacing: -0.02em;
         text-wrap: balance;
+        overflow-wrap: break-word;
     }
 
     .page-title {
@@ -793,10 +796,33 @@
     .prose {
         max-inline-size: var(--measure, 68ch);
         margin-inline: auto;
+        overflow-wrap: break-word;
     }
 
     .page-wide .prose {
         max-inline-size: var(--wide);
+    }
+
+    /* Inline code and rules in the article (issue 594). Code blocks are issue 91. */
+    .prose :where(code) {
+        padding: 0.1em 0.3em;
+        border-radius: 2px;
+        background: var(--surface);
+        font: 0.875em var(--teme-font-mono, ui-monospace, monospace);
+    }
+
+    .prose pre :where(code) {
+        padding: 0;
+        border-radius: 0;
+        background: none;
+        font-size: inherit;
+    }
+
+    .prose hr {
+        border: 0;
+        block-size: 1px;
+        background: var(--teme-rule);
+        margin-block: var(--teme-space-6);
     }
 
     /* An item's shown fields: a label and its value, side by side from 640px, one under the other below. */
