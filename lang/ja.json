@@ -208,5 +208,6 @@
     "Your reply": "あなたの返信",
     "You’re signed in, so you’ll comment as": "ログイン中のため、次の名前でコメントします:",
     "You’ve already said that here.": "同じ内容がすでにここに投稿されています。",
-    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} 短時間にコメントが連続して送信されました。1分ほど待ってから、もう一度お試しください。|[2,*] 短時間にコメントが連続して送信されました。:minutes分ほど待ってから、もう一度お試しください。"
+    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} 短時間にコメントが連続して送信されました。1分ほど待ってから、もう一度お試しください。|[2,*] 短時間にコメントが連続して送信されました。:minutes分ほど待ってから、もう一度お試しください。",
+    "Site": "サイト"
 }

@@ -208,5 +208,6 @@
     "Your reply": "Tu respuesta",
     "You’re signed in, so you’ll comment as": "Iniciaste sesión, así que comentarás como",
     "You’ve already said that here.": "Ya dijiste eso aquí.",
-    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} Enviaste varios comentarios en poco tiempo. Inténtalo de nuevo dentro de un minuto.|[2,*] Enviaste varios comentarios en poco tiempo. Inténtalo de nuevo dentro de :minutes minutos."
+    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} Enviaste varios comentarios en poco tiempo. Inténtalo de nuevo dentro de un minuto.|[2,*] Enviaste varios comentarios en poco tiempo. Inténtalo de nuevo dentro de :minutes minutos.",
+    "Site": "Sitio"
 }

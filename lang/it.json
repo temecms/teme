@@ -208,5 +208,6 @@
     "Your reply": "La sua risposta",
     "You’re signed in, so you’ll comment as": "Ha effettuato l’accesso, quindi commenterà come",
     "You’ve already said that here.": "Lo ha già scritto qui.",
-    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} Ha inviato diversi commenti in poco tempo. Riprovi tra un minuto.|[2,*] Ha inviato diversi commenti in poco tempo. Riprovi tra :minutes minuti."
+    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} Ha inviato diversi commenti in poco tempo. Riprovi tra un minuto.|[2,*] Ha inviato diversi commenti in poco tempo. Riprovi tra :minutes minuti.",
+    "Site": "Sito"
 }

@@ -208,5 +208,6 @@
     "Your reply": "आपका जवाब",
     "You’re signed in, so you’ll comment as": "आप साइन इन हैं, इसलिए कमेंट इस नाम से जाएगा:",
     "You’ve already said that here.": "आप यह बात यहाँ पहले ही कह चुके हैं।",
-    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} आपने थोड़े समय में कई कमेंट भेज दिए हैं। एक मिनट बाद दोबारा कोशिश करें।|[2,*] आपने थोड़े समय में कई कमेंट भेज दिए हैं। :minutes मिनट बाद दोबारा कोशिश करें।"
+    "{1} You’ve sent several comments in a short time. Try again in a minute.|[2,*] You’ve sent several comments in a short time. Try again in :minutes minutes.": "{1} आपने थोड़े समय में कई कमेंट भेज दिए हैं। एक मिनट बाद दोबारा कोशिश करें।|[2,*] आपने थोड़े समय में कई कमेंट भेज दिए हैं। :minutes मिनट बाद दोबारा कोशिश करें।",
+    "Site": "साइट"
 }
