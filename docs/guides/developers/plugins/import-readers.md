@@ -12,7 +12,7 @@ Teme's import engine is opened at one end: the end that reads the old site. A pl
 
 A reader supplies only what differs per system. It reads an export file, says what the file holds, and hands over each item in Teme's neutral shape. It writes nothing. Teme's own operations do every write, as the person who started the import.
 
-> **Status.** A reader's file can be uploaded and read. The upload accepts the reader's file types, the reader reads the file, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Two limits for now: the whole file is read in one job, so a very large file is not yet supported, and a reader's menu placement is carried but not used, since the import plan chooses where each menu sits. The import screen has no picker for a reader's file yet; the upload is reached through the import's upload operation.
+> **Status.** A reader's file can be uploaded and read. The upload accepts the reader's file types, the reader reads the file, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Two limits for now: the whole file is read in one job, so a very large file is not yet supported, and menus come across unplaced, since the import plan chooses where each menu sits The import screen has no picker for a reader's file yet; the upload is reached through the import's upload operation.
 
 ## Declaring a reader
 
@@ -61,7 +61,7 @@ A reader may add further values to `fields` for what its system holds beyond the
 Two kinds have fields of their own, new in the next release:
 
 - A `comment` names the post it belongs to with `postId`. Its `status` may be `spam`, which stays spam; `draft` is a held comment, and `published` an approved one. Its author's name, email, URL and IP go in `fields` as `authorName`, `authorEmail`, `authorUrl` and `authorIp`. A reply names its parent comment with `parentId`.
-- A `menu` names its title in `title`, its slug in `fields.slug` and, optionally, a `placement`. Each `menu-item` names its menu with `menuId`, its `itemType` (`post_type`, `taxonomy` or `custom`), the post or term it points at with `objectId`, its `order`, its parent item with `parentId`, and for a custom link its `fields.url`.
+- A `menu` names its title in `title` and its slug in `fields.slug`. Menus come across unplaced: the import plan chooses where each menu sits. Each `menu-item` names its menu with `menuId`, its `itemType` (`post_type`, `taxonomy` or `custom`), the post or term it points at with `objectId`, its `order`, its parent item with `parentId`, and for a custom link its `fields.url`.
 
 ## What a reader's items become
 

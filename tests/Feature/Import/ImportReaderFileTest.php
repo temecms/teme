@@ -198,7 +198,7 @@ it('imports a reader’s menus with their items, each item pointing at its post 
     readersEnabled();
 
     $export = fakeSiteExport();
-    $export['items'][] = ['kind' => 'menu', 'id' => 'm1', 'title' => 'Main', 'slug' => 'main', 'placement' => 'primary'];
+    $export['items'][] = ['kind' => 'menu', 'id' => 'm1', 'title' => 'Main', 'slug' => 'main'];
     $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'post_type', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'];
     $export['items'][] = ['kind' => 'menu-item', 'id' => 'mi2', 'menuId' => 'm1', 'itemType' => 'custom', 'url' => 'https://example.com/x', 'order' => 2, 'title' => 'Example', 'parentId' => 'mi1'];
 

@@ -7,6 +7,7 @@ use App\Domain\Plugins\PluginWords;
 use App\Domain\Plugins\Readers\ImportReaderDeclaration;
 use Teme\Contracts\Hooks\Hooks;
 use Teme\Contracts\Import\HasImportReader;
+use Teme\Contracts\Import\ImportItem;
 use Teme\Contracts\Import\ImportKind;
 use Teme\Contracts\Import\ImportReaderRefused;
 use Teme\Contracts\Plugins\Plugin;
@@ -161,13 +162,13 @@ it('refuses a file that isn’t a fake export, an item of an unknown kind or sta
     }
 });
 
-it('carries a comment’s post and spam status, and a menu item’s menu, type, object, order and place', function (): void {
+it('carries a comment’s post and spam status, and a menu item’s menu, type, object and order, and no place for a menu', function (): void {
     $path = fakeExport([
         'system' => 'Fake export',
         'items' => [
             ['kind' => ImportKind::POST, 'id' => 'i1', 'title' => 'Hello', 'status' => 'published'],
             ['kind' => ImportKind::COMMENT, 'id' => 'c1', 'postId' => 'i1', 'status' => 'spam', 'content' => 'Buy now', 'authorName' => 'Sam', 'authorEmail' => 'sam@example.com', 'authorUrl' => 'https://example.com', 'authorIp' => '192.0.2.1'],
-            ['kind' => ImportKind::MENU, 'id' => 'm1', 'title' => 'Main', 'slug' => 'main', 'placement' => 'primary'],
+            ['kind' => ImportKind::MENU, 'id' => 'm1', 'title' => 'Main', 'slug' => 'main'],
             ['kind' => ImportKind::MENU_ITEM, 'id' => 'mi1', 'menuId' => 'm1', 'itemType' => 'post_type', 'objectId' => 'i1', 'order' => 1, 'title' => 'Hello'],
         ],
     ]);
@@ -181,7 +182,6 @@ it('carries a comment’s post and spam status, and a menu item’s menu, type, 
         ->and($comment->status)->toBe('spam')
         ->and($comment->fields)->toBe(['authorName' => 'Sam', 'authorEmail' => 'sam@example.com', 'authorUrl' => 'https://example.com', 'authorIp' => '192.0.2.1'])
         ->and($menu->fields)->toBe(['slug' => 'main'])
-        ->and($menu->placement)->toBe('primary')
         ->and($item->kind)->toBe(ImportKind::MENU_ITEM)
         ->and($item->menuId)->toBe('m1')
         ->and($item->itemType)->toBe('post_type')
@@ -189,4 +189,8 @@ it('carries a comment’s post and spam status, and a menu item’s menu, type, 
         ->and($item->order)->toBe(1);
 
     unlink($path);
+});
+
+it('carries no menu placement, since a menu comes across unplaced', function (): void {
+    expect(property_exists(ImportItem::class, 'placement'))->toBeFalse();
 });

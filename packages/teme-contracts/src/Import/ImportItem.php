@@ -55,6 +55,5 @@ final readonly class ImportItem
         public ?string $itemType = null,
         public ?string $objectId = null,
         public int $order = 0,
-        public ?string $placement = null,
     ) {}
 }

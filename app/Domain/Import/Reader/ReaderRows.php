@@ -293,8 +293,8 @@ final class ReaderRows
 
     /**
      * A menu, as the term of its navigation: the engine assembles its items
-     * into the menu. Where it is placed is chosen on the import plan, so a
-     * reader's placement is carried but not used.
+     * into the menu. Menus come across unplaced; the import plan chooses
+     * where each one sits.
      *
      * @return array{list: string, id: int, payload: array<string, mixed>}
      */
