@@ -7,7 +7,7 @@
  * to find out runs out of memory on a long animation (issue 806).
  *
  * @package Teme
- * @since   next
+ * @since   1.7.1
  * @license MIT
  */
 
