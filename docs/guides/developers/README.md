@@ -37,6 +37,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Content inside articles](plugins/insertions.md)
 - [Content on every page](plugins/page-insertions.md)
 - [Cards for a theme's regions](plugins/cards.md)
+- [Stylesheets for a plugin's output](plugins/styles.md)
 - [The fediverse](plugins/fediverse.md)
 - [List columns](plugins/list-columns.md)
 - [List actions](plugins/list-actions.md)

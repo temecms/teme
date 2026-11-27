@@ -109,6 +109,7 @@ final class ManifestValidator
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
         'custom_tokens', 'custom_tokens_dark', 'styles',
         'speculation', 'breadcrumbs', 'screenshot', 'cards', 'overrides', 'composers', 'per_page', 'csp', 'icon', 'site_icon', 'screenshots',
+        'plugin_styles',
     ];
 
     /** The setting core adds when a theme declares styles (issue 371). */
@@ -187,6 +188,7 @@ final class ManifestValidator
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
         array_push($errors, ...$this->cards($manifest, $themePath));
         array_push($errors, ...$this->overrides($manifest, $themePath));
+        array_push($errors, ...$this->pluginStyles($manifest));
 
         $composers = $manifest['composers'] ?? [];
 
@@ -1277,5 +1279,34 @@ final class ManifestValidator
     private function show(mixed $value): string
     {
         return is_scalar($value) ? (string) $value : get_debug_type($value);
+    }
+
+    /**
+     * The plugin stylesheets the theme switches off, as `code:output` keys
+     * (docs/guides/developers/plugins/styles.md): a list of strings.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function pluginStyles(array $manifest): array
+    {
+        if (! array_key_exists('plugin_styles', $manifest)) {
+            return [];
+        }
+
+        $off = is_array($manifest['plugin_styles']) ? ($manifest['plugin_styles']['off'] ?? null) : null;
+
+        if (! is_array($off) || ! array_is_list($off)) {
+            return ['plugin_styles.off must list the plugin stylesheets the theme switches off.'];
+        }
+
+        foreach ($off as $key) {
+            if (! is_string($key) || preg_match('/^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$/', $key) !== 1) {
+                return ['plugin_styles.off must name each stylesheet as code:card:<id> or code:insertion:<id>.'];
+            }
+        }
+
+        return [];
     }
 }

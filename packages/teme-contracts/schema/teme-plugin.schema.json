@@ -1358,6 +1358,28 @@
                         "enum": ["image-service", "search", "comment-check"]
                     }
                 },
+                "styles": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "description": "Built stylesheets, one per card or page insertion. Linked only on a page that draws that output, in the plugins cascade layer.",
+                    "items": {
+                        "type": "object",
+                        "required": ["output", "file"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "output": {
+                                "type": "string",
+                                "pattern": "^(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$",
+                                "description": "The output the sheet styles: card:<id> or insertion:<id>."
+                            },
+                            "file": {
+                                "type": "string",
+                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css$",
+                                "description": "A .css file inside the plugin's package, relative to its root."
+                            }
+                        }
+                    }
+                },
                 "imageService": {
                     "type": "object",
                     "additionalProperties": false,

@@ -24,6 +24,7 @@ use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\PluginRecords;
+use App\Domain\Plugins\Styles\PluginStyleUsage;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Themes\ComposerRegistry;
 use App\Domain\Themes\ViewIntent;
@@ -68,6 +69,9 @@ final class PageInsertions
     /** @var array<string, true> the plugins whose declared hosts already joined the page's policy */
     private array $hosted = [];
 
+    /** @var array<string, string> each insertion as it was cleaned for this page, by position kind and key */
+    private array $cleaned = [];
+
     public function __construct(
         private readonly Container $container,
         private readonly LoadedPlugins $loaded,
@@ -105,6 +109,7 @@ final class PageInsertions
         $this->request = $request;
         $this->given = null;
         $this->hosted = [];
+        $this->cleaned = [];
         $this->facts = $this->factsFor($request, $answer, $language);
 
         if ($this->facts !== null) {
@@ -165,6 +170,44 @@ final class PageInsertions
      */
     public function draw(array $entry, bool $head = false): string
     {
+        $cacheKey = ($head ? 'head:' : 'body:').$entry['insertion']->key;
+
+        if (! isset($this->cleaned[$cacheKey])) {
+            $this->cleaned[$cacheKey] = $this->clean($entry, $head);
+        }
+
+        $html = $this->cleaned[$cacheKey];
+        $code = $entry['code'];
+        $id = $code === null ? null : $this->insertionId($code, $entry['insertion']->key);
+
+        if ($id !== null && trim($html) !== '') {
+            $this->container->make(PluginStyleUsage::class)->record($code, 'insertion:'.$id);
+        }
+
+        return $html;
+    }
+
+    /**
+     * Records the stylesheet output of each plugin insertion this page draws at the head, the body's
+     * start or the body's end, before the head is written, so the head links their sheets. Cleans each
+     * once, through draw(), so what is linked is exactly what is drawn. Fixed-edge insertions are drawn
+     * after the body, so their sheets are linked after it (see Document::lateStyles()).
+     */
+    public function declareStyles(): void
+    {
+        foreach ($this->at(PagePosition::HEAD, PagePosition::BODY_START, PagePosition::BODY_END) as $entry) {
+            $this->draw($entry, $entry['insertion']->at->kind === PagePosition::HEAD);
+        }
+    }
+
+    /**
+     * What a contributor's insertion is cleaned to, with its plugin's hosts noted in the page's policy
+     * the first time that plugin's markup is not empty.
+     *
+     * @param  array{owner: string, code: string|null, insertion: PageInsertion}  $entry
+     */
+    private function clean(array $entry, bool $head): string
+    {
         $code = $entry['code'];
         $hosts = $code !== null && ! isset($this->hosted[$code]);
         $html = $this->container->make(PluginMarkup::class)->clean($code, $entry['insertion']->html, $head, $hosts);
@@ -174,6 +217,17 @@ final class PageInsertions
         }
 
         return $html;
+    }
+
+    /**
+     * The id a plugin's insertion is declared under in its styles: the part of its key after
+     * the plugin's code and a dot, or null when the key doesn't start that way.
+     */
+    private function insertionId(string $code, string $key): ?string
+    {
+        $prefix = $code.'.';
+
+        return str_starts_with($key, $prefix) ? substr($key, strlen($prefix)) : null;
     }
 
     /**

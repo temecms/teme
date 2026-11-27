@@ -9,6 +9,7 @@
     "plugin": "Tests\\Fixtures\\Plugins\\Billboard\\Billboard",
     "capabilities": ["pages.insert"],
     "contributes": {
+        "styles": [{ "output": "insertion:top", "file": "dist/top.css" }],
         "settings": [
             { "key": "label", "type": "text", "label": "Label", "description": "What the bars say." }
         ],
