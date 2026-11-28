@@ -27,6 +27,7 @@ namespace App\Domain\Plugins\Doors;
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\Plugins\PluginSiteAi;
 use App\Domain\Cards\Plugin\CoreCardsChanged;
+use App\Domain\Contents\Queries\ItemCards;
 use App\Domain\Contents\Queries\ItemSnapshots;
 use App\Domain\Contents\Queries\PublishedItems;
 use App\Domain\Contents\Queries\QueuedItems;
@@ -86,6 +87,7 @@ final readonly class PluginDoors implements PluginServices
         private PublishedItems $published,
         private ItemSnapshots $snapshots,
         private QueuedItems $queued,
+        private ItemCards $cards,
         private AuthorOptions $authors,
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
@@ -162,7 +164,7 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
-            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued);
+            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued, $this->cards);
         }
 
         if (in_array(Capability::DirectoryRead->value, $capabilities, true)) {
