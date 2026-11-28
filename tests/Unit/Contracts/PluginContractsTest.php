@@ -60,6 +60,7 @@ use Teme\Contracts\Insertions\PageInsertion;
 use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Insertions\PagePosition;
 use Teme\Contracts\Jobs\JobContext;
+use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\JobHandler;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\JobStopped;
@@ -216,6 +217,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [HasSitemaps::class, '1.1.0'],
     [PluginSitemap::class, '1.1.0'],
     [SitemapEntry::class, '1.1.0'],
+    [JobFailed::class, 'next'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {

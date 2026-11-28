@@ -33,6 +33,7 @@ use App\Domain\Support\Security\JobActor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\JobStopped;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Throwable;
@@ -166,6 +167,12 @@ final class RunPluginJob implements ShouldQueue
             // Another try would ask for the same person, so it fails now.
             $this->tries = 1;
             $fail->execute(new FailJobInput($this->trackedJobId, $nobody->getMessage(), $this->actor->userId));
+
+            return;
+        } catch (JobFailed $failed) {
+            // The handler said this failure isn't worth another try.
+            $this->tries = 1;
+            $fail->execute(new FailJobInput($this->trackedJobId, $failed->getMessage(), $this->actor->userId));
 
             return;
         } catch (JobStopped) {

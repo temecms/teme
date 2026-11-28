@@ -106,7 +106,9 @@ A run that needs longer than its limit is cut short and retried, so cut big work
 
 When a handler throws, Teme reports the exception to the site's log with your plugin's name, and the run is tried again after its backoff, until its tries are used. The last failure marks the run failed in **Tools › Jobs**, with the first line of the exception's message, cut at 200 characters, so write that line for the person who reads it.
 
-On a `sync` queue the exception also reaches the code that called `queue()`, after the run is marked failed.
+To end a run for good without another try — for example when Search Console isn't connected — throw `JobFailed::permanently('reason in plain words')`. Teme marks the run failed with that reason, does not retry whatever `tries` says, and does not write the failure to the site's log.
+
+On a `sync` queue a thrown exception that isn't a permanent failure also reaches the code that called `queue()`, after the run is marked failed.
 
 Teme cancels a run that hasn't started when the plugin is disabled, has lost the `jobs` capability, or the site is in safe mode, and disabling a plugin cancels its waiting and running jobs.
 

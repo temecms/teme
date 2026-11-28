@@ -39,9 +39,11 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\JobStopped;
 use Tests\Fixtures\Plugins\Lists\FakeResolver;
@@ -199,6 +201,33 @@ it('fails a throwing handler with the first line of its message', function (): v
     $row = TrackedJob::query()->findOrFail($id);
     expect($row->state)->toBe(JobState::Failed)
         ->and($row->message)->toBe('The workspace answered nothing.');
+});
+
+it('fails a permanent JobFailed once, without a retry or a log line, whatever tries says', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    Exceptions::fake();
+    $id = ($this->jobs)()->queue('fail-for-good', []);
+
+    $job = new RunPluginJob('jobs', 'fail-for-good', $id, JobActor::operator());
+    $job->handle(
+        app(PluginRegistry::class),
+        app(PluginLoader::class),
+        app(SafeMode::class),
+        app(CancelJob::class),
+        app(FailJob::class),
+        app(FinishJob::class),
+        app(ReportJobProgress::class),
+    );
+
+    $row = TrackedJob::query()->findOrFail($id);
+
+    expect($row->state)->toBe(JobState::Failed)
+        ->and($row->message)->toBe('Search Console isn’t connected.')
+        ->and($job->tries)->toBe(1)
+        ->and(DB::table('jobs_lines')->count())->toBe(0);
+
+    Exceptions::assertNotReported(JobFailed::class);
 });
 
 it('refuses a payload over 64 KB or with an object', function (): void {

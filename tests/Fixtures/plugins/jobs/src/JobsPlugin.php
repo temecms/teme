@@ -35,6 +35,7 @@ final class JobsPlugin implements Plugin, PluginHasJobs
             'progress-write' => new ProgressWriteHandler,
             'long-call' => new LongCallHandler($this->http),
             'throw' => new ThrowHandler,
+            'fail-for-good' => new FailForGoodHandler,
         ];
     }
 }
