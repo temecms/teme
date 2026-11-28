@@ -216,6 +216,7 @@ export function FilePlan({
                     site={site}
                     form={form}
                     answers={plan.oldSiteAnswers ?? false}
+                    copyReady={plan.copyReady}
                     resume={plan.resumeStart}
                     onCheckAgain={() =>
                         router.reload({
@@ -273,7 +274,8 @@ function authorOptions(
 function FileChoices({
     site,
     form,
-    answers,
+    answers: siteAnswers,
+    copyReady,
     resume,
     onCheckAgain,
     checking,
@@ -281,6 +283,8 @@ function FileChoices({
     site: ImportSite;
     form: FileChoicesForm;
     answers: boolean;
+    /** Whether a ready uploads copy is attached: the pictures can come from it. */
+    copyReady: boolean;
     /** Send the form once at once: a start the password's confirmation interrupted. */
     resume: boolean;
     onCheckAgain: () => void;
@@ -294,6 +298,9 @@ function FileChoices({
             formRef.current?.submit();
         }
     }, [resume]);
+
+    // The media choices are open when the site answers, or when a copy of its uploads can supply the pictures (#791).
+    const answers = siteAnswers || copyReady;
 
     const [media, setMedia] = useState<string>(answers ? form.media : 'links');
 
@@ -472,6 +479,14 @@ function FileChoices({
                                 },
                             )}
                         </p>
+                        {!siteAnswers && copyReady && (
+                            <Notice tone="ok" data-test="import-copy-ready">
+                                {__(
+                                    ':host doesn’t answer, but the pictures come from the uploads copy.',
+                                    { host },
+                                )}
+                            </Notice>
+                        )}
                         {!answers && (
                             <Notice
                                 tone="warn"
@@ -511,7 +526,7 @@ function FileChoices({
                                         host,
                                     })}
                                 />
-                                {answers && (
+                                {siteAnswers && (
                                     <StatusPill
                                         tone="ok"
                                         data-test="import-old-site-answers"

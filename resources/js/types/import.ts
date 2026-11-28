@@ -205,6 +205,8 @@ export type ImportPlan = {
     fileForm: FileChoicesForm | null;
     /** For a site read from its file: whether the old site answers, so its media can be downloaded. */
     oldSiteAnswers: boolean | null;
+    /** Whether a ready uploads copy is attached, so the media can come from it. */
+    copyReady: boolean;
     remembered: RememberedChoices | null;
     /** A start the password's confirmation interrupted: sent again once, at once. */
     resumeStart: boolean;
