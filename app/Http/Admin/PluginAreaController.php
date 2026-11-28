@@ -33,6 +33,7 @@ use App\Domain\Plugins\Queries\PluginRecordForm;
 use App\Domain\Plugins\Queries\PluginSettingsScreen;
 use App\Domain\Site\Insertions\Operations\ApprovePluginScript;
 use App\Domain\Site\Insertions\Operations\Input\ApprovePluginScriptInput;
+use App\Domain\Site\Insertions\Scripts\ScriptRequests;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -54,6 +55,9 @@ final class PluginAreaController extends Controller
         abort_if($frame === null, 404);
 
         $personId = (string) $user?->getAuthIdentifier();
+        $periodId = $request->query('period');
+        $periodId = is_string($periodId) ? $periodId : null;
+        $period = $screen->period($plugin, $frame['current']['id'], $personId, $periodId);
         /** @var array<string, array<string, mixed>> $asks */
         $asks = (array) $request->query('t', []);
         $data = [];
@@ -64,15 +68,23 @@ final class PluginAreaController extends Controller
             if (in_array($block['type'], ['figures', 'chart', 'table'], true)) {
                 $ask = is_array($asks[$id] ?? null) ? $asks[$id] : [];
                 // Each block in a group of its own, so each loads on its own (A6).
-                $data["block_{$id}"] = Inertia::defer(fn (): ?array => $screen->data($plugin, $frame['current']['id'], $id, $personId, $ask), "block_{$id}");
+                $data["block_{$id}"] = Inertia::defer(fn (): ?array => $screen->data($plugin, $frame['current']['id'], $id, $personId, $ask, $period['id'] ?? null), "block_{$id}");
             }
         }
+
+        $noun = $this->waitingNoun($plugin, $frame['blocks']);
 
         return Inertia::render('plugins/area', [
             ...$frame,
             // The top bar's parent: Tools for an area placed there, none for one in the menu.
             'parent' => app(AreaEntries::class)->onTools($code) ? ['title' => __('Tools'), 'href' => route('tools.index', [], false)] : null,
             'asks' => $asks,
+            'period' => $period,
+            'counts' => Inertia::defer(fn (): ?array => $screen->counts($plugin, $personId), 'counts'),
+            'waitingScripts' => ScriptRequests::waiting($plugin->code),
+            'waitingNoun' => $noun['singular'],
+            'waitingNouns' => $noun['plural'],
+            'reviewScripts' => route('settings.site-code', absolute: false),
             ...$data,
         ]);
     }
@@ -240,23 +252,64 @@ final class PluginAreaController extends Controller
     {
         $plugin = $this->plugin($request, $code, $screen);
         $user = $request->user();
-        $found = $form->find($plugin, $record, $id, (string) $user?->getAuthIdentifier());
+        $personId = (string) $user?->getAuthIdentifier();
+        $found = $form->find($plugin, $record, $id, $personId);
 
         abort_if($found === null, 404);
 
+        $header = $id === null ? null : $screen->header($plugin, $record, $id, $personId);
+
         return Inertia::render('plugins/record', [
-            'plugin' => ['code' => $plugin->code, 'name' => $plugin->label],
+            'plugin' => ['code' => $plugin->code, 'name' => $plugin->label, 'icon' => $screen->iconUrl($plugin)],
             // Where the form's top bar leads: the page listing these records.
             'back' => $this->listing($code, $record),
             // The area's label in the crumbs (design system 4.31), not the plugin's name.
             'area' => ['label' => AreaWords::text($plugin->code, $plugin->area->label)],
             ...$found,
+            'header' => $header,
             // The code fields' scripts that wait, and whether this person may approve them here (the decided Q2).
             'scripts' => [
                 'waiting' => CodeScripts::waiting($plugin->code, CodeScripts::inArea($found['record']['label'], $plugin->area->fields($record), $found['values'])),
                 'approver' => CodeScripts::approver($user),
             ],
         ]);
+    }
+
+    /**
+     * The waiting-script banner's noun from the page's first table record,
+     * else the area's first declared record, else "item" / "items".
+     *
+     * @param  list<array<string, mixed>>  $blocks
+     *
+     * @return array{singular: string, plural: string}
+     */
+    private function waitingNoun(AreaPlugin $plugin, array $blocks): array
+    {
+        foreach ($blocks as $block) {
+            if (($block['type'] ?? null) !== 'table' || ! is_array($block['record'] ?? null)) {
+                continue;
+            }
+
+            $singular = is_string($block['record']['label'] ?? null) ? mb_strtolower($block['record']['label']) : '';
+            $plural = is_string($block['record']['plural'] ?? null) ? mb_strtolower($block['record']['plural']) : '';
+
+            if ($singular !== '' && $plural !== '') {
+                return ['singular' => $singular, 'plural' => $plural];
+            }
+        }
+
+        $record = $plugin->area->records[0] ?? null;
+
+        if (is_array($record)) {
+            $singular = is_string($record['label'] ?? null) ? mb_strtolower(AreaWords::text($plugin->code, $record['label'])) : '';
+            $plural = is_string($record['plural'] ?? null) ? mb_strtolower(AreaWords::text($plugin->code, $record['plural'])) : '';
+
+            if ($singular !== '' && $plural !== '') {
+                return ['singular' => $singular, 'plural' => $plural];
+            }
+        }
+
+        return ['singular' => __('item'), 'plural' => __('items')];
     }
 
     /**

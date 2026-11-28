@@ -18,6 +18,7 @@ namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Plugins\Area\AreaContexts;
+use App\Domain\Plugins\Area\AreaPeriods;
 use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\AreaValidator;
@@ -27,6 +28,7 @@ use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\PluginRegistry;
 use App\Models\User;
 use Closure;
+use Teme\Contracts\Admin\AreaPeriod;
 use Teme\Contracts\Admin\TableQuery;
 
 /**
@@ -108,7 +110,7 @@ final readonly class PluginAreaScreen
      * The address of the plugin's own icon for the area header, or null when
      * the package declares none or the file is missing.
      */
-    private function iconUrl(AreaPlugin $plugin): ?string
+    public function iconUrl(AreaPlugin $plugin): ?string
     {
         $found = $this->registry->find($plugin->name);
         $manifest = $found?->manifest;
@@ -123,16 +125,19 @@ final readonly class PluginAreaScreen
     /**
      * A block's data, read from the plugin under the budgets: a figures
      * block's items, a chart's labels and series, a table's rows; null for
-     * a block that needs none.
+     * a block that needs none. Pass a period id for figures and charts.
      *
      * @param  TableAsk  $ask  what the table's search, filters, sort and page ask
      *
      * @return array<string, mixed>|null
      */
-    public function data(AreaPlugin $plugin, string $page, string $block, string $personId, array $ask = []): ?array
+    public function data(AreaPlugin $plugin, string $page, string $block, string $personId, array $ask = [], ?string $periodId = null): ?array
     {
         $declared = $plugin->area->block($page, $block);
-        $context = AreaContexts::for($plugin->code, $personId);
+        $base = AreaContexts::for($plugin->code, $personId);
+        $needsPeriod = in_array($declared['type'] ?? null, ['figures', 'chart'], true);
+        $period = $needsPeriod ? AreaPeriods::of(AreaPeriods::id($periodId), $base->timezone) : null;
+        $context = AreaContexts::for($plugin->code, $personId, $period);
 
         return match ($declared['type'] ?? null) {
             'figures' => $this->reads->figures($plugin, $page, $declared, $context),
@@ -140,6 +145,74 @@ final readonly class PluginAreaScreen
             'table' => $this->reads->rows($plugin, $declared, $this->query($declared, $ask), $context),
             default => null,
         };
+    }
+
+    /**
+     * The statistics period the page draws: its id, options, range line parts
+     * and comparison phrase. Null when the page has no figures or charts.
+     *
+     * @return array{id: string, options: list<array{id: string, label: string}>, range: string, compare: string, timezone: string, lower: string, before: string}|null
+     */
+    public function period(AreaPlugin $plugin, string $page, string $personId, ?string $periodId = null): ?array
+    {
+        $current = $plugin->area->page($page);
+
+        if ($current === null) {
+            return null;
+        }
+
+        $hasStats = false;
+
+        foreach ($current['blocks'] as $block) {
+            if (in_array($block['type'] ?? null, ['figures', 'chart'], true)) {
+                $hasStats = true;
+                break;
+            }
+        }
+
+        if (! $hasStats) {
+            return null;
+        }
+
+        $context = AreaContexts::for($plugin->code, $personId);
+        $period = AreaPeriods::of(AreaPeriods::id($periodId), $context->timezone);
+
+        return [
+            'id' => $period->id,
+            'options' => AreaPeriods::options(),
+            'range' => __(':start to :end, in the :zone time zone.', [
+                'start' => AreaPeriods::shown($period->start, $context->timezone),
+                'end' => AreaPeriods::shown($period->end, $context->timezone),
+                'zone' => $context->timezone,
+            ]),
+            'compare' => __('Compared with :start to :end.', [
+                'start' => AreaPeriods::shown($period->compareStart, $context->timezone),
+                'end' => AreaPeriods::shown($period->compareEnd, $context->timezone),
+            ]),
+            'timezone' => $context->timezone,
+            'lower' => AreaPeriods::lower($period->id),
+            'before' => AreaPeriods::before($period->id),
+        ];
+    }
+
+    /**
+     * A record's header props, or null.
+     *
+     * @return array{status: string|null, tone: string, meta: list<string>}|null
+     */
+    public function header(AreaPlugin $plugin, string $record, string $id, string $personId): ?array
+    {
+        return $this->reads->header($plugin, $record, $id, AreaContexts::for($plugin->code, $personId));
+    }
+
+    /**
+     * Tab counts by page id, or null when the plugin has none.
+     *
+     * @return array<string, int>|null
+     */
+    public function counts(AreaPlugin $plugin, string $personId): ?array
+    {
+        return $this->reads->counts($plugin, AreaContexts::for($plugin->code, $personId));
     }
 
     /**
@@ -156,7 +229,11 @@ final readonly class PluginAreaScreen
         $words = fn (string $english): string => AreaWords::text($plugin->code, $english);
         $frame = $this->blockFrame($plugin, $declared, $words);
         $id = is_string($declared['id'] ?? null) ? $declared['id'] : '';
-        $context = AreaContexts::for($plugin->code, $personId);
+        $base = AreaContexts::for($plugin->code, $personId);
+        $period = in_array($frame['type'], ['figures', 'chart'], true)
+            ? AreaPeriods::of(AreaPeriod::LAST_30_DAYS, $base->timezone)
+            : null;
+        $context = AreaContexts::for($plugin->code, $personId, $period);
 
         $data = match ($frame['type']) {
             'figures' => $this->reads->figures($plugin, $page, $declared, $context),

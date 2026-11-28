@@ -25,7 +25,10 @@ use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Admin\AreaContext;
 use Teme\Contracts\Admin\Chart;
 use Teme\Contracts\Admin\Figure;
+use Teme\Contracts\Admin\HasAreaCounts;
+use Teme\Contracts\Admin\HasRecordHeader;
 use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
 use Teme\Contracts\Admin\RowPage;
 use Teme\Contracts\Admin\TableQuery;
@@ -48,6 +51,9 @@ final class AreaReads
 
     public const int MOST_SEARCH = 100;
 
+    /** The largest tab count drawn; above it the tab shows no number. @since next */
+    public const int MOST_COUNT = 1_000_000;
+
     private int $spent = 0;
 
     public function __construct(
@@ -58,10 +64,11 @@ final class AreaReads
     /**
      * A figures block's items, each its id, label, format, value (null when
      * the plugin gave none) and change; or the line saying it couldn't be shown.
+     * An empty answer from the plugin is the "No statistics yet" state.
      *
      * @param  array<string, mixed>  $block
      *
-     * @return array{items: list<array{id: string, label: string, format: string, value: string|int|float|null, change: float|null}>, failed: string|null}
+     * @return array{items: list<array{id: string, label: string, format: string, value: string|int|float|null, change: float|null}>, failed: string|null, empty?: bool}
      */
     public function figures(AreaPlugin $plugin, string $page, array $block, AreaContext $context): array
     {
@@ -72,8 +79,13 @@ final class AreaReads
             return ['items' => [], 'failed' => $this->failure($plugin)];
         }
 
+        if (is_array($given) && $given === []) {
+            return ['items' => [], 'failed' => null, 'empty' => true];
+        }
+
         $items = [];
         $refused = ! is_array($given);
+        $index = 0;
 
         foreach (is_array($block['items'] ?? null) ? $block['items'] : [] as $item) {
             if (! is_array($item) || ! is_string($item['id'] ?? null)) {
@@ -92,13 +104,23 @@ final class AreaReads
                 $refused = true;
             }
 
+            $label = AreaWords::text($plugin->code, is_string($item['label'] ?? null) ? $item['label'] : '');
+            $thing = (string) preg_replace('/,\s.+$/u', '', $label);
+
+            if ($index === 0 && $context->period !== null) {
+                $label = $thing.', '.AreaPeriods::lower($context->period->id);
+            }
+
             $items[] = [
                 'id' => $item['id'],
-                'label' => AreaWords::text($plugin->code, is_string($item['label'] ?? null) ? $item['label'] : ''),
+                'label' => $label,
                 'format' => $format,
                 'value' => $value === '' ? null : $value,
                 'change' => $change,
+                'thing' => $thing !== '' ? mb_strtolower($thing) : null,
+                'before' => $context->period !== null ? AreaPeriods::before($context->period->id) : null,
             ];
+            $index++;
         }
 
         if ($refused) {
@@ -110,11 +132,12 @@ final class AreaReads
 
     /**
      * A chart block's labels and its declared series, each with its values;
-     * or the line saying it couldn't be shown.
+     * or the line saying it couldn't be shown. Earlier-period series from
+     * the plugin are drawn dashed with core's comparison label.
      *
      * @param  array<string, mixed>  $block
      *
-     * @return array{labels: list<string>, series: list<array{id: string, label: string, values: list<int|float>}>, failed: string|null}
+     * @return array{labels: list<string>, series: list<array{id: string, label: string, values: list<int|float>, dashed: bool}>, failed: string|null, empty?: bool}
      */
     public function chart(AreaPlugin $plugin, string $page, array $block, AreaContext $context): array
     {
@@ -125,7 +148,12 @@ final class AreaReads
             return ['labels' => [], 'series' => [], 'failed' => $this->failure($plugin)];
         }
 
+        if ($given->labels === [] && $given->series === []) {
+            return ['labels' => [], 'series' => [], 'failed' => null, 'empty' => true];
+        }
+
         $series = [];
+        $before = $context->period !== null ? AreaPeriods::beforeLabel($context->period->id) : null;
 
         foreach (is_array($block['series'] ?? null) ? $block['series'] : [] as $one) {
             if (! is_array($one) || ! is_string($one['id'] ?? null)) {
@@ -136,7 +164,17 @@ final class AreaReads
                 'id' => $one['id'],
                 'label' => AreaWords::text($plugin->code, is_string($one['label'] ?? null) ? $one['label'] : ''),
                 'values' => $given->series[$one['id']] ?? array_fill(0, count($given->labels), 0),
+                'dashed' => false,
             ];
+
+            if ($before !== null && array_key_exists($one['id'], $given->compare)) {
+                $series[] = [
+                    'id' => $one['id'].'__before',
+                    'label' => $before,
+                    'values' => $given->compare[$one['id']],
+                    'dashed' => true,
+                ];
+            }
         }
 
         return [
@@ -144,6 +182,73 @@ final class AreaReads
             'series' => $series,
             'failed' => null,
         ];
+    }
+
+    /**
+     * A record's header for its form page, or null when the plugin supplies
+     * none or the read fails.
+     *
+     * @return array{status: string|null, tone: string, meta: list<string>}|null
+     */
+    public function header(AreaPlugin $plugin, string $record, string $id, AreaContext $context): ?array
+    {
+        if (! $plugin->data instanceof HasRecordHeader) {
+            return null;
+        }
+
+        $given = $this->call($plugin, "header {$record}", fn (PluginArea $data): ?RecordHeader => $data instanceof HasRecordHeader ? $data->header($record, $id, $context) : null);
+
+        if (! $given instanceof RecordHeader) {
+            return null;
+        }
+
+        $meta = [];
+
+        foreach (array_slice($given->meta, 0, 3) as $line) {
+            $clean = CellText::clean($line, PluginColumns::MOST_TEXT);
+
+            if ($clean !== null && $clean !== '') {
+                $meta[] = $clean;
+            }
+        }
+
+        $status = $given->status === null ? null : CellText::clean($given->status, PluginColumns::MOST_BADGE);
+
+        return [
+            'status' => $status === '' ? null : $status,
+            'tone' => $given->tone,
+            'meta' => $meta,
+        ];
+    }
+
+    /**
+     * Tab counts by page id, or null when the plugin has none or the read fails.
+     *
+     * @return array<string, int>|null
+     */
+    public function counts(AreaPlugin $plugin, AreaContext $context): ?array
+    {
+        if (! $plugin->data instanceof HasAreaCounts) {
+            return null;
+        }
+
+        $given = $this->call($plugin, 'counts', fn (PluginArea $data): array => $data instanceof HasAreaCounts ? $data->counts($context) : []);
+
+        if (! is_array($given)) {
+            return null;
+        }
+
+        $counts = [];
+
+        foreach ($plugin->area->pages as $page) {
+            $value = $given[$page['id']] ?? null;
+
+            if (is_int($value) && $value >= 0 && $value < self::MOST_COUNT) {
+                $counts[$page['id']] = $value;
+            }
+        }
+
+        return $counts;
     }
 
     /**

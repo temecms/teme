@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
+import { EmptyState } from '@/components/list/empty-state';
 import { __ } from '@/lib/i18n';
 import type { AreaFiguresData } from '@/types/plugin-area';
 
@@ -32,13 +33,22 @@ function dotClass(change: number | null): string {
 }
 
 /** A change as an arrow and a percentage, said in words for screen readers. */
-function Change({ change }: { change: number }) {
+function Change({ item }: { item: Item }) {
+    const change = item.change;
+
+    if (change === null) {
+        return null;
+    }
+
     const up = change >= 0;
     const amount = new Intl.NumberFormat(undefined, {
         style: 'percent',
         maximumFractionDigits: 1,
     }).format(Math.abs(change));
+    const percent = Math.round(Math.abs(change) * 100);
     const Arrow = up ? ArrowUp : ArrowDown;
+    const thing = item.thing ?? item.label.toLowerCase();
+    const before = item.before ?? __('the earlier period');
 
     return (
         <span
@@ -52,8 +62,16 @@ function Change({ change }: { change: number }) {
             <span aria-hidden="true">{amount}</span>
             <span className="sr-only">
                 {up
-                    ? __('Up :amount', { amount })
-                    : __('Down :amount', { amount })}
+                    ? __(':n% more :thing than :before', {
+                          n: percent,
+                          thing,
+                          before,
+                      })
+                    : __(':n% fewer :thing than :before', {
+                          n: percent,
+                          thing,
+                          before,
+                      })}
             </span>
         </span>
     );
@@ -62,7 +80,7 @@ function Change({ change }: { change: number }) {
 /**
  * A plugin's figures (docs/plans/plugin-sockets-2.md, A9; design-system
  * §4.28 figure tile): the value large, its label beneath with a coloured
- * dot, and its change on its own line.
+ * dot, and its change on its own line. An empty answer is "No statistics yet".
  */
 export function AreaFigures({
     data,
@@ -71,6 +89,20 @@ export function AreaFigures({
     data: AreaFiguresData;
     label: string;
 }) {
+    if (data.empty) {
+        return (
+            <div data-test="area-figures-empty">
+                <EmptyState
+                    kind="nothing-yet"
+                    title={__('No statistics yet')}
+                    description={__(
+                        'Figures appear the day after an ad first shows.',
+                    )}
+                />
+            </div>
+        );
+    }
+
     return (
         <section
             aria-label={label}
@@ -93,7 +125,7 @@ export function AreaFigures({
                         />
                         {item.label}
                     </span>
-                    {item.change !== null && <Change change={item.change} />}
+                    {item.change !== null && <Change item={item} />}
                 </div>
             ))}
         </section>

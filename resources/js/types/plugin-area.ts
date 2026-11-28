@@ -84,14 +84,39 @@ export type AreaFiguresData = {
         format: 'number' | 'percent' | 'text';
         value: string | number | null;
         change: number | null;
+        thing?: string | null;
+        before?: string | null;
     }[];
     failed: string | null;
+    empty?: boolean;
 };
 
 export type AreaChartData = {
     labels: string[];
-    series: { id: string; label: string; values: number[] }[];
+    series: {
+        id: string;
+        label: string;
+        values: number[];
+        dashed?: boolean;
+    }[];
     failed: string | null;
+    empty?: boolean;
+};
+
+export type AreaPeriodProps = {
+    id: string;
+    options: { id: string; label: string }[];
+    range: string;
+    compare: string;
+    timezone: string;
+    lower: string;
+    before: string;
+};
+
+export type AreaRecordHeader = {
+    status: string | null;
+    tone: 'ok' | 'neutral' | 'info' | 'warn' | 'danger';
+    meta: string[];
 };
 
 export type AreaRowsData = {
@@ -129,6 +154,15 @@ export type PluginAreaPageProps = {
     asks: Record<string, AreaTableAsk>;
     /** The top bar's parent: Tools for an area placed there, else none. */
     parent: { title: string; href: string } | null;
+    /** Statistics period when the page has figures or charts. */
+    period?: AreaPeriodProps | null;
+    /** Deferred tab counts by page id. */
+    counts?: Record<string, number> | null;
+    /** How many of this plugin's scripts wait for approval. */
+    waitingScripts?: number;
+    waitingNoun?: string;
+    waitingNouns?: string;
+    reviewScripts?: string;
 } & Record<`block_${string}`, unknown>;
 
 export type AreaChoice = { value: string; label: string };
@@ -185,6 +219,8 @@ export type PluginRecordPageProps = {
     values: Record<string, unknown>;
     failed: string | null;
     deletable: boolean;
+    /** Status and meta under the title; null means title only. */
+    header?: AreaRecordHeader | null;
     /**
      * The code fields' scripts that wait for approval, by the field's path,
      * and whether this person may approve them here (the decided Q2).

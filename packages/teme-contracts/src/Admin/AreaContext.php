@@ -2,7 +2,8 @@
 
 /**
  * Who is looking at a plugin's area, in which language and time zone, and
- * which of the plugin's own permissions they hold.
+ * which of the plugin's own permissions they hold, and the statistics
+ * period when the page asks for one.
  *
  * @package Teme
  * @since   1.0.0
@@ -15,7 +16,8 @@ namespace Teme\Contracts\Admin;
 
 /**
  * Who is looking at a plugin's area, in which language and time zone, and
- * which of the plugin's own permissions they hold.
+ * which of the plugin's own permissions they hold, and the statistics
+ * period when the page asks for one.
  *
  * @since 1.0.0
  */
@@ -35,5 +37,12 @@ final readonly class AreaContext
          * @since 1.0.0
          */
         public array $permissions = [],
+        /**
+         * The statistics window for figures and charts; null when the page
+         * has none (a Home panel keeps the default without a select).
+         *
+         * @since next
+         */
+        public ?AreaPeriod $period = null,
     ) {}
 }

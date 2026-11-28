@@ -7,10 +7,14 @@ use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
 use Teme\Contracts\Admin\AreaContext;
+use Teme\Contracts\Admin\AreaPeriod;
 use Teme\Contracts\Admin\Chart;
 use Teme\Contracts\Admin\Figure;
+use Teme\Contracts\Admin\HasAreaCounts;
 use Teme\Contracts\Admin\HasPluginArea;
+use Teme\Contracts\Admin\HasRecordHeader;
 use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
 use Teme\Contracts\Admin\RowPage;
 use Teme\Contracts\Admin\Saved;
@@ -189,6 +193,10 @@ it('gives every new contract its @since and nothing from a framework', function 
     [HasPluginArea::class, '1.0.0'],
     [PluginArea::class, '1.0.0'],
     [AreaContext::class, '1.0.0'],
+    [AreaPeriod::class, 'next'],
+    [HasRecordHeader::class, 'next'],
+    [RecordHeader::class, 'next'],
+    [HasAreaCounts::class, 'next'],
     [Figure::class, '1.0.0'],
     [Chart::class, '1.0.0'],
     [TableQuery::class, '1.0.0'],

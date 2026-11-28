@@ -91,14 +91,22 @@ The class named under `plugin` in the manifest implements `HasPluginArea` beside
 
 | Method | What it answers |
 |---|---|
-| `figures($page, $block, $context)` | `Figure` values by item id: `Figure::number()`, `Figure::percent()` or `Figure::text()`, with an optional change, 0.12 for up 12% |
-| `chart($page, $block, $context)` | A `Chart` of labels, at most 366, and one value a label for each series |
+| `figures($page, $block, $context)` | `Figure` values by item id: `Figure::number()`, `Figure::percent()` or `Figure::text()`, with an optional change, 0.12 for up 12%. An empty array is the "No statistics yet" state. Read `$context->period` for the window's dates in the person's time zone |
+| `chart($page, $block, $context)` | A `Chart` of labels, at most 366, and one value a label for each series; pass earlier-period values as the optional third `$compare` argument for dashed lines |
 | `rows($record, $query, $context)` | A `RowPage` of up to 100 `Row` values for the `TableQuery`'s page, search, filters and sort, and the total when you know it |
 | `values($record, $id, $context)` | The record's stored values by field key, or null when there is no such record |
 | `save($record, $id, $values, $context)` | Stores the checked values and answers `Saved` with the record's id; `$id` is null for a new one |
 | `act($record, $action, $ids, $context)` | Runs `duplicate`, `enable`, `disable` or `delete` on those records |
 
 A row's cells are list `Cell` values by column id: `Cell::text()`, `Cell::number()`, `Cell::badge()`, or `Cell::link()` for a `link` column. Core shows everything you hand it as text, never as markup.
+
+### Record header, tab counts and the statistics period
+
+Implement `HasRecordHeader` beside `PluginArea` to supply a record's status pill and up to three meta lines (`RecordHeader`); return null for title only. A failed header read never becomes an error page.
+
+Implement `HasAreaCounts` to answer counts by page id for the area's tabs. Core loads them after the page; until they arrive other tabs show a quiet "Counting" pill. The open tab still uses its first table's total when you send none. A missing, failed or over-large count shows no number.
+
+Core offers six statistics periods (`Last 7 days`, `Last 30 days` as the default, `Last 90 days`, `This month`, `Last month`, `This year`) when a page has figures or charts. Plugins cannot add periods. The chosen window is `$context->period` (`AreaPeriod`): start, end, and the earlier window to compare, as `Y-m-d` in the person's time zone. Home panels use the last 30 days with no select.
 
 ## Budgets and refusals
 

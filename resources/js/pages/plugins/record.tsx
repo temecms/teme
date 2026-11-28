@@ -1,5 +1,6 @@
 import type { RequestPayload } from '@inertiajs/core';
 import { Head, Link, router, setLayoutProps, usePage } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
@@ -22,17 +23,17 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Notice } from '@/components/ui/notice';
+import { StatusPill } from '@/components/ui/status-pill';
 import { __, __n } from '@/lib/i18n';
 import { visibleKeys } from '@/lib/visible-when';
 import type { PluginRecordPageProps } from '@/types/plugin-area';
 
 /**
  * A record's form in a plugin's area (docs/plans/plugin-sockets-2.md, A9):
- * the area header with the plugin's icon and mark, All … back to the list,
- * its sections as panels, a field shown only while its condition holds, and
- * the one save bar. Delete sits as danger-quiet at the foot of the last
- * panel (design-system §5 Form), confirmed. The top bar names the area and
- * the record (design system 4.31).
+ * the area header with the plugin's icon and mark, status and meta when the
+ * plugin supplies them, All … and Delete in the header, its sections as
+ * panels, and the one save bar. The top bar names the area and the record
+ * (design system 4.31).
  */
 export default function PluginRecord(props: PluginRecordPageProps) {
     const {
@@ -45,6 +46,7 @@ export default function PluginRecord(props: PluginRecordPageProps) {
         sections,
         failed,
         deletable,
+        header,
     } = props;
     const page = usePage();
     const errors = (page.props.errors ?? {}) as Record<string, string>;
@@ -66,7 +68,6 @@ export default function PluginRecord(props: PluginRecordPageProps) {
     const visibleSections = sections.filter((section) =>
         section.fields.some((field) => shown.has(field.key)),
     );
-    const lastSectionId = visibleSections.at(-1)?.id ?? null;
 
     const approval = useScriptApproval(plugin.code);
     const scripts = {
@@ -79,6 +80,28 @@ export default function PluginRecord(props: PluginRecordPageProps) {
         (sum, list) => sum + list.length,
         0,
     );
+
+    const dataLine =
+        header !== null &&
+        header !== undefined &&
+        (header.status !== null || header.meta.length > 0) ? (
+            <span
+                className="text-small text-ink-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1"
+                data-test="record-header-meta"
+            >
+                {header.status !== null && (
+                    <StatusPill tone={header.tone}>{header.status}</StatusPill>
+                )}
+                {header.meta.map((line, index) => (
+                    <span key={`${index}-${line}`}>
+                        {(header.status !== null || index > 0) && (
+                            <span aria-hidden="true"> · </span>
+                        )}
+                        {line}
+                    </span>
+                ))}
+            </span>
+        ) : undefined;
 
     setLayoutProps({
         breadcrumbs: [
@@ -124,14 +147,30 @@ export default function PluginRecord(props: PluginRecordPageProps) {
             plugin={{ name: plugin.name, icon: plugin.icon }}
             title={heading}
             showTitle
+            description={dataLine}
             actions={
-                <Button asChild variant="neutral">
-                    <Link href={back} data-test="record-all">
-                        {__('All :plural', {
-                            plural: record.plural.toLowerCase(),
-                        })}
-                    </Link>
-                </Button>
+                <div className="flex flex-wrap gap-2 max-sm:w-full">
+                    <Button asChild variant="ghost">
+                        <Link href={back} data-test="record-all">
+                            <ArrowLeft aria-hidden="true" />
+                            {__('All :plural', {
+                                plural: record.plural.toLowerCase(),
+                            })}
+                        </Link>
+                    </Button>
+                    {id !== null && deletable && (
+                        <Button
+                            type="button"
+                            variant="danger-quiet"
+                            data-test="record-delete"
+                            onClick={() => setDeleting(true)}
+                        >
+                            {__('Delete :item', {
+                                item: record.label.toLowerCase(),
+                            })}
+                        </Button>
+                    )}
+                </div>
             }
         >
             <Head title={`${heading} · ${plugin.name}`} />
@@ -179,7 +218,6 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                         const visible = section.fields.filter((field) =>
                             shown.has(field.key),
                         );
-                        const isLast = section.id === lastSectionId;
 
                         return (
                             <div
@@ -216,44 +254,10 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                                             path={`values.${field.key}`}
                                         />
                                     ))}
-                                    {isLast && id !== null && deletable && (
-                                        <div className="pt-2">
-                                            <Button
-                                                type="button"
-                                                variant="danger-quiet"
-                                                size="sm"
-                                                data-test="record-delete"
-                                                onClick={() =>
-                                                    setDeleting(true)
-                                                }
-                                            >
-                                                {__('Delete :item', {
-                                                    item: record.label.toLowerCase(),
-                                                })}
-                                            </Button>
-                                        </div>
-                                    )}
                                 </FormPanel>
                             </div>
                         );
                     })}
-                    {visibleSections.length === 0 &&
-                        id !== null &&
-                        deletable && (
-                            <FormPanel>
-                                <Button
-                                    type="button"
-                                    variant="danger-quiet"
-                                    size="sm"
-                                    data-test="record-delete"
-                                    onClick={() => setDeleting(true)}
-                                >
-                                    {__('Delete :item', {
-                                        item: record.label.toLowerCase(),
-                                    })}
-                                </Button>
-                            </FormPanel>
-                        )}
                     <SaveBar
                         dirty={dirty}
                         processing={processing}

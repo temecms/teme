@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Admin\AreaContext;
 use Teme\Contracts\Admin\Chart;
 use Teme\Contracts\Admin\Figure;
+use Teme\Contracts\Admin\HasAreaCounts;
+use Teme\Contracts\Admin\HasRecordHeader;
 use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
 use Teme\Contracts\Admin\RowPage;
 use Teme\Contracts\Admin\Saved;
@@ -22,7 +25,7 @@ use Teme\Contracts\Lists\Cell;
  * the query builder as the handbook allows. Each call can be replaced by a
  * test through $on, and every call is remembered in $calls.
  */
-final class PlacardArea implements PluginArea
+final class PlacardArea implements HasAreaCounts, HasRecordHeader, PluginArea
 {
     /** @var array<string, Closure> what a test makes a call do instead, by method */
     public static array $on = [];
@@ -157,6 +160,31 @@ final class PlacardArea implements PluginArea
 
             return new Saved($ids[0] ?? 'none');
         });
+    }
+
+    public function header(string $record, string $id, AreaContext $context): ?RecordHeader
+    {
+        return $this->called(__FUNCTION__, func_get_args(), function () use ($id): ?RecordHeader {
+            $ad = DB::table('placard_ads')->where('id', (int) $id)->first();
+
+            if ($ad === null) {
+                return null;
+            }
+
+            $status = $ad->status === 'active' ? 'Active' : 'Paused';
+            $tone = $ad->status === 'active' ? 'ok' : 'neutral';
+            $meta = [(int) $ad->impressions.' impressions in the last 30 days'];
+
+            return new RecordHeader($status, $tone, $meta);
+        });
+    }
+
+    public function counts(AreaContext $context): array
+    {
+        return $this->called(__FUNCTION__, func_get_args(), fn (): array => [
+            'overview' => 0,
+            'ads' => (int) DB::table('placard_ads')->count(),
+        ]);
     }
 
     /**
