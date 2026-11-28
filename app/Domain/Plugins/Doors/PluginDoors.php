@@ -92,7 +92,6 @@ final readonly class PluginDoors implements PluginServices
         private HostResolver $resolver,
         private StartJob $start,
         private PluginRegistry $registry,
-        private CoreInsertionsChanged $insertionsChanged,
         private SettingHosts $settingHosts,
         private CoreSiteInfo $site,
         private PublishedItems $published,
@@ -155,13 +154,13 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true)) {
-            $offered[InsertionsChanged::class] = $this->insertionsChanged;
+            $offered[InsertionsChanged::class] = new CoreInsertionsChanged($name);
             $offered[InlineScripts::class] = new PluginInlineScripts($code);
         }
 
         // What its cards draw changed (docs/guides/developers/plugins/cards.md).
         if (in_array(Capability::PagesInsert->value, $capabilities, true)) {
-            $offered[CardsChanged::class] = new CoreCardsChanged($code);
+            $offered[CardsChanged::class] = new CoreCardsChanged($code, $name);
         }
 
         if (in_array(Capability::FediverseRead->value, $capabilities, true)) {

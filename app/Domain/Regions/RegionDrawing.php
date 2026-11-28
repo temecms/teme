@@ -36,9 +36,11 @@ final readonly class RegionDrawing
      * `undeclared` whether the theme's manifest lacks the region while the
      * site is not in production; `minWidth` the viewport width a region
      * with content waits for, in pixels, or null when it is drawn in the
-     * page.
+     * page; `start` and `end` what plugins place inside the region, before
+     * and after its content, '' for none, drawn only where the region has
+     * content and does not wait for a width.
      *
-     * @return array{html: string|null, before: string, after: string, undeclared: bool, minWidth: int|null}
+     * @return array{html: string|null, before: string, after: string, start: string, end: string, undeclared: bool, minWidth: int|null}
      */
     public function for(string $name): array
     {
@@ -57,7 +59,7 @@ final readonly class RegionDrawing
     }
 
     /**
-     * @return array{html: string|null, before: string, after: string, undeclared: bool, minWidth: int|null}
+     * @return array{html: string|null, before: string, after: string, start: string, end: string, undeclared: bool, minWidth: int|null}
      */
     private function build(string $name): array
     {
@@ -69,6 +71,8 @@ final readonly class RegionDrawing
         $html = $declared ? $this->draw->html($theme, $name, $declaration) : '';
         $before = '';
         $after = '';
+        $start = '';
+        $end = '';
 
         if ($declared) {
             $insertions = app(PageInsertions::class);
@@ -81,6 +85,20 @@ final readonly class RegionDrawing
                     ($at->args['where'] ?? 'after') === 'before' ? $before .= $drawn : $after .= $drawn;
                 }
             }
+
+            $own = trim($html) === '' ? null : $html;
+            $waits = ($declaration['minWidth'] ?? null) !== null;
+
+            // A region that waits for a width draws nothing inside, so nothing loads before the width is reached.
+            foreach ($insertions->at(PagePosition::REGION_START, PagePosition::REGION_END) as $entry) {
+                $at = $entry['insertion']->at;
+
+                if ($own === null || $waits || ($at->args['slug'] ?? null) !== $name) {
+                    continue;
+                }
+
+                $at->kind === PagePosition::REGION_START ? $start .= $insertions->draw($entry) : $end .= $insertions->draw($entry);
+            }
         }
 
         $html = trim($html) === '' ? null : $html;
@@ -89,6 +107,8 @@ final readonly class RegionDrawing
             'html' => $html,
             'before' => $before,
             'after' => $after,
+            'start' => $start,
+            'end' => $end,
             'undeclared' => $theme !== null && ! $declared && ! app()->isProduction(),
             'minWidth' => $html === null ? null : ($declaration['minWidth'] ?? null),
         ];

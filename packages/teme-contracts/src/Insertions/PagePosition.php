@@ -47,6 +47,12 @@ final class PagePosition
     /** @since 1.0.0 */
     public const string FIXED = 'fixed';
 
+    /** Inside a theme's region, before its content. @since next */
+    public const string REGION_START = 'region_start';
+
+    /** Inside a theme's region, after its content. @since next */
+    public const string REGION_END = 'region_end';
+
     /**
      * The furthest item of a list afterItem() reaches.
      *
@@ -77,7 +83,18 @@ final class PagePosition
     public const array RAIL_WIDTHS = [160, 300];
 
     /**
-     * @param  array{n?: int, max?: int, slug?: string, where?: string, edge?: string, width?: int}  $args
+     * The narrowest and widest viewport, in pixels, a fixed insertion may
+     * show from (fixed()'s $minWidth).
+     *
+     * @since next
+     */
+    public const int SHOW_FROM_LEAST = 200;
+
+    /** @since next */
+    public const int SHOW_FROM_MOST = 4000;
+
+    /**
+     * @param  array{n?: int, max?: int, slug?: string, where?: string, edge?: string, width?: int, minWidth?: int}  $args
      */
     private function __construct(
         public readonly string $kind,
@@ -170,29 +187,68 @@ final class PagePosition
     }
 
     /**
+     * Inside a region the active theme declares, at its start, before its
+     * content. Drawn only where the region has content of its own, and never
+     * in a region that waits for a viewport width (the theme's region
+     * component prints it; see docs/guides/developers/themes/components.md).
+     *
+     * @since next
+     */
+    public static function regionStart(string $slug): self
+    {
+        return self::insideRegion(self::REGION_START, $slug);
+    }
+
+    /**
+     * Inside a region the active theme declares, at its end, after its
+     * content. The same rules as regionStart().
+     *
+     * @since next
+     */
+    public static function regionEnd(string $slug): self
+    {
+        return self::insideRegion(self::REGION_END, $slug);
+    }
+
+    private static function insideRegion(string $kind, string $slug): self
+    {
+        if (preg_match('/^[a-z0-9-]{1,64}$/', $slug) !== 1) {
+            throw new InvalidArgumentException("A region's slug [{$slug}] isn't one.");
+        }
+
+        return new self($kind, ['slug' => $slug]);
+    }
+
+    /**
      * Fixed to an edge of the screen: `bottom` or `top`, full width, or a
      * `left` or `right` rail of a width in RAIL_WIDTHS, shown only where the
      * screen has room beside the content. Core draws its label and a close
      * button; one per edge on a page.
      *
      * @param  int  $width  a rail's width; 0 for the first of RAIL_WIDTHS; ignored at the top and bottom
+     * @param  int  $minWidth  the viewport width, in pixels, from which it shows, from SHOW_FROM_LEAST to
+     *                         SHOW_FROM_MOST; 0 to show at every width. Below it nothing of it is loaded.
      *
      * @since 1.0.0
      */
-    public static function fixed(string $edge, int $width = 0): self
+    public static function fixed(string $edge, int $width = 0, int $minWidth = 0): self
     {
         if (! in_array($edge, self::EDGES, true)) {
             throw new InvalidArgumentException('A fixed insertion holds the bottom, top, left or right edge.');
         }
 
+        if ($minWidth !== 0 && ($minWidth < self::SHOW_FROM_LEAST || $minWidth > self::SHOW_FROM_MOST)) {
+            throw new InvalidArgumentException('A fixed insertion shows from a width of '.self::SHOW_FROM_LEAST.' to '.self::SHOW_FROM_MOST.' pixels.');
+        }
+
         if ($edge === 'top' || $edge === 'bottom') {
-            return new self(self::FIXED, ['edge' => $edge, 'width' => 0]);
+            return new self(self::FIXED, ['edge' => $edge, 'width' => 0, 'minWidth' => $minWidth]);
         }
 
         if ($width !== 0 && ! in_array($width, self::RAIL_WIDTHS, true)) {
             throw new InvalidArgumentException('A rail is '.implode(' or ', self::RAIL_WIDTHS).' pixels wide.');
         }
 
-        return new self(self::FIXED, ['edge' => $edge, 'width' => $width === 0 ? self::RAIL_WIDTHS[0] : $width]);
+        return new self(self::FIXED, ['edge' => $edge, 'width' => $width === 0 ? self::RAIL_WIDTHS[0] : $width, 'minWidth' => $minWidth]);
     }
 }

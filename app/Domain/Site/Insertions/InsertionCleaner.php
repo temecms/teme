@@ -2,8 +2,9 @@
 
 /**
  * Cleans insertion markup like site code (I-064, I-697): in every namespace,
- * SVG and MathML included, drops scripts without src, every on* attribute,
- * srcdoc, and addresses that run script or draw a page; keeps script src,
+ * SVG and MathML included, drops scripts without src, templates, every on*
+ * attribute, every data-teme-* attribute (core's own markers), srcdoc, and
+ * addresses that run script or draw a page; keeps script src,
  * iframe and img, and collects their https origins for the page's policy.
  * An inline script is kept only when its exact text was approved for the
  * plugin that gave it, while the host allows site code, and its hash goes
@@ -175,7 +176,8 @@ final class InsertionCleaner
     {
         $name = strtolower($element->localName);
 
-        if ($name === 'script' && ! $element->hasAttribute('src')) {
+        // A template's content is inert until core copies it, and core's own scripts copy what they find: none is kept.
+        if ($name === 'script' && ! $element->hasAttribute('src') || $name === 'template') {
             $element->remove();
 
             return;
@@ -190,6 +192,7 @@ final class InsertionCleaner
         foreach ([...$element->attributes] as $attribute) {
             $attributeName = strtolower($attribute->name);
 
+            // data-teme-* is core's own markup: a placeholder or a wrapper its scripts act on, never a plugin's.
             if (str_starts_with($attributeName, 'on') || $attributeName === 'srcdoc' || str_starts_with($attributeName, self::CORE_HOOKS)
                 || (in_array($attributeName, self::ADDRESSES, true) && self::unsafe($attribute->value))) {
                 $element->removeAttributeNode($attribute);
