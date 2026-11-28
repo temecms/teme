@@ -48,7 +48,7 @@ final class SpareDatabase
     /**
      * @param  array<string, mixed>  $config
      */
-    private function __construct(private readonly ConnectionInterface $session, public readonly string $name, private readonly array $config) {}
+    private function __construct(private readonly ConnectionInterface $session, public readonly string $name, private readonly array $config, private readonly bool $temporary = false) {}
 
     /**
      * Whether the server names a spare database: TEME_VERIFY_DATABASE is set.
@@ -110,6 +110,55 @@ final class SpareDatabase
         }
 
         return new self($session, $name, $config);
+    }
+
+    /**
+     * Opens a temporary database for a host-run site's test restore
+     * (TEME_BACKUPS=host): one the restore account makes now, with a random
+     * name, and that close() drops. The same three guards as open() apply to it.
+     *
+     * @throws BackupRefused
+     */
+    public static function openTemporary(): self
+    {
+        if (! TemporaryDatabase::configured()) {
+            throw new BackupRefused(TemporaryDatabase::NOT_CONFIGURED);
+        }
+
+        $name = TemporaryDatabase::create();
+        /** @var array<string, mixed> $config */
+        $config = [...(array) config('database.connections.'.TemporaryDatabase::CONNECTION), 'database' => $name];
+
+        /** @var array<string, mixed> $live */
+        $live = DB::connection()->getConfig();
+
+        if ($name === ($live['database'] ?? null) && ($config['host'] ?? null) === ($live['host'] ?? null) && (string) ($config['port'] ?? '') === (string) ($live['port'] ?? '')) {
+            TemporaryDatabase::drop($name);
+
+            throw new BackupRefused(self::LIVE);
+        }
+
+        config(['database.connections.'.self::SESSION => [...$config, 'name' => self::SESSION]]);
+
+        try {
+            $session = DB::connectUsing(self::SESSION, [...$config, 'name' => self::SESSION], force: true);
+            $isLive = self::sameDatabase($session, DB::connection());
+        } catch (QueryException|PDOException $failed) {
+            DB::purge(self::SESSION);
+            TemporaryDatabase::drop($name);
+            Log::warning('Backups: reaching the temporary restore database: '.self::hidden($failed->getMessage(), $config));
+
+            throw new BackupRefused('Teme couldn’t reach the temporary database for the test restore. The log has PostgreSQL’s own words.');
+        }
+
+        if ($isLive) {
+            DB::purge(self::SESSION);
+            TemporaryDatabase::drop($name);
+
+            throw new BackupRefused(self::LIVE);
+        }
+
+        return new self($session, $name, $config, temporary: true);
     }
 
     /**
@@ -275,6 +324,19 @@ final class SpareDatabase
         }
 
         $this->open = false;
+
+        // A temporary database is dropped whole, so there is nothing to empty first.
+        if ($this->temporary) {
+            DB::purge(self::SESSION);
+
+            try {
+                TemporaryDatabase::drop($this->name);
+            } catch (Throwable $failed) {
+                Log::warning("Backups: dropping the temporary restore database {$this->name}: ".$failed->getMessage());
+            }
+
+            return;
+        }
 
         try {
             $this->empty();

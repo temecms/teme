@@ -14,10 +14,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
 
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupRunKind;
 use App\Domain\Backups\BackupRunState;
 use App\Domain\Backups\Models\BackupRun;
 use App\Domain\Backups\Verify\SpareDatabase;
+use App\Domain\Backups\Verify\TemporaryDatabase;
 use Carbon\CarbonImmutable;
 
 final readonly class DueVerification
@@ -62,7 +64,8 @@ final readonly class DueVerification
      */
     public function testRestoreDue(CarbonImmutable $now): bool
     {
-        return SpareDatabase::isNamed()
+        // Host-run: the temporary database needs only the restore account (TEME_BACKUPS=host).
+        return (BackupMode::isHost() ? TemporaryDatabase::configured() : SpareDatabase::isNamed())
             && $this->places->isSetUp()
             && ! $this->places->isPaused()
             && $this->startedSince(BackupRunKind::Backup, $this->backups->slot($now))

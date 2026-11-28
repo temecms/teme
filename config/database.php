@@ -133,6 +133,25 @@ return [
             'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_CONNECT_TIMEOUT', 5)],
         ],
 
+        // The host-run test restore's account (TEME_BACKUPS=host): it holds CREATEDB, makes the
+        // temporary database each test restores into and drops it again. The site's own account
+        // stays NOCREATEDB. Its database is the maintenance one the account creates from.
+        'teme_restore' => [
+            'driver' => 'pgsql',
+            'url' => null,
+            'host' => env('TEME_RESTORE_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('TEME_RESTORE_DB_PORT', env('DB_PORT', '5432')),
+            'database' => env('TEME_RESTORE_DATABASE', 'postgres'),
+            'username' => env('TEME_RESTORE_DB_USERNAME'),
+            'password' => env('TEME_RESTORE_DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'options' => [PDO::ATTR_TIMEOUT => (int) env('DB_CONNECT_TIMEOUT', 5)],
+        ],
+
         // The weekly test restore's spare database (I-2406). Teme empties it
         // before and after each test, so SpareDatabase refuses any database
         // whose name doesn't end in _verify, or that is the site's own.

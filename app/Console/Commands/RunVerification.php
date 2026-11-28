@@ -15,8 +15,10 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Backups\BackupAlreadyRunning;
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupTrigger;
 use App\Domain\Backups\Verify\SpareDatabase;
+use App\Domain\Backups\Verify\TemporaryDatabase;
 use App\Domain\Backups\Verify\VerifyBackups;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -52,7 +54,7 @@ final class RunVerification extends Command
             }
 
             if ($both || $onlyTestRestore) {
-                if (! SpareDatabase::isNamed()) {
+                if (BackupMode::isHost() ? ! TemporaryDatabase::configured() : ! SpareDatabase::isNamed()) {
                     // I-2406: no spare database, no test restore; a failure only when it was all that was asked.
                     $this->warn('Test restore skipped: no spare database is named. At the server, name one as TEME_VERIFY_DATABASE.');
                     $failed = $failed || ! $both;
