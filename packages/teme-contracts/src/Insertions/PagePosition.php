@@ -77,7 +77,18 @@ final class PagePosition
     public const array RAIL_WIDTHS = [160, 300];
 
     /**
-     * @param  array{n?: int, max?: int, slug?: string, where?: string, edge?: string, width?: int}  $args
+     * The narrowest and widest viewport, in pixels, a fixed insertion may
+     * show from (fixed()'s $minWidth).
+     *
+     * @since next
+     */
+    public const int SHOW_FROM_LEAST = 200;
+
+    /** @since next */
+    public const int SHOW_FROM_MOST = 4000;
+
+    /**
+     * @param  array{n?: int, max?: int, slug?: string, where?: string, edge?: string, width?: int, minWidth?: int}  $args
      */
     private function __construct(
         public readonly string $kind,
@@ -176,23 +187,29 @@ final class PagePosition
      * button; one per edge on a page.
      *
      * @param  int  $width  a rail's width; 0 for the first of RAIL_WIDTHS; ignored at the top and bottom
+     * @param  int  $minWidth  the viewport width, in pixels, from which it shows, from SHOW_FROM_LEAST to
+     *                         SHOW_FROM_MOST; 0 to show at every width. Below it nothing of it is loaded.
      *
      * @since 1.0.0
      */
-    public static function fixed(string $edge, int $width = 0): self
+    public static function fixed(string $edge, int $width = 0, int $minWidth = 0): self
     {
         if (! in_array($edge, self::EDGES, true)) {
             throw new InvalidArgumentException('A fixed insertion holds the bottom, top, left or right edge.');
         }
 
+        if ($minWidth !== 0 && ($minWidth < self::SHOW_FROM_LEAST || $minWidth > self::SHOW_FROM_MOST)) {
+            throw new InvalidArgumentException('A fixed insertion shows from a width of '.self::SHOW_FROM_LEAST.' to '.self::SHOW_FROM_MOST.' pixels.');
+        }
+
         if ($edge === 'top' || $edge === 'bottom') {
-            return new self(self::FIXED, ['edge' => $edge, 'width' => 0]);
+            return new self(self::FIXED, ['edge' => $edge, 'width' => 0, 'minWidth' => $minWidth]);
         }
 
         if ($width !== 0 && ! in_array($width, self::RAIL_WIDTHS, true)) {
             throw new InvalidArgumentException('A rail is '.implode(' or ', self::RAIL_WIDTHS).' pixels wide.');
         }
 
-        return new self(self::FIXED, ['edge' => $edge, 'width' => $width === 0 ? self::RAIL_WIDTHS[0] : $width]);
+        return new self(self::FIXED, ['edge' => $edge, 'width' => $width === 0 ? self::RAIL_WIDTHS[0] : $width, 'minWidth' => $minWidth]);
     }
 }

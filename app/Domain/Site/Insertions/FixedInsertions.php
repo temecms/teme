@@ -35,10 +35,12 @@ final readonly class FixedInsertions
     ) {}
 
     /**
-     * Each edge's insertion, cleaned, with its label, its rail's width and
-     * the narrowest screen it shows on; none where nothing is fixed.
+     * Each edge's insertion, cleaned, with its label, its rail's width, the
+     * narrowest screen a rail shows on (minWidth) and the viewport width it
+     * shows from when it declared one (showFrom, 0 for every width); none
+     * where nothing is fixed.
      *
-     * @return list<array{key: string, edge: string, width: int, minWidth: int, label: string, name: string, html: string}>
+     * @return list<array{key: string, edge: string, width: int, minWidth: int, showFrom: int, label: string, name: string, html: string}>
      */
     public function all(): array
     {
@@ -73,6 +75,7 @@ final readonly class FixedInsertions
                 'edge' => $edge,
                 'width' => $width,
                 'minWidth' => $width === 0 ? 0 : $content + 2 * ($width + self::RAIL_GAP),
+                'showFrom' => (int) ($at->args['minWidth'] ?? 0),
                 'label' => $label,
                 'name' => self::name($label, $edge),
                 'html' => $html,

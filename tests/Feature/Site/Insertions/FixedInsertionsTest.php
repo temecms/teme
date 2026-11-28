@@ -88,7 +88,7 @@ it('labels what a plugin fixes "Advertisement" when it declares no label', funct
     }, ['pages.insert'], 'tests/plain');
 
     expect(app(FixedInsertions::class)->all())->toBe([[
-        'key' => 'plain.bar', 'edge' => 'top', 'width' => 0, 'minWidth' => 0, 'label' => 'Advertisement', 'name' => 'Advertisement, at the top of the screen', 'html' => '<p>Plain</p>',
+        'key' => 'plain.bar', 'edge' => 'top', 'width' => 0, 'minWidth' => 0, 'showFrom' => 0, 'label' => 'Advertisement', 'name' => 'Advertisement, at the top of the screen', 'html' => '<p>Plain</p>',
     ]]);
 });
 
