@@ -57,7 +57,7 @@ final class AssignImportReaderIds extends BaseOperation
         DB::statement('SELECT pg_advisory_xact_lock(hashtext(?))', ['import_reader_ids:'.$input->siteAddress.' '.$input->reader]);
 
         $ids = $this->existing($input->siteAddress, $input->reader, $input->items);
-        [$low, $high] = $this->bounds($input->siteAddress, $input->reader);
+        [$low, $high] = $this->bounds($input->siteAddress, $input->reader, $input->items);
         $fresh = [];
 
         foreach ($input->items as $item) {
@@ -126,22 +126,46 @@ final class AssignImportReaderIds extends BaseOperation
     }
 
     /**
-     * The lowest and highest engine ID already given in each counter for this site and reader.
+     * The lowest and highest engine ID already given in each counter this
+     * page needs, probed per counter through the (address, reader, counter,
+     * object_id) index — never a GROUP BY over every row of the site.
+     *
+     * @param  list<array{kind: string, id: string}>  $items
      *
      * @return array{0: array<string, int>, 1: array<string, int>}
      */
-    private function bounds(string $address, string $reader): array
+    private function bounds(string $address, string $reader, array $items = []): array
     {
+        $counters = [];
+
+        foreach ($items as $item) {
+            $counters[ReaderRows::counterOf($item['kind'])] = true;
+        }
+
         $low = [];
         $high = [];
 
-        foreach (DB::table('import_reader_ids')
-            ->where('address', $address)
-            ->where('reader', $reader)
-            ->groupBy('counter')
-            ->get([DB::raw('counter'), DB::raw('min(object_id) as low'), DB::raw('max(object_id) as high')]) as $row) {
-            $low[(string) $row->counter] = (int) $row->low;
-            $high[(string) $row->counter] = (int) $row->high;
+        foreach (array_keys($counters) as $counter) {
+            $lowest = DB::table('import_reader_ids')
+                ->where('address', $address)
+                ->where('reader', $reader)
+                ->where('counter', $counter)
+                ->orderBy('object_id')
+                ->value('object_id');
+            $highest = DB::table('import_reader_ids')
+                ->where('address', $address)
+                ->where('reader', $reader)
+                ->where('counter', $counter)
+                ->orderByDesc('object_id')
+                ->value('object_id');
+
+            if ($lowest !== null) {
+                $low[$counter] = (int) $lowest;
+            }
+
+            if ($highest !== null) {
+                $high[$counter] = (int) $highest;
+            }
         }
 
         return [$low, $high];

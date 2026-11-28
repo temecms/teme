@@ -54,7 +54,7 @@ final class FakeImportReader implements ImportReader
             siteAddress: isset($file['site']) ? (string) $file['site'] : null,
             languages: $languages,
             counts: $counts,
-            defaultLanguage: $default !== null && $default !== '' ? $default : ($languages[0] ?? null),
+            defaultLanguage: $default !== null && $default !== '' ? $default : null,
         );
     }
 

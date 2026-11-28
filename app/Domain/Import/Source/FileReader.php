@@ -17,6 +17,7 @@ use App\Domain\Import\File\FileAddresses;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\WordPressRecords;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
@@ -99,12 +100,17 @@ final class FileReader implements SourceReader
         $facts = is_string($stored) ? json_decode($stored, true) : null;
         $facts = is_array($facts) ? $facts : [];
         $tags = array_values(array_filter(array_map(strval(...), is_array($facts['readerLanguages'] ?? null) ? $facts['readerLanguages'] : []), fn (string $tag): bool => $tag !== ''));
+        $siteDefault = app(SiteLanguages::class)->defaultTag();
         $default = is_string($facts['readerDefaultLanguage'] ?? null) && $facts['readerDefaultLanguage'] !== ''
             ? (string) $facts['readerDefaultLanguage']
-            : ($tags[0] ?? '');
+            : $siteDefault;
 
-        if ($tags === [] || $default === '' || ! in_array($default, $tags, true)) {
+        if ($tags === [] || $default === '') {
             return ['active' => false];
+        }
+
+        if (! in_array($default, $tags, true)) {
+            $tags = [$default, ...$tags];
         }
 
         $offered = (array) config('languages');
@@ -123,10 +129,12 @@ final class FileReader implements SourceReader
             ];
         }
 
+        $carriedTypes = is_array($facts['readerTypes'] ?? null) ? $facts['readerTypes'] : [];
+        $carriedTaxonomies = is_array($facts['readerTaxonomies'] ?? null) ? $facts['readerTaxonomies'] : [];
         $postTypes = [];
 
         foreach (app(ContentTypeRegistry::class)->all() as $type) {
-            if ($type->wordpress !== null) {
+            if ($type->wordpress !== null && ($carriedTypes === [] || in_array($type->key, $carriedTypes, true) || in_array($type->wordpress, $carriedTypes, true))) {
                 $postTypes[] = $type->wordpress;
             }
         }
@@ -134,8 +142,12 @@ final class FileReader implements SourceReader
         $taxonomies = [];
 
         foreach (app(TaxonomyRegistry::class)->all() as $taxonomy) {
-            if ($taxonomy->wordpress !== null) {
-                $taxonomies[] = $taxonomy->wordpress;
+            $name = $taxonomy->wordpress ?? $taxonomy->key;
+
+            if ($carriedTaxonomies === [] || in_array($taxonomy->key, $carriedTaxonomies, true) || in_array($name, $carriedTaxonomies, true)) {
+                if ($taxonomy->wordpress !== null || in_array($taxonomy->key, $carriedTaxonomies, true)) {
+                    $taxonomies[] = $name;
+                }
             }
         }
 
@@ -145,7 +157,7 @@ final class FileReader implements SourceReader
             'languages' => $languages,
             'options' => ['force_lang' => 1, 'hide_default' => true],
             'post_types' => $postTypes,
-            'taxonomies' => $taxonomies,
+            'taxonomies' => array_values(array_unique($taxonomies)),
             'menus' => [],
             'strings' => [],
         ];

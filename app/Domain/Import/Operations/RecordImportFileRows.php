@@ -94,7 +94,7 @@ final class RecordImportFileRows extends BaseOperation
     /**
      * Adds the part's counts to the file's own row of them.
      *
-     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes?: array<string, array{count: int, examples: list<string>, sentence: string}>, readerCursor?: string|null, readerGiven?: list<string>, readerResolving?: bool, readerLanguages?: list<string>, readerDefaultLanguage?: string|null, replaceNotes?: bool}  $facts
+     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes?: array<string, array{count: int, examples: list<string>, sentence: string}>, readerCursor?: string|null, readerGiven?: list<string>, readerLanguages?: list<string>, readerDefaultLanguage?: string|null, readerTypes?: list<string>, readerTaxonomies?: list<string>, replaceNotes?: bool}  $facts
      */
     private function keepFacts(string $fileId, array $facts): void
     {
@@ -151,12 +151,6 @@ final class RecordImportFileRows extends BaseOperation
             $payload['readerGiven'] = $kept['readerGiven'];
         }
 
-        if (array_key_exists('readerResolving', $facts)) {
-            $payload['readerResolving'] = (bool) $facts['readerResolving'];
-        } elseif (array_key_exists('readerResolving', $kept)) {
-            $payload['readerResolving'] = (bool) $kept['readerResolving'];
-        }
-
         if (array_key_exists('readerLanguages', $facts)) {
             $payload['readerLanguages'] = $facts['readerLanguages'];
         } elseif (is_array($kept['readerLanguages'] ?? null)) {
@@ -167,6 +161,18 @@ final class RecordImportFileRows extends BaseOperation
             $payload['readerDefaultLanguage'] = $facts['readerDefaultLanguage'];
         } elseif (array_key_exists('readerDefaultLanguage', $kept)) {
             $payload['readerDefaultLanguage'] = $kept['readerDefaultLanguage'];
+        }
+
+        if (array_key_exists('readerTypes', $facts)) {
+            $payload['readerTypes'] = $facts['readerTypes'];
+        } elseif (is_array($kept['readerTypes'] ?? null)) {
+            $payload['readerTypes'] = $kept['readerTypes'];
+        }
+
+        if (array_key_exists('readerTaxonomies', $facts)) {
+            $payload['readerTaxonomies'] = $facts['readerTaxonomies'];
+        } elseif (is_array($kept['readerTaxonomies'] ?? null)) {
+            $payload['readerTaxonomies'] = $kept['readerTaxonomies'];
         }
 
         DB::table('import_file_rows')->upsert(

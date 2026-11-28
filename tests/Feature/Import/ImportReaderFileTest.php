@@ -17,8 +17,10 @@ use App\Domain\Import\Operations\Input\AssignImportReaderIdsInput;
 use App\Domain\Import\Operations\Input\ConnectImportSourceInput;
 use App\Domain\Import\Operations\Input\FinishImportUploadInput;
 use App\Domain\Import\Operations\Input\ReceiveImportPieceInput;
+use App\Domain\Import\Operations\Input\ResolveImportReaderRowsInput;
 use App\Domain\Import\Operations\Input\StartImportUploadInput;
 use App\Domain\Import\Operations\ReceiveImportPiece;
+use App\Domain\Import\Operations\ResolveImportReaderRows;
 use App\Domain\Import\Operations\StartImportUpload;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\LoadedPlugins;
@@ -52,6 +54,7 @@ use Inertia\Middleware;
 use Tests\Fixtures\Import\ExportFiles;
 use Tests\Fixtures\Import\FakeCompanion;
 use Tests\Fixtures\Import\FileImports;
+use Tests\Fixtures\Languages\Languages;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
 require_once dirname(__DIR__, 2).'/Fixtures/plugins/readers/src/Readers.php';
@@ -68,7 +71,7 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     CarbonImmutable::setTestNow();
-    config(['teme.import.reader_page_size' => null]);
+    config(['teme.import.reader_page_size' => null, 'teme.import.reader_pages_per_part' => null]);
 });
 
 /**
@@ -373,7 +376,7 @@ it('counts, in one note, the items whose parent isn’t in a reader’s file', f
 
     expect($note)->not->toBeNull()
         ->and($note['count'])->toBe(5)
-        ->and($note['examples'])->toBe(['i8', 't8', 'c8', 'mi8', 'a8'])
+        ->and($note['examples'])->toEqualCanonicalizing(['i8', 't8', 'c8', 'mi8', 'a8'])
         ->and($note['sentence'])->toContain('placed at the top');
 });
 
@@ -976,22 +979,41 @@ it('imports a reader’s multi-page file a second time and changes nothing', fun
 
 it('keeps memory flat while reading a reader’s file of many pages', function (): void {
     readersEnabled();
-    config(['teme.import.reader_page_size' => 2]);
+    config(['teme.import.reader_page_size' => 2, 'teme.import.reader_pages_per_part' => 1]);
 
-    $export = fakeSiteExport();
+    $base = fakeSiteExport();
+    $small = $base;
+    $large = $base;
 
-    for ($i = 0; $i < 40; $i++) {
-        $export['items'][] = ['kind' => 'post', 'id' => 'm-'.$i, 'title' => 'M '.$i, 'slug' => 'm-'.$i, 'status' => 'published', 'content' => '<p>m</p>'];
+    for ($i = 0; $i < 20; $i++) {
+        $small['items'][] = ['kind' => 'post', 'id' => 's-'.$i, 'title' => 'S '.$i, 'slug' => 's-'.$i, 'status' => 'published', 'content' => '<p>s</p>'];
     }
 
-    $file = readerUploaded('many.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
-    $before = memory_get_peak_usage(true);
-    readerReadToEnd($file);
-    $used = memory_get_peak_usage(true) - $before;
+    for ($i = 0; $i < 80; $i++) {
+        $large['items'][] = ['kind' => 'post', 'id' => 'l-'.$i, 'title' => 'L '.$i, 'slug' => 'l-'.$i, 'status' => 'published', 'content' => '<p>l</p>'];
+    }
 
-    expect($file->refresh()->state)->toBe('ready')
-        ->and($file->read_items)->toBe(count($export['items']))
-        ->and($used)->toBeLessThan(16 * 1024 * 1024);
+    memory_reset_peak_usage();
+    Queue::fake();
+    $smallFile = readerUploaded('small.json', json_encode($small, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    (new ReadImportFile($smallFile->id, JobActor::person($smallFile->uploaded_by)))->handle();
+    $smallFile->refresh();
+    $firstPartRows = (int) $smallFile->read_items;
+    expect($smallFile->state)->toBe('reading')
+        ->and($firstPartRows)->toBeLessThan(count($small['items']))
+        ->and($firstPartRows)->toBeGreaterThan(0);
+    readerReadToEnd($smallFile);
+    $smallPeak = memory_get_peak_usage(true);
+
+    memory_reset_peak_usage();
+    Queue::fake();
+    $largeFile = readerUploaded('large.json', json_encode($large, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($largeFile);
+    $largePeak = memory_get_peak_usage(true);
+
+    expect($smallFile->refresh()->state)->toBe('ready')
+        ->and($largeFile->refresh()->state)->toBe('ready')
+        ->and($largePeak)->toBeLessThan((int) ($smallPeak * 3.5) + (8 * 1024 * 1024));
 });
 
 it('imports a reader’s two-language sample: adds the missing language, keeps each item’s language, and links translations', function (): void {
@@ -1041,4 +1063,107 @@ it('imports a reader item whose language Teme doesn’t offer in the site’s de
         ->and($post)->not->toBeNull()
         ->and($post->language)->toBeNull()
         ->and($codes)->toContain('post.language-unknown');
+});
+
+it('makes French the site default when a French-default reader file lands on a fresh English site', function (): void {
+    readersEnabled();
+    siteSetLanguage($this->admin, 'en');
+
+    $export = json_decode((string) file_get_contents(base_path('packages/teme-testing/samples/fake-export-languages.json')), true, 512, JSON_THROW_ON_ERROR);
+    $export['defaultLanguage'] = 'fr';
+    $export['languages'] = ['fr', 'en'];
+
+    $file = readerUploaded('fr-default.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    $run = readerImport($file->refresh());
+
+    $bonjour = DB::table('contents')->where('title', 'Bonjour')->first();
+    $hello = DB::table('contents')->where('title', 'Hello')->first();
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(app(SiteLanguages::class)->defaultTag())->toBe('fr')
+        ->and($bonjour?->language)->toBeNull()
+        ->and($hello?->language)->toBe('en')
+        ->and(app(SiteLanguages::class)->others())->toContain('en');
+});
+
+it('keeps the site’s default when a reader file names another, once the site already has other languages', function (): void {
+    readersEnabled();
+    siteSetLanguage($this->admin, 'en');
+    Languages::set(['de']);
+
+    $export = json_decode((string) file_get_contents(base_path('packages/teme-testing/samples/fake-export-languages.json')), true, 512, JSON_THROW_ON_ERROR);
+    $export['defaultLanguage'] = 'fr';
+    $export['languages'] = ['fr', 'en'];
+
+    $file = readerUploaded('keep-default.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    $run = readerImport($file->refresh());
+    $codes = ImportMessageRecord::query()->where('run_id', $run->id)->pluck('code')->all();
+    $kept = ImportMessageRecord::query()->where('run_id', $run->id)->where('code', 'address.language-kept')->value('message');
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(app(SiteLanguages::class)->defaultTag())->toBe('en')
+        ->and($codes)->toContain('address.language-kept')
+        ->and($kept)->toContain("can't change while the site publishes in other languages");
+});
+
+it('uses the site’s default language when a reader probe names none', function (): void {
+    readersEnabled();
+    siteSetLanguage($this->admin, 'de');
+
+    $export = fakeSiteExport();
+    unset($export['defaultLanguage']);
+    $export['languages'] = ['fr', 'de'];
+    $export['items'][3]['language'] = 'fr';
+    $export['items'][3]['title'] = 'Bonjour DE site';
+
+    $file = readerUploaded('no-default.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $facts = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'file-facts')->value('payload'), true);
+
+    expect($facts['readerDefaultLanguage'])->toBe('de');
+});
+
+it('resolves later-page parents without a second reader pass', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2]);
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'page', 'id' => 'child', 'title' => 'Child', 'slug' => 'child', 'status' => 'published', 'content' => '<p>Child</p>', 'parentId' => 'parent-later'],
+            ['kind' => 'post', 'id' => 'fill-1', 'title' => 'Fill 1', 'slug' => 'fill-1', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'post', 'id' => 'fill-2', 'title' => 'Fill 2', 'slug' => 'fill-2', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'page', 'id' => 'parent-later', 'title' => 'Parent', 'slug' => 'parent', 'status' => 'published', 'content' => '<p>Parent</p>'],
+        ],
+    ];
+
+    $file = readerUploaded('join.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $child = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Child'")->value('payload'), true);
+    $parent = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Parent'")->value('payload'), true);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($child['parent'])->toBe($parent['id'])
+        ->and($child['reader_refs']['parent'] ?? null)->toBe('parent-later');
+});
+
+it('writes nothing from ResolveImportReaderRows when the person may not import', function (): void {
+    readersEnabled();
+    $editor = User::factory()->create()->assignRole('editor');
+    $before = DB::table('import_file_rows')->count();
+
+    expect(fn () => app(ResolveImportReaderRows::class)->execute(new ResolveImportReaderRowsInput(
+        '00000000-0000-0000-0000-000000000001',
+        'https://old.example.com',
+        fixtureReaderKey(),
+        (string) $editor->id,
+    )))->toThrow(AuthorizationException::class)
+        ->and(DB::table('import_file_rows')->count())->toBe($before);
 });

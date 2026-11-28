@@ -92,7 +92,7 @@ it('probes a fake export: its system, languages and counts of each kind', functi
         ->and($probe->version)->toBe('2')
         ->and($probe->siteAddress)->toBe('https://old.example.com')
         ->and($probe->languages)->toBe(['en'])
-        ->and($probe->defaultLanguage)->toBe('en')
+        ->and($probe->defaultLanguage)->toBeNull()
         ->and($probe->counts)->toBe([ImportKind::PERSON => 1, ImportKind::TERM => 1, ImportKind::MEDIA => 1, ImportKind::POST => 1, ImportKind::PAGE => 1]);
 
     unlink($path);

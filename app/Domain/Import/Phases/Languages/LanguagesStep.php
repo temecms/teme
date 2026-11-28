@@ -91,7 +91,7 @@ final readonly class LanguagesStep implements StepPhase
             $words = ['name' => $language['name'] !== '' ? $language['name'] : $language['slug'], 'locale' => $language['locale'], 'prefix' => $language['slug']];
 
             if ($language['language'] === null) {
-                $messages[] = new ImportMessage('languages.not-offered', __('The old site’s :name (:locale) isn’t a language Teme offers yet, so it wasn’t added, and its posts, pages and terms weren’t imported.', $words), $words);
+                $messages[] = new ImportMessage('languages.not-offered', __('The old site’s :name (:locale) isn’t a language Teme offers yet, so it wasn’t added, and its posts, pages and terms came across in this site’s default language.', $words), $words);
 
                 continue;
             }

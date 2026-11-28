@@ -115,71 +115,166 @@ final class ReaderRows
     }
 
     /**
-     * People, terms and menus already written for a file, so a later page can
-     * point at them without reading the whole file again.
+     * People, terms and menus this page needs that earlier pages already
+     * wrote, loaded only for the source IDs the page names (and the logins
+     * its people would take), so memory stays flat across many pages.
+     *
+     * @param  list<ImportItem>  $items
      *
      * @return array{people: array<string, int>, terms: array<string, array{id: int, taxonomy: string}>, menus: array<string, int>, reserved: array<string, true>, logins: array<string, int>}
      *
      * @since next
      */
-    public static function knownOf(string $fileId, string $address, string $reader): array
+    public static function knownOf(string $fileId, string $address, string $reader, array $items): array
     {
-        $byEngine = [];
+        $peopleIds = [];
+        $termIds = [];
+        $menuIds = [];
+        $loginKeys = [];
 
-        foreach (DB::table('import_reader_ids')
-            ->where('address', $address)
-            ->where('reader', $reader)
-            ->whereIn('object_type', [ImportKind::PERSON, ImportKind::TERM, ImportKind::MENU])
-            ->get(['object_type', 'source_id', 'object_id']) as $row) {
-            $byEngine[(string) $row->object_type][(int) $row->object_id] = (string) $row->source_id;
+        foreach ($items as $item) {
+            if ($item->kind === ImportKind::PERSON) {
+                $peopleIds[$item->id] = true;
+                $given = (string) ($item->fields['login'] ?? '');
+
+                if ($given !== '') {
+                    $loginKeys[$given] = true;
+                } else {
+                    $name = trim((string) ($item->fields['displayName'] ?? '')) ?: trim($item->title);
+                    $base = Slugs::fromText($name !== '' ? $name : $item->id) ?: 'author';
+                    $loginKeys[$base] = true;
+
+                    for ($number = 2; $number <= 5; $number++) {
+                        $loginKeys[$base.'-'.$number] = true;
+                    }
+                }
+            }
+
+            if (is_string($item->authorId) && $item->authorId !== '') {
+                $peopleIds[$item->authorId] = true;
+            }
+
+            foreach ($item->termIds as $termId) {
+                $termIds[$termId] = true;
+            }
+
+            if ($item->kind === ImportKind::TERM) {
+                $termIds[$item->id] = true;
+
+                if (is_string($item->parentId) && $item->parentId !== '') {
+                    $termIds[$item->parentId] = true;
+                }
+            }
+
+            if ($item->kind === ImportKind::MENU) {
+                $menuIds[$item->id] = true;
+            }
+
+            if (is_string($item->menuId) && $item->menuId !== '') {
+                $menuIds[$item->menuId] = true;
+            }
+
+            if ($item->itemType === 'term' && is_string($item->objectId) && $item->objectId !== '') {
+                $termIds[$item->objectId] = true;
+            }
         }
 
-        $people = [];
+        $bySource = [];
+
+        foreach ([
+            ImportKind::PERSON => array_keys($peopleIds),
+            ImportKind::TERM => array_keys($termIds),
+            ImportKind::MENU => array_keys($menuIds),
+        ] as $kind => $sourceIds) {
+            if ($sourceIds === []) {
+                continue;
+            }
+
+            foreach (array_chunk($sourceIds, 500) as $chunk) {
+                foreach (DB::table('import_reader_ids')
+                    ->where('address', $address)
+                    ->where('reader', $reader)
+                    ->where('object_type', $kind)
+                    ->whereIn('source_id', $chunk)
+                    ->get(['object_type', 'source_id', 'object_id']) as $row) {
+                    $bySource[(string) $row->object_type][(string) $row->source_id] = (int) $row->object_id;
+                }
+            }
+        }
+
+        $people = $bySource[ImportKind::PERSON] ?? [];
+        $enginePeople = array_values($people);
         $reserved = [];
         $logins = [];
 
-        foreach (DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::USERS)->get(['object_id', 'payload']) as $row) {
-            $payload = is_string($row->payload) ? json_decode($row->payload, true) : [];
-            $login = is_array($payload) ? (string) ($payload['login'] ?? '') : '';
-            $sourceId = $byEngine[ImportKind::PERSON][(int) $row->object_id] ?? null;
+        if ($enginePeople !== [] || $loginKeys !== []) {
+            $query = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::USERS);
 
-            if ($sourceId !== null) {
-                $people[$sourceId] = (int) $row->object_id;
+            if ($enginePeople !== []) {
+                $query->where(function ($inner) use ($enginePeople, $loginKeys): void {
+                    $inner->whereIn('object_id', $enginePeople);
+
+                    if ($loginKeys !== []) {
+                        $inner->orWhereIn(DB::raw("payload->>'login'"), array_keys($loginKeys));
+                    }
+                });
+            } else {
+                $query->whereIn(DB::raw("payload->>'login'"), array_keys($loginKeys));
             }
 
-            if ($login !== '') {
-                $reserved[$login] = true;
-                $logins[$login] = (int) $row->object_id;
+            foreach ($query->get(['object_id', 'payload']) as $row) {
+                $payload = is_string($row->payload) ? json_decode($row->payload, true) : [];
+                $login = is_array($payload) ? (string) ($payload['login'] ?? '') : '';
+                $engineId = (int) $row->object_id;
+                $sourceId = array_search($engineId, $people, true);
+
+                if (is_string($sourceId)) {
+                    $people[$sourceId] = $engineId;
+                }
+
+                if ($login !== '') {
+                    $reserved[$login] = true;
+                    $logins[$login] = $engineId;
+                }
             }
         }
 
         $terms = [];
         $menus = [];
+        $engineTerms = array_values($bySource[ImportKind::TERM] ?? []);
+        $engineMenus = array_values($bySource[ImportKind::MENU] ?? []);
+        $engineIds = [...$engineTerms, ...$engineMenus];
 
-        foreach (DB::table('import_file_rows')->where('file_id', $fileId)->whereIn('list', [ItemRows::TERMS, ItemRows::OTHER_TERMS])->get(['object_id', 'payload']) as $row) {
-            $payload = is_string($row->payload) ? json_decode($row->payload, true) : [];
+        if ($engineIds !== []) {
+            foreach (DB::table('import_file_rows')
+                ->where('file_id', $fileId)
+                ->whereIn('list', [ItemRows::TERMS, ItemRows::OTHER_TERMS])
+                ->whereIn('object_id', $engineIds)
+                ->get(['object_id', 'payload']) as $row) {
+                $payload = is_string($row->payload) ? json_decode($row->payload, true) : [];
 
-            if (! is_array($payload)) {
-                continue;
-            }
-
-            $taxonomy = (string) ($payload['taxonomy'] ?? '');
-            $engineId = (int) $row->object_id;
-
-            if ($taxonomy === 'nav_menu') {
-                $sourceId = $byEngine[ImportKind::MENU][$engineId] ?? null;
-
-                if ($sourceId !== null) {
-                    $menus[$sourceId] = $engineId;
+                if (! is_array($payload)) {
+                    continue;
                 }
 
-                continue;
-            }
+                $taxonomy = (string) ($payload['taxonomy'] ?? '');
+                $engineId = (int) $row->object_id;
 
-            $sourceId = $byEngine[ImportKind::TERM][$engineId] ?? null;
+                if ($taxonomy === 'nav_menu') {
+                    $sourceId = array_search($engineId, $bySource[ImportKind::MENU] ?? [], true);
 
-            if ($sourceId !== null) {
-                $terms[$sourceId] = ['id' => $engineId, 'taxonomy' => $taxonomy];
+                    if (is_string($sourceId)) {
+                        $menus[$sourceId] = $engineId;
+                    }
+
+                    continue;
+                }
+
+                $sourceId = array_search($engineId, $bySource[ImportKind::TERM] ?? [], true);
+
+                if (is_string($sourceId)) {
+                    $terms[$sourceId] = ['id' => $engineId, 'taxonomy' => $taxonomy];
+                }
             }
         }
 
@@ -274,9 +369,11 @@ final class ReaderRows
                 $rows[] = ['list' => ItemRows::CONTENT, 'id' => $this->idOf($item), 'payload' => $this->post($item, $blocks)];
             } elseif ($item->kind === ImportKind::MEDIA) {
                 $rows[] = ['list' => ItemRows::MEDIA, 'id' => $this->idOf($item), 'payload' => $this->media($item)];
-            } elseif ($item->kind === ImportKind::COMMENT && $this->contentId($item->postId) !== null) {
+            } elseif ($item->kind === ImportKind::COMMENT) {
+                // Written even when the post is on a later page; ResolveImportReaderRows fills post_id.
                 $rows[] = ['list' => ItemRows::COMMENTS, 'id' => $this->idOf($item), 'payload' => $this->comment($item)];
-            } elseif ($item->kind === ImportKind::MENU_ITEM && $this->menuId($item->menuId) !== null) {
+            } elseif ($item->kind === ImportKind::MENU_ITEM) {
+                // Written even when the menu is on a later page; ResolveImportReaderRows fills menu.
                 $rows[] = ['list' => ItemRows::MENU_ITEMS, 'id' => $this->idOf($item), 'payload' => $this->menuItem($item)];
             }
         }
@@ -304,14 +401,17 @@ final class ReaderRows
         $this->logins[$login] = $id;
         $this->people[$item->id] = $id;
 
+        $payload = UserRows::fromAuthor($id, [
+            'author_login' => $login,
+            'author_email' => (string) ($item->fields['email'] ?? ''),
+            'author_display_name' => (string) ($item->fields['displayName'] ?? ''),
+        ]);
+        $payload['source_id'] = $item->id;
+
         return [
             'list' => ItemRows::USERS,
             'id' => $id,
-            'payload' => UserRows::fromAuthor($id, [
-                'author_login' => $login,
-                'author_email' => (string) ($item->fields['email'] ?? ''),
-                'author_display_name' => (string) ($item->fields['displayName'] ?? ''),
-            ]),
+            'payload' => $payload,
         ];
     }
 
@@ -344,6 +444,7 @@ final class ReaderRows
         $id = $this->idOf($item);
         $this->terms[$item->id] = ['id' => $id, 'taxonomy' => $taxonomy];
         $payload = TermRows::payload($id, $taxonomy, $name, $slug, (string) ($item->fields['description'] ?? ''), $this->ids[self::key(ImportKind::TERM, $item->parentId ?? '')] ?? 0, null);
+        $refs = array_filter(['parent' => $item->parentId], fn (?string $value): bool => is_string($value) && $value !== '');
 
         return [
             'list' => TermRows::listOf($taxonomy),
@@ -351,9 +452,11 @@ final class ReaderRows
             'payload' => [
                 ...$payload,
                 'reader' => true,
+                'source_id' => $item->id,
                 'language' => $item->language,
                 'translation_group' => $item->translationGroup,
                 'translations' => [],
+                ...($refs === [] ? [] : ['reader_refs' => $refs]),
             ],
         ];
     }
@@ -385,8 +488,19 @@ final class ReaderRows
             }
         }
 
+        $refs = array_filter([
+            'parent' => $item->parentId,
+            'author' => $item->authorId,
+            'featured' => $item->featuredMediaId,
+        ], fn (?string $value): bool => is_string($value) && $value !== '');
+
+        if ($item->termIds !== []) {
+            $refs['terms'] = $item->termIds;
+        }
+
         return [
             'reader' => true,
+            'source_id' => $item->id,
             'id' => $this->idOf($item),
             'type' => $item->kind,
             'status' => self::STATUSES[$item->status] ?? 'draft',
@@ -420,6 +534,7 @@ final class ReaderRows
             'language' => $item->language,
             'translation_group' => $item->translationGroup,
             'translations' => [],
+            ...($refs === [] ? [] : ['reader_refs' => $refs]),
         ];
     }
 
@@ -432,8 +547,15 @@ final class ReaderRows
      */
     private function comment(ImportItem $item): array
     {
+        $refs = array_filter([
+            'on' => $item->postId,
+            'parent' => $item->parentId,
+            'author' => $item->authorId,
+        ], fn (?string $value): bool => is_string($value) && $value !== '');
+
         return [
             'id' => $this->idOf($item),
+            'source_id' => $item->id,
             'post_id' => $this->contentId($item->postId),
             'parent' => $item->parentId === null ? 0 : ($this->ids[self::key(ImportKind::COMMENT, $item->parentId)] ?? 0),
             'type' => 'comment',
@@ -446,6 +568,7 @@ final class ReaderRows
             'date_gmt' => $item->publishedAt,
             'content' => $item->content,
             'user_id' => $this->personId($item->authorId),
+            ...($refs === [] ? [] : ['reader_refs' => $refs]),
         ];
     }
 
@@ -463,7 +586,10 @@ final class ReaderRows
         $slug = (string) ($item->fields['slug'] ?? '');
         $name = $item->title !== '' ? $item->title : $slug;
 
-        return ['list' => ItemRows::OTHER_TERMS, 'id' => $id, 'payload' => TermRows::payload($id, 'nav_menu', $name, $slug !== '' ? $slug : $name, '', 0, null)];
+        $payload = TermRows::payload($id, 'nav_menu', $name, $slug !== '' ? $slug : $name, '', 0, null);
+        $payload['source_id'] = $item->id;
+
+        return ['list' => ItemRows::OTHER_TERMS, 'id' => $id, 'payload' => $payload];
     }
 
     /**
@@ -479,10 +605,17 @@ final class ReaderRows
             'term' => $this->terms[(string) $item->objectId]['id'] ?? 0,
             default => 0,
         };
+        $refs = array_filter([
+            'menu' => $item->menuId,
+            'parent' => $item->parentId,
+            'object' => $item->objectId,
+            'object_kind' => in_array($item->itemType, ['content', 'term'], true) ? $item->itemType : null,
+        ], fn (mixed $value): bool => is_string($value) && $value !== '');
 
         return [
             'menu' => $this->menuId($item->menuId) ?? 0,
             'id' => $this->idOf($item),
+            'source_id' => $item->id,
             'parent' => $item->parentId === null ? 0 : ($this->ids[self::key(ImportKind::MENU_ITEM, $item->parentId)] ?? 0),
             'order' => $item->order,
             'type' => self::MENU_ITEM_TYPES[(string) $item->itemType] ?? 'custom',
@@ -494,6 +627,7 @@ final class ReaderRows
             'attr_title' => '',
             'classes' => [],
             'xfn' => '',
+            ...($refs === [] ? [] : ['reader_refs' => $refs]),
         ];
     }
 
@@ -505,8 +639,14 @@ final class ReaderRows
         $url = (string) ($item->fields['url'] ?? '');
         $path = (string) parse_url($url, PHP_URL_PATH);
 
+        $refs = array_filter([
+            'parent' => $item->parentId,
+            'author' => $item->authorId,
+        ], fn (?string $value): bool => is_string($value) && $value !== '');
+
         return [
             'id' => $this->idOf($item),
+            'source_id' => $item->id,
             'parent' => $this->contentId($item->parentId) ?? 0,
             'author' => $this->personId($item->authorId),
             'date_gmt' => $item->publishedAt,
@@ -523,6 +663,7 @@ final class ReaderRows
             'attachment_page' => $item->oldAddress ?? '',
             'metadata' => null,
             'backup_sizes' => [],
+            ...($refs === [] ? [] : ['reader_refs' => $refs]),
         ];
     }
 

@@ -85,6 +85,16 @@ return [
     'import' => [
         'local_sources' => env('APP_ENV', 'production') === 'local',
         'max_file_mb' => (int) env('TEME_IMPORT_MAX_FILE_MB', 2048),
+        /*
+         * How many items a plugin import reader is asked for on each page.
+         * Tests set a small value so a short file still spans several pages.
+         */
+        'reader_page_size' => null,
+        /*
+         * How many reader pages one job keeps before queuing the next part.
+         * Null means only the deadline ends a part.
+         */
+        'reader_pages_per_part' => null,
     ],
 
     /*
