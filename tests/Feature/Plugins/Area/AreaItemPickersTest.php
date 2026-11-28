@@ -132,6 +132,6 @@ it('gives a post its categories by name, and a page none', function (): void {
 
     $shown = collect(ItemChoices::search('roses', (string) $this->author->id)['shown'])->keyBy('title');
 
-    expect($shown['Roses in the Sport garden']['categories'])->toBe(['Sport'])
-        ->and($shown['Roses on the about page']['categories'])->toBe([]);
+    expect($shown['Roses in the Sport garden']['filedUnder'])->toBe(['Sport'])
+        ->and($shown['Roses on the about page']['filedUnder'])->toBe([]);
 });

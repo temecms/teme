@@ -80,7 +80,7 @@ final class ItemChoices
      * The first SHOWN items whose title holds the words typed, that the person
      * may read, with how many in all; nothing when nothing is typed.
      *
-     * @return array{shown: list<array{id: string, title: string, kind: string, status: string, date: string, categories: list<string>}>, total: int}
+     * @return array{shown: list<array{id: string, title: string, kind: string, status: string, date: string, filedUnder: list<string>}>, total: int}
      *
      * @since next
      */
@@ -105,7 +105,7 @@ final class ItemChoices
                 'kind' => self::kindLabel((string) $item->type),
                 'status' => (string) $item->status,
                 'date' => ($item->published_at ?? $item->updated_at)->toIso8601String(),
-                'categories' => $item->type === CoreTypes::POST ? ($categories[(string) $item->id] ?? []) : [],
+                'filedUnder' => $item->type === CoreTypes::POST ? ($categories[(string) $item->id] ?? []) : [],
             ])->values()->all(),
             'total' => $matches->count(),
         ];
