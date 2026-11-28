@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Comments\Checks;
 
+use App\Domain\Plugins\Seo\SeoPlugin;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Plugins\Slots\SlotProviders;
@@ -46,10 +47,46 @@ final class CommentChecks
     }
 
     /**
+     * The field the chosen plugin declares for the comment form, or null when
+     * none does; the form draws it and the check is given its value.
+     *
+     * @return array{name: string, make: string, value: string}|null
+     */
+    public function field(): ?array
+    {
+        $plugin = $this->chosen();
+
+        return $plugin === null ? null : CommentField::of($plugin->manifest);
+    }
+
+    /**
      * The chosen plugin's verdict on the comment, or null for no opinion. The
      * verdict names the plugin in its signals, as checkedBy.
      */
     public function verdict(CommentCandidate $comment): ?ModerationVerdict
+    {
+        $plugin = $this->chosen();
+
+        if ($plugin === null) {
+            return null;
+        }
+
+        $running = $plugin->running;
+
+        // A failure, a late answer or a skipped plugin is recorded by SeoPlugins::ask; no opinion then.
+        $answered = $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($running, $comment): ?ModerationVerdict {
+            $answer = $running->check($comment);
+
+            return $answer instanceof ModerationVerdict ? self::known($answer) : null;
+        });
+
+        return $answered === null ? null : new ModerationVerdict($answered->status, $answered->reason, [...$answered->signals, 'checkedBy' => $plugin->name]);
+    }
+
+    /**
+     * The enabled plugin filling the comment-check slot, granted comments.check and running its check, or null.
+     */
+    private function chosen(): ?SeoPlugin
     {
         $chosen = $this->providers->chosenFor(PluginSlots::COMMENT_CHECK);
 
@@ -58,20 +95,9 @@ final class CommentChecks
         }
 
         foreach ($this->plugins->all() as $plugin) {
-            if ($plugin->name !== $chosen || ! $plugin->grants(Capability::CommentsCheck->value) || ! $plugin->running instanceof HasCommentCheck) {
-                continue;
+            if ($plugin->name === $chosen && $plugin->grants(Capability::CommentsCheck->value) && $plugin->running instanceof HasCommentCheck) {
+                return $plugin;
             }
-
-            $running = $plugin->running;
-
-            // A failure, a late answer or a skipped plugin is recorded by SeoPlugins::ask; no opinion then.
-            $answered = $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($running, $comment): ?ModerationVerdict {
-                $answer = $running->check($comment);
-
-                return $answer instanceof ModerationVerdict ? self::known($answer) : null;
-            });
-
-            return $answered === null ? null : new ModerationVerdict($answered->status, $answered->reason, [...$answered->signals, 'checkedBy' => $plugin->name]);
         }
 
         return null;

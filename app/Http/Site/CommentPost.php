@@ -28,13 +28,23 @@ final readonly class CommentPost
         public string $url,
         public string $token,
         public string $honeypot,
+        /** @var array<string, string> the plugin's hidden field as posted, or a missing-field signal when the form didn't carry it (issue 805) */
+        public array $signals = [],
     ) {}
 
-    public static function from(Request $request): self
+    /**
+     * The form as posted; $field is the name of the comment-check plugin's declared hidden field, or null when none is declared.
+     */
+    public static function from(Request $request, ?string $field = null): self
     {
-        $field = fn (string $key): string => is_string($value = $request->input($key)) ? $value : '';
+        $value = fn (string $key): string => is_string($input = $request->input($key)) ? $input : '';
+        $signals = [];
 
-        return new self($field('path'), $field('parent'), $field('text'), $field('name'), $field('email'), $field('url'), $field('token'), $field('subject'));
+        if ($field !== null) {
+            $signals = is_string($request->input($field)) ? [$field => $request->input($field)] : ['missing-field' => $field];
+        }
+
+        return new self($value('path'), $value('parent'), $value('text'), $value('name'), $value('email'), $value('url'), $value('token'), $value('subject'), $signals);
     }
 
     /**

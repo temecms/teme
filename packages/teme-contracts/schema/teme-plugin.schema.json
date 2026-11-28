@@ -1358,6 +1358,31 @@
                         "enum": ["image-service", "search", "comment-check"]
                     }
                 },
+                "commentField": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "make"],
+                    "description": "One hidden field the comment form carries for the comment-check plugin, whose check is given its value as a signal. Needs comments.check and the comment-check slot in provides; the field is drawn only for the plugin the administrator chose for that slot (docs/guides/developers/plugins/comment-check.md).",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9-]{2,39}$",
+                            "not": {"enum": ["path", "parent", "text", "name", "email", "url", "token", "subject", "remember", "missing-field"]},
+                            "description": "The field's name, which the check's signals are keyed by. Not a name core's comment form uses."
+                        },
+                        "make": {
+                            "type": "string",
+                            "enum": ["static", "time", "trap"],
+                            "description": "static: a fixed value; time: the browser's time, filled in when the form is first touched; trap: an off-screen field no person sees."
+                        },
+                        "value": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "description": "The fixed value of a static field. Only a static field takes one."
+                        }
+                    }
+                },
                 "styles": {
                     "type": "array",
                     "maxItems": 40,

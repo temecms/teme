@@ -25,7 +25,25 @@ The plugin's class implements `HasCommentCheck`, whose `check()` takes a `Commen
 
 The text, the name, the email address, the address and the IP address of the commenter, and whether they are returning. A check that answers late, or fails, gives no opinion and the comment goes on to core's moderator.
 
-The candidate also has `signals`, the hidden form fields a comment form carried. This release's comment form sends none, so `signals` is always empty here. The hidden field that fills it is not in this release; it comes later (issue 805).
+The candidate also has `signals`, the values of the hidden field the plugin declares (below). They are empty when the plugin declares none.
+
+## A hidden field
+
+The plugin may declare one hidden field in its manifest, under `contributes`:
+
+```json
+"commentField": { "name": "hp-stamp", "make": "static", "value": "lively" }
+```
+
+`name` is the field's name, 3 to 40 lowercase letters, digits or hyphens. It may not be a name core's comment form uses, such as `text`, `email` or `subject`. `make` says how its value is made:
+
+- `static`: a fixed `value` of up to 200 characters, sent with every comment form.
+- `time`: the browser's time in milliseconds, filled in by core's comments script the first time a reader touches the form. The server never stamps it, so a cached page still gives a fresh time. The clock is the reader's browser's, not the server's.
+- `trap`: an off-screen field with no value, which no person sees and a bot tends to fill, as core's own honeypot works. Core's honeypot still runs first; a trap filled in reaches the check and nothing more.
+
+The field is drawn only for the plugin the administrator chose for the comment-check slot, and only where core draws its comment form, including a theme's own form that includes the comment form's fields. A field needs the `comment-check` slot in `provides` and `comments.check`.
+
+Its value reaches the check in `signals`, keyed by the field's name. A form that arrives without the field, such as one a bot stripped, gives the check a signal `missing-field` with the field's name instead. A check should treat that as a signal of its own, not as a value.
 
 ## What the plugin may keep
 

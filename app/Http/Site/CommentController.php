@@ -45,7 +45,9 @@ final class CommentController extends Controller
      */
     public function store(Request $request, SubmitComment $submit, CommentViews $views, CommentChecks $checks): Response
     {
-        $post = CommentPost::from($request);
+        // The comment-check plugin's declared field, whose value is read from the form (issue 805).
+        $declared = $checks->field();
+        $post = CommentPost::from($request, $declared['name'] ?? null);
         $answer = CommentAnswers::for($request);
         $target = $views->target($post->path);
 
@@ -105,6 +107,7 @@ final class CommentController extends Controller
                     userAgent: $request->userAgent(),
                     returning: ReturningCommenter::isReturning($post->email === '' ? null : $post->email, $post->token === '' ? null : CommenterToken::hash($post->token), $actor === null ? null : (int) $actor),
                     itemUrl: null,
+                    signals: $post->signals,
                 ));
             }
         }

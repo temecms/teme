@@ -75,6 +75,8 @@
         event.preventDefault();
         reader.then(() => {
             field(form, 'token').value = key(true);
+            const stamp = form.querySelector('[data-teme-time]');
+            if (stamp && !stamp.value) stamp.value = String(Date.now());
             keep(form);
             if (document.querySelector('[data-teme-thread]')) post(form);
             else HTMLFormElement.prototype.submit.call(form);
@@ -115,6 +117,8 @@
                 home(true);
             }
         });
+        const stamp = form.querySelector('[data-teme-time]');
+        if (stamp) form.addEventListener('focusin', () => { if (!stamp.value) stamp.value = String(Date.now()); }, { once: true });
         const text = field(form, 'text');
         if (text) {
             text.addEventListener('keydown', (event) => {
