@@ -85,9 +85,12 @@ function Change({ item }: { item: Item }) {
 export function AreaFigures({
     data,
     label,
+    empty,
 }: {
     data: AreaFiguresData;
     label: string;
+    /** Empty-state description from the figures block (plugin or core default). */
+    empty?: string;
 }) {
     if (data.empty) {
         return (
@@ -95,9 +98,10 @@ export function AreaFigures({
                 <EmptyState
                     kind="nothing-yet"
                     title={__('No statistics yet')}
-                    description={__(
-                        'Figures appear the day after an ad first shows.',
-                    )}
+                    description={
+                        empty ??
+                        __('Figures appear once there is something to count.')
+                    }
                 />
             </div>
         );

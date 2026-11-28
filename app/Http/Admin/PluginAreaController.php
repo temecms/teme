@@ -20,6 +20,7 @@ use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Area\PluginAreas;
+use App\Domain\Plugins\Area\RowActionWords;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\Operations\ActOnPluginRecords;
 use App\Domain\Plugins\Operations\Input\ActOnPluginRecordsInput;
@@ -201,21 +202,12 @@ final class PluginAreaController extends Controller
         $label = $queued['label'];
 
         if ($recordId !== null && $name !== null) {
-            $parts = explode(' ', $label, 2);
-            $verb = (string) preg_replace('/…$/u', '', $parts[0]);
             $declared = $actions->find($code, $action);
             $pluginName = $plugin !== null ? $plugin->label : $code;
-            $toast = ($declared['confirm'] ?? null) !== null
-                ? __(':verb queued for “:name”. Its figures show zero once :plugin has finished.', [
-                    'verb' => $verb,
-                    'name' => $name,
-                    'plugin' => $pluginName,
-                ])
-                : __(':verb queued for “:name”. Its status updates when :plugin has finished.', [
-                    'verb' => $verb,
-                    'name' => $name,
-                    'plugin' => $pluginName,
-                ]);
+            $toast = RowActionWords::fill(
+                $declared['toast'] ?? RowActionWords::toast($label, null, static fn (string $english): string => $english),
+                ['name' => $name, 'plugin' => $pluginName, 'action' => $label],
+            );
         } else {
             $toast = __(':label queued.', ['label' => $label]);
         }

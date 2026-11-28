@@ -146,7 +146,9 @@
                 "label": "Check the ad code",
                 "job": "check-code",
                 "row": true,
-                "icon": "code"
+                "icon": "code",
+                "toast": "Check queued for “{name}”. Its status updates when Placard has finished.",
+                "queued": "Check queued"
             },
             {
                 "id": "reset-stats",
@@ -154,7 +156,14 @@
                 "job": "reset-stats",
                 "row": true,
                 "icon": "refresh-cw",
-                "confirm": "Its impressions and clicks go back to zero for every period. This can’t be undone."
+                "confirm": {
+                    "title": "Reset the statistics for “{name}”?",
+                    "text": "Its impressions and clicks go back to zero for every period. This can’t be undone.",
+                    "button": "Reset statistics",
+                    "cancel": "Keep them"
+                },
+                "toast": "Reset queued for “{name}”. Its figures show zero once Placard has finished.",
+                "queued": "Reset queued"
             }
         ],
         "area": {
@@ -174,6 +183,7 @@
                         {
                             "type": "figures",
                             "id": "totals",
+                            "empty": "Figures appear the day after an ad first shows.",
                             "items": [
                                 {
                                     "id": "impressions",
@@ -245,7 +255,8 @@
                                 {
                                     "id": "report",
                                     "label": "Network report",
-                                    "kind": "link"
+                                    "kind": "link",
+                                    "empty": "No report link"
                                 },
                                 {
                                     "id": "impressions",

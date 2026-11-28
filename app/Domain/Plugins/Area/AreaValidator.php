@@ -397,7 +397,12 @@ final class AreaValidator
      */
     private function figuresErrors(array $block): array
     {
-        $errors = $this->unknownKeys($block, ['type', 'id', 'items']);
+        $errors = $this->unknownKeys($block, ['type', 'id', 'items', 'empty']);
+
+        if (array_key_exists('empty', $block) && ! $this->text($block['empty'], 200)) {
+            $errors[] = __('A figures block’s empty line must be text of 1 to 200 characters.');
+        }
+
         $items = $block['items'] ?? null;
 
         if (! is_array($items) || ! array_is_list($items) || $items === [] || count($items) > 4) {
@@ -477,7 +482,7 @@ final class AreaValidator
 
         foreach ($columns as $column) {
             $column = is_array($column) ? $column : [];
-            array_push($errors, ...$this->unknownKeys($column, ['id', 'label', 'kind', 'sortable']));
+            array_push($errors, ...$this->unknownKeys($column, ['id', 'label', 'kind', 'sortable', 'empty']));
 
             if (preg_match(self::ID, is_string($column['id'] ?? null) ? $column['id'] : '') !== 1 || ! $this->text($column['label'] ?? null, 40)) {
                 $errors[] = __('A table’s column needs an id and a label of 1 to 40 characters.');
@@ -489,6 +494,14 @@ final class AreaValidator
 
             if (array_key_exists('sortable', $column) && ! is_bool($column['sortable'])) {
                 $errors[] = __('A column’s sortable must be true or false.');
+            }
+
+            if (array_key_exists('empty', $column)) {
+                if (($column['kind'] ?? null) !== 'link') {
+                    $errors[] = __('Only a link column may declare empty text.');
+                } elseif (! $this->text($column['empty'], 40)) {
+                    $errors[] = __('A link column’s empty text must be 1 to 40 characters.');
+                }
             }
         }
 

@@ -814,11 +814,55 @@
                                 "description": "Offered in an area table's row menu when that table names this action. Never bulk. At most two actions may be marked."
                             },
                             "confirm": {
+                                "$comment": "@since next",
+                                "description": "Ask before queuing from a row: a sentence (the dialog text), or title, text, button and cancel. Core fills defaults for anything left out.",
+                                "oneOf": [
+                                    {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 200
+                                    },
+                                    {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "title": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 120
+                                            },
+                                            "text": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 200
+                                            },
+                                            "button": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 40
+                                            },
+                                            "cancel": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 40
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "toast": {
                                 "type": "string",
                                 "minLength": 1,
                                 "maxLength": 200,
                                 "$comment": "@since next",
-                                "description": "A sentence the person confirms before the job is queued from a row."
+                                "description": "The success toast after the row action queues. May use {name}, {action} and {plugin}. Core's default is Queued: {action} for “{name}”."
+                            },
+                            "queued": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "$comment": "@since next",
+                                "description": "The quiet pill after the row's status while the job runs. Core's default is Queued."
                             },
                             "icon": {
                                 "enum": [

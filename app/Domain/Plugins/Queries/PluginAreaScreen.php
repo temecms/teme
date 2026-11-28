@@ -298,6 +298,9 @@ final readonly class PluginAreaScreen
 
         if ($type === 'figures') {
             $frame['items'] = array_map(fn (array $item): array => ['id' => (string) ($item['id'] ?? ''), 'label' => $text($item['label'] ?? null), 'format' => (string) ($item['format'] ?? 'number')], $entries('items'));
+            $frame['empty'] = is_string($block['empty'] ?? null) && trim($block['empty']) !== ''
+                ? $text($block['empty'])
+                : __('Figures appear once there is something to count.');
         } elseif ($type === 'chart') {
             $frame['label'] = $text($block['label'] ?? null);
             $frame['kind'] = (string) ($block['kind'] ?? 'line');
@@ -305,7 +308,23 @@ final readonly class PluginAreaScreen
         } elseif ($type === 'table') {
             $record = $plugin->area->record(is_string($block['record'] ?? null) ? $block['record'] : '');
             $frame['record'] = ['id' => $record['id'] ?? '', 'label' => $text($record['label'] ?? null), 'plural' => $text($record['plural'] ?? null)];
-            $frame['columns'] = array_map(fn (array $column): array => ['id' => (string) ($column['id'] ?? ''), 'label' => $text($column['label'] ?? null), 'kind' => (string) ($column['kind'] ?? 'text'), 'sortable' => ($column['sortable'] ?? false) === true], $entries('columns'));
+            $frame['columns'] = array_map(function (array $column) use ($text): array {
+                $kind = (string) ($column['kind'] ?? 'text');
+                $frame = [
+                    'id' => (string) ($column['id'] ?? ''),
+                    'label' => $text($column['label'] ?? null),
+                    'kind' => $kind,
+                    'sortable' => ($column['sortable'] ?? false) === true,
+                ];
+
+                if ($kind === 'link') {
+                    $frame['empty'] = is_string($column['empty'] ?? null) && trim($column['empty']) !== ''
+                        ? $text($column['empty'])
+                        : __('None');
+                }
+
+                return $frame;
+            }, $entries('columns'));
             $frame['search'] = ($block['search'] ?? false) === true;
             $frame['filters'] = array_map(fn (array $filter): array => [
                 'id' => (string) ($filter['id'] ?? ''),
@@ -330,8 +349,9 @@ final readonly class PluginAreaScreen
 
                 $custom[] = [
                     'id' => $action['id'],
-                    'label' => $words($action['label']),
-                    'confirm' => $action['confirm'] === null ? null : $words($action['confirm']),
+                    'label' => $action['label'],
+                    'confirm' => $action['confirm'],
+                    'queued' => $action['queued'],
                     'icon' => $action['icon'],
                 ];
             }

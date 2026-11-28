@@ -8,7 +8,14 @@ import type { PluginCellValue } from '@/types/plugin-columns';
  * pill, an outside link (area tables only), or an empty dash. Never
  * interprets markup.
  */
-export function PluginCell({ value }: { value: PluginCellValue | undefined }) {
+export function PluginCell({
+    value,
+    emptyLabel,
+}: {
+    value: PluginCellValue | undefined;
+    /** Empty link cell; core default is None when the column declared none. */
+    emptyLabel?: string;
+}) {
     if (value === undefined) {
         return (
             <>
@@ -33,7 +40,9 @@ export function PluginCell({ value }: { value: PluginCellValue | undefined }) {
     if (value.kind === 'link') {
         if (value.href === null || value.host === null) {
             return (
-                <span className="text-ink-3 text-small">{__('No report link')}</span>
+                <span className="text-ink-3 text-small">
+                    {emptyLabel ?? __('None')}
+                </span>
             );
         }
 

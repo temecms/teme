@@ -64,18 +64,43 @@ afterEach(function (): void {
     PluginFixtures::forget();
 });
 
-it('offers custom row actions on the ads table frame', function (): void {
+it('offers custom row actions on the ads table frame with the plugin’s own words', function (): void {
     $this->actingAs($this->editor)
         ->get(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('blocks.0.customActions', [
-                ['id' => 'check-code', 'label' => 'Check the ad code', 'confirm' => null, 'icon' => 'code'],
-                ['id' => 'reset-stats', 'label' => 'Reset statistics…', 'confirm' => 'Its impressions and clicks go back to zero for every period. This can’t be undone.', 'icon' => 'refresh-cw'],
+                [
+                    'id' => 'check-code',
+                    'label' => 'Check the ad code',
+                    'confirm' => null,
+                    'queued' => 'Check queued',
+                    'icon' => 'code',
+                ],
+                [
+                    'id' => 'reset-stats',
+                    'label' => 'Reset statistics…',
+                    'confirm' => [
+                        'title' => 'Reset the statistics for “{name}”?',
+                        'text' => 'Its impressions and clicks go back to zero for every period. This can’t be undone.',
+                        'button' => 'Reset statistics',
+                        'cancel' => 'Keep them',
+                    ],
+                    'queued' => 'Reset queued',
+                    'icon' => 'refresh-cw',
+                ],
             ])
+            ->where('blocks.0.columns.3.empty', 'No report link')
             ->where('blocks.0.rowActions', ['edit', 'duplicate', 'check-code', 'reset-stats', 'enable', 'disable', 'delete']));
 });
 
-it('queues a custom row action as the clicker for that row, with the row toast', function (): void {
+it('hands the figures block its own empty line', function (): void {
+    $this->actingAs($this->editor)
+        ->get(route('plugins.area.show', ['code' => 'placard']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('blocks.0.empty', 'Figures appear the day after an ad first shows.'));
+});
+
+it('queues a custom row action as the clicker for that row, with the plugin’s toast', function (): void {
     $this->actingAs($this->editor)
         ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
@@ -95,7 +120,7 @@ it('queues a custom row action as the clicker for that row, with the row toast',
         ->and($job->unique_key)->toBe(RunPluginAction::uniqueKey('check-code', $this->id));
 });
 
-it('queues a confirming row action with its figures toast', function (): void {
+it('queues a confirming row action with its own figures toast', function (): void {
     $this->actingAs($this->editor)
         ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'reset-stats']), [

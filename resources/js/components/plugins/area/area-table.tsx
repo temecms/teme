@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
+import { ConfirmAction } from '@/components/confirm-action';
 import { BulkBar } from '@/components/list/bulk-bar';
 import { ConfirmItems } from '@/components/list/confirm-items';
 import { DataTable } from '@/components/list/data-table';
@@ -12,17 +13,8 @@ import { PluginCell } from '@/components/list/plugin-cell';
 import type { RowAction } from '@/components/list/row-actions';
 import { RowLine } from '@/components/list/row-line';
 import { RowMenu } from '@/components/list/row-menu';
-import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogClose,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
 import { StatusPill } from '@/components/ui/status-pill';
@@ -34,6 +26,11 @@ import type {
     AreaTableAsk,
     AreaTableBlock,
 } from '@/types/plugin-area';
+
+/** Fills {name} (and any leftover {action}) in a plugin or core template. */
+function fillWords(template: string, name: string): string {
+    return template.replaceAll('{name}', name);
+}
 
 type Row = AreaRowsData['rows'][number];
 
@@ -274,7 +271,12 @@ export function AreaTable({
                   }
                 : undefined,
             cell: (row: Row) => {
-                const cell = <PluginCell value={row.cells[column.id]} />;
+                const cell = (
+                    <PluginCell
+                        value={row.cells[column.id]}
+                        emptyLabel={column.empty}
+                    />
+                );
                 const line = lineOf(row);
                 const waiting = (queued[row.id] ?? [])
                     .map((id) => customById[id])
@@ -284,18 +286,11 @@ export function AreaTable({
                     return (
                         <div className="flex flex-wrap items-center gap-2">
                             {cell}
-                            {waiting.map((action) => {
-                                const verb =
-                                    action.label
-                                        .replace(/…$/u, '')
-                                        .split(/\s+/)[0] ?? action.label;
-
-                                return (
-                                    <StatusPill key={action.id} tone="info">
-                                        {__(':verb queued', { verb })}
-                                    </StatusPill>
-                                );
-                            })}
+                            {waiting.map((action) => (
+                                <StatusPill key={action.id} tone="info">
+                                    {action.queued}
+                                </StatusPill>
+                            ))}
                         </div>
                     );
                 }
@@ -610,57 +605,23 @@ export function AreaTable({
                 }
             />
 
-            <Dialog
-                open={confirming !== null}
-                onOpenChange={(open) => !open && setConfirming(null)}
-            >
-                <ResponsiveDialogContent phone="foot">
-                    {confirming !== null && (() => {
-                        const base = confirming.action.label
-                            .replace(/…$/u, '')
-                            .trim();
-                        const [verb, ...rest] = base.split(/\s+/);
-                        const mid =
-                            rest.length > 0 ? ` the ${rest.join(' ')}` : '';
-
-                        return (
-                            <>
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {__(':verb:mid for “:name”?', {
-                                            verb: verb ?? base,
-                                            mid,
-                                            name: titleOf(confirming.row),
-                                        })}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {confirming.action.confirm}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter>
-                                    <DialogClose asChild>
-                                        <Button variant="outline">
-                                            {__('Keep them')}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        variant="destructive"
-                                        disabled={busy}
-                                        onClick={() =>
-                                            runCustom(
-                                                confirming.action,
-                                                confirming.row,
-                                            )
-                                        }
-                                    >
-                                        {base}
-                                    </Button>
-                                </DialogFooter>
-                            </>
-                        );
-                    })()}
-                </ResponsiveDialogContent>
-            </Dialog>
+            {confirming !== null && confirming.action.confirm !== null && (
+                <ConfirmAction
+                    open
+                    onOpenChange={(open) => !open && setConfirming(null)}
+                    title={fillWords(
+                        confirming.action.confirm.title,
+                        titleOf(confirming.row),
+                    )}
+                    description={confirming.action.confirm.text}
+                    confirmLabel={confirming.action.confirm.button}
+                    cancelLabel={confirming.action.confirm.cancel}
+                    onConfirm={() =>
+                        !busy &&
+                        runCustom(confirming.action, confirming.row)
+                    }
+                />
+            )}
         </section>
     );
 }

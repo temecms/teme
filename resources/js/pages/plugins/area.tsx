@@ -389,6 +389,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
                                             <AreaFigures
                                                 data={data}
                                                 label={current.label}
+                                                empty={block.empty}
                                             />
                                         );
                                     }

@@ -12,6 +12,8 @@ export type AreaPluginRef = {
 export type AreaFiguresBlock = {
     id: string;
     type: 'figures';
+    /** Empty-state description; core default when the plugin declared none. */
+    empty: string;
     items: {
         id: string;
         label: string;
@@ -27,10 +29,19 @@ export type AreaChartBlock = {
     series: { id: string; label: string }[];
 };
 
+export type AreaRowConfirm = {
+    title: string;
+    text: string | null;
+    button: string;
+    cancel: string;
+};
+
 export type AreaCustomRowAction = {
     id: string;
     label: string;
-    confirm: string | null;
+    confirm: AreaRowConfirm | null;
+    /** Quiet pill after status while the job runs. */
+    queued: string;
     icon: string | null;
 };
 
@@ -43,6 +54,8 @@ export type AreaTableBlock = {
         label: string;
         kind: 'text' | 'number' | 'badge' | 'link';
         sortable: boolean;
+        /** Empty link cell text; only on link columns. */
+        empty?: string;
     }[];
     search: boolean;
     filters: {
