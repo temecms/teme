@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\LoadedPlugins;
@@ -231,4 +232,33 @@ it('queues the same row action on another row that still offers it', function ()
 
     expect(TrackedJob::query()->count())->toBe(1)
         ->and(TrackedJob::query()->sole()->payload)->toBe(['action' => 'check-code', 'record' => (string) $other]);
+});
+
+it('lists the queued action on the row while the job waits, and clears it when finished', function (): void {
+    $this->actingAs($this->editor)
+        ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
+            'record' => $this->id,
+            'kind' => 'ad',
+        ])
+        ->assertInertiaFlash('toast.type', 'success');
+
+    $this->actingAs($this->editor)
+        ->get(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->loadDeferredProps('block_ads', fn (Assert $reload) => $reload
+                ->where('block_ads.rows.0.id', $this->id)
+                ->where('block_ads.rows.0.queued', ['check-code'])));
+
+    TrackedJob::query()->sole()->update([
+        'state' => JobState::Finished,
+        'ended_at' => now(),
+    ]);
+
+    $this->actingAs($this->editor)
+        ->get(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->loadDeferredProps('block_ads', fn (Assert $reload) => $reload
+                ->where('block_ads.rows.0.queued', [])));
 });

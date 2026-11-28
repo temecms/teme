@@ -1,6 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { BulkBar } from '@/components/list/bulk-bar';
@@ -93,12 +93,51 @@ export function AreaTable({
     const customById = Object.fromEntries(
         customActions.map((action) => [action.id, action]),
     ) as Record<string, AreaCustomRowAction>;
+    const hasStatus = block.columns.some((column) => column.kind === 'badge');
     const titleColumn = block.columns[0]?.id ?? '';
     const titleOf = (row: Row): string => {
         const cell = row.cells[titleColumn];
 
         return cell === undefined ? row.id : String(cell.value);
     };
+    const waitingFor = (row: Row): AreaCustomRowAction[] =>
+        [...new Set([...(row.queued ?? []), ...(queued[row.id] ?? [])])]
+            .map((id) => customById[id])
+            .filter((action): action is AreaCustomRowAction => action !== undefined);
+
+    // Once deferred rows reload, the server’s queued list is truth: drop
+    // optimistic pills the server no longer lists (job finished).
+    useEffect(() => {
+        setQueued((current) => {
+            let changed = false;
+            const next: Record<string, string[]> = {};
+
+            for (const [rowId, actions] of Object.entries(current)) {
+                const row = data.rows.find((one) => one.id === rowId);
+
+                if (row === undefined) {
+                    next[rowId] = actions;
+
+                    continue;
+                }
+
+                const server = new Set(row.queued ?? []);
+                const kept = actions.filter((id) => server.has(id));
+
+                if (kept.length !== actions.length) {
+                    changed = true;
+                }
+
+                if (kept.length > 0) {
+                    next[rowId] = kept;
+                } else if (actions.length > 0) {
+                    changed = true;
+                }
+            }
+
+            return changed ? next : current;
+        });
+    }, [data.rows]);
     const editHref = (row: Row) =>
         PluginAreaController.edit.url({
             code: plugin.code,
@@ -147,6 +186,11 @@ export function AreaTable({
                             action.id,
                         ],
                     }));
+                    router.reload({
+                        only: [`block_${block.id}`],
+                        preserveScroll: true,
+                        preserveState: true,
+                    });
                 },
             },
         );
@@ -280,25 +324,24 @@ export function AreaTable({
                     />
                 );
                 const line = lineOf(row);
-                const waitingIds = [
-                    ...new Set([
-                        ...(row.queued ?? []),
-                        ...(queued[row.id] ?? []),
-                    ]),
-                ];
-                const waiting = waitingIds
-                    .map((id) => customById[id])
-                    .filter((action): action is AreaCustomRowAction => action !== undefined);
-
-                if (column.kind === 'badge' && waiting.length > 0) {
-                    return (
-                        <div className="flex flex-wrap items-center gap-2">
-                            {cell}
+                const waiting = waitingFor(row);
+                const pills =
+                    waiting.length > 0 ? (
+                        <span className="flex flex-wrap items-center gap-2">
                             {waiting.map((action) => (
                                 <StatusPill key={action.id} tone="info">
                                     {action.queued}
                                 </StatusPill>
                             ))}
+                        </span>
+                    ) : null;
+
+                // Once after status when the table has a badge column.
+                if (column.kind === 'badge' && pills !== null) {
+                    return (
+                        <div className="flex flex-wrap items-center gap-2">
+                            {cell}
+                            {pills}
                         </div>
                     );
                 }
@@ -307,20 +350,24 @@ export function AreaTable({
                     return cell;
                 }
 
+                // No status column: once after the title instead.
                 return (
                     <div className="grid gap-1">
-                        {block.rowActions.includes('edit') ? (
-                            <Link
-                                href={editHref(row)}
-                                className="text-ink text-body font-semibold underline-offset-2 hover:underline"
-                            >
-                                {cell}
-                            </Link>
-                        ) : (
-                            <span className="text-ink text-body font-semibold">
-                                {cell}
-                            </span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                            {block.rowActions.includes('edit') ? (
+                                <Link
+                                    href={editHref(row)}
+                                    className="text-ink text-body font-semibold underline-offset-2 hover:underline"
+                                >
+                                    {cell}
+                                </Link>
+                            ) : (
+                                <span className="text-ink text-body font-semibold">
+                                    {cell}
+                                </span>
+                            )}
+                            {!hasStatus && pills}
+                        </div>
                         {line.length > 0 && (
                             <RowLine title={titleOf(row)} items={line} />
                         )}
