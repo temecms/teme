@@ -51,7 +51,8 @@ Every insertion is cleaned before it is drawn, in HTML, SVG and MathML alike:
 
 - a `<script>` without `src` is removed, with its body;
 - every attribute starting with `on`, and `srcdoc`, is removed;
-- an `href`, `src`, `xlink:href`, `action` or `formaction` that starts with `javascript:` or `data:text/html` is removed, compared as a browser reads it;
+- a `<base>`, and a `<meta>` with `http-equiv`, is removed, since it would change every address on the page or send the reader elsewhere;
+- an `href`, `src`, `xlink:href`, `action`, `formaction` or `data` that starts with `javascript:` or `data:text/html` is removed, compared as a browser reads it;
 - an SVG `animate` or `set` that would change an `href` is removed.
 
 Everything else is kept as written: a `<style>`, an ad network's `<ins>` with its `data-*` attributes, a `<script src>`, an `<iframe>` and an `<img>`. An inline script is kept only when a person approved its exact text for your plugin; see [Inline scripts](page-insertions.md#inline-scripts).

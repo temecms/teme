@@ -2,10 +2,10 @@
 
 /**
  * Cleans insertion markup like site code (I-064, I-697): in every namespace,
- * SVG and MathML included, drops scripts without src, templates, every on*
- * attribute, every data-teme-* attribute (core's own markers), srcdoc, and
- * addresses that run script or draw a page; keeps script src,
- * iframe and img, and collects their https origins for the page's policy.
+ * SVG and MathML included, drops scripts without src, templates, base and
+ * meta http-equiv, every on* attribute, every data-teme-* attribute (core's
+ * own markers), srcdoc, and addresses that run script or draw a page; keeps
+ * script src, iframe and img, and collects their https origins for the page's policy.
  * An inline script is kept only when its exact text was approved for the
  * plugin that gave it, while the host allows site code, and its hash goes
  * to the page's policy (docs/plans/plugin-sockets-2.md, B4).
@@ -28,7 +28,7 @@ use Dom\HTMLDocument;
 final class InsertionCleaner
 {
     /** Attributes that hold an address a browser follows or loads. */
-    private const array ADDRESSES = ['href', 'src', 'xlink:href', 'action', 'formaction'];
+    private const array ADDRESSES = ['href', 'src', 'xlink:href', 'action', 'formaction', 'data'];
 
     /** Address schemes that run script or draw a page of their own. */
     private const array UNSAFE_SCHEMES = ['javascript:', 'data:text/html'];
@@ -178,6 +178,13 @@ final class InsertionCleaner
 
         // A template's content is inert until core copies it, and core's own scripts copy what they find: none is kept.
         if ($name === 'script' && ! $element->hasAttribute('src') || $name === 'template') {
+            $element->remove();
+
+            return;
+        }
+
+        // A base rebases every relative address on the page, core's own included, and a meta http-equiv can redirect the visitor.
+        if ($name === 'base' || ($name === 'meta' && $element->hasAttribute('http-equiv'))) {
             $element->remove();
 
             return;
