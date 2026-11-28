@@ -111,7 +111,8 @@
                     "comments.check",
                     "search.read",
                     "import.read",
-                    "security.log"
+                    "security.log",
+                    "terms.write"
                 ]
             }
         },

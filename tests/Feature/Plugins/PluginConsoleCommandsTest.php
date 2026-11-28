@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Console\DeclaredCommands;
 use App\Domain\Plugins\Console\PluginCommands;
 use App\Domain\Plugins\LoadedPlugins;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Plugins\PluginFixtures;
 use Tests\Fixtures\Plugins\Sharely\Sharely;
+use Throwable;
 
 require_once dirname(__DIR__, 2).'/Fixtures/plugins/sharely/src/Sharely.php';
 
@@ -37,6 +39,7 @@ function sharelyEnabled(): void
 {
     Sharely::reset();
     app()->instance(LoadedPlugins::class, new LoadedPlugins);
+    app()->instance(PluginCommands::class, new PluginCommands);
     app()->instance(Elevation::class, new OperatorElevation);
 
     PluginFixtures::use('sharely');
@@ -157,4 +160,43 @@ it('never replaces a command that exists when it adds a plugin’s, and skips it
 
     expect($artisan->all()['sharely:resend'])->toBe($core)
         ->and($artisan->all())->toHaveKey('sharely:fail');
+});
+
+it('records a fault when a command’s name becomes taken after enable, and skips it', function (): void {
+    sharelyEnabled();
+    $kept = app(PluginCommands::class);
+    expect($kept->names())->toBe(['sharely:resend', 'sharely:fail']);
+
+    // Starting callbacks call addTo; keep them empty while the colliding command is added.
+    app()->instance(PluginCommands::class, new PluginCommands);
+    $faults = new class implements ListenerFaults
+    {
+        /** @var list<array{0: string, 1: string, 2: string, 3: Throwable}> */
+        public array $seen = [];
+
+        public function record(string $owner, string $id, string $hook, Throwable $failure): void
+        {
+            $this->seen[] = [$owner, $id, $hook, $failure];
+        }
+    };
+    app()->instance(ListenerFaults::class, $faults);
+
+    $artisan = new Application(app(), app('events'), '1');
+    $taken = new class extends Command
+    {
+        protected $name = 'sharely:resend';
+
+        protected $description = 'Taken after enable';
+    };
+    $artisan->add($taken);
+
+    app()->instance(PluginCommands::class, $kept);
+    $kept->addTo($artisan);
+
+    expect($artisan->all()['sharely:resend'])->toBe($taken)
+        ->and($artisan->all())->toHaveKey('sharely:fail')
+        ->and($faults->seen)->toHaveCount(1)
+        ->and($faults->seen[0][0])->toBe('tests/sharely')
+        ->and($faults->seen[0][1])->toBe('tests/sharely#command')
+        ->and($faults->seen[0][3]->getMessage())->toContain('sharely:resend already exists');
 });

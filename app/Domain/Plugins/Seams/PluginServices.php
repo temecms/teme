@@ -36,11 +36,12 @@ use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
+use Teme\Contracts\Taxonomy\TermWriter;
 
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class, HookSender::class, Notices::class, HtmlToDocument::class, VerifiedDirectory::class, Submissions::class, CardsChanged::class, RedirectWriter::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class, HookSender::class, Notices::class, HtmlToDocument::class, VerifiedDirectory::class, Submissions::class, CardsChanged::class, RedirectWriter::class, TermWriter::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

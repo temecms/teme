@@ -42,6 +42,7 @@ namespace Teme\Contracts\Plugins;
  * SecurityLog opens the SecurityLines door, which writes lines of the kinds the
  * plugin declares under `contributes.securityLog` into core's security log (next).
  * Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects.
+ * TermsWrite opens the TermWriter door, to create, update, list and remove terms of the taxonomies the plugin owns.
  *
  * @since 0.5.0
  */
@@ -124,4 +125,7 @@ enum Capability: string
 
     /** @since next */
     case SecurityLog = 'security.log';
+
+    /** @since next */
+    case TermsWrite = 'terms.write';
 }

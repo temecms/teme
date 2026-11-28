@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Console;
 
-use App\Domain\Plugins\Faults\SpooledFaults;
+use App\Domain\Hooks\ListenerFaults;
 use Illuminate\Console\Application;
 use RuntimeException;
 
@@ -42,7 +42,7 @@ final class PluginCommands
         foreach ($this->commands as $command) {
             // add() replaces a command of the same name; a plugin never replaces one.
             if ($artisan->has((string) $command->getName())) {
-                app(SpooledFaults::class)->record($command->owner(), $command->owner().'#command', '', new RuntimeException("The command {$command->getName()} already exists, so the plugin’s was not added."));
+                app(ListenerFaults::class)->record($command->owner(), $command->owner().'#command', '', new RuntimeException("The command {$command->getName()} already exists, so the plugin’s was not added."));
 
                 continue;
             }
