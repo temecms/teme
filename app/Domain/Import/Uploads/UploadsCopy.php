@@ -27,6 +27,13 @@ final readonly class UploadsCopy
 
     public const string FOLDER = 'folder';
 
+    /**
+     * The folders of protected plugins (order forms, logs, uploads kept for
+     * their customers). Their files are never brought in from a copy: they
+     * are private to the plugin, and the site refuses them to readers too.
+     */
+    public const array PROTECTED_FOLDERS = ['woocommerce_uploads', 'wc-logs', 'gravity_forms', 'wpforms', 'ninja-forms'];
+
     public function __construct(
         public string $kind,
         public string $path,
@@ -44,7 +51,7 @@ final readonly class UploadsCopy
     {
         $relative = self::relativePath($address);
 
-        if ($relative === null) {
+        if ($relative === null || self::protectedReason($address) !== null) {
             return null;
         }
 
@@ -110,12 +117,54 @@ final readonly class UploadsCopy
         }
 
         foreach (explode('/', $relative) as $part) {
-            if ($part === '' || $part === '.' || $part === '..') {
+            // A dot-file or dot-folder (.env, .htaccess, .git) is never read from a copy.
+            if ($part === '' || str_starts_with($part, '.')) {
                 return null;
             }
         }
 
         return $relative;
+    }
+
+    /**
+     * Whether an address names a protected plugin's folder, whose files are
+     * never brought in from a copy (PROTECTED_FOLDERS), and why; null otherwise.
+     */
+    public static function protectedReason(string $address): ?string
+    {
+        $relative = self::relativePath($address);
+
+        if ($relative === null) {
+            return null;
+        }
+
+        foreach (explode('/', $relative) as $part) {
+            if (in_array($part, self::PROTECTED_FOLDERS, true)) {
+                return 'It is in the folder of a protected plugin, '.$part.', so Teme doesn’t bring it from a copy.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether a real path is the application's own folder, inside it, or a
+     * folder above it: such a path is never attached as an uploads copy, since
+     * it would expose the application's own files (.env, its code, its logs).
+     */
+    public static function reachesApplication(string $real): bool
+    {
+        $real = rtrim($real, '/').'/';
+
+        foreach ([base_path(), storage_path(), public_path()] as $root) {
+            $root = (realpath($root) ?: $root).'/';
+
+            if (str_starts_with($real, $root) || str_starts_with($root, $real)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

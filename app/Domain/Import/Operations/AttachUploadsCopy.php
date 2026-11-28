@@ -17,11 +17,12 @@ namespace App\Domain\Import\Operations;
 
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Models\ImportUpload;
-use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
 use App\Domain\Import\Uploads\KeptUploads;
 use App\Domain\Import\Uploads\UploadsCopy;
 use App\Domain\Support\Operations\BaseOperation;
+use App\Domain\Support\Security\Operator;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
@@ -29,11 +30,14 @@ use ZipArchive;
 
 final class AttachUploadsCopy extends BaseOperation
 {
-    use AuthorizesImports;
-
+    /**
+     * Only the operator at the server's shell attaches a path on the server: a person in the browser never names one.
+     */
     protected function authorize(OperationInput $input): void
     {
-        $this->authorizeImporter($input->actorId());
+        if (! Operator::isPresent()) {
+            throw new AuthorizationException('Not permitted to import a site.');
+        }
     }
 
     protected function validate(OperationInput $input): void
@@ -105,6 +109,10 @@ final class AttachUploadsCopy extends BaseOperation
     private function kindOf(string $path): array
     {
         $real = realpath($path);
+
+        if ($real !== false && UploadsCopy::reachesApplication($real)) {
+            throw ValidationException::withMessages(['path' => 'That is the application’s own folder, or one that holds it. Name the uploads folder itself, such as the old site’s wp-content/uploads.']);
+        }
 
         if ($real !== false && is_dir($real) && is_readable($real)) {
             return ['kind' => UploadsCopy::FOLDER, 'path' => $real];

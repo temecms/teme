@@ -109,3 +109,36 @@ it('brings a picture the copy has without asking the site, and asks the site for
 
     $copied?->release();
 });
+
+it('refuses to attach the application, its storage or public folder, or any folder above them', function (): void {
+    $this->source = importSource();
+
+    foreach ([base_path(), storage_path(), public_path(), dirname(base_path())] as $path) {
+        expect(fn () => scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $path, null))))
+            ->toThrow(ValidationException::class);
+    }
+
+    expect(ImportUpload::query()->where('source_id', $this->source->id)->exists())->toBeFalse();
+});
+
+it('never reads a dot-file or a dot-folder from a copy', function (): void {
+    expect(UploadsCopy::safe('2024/.env'))->toBeNull()
+        ->and(UploadsCopy::safe('.htaccess'))->toBeNull()
+        ->and(UploadsCopy::safe('.hidden/a.jpg'))->toBeNull()
+        ->and(UploadsCopy::safe('2024/05/a.jpg'))->toBe('2024/05/a.jpg');
+});
+
+it('never brings a protected plugin’s folder from a copy, and says why', function (): void {
+    $folder = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-protected-'.uniqid();
+    mkdir($folder.'/woocommerce_uploads', recursive: true);
+    file_put_contents($folder.'/woocommerce_uploads/Harbour One.jpg', dlJpeg(640, 480));
+    $copy = new UploadsCopy(UploadsCopy::FOLDER, $folder);
+
+    expect($copy->download('https://old.example/wp-content/uploads/woocommerce_uploads/Harbour%20One.jpg', 1024 * 1024, sys_get_temp_dir()))->toBeNull()
+        ->and(UploadsCopy::protectedReason('https://old.example/wp-content/uploads/woocommerce_uploads/a.jpg'))->toContain('protected plugin')
+        ->and(UploadsCopy::protectedReason('https://old.example/wp-content/uploads/2024/a.jpg'))->toBeNull();
+
+    unlink($folder.'/woocommerce_uploads/Harbour One.jpg');
+    rmdir($folder.'/woocommerce_uploads');
+    rmdir($folder);
+});
