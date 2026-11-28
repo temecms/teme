@@ -178,3 +178,57 @@ it('keeps the record id’s case in the unique key and hashes a long one', funct
         ->and(strlen(RunPluginAction::uniqueKey('check-code', str_repeat('x', 80))))->toBeLessThanOrEqual(64)
         ->and(RunPluginAction::uniqueKey('check-code', str_repeat('x', 80)))->not->toContain(str_repeat('x', 20));
 });
+
+it('refuses, queuing nothing, a row action listed as unavailable on that row', function (): void {
+    DB::table('placard_ads')->where('id', $this->id)->update(['status' => 'paused', 'impressions' => 0]);
+
+    $this->actingAs($this->editor)
+        ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
+            'record' => $this->id,
+            'kind' => 'ad',
+        ])
+        ->assertInertiaFlash('toast', [
+            'type' => 'error',
+            'message' => 'That action isn’t available for this row.',
+        ]);
+
+    expect(TrackedJob::query()->count())->toBe(0);
+    Queue::assertNothingPushed();
+
+    // Without a posted kind, core still finds the table that offers the action.
+    expect(fn () => app(RunPluginAction::class)->execute(new RunPluginActionInput(
+        'placard',
+        'check-code',
+        (string) $this->editor->id,
+        'plugin.placard.manage',
+        $this->id,
+    )))->toThrow(ValidationException::class);
+
+    expect(TrackedJob::query()->count())->toBe(0);
+    Queue::assertNothingPushed();
+});
+
+it('queues the same row action on another row that still offers it', function (): void {
+    DB::table('placard_ads')->where('id', $this->id)->update(['status' => 'paused', 'impressions' => 0]);
+
+    $other = DB::table('placard_ads')->insertGetId([
+        'name' => 'Winter sale',
+        'status' => 'active',
+        'impressions' => 12,
+        'data' => json_encode(['location' => 'between_items']),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($this->editor)
+        ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
+            'record' => (string) $other,
+            'kind' => 'ad',
+        ])
+        ->assertInertiaFlash('toast.type', 'success');
+
+    expect(TrackedJob::query()->count())->toBe(1)
+        ->and(TrackedJob::query()->sole()->payload)->toBe(['action' => 'check-code', 'record' => (string) $other]);
+});

@@ -201,6 +201,7 @@ final class PluginAreaController extends Controller
                 $personId,
                 $offered ? $plugin->ability() : null,
                 $recordId,
+                $kind,
             ));
         } catch (AuthorizationException|ValidationException $refused) {
             $message = $refused instanceof ValidationException ? (string) collect($refused->errors())->flatten()->first() : $refused->getMessage();

@@ -26,6 +26,8 @@ final readonly class RunPluginActionInput implements OperationInput
         public ?string $permission = null,
         /** The row's id when the click came from an area table. @since next */
         public ?string $recordId = null,
+        /** The record kind for that row, so core can re-read unavailable. @since next */
+        public ?string $recordKind = null,
     ) {}
 
     public function actorId(): string
