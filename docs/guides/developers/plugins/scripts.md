@@ -32,7 +32,7 @@ The plugin lists its scripts under `contributes.scripts`, one per output:
 
 ## How it is served
 
-Teme serves each declared script at `/_teme/plugin-scripts/{code}/{file}` as `text/javascript`, with `X-Content-Type-Options: nosniff` and a long cache life. Its address carries a hash of its content, so a changed file gets a new address. Anything not declared, a plugin that is disabled or never agreed to `site.scripts`, a path outside the package and a symbolic link all answer 404. A refused script is recorded as the plugin's fault once per script, not once per request.
+Teme serves each declared script at `/_teme/plugin-scripts/{code}/{file}` as `text/javascript`, with `X-Content-Type-Options: nosniff` and a long cache life. Its address changes with the plugin's version, so ship a changed script in a new version: a file edited in place keeps its old address, and browsers keep the copy they hold. Anything not declared, a plugin that is disabled or never agreed to `site.scripts`, a path outside the package and a symbolic link all answer 404. A refused script is recorded as the plugin's fault once per script, not once per request.
 
 ## How it is linked
 
@@ -60,7 +60,7 @@ A plugin's scripts on one page are measured compressed. Past 20 KB, Teme records
 
 ## Traps
 
-- A script that ends with a `//# sourceMappingURL=` line asks the browser for a `.map` file. Teme serves only the declared file, so that request answers 404. Build without the source-map comment, or ship the map as its own declared file.
+- A script that ends with a `//# sourceMappingURL=` line asks the browser for a `.map` file. Teme serves only the declared file, so that request answers 404. Build without the source-map comment.
 - A card drawn inside a lazy region fragment gets no script, just as it gets no stylesheet. The script is linked only on a page where the card is drawn in the page itself.
 
 ## What is not in this release

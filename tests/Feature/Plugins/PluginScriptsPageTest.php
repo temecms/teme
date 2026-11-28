@@ -17,6 +17,9 @@ use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Scripts\PluginScripts;
+use App\Domain\Plugins\Styles\PluginStyleUsage;
+use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -119,6 +122,15 @@ it('lets a plugin’s agreed csp origin into the page policy when its script is 
 
     expect($policy)->toContain('connect-src')
         ->and($policy)->toContain('https://api.example.test');
+});
+
+it('lets the agreed csp origin into the page policy from the script link alone, with no markup drawn', function (): void {
+    ($this->enable)(['pages.insert', 'site.scripts'], ['csp' => ['connect' => ['api.example.test']]]);
+    app(PagePolicy::class)->start();
+    app(PluginStyleUsage::class)->record('cardbox', 'card:note');
+
+    expect(app(PluginScripts::class)->links())->toHaveCount(1)
+        ->and(app(PagePolicy::class)->header('https://teme.test'))->toMatch('/connect-src[^;]*https:\/\/api\.example\.test/');
 });
 
 it('answers 404 for a script the plugin does not declare', function (): void {

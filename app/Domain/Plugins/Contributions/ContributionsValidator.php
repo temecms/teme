@@ -220,7 +220,7 @@ final class ContributionsValidator implements ContributionsCheck
         $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true) || in_array(Capability::SiteScripts->value, $capabilities, true);
 
         foreach (array_keys($contributes) as $surface) {
-            // The hosts inserted content loads from, read only for a plugin that inserts (I-3375).
+            // The hosts inserted content or a plugin's own scripts load from, read only for a plugin that inserts or serves scripts (I-3375).
             if ($surface === 'csp' && ! $inserts) {
                 $errors[] = __('A plugin’s csp is read only with content.insert, pages.insert or site.scripts.');
             } elseif ($surface === 'provides') {

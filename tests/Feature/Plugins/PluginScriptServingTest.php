@@ -141,11 +141,14 @@ it('links a script on the insertion output it declares', function (): void {
         ->and(app(PluginScripts::class)->links()[0]['key'])->toBe('cardbox:insertion:top');
 });
 
-it('switches a plugin’s script off on a page the theme names, and links it on a page it doesn’t', function (): void {
+it('switches a plugin’s script off under a theme that names it, while the card itself is drawn', function (): void {
     ($this->enable)(theme: 'styles-off');
     ($this->drawCard)('styles-off');
 
-    addrGet('/a-story/')->assertOk()->assertDontSee('data-teme-plugin-script');
+    // The card itself is drawn, so the missing link is the theme's switch, not a card that never drew.
+    addrGet('/a-story/')->assertOk()
+        ->assertSee('data-test="note"', false)
+        ->assertDontSee('data-teme-plugin-script');
 });
 
 it('records one budget fault for a plugin whose scripts pass 20 KB on a page, however many pages it is on', function (): void {
