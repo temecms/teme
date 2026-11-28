@@ -450,7 +450,7 @@ it('lists the import readers on Tools › Import, for the upload to choose one',
     readersEnabled();
 
     $this->actingAs($this->admin)->get(route('tools.importer.index'))
-        ->assertInertia(fn ($page) => $page->has('readers', 4)
+        ->assertInertia(fn ($page) => $page->has('readers', 5)
             ->where('readers.0.key', fixtureReaderKey())
             ->where('readers.0.label', 'Fake export')
             ->where('readers.0.fileTypes', ['json']));
