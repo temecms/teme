@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Plugins\Readers;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use RuntimeException;
 use Teme\Contracts\Hooks\Hooks;
 use Teme\Contracts\Import\HasImportReader;
@@ -82,7 +82,7 @@ final class SlowImportReader implements ImportReader
 
     public function page(string $path, ?string $cursor, int $limit): ImportPage
     {
-        Carbon::setTestNow(Carbon::now()->addMinute());
+        CarbonImmutable::setTestNow(CarbonImmutable::now()->addMinute());
 
         return $this->fake->page($path, $cursor, $limit);
     }

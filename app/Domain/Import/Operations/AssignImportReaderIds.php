@@ -4,7 +4,9 @@
  * Gives each item an import reader read the engine ID it keeps for its site
  * and reader: an ID already given is kept, a new item takes the next one in
  * its counter. So a re-import of a reordered export finds each item where
- * it was, and an added item takes an ID nothing else has.
+ * it was, and an added item takes an ID nothing else has. Asked per page of
+ * a file, so it loads only the IDs of that page and the counter bounds, not
+ * every ID the site already has.
  *
  * @package Teme
  * @since   1.8.0
@@ -54,16 +56,8 @@ final class AssignImportReaderIds extends BaseOperation
         /** @var AssignImportReaderIdsInput $input */
         DB::statement('SELECT pg_advisory_xact_lock(hashtext(?))', ['import_reader_ids:'.$input->siteAddress.' '.$input->reader]);
 
-        $ids = [];
-        $low = [];
-        $high = [];
-
-        foreach (DB::table('import_reader_ids')->where('address', $input->siteAddress)->where('reader', $input->reader)->get(['object_type', 'source_id', 'counter', 'object_id']) as $row) {
-            $ids[ReaderRows::key((string) $row->object_type, (string) $row->source_id)] = (int) $row->object_id;
-            $low[$row->counter] = min($low[$row->counter] ?? 0, (int) $row->object_id);
-            $high[$row->counter] = max($high[$row->counter] ?? 0, (int) $row->object_id);
-        }
-
+        $ids = $this->existing($input->siteAddress, $input->reader, $input->items);
+        [$low, $high] = $this->bounds($input->siteAddress, $input->reader);
         $fresh = [];
 
         foreach ($input->items as $item) {
@@ -96,5 +90,60 @@ final class AssignImportReaderIds extends BaseOperation
         }
 
         return $wanted;
+    }
+
+    /**
+     * The engine IDs already kept for the items asked for, by ReaderRows::key().
+     *
+     * @param  list<array{kind: string, id: string}>  $items
+     *
+     * @return array<string, int>
+     */
+    private function existing(string $address, string $reader, array $items): array
+    {
+        $byType = [];
+
+        foreach ($items as $item) {
+            $byType[$item['kind']][$item['id']] = true;
+        }
+
+        $ids = [];
+
+        foreach ($byType as $type => $sourceIds) {
+            foreach (array_chunk(array_keys($sourceIds), self::CHUNK) as $chunk) {
+                foreach (DB::table('import_reader_ids')
+                    ->where('address', $address)
+                    ->where('reader', $reader)
+                    ->where('object_type', $type)
+                    ->whereIn('source_id', $chunk)
+                    ->get(['object_type', 'source_id', 'object_id']) as $row) {
+                    $ids[ReaderRows::key((string) $row->object_type, (string) $row->source_id)] = (int) $row->object_id;
+                }
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * The lowest and highest engine ID already given in each counter for this site and reader.
+     *
+     * @return array{0: array<string, int>, 1: array<string, int>}
+     */
+    private function bounds(string $address, string $reader): array
+    {
+        $low = [];
+        $high = [];
+
+        foreach (DB::table('import_reader_ids')
+            ->where('address', $address)
+            ->where('reader', $reader)
+            ->groupBy('counter')
+            ->get([DB::raw('counter'), DB::raw('min(object_id) as low'), DB::raw('max(object_id) as high')]) as $row) {
+            $low[(string) $row->counter] = (int) $row->low;
+            $high[(string) $row->counter] = (int) $row->high;
+        }
+
+        return [$low, $high];
     }
 }

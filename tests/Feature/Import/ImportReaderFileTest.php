@@ -34,12 +34,13 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
 use Illuminate\Validation\ValidationException;
@@ -58,6 +59,12 @@ beforeEach(function (): void {
     $this->admin = User::factory()->create()->assignRole('administrator');
     Storage::fake('local');
     app()->instance(ContentBlocks::class, ExportFiles::blocks());
+    CarbonImmutable::setTestNow();
+});
+
+afterEach(function (): void {
+    CarbonImmutable::setTestNow();
+    config(['teme.import.reader_page_size' => null]);
 });
 
 /**
@@ -122,11 +129,25 @@ function readerUploaded(string $name, string $bytes, string $reader): ImportFile
 }
 
 /**
- * Reads the file to its end as its uploader.
+ * Reads the file to its end as its uploader, running each part the read queues.
  */
-function readerReadToEnd(ImportFile $file): void
+function readerReadToEnd(ImportFile $file): int
 {
-    (new ReadImportFile($file->id, JobActor::person($file->uploaded_by)))->handle();
+    $parts = 0;
+    $job = new ReadImportFile($file->id, JobActor::person($file->uploaded_by));
+    $fake = Queue::getFacadeRoot();
+
+    while ($job !== null) {
+        Queue::fake();
+        $job->handle();
+        $parts++;
+        $queued = Queue::pushedJobs()[ReadImportFile::class] ?? [];
+        $job = $queued === [] ? null : $queued[0]['job'];
+    }
+
+    Queue::swap($fake);
+
+    return $parts;
 }
 
 it('reads a reader’s file into a ready file and a source of the reader’s kind', function (): void {
@@ -417,6 +438,7 @@ function readerKeyOf(string $readerId): string
 it('refuses a reader that hands back a cursor it has already been given', function (): void {
     readersEnabled();
 
+    Queue::fake();
     $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), readerKeyOf('stuck'));
     readerReadToEnd($file);
 
@@ -424,15 +446,32 @@ it('refuses a reader that hands back a cursor it has already been given', functi
         ->and($file->refused)->toBe('The import reader repeated a page of this file, so Teme stopped reading it.');
 });
 
-it('refuses a file a reader takes longer than a read may take, rather than running out of time', function (): void {
+it('keeps what a slow reader has read and finishes in later parts, rather than refusing the file', function (): void {
     readersEnabled();
+    config(['teme.import.reader_page_size' => 2]);
 
-    $file = readerUploaded('site.json', json_encode(fakeSiteExport(), JSON_THROW_ON_ERROR), readerKeyOf('slow'));
-    readerReadToEnd($file);
-    Carbon::setTestNow();
+    $export = fakeSiteExport();
 
-    expect($file->refresh()->state)->toBe('refused')
-        ->and($file->refused)->toBe('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+    for ($i = 0; $i < 4; $i++) {
+        $export['items'][] = ['kind' => 'post', 'id' => 'extra-'.$i, 'title' => 'Extra '.$i, 'slug' => 'extra-'.$i, 'status' => 'published', 'content' => '<p>x</p>'];
+    }
+
+    Queue::fake();
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), readerKeyOf('slow'));
+
+    expect($file->refresh()->state)->toBe('reading');
+
+    Queue::fake();
+    (new ReadImportFile($file->id, JobActor::person($file->uploaded_by)))->handle();
+
+    expect($file->refresh()->state)->toBe('reading')
+        ->and(Queue::pushedJobs()[ReadImportFile::class] ?? [])->not->toBeEmpty();
+
+    $parts = readerReadToEnd($file);
+
+    expect($parts)->toBeGreaterThan(0)
+        ->and($file->refresh()->state)->toBe('ready')
+        ->and(DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'content')->count())->toBe(6);
 });
 
 it('imports the sample export twice, and the second import changes nothing', function (): void {
@@ -470,15 +509,16 @@ it('names the import reader behind a site imported from a reader’s file, on To
         ->assertInertia(fn ($page) => $page->where('sourceReaders', [$source => 'Fake export']));
 });
 
-it('refuses a reader’s file too large for a reader to read in one go, when it starts', function (): void {
+it('accepts a reader’s file under the import upload cap, and refuses one over it', function (): void {
     readersEnabled();
+    config(['teme.import.max_file_mb' => 2]);
 
     $start = fn (int $size): mixed => app(StartImportUpload::class)->execute(
         new StartImportUploadInput('site.json', $size, (string) $this->admin->id, fixtureReaderKey()),
     );
 
-    expect(fn () => $start(ReadImportFile::READER_BYTES + 1))->toThrow(ValidationException::class)
-        ->and($start(ReadImportFile::READER_BYTES))->not->toBeNull();
+    expect($start(2 * 1024 * 1024))->not->toBeNull()
+        ->and(fn () => $start(2 * 1024 * 1024 + 1))->toThrow(ValidationException::class);
 });
 
 it('keeps a reader’s old address as an old address that leads to the post it was imported as', function (): void {
@@ -823,4 +863,104 @@ it('shows a reader file’s notes on its plan, in the plan’s props', function 
 
     expect($notes->pluck('kind')->all())->toContain('term')
         ->and($notes->firstWhere('kind', 'term')['count'])->toBe(1);
+});
+
+/**
+ * A fake export whose items span more than one read page when the page size is small.
+ *
+ * @param  list<array<string, mixed>>  $extra
+ *
+ * @return array<string, mixed>
+ */
+function multiPageExport(array $extra = []): array
+{
+    $export = fakeSiteExport();
+
+    for ($i = 0; $i < 6; $i++) {
+        $export['items'][] = ['kind' => 'post', 'id' => 'fill-'.$i, 'title' => 'Fill '.$i, 'slug' => 'fill-'.$i, 'status' => 'published', 'content' => '<p>f</p>'];
+    }
+
+    array_push($export['items'], ...$extra);
+
+    return $export;
+}
+
+it('imports a reader’s multi-page file whole', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2]);
+
+    $export = multiPageExport([
+        ['kind' => 'post', 'id' => 'last', 'title' => 'Last', 'slug' => 'last', 'status' => 'published', 'content' => '<p>Last</p>'],
+    ]);
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($file->read_items)->toBe(count($export['items']))
+        ->and(DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'content')->count())->toBe(9)
+        ->and(DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Last'")->exists())->toBeTrue();
+});
+
+it('resolves a parent that sits on a later page of a reader’s file', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2]);
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'page', 'id' => 'child', 'title' => 'Child', 'slug' => 'child', 'status' => 'published', 'content' => '<p>Child</p>', 'parentId' => 'parent-later'],
+            ['kind' => 'post', 'id' => 'fill-1', 'title' => 'Fill 1', 'slug' => 'fill-1', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'post', 'id' => 'fill-2', 'title' => 'Fill 2', 'slug' => 'fill-2', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'page', 'id' => 'parent-later', 'title' => 'Parent', 'slug' => 'parent', 'status' => 'published', 'content' => '<p>Parent</p>'],
+        ],
+    ];
+
+    $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $child = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Child'")->value('payload'), true);
+    $parent = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Parent'")->value('payload'), true);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($child['parent'])->toBe($parent['id'])
+        ->and($child['parent'])->not->toBe(0);
+});
+
+it('imports a reader’s multi-page file a second time and changes nothing', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2]);
+
+    $bytes = json_encode(multiPageExport(), JSON_THROW_ON_ERROR);
+    FileImports::run(readerUploaded('once.json', $bytes, fixtureReaderKey())->refresh());
+
+    $contents = DB::table('contents')->orderBy('id')->get(['id', 'title', 'status'])->all();
+    $mapped = DB::table('import_map')->count();
+
+    FileImports::run(readerUploaded('twice.json', $bytes, fixtureReaderKey())->refresh());
+
+    expect(DB::table('contents')->orderBy('id')->get(['id', 'title', 'status'])->all())->toEqual($contents)
+        ->and(DB::table('import_map')->count())->toBe($mapped);
+});
+
+it('keeps memory flat while reading a reader’s file of many pages', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2]);
+
+    $export = fakeSiteExport();
+
+    for ($i = 0; $i < 40; $i++) {
+        $export['items'][] = ['kind' => 'post', 'id' => 'm-'.$i, 'title' => 'M '.$i, 'slug' => 'm-'.$i, 'status' => 'published', 'content' => '<p>m</p>'];
+    }
+
+    $file = readerUploaded('many.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    $before = memory_get_peak_usage(true);
+    readerReadToEnd($file);
+    $used = memory_get_peak_usage(true) - $before;
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($file->read_items)->toBe(count($export['items']))
+        ->and($used)->toBeLessThan(16 * 1024 * 1024);
 });

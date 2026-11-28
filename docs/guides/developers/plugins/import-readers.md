@@ -12,9 +12,9 @@ Teme's import engine is opened at one end: the end that reads the old site. A pl
 
 A reader supplies only what differs per system. It reads an export file, says what the file holds, and hands over each item in Teme's neutral shape. It writes nothing. Teme's own operations do every write, as the person who started the import.
 
-> **Status.** A reader's file can be uploaded from Tools > Import, where a picker lists the readers the plugins declare, and read. The upload accepts the reader's file types, the reader reads the file, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Three limits for now:
+> **Status.** A reader's file can be uploaded from Tools > Import, where a picker lists the readers the plugins declare, and read. The upload accepts the reader's file types, the reader reads the file a page at a time, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Limits for now:
 >
-> - The whole file is read in one job under a 45-second deadline. A file over 64 MB is refused when its upload starts, with a plain sentence. Page-by-page reading for larger files is not in this release.
+> - The file is read in parts under a 45-second deadline per part, through the same `keep()` path a WordPress export uses. The import upload size cap applies; there is no separate reader size cap. A reader that repeats a cursor is refused.
 > - Menus come across unplaced, since the import plan chooses where each menu sits.
 > - What the file names but doesn't hold is named, not guessed: orphan comments and menu items, terms and featured pictures the file lacks, and menu items with nothing to point at. The plan lists each kind with a count and the first few IDs before the run, and the run's report lists them as warnings.
 > - An item's language is not carried. When a file holds more than one language, every item is imported into the site's default language, and the report says so once. Per-item language is not in this release.

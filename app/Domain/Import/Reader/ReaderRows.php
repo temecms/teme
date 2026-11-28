@@ -21,6 +21,7 @@ use App\Domain\Import\File\Paragraphs;
 use App\Domain\Import\File\TermRows;
 use App\Domain\Import\File\UserRows;
 use App\Domain\Types\TaxonomyRegistry;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use LogicException;
 use Teme\Contracts\Import\ImportItem;
@@ -95,14 +96,94 @@ final class ReaderRows
      *
      * @param  list<ImportItem>  $items
      * @param  array<string, int>  $ids  the engine's ID of each item, as AssignImportReaderIds gives them
+     * @param  array{people?: array<string, int>, terms?: array<string, array{id: int, taxonomy: string}>, menus?: array<string, int>, reserved?: array<string, true>, logins?: array<string, int>}  $known  people, terms and menus already written from earlier pages
      *
      * @return list<array{list: string, id: int, payload: array<string, mixed>}>
      *
      * @since 1.8.0
      */
-    public static function build(array $items, ContentBlocks $blocks, array $ids): array
+    public static function build(array $items, ContentBlocks $blocks, array $ids, array $known = []): array
     {
-        return (new self($ids))->rows($items, $blocks);
+        $rows = new self($ids);
+        $rows->people = $known['people'] ?? [];
+        $rows->terms = $known['terms'] ?? [];
+        $rows->menus = $known['menus'] ?? [];
+        $rows->reserved = $known['reserved'] ?? [];
+        $rows->logins = $known['logins'] ?? [];
+
+        return $rows->rows($items, $blocks);
+    }
+
+    /**
+     * People, terms and menus already written for a file, so a later page can
+     * point at them without reading the whole file again.
+     *
+     * @return array{people: array<string, int>, terms: array<string, array{id: int, taxonomy: string}>, menus: array<string, int>, reserved: array<string, true>, logins: array<string, int>}
+     *
+     * @since next
+     */
+    public static function knownOf(string $fileId, string $address, string $reader): array
+    {
+        $byEngine = [];
+
+        foreach (DB::table('import_reader_ids')
+            ->where('address', $address)
+            ->where('reader', $reader)
+            ->whereIn('object_type', [ImportKind::PERSON, ImportKind::TERM, ImportKind::MENU])
+            ->get(['object_type', 'source_id', 'object_id']) as $row) {
+            $byEngine[(string) $row->object_type][(int) $row->object_id] = (string) $row->source_id;
+        }
+
+        $people = [];
+        $reserved = [];
+        $logins = [];
+
+        foreach (DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::USERS)->get(['object_id', 'payload']) as $row) {
+            $payload = is_string($row->payload) ? json_decode($row->payload, true) : [];
+            $login = is_array($payload) ? (string) ($payload['login'] ?? '') : '';
+            $sourceId = $byEngine[ImportKind::PERSON][(int) $row->object_id] ?? null;
+
+            if ($sourceId !== null) {
+                $people[$sourceId] = (int) $row->object_id;
+            }
+
+            if ($login !== '') {
+                $reserved[$login] = true;
+                $logins[$login] = (int) $row->object_id;
+            }
+        }
+
+        $terms = [];
+        $menus = [];
+
+        foreach (DB::table('import_file_rows')->where('file_id', $fileId)->whereIn('list', [ItemRows::TERMS, ItemRows::OTHER_TERMS])->get(['object_id', 'payload']) as $row) {
+            $payload = is_string($row->payload) ? json_decode($row->payload, true) : [];
+
+            if (! is_array($payload)) {
+                continue;
+            }
+
+            $taxonomy = (string) ($payload['taxonomy'] ?? '');
+            $engineId = (int) $row->object_id;
+
+            if ($taxonomy === 'nav_menu') {
+                $sourceId = $byEngine[ImportKind::MENU][$engineId] ?? null;
+
+                if ($sourceId !== null) {
+                    $menus[$sourceId] = $engineId;
+                }
+
+                continue;
+            }
+
+            $sourceId = $byEngine[ImportKind::TERM][$engineId] ?? null;
+
+            if ($sourceId !== null) {
+                $terms[$sourceId] = ['id' => $engineId, 'taxonomy' => $taxonomy];
+            }
+        }
+
+        return ['people' => $people, 'terms' => $terms, 'menus' => $menus, 'reserved' => $reserved, 'logins' => $logins];
     }
 
     /**
@@ -195,7 +276,7 @@ final class ReaderRows
                 $rows[] = ['list' => ItemRows::MEDIA, 'id' => $this->idOf($item), 'payload' => $this->media($item)];
             } elseif ($item->kind === ImportKind::COMMENT && $this->contentId($item->postId) !== null) {
                 $rows[] = ['list' => ItemRows::COMMENTS, 'id' => $this->idOf($item), 'payload' => $this->comment($item)];
-            } elseif ($item->kind === ImportKind::MENU_ITEM && isset($this->menus[(string) $item->menuId])) {
+            } elseif ($item->kind === ImportKind::MENU_ITEM && $this->menuId($item->menuId) !== null) {
                 $rows[] = ['list' => ItemRows::MENU_ITEMS, 'id' => $this->idOf($item), 'payload' => $this->menuItem($item)];
             }
         }
@@ -308,7 +389,7 @@ final class ReaderRows
             'date' => $item->publishedAt,
             'date_gmt' => $item->publishedAt,
             'modified_gmt' => $item->modifiedAt,
-            'author' => $this->people[$item->authorId ?? ''] ?? 0,
+            'author' => $this->personId($item->authorId),
             'parent' => $this->contentId($item->parentId) ?? 0,
             'menu_order' => $item->order,
             'comment_status' => 'closed',
@@ -355,7 +436,7 @@ final class ReaderRows
             'user_agent' => null,
             'date_gmt' => $item->publishedAt,
             'content' => $item->content,
-            'user_id' => $this->people[$item->authorId ?? ''] ?? 0,
+            'user_id' => $this->personId($item->authorId),
         ];
     }
 
@@ -391,7 +472,7 @@ final class ReaderRows
         };
 
         return [
-            'menu' => $this->menus[(string) $item->menuId],
+            'menu' => $this->menuId($item->menuId) ?? 0,
             'id' => $this->idOf($item),
             'parent' => $item->parentId === null ? 0 : ($this->ids[self::key(ImportKind::MENU_ITEM, $item->parentId)] ?? 0),
             'order' => $item->order,
@@ -418,7 +499,7 @@ final class ReaderRows
         return [
             'id' => $this->idOf($item),
             'parent' => $this->contentId($item->parentId) ?? 0,
-            'author' => $this->people[$item->authorId ?? ''] ?? 0,
+            'author' => $this->personId($item->authorId),
             'date_gmt' => $item->publishedAt,
             'modified_gmt' => $item->modifiedAt,
             'status' => 'inherit',
@@ -481,5 +562,29 @@ final class ReaderRows
         }
 
         return $this->ids[self::key(ImportKind::POST, $sourceId)] ?? $this->ids[self::key(ImportKind::PAGE, $sourceId)] ?? null;
+    }
+
+    /**
+     * The engine ID of a person by their source ID, from this page or an earlier one.
+     */
+    private function personId(?string $sourceId): int
+    {
+        if ($sourceId === null || $sourceId === '') {
+            return 0;
+        }
+
+        return $this->people[$sourceId] ?? $this->ids[self::key(ImportKind::PERSON, $sourceId)] ?? 0;
+    }
+
+    /**
+     * The engine ID of a menu by its source ID, from this page or an earlier one.
+     */
+    private function menuId(?string $sourceId): ?int
+    {
+        if ($sourceId === null || $sourceId === '') {
+            return null;
+        }
+
+        return $this->menus[$sourceId] ?? $this->ids[self::key(ImportKind::MENU, $sourceId)] ?? null;
     }
 }
