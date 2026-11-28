@@ -43,6 +43,7 @@ use App\Domain\Plugins\Queries\PluginsScreen;
 use App\Domain\Plugins\SettingHosts;
 use App\Http\Admin\Requests\EnablePluginRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -126,21 +127,21 @@ final class PluginsController extends Controller
      *
      * @since next
      */
-    public function agreeHost(Request $request, string $code, PluginList $list, AgreePluginHosts $agree): RedirectResponse
+    public function agreeHost(Request $request, string $code, PluginList $list, AgreePluginHosts $agree): JsonResponse
     {
         $row = $this->row($list, $code);
+        $host = $request->string('host')->toString();
 
         try {
-            $agree->execute(new AgreePluginHostsInput($row->name, [$request->string('host')->toString()], (string) $request->user()?->getAuthIdentifier(), 'records'));
+            $agree->execute(new AgreePluginHostsInput($row->name, [$host], (string) $request->user()?->getAuthIdentifier(), 'records'));
         } catch (ValidationException $refused) {
-            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
-
-            return back();
+            return response()->json(['message' => (string) collect($refused->errors())->flatten()->first()], 422);
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Host agreed. :name can reach :host from now on.', ['name' => $row->label, 'host' => $request->string('host')->toString()])]);
+        // The toast waits for the screen's reload, which is the next Inertia request.
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Host agreed. :name can reach :host from now on.', ['name' => $row->label, 'host' => $host])]);
 
-        return back();
+        return response()->json(['agreed' => $host]);
     }
 
     /**
@@ -149,7 +150,7 @@ final class PluginsController extends Controller
      *
      * @since next
      */
-    public function removeHost(Request $request, string $code, PluginList $list, RemoveRecordHost $remove): RedirectResponse
+    public function removeHost(Request $request, string $code, PluginList $list, RemoveRecordHost $remove): JsonResponse
     {
         $row = $this->row($list, $code);
         $host = $request->string('host')->toString();
@@ -157,14 +158,12 @@ final class PluginsController extends Controller
         try {
             $remove->execute(new RemoveRecordHostInput($row->name, $host, (string) $request->user()?->getAuthIdentifier()));
         } catch (ValidationException $refused) {
-            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
-
-            return back();
+            return response()->json(['message' => (string) collect($refused->errors())->flatten()->first()], 422);
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Removed: :host. :name can’t reach it now.', ['host' => $host, 'name' => $row->label])]);
 
-        return back();
+        return response()->json(['removed' => $host]);
     }
 
     public function disable(Request $request, string $code, PluginList $list, DisablePlugin $disable): RedirectResponse
