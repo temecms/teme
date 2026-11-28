@@ -23,8 +23,6 @@ use App\Domain\Import\Convert\Media\ImageTrace;
 use App\Domain\Import\ImportOutcome;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportStatus;
-use App\Domain\Import\Operations\CountUploadsPicture;
-use App\Domain\Import\Operations\Input\CountUploadsPictureInput;
 use App\Domain\Import\Operations\Input\RecordOutsideImageInput;
 use App\Domain\Import\Operations\RecordOutsideImage;
 use App\Domain\Import\Phases\Content\ContentSite;
@@ -194,10 +192,6 @@ final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
         try {
             $copied = $this->fromCopy($image['address'], $context);
             $download = $copied ?? $this->downloader->download($image['address'], imagesOnly: true, seconds: $seconds);
-            // Only a picture from the site's own copy is counted: an image from another site is not the old site's.
-            if ($copied !== null) {
-                app(CountUploadsPicture::class)->execute(new CountUploadsPictureInput($context->sourceId, true, $context->actorId()));
-            }
         } catch (DownloadRefused $refused) {
             return $this->refused($refused->retryable, $refused->sentence(), $key, $image['host'], $file, $context);
         }
@@ -228,6 +222,7 @@ final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
             $stored['mediaId'],
             $image['host'],
             $context->actorId(),
+            $copied === null ? 'site' : 'copy',
         ));
 
         return null;

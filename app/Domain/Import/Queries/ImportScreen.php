@@ -408,12 +408,29 @@ final readonly class ImportScreen
 
         return [
             'types' => $types,
+            'pictures' => self::pictures($runId),
             'messages' => $messages,
             'more' => $codes->count() > self::CODES,
             'levels' => ['error' => (int) ($levels[ImportMessageLevel::Error->value] ?? 0), 'warning' => (int) ($levels[ImportMessageLevel::Warning->value] ?? 0) + $noteWarnings],
             'problems' => $problems,
             'ready' => $run->state === ImportRunState::Finished && $check !== null && $check->runsIn($run->kind) ? $problems === 0 : null,
         ];
+    }
+
+    /**
+     * The pictures this run brought, by where their files came from: the site's uploads copy, or the old site.
+     *
+     * @return array{copy: int, site: int}
+     */
+    private static function pictures(string $runId): array
+    {
+        $pictures = ['copy' => 0, 'site' => 0];
+
+        foreach (DB::table('import_map')->where('run_id', $runId)->whereRaw("facts->>'picture_from' IN ('copy', 'site')")->groupByRaw("facts->>'picture_from'")->selectRaw("facts->>'picture_from' AS picture_from, count(*) AS total")->get() as $row) {
+            $pictures[(string) $row->picture_from] = (int) $row->total;
+        }
+
+        return $pictures;
     }
 
     /**

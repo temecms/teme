@@ -30,8 +30,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $prefix
  * @property int $received_bytes
  * @property bool $kept_by_teme
- * @property int $copied_pictures
- * @property int $site_pictures
  */
 final class ImportUpload extends Model
 {
@@ -48,8 +46,6 @@ final class ImportUpload extends Model
             'attached_by' => 'integer',
             'received_bytes' => 'integer',
             'kept_by_teme' => 'boolean',
-            'copied_pictures' => 'integer',
-            'site_pictures' => 'integer',
         ];
     }
 

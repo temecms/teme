@@ -5,10 +5,8 @@ declare(strict_types=1);
 use App\Domain\Import\Models\ImportUpload;
 use App\Domain\Import\Operations\AttachUploadsCopy;
 use App\Domain\Import\Operations\CancelUploadsCopy;
-use App\Domain\Import\Operations\CountUploadsPicture;
 use App\Domain\Import\Operations\FinishUploadsCopy;
 use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
-use App\Domain\Import\Operations\Input\CountUploadsPictureInput;
 use App\Domain\Import\Operations\Input\ReceiveUploadsCopyPieceInput;
 use App\Domain\Import\Operations\Input\StartUploadsCopyInput;
 use App\Domain\Import\Operations\Input\UploadsCopyUploadInput;
@@ -135,7 +133,7 @@ it('deletes the file of a cancelled upload and leaves the ready copy alone', fun
         ->and(ImportUpload::query()->where('source_id', $this->source->id)->where('state', 'ready')->exists())->toBeTrue();
 });
 
-it('writes no copy and no count when an editor uploads or counts', function (): void {
+it('writes no copy when an editor uploads', function (): void {
     $before = DB::table('import_uploads')->count();
 
     expect(fn () => app(StartUploadsCopy::class)->execute(new StartUploadsCopyInput($this->source->id, 'uploads.zip', 10, (string) $this->editor->id)))
@@ -145,21 +143,6 @@ it('writes no copy and no count when an editor uploads or counts', function (): 
     $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
     app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
 
-    expect(fn () => app(CountUploadsPicture::class)->execute(new CountUploadsPictureInput($this->source->id, true, (string) $this->editor->id)))
-        ->toThrow(AuthorizationException::class)
-        ->and(ImportUpload::query()->where('source_id', $this->source->id)->value('copied_pictures'))->toBe(0);
-});
-
-it('counts the pictures an import brought from the copy and from the site', function (): void {
-    $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
-    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
-
-    app(CountUploadsPicture::class)->execute(new CountUploadsPictureInput($this->source->id, true, (string) $this->admin->id));
-    app(CountUploadsPicture::class)->execute(new CountUploadsPictureInput($this->source->id, false, (string) $this->admin->id));
-    app(CountUploadsPicture::class)->execute(new CountUploadsPictureInput($this->source->id, false, (string) $this->admin->id));
-
-    expect(app(ImportUploadCopies::class)->forSource($this->source->id))
-        ->toMatchArray(['copiedPictures' => 1, 'sitePictures' => 2]);
 });
 
 it('asks the site for nothing the copy has, through the HTTP routes as an administrator', function (): void {

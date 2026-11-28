@@ -132,7 +132,7 @@ it('brings an own image that isn’t in the media list, with no outside site tic
         'old.example/wp-content/uploads/2024/05/teeth-whitening.jpg',
         ImportOutcome::Created,
         $media->id,
-        ['host' => 'old.example'],
+        ['host' => 'old.example', 'picture_from' => 'site'],
     ])
         ->and([$media->title, $media->alt, $media->source_url])->toBe(['Teeth-Whitening', 'Teeth', 'https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg'])
         ->and((new ImportedMedia($this->source->id))->outside('https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg?w=640'))->toBe($media->id)
@@ -151,7 +151,7 @@ it('brings each image from a ticked site once, keyed by its address, and leaves 
     $row = ImportMapEntry::query()->where('object_type', 'outside-image')->sole();
     $media = Media::query()->sole();
 
-    expect([$row->object_id, $row->outcome, $row->teme_id, $row->facts])->toBe(['cdn.partner.example/photos/harbour.jpg', ImportOutcome::Created, $media->id, ['host' => 'cdn.partner.example']])
+    expect([$row->object_id, $row->outcome, $row->teme_id, $row->facts])->toBe(['cdn.partner.example/photos/harbour.jpg', ImportOutcome::Created, $media->id, ['host' => 'cdn.partner.example', 'picture_from' => 'site']])
         ->and($row->run_id)->toBeString()
         ->and([$media->title, $media->alt, $media->source_url])->toBe(['harbour', 'The harbour', 'https://cdn.partner.example/photos/harbour.jpg'])
         ->and((new ImportedMedia($this->source->id))->outside('https://cdn.partner.example/photos/harbour.jpg?w=1024'))->toBe($media->id)

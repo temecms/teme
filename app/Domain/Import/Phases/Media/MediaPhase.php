@@ -21,8 +21,6 @@ use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Convert\Media\ImageTrace;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Models\ImportMapEntry;
-use App\Domain\Import\Operations\CountUploadsPicture;
-use App\Domain\Import\Operations\Input\CountUploadsPictureInput;
 use App\Domain\Import\Operations\Input\RecordMediaFilesInput;
 use App\Domain\Import\Operations\RecordMediaFiles;
 use App\Domain\Import\Phases\ImportContext;
@@ -232,7 +230,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
             : ImportResult::updated('media', $stored['mediaId'])->withWarning(self::duplicate());
 
         return self::warned($result, [$this->recordFiles($ref, $item, $stored['mediaId'], $context)])
-            ->withFacts([...self::facts($item), 'written' => $stored['written'], 'duplicate' => ! $stored['created']]);
+            ->withFacts([...self::facts($item), 'written' => $stored['written'], 'duplicate' => ! $stored['created'], 'picture_from' => self::source($prepared)]);
     }
 
     /**
@@ -297,7 +295,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         }
 
         return self::warned(ImportResult::updated('media', $mediaId), $said)
-            ->withFacts([...self::facts($item), 'written' => $update['written'], 'duplicate' => false]);
+            ->withFacts([...self::facts($item), 'written' => $update['written'], 'duplicate' => false, 'picture_from' => self::source($prepared)]);
     }
 
     /**
@@ -315,7 +313,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         $copied = $this->fromCopy($item, $wanted, $context);
 
         if ($copied !== null) {
-            return PreparedMedia::file($copied);
+            return PreparedMedia::file($copied, [], true);
         }
 
         $started = (int) hrtime(true);
@@ -350,12 +348,12 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
             // No file of its own: the copy answers only for an address on the site.
             $copied = $this->uploads->download($context->sourceId, $wanted, $maxBytes);
 
-            return $this->judged($copied, $context);
+            return $this->judged($copied);
         }
 
         foreach ($paths as $relative) {
             $copied = $this->uploads->downloadFile($context->sourceId, $relative, $wanted, $maxBytes);
-            $judged = $this->judged($copied, $context);
+            $judged = $this->judged($copied);
 
             if ($judged !== null) {
                 return $judged;
@@ -369,7 +367,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      * A copied file that Teme will take, counted for the report; null when it
      * won't do, its file released.
      */
-    private function judged(?DownloadedFile $copied, ImportContext $context): ?DownloadedFile
+    private function judged(?DownloadedFile $copied): ?DownloadedFile
     {
         if ($copied === null) {
             return null;
@@ -381,9 +379,15 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
             return null;
         }
 
-        $this->counted(true, $context);
-
         return $copied;
+    }
+
+    /**
+     * Where a stored picture's file came from, for the run's counts: the site's uploads copy, or the old site.
+     */
+    private static function source(PreparedMedia $prepared): string
+    {
+        return $prepared->fromCopy ? 'copy' : 'site';
     }
 
     /**
@@ -447,14 +451,6 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         $this->judge($file);
 
         return $file;
-    }
-
-    /**
-     * Counts a picture the import brought from the site's uploads copy or from the old site, for the report.
-     */
-    private function counted(bool $fromCopy, ImportContext $context): void
-    {
-        app(CountUploadsPicture::class)->execute(new CountUploadsPictureInput($context->sourceId, $fromCopy, $context->actorId()));
     }
 
     /**

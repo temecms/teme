@@ -24,28 +24,34 @@ final readonly class PreparedMedia implements PreparedObject
     /**
      * @param  list<ImportMessage>  $warnings
      */
+    /**
+     * @param  list<ImportMessage>  $warnings
+     */
     private function __construct(
         public ?DownloadedFile $file,
         public ?ImportMessage $refusal,
         public array $warnings,
+        public bool $fromCopy,
     ) {}
 
     public static function nothing(): self
     {
-        return new self(null, null, []);
+        return new self(null, null, [], false);
     }
 
     public static function refused(ImportMessage $why): self
     {
-        return new self(null, $why, []);
+        return new self(null, $why, [], false);
     }
 
     /**
+     * A file the site's own copy or the old site brought; $fromCopy says which, for the report's counts.
+     *
      * @param  list<ImportMessage>  $warnings
      */
-    public static function file(DownloadedFile $file, array $warnings = []): self
+    public static function file(DownloadedFile $file, array $warnings = [], bool $fromCopy = false): self
     {
-        return new self($file, null, $warnings);
+        return new self($file, null, $warnings, $fromCopy);
     }
 
     public function release(): void

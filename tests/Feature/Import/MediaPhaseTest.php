@@ -21,6 +21,7 @@ use App\Domain\Import\Phases\Media\ImportedMedia;
 use App\Domain\Import\Phases\Media\MediaParentsStep;
 use App\Domain\Import\Phases\Media\MediaPhase;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
+use App\Domain\Import\Queries\ImportScreen;
 use App\Domain\Media\Downloads\FileDownloader;
 use App\Domain\Media\Models\Media;
 use App\Domain\Support\Security\JobActor;
@@ -686,4 +687,30 @@ it('takes a picture from the copy when the attachment’s file is on another hos
     rmdir($copy.'/2024/05');
     rmdir($copy.'/2024');
     rmdir($copy);
+});
+
+it('records on each picture’s import entry whether it came from the copy, and the run counts them by where they came from', function (): void {
+    $copy = $this->folder.'-counted';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    $run = impRun($this->companion, $this->source, [impAttachment(12)]);
+
+    expect(DB::table('import_map')->where('source_id', $this->source->id)->where('run_id', $run->id)->whereRaw("facts->>'picture_from' = 'copy'")->count())->toBe(1)
+        ->and(app(ImportScreen::class)->report($run->id)['pictures'])->toBe(['copy' => 1, 'site' => 0]);
+
+    unlink($copy.'/2024/05/Harbour One.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});
+
+it('counts a picture the import takes from the old site as the site’s, when no copy has it', function (): void {
+    $this->files['/wp-content/uploads/2024/05/Harbour One.jpg'] = $this->harbour;
+
+    $run = impRun($this->companion, $this->source, [impAttachment(12)]);
+
+    expect(DB::table('import_map')->where('source_id', $this->source->id)->where('run_id', $run->id)->whereRaw("facts->>'picture_from' = 'site'")->count())->toBe(1)
+        ->and(app(ImportScreen::class)->report($run->id)['pictures'])->toBe(['copy' => 0, 'site' => 1]);
 });

@@ -228,6 +228,8 @@ export type ImportRunRow = {
 };
 
 export type RunReport = {
+    /** The pictures the run brought, by where their files came from. */
+    pictures: { copy: number; site: number };
     types: {
         type: string;
         label: string;
@@ -283,7 +285,5 @@ export type ImportShowPage = {
 export type ImportUploadCopy = {
     name: string;
     sizeBytes: number;
-    copiedPictures: number;
-    sitePictures: number;
     kind: string;
 };

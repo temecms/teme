@@ -134,12 +134,10 @@ export function UploadsCopyPanel({
                 data-test="uploads-copy-summary"
             >
                 {__(
-                    'Pictures from the copy “:name” (:mb MB): :copied from the copy, :site from the old site.',
+                    'The copy “:name” (:mb MB) is attached. Its pictures are taken from it first; the run’s report says how many came from it.',
                     {
                         name: copy.name,
                         mb: megabytes(copy.sizeBytes),
-                        copied: String(copy.copiedPictures),
-                        site: String(copy.sitePictures),
                     },
                 )}
             </p>

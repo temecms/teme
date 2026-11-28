@@ -21,7 +21,7 @@ final readonly class ImportUploadCopies
     /**
      * The site's ready copy as the screen shows it, or null when it has none.
      *
-     * @return array{name: string, sizeBytes: int, copiedPictures: int, sitePictures: int, kind: string}|null
+     * @return array{name: string, sizeBytes: int, kind: string}|null
      */
     public function forSource(string $sourceId): ?array
     {
@@ -34,8 +34,6 @@ final readonly class ImportUploadCopies
         return [
             'name' => (string) $upload->name,
             'sizeBytes' => (int) $upload->size_bytes,
-            'copiedPictures' => (int) $upload->copied_pictures,
-            'sitePictures' => (int) $upload->site_pictures,
             'kind' => (string) $upload->kind,
         ];
     }

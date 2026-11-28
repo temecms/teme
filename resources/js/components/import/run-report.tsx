@@ -138,6 +138,17 @@ export function RunReport({
                 <h3 id="import-came" className="text-body font-semibold">
                     {__('What came across')}
                 </h3>
+                {report.pictures.copy + report.pictures.site > 0 && (
+                    <p data-test="import-report-pictures">
+                        {__(
+                            'Pictures: :copy from the uploads copy, :site from the old site.',
+                            {
+                                copy: String(report.pictures.copy),
+                                site: String(report.pictures.site),
+                            },
+                        )}
+                    </p>
+                )}
                 {report.types.length === 0 ? (
                     <p>{__('Nothing came across in this import.')}</p>
                 ) : (
