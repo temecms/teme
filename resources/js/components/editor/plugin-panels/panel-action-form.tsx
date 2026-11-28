@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import EditorPanelController from '@/actions/App/Http/Admin/Contents/EditorPanelController';
 import { send } from '@/components/editor/editor-http';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Textarea } from '@/components/ui/textarea';
+import { adminLocale } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
 import type {
     EditorPluginPanel,
@@ -43,6 +44,8 @@ export function PanelActionForm({
     checkpoint,
     onStale,
     onAnswer,
+    saved,
+    savedAt,
 }: {
     action: PanelAction;
     panel: EditorPluginPanel;
@@ -51,18 +54,47 @@ export function PanelActionForm({
     checkpoint: () => Promise<string | null>;
     onStale: (answer: Record<string, unknown>) => void;
     onAnswer: (answer: PanelAnswer) => void;
+    /** The saved values by field key; they start a field the person hasn't touched. */
+    saved: PanelAnswer['saved'];
+    savedAt: string | null;
 }) {
     const id = useId();
     const [values, setValues] = useState<Record<string, Value>>(() =>
         starting(action.fields),
     );
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+    // The view is read again while work runs. A refresh fills only the
+    // fields nobody has touched, so it never resets what is being typed.
+    useEffect(() => {
+        setValues((was) => {
+            const next = { ...was };
+
+            for (const field of action.fields) {
+                if (!touched[field.key] && field.key in saved) {
+                    next[field.key] = saved[field.key];
+                }
+            }
+
+            return next;
+        });
+    }, [saved, touched, action.fields]);
     const [confirming, setConfirming] = useState(false);
     const [sending, setSending] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [problem, setProblem] = useState<string | null>(null);
 
-    const set = (key: string, value: Value) =>
+    const set = (key: string, value: Value) => {
         setValues((was) => ({ ...was, [key]: value }));
+        setTouched((was) => ({ ...was, [key]: true }));
+    };
+
+    // The saved value goes back into its field, which keeps focus.
+    const useSaved = (key: string) => {
+        setValues((was) => ({ ...was, [key]: saved[key] }));
+        setTouched((was) => ({ ...was, [key]: false }));
+        document.getElementById(`${id}-${key}`)?.focus();
+    };
 
     const run = async () => {
         setConfirming(false);
@@ -130,16 +162,57 @@ export function PanelActionForm({
                 }
             }}
         >
-            {action.fields.map((field) => (
-                <PanelFieldControl
-                    key={field.key}
-                    id={`${id}-${field.key}`}
-                    field={field}
-                    value={values[field.key] ?? null}
-                    error={errors[field.key]}
-                    onChange={(value) => set(field.key, value)}
-                />
-            ))}
+            {action.fields.map((field) => {
+                const hasSaved = field.key in saved;
+                const changed =
+                    hasSaved && values[field.key] !== saved[field.key];
+                const when =
+                    savedAt === null
+                        ? ''
+                        : new Intl.DateTimeFormat(adminLocale(), {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                          }).format(new Date(savedAt));
+
+                return (
+                    <div key={field.key} className="grid gap-2">
+                        <PanelFieldControl
+                            id={`${id}-${field.key}`}
+                            field={field}
+                            value={values[field.key] ?? null}
+                            error={errors[field.key]}
+                            onChange={(value) => set(field.key, value)}
+                        />
+                        {hasSaved && !changed && (
+                            <p className="text-ink-2 text-small">
+                                {__(
+                                    'Started from the value saved with this item on :date. Change anything; nothing goes out until you queue it.',
+                                    { date: when },
+                                )}
+                            </p>
+                        )}
+                        {hasSaved && changed && (
+                            <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-ink-2 text-small">
+                                    {__(
+                                        'You changed it. The saved value, from :date, is unchanged.',
+                                        { date: when },
+                                    )}
+                                </p>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => useSaved(field.key)}
+                                >
+                                    {__('Use the saved value')}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
 
             {confirming ? (
                 <div

@@ -22,11 +22,16 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Media\MediaUrls;
+use App\Domain\Media\Models\Media;
 use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Columns\CellText;
 use App\Domain\Plugins\Columns\ColumnClock;
+use DateTimeInterface;
 use Teme\Contracts\Editor\EditorPanel;
 use Teme\Contracts\Editor\EditorPanelContext;
+use Teme\Contracts\Editor\PanelPreview;
+use Teme\Contracts\Editor\PanelRow;
 use Teme\Contracts\Editor\PanelView;
 use Throwable;
 
@@ -49,7 +54,7 @@ final readonly class PanelReads
      * What the named panel shows this person on this item, or null when
      * they don't see it there; the plugin is never asked then.
      *
-     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool, ai: string|null}|null
+     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool, ai: string|null, rowsHeading: string|null, rows: list<array<string, mixed>>, preview: array<string, mixed>|null, saved: array<string, mixed>, savedAt: string|null}|null
      */
     public function forItem(string $contentId, string $code, string $panel, string $personId): ?array
     {
@@ -66,7 +71,10 @@ final readonly class PanelReads
      * the plugin's own AI is switched off (`off`) or its month's budget is
      * spent (`budget`), null when neither or the plugin uses no AI.
      *
-     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool, ai: string|null}
+     * The rows, preview and saved values are plain values; a row's date is
+     * sent as an ISO 8601 string for the page to format.
+     *
+     * @return array{status: string|null, tone: string, suggestions: list<array<string, mixed>>, failed: string|null, jobs: list<array<string, mixed>>, busy: bool, ai: string|null, rowsHeading: string|null, rows: list<array<string, mixed>>, preview: array<string, mixed>|null, saved: array<string, mixed>, savedAt: string|null}
      */
     public function read(PanelPlugin $panel, Content $content, string $personId): array
     {
@@ -74,7 +82,7 @@ final readonly class PanelReads
         $view = $this->view($panel, self::context($panel, $content, $personId, $this->languages));
 
         if ($view === null) {
-            return ['status' => null, 'tone' => 'neutral', 'suggestions' => [], 'failed' => __('This panel couldn’t be shown this time.'), 'jobs' => $jobs, 'busy' => PanelJobs::busy($jobs), 'ai' => $this->ai($panel)];
+            return ['status' => null, 'tone' => 'neutral', 'suggestions' => [], 'failed' => __('This panel couldn’t be shown this time.'), 'jobs' => $jobs, 'busy' => PanelJobs::busy($jobs), 'ai' => $this->ai($panel), ...$this->details(null)];
         }
 
         $suggestions = [];
@@ -103,6 +111,54 @@ final readonly class PanelReads
             'jobs' => $jobs,
             'busy' => PanelJobs::busy($jobs),
             'ai' => $this->ai($panel),
+            ...$this->details($view),
+        ];
+    }
+
+    /**
+     * The rows, preview and saved values of a view, every string cleaned to
+     * plain text and capped; none when the view has none of them.
+     *
+     * @return array{rowsHeading: string|null, rows: list<array<string, mixed>>, preview: array<string, mixed>|null, saved: array<string, mixed>, savedAt: string|null}
+     */
+    private function details(?PanelView $view): array
+    {
+        if ($view === null) {
+            return ['rowsHeading' => null, 'rows' => [], 'preview' => null, 'saved' => [], 'savedAt' => null];
+        }
+
+        return [
+            'rowsHeading' => $view->rows === [] ? null : (string) CellText::clean($view->rowsHeading ?? __('Details'), PanelRow::MOST_LABEL),
+            'rows' => array_map(fn (PanelRow $row): array => [
+                'label' => (string) CellText::clean($row->label, PanelRow::MOST_LABEL),
+                'value' => $row->value instanceof DateTimeInterface
+                    ? ['kind' => 'date', 'iso' => $row->value->format(DATE_ATOM)]
+                    : (string) CellText::clean($row->value, PanelRow::MOST_VALUE),
+                'tone' => $row->tone,
+            ], $view->rows),
+            'preview' => $view->preview === null ? null : $this->preview($view->preview),
+            'saved' => array_map(fn (mixed $value): mixed => is_string($value) ? CellText::clean($value, PanelView::MOST_SAVED) : $value, $view->saved),
+            'savedAt' => $view->savedAt?->format(DATE_ATOM),
+        ];
+    }
+
+    /**
+     * The preview card: the plugin's words, the picture from the library by
+     * its ID, and the site's own host. A picture that isn't in the library is
+     * left out.
+     *
+     * @return array{title: string, description: string, picture: string|null, host: string|null}
+     */
+    private function preview(PanelPreview $preview): array
+    {
+        $media = $preview->mediaId === null ? null : Media::query()->find($preview->mediaId);
+        $host = parse_url(url('/'), PHP_URL_HOST);
+
+        return [
+            'title' => (string) CellText::clean($preview->title, PanelPreview::MOST_TITLE),
+            'description' => (string) CellText::clean($preview->description, PanelPreview::MOST_DESCRIPTION),
+            'picture' => $media === null ? null : MediaUrls::largest($media->variants, (string) $media->id),
+            'host' => is_string($host) ? $host : null,
         ];
     }
 
