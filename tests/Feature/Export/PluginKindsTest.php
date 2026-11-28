@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Domain\Export\ExportFailed;
 use App\Domain\Export\LeftOut;
-use App\Domain\Export\Operations\ExportSite;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\LoadedPlugins;
@@ -20,10 +19,10 @@ use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 use Tests\Fixtures\Export\ExportAs;
 use Tests\Fixtures\Plugins\Exporter\Exporter;
 use Tests\Fixtures\Plugins\PluginFixtures;
+use Throwable;
 
 require_once dirname(__DIR__).'/Plugins/Seo/Seokit.php';
 
@@ -54,7 +53,6 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    app()->forgetInstance(ExportSite::class);
     Exporter::reset();
     ExportAs::remove($this->folder);
     PluginFixtures::forget();
@@ -182,25 +180,31 @@ it('refuses a page with no lines that says there is another, a repeated next, an
 })->with(['empty', 'repeat', 'never']);
 
 it('ends the export when a plugin savepoint fails, naming the file, not blaming the plugin', function (): void {
+    // A fixture that swallows a failing statement leaves the savepoint aborted;
+    // ExportSite's select 1 after the lines then fails and names the file.
     ['faults' => $faults] = ($this->enable)();
-    $export = app(ExportSite::class);
-    $export->afterPluginLines = function (string $name): void {
-        throw new RuntimeException('savepoint commit failed');
+    Exporter::$lines = function (?string $after): array {
+        try {
+            DB::select('select * from no_such_table');
+        } catch (Throwable) {
+        }
+
+        return ['lines' => [['id' => 1, 'guest' => 'Ada']], 'next' => null];
     };
-    app()->instance(ExportSite::class, $export);
 
     try {
         ExportAs::operator($this->folder);
         $this->fail('The export should have failed.');
     } catch (ExportFailed $failed) {
-        expect($failed->getMessage())->toContain('plugin_exporter_bookings.ndjson')
-            ->and($failed->getMessage())->toContain('savepoint commit failed')
+        expect($failed->getMessage())->toBe('Teme couldn’t write plugin_exporter_bookings.ndjson.')
+            ->and($failed->getPrevious())->toBeInstanceOf(Throwable::class)
             ->and($failed->leftBehind)->toBeNull();
     }
 
     expect(file_exists($this->folder))->toBeFalse()
         ->and($faults->seen)->toBe([])
-        ->and(ExportAs::leftovers($this->folder))->toBe([]);
+        ->and(ExportAs::leftovers($this->folder))->toBe([])
+        ->and(DB::table('security_events')->where('type', 'export.made')->count())->toBe(0);
 });
 
 it('skips a second file whose name is taken, as that plugin’s fault, and goes on', function (): void {

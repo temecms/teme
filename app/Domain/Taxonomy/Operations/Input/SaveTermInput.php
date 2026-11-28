@@ -26,7 +26,6 @@ final readonly class SaveTermInput implements OperationInput
     /**
      * @param  string|null  $language  a new term's language, a site language's tag; null for the default (I-3360). An update keeps the term's own.
      * @param  string|null  $plugin  a plugin's code when it writes as the site
-     * @param  string|null  $pluginName  that plugin's Composer name, for ownership
      */
     public function __construct(
         public string $taxonomy,
@@ -40,7 +39,6 @@ final readonly class SaveTermInput implements OperationInput
         public bool $keepDescription = false,
         public ?string $language = null,
         public ?string $plugin = null,
-        public ?string $pluginName = null,
     ) {
         $this->slug = $slug === null ? null : Slugs::normal($slug);
     }

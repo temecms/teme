@@ -52,6 +52,7 @@ final class CreateTerm extends BaseOperation
             $this->refuseForeignTaxonomy($input);
             // A plugin never makes a translation of a term.
             $this->validateTerm($input->taxonomy, $input->name, $input->slug, $input->parentId, null);
+            $this->refuseParentInOtherLanguage($input->taxonomy, $input->parentId, null);
 
             return;
         }
@@ -88,7 +89,9 @@ final class CreateTerm extends BaseOperation
      */
     private function refuseForeignTaxonomy(SaveTermInput $input): void
     {
-        if ($input->pluginName === null || TypeOwners::owner('taxonomies', $input->taxonomy) !== $input->pluginName) {
+        $record = PluginTermGrant::require((string) $input->plugin);
+
+        if (TypeOwners::owner('taxonomies', $input->taxonomy) !== $record->name) {
             throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
         }
     }

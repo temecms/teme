@@ -48,7 +48,6 @@ final readonly class PluginTermWriter implements TermWriter
                 description: $description,
                 actorId: null,
                 plugin: $this->code,
-                pluginName: $this->name,
             ));
         } catch (AuthorizationException $refused) {
             throw new WriteRefused($refused->getMessage() !== '' ? $refused->getMessage() : __('Not permitted.'), previous: $refused);
@@ -76,7 +75,6 @@ final readonly class PluginTermWriter implements TermWriter
                 actorId: null,
                 termId: $termId,
                 plugin: $this->code,
-                pluginName: $this->name,
             ));
         } catch (AuthorizationException $refused) {
             throw new WriteRefused($refused->getMessage() !== '' ? $refused->getMessage() : __('Not permitted.'), previous: $refused);
@@ -95,7 +93,7 @@ final readonly class PluginTermWriter implements TermWriter
         $this->ownTaxonomy($term->taxonomy);
 
         try {
-            app(DeleteTerm::class)->execute(new DeleteTermInput($termId, null, plugin: $this->code, pluginName: $this->name));
+            app(DeleteTerm::class)->execute(new DeleteTermInput($termId, null, plugin: $this->code));
         } catch (AuthorizationException $refused) {
             throw new WriteRefused($refused->getMessage() !== '' ? $refused->getMessage() : __('Not permitted.'), previous: $refused);
         } catch (ValidationException $refused) {

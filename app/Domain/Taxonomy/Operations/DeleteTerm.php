@@ -62,9 +62,14 @@ final class DeleteTerm extends BaseOperation
         }
 
         $term = Term::query()->findOrFail($input->termId);
+        $record = PluginTermGrant::require((string) $input->plugin);
 
-        if ($input->pluginName === null || TypeOwners::owner('taxonomies', (string) $term->taxonomy) !== $input->pluginName) {
+        if (TypeOwners::owner('taxonomies', (string) $term->taxonomy) !== $record->name) {
             throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
+        }
+
+        if ($term->language !== null) {
+            throw ValidationException::withMessages(['term' => __('A plugin can’t change a translation of a term.')]);
         }
 
         if ((int) $term->working_count > 0 || (int) $term->published_count > 0) {

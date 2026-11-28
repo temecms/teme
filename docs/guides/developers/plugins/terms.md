@@ -26,16 +26,16 @@ $italian = $this->terms->update($italian->id, 'Italia', 'italia', null, 'Updated
 $this->terms->remove($tuscan->id);
 ```
 
-`create` takes the taxonomy key, a name, an optional slug (made from the name when left out), an optional parent term ID, and an optional description. `update` renames a term, and may change its slug, parent and description. `list` answers every term of that taxonomy, oldest first. `remove` deletes a term that nothing uses and that has no children.
+`create` takes the taxonomy key, a name, an optional slug (made from the name when left out), an optional parent term ID, and an optional description. `update` renames a term, and may change its slug, parent and description. `list` answers every term of that taxonomy, oldest first, with no page size — it is meant for filling a small owned vocabulary, not for paging a large one. `remove` deletes a term that nothing uses and that has no children.
 
 Every call that writes answers a `TermRef` with the term's `id`, `taxonomy`, `name`, `slug`, `parentId` and `language`. Keep the `id` if you may want to update or remove it later.
 
-Teme writes through the same Operations the admin uses, as the site. A refusal is a `WriteRefused` with one plain sentence, and nothing is written: a taxonomy your plugin did not bring, a parent that does not belong, a term that is in use, or a term that still has children.
+Teme writes through the same Operations the admin uses, as the site. A refusal is a `WriteRefused` with one plain sentence, and nothing is written: a taxonomy your plugin did not bring, a parent that does not belong, a parent or term that is a translation, a term that is in use, or a term that still has children.
 
 ## What it never does
 
 - It never touches core's taxonomies, the site's own, or another plugin's.
-- It never makes or changes a translation of a term.
+- It never makes or changes a translation of a term, and it refuses a parent that is a translation.
 - Removing a term that items still use, or that has children, is refused.
 
 ## ContentWriter still creates terms by name

@@ -64,15 +64,14 @@ final class UpdateTerm extends BaseOperation
             if (TypeOwners::owner('taxonomies', $input->taxonomy) !== $record->name) {
                 throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
             }
+
+            $this->refusePluginTranslation($term->language === null ? null : (string) $term->language);
         }
 
         $parentId = $input->keepParent ? ($term->parent_id === null ? null : (string) $term->parent_id) : $input->parentId;
 
         $this->validateTerm($input->taxonomy, $input->name, $input->slug, $parentId, $term->id);
-
-        if ($input->plugin === null) {
-            $this->refuseParentInOtherLanguage($input->taxonomy, $parentId, $term->language === null ? null : (string) $term->language);
-        }
+        $this->refuseParentInOtherLanguage($input->taxonomy, $parentId, $term->language === null ? null : (string) $term->language);
     }
 
     protected function perform(OperationInput $input): Term

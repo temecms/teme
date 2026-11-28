@@ -19,13 +19,11 @@ final readonly class DeleteTermInput implements OperationInput
 {
     /**
      * @param  string|null  $plugin  a plugin's code when it removes as the site
-     * @param  string|null  $pluginName  that plugin's Composer name, for ownership
      */
     public function __construct(
         public string $termId,
         public ?string $actorId,
         public ?string $plugin = null,
-        public ?string $pluginName = null,
     ) {}
 
     public function actorId(): ?string

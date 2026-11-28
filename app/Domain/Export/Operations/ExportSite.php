@@ -43,14 +43,6 @@ use Throwable;
 
 final class ExportSite extends BaseOperation
 {
-    /**
-     * When set, called after a plugin kind's lines are written inside its
-     * savepoint; tests use it to force a savepoint failure that names the file.
-     *
-     * @var (callable(string): void)|null
-     */
-    public $afterPluginLines = null;
-
     public function __construct(
         private readonly ExportKinds $kinds,
         private readonly SecurityLog $log,
@@ -129,14 +121,15 @@ final class ExportSite extends BaseOperation
                                     $file->write($line);
                                 }
 
-                                if ($this->afterPluginLines !== null) {
-                                    ($this->afterPluginLines)($kind->name());
-                                }
+                                // Touches the connection after the plugin's lines so a
+                                // swallowed statement failure still aborts this savepoint
+                                // and is reported as the export's fault with the file named.
+                                DB::select('select 1');
                             });
                         } catch (PluginKindFailed $failure) {
                             throw $failure;
                         } catch (Throwable $failed) {
-                            throw new RuntimeException('Teme couldn’t write '.$kind->name().'.ndjson: '.$failed->getMessage(), 0, $failed);
+                            throw new RuntimeException('Teme couldn’t write '.$kind->name().'.ndjson.', 0, $failed);
                         }
 
                         $files[] = $file->close();
