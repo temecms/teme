@@ -9,10 +9,13 @@ use App\Domain\Comments\Models\Comment;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Operations\ChooseSlotProvider;
 use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\ChooseSlotProviderInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Slots\PluginSlots;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -148,4 +151,25 @@ it('reads the declared field from the manifest of the plugin that provides the c
     $manifest = app(PluginRegistry::class)->find('tests/fielded')?->manifest;
 
     expect(CommentField::of($manifest))->toBe(['name' => 'hp-stamp', 'make' => 'static', 'value' => 'lively']);
+});
+
+it('draws only the field of the plugin chosen for the slot, when two plugins fill it', function (): void {
+    fieldedEnabled();
+    $second = PluginFixtures::copy('fielded', ['name' => 'tests/fielded-two', 'code' => 'fielded-two'], ['name' => 'tests/fielded-two'], []);
+    app()->instance(Elevation::class, new OperatorElevation);
+    PluginFixtures::use('fielded', $second);
+    $manifest = app(PluginRegistry::class)->find('tests/fielded-two')?->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/fielded-two', '1.0.0', $manifest?->capabilities() ?? [], [], [], null));
+    app(PluginLoader::class)->load();
+    app()->forgetInstance(Elevation::class);
+    app()->forgetInstance(CommentChecks::class);
+
+    addrGet(itemPathOf($this->item))->assertOk()->assertDontSee('hp-stamp', false);
+
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(ChooseSlotProvider::class)->execute(new ChooseSlotProviderInput(PluginSlots::COMMENT_CHECK, 'tests/fielded', null));
+    app()->forgetInstance(Elevation::class);
+    app()->forgetInstance(CommentChecks::class);
+
+    addrGet(itemPathOf($this->item))->assertOk()->assertSee('name="hp-stamp" value="lively"', false);
 });
