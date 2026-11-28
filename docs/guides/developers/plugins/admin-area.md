@@ -106,7 +106,7 @@ Implement `HasRecordHeader` beside `PluginArea` to supply a record's status pill
 
 Implement `HasAreaCounts` to answer counts by page id for the area's tabs. Core loads them after the page; until they arrive other tabs show a quiet "Counting" pill. The open tab still uses its first table's total when you send none. A missing, failed or over-large count shows no number.
 
-Core offers six statistics periods (`Last 7 days`, `Last 30 days` as the default, `Last 90 days`, `This month`, `Last month`, `This year`) when a page has figures or charts. Plugins cannot add periods. The chosen window is `$context->period` (`AreaPeriod`): start, end, and the earlier window to compare, as `Y-m-d` in the person's time zone. Home panels use the last 30 days with no select.
+Core offers six statistics periods (`Last 7 days`, `Last 30 days` as the default, `Last 90 days`, `This month`, `Last month`, `This year`) when a page has figures or charts. Plugins cannot add periods. The chosen window is `$context->period` (`AreaPeriod`): start, end, and the earlier window to compare, as `Y-m-d` in the site's time zone. Home panels use the last 30 days with no select.
 
 ## Budgets and refusals
 

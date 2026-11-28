@@ -113,9 +113,12 @@ final class AreaReads
             }
 
             $label = AreaWords::text($plugin->code, is_string($item['label'] ?? null) ? $item['label'] : '');
-            $thing = (string) preg_replace('/,\s.+$/u', '', $label);
+            // The noun for screen readers: the label before a trailing ", …" period phrase.
+            $thing = str_contains($label, ',')
+                ? trim((string) strstr($label, ',', true))
+                : $label;
 
-            if ($index === 0 && $context->period !== null) {
+            if ($index === 0 && $context->period !== null && $thing !== '') {
                 $label = $thing.', '.AreaPeriods::lower($context->period->id);
             }
 

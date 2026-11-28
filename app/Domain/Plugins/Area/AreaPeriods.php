@@ -2,7 +2,7 @@
 
 /**
  * The six statistics periods an area page offers: their labels, the window
- * in the person's time zone, and the matching earlier window to compare.
+ * in the site's time zone, and the matching earlier window to compare.
  *
  * @package Teme
  * @since   next

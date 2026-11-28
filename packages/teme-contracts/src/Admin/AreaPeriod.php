@@ -19,7 +19,7 @@ use InvalidArgumentException;
 /**
  * The statistics window core hands a plugin's area: its id, and the start
  * and end dates of this period and the one to compare it with, as Y-m-d in
- * the person's time zone. Plugins never invent a period; they only read
+ * the site's time zone. Plugins never invent a period; they only read
  * these dates.
  *
  * @since next

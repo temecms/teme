@@ -57,6 +57,7 @@ final readonly class Cell
         public string $kind,
         public string|int|float $value,
         public ?string $tone,
+        /** @since next */
         public ?string $href = null,
     ) {}
 
