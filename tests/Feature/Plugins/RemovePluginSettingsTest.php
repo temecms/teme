@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -19,6 +20,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -92,4 +94,21 @@ it('tells the plugins screen what saved settings and secrets will go', function 
     $row = collect(app(PluginsScreen::class)->rows())->firstWhere('name', 'tests/tables');
 
     expect($row['savedData'])->toBe(['saved' => false, 'secrets' => 0]);
+});
+
+it('deletes the plugin’s download folder with its data, and leaves another plugin’s', function (): void {
+    File::ensureDirectoryExists(DownloadFolders::pathFor('tables'));
+    File::put(DownloadFolders::pathFor('tables').'/countries.download', 'kept for a job');
+    File::ensureDirectoryExists(DownloadFolders::pathFor('other'));
+    File::put(DownloadFolders::pathFor('other').'/keep.download', 'not this plugin’s');
+
+    try {
+        app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+        expect(is_dir(DownloadFolders::pathFor('tables')))->toBeFalse()
+            ->and(is_file(DownloadFolders::pathFor('other').'/keep.download'))->toBeTrue();
+    } finally {
+        File::deleteDirectory(DownloadFolders::pathFor('tables'));
+        File::deleteDirectory(DownloadFolders::pathFor('other'));
+    }
 });
