@@ -216,7 +216,7 @@ Tools › Import shows each run's report from `ImportScreen::report()` (`app/Dom
 
 `teme:import {address} --status` prints the latest run's kind, state, times and counts, the step it is on, and why it stopped (`app/Console/Commands/ImportSite.php:140-167`).
 
-## The uploads copy of the pictures (#791)
+## The uploads copy of the pictures
 
 An old site's `wp-content/uploads` folder can come across as a copy, so the pictures are not fetched one request at a time from the old site. A copy is a folder, or a zip of the folder, either named on the server (`teme:import:uploads`, read in place, never deleted by Teme) or uploaded in pieces on the import's plan (`StartUploadsCopy`, `ReceiveUploadsCopyPiece`, `FinishUploadsCopy`; a zip up to `teme.import.max_uploads_mb`, 10 GB by default). Each site has one ready copy, held by `import_uploads`: `kind`, `path`, `prefix` (the folder the uploads sit under inside the copy, such as `uploads/` or `site-backup/uploads/`), `kept_by_teme` (whether Teme wrote the file and so may delete it), and `left_out`, the count of files in the protected plugins' folders with the folder each is in. An upload in progress is a `state = 'uploading'` row; a partial unique index allows one `ready` row per site.
 

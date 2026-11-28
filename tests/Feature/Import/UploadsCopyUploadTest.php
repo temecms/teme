@@ -9,9 +9,11 @@ use App\Domain\Import\Operations\CancelUploadsCopy;
 use App\Domain\Import\Operations\DeleteUploadsCopy;
 use App\Domain\Import\Operations\FinishUploadsCopy;
 use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
+use App\Domain\Import\Operations\Input\PruneUploadsCopiesInput;
 use App\Domain\Import\Operations\Input\ReceiveUploadsCopyPieceInput;
 use App\Domain\Import\Operations\Input\StartUploadsCopyInput;
 use App\Domain\Import\Operations\Input\UploadsCopyUploadInput;
+use App\Domain\Import\Operations\PruneUploadsCopies;
 use App\Domain\Import\Operations\ReceiveUploadsCopyPiece;
 use App\Domain\Import\Operations\StartUploadsCopy;
 use App\Domain\Import\Queries\ImportScreen;
@@ -222,6 +224,20 @@ it('prunes an abandoned upload after a day, and a copy no import has used for 30
 
     expect(ImportUpload::query()->where('source_id', $this->source->id)->exists())->toBeFalse()
         ->and(is_file($readyPath))->toBeFalse();
+
+    $this->travelBack();
+});
+
+it('deletes nothing when an editor asks for the prune', function (): void {
+    $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
+    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+    $readyPath = ImportUpload::query()->whereKey($ready)->value('path');
+    $this->travel(31)->days();
+
+    expect(fn () => app(PruneUploadsCopies::class)->execute(new PruneUploadsCopiesInput((string) $this->editor->id)))
+        ->toThrow(AuthorizationException::class)
+        ->and(ImportUpload::query()->whereKey($ready)->exists())->toBeTrue()
+        ->and(is_file($readyPath))->toBeTrue();
 
     $this->travelBack();
 });

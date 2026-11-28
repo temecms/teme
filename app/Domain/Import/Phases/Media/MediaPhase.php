@@ -309,7 +309,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      */
     private function download(array $item, string $wanted, ImportContext $context): PreparedMedia
     {
-        // Every candidate in the uploads copy is tried before the site is asked for anything (#791).
+        // Every candidate in the uploads copy is tried before the site is asked for anything.
         $copied = $this->fromCopy($item, $wanted, $context);
 
         if ($copied !== null) {

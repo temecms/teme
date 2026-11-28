@@ -132,7 +132,7 @@ final class ImportScreenController extends Controller
                 : null,
             // Whether the old site answers now, so its media files can be downloaded during the import.
             'oldSiteAnswers' => isset($site['file']['id']) ? app(FileDownloader::class)->answers($site['address']) : null,
-            // A ready uploads copy lets the media choices stay open when the old site doesn't answer (#791).
+            // A ready uploads copy lets the media choices stay open when the old site doesn't answer.
             'copyReady' => $copies->forSource($source) !== null,
             'remembered' => $request->session()->get(ImportRunController::REMEMBERED.$source),
             // A start the password's confirmation interrupted: the plan sends it again once, now the password is confirmed.
