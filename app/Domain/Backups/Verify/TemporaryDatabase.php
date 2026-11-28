@@ -28,12 +28,29 @@ final class TemporaryDatabase
     /** The connection config/database.php names for the restore account. */
     public const string CONNECTION = 'teme_restore';
 
+    /** The start of every name this class makes: the prefix, then this site's tag. */
     public const string PREFIX = 'teme_restore_';
 
-    /** The only names this class creates or drops: the prefix and sixteen hexadecimal digits. */
-    public const string PATTERN = '/^teme_restore_[0-9a-f]{16}$/';
-
     public const string NOT_CONFIGURED = 'Under TEME_BACKUPS=host, Teme’s test restore makes a temporary database with a restore account of its own. At the server, name that account as TEME_RESTORE_DB_USERNAME, with a password and CREATEDB.';
+
+    /**
+     * The start of this site's names: the prefix and the site's tag, so two
+     * sites on one server, or one site's parallel test workers, never sweep
+     * each other's. The tag is a short hash of the database's name.
+     */
+    public static function prefix(): string
+    {
+        return self::PREFIX.substr(hash('sha256', (string) DB::connection()->getDatabaseName()), 0, 8).'_';
+    }
+
+    /**
+     * The only names this class creates or drops: this site's prefix and
+     * sixteen lower-case hexadecimal digits, to the very end of the name.
+     */
+    public static function pattern(): string
+    {
+        return '/^'.preg_quote(self::prefix(), '/').'[0-9a-f]{16}\z/';
+    }
 
     /**
      * Whether the restore account is named.
@@ -57,7 +74,7 @@ final class TemporaryDatabase
             throw new BackupRefused(self::NOT_CONFIGURED);
         }
 
-        $name = self::PREFIX.bin2hex(random_bytes(8));
+        $name = self::prefix().bin2hex(random_bytes(8));
 
         try {
             DB::connection(self::CONNECTION)->statement('CREATE DATABASE '.self::identifier($name).' TEMPLATE template0');
@@ -79,17 +96,22 @@ final class TemporaryDatabase
      */
     public static function drop(string $name): void
     {
-        if (preg_match(self::PATTERN, $name) !== 1) {
+        if (preg_match(self::pattern(), $name) !== 1) {
             throw new InvalidArgumentException("“{$name}” isn’t a temporary restore database Teme made.");
         }
 
+        // Forced: the only session left is the one this run has just closed, which PostgreSQL may still be ending.
         DB::connection(self::CONNECTION)->statement('DROP DATABASE IF EXISTS '.self::identifier($name).' WITH (FORCE)');
         DB::purge(self::CONNECTION);
     }
 
     /**
-     * Drops every temporary restore database a run left behind, and returns how
-     * many it dropped. Each failure is logged and the next one still goes on.
+     * Drops this site's temporary restore databases that a dead run left
+     * behind, and returns how many it dropped. Only databases this site's
+     * restore account owns, that nothing is connected to, and whose names
+     * carry this site's prefix are touched; the caller holds the backup lock,
+     * so a restore running now is never one of them. Each failure is logged
+     * and the next one still goes on.
      */
     public static function sweep(): int
     {
@@ -100,7 +122,16 @@ final class TemporaryDatabase
         $dropped = 0;
 
         try {
-            $names = DB::connection(self::CONNECTION)->select("SELECT datname AS name FROM pg_catalog.pg_database WHERE datname LIKE 'teme\\_restore\\_%'");
+            $candidates = DB::connection(self::CONNECTION)->select(
+                <<<'SQL'
+                SELECT d.datname AS name
+                FROM pg_catalog.pg_database AS d
+                WHERE d.datname LIKE ?
+                  AND pg_catalog.pg_get_userbyid(d.datdba) = current_user
+                  AND NOT EXISTS (SELECT 1 FROM pg_catalog.pg_stat_activity AS a WHERE a.datname = d.datname)
+                SQL,
+                [str_replace(['\\', '_', '%'], ['\\\\', '\\_', '\\%'], self::prefix()).'%'],
+            );
         } catch (Throwable $failed) {
             Log::warning('Backups: listing temporary restore databases: '.$failed->getMessage());
 
@@ -109,18 +140,21 @@ final class TemporaryDatabase
             DB::purge(self::CONNECTION);
         }
 
-        foreach ($names as $row) {
+        foreach ($candidates as $row) {
             $name = (string) $row->name;
 
-            if (preg_match(self::PATTERN, $name) !== 1) {
+            if (preg_match(self::pattern(), $name) !== 1) {
                 continue;
             }
 
             try {
-                self::drop($name);
+                // Not forced: a session that connected since the check keeps its database.
+                DB::connection(self::CONNECTION)->statement('DROP DATABASE IF EXISTS '.self::identifier($name));
                 $dropped++;
             } catch (Throwable $failed) {
                 Log::warning("Backups: dropping the leftover temporary restore database {$name}: ".$failed->getMessage());
+            } finally {
+                DB::purge(self::CONNECTION);
             }
         }
 

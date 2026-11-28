@@ -25,6 +25,12 @@ function databaseExists(string $name): bool
     return DB::connection(TemporaryDatabase::CONNECTION)->selectOne('SELECT 1 AS present FROM pg_database WHERE datname = ?', [$name]) !== null;
 }
 
+/** Another site's prefix on this server: a tag it never shares with this one. */
+function otherSiteName(): string
+{
+    return 'teme_restore_'.substr(hash('sha256', 'another site'), 0, 8).'_'.bin2hex(random_bytes(8));
+}
+
 it('is configured only when the restore account is named', function (): void {
     expect(TemporaryDatabase::configured())->toBeTrue();
 
@@ -39,10 +45,11 @@ it('refuses to open a temporary restore database when the restore account is not
     expect(fn () => SpareDatabase::openTemporary())->toThrow(BackupRefused::class, TemporaryDatabase::NOT_CONFIGURED);
 });
 
-it('creates a database whose name carries the prefix and a random suffix, and drops it', function (): void {
+it('creates a database named with this site’s tag, a random suffix and the prefix, and drops it', function (): void {
     $name = TemporaryDatabase::create();
 
-    expect($name)->toMatch('/^teme_restore_[0-9a-f]{16}$/')
+    expect($name)->toStartWith(TemporaryDatabase::prefix())
+        ->and($name)->toMatch('/^teme_restore_[0-9a-f]{8}_[0-9a-f]{16}\z/')
         ->and(databaseExists($name))->toBeTrue();
 
     TemporaryDatabase::drop($name);
@@ -50,16 +57,28 @@ it('creates a database whose name carries the prefix and a random suffix, and dr
     expect(databaseExists($name))->toBeFalse();
 });
 
-it('refuses to drop a database whose name is not one it made', function (): void {
-    expect(fn () => TemporaryDatabase::drop('teme_restore_abc'))->toThrow(InvalidArgumentException::class);
-    expect(fn () => TemporaryDatabase::drop('postgres'))->toThrow(InvalidArgumentException::class);
+it('refuses to drop a name it did not make, however it is dressed up', function (): void {
+    $prefix = TemporaryDatabase::prefix();
+    $names = [
+        'teme_restore_abc',
+        'postgres',
+        'x'.$prefix.'0123456789abcdef',
+        'teme-restore-'.substr($prefix, 14, 8).'-0123456789abcdef',
+        $prefix.'0123456789ABCDEF',
+        $prefix.'0123456789abcdef'."\n",
+        otherSiteName(),
+    ];
+
+    foreach ($names as $name) {
+        expect(fn () => TemporaryDatabase::drop($name))->toThrow(InvalidArgumentException::class);
+    }
 });
 
 it('opens a temporary database, and closing it drops it', function (): void {
     $spare = SpareDatabase::openTemporary();
     $name = $spare->name;
 
-    expect($name)->toStartWith('teme_restore_')
+    expect($name)->toStartWith(TemporaryDatabase::prefix())
         ->and(databaseExists($name))->toBeTrue();
 
     $spare->close();
@@ -67,17 +86,60 @@ it('opens a temporary database, and closing it drops it', function (): void {
     expect(databaseExists($name))->toBeFalse();
 });
 
-it('sweeps leftover temporary databases by their prefix, and leaves every other database alone', function (): void {
+it('leaves no database of its own behind when the restore account cannot make one', function (): void {
+    config(['database.connections.'.TemporaryDatabase::CONNECTION.'.username' => 'teme_no_such_role_'.bin2hex(random_bytes(4))]);
+    DB::purge(TemporaryDatabase::CONNECTION);
+
+    expect(fn () => SpareDatabase::openTemporary())->toThrow(BackupRefused::class);
+
+    config(['database.connections.'.TemporaryDatabase::CONNECTION => [...DB::connection()->getConfig(), 'database' => 'postgres']]);
+    DB::purge(TemporaryDatabase::CONNECTION);
+
+    $left = DB::connection(TemporaryDatabase::CONNECTION)->select('SELECT datname AS name FROM pg_catalog.pg_database WHERE datname LIKE ?', [str_replace('_', '\\_', TemporaryDatabase::prefix()).'%']);
+    expect($left)->toBe([]);
+});
+
+it('sweeps only this site’s leftovers that its own role owns and nothing is using', function (): void {
     $leftover = TemporaryDatabase::create();
-    $other = 'teme_restore_notmine';
-    DB::connection(TemporaryDatabase::CONNECTION)->statement("CREATE DATABASE {$other} TEMPLATE template0");
+    $decoy = otherSiteName();
+    DB::connection(TemporaryDatabase::CONNECTION)->statement('CREATE DATABASE '.$decoy.' TEMPLATE template0');
 
     try {
         expect(TemporaryDatabase::sweep())->toBe(1)
             ->and(databaseExists($leftover))->toBeFalse()
-            ->and(databaseExists($other))->toBeTrue();
+            ->and(databaseExists($decoy))->toBeTrue();
     } finally {
-        DB::connection(TemporaryDatabase::CONNECTION)->statement("DROP DATABASE IF EXISTS {$other}");
+        DB::connection(TemporaryDatabase::CONNECTION)->statement("DROP DATABASE IF EXISTS {$decoy}");
+    }
+});
+
+it('leaves a temporary database that another role owns alone', function (): void {
+    $role = 'teme_other_'.bin2hex(random_bytes(4));
+    $name = TemporaryDatabase::prefix().bin2hex(random_bytes(8));
+    DB::connection(TemporaryDatabase::CONNECTION)->statement("CREATE ROLE {$role} NOLOGIN");
+    DB::connection(TemporaryDatabase::CONNECTION)->statement("CREATE DATABASE {$name} OWNER {$role} TEMPLATE template0");
+
+    try {
+        expect(TemporaryDatabase::sweep())->toBe(0)
+            ->and(databaseExists($name))->toBeTrue();
+    } finally {
+        DB::connection(TemporaryDatabase::CONNECTION)->statement("DROP DATABASE IF EXISTS {$name}");
+        DB::connection(TemporaryDatabase::CONNECTION)->statement("DROP ROLE IF EXISTS {$role}");
+    }
+});
+
+it('leaves a temporary database alone while a restore is connected to it', function (): void {
+    $name = TemporaryDatabase::create();
+    $session = DB::connectUsing('restore_probe', [...config('database.connections.'.TemporaryDatabase::CONNECTION), 'database' => $name, 'name' => 'restore_probe'], force: true);
+
+    try {
+        $session->select('SELECT 1');
+
+        expect(TemporaryDatabase::sweep())->toBe(0)
+            ->and(databaseExists($name))->toBeTrue();
+    } finally {
+        DB::purge('restore_probe');
+        TemporaryDatabase::drop($name);
     }
 });
 
