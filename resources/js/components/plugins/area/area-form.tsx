@@ -6,7 +6,7 @@ import { CodeField } from '@/components/fields/code-field';
 import { RepeaterField } from '@/components/fields/repeater-field';
 import type { WaitingScript } from '@/components/fields/code-field';
 import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
-import { ItemsPicker, SlugTermsPicker } from './record-pickers';
+import { ItemsPicker, TermsPicker } from './record-pickers';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -326,19 +326,8 @@ export function AreaFieldInput({
                     />
                 );
             case 'terms':
-                if (field.storeAs === 'slug') {
-                    return (
-                        <SlugTermsPicker
-                            id={id}
-                            field={field}
-                            value={value}
-                            onChange={onChange}
-                        />
-                    );
-                }
-
                 return (
-                    <Choices
+                    <TermsPicker
                         id={id}
                         field={field}
                         value={value}

@@ -203,11 +203,11 @@ export function ItemsPicker({
 }
 
 /**
- * A terms field that stores each term's slug, searching the taxonomy as the
+ * A terms field that stores each term's slug or ID, searching the taxonomy as the
  * person types. A slug no term has any more is shown as stale, with a
  * warning and the words to act on.
  */
-export function SlugTermsPicker({
+export function TermsPicker({
     id,
     field,
     value,
@@ -236,19 +236,29 @@ export function SlugTermsPicker({
             }
 
             const terms = answer.body as unknown as {
+                id: string;
                 slug: string;
                 name: string;
                 path: string;
             }[];
 
+            // A term stored by slug is chosen by its slug, one stored by ID by its ID.
             return {
                 ok: true,
-                options: terms.map((term) => ({
-                    value: term.slug,
-                    label: term.name,
-                    description: `${__('Slug')}: ${term.slug}`,
-                    disabled: chosen.includes(term.slug),
-                })),
+                options: terms.map((term) => {
+                    const value =
+                        field.storeAs === 'slug' ? term.slug : term.id;
+
+                    return {
+                        value,
+                        label: term.name,
+                        description:
+                            field.storeAs === 'slug'
+                                ? __('Slug') + ': ' + term.slug
+                                : term.path,
+                        disabled: chosen.includes(value),
+                    };
+                }),
             };
         } catch {
             return { ok: false, options: [] };

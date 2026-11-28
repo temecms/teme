@@ -29,9 +29,6 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class PluginRecordForm
 {
-    /** The most terms a picker offers. */
-    public const int MOST_TERMS = 500;
-
     public function __construct(
         private AreaReads $reads,
         private ContentTypeRegistry $types,
@@ -108,7 +105,8 @@ final readonly class PluginRecordForm
         $choices = match ($type) {
             'select', 'multiselect' => array_map(fn (mixed $value, mixed $label): array => ['value' => (string) $value, 'label' => $words($label)], array_keys($options), array_values($options)),
             'types' => array_map(fn ($contentType): array => ['value' => $contentType->key, 'label' => $contentType->plural], $this->types->all()),
-            'terms' => $this->terms(is_string($field['taxonomy']) ? $field['taxonomy'] : ''),
+            // A terms field searches as the person types, for both ways it stores terms: no list is sent.
+            'terms' => [],
             'region' => array_map(fn (string $slug, array $region): array => ['value' => $slug, 'label' => $region['label']], array_keys($this->regions->forActive()), array_values($this->regions->forActive())),
             default => [],
         };
@@ -162,6 +160,12 @@ final readonly class PluginRecordForm
             ], array_values(array_filter($stored, fn (string $id): bool => in_array($id, $readable, true))));
         }
 
+        if ($field['type'] === 'terms' && $field['storeAs'] !== 'slug') {
+            $taxonomy = is_string($field['taxonomy'] ?? null) ? $field['taxonomy'] : '';
+            $names = $stored === [] ? [] : DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('id', $stored)->pluck('name', 'id')->all();
+            $field['chips'] = array_map(fn (string $id): array => ['value' => $id, 'label' => isset($names[$id]) ? (string) $names[$id] : null], $stored);
+        }
+
         if ($field['type'] === 'terms' && $field['storeAs'] === 'slug') {
             $taxonomy = is_string($field['taxonomy'] ?? null) ? $field['taxonomy'] : '';
             $names = $stored === [] ? [] : DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('slug', $stored)->pluck('name', 'slug')->all();
@@ -170,16 +174,5 @@ final readonly class PluginRecordForm
         }
 
         return $field;
-    }
-
-    /**
-     * The taxonomy's terms by name, at most MOST_TERMS.
-     *
-     * @return list<array{value: string, label: string}>
-     */
-    private function terms(string $taxonomy): array
-    {
-        return DB::table('terms')->where('taxonomy', $taxonomy)->orderBy('name')->limit(self::MOST_TERMS)->get(['id', 'name'])
-            ->map(fn (object $term): array => ['value' => (string) $term->id, 'label' => (string) $term->name])->values()->all();
     }
 }

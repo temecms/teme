@@ -109,3 +109,15 @@ it('keeps an item the record already stores that this person can’t read, and r
         ->toBe(['picks' => [$private->id]])
         ->and(fn () => AreaForms::validated([$field], ['picks' => [$private->id]], (string) $this->stranger->id, 'Placard', ['picks' => []]))->toThrow(ValidationException::class);
 });
+
+it('accepts an ID-stored term beyond the first 500, since a terms field searches rather than listing', function (): void {
+    $rows = [];
+    for ($n = 1; $n <= 501; $n++) {
+        $rows[] = ['id' => (string) Str::ulid(), 'taxonomy' => 'tag', 'name' => sprintf('Tag %04d', $n), 'slug' => "tag-{$n}", 'fields' => '{}', 'created_at' => now(), 'updated_at' => now()];
+    }
+    DB::table('terms')->insert($rows);
+    $last = DB::table('terms')->where('slug', 'tag-501')->value('id');
+    $field = pickerField(['key' => 'tags', 'type' => 'terms', 'taxonomy' => 'tag', 'storeAs' => 'id']);
+
+    expect(AreaForms::validated([$field], ['tags' => [$last]], (string) $this->author->id, 'Placard'))->toBe(['tags' => [$last]]);
+});
