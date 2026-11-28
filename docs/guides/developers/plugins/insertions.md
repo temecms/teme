@@ -72,7 +72,7 @@ When your rules change any other way, ask for `InsertionsChanged` in your plugin
 
 A job can call `notify()` too, when its work changes what the pages show, such as share counts it refreshes. Core then runs its own step after the job's work commits, so a rolled-back job purges nothing. The door passes the pages of the content items you name, as a list of IDs, at most 500 of them, each a content ID. With no list, it purges the pages that carry your insertions, at most once a minute: a call in a minute that already purged waits, and core purges once more when that minute ends, so no change is dropped. A whole-site purge still costs a warm of those pages, so pass the IDs when you can.
 
-A `notify()` call from outside a job, such as a public route of your plugin handling a visitor's request, throws an `AuthorizationException`, and so fails the request. A job that throws it fails the job. A `PagesPurged` listener of your own runs after each such purge, so a listener that calls `notify()` again can loop: keep it to reading.
+A `notify()` call from outside a job, such as a public route of your plugin handling a visitor's request, is refused with an authorization error, and so fails the request. A job that throws it fails the job. A `PagesPurged` listener of your own runs after each such purge, so a listener that calls `notify()` again can loop: keep it to reading.
 
 A page is cached whole, for everyone. A random or weighted pick, and anything chosen per visitor, is frozen into the cached copy until it is purged. Choose per device with CSS media queries, never on the server, and per visitor only in the browser, with a script your plugin serves from its own route or an approved inline script.
 
