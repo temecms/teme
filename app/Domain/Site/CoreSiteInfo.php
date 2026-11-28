@@ -60,4 +60,9 @@ final readonly class CoreSiteInfo implements SiteInfo
             return $this->address().PublicRequestPath::encode($prefix === '' ? '/feed/' : "/{$prefix}/feed/");
         }, $this->languages->shown());
     }
+
+    public function timeZone(): string
+    {
+        return $this->settings->string('general', 'timezone');
+    }
 }

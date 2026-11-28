@@ -2,8 +2,8 @@
 
 /**
  * The site's public facts, offered to every plugin with no capability: its
- * address, name, language, home page and main feeds, the same in a request, a
- * queued job and the console.
+ * address, name, language, home page, main feeds and time zone, the same in a
+ * request, a queued job and the console.
  *
  * @package Teme
  * @since   1.0.0
@@ -16,8 +16,8 @@ namespace Teme\Contracts\Site;
 
 /**
  * The site's public facts, offered to every plugin with no capability: its
- * address, name, language, home page and main feeds, the same in a
- * request, a queued job and the console.
+ * address, name, language, home page, main feeds and time zone, the same
+ * in a request, a queued job and the console.
  *
  * @since 1.0.0
  */
@@ -43,4 +43,11 @@ interface SiteInfo
      * @since 1.0.0
      */
     public function feeds(): array;
+
+    /**
+     * The site's time zone (Settings › General), an IANA name such as Africa/Lagos.
+     *
+     * @since next
+     */
+    public function timeZone(): string;
 }

@@ -616,14 +616,14 @@ function docValidate(array $document): void
  * @param  array<string, mixed>|null  $fields
  * @param  list<string>|null  $terms
  */
-function docSave(Content $content, User $actor, array $document, ?array $fields = null, ?array $terms = null): Content
+function docSave(Content $content, User $actor, array $document, ?array $fields = null, ?array $terms = null, ?string $title = null): Content
 {
     $content->refresh();
     $current = ContentRevision::query()->findOrFail($content->working_revision_id);
 
     return app(SaveDraft::class)->execute(new SaveDraftInput(
         $content->id,
-        $content->title,
+        $title ?? $content->title,
         $document,
         $fields ?? (array) $current->fields,
         $content->working_revision_id,

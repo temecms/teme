@@ -23,7 +23,7 @@ The class named under `plugin` in the manifest implements `InsertionContributor`
 - `precedence()` answers `"plugin"`. Core's own contributors answer `"site"` or `"core"`, and a plugin's entry wins a key they share.
 - `insertions()` takes the article's `ArticleFacts` and answers a list of `Insertion` values, or an empty list to add nothing to this article.
 
-`ArticleFacts` tells the plugin enough to choose: the item's ID and content type, its term IDs by taxonomy, its language, its authors' IDs, and its word and paragraph counts. Answer from those; do nothing slow, because the page waits for the answer.
+`ArticleFacts` tells the plugin enough to choose: the item's ID and content type, its term IDs by taxonomy, its language, its authors' IDs, its word and paragraph counts, its title, and its social title and social description when set (null when empty). Answer from those; do nothing slow, because the page waits for the answer.
 
 An `Insertion` holds a key, a `Position` and the HTML. The key is lower-case letters, digits, dots, hyphens and underscores, up to 100 characters, such as `ads.after-2`. Each key is drawn once per article: when two contributors give one key, the first by precedence wins. A contributor that throws is recorded as its plugin's fault, and the article is drawn without it.
 

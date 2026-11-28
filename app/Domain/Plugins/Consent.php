@@ -9,7 +9,9 @@
  * So do the hosts a plugin that inserts content declares for it to load from
  * (`contributes.csp`, docs/plans/plugin-sockets-2.md, B3), and the kinds of
  * notice it sends and the plugins it requires (docs/plans/plugin-sockets-3.md).
- * So do declared AI tasks: a new one, or one that sends or needs more.
+ * So do declared AI tasks: a new one, or one that sends or needs more. So
+ * does people.read once it also covers who is invited and who joins: a
+ * grant from before that waits for a new yes.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -36,13 +38,17 @@ final readonly class Consent
      * to import, and every AI task as it stands. Hooks are shown, never
      * agreed to: a new hook that needs no new capability needs no new yes.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>, downloads?: array{maxBytes: int}}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>, downloads?: array{maxBytes: int}, peopleRead?: bool}  $consent
      */
     public static function covers(array $consent, Manifest $manifest): bool
     {
         if (array_diff($manifest->capabilities(), $consent['capabilities'] ?? []) !== []) {
             return false;
         }
+
+        // people.read's wider meaning (invites, joins, owner names) is gated on
+        // the stamp alone: an older grant still covers the plugin so it keeps
+        // running; Consent::added marks people.read NEW until someone agrees.
 
         if (PluginAiTasks::added($consent['aiTasks'] ?? [], $manifest) !== []) {
             return false;
@@ -244,7 +250,7 @@ final readonly class Consent
      * from, the names it declares to import that were never agreed and the
      * ids of its AI tasks never agreed as they stand.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>, downloads?: array{maxBytes: int}}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>, downloads?: array{maxBytes: int}, peopleRead?: bool}  $consent
      *
      * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, insertionHosts?: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}, aiTasks?: list<string>, notices?: list<string>, requires?: list<string>}
      */
@@ -264,6 +270,11 @@ final readonly class Consent
             $capabilities[] = 'http';
         }
 
+        // people.read now covers invites and joins; an older grant asks again under it.
+        if (self::peopleReadAdded($consent, $manifest) && ! in_array('people.read', $capabilities, true)) {
+            $capabilities[] = 'people.read';
+        }
+
         return [
             'capabilities' => $capabilities,
             'hosts' => array_values(array_filter($manifest->hosts(), fn (string $host): bool => ! HostPattern::anyCovers($consent['hosts'] ?? [], $host))),
@@ -275,6 +286,30 @@ final readonly class Consent
             ...($notices === [] ? [] : ['notices' => $notices]),
             ...($requires === [] ? [] : ['requires' => $requires]),
         ];
+    }
+
+    /**
+     * Whether people.read is asked for but was never agreed under the wider
+     * meaning (invites, joins and owner names as well as writers). The plugin
+     * still runs; only those surfaces wait for a new yes.
+     *
+     * @param  array{capabilities?: list<string>, peopleRead?: bool}  $consent
+     */
+    public static function peopleReadAdded(array $consent, Manifest $manifest): bool
+    {
+        return in_array('people.read', $manifest->capabilities(), true) && ! self::coversWiderPeopleRead($consent);
+    }
+
+    /**
+     * Whether people.read was agreed under the wider meaning: invites, joins
+     * and draft owner names. An older grant that only named writers has no
+     * stamp and returns false.
+     *
+     * @param  array{peopleRead?: bool}  $consent
+     */
+    public static function coversWiderPeopleRead(array $consent): bool
+    {
+        return ($consent['peopleRead'] ?? false) === true;
     }
 
     /**

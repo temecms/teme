@@ -27,6 +27,7 @@ namespace App\Domain\Plugins\Doors;
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\Plugins\PluginSiteAi;
 use App\Domain\Cards\Plugin\CoreCardsChanged;
+use App\Domain\Contents\Queries\ItemCards;
 use App\Domain\Contents\Queries\ItemSnapshots;
 use App\Domain\Contents\Queries\PublishedItems;
 use App\Domain\Contents\Queries\QueuedItems;
@@ -35,6 +36,7 @@ use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Notices\NoticeSender;
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
@@ -43,6 +45,7 @@ use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Notices\NoticeRate;
 use App\Domain\Plugins\Notices\PluginNotices;
+use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
@@ -93,6 +96,7 @@ final readonly class PluginDoors implements PluginServices
         private PublishedItems $published,
         private ItemSnapshots $snapshots,
         private QueuedItems $queued,
+        private ItemCards $cards,
         private AuthorOptions $authors,
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
@@ -178,7 +182,13 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
-            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued);
+            $offered[ContentReader::class] = new PluginContentReader(
+                $this->published,
+                $this->snapshots,
+                $this->queued,
+                $this->cards,
+                $this->namesOwners($name, $capabilities),
+            );
         }
 
         if (in_array(Capability::DirectoryRead->value, $capabilities, true)) {
@@ -221,5 +231,22 @@ final readonly class PluginDoors implements PluginServices
         }
 
         return $offered;
+    }
+
+    /**
+     * Whether this plugin may name draft owners: people.read granted, and
+     * either no installed consent yet (door tests) or the wider stamp.
+     *
+     * @param  list<string>  $capabilities
+     */
+    private function namesOwners(string $name, array $capabilities): bool
+    {
+        if (! in_array(Capability::PeopleRead->value, $capabilities, true)) {
+            return false;
+        }
+
+        $record = collect(app(PluginRecords::class)->enabled())->first(fn ($row): bool => $row->name === $name);
+
+        return $record === null || Consent::coversWiderPeopleRead((array) $record->consent);
     }
 }

@@ -4,8 +4,9 @@
  * A plugin's Notices door (docs/plans/plugin-sockets-3.md): it sends
  * only the kinds the plugin declares, a starter's kind only to the person
  * the plugin's work acts for, messages held to PluginNoticeRules, at most
- * NoticeRate's deliveries an hour, and never to an address. Core's sender
- * delivers after commit and decides who receives it.
+ * NoticeRate's deliveries an hour, and never to an address. sendToAudience
+ * reaches every holder of the kind's audience without listing accounts.
+ * Core's sender delivers after commit and decides who receives it.
  *
  * @package Teme
  * @since   1.0.0
@@ -19,6 +20,7 @@ namespace App\Domain\Plugins\Notices;
 use App\Domain\Notices\NoticeSender;
 use App\Domain\Plugins\Doors\ActingPerson;
 use App\Domain\Plugins\PluginKeys;
+use App\Models\User;
 use InvalidArgumentException;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Notices\NoticeMessage;
@@ -60,6 +62,34 @@ final readonly class PluginNotices implements Notices
         throw new InvalidArgumentException(__('A plugin sends notices only to people with an account.'));
     }
 
+    public function sendToAudience(string $kind, NoticeMessage $message): void
+    {
+        $id = $this->declaredId($kind);
+        $audience = $this->audiences[$id];
+
+        if ($audience === DeclaredNotices::STARTER) {
+            $this->send($kind, [$this->starterId()], $message);
+
+            return;
+        }
+
+        $ability = DeclaredNotices::audience($this->code, $audience);
+
+        if ($ability === null) {
+            throw new InvalidArgumentException(__('The plugin doesn’t declare the kind of notice :kind.', ['kind' => $kind]));
+        }
+
+        $ids = [];
+
+        foreach (User::query()->orderBy('id')->cursor() as $user) {
+            if ($user->can($ability)) {
+                $ids[] = (string) $user->id;
+            }
+        }
+
+        $this->send($kind, $ids, $message);
+    }
+
     /**
      * The declared id a kind names: its id, or its full key under the plugin's stem.
      *
@@ -93,5 +123,21 @@ final readonly class PluginNotices implements Notices
         } catch (WriteRefused) {
             throw new InvalidArgumentException(__('This kind of notice goes only to the person the plugin’s work acts for.'));
         }
+    }
+
+    /**
+     * The person this work acts for, as sendToAudience needs for a starter kind.
+     *
+     * @throws InvalidArgumentException when no person is acting
+     */
+    private function starterId(): string
+    {
+        $id = ActingPerson::currentId();
+
+        if ($id === null) {
+            throw new InvalidArgumentException(__('This kind of notice goes only to the person the plugin’s work acts for.'));
+        }
+
+        return $id;
     }
 }

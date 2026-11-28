@@ -2,7 +2,7 @@
 title: Feeds and the site
 type: how-to
 audience: plugin
-summary: How a plugin adds links to the site's feeds, reads the site's address, name, language and feeds, hears which feeds a change touched, and posts a form to a service outside the site.
+summary: How a plugin adds links to the site's feeds, reads the site's address, name, language, feeds and time zone, hears which feeds a change touched, and posts a form to a service outside the site.
 rests_on: [packages/teme-contracts/src/Site, packages/teme-contracts/src/Feeds, packages/teme-contracts/src/Http, app/Domain/Feeds, app/Domain/Plugins/Doors, packages/teme-contracts/schema/teme-plugin.schema.json]
 ---
 
@@ -33,7 +33,8 @@ Every plugin may ask for `SiteInfo` in its constructor. It needs no capability, 
 - `name()`, the site's name from Settings › General;
 - `language()`, the site's default language, such as `en` or `pt-BR`;
 - `home()`, the home page's address;
-- `feeds()`, the main feed's address in each language readers are shown, the default language's first.
+- `feeds()`, the main feed's address in each language readers are shown, the default language's first;
+- `timeZone()`, the site's time zone from Settings › General, an IANA name such as `Africa/Lagos`.
 
 It answers the same in a request, a queued job and the console, so build addresses for a service outside the site from it, never from the request.
 

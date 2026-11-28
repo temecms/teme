@@ -3,7 +3,8 @@
 /**
  * An item's working revision as the content reader gives it to a plugin
  * (docs/plans/plugin-sockets-3.md): its body, fields by handle, terms by
- * taxonomy, slug, the accounts it credits and its other language versions.
+ * taxonomy, slug, the accounts it credits, its other language versions, and
+ * its owner (id always; display name only when people.read was granted).
  * It reads only, and never checks who asks: the reader does.
  *
  * @package Teme
@@ -31,12 +32,20 @@ final readonly class ItemSnapshots
     public function __construct(private FieldRegistry $fields) {}
 
     /**
-     * Returns the item's working revision as plain values.
+     * Returns the item's working revision as plain values. The owner's
+     * display name is filled only when $nameOwner is true (people.read).
      */
-    public function of(Content $content): ItemSnapshot
+    public function of(Content $content, bool $nameOwner = false): ItemSnapshot
     {
         /** @var ContentRevision $revision */
         $revision = ContentRevision::query()->findOrFail($content->working_revision_id);
+        $ownerId = $content->author_id === null ? null : (string) $content->author_id;
+        $ownerName = null;
+
+        if ($nameOwner && $ownerId !== null) {
+            $ownerName = DB::table('users')->where('id', $ownerId)->value('name');
+            $ownerName = is_string($ownerName) ? $ownerName : null;
+        }
 
         return new ItemSnapshot(
             Payloads::item($content),
@@ -49,6 +58,8 @@ final readonly class ItemSnapshots
             self::credits((string) $content->id),
             self::translations($content),
             $content->scheduled_for === null ? null : Payloads::date(CarbonImmutable::parse($content->scheduled_for)),
+            $ownerId,
+            $ownerName,
         );
     }
 

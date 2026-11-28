@@ -207,6 +207,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
                 // So a larger file limit in an update asks again (docs/guides/developers/plugins/outbound-files.md).
                 ...(DeclaredDownloads::declared($manifest) === null ? [] : ['downloads' => ['maxBytes' => DeclaredDownloads::declared($manifest)]]),
+                // people.read stamp: invites, joins and owner names. Older grants keep running without it.
+                ...(in_array(Capability::PeopleRead->value, $input->capabilities, true) ? ['peopleRead' => true] : []),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.
             'consented_by' => $consentedBy === null ? null : (int) $consentedBy,

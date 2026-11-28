@@ -84,7 +84,7 @@ Capabilities still matter, and core enforces them where it hands things out:
 |---|---|
 | `content.read` / `content.write` | Content queries / content Operations |
 | `media.read` / `media.write` | The media library / media Operations, including imports from outside |
-| `people.read` | The names and ids of people who may write on the site, paged; no email or other personal data |
+| `people.read` | See the names and IDs of the site's people: who writes, who is invited, who joins. Never an email or a role. |
 | `mail.send` | The mailer |
 | `http` | Core's HTTP client, limited to the manifest's `hosts` |
 | `routes.public` | Routes reachable without signing in, including inbound webhooks |

@@ -29,7 +29,7 @@ A `starter` kind goes only to the person the plugin's current work acts for: the
 
 ## Send through Notices
 
-Ask for `Notices` in your plugin's constructor; it is offered only with `notices.send`. Call `send()` with your kind's id, the account IDs, and a `NoticeMessage`. Teme refuses, with an InvalidArgumentException:
+Ask for `Notices` in your plugin's constructor; it is offered only with `notices.send`. Call `send()` with your kind's id, the account IDs, and a `NoticeMessage`. When the kind should reach everyone in its audience (for example every person who may manage plugins) and you do not have their account IDs, call `sendToAudience()` with the kind's id and the message: Teme finds the holders. A `starter` kind through `sendToAudience()` goes only to the person the work acts for. Teme refuses, with an InvalidArgumentException:
 
 - a kind the plugin doesn't declare;
 - a `starter` kind sent to anyone but the one person the work acts for;

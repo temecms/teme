@@ -81,5 +81,5 @@ it('is offered only with people.read, which the administrator is asked for in pl
     expect(($this->doors)([]))->not->toHaveKey(PeopleReader::class)
         ->and(($this->doors)())->toHaveKey(PeopleReader::class)
         ->and(Capability::tryFrom('people.read'))->toBe(Capability::PeopleRead)
-        ->and(PluginWords::capability('people.read'))->toBe('See the names of the people who write on this site');
+        ->and(PluginWords::capability('people.read'))->toBe('See the names and IDs of the site’s people: who writes, who is invited, who joins. Never an email or a role.');
 });

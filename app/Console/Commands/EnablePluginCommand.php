@@ -119,7 +119,7 @@ final class EnablePluginCommand extends Command
                 Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
                 Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
                 Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
-                Capability::PeopleRead->value => __('See the names of the people who write on this site'),
+                Capability::PeopleRead->value => PluginWords::capability($capability),
                 Capability::NoticesSend->value => PluginWords::capability($capability, notices: array_column(DeclaredNotices::of($manifest), 'label')),
                 Capability::SecurityLog->value => PluginWords::capability($capability, securityKinds: array_values(DeclaredSecurityKinds::of($manifest))),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),

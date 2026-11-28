@@ -42,6 +42,13 @@ These are all Notifications, sent after commit.
 | `TermAssigned` | An item's terms changed. | `content.read` |
 | `PagesPurged` | A change removed public pages from the page cache. | `content.read` |
 
+## Hooks for people
+
+| Hook | When it is sent | Capability |
+|---|---|---|
+| `PersonInvited` | Someone was invited to the site. Carries their account ID and display name only, never a role or email. | `people.read` |
+| `PersonJoined` | An invited person chose their password and joined. Carries their account ID and display name only, never a role or email. | `people.read` |
+
 `TermAssigned` is sent once for the item and the change, with a map keyed by taxonomy: for each taxonomy that changed, the IDs of the terms added and the IDs taken off. A save that leaves the terms as they were sends nothing. It is a separate hook from `ContentSaved`, which a save also sends: `ContentSaved` says the item was saved and carries no terms, so listen to `TermAssigned` when you care which terms moved. Changing an item's language sends one `TermAssigned`: its old terms are removed and their versions in the new language are added. Terms deleted outright are not named as removed; listen to `TermDeleted` for those.
 
 `PagesPurged` is sent once for each purge, with the cache tags it removed. Nothing is sent when the page cache is off. The addresses it carries are only the cached pages Teme warms again after a purge, so they are empty when warming is off, and a purge can touch pages they do not list. A plugin that purges a CDN should purge by tag, and treat the addresses as a hint.

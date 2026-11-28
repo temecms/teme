@@ -23,6 +23,9 @@ use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ArticleLinks;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Content\FeaturedImage;
+use Teme\Contracts\Content\ImageSize;
+use Teme\Contracts\Content\ItemCard;
 use Teme\Contracts\Content\ItemChanges;
 use Teme\Contracts\Content\ItemPage;
 use Teme\Contracts\Content\ItemQuery;
@@ -76,6 +79,8 @@ use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Lists\PluginList;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\People\PeopleReader;
+use Teme\Contracts\People\PersonInvited;
+use Teme\Contracts\People\PersonJoined;
 use Teme\Contracts\People\PersonPage;
 use Teme\Contracts\People\PersonRef;
 use Teme\Contracts\Plugins\Capability;
@@ -164,7 +169,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRows::class, '1.0.0'],
     [ListRow::class, '1.0.0'],
     [Cell::class, '1.0.0'],
-    [SiteInfo::class, '1.0.0'],
+    [SiteInfo::class, '1.0.0', ['timeZone' => 'next']],
     [PluginSettingsWriter::class, '1.0.0'],
     [QueueOptions::class, '1.0.0'],
     [HasPluginLists::class, '1.0.0'],
@@ -179,7 +184,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [AiAnswer::class, '1.0.0'],
     [AiStanding::class, '1.0.0'],
     [AiRefused::class, '1.0.0'],
-    [ContentReader::class, '1.0.0'],
+    [ContentReader::class, '1.0.0', ['card' => 'next']],
     [ItemQuery::class, '1.0.0'],
     [ItemPage::class, '1.0.0'],
     [ItemSnapshot::class, '1.0.0'],
@@ -224,6 +229,11 @@ it('gives every new contract its @since and nothing from a framework', function 
     [HasSitemaps::class, '1.1.0'],
     [PluginSitemap::class, '1.1.0'],
     [SitemapEntry::class, '1.1.0'],
+    [ItemCard::class, 'next'],
+    [FeaturedImage::class, 'next'],
+    [ImageSize::class, 'next'],
+    [PersonInvited::class, 'next'],
+    [PersonJoined::class, 'next'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
