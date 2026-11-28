@@ -8,6 +8,8 @@ use App\Domain\Plugins\Doors\PluginSecretStoreWrites;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\ChangePluginSecret;
 use App\Domain\Plugins\Operations\Input\ChangePluginSecretInput;
+use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Settings\Events\SettingsChanged;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SettingsRegistry;
 use App\Models\User;
@@ -15,8 +17,10 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Settings\PluginSecretStore;
+use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -38,7 +42,26 @@ beforeEach(function (): void {
 });
 
 it('offers the secret store only to a plugin that declares a secret setting', function (): void {
-    expect(app(PluginDoors::class)->for('tests/vault', 'vault', ['http'], [])[PluginSecretStore::class] ?? null)->toBeNull();
+    PluginFixtures::installed(['tests/keyfile' => 'keyfile', 'tests/hello' => 'hello']);
+    PluginFixtures::use();
+    app(PluginRegistry::class)->flush();
+    $doors = app(PluginDoors::class);
+
+    expect($doors->for('tests/keyfile', 'keyfile', ['http'], [])[PluginSecretStore::class] ?? null)->toBeInstanceOf(PluginSecretStoreWrites::class)
+        ->and($doors->for('tests/hello', 'hello', ['http'], []))->not->toHaveKey(PluginSecretStore::class);
+});
+
+it('keeps a free secret out of the settings history, the change event and the security log', function (): void {
+    Event::fake([SettingsChanged::class]);
+    ($this->enable)();
+
+    ($this->door)((string) $this->admin->id)->put('oauth_token', 'secret-value-123', (string) $this->admin->id);
+    ($this->door)((string) $this->admin->id)->forget('oauth_token', (string) $this->admin->id);
+
+    expect(DB::table('settings_changes')->whereRaw("changed_keys::text like '%store:%'")->exists())->toBeFalse()
+        ->and(DB::table('settings_changes')->whereRaw("coalesce(before::text,'') || coalesce(after::text,'') like '%secret-value%'")->exists())->toBeFalse()
+        ->and(DB::table('security_events')->whereRaw("context::text like '%secret-value%'")->exists())->toBeFalse();
+    Event::assertNotDispatched(SettingsChanged::class);
 });
 
 it('keeps a free key a plugin writes, reads it back, and keeps it encrypted at rest', function (): void {

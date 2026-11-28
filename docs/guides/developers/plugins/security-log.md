@@ -29,9 +29,14 @@ An id is 2 to 32 lower-case letters, digits and underscores, starting with a let
 
 - `$kind` is one of the declared ids. Any other kind throws an `InvalidArgumentException` and writes nothing.
 - `$text` is 1 to 200 characters, trimmed. Empty text, or text longer than that, throws and writes nothing.
-- `$userId` or `$email` names the person the line is about, when there is one. Give the account ID when you have it.
+- `$userId` names the account the line is about, when there is one. An account that doesn't exist is left unnamed, and the line is still written.
+- `$address` is an IP address the line is about, when there is one. Anything that is not an IP address throws.
 
-The line is stored under the plugin's code, with its kind and its text, so it sits beside the site's own lines and is pruned on the same schedule, after 365 days.
+The line is stored under one type shared by every plugin, with the plugin's code, its kind and its text in the context, so it sits beside the site's own lines and is pruned on the same schedule, after 365 days.
+
+Never put personal data or secrets in the text. Administrators read it, and a person's data export carries it.
+
+A line written inside a save that is then refused, such as a plugin area's, is rolled back with that save. Lines about a person are kept 365 days after erasure, as the site's own lines are.
 
 ## Limits
 

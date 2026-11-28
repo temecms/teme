@@ -28,6 +28,9 @@ final readonly class PluginSecurityLines implements SecurityLines
     /** The longest text of a line, in characters. */
     public const int MOST_TEXT = 200;
 
+    /** The type every plugin's lines share, which no core event takes. */
+    public const string TYPE = 'plugin.note';
+
     private const int HOUR = 3600;
 
     /**
@@ -40,13 +43,17 @@ final readonly class PluginSecurityLines implements SecurityLines
         private SecurityLog $log,
     ) {}
 
-    public function write(string $kind, string $text, int|string|null $userId = null, ?string $email = null): bool
+    public function write(string $kind, string $text, int|string|null $userId = null, ?string $address = null): bool
     {
         if (! array_key_exists($kind, $this->kinds)) {
             throw new InvalidArgumentException("The security log kind [{$kind}] is not one the plugin declares.");
         }
 
         $text = trim($text);
+
+        if ($address !== null && filter_var($address, FILTER_VALIDATE_IP) === false) {
+            throw new InvalidArgumentException('A security log line’s address is an IP address.');
+        }
 
         if ($text === '' || mb_strlen($text) > self::MOST_TEXT) {
             throw new InvalidArgumentException('A security log line is text of 1 to 200 characters.');
@@ -60,8 +67,8 @@ final readonly class PluginSecurityLines implements SecurityLines
             return false;
         }
 
-        // The type holds the plugin's code alone, so it fits the log's 64-character column; the kind is in the context.
-        $this->log->recordNamed('plugin.'.$this->plugin, $userId, $email, ['kind' => $kind, 'text' => $text]);
+        // One type no core event takes, whatever the plugin's code: the code and the kind are in the context.
+        $this->log->recordNamed(self::TYPE, $userId, $address, ['plugin' => $this->plugin, 'kind' => $kind, 'text' => $text]);
 
         return true;
     }

@@ -37,7 +37,7 @@ final class ChangePluginSecret extends BaseOperation
     public const int MOST_BYTES = 4096;
 
     /** The prefix a free secret's key is stored under, which no declared secret can take. */
-    public const string PREFIX = 'store:';
+    public const string PREFIX = SettingsWriter::FREE_SECRET_PREFIX;
 
     /** A free key: a lower-case name starting with a letter. */
     public const string KEY = '/^[a-z][a-z0-9_]{1,63}$/D';

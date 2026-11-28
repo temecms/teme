@@ -54,20 +54,27 @@ final class SecurityLog
     }
 
     /**
-     * Writes one line of a named kind, such as a plugin's, never counted and
-     * never grouped: the kind and the context are the caller's to keep short.
+     * Writes one line of a named type, never counted and never grouped. The
+     * person is named by account ID only when that account exists, so a bad
+     * or deleted ID never breaks the transaction around the write; the address
+     * is an IP address the caller passes, never read from the request.
      *
      * @param  array<string, scalar|list<scalar>|null>  $context
      */
-    public function recordNamed(string $type, int|string|null $userId, ?string $email, array $context): void
+    public function recordNamed(string $type, int|string|null $userId, ?string $address, array $context): void
     {
         $now = Date::now();
+        $person = null;
+
+        if ($userId !== null && ctype_digit((string) $userId) && DB::table('users')->where('id', (int) $userId)->exists()) {
+            $person = (int) $userId;
+        }
 
         DB::table('security_events')->insert([
             'type' => $type,
-            'subject' => self::subject($userId, $email),
-            'user_id' => $userId === null ? null : (int) $userId,
-            'ip' => (string) (request()->ip() ?? ''),
+            'subject' => self::subject($person, null),
+            'user_id' => $person,
+            'ip' => $address ?? '',
             'hour' => $now->startOfHour(),
             'context' => json_encode($context, JSON_THROW_ON_ERROR),
             'first_at' => $now,

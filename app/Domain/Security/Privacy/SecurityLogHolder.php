@@ -51,7 +51,7 @@ final class SecurityLogHolder implements PersonalDataHolder
         foreach ($rows->take(self::EXPORT_PAGE) as $row) {
             // A plugin's line keeps its kind and its text in the context (PluginSecurityLines).
             $context = json_decode((string) $row->context, true);
-            $line = is_array($context) && is_string($context['text'] ?? null) ? [__('Line') => (string) ($context['kind'] ?? ''), __('Text') => $context['text']] : [];
+            $line = is_array($context) && is_string($context['text'] ?? null) ? [__('Plugin') => (string) ($context['plugin'] ?? ''), __('Line') => (string) ($context['kind'] ?? ''), __('Text') => $context['text']] : [];
 
             $groups[] = new ExportGroup(__('Security event'), array_filter([
                 __('Event') => (string) $row->type,

@@ -20,7 +20,7 @@ beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     $this->kinds = ['blocked' => 'Blocked sign-in', 'probe' => 'Probe'];
     $this->lines = fn (): PluginSecurityLines => new PluginSecurityLines('sharely', $this->kinds, app(SecurityLog::class));
-    $this->rows = fn (): int => DB::table('security_events')->where('type', 'plugin.sharely')->count();
+    $this->rows = fn (): int => DB::table('security_events')->where('type', 'plugin.note')->where('context->plugin', 'sharely')->count();
 });
 
 it('offers SecurityLines only when security.log is granted', function (): void {
@@ -35,11 +35,11 @@ it('writes a line under the plugin’s name, with the kind, the text and the per
 
     ($this->lines)()->write('blocked', 'Three wrong passwords', userId: $user->id);
 
-    $row = DB::table('security_events')->where('type', 'plugin.sharely')->sole();
+    $row = DB::table('security_events')->where('type', 'plugin.note')->sole();
 
     expect($row->subject)->toBe('user:'.$user->id)
         ->and($row->counted)->toBeFalse()
-        ->and(json_decode((string) $row->context, true))->toBe(['kind' => 'blocked', 'text' => 'Three wrong passwords']);
+        ->and(json_decode((string) $row->context, true))->toBe(['kind' => 'blocked', 'text' => 'Three wrong passwords', 'plugin' => 'sharely']);
 });
 
 it('shows a person the plugin’s lines about them in their data export', function (): void {
@@ -84,4 +84,26 @@ it('refuses a security.log kind a plugin declares without asking for security.lo
     expect(app(ContributionsValidator::class)->errors(['securityLog' => $declared], '1.0.0', []))
         ->toBe(['It declares kinds of security log line, but the plugin doesn’t ask for security.log.'])
         ->and(app(ContributionsValidator::class)->errors(['securityLog' => $declared], '1.0.0', ['security.log']))->toBe([]);
+});
+
+it('writes every plugin’s lines under one type that no core event takes, even for a plugin coded enabled', function (): void {
+    (new PluginSecurityLines('enabled', ['probe' => 'Probe'], app(SecurityLog::class)))->write('probe', 'Looked for an admin page');
+
+    expect(DB::table('security_events')->where('type', 'plugin.note')->count())->toBe(1)
+        ->and(DB::table('security_events')->where('type', 'plugin.enabled')->exists())->toBeFalse();
+});
+
+it('names no account that does not exist, and writes the line anyway', function (): void {
+    expect(($this->lines)()->write('probe', 'Looked for an admin page', userId: 999_999))->toBeTrue()
+        ->and(($this->lines)()->write('probe', 'Looked for an admin page', userId: 'not-a-number'))->toBeTrue();
+
+    expect(DB::table('security_events')->where('type', 'plugin.note')->pluck('user_id')->all())->toBe([null, null]);
+});
+
+it('keeps an IP address a line is about, and refuses anything that is not an IP address', function (): void {
+    ($this->lines)()->write('probe', 'Looked for an admin page', address: '203.0.113.5');
+
+    expect(DB::table('security_events')->where('type', 'plugin.note')->value('ip'))->toBe('203.0.113.5')
+        ->and(fn () => ($this->lines)()->write('probe', 'Looked for an admin page', address: 'someone@example.test'))->toThrow(InvalidArgumentException::class)
+        ->and(($this->rows)())->toBe(1);
 });

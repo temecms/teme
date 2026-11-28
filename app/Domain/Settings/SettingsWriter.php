@@ -33,6 +33,9 @@ use Teme\Contracts\Settings\SettingsChanged as SettingsChangedHook;
 
 final readonly class SettingsWriter
 {
+    /** The prefix of a plugin's free secrets, which are never named in a change (PluginSecretStore). */
+    public const string FREE_SECRET_PREFIX = 'store:';
+
     private const int HISTORY_KEPT = 100;
 
     public function __construct(private SettingsRegistry $registry) {}
@@ -87,22 +90,46 @@ final readonly class SettingsWriter
             }
         }
 
+        // A plugin's free secret (`store:`) is saved but never named: its key would leak to every plugin and into the history.
+        $hidden = false;
+
         foreach ($write->secrets as $key => $value) {
             if ($value === '') {
                 continue;
             }
 
+            $free = str_starts_with((string) $key, self::FREE_SECRET_PREFIX);
+
             if ($value === null) {
                 if (array_key_exists($key, $secrets)) {
                     unset($secrets[$key]);
-                    $changed[] = $key;
+
+                    if ($free) {
+                        $hidden = true;
+                    } else {
+                        $changed[] = $key;
+                    }
                 }
 
                 continue;
             }
 
             $secrets[$key] = $value;
-            $changed[] = $key;
+
+            if ($free) {
+                $hidden = true;
+            } else {
+                $changed[] = $key;
+            }
+        }
+
+        if ($changed === [] && $hidden) {
+            $record->secrets = $secrets === [] ? null : $secrets;
+            $record->version = $record->version + 1;
+            $record->updated_by = $write->actorId === null ? null : (int) $write->actorId;
+            $record->save();
+
+            return $record->version;
         }
 
         if ($changed === []) {
