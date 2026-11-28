@@ -399,8 +399,12 @@ final class AreaValidator
     {
         $errors = $this->unknownKeys($block, ['type', 'id', 'items', 'empty']);
 
-        if (array_key_exists('empty', $block) && ! $this->text($block['empty'], 200)) {
-            $errors[] = __('A figures block’s empty line must be text of 1 to 200 characters.');
+        if (array_key_exists('empty', $block)) {
+            $empty = $block['empty'];
+
+            if ($empty !== true && ! $this->text($empty, 200)) {
+                $errors[] = __('A figures block’s empty must be true, or text of 1 to 200 characters.');
+            }
         }
 
         $items = $block['items'] ?? null;

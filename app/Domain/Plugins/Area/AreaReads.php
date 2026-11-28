@@ -85,9 +85,9 @@ final class AreaReads
             return ['items' => [], 'failed' => $this->failure($plugin)];
         }
 
-        // An empty answer is "No statistics yet" only when the block declares
-        // its empty line; otherwise each figure shows a dash (the old meaning).
-        if (is_array($given) && $given === [] && is_string($block['empty'] ?? null) && trim($block['empty']) !== '') {
+        // An empty answer is "No statistics yet" when the block declares empty
+        // (true or its own words); otherwise each figure shows a dash.
+        if (is_array($given) && $given === [] && self::figuresDeclareEmpty($block)) {
             return ['items' => [], 'failed' => null, 'empty' => true];
         }
 
@@ -499,6 +499,23 @@ final class AreaReads
     public function failure(AreaPlugin $plugin): string
     {
         return __('This part of :plugin couldn’t be shown this time.', ['plugin' => $plugin->label]);
+    }
+
+    /**
+     * Whether a figures block asked for the "No statistics yet" state when
+     * figures() is empty: `empty: true`, or its own non-empty words.
+     *
+     * @param  array<string, mixed>  $block
+     */
+    private static function figuresDeclareEmpty(array $block): bool
+    {
+        if (! array_key_exists('empty', $block)) {
+            return false;
+        }
+
+        $empty = $block['empty'];
+
+        return $empty === true || (is_string($empty) && trim($empty) !== '');
     }
 
     /**

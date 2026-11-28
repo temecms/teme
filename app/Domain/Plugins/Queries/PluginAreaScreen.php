@@ -298,6 +298,7 @@ final readonly class PluginAreaScreen
 
         if ($type === 'figures') {
             $frame['items'] = array_map(fn (array $item): array => ['id' => (string) ($item['id'] ?? ''), 'label' => $text($item['label'] ?? null), 'format' => (string) ($item['format'] ?? 'number')], $entries('items'));
+            // true or absent of a string → core's default line; a string → those words.
             $frame['empty'] = is_string($block['empty'] ?? null) && trim($block['empty']) !== ''
                 ? $text($block['empty'])
                 : __('Figures appear once there is something to count.');

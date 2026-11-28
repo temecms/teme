@@ -14,6 +14,7 @@ use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Area\AreaPeriods;
 use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\PluginAreas;
+use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -136,7 +137,7 @@ it('writes period dates in the person’s language', function (): void {
         ->and(AreaPeriods::byWeek(AreaPeriod::LAST_7_DAYS))->toBeFalse();
 });
 
-it('marks a figures block empty when the plugin returns no figures and declared empty', function (): void {
+it('marks a figures block empty when the plugin returns no figures and declared empty words', function (): void {
     PlacardArea::$on['figures'] = fn (): array => [];
 
     $plugin = app(PluginAreas::class)->find('placard');
@@ -147,7 +148,24 @@ it('marks a figures block empty when the plugin returns no figures and declared 
         ->and($data['failed'])->toBeNull();
 });
 
-it('shows dashes for an empty figures() answer when the block declared no empty line', function (): void {
+it('marks a figures block empty when empty is true and figures() is empty', function (): void {
+    $plugin = app(PluginAreas::class)->find('placard');
+    $block = $plugin->area->page('overview')['blocks'][0];
+    $block['empty'] = true;
+    PlacardArea::$on['figures'] = fn (): array => [];
+
+    $data = app(AreaReads::class)->figures(
+        $plugin,
+        'overview',
+        $block,
+        AreaContexts::for('placard', (string) $this->editor->id),
+    );
+
+    expect($data['empty'] ?? false)->toBeTrue()
+        ->and($data['items'])->toBe([]);
+});
+
+it('shows dashes for an empty figures() answer when the block declared no empty', function (): void {
     $plugin = app(PluginAreas::class)->find('placard');
     $block = $plugin->area->page('overview')['blocks'][0];
     unset($block['empty']);
@@ -163,4 +181,23 @@ it('shows dashes for an empty figures() answer when the block declared no empty 
     expect($data['empty'] ?? false)->toBeFalse()
         ->and($data['items'][0]['value'])->toBeNull()
         ->and($data['items'])->not->toBeEmpty();
+});
+
+it('accepts empty true on a figures block and refuses a bad empty', function (): void {
+    $area = PluginFixtures::manifest('placard')['contributes']['area'];
+    $area['pages'][0]['blocks'][0]['empty'] = true;
+
+    expect(app(ContributionsValidator::class)->errors(
+        [...PluginFixtures::manifest('placard')['contributes'], 'area' => $area],
+        '1.0.0',
+        ['jobs'],
+    ))->toBe([]);
+
+    $area['pages'][0]['blocks'][0]['empty'] = false;
+
+    expect(app(ContributionsValidator::class)->errors(
+        [...PluginFixtures::manifest('placard')['contributes'], 'area' => $area],
+        '1.0.0',
+        ['jobs'],
+    ))->toContain('A figures block’s empty must be true, or text of 1 to 200 characters.');
 });
