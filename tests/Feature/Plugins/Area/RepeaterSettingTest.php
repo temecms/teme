@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Plugins\Contributions\ContributionsValidator;
+use App\Domain\Plugins\Contributions\DeclaredSettings;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -105,11 +106,20 @@ it('builds code and repeater settings, and refuses a sub-field a repeater can’
         ->and(array_map(fn (Setting $field): string => $field->key, $repeater->fields))->toBe(['name', 'code'])
         ->and(Setting::code('fallback', 'Fallback', 'Markup.', '1.0.0')->type)->toBe(SettingType::Code)
         ->and(fn () => Setting::repeater('slots', 'Slots', '', '1.0.0', [Setting::secret('key', 'Key', '', '1.0.0')]))->toThrow(InvalidArgumentException::class)
-        ->and(fn () => Setting::repeater('slots', 'Slots', '', '1.0.0', [Setting::urls('sites', 'Sites', '', '1.0.0')]))->toThrow(InvalidArgumentException::class)
-        ->and(fn () => Setting::repeater('slots', 'Slots', '', '1.0.0', [Setting::repeater('inner', 'Inner', '', '1.0.0', [Setting::text('a', 'A', '', '1.0.0')])]))->toThrow(InvalidArgumentException::class);
+        ->and(fn () => Setting::repeater('slots', 'Slots', '', '1.0.0', [Setting::urls('sites', 'Sites', '', '1.0.0')]))->toThrow(InvalidArgumentException::class, "Repeater [slots] can't hold a urls field [sites].")
+        ->and(fn () => Setting::repeater('slots', 'Slots', '', '1.0.0', [Setting::repeater('inner', 'Inner', '', '1.0.0', [Setting::text('a', 'A', '', '1.0.0')])]))->toThrow(InvalidArgumentException::class)
+        ->and(array_map(fn (Setting $field): string => $field->type->value, Setting::repeater('links', 'Links', '', '1.0.0', [
+            Setting::text('name', 'Name', '', '1.0.0'),
+            Setting::url('address', 'Address', '', '1.0.0'),
+        ])->fields))->toBe(['text', 'url']);
 
-    expect(($this->errors)([['key' => 'slots', 'type' => 'repeater', 'label' => 'Slots', 'description' => '', 'fields' => [['key' => 'site', 'type' => 'url', 'label' => 'Site', 'description' => '']]]]))
-        ->not->toBe([]);
+    expect(fn () => DeclaredSettings::group('x', 'X', '', '1.0.0', [[
+        'key' => 'slots',
+        'type' => 'repeater',
+        'label' => 'Slots',
+        'description' => 'Units.',
+        'fields' => [['key' => 'sites', 'type' => 'urls', 'label' => 'Sites', 'description' => 'Many.']],
+    ]]))->toThrow(InvalidArgumentException::class, "Repeater [slots] can't hold a urls field [sites].");
 });
 
 it('never lets a plugin write code, or a repeater that holds code, for itself', function (): void {

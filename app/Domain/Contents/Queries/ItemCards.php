@@ -51,6 +51,7 @@ final readonly class ItemCards
         $excerpt = self::text($fields[BuiltInFields::EXCERPT] ?? null);
         $featured = $fields[BuiltInFields::FEATURED_IMAGE] ?? null;
         $mediaId = is_array($featured) && is_string($featured['id'] ?? null) ? (string) $featured['id'] : null;
+        $useAlt = is_array($featured) ? self::text($featured['alt'] ?? null) : null;
         $item = Payloads::item($content);
 
         return new ItemCard(
@@ -65,15 +66,16 @@ final readonly class ItemCards
                 $item->submission,
             ),
             $excerpt,
-            $mediaId === null ? null : $this->featured($mediaId),
+            $mediaId === null ? null : $this->featured($mediaId, $useAlt),
         );
     }
 
     /**
      * The featured image's public address and sizes, or null when the media
-     * is missing or in the trash.
+     * is missing or in the trash. Alt prefers the use on this item, else the
+     * library's.
      */
-    private function featured(string $mediaId): ?FeaturedImage
+    private function featured(string $mediaId, ?string $useAlt = null): ?FeaturedImage
     {
         $entry = $this->media->forIds([$mediaId])[$mediaId] ?? null;
 
@@ -108,7 +110,9 @@ final readonly class ItemCards
             return null;
         }
 
-        return new FeaturedImage($mediaId, $address, $sizes, is_string($entry['alt'] ?? null) ? self::text($entry['alt']) : null);
+        $libraryAlt = is_string($entry['alt'] ?? null) ? self::text($entry['alt']) : null;
+
+        return new FeaturedImage($mediaId, $address, $sizes, $useAlt ?? $libraryAlt);
     }
 
     private static function text(mixed $value): ?string

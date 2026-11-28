@@ -19,6 +19,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
@@ -159,6 +160,43 @@ it('refuses sendToAudience for a kind with no audience', function (): void {
         ->toThrow(InvalidArgumentException::class, 'Notice kind [tests.no_audience] has no audience to send to.');
 
     Notification::assertNothingSent();
+});
+
+it('sends nothing when the audience has no holders', function (): void {
+    Notification::fake();
+    Gate::define('tests.nobody', fn (): bool => false);
+    app(NoticeRegistry::class)->register(new NoticeKind(
+        'tests.empty_audience',
+        'Empty audience',
+        audience: 'tests.nobody',
+        channels: [NoticeKind::MAIL],
+        defaults: [NoticeKind::MAIL],
+    ));
+
+    app(Notices::class)->sendToAudience('tests.empty_audience', new NoticeMessage('Nobody home', []));
+
+    Notification::assertNothingSent();
+});
+
+it('caps sendToAudience at 100 deliveries across many people in an hour', function (): void {
+    Notification::fake();
+    Cache::forget('plugin-notices-count:tests/relay');
+    Cache::forget('plugin-notices-fault:tests/relay');
+    $sends = function (): int {
+        return User::query()->get()->sum(fn (User $user): int => count(Notification::sent($user, NoticeMail::class)));
+    };
+
+    User::factory()->count(60)->create()->each(fn (User $user) => $user->assignRole('administrator'));
+    $this->notices->sendToAudience('queue_stalled', new NoticeMessage('The article queue stopped', []));
+    $first = $sends();
+    $holders = User::permission('plugins.manage')->count();
+
+    User::factory()->count(60)->create()->each(fn (User $user) => $user->assignRole('administrator'));
+    $this->notices->sendToAudience('queue_stalled', new NoticeMessage('Round two', []));
+
+    expect($first)->toBe($holders)
+        ->and($first)->toBeGreaterThan(50)->toBeLessThan(100)
+        ->and($sends())->toBe(100);
 });
 
 it('refuses sendToAudience for a starter kind with no acting person', function (): void {

@@ -6,7 +6,9 @@ use App\Domain\Contents\Operations\ChangeVisibility;
 use App\Domain\Contents\Operations\Input\ChangeVisibilityInput;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Media\Operations\Input\MediaActionInput;
+use App\Domain\Media\Operations\Input\UpdateMediaDetailsInput;
 use App\Domain\Media\Operations\TrashMedia;
+use App\Domain\Media\Operations\UpdateMediaDetails;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -143,6 +145,14 @@ it('refuses a draft, a private item, a password-protected item, a scheduled item
         },
         'Only a published public item has a card.',
     ],
+    'a non-public type' => [
+        function (User $author): string {
+            ctCreate(null, ['key' => 'secret', 'singular' => 'Secret', 'plural' => 'Secrets', 'segment' => 'secrets', 'public' => false, 'archive' => false, 'searchable' => false, 'comments' => null, 'taxonomies' => []]);
+
+            return ltItem($author, 'secret', 'Hidden plans')->id;
+        },
+        'Only a published public item has a card.',
+    ],
     'a missing item' => [
         fn (User $author): string => '01jc4r2v9d8f7g6h5j4k3m2n1p',
         'Only a published public item has a card.',
@@ -173,4 +183,28 @@ it('never needs a person, and never reads a draft’s working fields', function 
     expect($card->excerpt)->toBe('On the quay.')
         ->and($card->item->title)->toBe('Published words')
         ->and($card->item->status)->toBe('published');
+});
+
+it('prefers the featured image’s use alt, then the media library’s', function (): void {
+    $author = User::factory()->create()->assignRole('editor');
+    $image = pageImage($author, 800, 600);
+    app(UpdateMediaDetails::class)->execute(new UpdateMediaDetailsInput(
+        $image->id,
+        (string) $author->id,
+        $image->title,
+        'Library boats',
+        $image->caption,
+        $image->credit,
+        $image->focal_x,
+        $image->focal_y,
+    ));
+    $library = pageArticle($author, 'Library alt', featured: $image->refresh());
+    $use = pageArticle($author, 'Use alt');
+    docSave($use, $author, docWith(docText(str_repeat('word ', 20))), fields: [
+        BuiltInFields::FEATURED_IMAGE => ['id' => (string) $image->id, 'alt' => 'Use on this item', 'decorative' => false],
+    ]);
+    listsPublish($use, $author);
+
+    expect(($this->reader)()->card($library->id)->featuredImage?->alt)->toBe('Library boats')
+        ->and(($this->reader)()->card($use->id)->featuredImage?->alt)->toBe('Use on this item');
 });
