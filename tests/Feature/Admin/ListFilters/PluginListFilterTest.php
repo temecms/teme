@@ -46,6 +46,7 @@ return new class extends Migration
 PHP,
     ]);
     PluginFixtures::use($folder);
+    $this->folder = $folder;
 
     $manifest = app(PluginRegistry::class)->find('tests/listfilters')->manifest;
     // The table is made by the plugin's own migrations, so its rows are written after enabling.
@@ -86,6 +87,24 @@ it('offers the select with the declared options only', function (): void {
         'label' => 'Review state',
         'options' => [['value' => 'ready', 'label' => 'Ready'], ['value' => 'stale', 'label' => 'Stale']],
     ]]);
+});
+
+it('keeps offering the filters checked at enable when the manifest on disk changes them, until its changes are run', function (): void {
+    $path = $this->folder.'/teme-plugin.json';
+    $manifest = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+    $manifest['contributes']['listFilters'][0]['label'] = 'Changed without a check';
+    $manifest['contributes']['listFilters'][0]['options'][] = ['value' => 'unchecked', 'label' => 'Unchecked'];
+    file_put_contents($path, json_encode($manifest, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    app(PluginRegistry::class)->flush();
+
+    $page = ($this->page)(['plugin:listfilters:review-state' => 'unchecked']);
+
+    expect($page['listFilters'])->toBe([[
+        'key' => 'plugin:listfilters:review-state',
+        'label' => 'Review state',
+        'options' => [['value' => 'ready', 'label' => 'Ready'], ['value' => 'stale', 'label' => 'Stale']],
+    ]])
+        ->and(($this->titles)($page))->toEqualCanonicalizing(['Harbour news', 'Ferry fares']);
 });
 
 it('reads the plugin’s table through its index, as the list’s query does', function (): void {
