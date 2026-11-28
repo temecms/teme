@@ -170,6 +170,10 @@ export type AreaField = {
     stale: string[];
     /** The taxonomy a terms field draws its terms from. */
     taxonomy?: string | null;
+    /** The taxonomy's singular name in lower case, for a sentence about one of its terms. */
+    taxonomySingular?: string | null;
+    /** The plugin's name, as the words it shows name it. */
+    plugin?: string;
 };
 
 export type PluginRecordPageProps = {

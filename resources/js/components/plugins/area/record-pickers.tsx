@@ -316,7 +316,7 @@ export function TermsPicker({
                         label: term.name,
                         description:
                             field.storeAs === 'slug'
-                                ? __('Slug') + ': ' + term.slug
+                                ? __('Slug: :slug', { slug: term.slug })
                                 : term.path,
                         disabled: chosen.includes(value),
                     };
@@ -355,8 +355,11 @@ export function TermsPicker({
                 emptyText={
                     query.trim() === ''
                         ? __(
-                              'Type a few letters of a name. Only the site’s own :plural are listed.',
-                              { plural: field.label.toLowerCase() },
+                              'Type a few letters of a :singular’s name. Only the site’s own :plural are listed.',
+                              {
+                                  singular: field.taxonomySingular ?? '',
+                                  plural: field.label.toLowerCase(),
+                              },
                           )
                         : __(
                               'No :plural match “:query”. Check the spelling, or try fewer words.',
@@ -371,12 +374,20 @@ export function TermsPicker({
                 <Notice tone="warn" data-test="terms-picker-stale">
                     {stale.length === 1
                         ? __(
-                              'This site has no term with the slug “:slug” now. It was probably renamed or deleted, so the rule can’t match it. Remove it, or choose the term again.',
-                              { slug: stale[0] },
+                              ':plugin saved “:slug”, and this site has no :singular with that slug now. It was probably renamed or deleted, so the tag rule can’t match it. Remove it, or choose the :singular again.',
+                              {
+                                  plugin: field.plugin ?? '',
+                                  slug: stale[0],
+                                  singular: field.taxonomySingular ?? '',
+                              },
                           )
                         : __(
-                              'This site has no terms with the slugs “:slugs” now. They were probably renamed or deleted. Remove them, or choose the terms again.',
-                              { slugs: stale.join('”, “') },
+                              ':plugin saved “:slugs”, and this site has no :plural with those slugs now. It was probably renamed or deleted, so the tag rule can’t match them. Remove them, or choose the :plural again.',
+                              {
+                                  plugin: field.plugin ?? '',
+                                  slugs: stale.join('”, “'),
+                                  plural: field.label.toLowerCase(),
+                              },
                           )}
                 </Notice>
             )}

@@ -25,6 +25,7 @@ use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
 final readonly class PluginRecordForm
@@ -148,6 +149,8 @@ final readonly class PluginRecordForm
             'fromPlugin' => ($field['choices'] ?? null) === 'plugin',
             'storeAs' => $type === 'terms' ? ($field['storeAs'] ?? 'id') : null,
             'taxonomy' => $type === 'terms' && is_string($field['taxonomy']) ? $field['taxonomy'] : null,
+            'taxonomySingular' => $type === 'terms' && is_string($field['taxonomy']) ? $this->singular($field['taxonomy']) : null,
+            'plugin' => $plugin->label,
             'chips' => [],
             'stale' => [],
             'fields' => array_map(fn (array $sub): array => $this->field($sub, $plugin), is_array($field['fields']) ? array_values($field['fields']) : []),
@@ -157,6 +160,16 @@ final readonly class PluginRecordForm
             'itemTitle' => $field['itemTitle'],
             'empty' => AreaForms::empty($field),
         ];
+    }
+
+    /**
+     * A taxonomy's singular name in the admin's language, in lower case, as a sentence needs it.
+     */
+    private function singular(string $taxonomy): string
+    {
+        return app(TaxonomyRegistry::class)->has($taxonomy)
+            ? mb_strtolower(app(TaxonomyRegistry::class)->get($taxonomy)->singular)
+            : $taxonomy;
     }
 
     /**
