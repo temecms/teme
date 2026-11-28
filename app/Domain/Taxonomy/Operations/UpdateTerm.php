@@ -59,7 +59,9 @@ final class UpdateTerm extends BaseOperation
         }
 
         if ($input->plugin !== null) {
-            if ($input->pluginName === null || TypeOwners::owner('taxonomies', $input->taxonomy) !== $input->pluginName) {
+            $record = PluginTermGrant::require($input->plugin);
+
+            if (TypeOwners::owner('taxonomies', $input->taxonomy) !== $record->name) {
                 throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
             }
         }
@@ -102,7 +104,10 @@ final class UpdateTerm extends BaseOperation
 
         // So do the items filed under it, where an address takes {category} from its taxonomy.
         if (AddressSettings::current()->termsMoveItems((string) $term->taxonomy)) {
-            RecomputeAddresses::dispatch(JobActor::of($input->actorId()), (string) $term->id)->afterCommit();
+            $actor = $input->plugin !== null
+                ? PluginTermGrant::jobActor(PluginTermGrant::require($input->plugin))
+                : JobActor::of($input->actorId());
+            RecomputeAddresses::dispatch($actor, (string) $term->id)->afterCommit();
         }
 
         return $term;

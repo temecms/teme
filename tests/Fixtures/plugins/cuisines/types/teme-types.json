@@ -17,7 +17,7 @@
             ],
             "supports": [],
             "comments": null,
-            "pattern": "/recipes/{slug}/",
+            "pattern": "/recipes/{category}/{slug}/",
             "permissions": "shared"
         }
     ],

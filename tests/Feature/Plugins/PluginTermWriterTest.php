@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Addresses\AddressSettings;
+use App\Domain\Addresses\Jobs\RecomputeAddresses;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\Doors\PluginTermWriter;
 use App\Domain\Plugins\LoadedPlugins;
@@ -22,6 +24,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Taxonomy\TermWriter;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -145,4 +148,19 @@ it('writes nothing through the operations when the plugin is refused', function 
     expect(fn () => app(UpdateTerm::class)->execute(new SaveTermInput('cuisine', 'Italia', null, null, null, null, $term->id, plugin: 'cuisines', pluginName: 'tests/cuisines')))->toThrow(AuthorizationException::class)
         ->and(fn () => app(DeleteTerm::class)->execute(new DeleteTermInput($term->id, null, plugin: 'cuisines', pluginName: 'tests/cuisines')))->toThrow(AuthorizationException::class)
         ->and(Term::query()->find($term->id)?->name)->toBe('Italian');
+});
+
+it('queues address recompute as the enabling administrator when a plugin renames a term that moves items', function (): void {
+    ($this->enable)();
+    app()->forgetInstance(Elevation::class);
+    expect(AddressSettings::current()->termsMoveItems('cuisine'))->toBeTrue();
+
+    $term = ($this->door)()->create('cuisine', 'Italian');
+    Queue::fake();
+
+    ($this->door)()->update($term->id, 'Italia', 'italia');
+
+    Queue::assertPushed(RecomputeAddresses::class, fn (RecomputeAddresses $job): bool => $job->termId === $term->id
+        && $job->actor->userId === (string) $this->admin->id
+        && ! $job->actor->isOperator());
 });
