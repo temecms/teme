@@ -43,7 +43,7 @@ final class PanelValidator
     public const array MORE_ICONS = ['sparkles', 'pen-line', 'list-checks', 'mail', 'inbox', 'layout', 'list', 'user', 'globe', 'code', 'grid'];
 
     /** The kinds of field an action's form may hold, and the longest text each takes. */
-    public const array FIELD_TYPES = ['text' => 500, 'textarea' => 2_000, 'select' => null, 'boolean' => null, 'number' => null];
+    public const array FIELD_TYPES = ['text' => 500, 'textarea' => 2_000, 'select' => null, 'boolean' => null, 'number' => null, 'items' => null];
 
     /** The capabilities a panel needs: it reads the item, and its actions queue jobs. */
     public const array NEEDS = [Capability::ContentRead, Capability::Jobs];
@@ -325,7 +325,7 @@ final class PanelValidator
         }
 
         if (! array_key_exists($type, self::FIELD_TYPES)) {
-            return [...$errors, __('A panel field’s type must be text, textarea, select, boolean or number.')];
+            return [...$errors, __('A panel field’s type must be text, textarea, select, boolean, number or items.')];
         }
 
         $label = is_string($field['label'] ?? null) ? trim($field['label']) : '';
@@ -383,6 +383,8 @@ final class PanelValidator
             'text', 'textarea' => is_string($value) && mb_strlen($value) <= (is_int($field['maxLength'] ?? null) ? $field['maxLength'] : (int) self::FIELD_TYPES[$type]),
             'select' => (is_string($value) || is_int($value)) && is_array($field['options'] ?? null) && array_key_exists($value, $field['options']),
             'boolean' => is_bool($value),
+            // One post or page, by its content ID; whether this person may open it is checked when the action runs.
+            'items' => is_string($value) && $value !== '' && mb_strlen($value) <= 26,
             'number' => (is_int($value) || is_float($value))
                 && (! is_numeric($field['min'] ?? null) || $value >= $field['min'])
                 && (! is_numeric($field['max'] ?? null) || $value <= $field['max']),

@@ -515,7 +515,7 @@ export type PluginCheckGroup = {
 /** One field of a plugin panel action's form, as its manifest declares it. */
 export type PanelField = {
     key: string;
-    type: 'text' | 'textarea' | 'select' | 'boolean' | 'number';
+    type: 'text' | 'textarea' | 'select' | 'boolean' | 'number' | 'items';
     label: string;
     required: boolean;
     default: string | number | boolean | null;

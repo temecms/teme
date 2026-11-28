@@ -6,8 +6,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ItemsPicker } from '@/components/plugins/area/record-pickers';
 import { SelectField } from '@/components/ui/select-field';
 import { Textarea } from '@/components/ui/textarea';
+import type { AreaField } from '@/types/plugin-area';
 import { adminLocale } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
 import type {
@@ -288,6 +290,29 @@ function PanelFieldControl({
     error?: string;
     onChange: (value: Value) => void;
 }) {
+    // A post or page, one at a time: a new choice replaces the one before it.
+    if (field.type === 'items') {
+        return (
+            <ItemsPicker
+                id={id}
+                field={
+                    {
+                        key: field.key,
+                        label: field.label,
+                        description: '',
+                        chips: [],
+                        stale: [],
+                    } as unknown as AreaField
+                }
+                value={typeof value === 'string' && value !== '' ? [value] : []}
+                onChange={(next) => {
+                    const chosen = Array.isArray(next) ? next : [];
+                    onChange(chosen.length > 0 ? String(chosen[chosen.length - 1]) : null);
+                }}
+            />
+        );
+    }
+
     if (field.type === 'boolean') {
         return (
             <div className="grid gap-1">

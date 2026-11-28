@@ -19,6 +19,7 @@ use App\Domain\Contents\Exceptions\StaleRevisionException;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Jobs\Operations\StartJob;
+use App\Domain\Plugins\Area\AreaForms;
 use App\Domain\Plugins\Editor\EditorPanels;
 use App\Domain\Plugins\Editor\PanelPlugin;
 use App\Domain\Plugins\Editor\PanelValidator;
@@ -71,7 +72,10 @@ final class RunEditorPanelAction extends BaseOperation
                 continue;
             }
 
-            if (! $this->validator->fits($field, $value)) {
+            // A post or page is taken only if the person may open it now, as a record's items are.
+            $unreadable = ($field['type'] ?? null) === 'items' && ! in_array((string) $value, AreaForms::readableItems([(string) $value], $input->actorId), true);
+
+            if (! $this->validator->fits($field, $value) || $unreadable) {
                 throw ValidationException::withMessages(["values.{$key}" => __(':field isn’t a value this action takes.', ['field' => (string) ($field['label'] ?? $key)])]);
             }
         }
