@@ -1255,7 +1255,7 @@ it('resolves later-page parents without a second reader pass', function (): void
     expect($file->refresh()->state)->toBe('ready')
         ->and($child['parent'])->toBe($parent['id'])
         ->and($child['reader_refs']['parent'] ?? null)->toBe('parent-later')
-        ->and(FakeImportReader::$pageCalls)->toBe(2);
+        ->and(FakeImportReader::pageCalls())->toBe(2);
 });
 
 it('resolves a term whose parent sits on a later page, with no false orphan note', function (): void {
@@ -1447,7 +1447,7 @@ it('does not open the reader again while a resolve is in progress', function ():
     $later = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Later'")->value('payload'), true);
 
     expect($file->refresh()->state)->toBe('ready')
-        ->and(FakeImportReader::$pageCalls)->toBe(0)
+        ->and(FakeImportReader::pageCalls())->toBe(0)
         ->and($comment['post_id'])->toBe($later['id'])
         ->and($early['parent'])->toBe($later['id']);
 });

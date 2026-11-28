@@ -160,7 +160,11 @@ function MenuItem({
                         </span>
                     </a>
                 ) : (
-                    <Link href={item.href} data-action={item.id} className="gap-2">
+                    <Link
+                        href={item.href}
+                        data-action={item.id}
+                        className="gap-2"
+                    >
                         <ActionIcon name={item.icon} />
                         {item.label}
                     </Link>
@@ -172,7 +176,6 @@ function MenuItem({
     if ('onSelect' in item) {
         return (
             <ResponsiveMenuItem
-                asChild
                 variant={variant}
                 onSelect={() => {
                     if (item.movesFocus) {
@@ -182,14 +185,13 @@ function MenuItem({
                     item.onSelect();
                 }}
             >
-                <button
-                    type="button"
+                <span
                     data-action={item.id}
                     className="flex w-full items-center gap-2"
                 >
                     <ActionIcon name={item.icon} />
                     {item.label}
-                </button>
+                </span>
             </ResponsiveMenuItem>
         );
     }

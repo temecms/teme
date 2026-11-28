@@ -184,6 +184,12 @@ final class ResolveImportReaderRows extends BaseOperation
         return $size > 0 ? $size : self::CHUNK;
     }
 
+    /**
+     * Whether the chunk's time is up. Asked again after each chunk, since
+     * each takes time: never a value to remember between calls.
+     *
+     * @phpstan-impure
+     */
     private function pastDeadline(?CarbonImmutable $deadline): bool
     {
         return $deadline !== null && CarbonImmutable::now()->greaterThanOrEqualTo($deadline);

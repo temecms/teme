@@ -92,7 +92,7 @@ final class AreaReads
         }
 
         $items = [];
-        $refused = ! is_array($given) && $given !== [];
+        $refused = ! is_array($given);
 
         foreach (is_array($block['items'] ?? null) ? $block['items'] : [] as $item) {
             if (! is_array($item) || ! is_string($item['id'] ?? null)) {

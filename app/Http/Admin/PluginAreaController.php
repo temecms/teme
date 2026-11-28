@@ -241,7 +241,7 @@ final class PluginAreaController extends Controller
 
         if ($declared === null) {
             foreach ($plugin->area->records as $one) {
-                if (is_array($one) && is_string($one['id'] ?? null)) {
+                if ($one['id'] !== '') {
                     $declared = $one;
                     $kind = $one['id'];
                     break;
@@ -249,7 +249,7 @@ final class PluginAreaController extends Controller
             }
         }
 
-        if ($declared === null || ! is_string($kind) || ! is_string($declared['titleField'] ?? null)) {
+        if ($declared === null || ! is_string($kind) || $declared['titleField'] === '') {
             return null;
         }
 
@@ -348,8 +348,8 @@ final class PluginAreaController extends Controller
         $record = $plugin->area->records[0] ?? null;
 
         if (is_array($record)) {
-            $singular = is_string($record['label'] ?? null) ? mb_strtolower(AreaWords::text($plugin->code, $record['label'])) : '';
-            $plural = is_string($record['plural'] ?? null) ? mb_strtolower(AreaWords::text($plugin->code, $record['plural'])) : '';
+            $singular = mb_strtolower(AreaWords::text($plugin->code, $record['label']));
+            $plural = mb_strtolower(AreaWords::text($plugin->code, $record['plural']));
 
             if ($singular !== '' && $plural !== '') {
                 return ['singular' => $singular, 'plural' => $plural];

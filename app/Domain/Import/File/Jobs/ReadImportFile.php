@@ -360,8 +360,8 @@ final class ReadImportFile implements ShouldQueue
             $address,
             $readerKey,
             $this->actor->userId,
-            is_string($resolving['list'] ?? null) ? $resolving['list'] : null,
-            isset($resolving['object_id']) && is_int($resolving['object_id']) ? $resolving['object_id'] : (isset($resolving['object_id']) && is_numeric($resolving['object_id']) ? (int) $resolving['object_id'] : null),
+            $resolving['list'],
+            $resolving['object_id'],
             $deadline,
         ));
 
