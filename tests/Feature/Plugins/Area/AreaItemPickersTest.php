@@ -121,3 +121,17 @@ it('accepts an ID-stored term beyond the first 500, since a terms field searches
 
     expect(AreaForms::validated([$field], ['tags' => [$last]], (string) $this->author->id, 'Placard'))->toBe(['tags' => [$last]]);
 });
+
+it('gives a post its categories by name, and a page none', function (): void {
+    $post = addrPublished($this->author, 'Roses in the Sport garden');
+    $page = addrPublished($this->author, 'Roses on the about page', 'page');
+    $category = Str::ulid();
+    DB::table('terms')->insert(['id' => (string) $category, 'taxonomy' => 'category', 'name' => 'Sport', 'slug' => 'sport', 'fields' => '{}', 'created_at' => now(), 'updated_at' => now()]);
+    DB::table('content_terms')->insert(['content_id' => $post->id, 'term_id' => (string) $category, 'scope' => 'working', 'position' => 0]);
+    DB::table('content_terms')->insert(['content_id' => $page->id, 'term_id' => (string) $category, 'scope' => 'working', 'position' => 0]);
+
+    $shown = collect(ItemChoices::search('roses', (string) $this->author->id)['shown'])->keyBy('title');
+
+    expect($shown['Roses in the Sport garden']['categories'])->toBe(['Sport'])
+        ->and($shown['Roses on the about page']['categories'])->toBe([]);
+});

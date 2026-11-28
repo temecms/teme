@@ -22,6 +22,7 @@ use App\Domain\Types\CoreTypes;
 use App\Domain\Users\Actors;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 final class ItemChoices
 {
@@ -79,7 +80,7 @@ final class ItemChoices
      * The first SHOWN items whose title holds the words typed, that the person
      * may read, with how many in all; nothing when nothing is typed.
      *
-     * @return array{shown: list<array{id: string, title: string, kind: string, status: string, date: string}>, total: int}
+     * @return array{shown: list<array{id: string, title: string, kind: string, status: string, date: string, categories: list<string>}>, total: int}
      *
      * @since next
      */
@@ -95,6 +96,8 @@ final class ItemChoices
         $matches = self::readable($person)->where('title', 'ilike', '%'.addcslashes($needle, '%_\\').'%');
         $items = (clone $matches)->orderByDesc('updated_at')->orderByDesc('id')->limit(self::SHOWN)->get();
 
+        $categories = self::categoriesOf($items->pluck('id')->all());
+
         return [
             'shown' => $items->map(fn (Content $item): array => [
                 'id' => (string) $item->id,
@@ -102,9 +105,40 @@ final class ItemChoices
                 'kind' => self::kindLabel((string) $item->type),
                 'status' => (string) $item->status,
                 'date' => ($item->published_at ?? $item->updated_at)->toIso8601String(),
+                'categories' => $item->type === CoreTypes::POST ? ($categories[(string) $item->id] ?? []) : [],
             ])->values()->all(),
             'total' => $matches->count(),
         ];
+    }
+
+    /**
+     * The category names of these items, in their order, read in one query.
+     *
+     * @param  list<string>  $ids
+     *
+     * @return array<string, list<string>>
+     *
+     * @since next
+     */
+    private static function categoriesOf(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $categories = [];
+
+        foreach (DB::table('content_terms')
+            ->join('terms', 'terms.id', '=', 'content_terms.term_id')
+            ->whereIn('content_terms.content_id', $ids)
+            ->where('content_terms.scope', 'working')
+            ->where('terms.taxonomy', 'category')
+            ->orderBy('content_terms.position')
+            ->get(['content_terms.content_id', 'terms.name']) as $row) {
+            $categories[(string) $row->content_id][] = (string) $row->name;
+        }
+
+        return $categories;
     }
 
     /**
