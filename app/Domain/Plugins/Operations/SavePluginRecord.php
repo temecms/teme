@@ -47,7 +47,7 @@ final class SavePluginRecord extends BaseOperation
         /** @var SavePluginRecordInput $input */
         $plugin = $this->writable($input->code, $input->record, $input->actorId);
 
-        AreaForms::validated($plugin->area->fields($input->record), $input->values, $input->actorId, $plugin->label, $this->stored($plugin, $input));
+        AreaForms::validated($plugin->area->fields($input->record), $input->values, $input->actorId, $plugin->label, $this->stored($plugin, $input), $this->offered($plugin, $input->record));
     }
 
     /**
@@ -57,7 +57,7 @@ final class SavePluginRecord extends BaseOperation
     {
         /** @var SavePluginRecordInput $input */
         $plugin = $this->writable($input->code, $input->record, $input->actorId);
-        $values = AreaForms::validated($plugin->area->fields($input->record), $input->values, $input->actorId, $plugin->label, $this->stored($plugin, $input));
+        $values = AreaForms::validated($plugin->area->fields($input->record), $input->values, $input->actorId, $plugin->label, $this->stored($plugin, $input), $this->offered($plugin, $input->record));
         $context = AreaContexts::for($input->code, $input->actorId);
         $record = AreaWords::text($plugin->code, (string) ($plugin->area->record($input->record)['label'] ?? ''));
 
@@ -84,5 +84,27 @@ final class SavePluginRecord extends BaseOperation
         $failed = null;
 
         return app(AreaReads::class)->values($plugin, $input->record, $input->id, $plugin->area->fields($input->record), AreaContexts::for($input->code, $input->actorId), $failed) ?? [];
+    }
+
+    /**
+     * The options each select whose choices come from the plugin offers now,
+     * by field key: null where the plugin couldn't answer.
+     *
+     * @return array<string, list<array{value: string, label: string}>|null>
+     */
+    private function offered(AreaPlugin $plugin, string $record): array
+    {
+        $offered = [];
+
+        foreach ($plugin->area->fields($record) as $field) {
+            if (($field['choices'] ?? null) !== 'plugin') {
+                continue;
+            }
+
+            $failed = null;
+            $offered[(string) $field['key']] = app(AreaReads::class)->fieldChoices($plugin, $record, (string) $field['key'], $failed);
+        }
+
+        return $offered;
     }
 }

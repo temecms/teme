@@ -48,10 +48,11 @@ final class AreaForms
      * @param  string|null  $personId  the person saving: the items they may open are the only ones accepted
      * @param  string  $plugin  the plugin's name, as a refusal names it
      * @param  array<string, mixed>  $stored  the values the record stores now, by key: an item it already holds is kept, not refused, when this person can't read it
+     * @param  array<string, list<array{value: string, label: string}>|null>  $offered  a select whose choices the plugin lists, by key: what it offers now, or null when it couldn't answer, which keeps the saved value
      *
      * @return array<string, mixed>
      */
-    public static function validated(array $fields, array $values, ?string $personId = null, string $plugin = '', array $stored = []): array
+    public static function validated(array $fields, array $values, ?string $personId = null, string $plugin = '', array $stored = [], array $offered = []): array
     {
         $shown = VisibleWhen::visibleValues($fields, $values);
         $errors = [];
@@ -61,6 +62,12 @@ final class AreaForms
             $key = (string) $field['key'];
 
             if (! array_key_exists($key, $shown)) {
+                continue;
+            }
+
+            if (($field['choices'] ?? null) === 'plugin' && array_key_exists($key, $offered)) {
+                $kept[$key] = self::pluginChoice($field, $shown[$key], $offered[$key], $stored[$key] ?? null, "values.{$key}", $errors);
+
                 continue;
             }
 
@@ -315,6 +322,41 @@ final class AreaForms
         }
 
         return $type === 'color' ? strtolower($value) : $value;
+    }
+
+    /**
+     * A select whose choices the plugin lists: the value must be one it offers
+     * now. When the plugin couldn't answer, the saved value stays as it is.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  list<array{value: string, label: string}>|null  $offered
+     * @param  array<string, string>  $errors
+     */
+    private static function pluginChoice(array $field, mixed $value, ?array $offered, mixed $saved, string $path, array &$errors): mixed
+    {
+        $label = (string) $field['label'];
+
+        if ($offered === null) {
+            return $saved;
+        }
+
+        if ($value === null || $value === '') {
+            if (($field['required'] ?? false) === true) {
+                $errors[$path] = __(':field is required.', ['field' => $label]);
+            }
+
+            return null;
+        }
+
+        foreach ($offered as $choice) {
+            if ($value === $choice['value']) {
+                return $value;
+            }
+        }
+
+        $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
+
+        return null;
     }
 
     /**

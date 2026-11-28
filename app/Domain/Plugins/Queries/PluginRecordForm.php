@@ -69,6 +69,27 @@ final readonly class PluginRecordForm
             $values[$field['key']] = array_key_exists($field['key'], $stored) ? $stored[$field['key']] : AreaForms::empty($field);
         }
 
+        // The options of each select whose choices come from the plugin, asked as the form opens.
+        $answers = [];
+
+        foreach ($declared['sections'] as $section) {
+            foreach ($section['fields'] as $declaredField) {
+                if (($declaredField['choices'] ?? null) !== 'plugin') {
+                    continue;
+                }
+
+                $answerFailed = null;
+                $answers[$declaredField['key']] = [
+                    'choices' => $this->reads->fieldChoices($plugin, $record, $declaredField['key'], $answerFailed) ?? [],
+                    'failed' => $answerFailed === null ? null : __(':plugin couldn’t list its :field this time. The :record keeps its saved :field, and you can save everything else. The fault is recorded under the plugin.', [
+                        'plugin' => $plugin->label,
+                        'field' => mb_strtolower(AreaWords::text($plugin->code, (string) $declaredField['label'])),
+                        'record' => mb_strtolower(AreaWords::text($plugin->code, (string) $declared['label'])),
+                    ]),
+                ];
+            }
+        }
+
         $title = $id === null ? '' : (is_string($values[$declared['titleField']] ?? null) ? $values[$declared['titleField']] : '');
         $words = fn (string $english): string => AreaWords::text($plugin->code, $english);
 
@@ -80,7 +101,7 @@ final readonly class PluginRecordForm
                 'id' => $section['id'],
                 'label' => $words($section['label']),
                 'description' => $words($section['description']),
-                'fields' => array_map(fn (array $field): array => $this->decorate($this->field($field, $plugin), $values, $personId), $section['fields']),
+                'fields' => array_map(fn (array $field): array => $this->decorate($this->withChoices($this->field($field, $plugin), $answers), $values, $personId), $section['fields']),
             ], $declared['sections']),
             'values' => $values,
             'failed' => $failed,
@@ -123,6 +144,7 @@ final readonly class PluginRecordForm
             'visibleWhen' => $field['visibleWhen'],
             'scripts' => $field['scripts'],
             'choices' => $choices,
+            'choicesFailed' => null,
             'storeAs' => $type === 'terms' ? ($field['storeAs'] ?? 'id') : null,
             'taxonomy' => $type === 'terms' && is_string($field['taxonomy']) ? $field['taxonomy'] : null,
             'chips' => [],
@@ -134,6 +156,27 @@ final readonly class PluginRecordForm
             'itemTitle' => $field['itemTitle'],
             'empty' => AreaForms::empty($field),
         ];
+    }
+
+    /**
+     * A field whose choices the plugin listed: its options, or the line that
+     * says it couldn't list them this time.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, array{choices: list<array{value: string, label: string}>, failed: string|null}>  $answers
+     *
+     * @return array<string, mixed>
+     */
+    private function withChoices(array $field, array $answers): array
+    {
+        if (! array_key_exists($field['key'], $answers)) {
+            return $field;
+        }
+
+        $field['choices'] = $answers[$field['key']]['choices'];
+        $field['choicesFailed'] = $answers[$field['key']]['failed'];
+
+        return $field;
     }
 
     /**
