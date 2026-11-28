@@ -145,6 +145,7 @@ final readonly class PluginRecordForm
             'scripts' => $field['scripts'],
             'choices' => $choices,
             'choicesFailed' => null,
+            'fromPlugin' => ($field['choices'] ?? null) === 'plugin',
             'storeAs' => $type === 'terms' ? ($field['storeAs'] ?? 'id') : null,
             'taxonomy' => $type === 'terms' && is_string($field['taxonomy']) ? $field['taxonomy'] : null,
             'chips' => [],
