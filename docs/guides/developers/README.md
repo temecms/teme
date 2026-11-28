@@ -33,6 +33,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Console commands from a plugin](plugins/commands.md)
 - [Public routes](plugins/public-routes.md)
 - [Files at the site's root](plugins/root-files.md)
+- [Scripts for a plugin's output](plugins/scripts.md)
 - [The plugin import socket](plugins/import.md)
 - [Import readers](plugins/import-readers.md)
 - [Content inside articles](plugins/insertions.md)
