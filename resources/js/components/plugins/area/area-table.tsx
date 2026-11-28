@@ -1,7 +1,8 @@
 import { Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
+import { ConfirmAction } from '@/components/confirm-action';
 import { BulkBar } from '@/components/list/bulk-bar';
 import { ConfirmItems } from '@/components/list/confirm-items';
 import { DataTable } from '@/components/list/data-table';
@@ -16,13 +17,20 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
+import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
 import type {
+    AreaCustomRowAction,
     AreaPluginRef,
     AreaRowsData,
     AreaTableAsk,
     AreaTableBlock,
 } from '@/types/plugin-area';
+
+/** Fills {name} (and any leftover {action}) in a plugin or core template. */
+function fillWords(template: string, name: string): string {
+    return template.replaceAll('{name}', name);
+}
 
 type Row = AreaRowsData['rows'][number];
 
@@ -72,15 +80,64 @@ export function AreaTable({
 }) {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [deleting, setDeleting] = useState<string[] | null>(null);
+    const [confirming, setConfirming] = useState<{
+        action: AreaCustomRowAction;
+        row: Row;
+    } | null>(null);
     const [busy, setBusy] = useState(false);
     const [search, setSearch] = useState(ask.search ?? '');
+    /** Quiet "Check queued" pills after a custom action, by row id then action id. */
+    const [queued, setQueued] = useState<Record<string, string[]>>({});
     const record = block.record;
+    const customActions = block.customActions ?? [];
+    const customById = Object.fromEntries(
+        customActions.map((action) => [action.id, action]),
+    ) as Record<string, AreaCustomRowAction>;
+    const hasStatus = block.columns.some((column) => column.kind === 'badge');
     const titleColumn = block.columns[0]?.id ?? '';
     const titleOf = (row: Row): string => {
         const cell = row.cells[titleColumn];
 
         return cell === undefined ? row.id : String(cell.value);
     };
+    const waitingFor = (row: Row): AreaCustomRowAction[] =>
+        [...new Set([...(row.queued ?? []), ...(queued[row.id] ?? [])])]
+            .map((id) => customById[id])
+            .filter((action): action is AreaCustomRowAction => action !== undefined);
+
+    // Once deferred rows reload, the server’s queued list is truth: drop
+    // optimistic pills the server no longer lists (job finished).
+    useEffect(() => {
+        setQueued((current) => {
+            let changed = false;
+            const next: Record<string, string[]> = {};
+
+            for (const [rowId, actions] of Object.entries(current)) {
+                const row = data.rows.find((one) => one.id === rowId);
+
+                if (row === undefined) {
+                    next[rowId] = actions;
+
+                    continue;
+                }
+
+                const server = new Set(row.queued ?? []);
+                const kept = actions.filter((id) => server.has(id));
+
+                if (kept.length !== actions.length) {
+                    changed = true;
+                }
+
+                if (kept.length > 0) {
+                    next[rowId] = kept;
+                } else if (actions.length > 0) {
+                    changed = true;
+                }
+            }
+
+            return changed ? next : current;
+        });
+    }, [data.rows]);
     const editHref = (row: Row) =>
         PluginAreaController.edit.url({
             code: plugin.code,
@@ -106,6 +163,38 @@ export function AreaTable({
             },
         );
 
+    const runCustom = (action: AreaCustomRowAction, row: Row) =>
+        router.post(
+            PluginAreaController.action.url({
+                code: plugin.code,
+                action: action.id,
+            }),
+            { record: row.id, kind: block.record.id },
+            {
+                preserveScroll: true,
+                onStart: () => setBusy(true),
+                onFinish: () => setBusy(false),
+                onSuccess: () => {
+                    setConfirming(null);
+                    // Optimistic until the deferred rows reload with server queued state.
+                    setQueued((current) => ({
+                        ...current,
+                        [row.id]: [
+                            ...(current[row.id] ?? []).filter(
+                                (id) => id !== action.id,
+                            ),
+                            action.id,
+                        ],
+                    }));
+                    router.reload({
+                        only: [`block_${block.id}`],
+                        preserveScroll: true,
+                        preserveState: true,
+                    });
+                },
+            },
+        );
+
     const asAction = (row: Row, action: string): RowAction => {
         if (action === 'edit') {
             return {
@@ -113,6 +202,21 @@ export function AreaTable({
                 owner: 'core',
                 label: actionLabel(action),
                 href: editHref(row),
+            };
+        }
+
+        const custom = customById[action];
+
+        if (custom !== undefined) {
+            return {
+                id: action,
+                owner: plugin.name,
+                label: custom.label,
+                icon: custom.icon,
+                onSelect: () =>
+                    custom.confirm !== null
+                        ? setConfirming({ action: custom, row })
+                        : runCustom(custom, row),
             };
         }
 
@@ -213,27 +317,57 @@ export function AreaTable({
                   }
                 : undefined,
             cell: (row: Row) => {
-                const cell = <PluginCell value={row.cells[column.id]} />;
+                const cell = (
+                    <PluginCell
+                        value={row.cells[column.id]}
+                        emptyLabel={column.empty}
+                    />
+                );
                 const line = lineOf(row);
+                const waiting = waitingFor(row);
+                const pills =
+                    waiting.length > 0 ? (
+                        <span className="flex flex-wrap items-center gap-2">
+                            {waiting.map((action) => (
+                                <StatusPill key={action.id} tone="info">
+                                    {action.queued}
+                                </StatusPill>
+                            ))}
+                        </span>
+                    ) : null;
+
+                // Once after status when the table has a badge column.
+                if (column.kind === 'badge' && pills !== null) {
+                    return (
+                        <div className="flex flex-wrap items-center gap-2">
+                            {cell}
+                            {pills}
+                        </div>
+                    );
+                }
 
                 if (index !== 0) {
                     return cell;
                 }
 
+                // No status column: once after the title instead.
                 return (
                     <div className="grid gap-1">
-                        {block.rowActions.includes('edit') ? (
-                            <Link
-                                href={editHref(row)}
-                                className="text-ink text-body font-semibold underline-offset-2 hover:underline"
-                            >
-                                {cell}
-                            </Link>
-                        ) : (
-                            <span className="text-ink text-body font-semibold">
-                                {cell}
-                            </span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                            {block.rowActions.includes('edit') ? (
+                                <Link
+                                    href={editHref(row)}
+                                    className="text-ink text-body font-semibold underline-offset-2 hover:underline"
+                                >
+                                    {cell}
+                                </Link>
+                            ) : (
+                                <span className="text-ink text-body font-semibold">
+                                    {cell}
+                                </span>
+                            )}
+                            {!hasStatus && pills}
+                        </div>
                         {line.length > 0 && (
                             <RowLine title={titleOf(row)} items={line} />
                         )}
@@ -249,7 +383,11 @@ export function AreaTable({
             width: 64,
             cell: (row: Row) =>
                 menuOf(row).length > 0 ? (
-                    <RowMenu items={menuOf(row)} title={titleOf(row)} />
+                    <RowMenu
+                        items={menuOf(row)}
+                        title={titleOf(row)}
+                        pluginsFirst
+                    />
                 ) : null,
         },
     ];
@@ -358,6 +496,39 @@ export function AreaTable({
                 rowKey={(row) => row.id}
                 caption={record.plural}
                 selectedKeys={selected}
+                cards={{
+                    titleColumn: block.columns[0]?.id ?? 'name',
+                    select:
+                        block.bulkActions.length > 0 ? 'select' : undefined,
+                    menu: 'actions',
+                    body: block.columns.find((column) => column.kind === 'link')
+                        ?.id,
+                    facts: block.columns
+                        .slice(1)
+                        .filter((column) => column.kind !== 'link')
+                        .map((column) => column.id),
+                    selectLabel: __('Select every :plural shown', {
+                        plural: record.plural.toLowerCase(),
+                    }),
+                    sort: (() => {
+                        const options = block.columns
+                            .filter((column) => column.sortable)
+                            .map((column) => ({
+                                key: column.id,
+                                label: column.label,
+                            }));
+
+                        if (options.length === 0) {
+                            return undefined;
+                        }
+
+                        return {
+                            options,
+                            current: ask.sort ?? options[0].key,
+                            direction: ask.direction ?? 'desc',
+                        };
+                    })(),
+                }}
                 onSort={(key, direction) =>
                     onAsk({
                         ...ask,
@@ -525,6 +696,24 @@ export function AreaTable({
                     deleting !== null && act('delete', deleting, true)
                 }
             />
+
+            {confirming !== null && confirming.action.confirm !== null && (
+                <ConfirmAction
+                    open
+                    onOpenChange={(open) => !open && setConfirming(null)}
+                    title={fillWords(
+                        confirming.action.confirm.title,
+                        titleOf(confirming.row),
+                    )}
+                    description={confirming.action.confirm.text}
+                    confirmLabel={confirming.action.confirm.button}
+                    cancelLabel={confirming.action.confirm.cancel}
+                    onConfirm={() =>
+                        !busy &&
+                        runCustom(confirming.action, confirming.row)
+                    }
+                />
+            )}
         </section>
     );
 }

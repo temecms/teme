@@ -31,7 +31,7 @@ it('accepts the fixture’s area and reads it, every field’s defaults filled i
         ->and($area->record('ad')['titleField'] ?? null)->toBe('name')
         ->and(array_column($area->fields('ad'), 'key'))->toBe(['name', 'location', 'paragraph', 'versions', 'types', 'terms', 'region'])
         ->and($area->actions('ad'))->toBe(['edit', 'duplicate', 'enable', 'disable', 'delete'])
-        ->and($area->offeredActions())->toBe(['prune-now']);
+        ->and($area->offeredActions())->toBe(['prune-now', 'check-code', 'reset-stats']);
 
     $versions = array_values(array_filter($area->fields('ad'), fn (array $field): bool => $field['key'] === 'versions'))[0];
 
@@ -74,7 +74,7 @@ it('refuses an area out of bounds, in one plain sentence each', function (array 
     'seven columns' => [[['pages.1.blocks.0.columns', array_map(fn (int $n): array => ['id' => "c{$n}", 'label' => "C{$n}"], range(1, 7))]], 'A table needs 1 to 6 columns.'],
     'four filters' => [[['pages.1.blocks.0.filters', array_map(fn (int $n): array => ['id' => "f{$n}", 'label' => "F{$n}", 'options' => ['a' => 'A']], range(1, 4))]], 'A table has at most 3 filters.'],
     'a page of 101 rows' => [[['pages.1.blocks.0.perPage', 101]], 'A table shows 1 to 100 rows a page.'],
-    'an unknown row action' => [[['pages.1.blocks.0.rowActions', ['archive']]], 'A table’s row actions must be edit, duplicate, enable, disable or delete.'],
+    'an unknown row action' => [[['pages.1.blocks.0.rowActions', ['archive']]], 'A table’s row actions must be edit, duplicate, enable, disable, delete, or a declared action marked for rows.'],
     'edit in bulk' => [[['pages.1.blocks.0.bulkActions', ['edit']]], 'A table’s bulk actions must be duplicate, enable, disable or delete.'],
     'seven records' => [[['records', array_map(fn (int $n): array => ['id' => "ad-{$n}", 'label' => 'Ad', 'plural' => 'Ads', 'titleField' => 'name', 'sections' => [['id' => 'basics', 'label' => 'Basics', 'fields' => [['key' => 'name', 'type' => 'text', 'label' => 'Name']]]]], range(1, 7))]], 'An area holds at most 6 kinds of record.'],
     'nine sections' => [[['records.0.sections', array_map(fn (int $n): array => ['id' => "s{$n}", 'label' => "S{$n}", 'fields' => [['key' => "f{$n}", 'type' => 'text', 'label' => "F{$n}"]]], range(1, 9))]], 'A record’s form needs 1 to 8 sections.'],

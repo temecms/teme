@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Admin\AreaContext;
 use Teme\Contracts\Admin\Chart;
 use Teme\Contracts\Admin\Figure;
+use Teme\Contracts\Admin\HasAreaCounts;
+use Teme\Contracts\Admin\HasRecordHeader;
 use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
 use Teme\Contracts\Admin\RowPage;
 use Teme\Contracts\Admin\Saved;
@@ -22,7 +25,7 @@ use Teme\Contracts\Lists\Cell;
  * the query builder as the handbook allows. Each call can be replaced by a
  * test through $on, and every call is remembered in $calls.
  */
-final class PlacardArea implements PluginArea
+final class PlacardArea implements HasAreaCounts, HasRecordHeader, PluginArea
 {
     /** @var array<string, Closure> what a test makes a call do instead, by method */
     public static array $on = [];
@@ -67,15 +70,37 @@ final class PlacardArea implements PluginArea
 
             $total = $builder->count();
             $builder->orderBy($query->sort === 'impressions' ? 'impressions' : 'id', $query->direction);
-            $rows = $builder->forPage($query->page, $query->perPage)->get()->map(fn (object $ad): Row => new Row(
-                (string) $ad->id,
-                [
-                    'name' => Cell::text((string) $ad->name),
-                    'status' => Cell::badge($ad->status === 'active' ? 'Active' : 'Paused', $ad->status === 'active' ? 'ok' : 'neutral'),
-                    'impressions' => Cell::number((int) $ad->impressions),
-                ],
-                [$ad->status === 'active' ? 'enable' : 'disable'],
-            ))->all();
+            $rows = $builder->forPage($query->page, $query->perPage)->get()->map(function (object $ad): Row {
+                /** @var array<string, mixed> $data */
+                $data = json_decode((string) ($ad->data ?? '{}'), true) ?: [];
+                $location = is_string($data['location'] ?? null) ? $data['location'] : 'between_items';
+                $unavailable = [$ad->status === 'active' ? 'enable' : 'disable'];
+
+                // Check only on active ads; Reset only when there are impressions.
+                if ($ad->status !== 'active') {
+                    $unavailable[] = 'check-code';
+                }
+
+                if ((int) $ad->impressions <= 0) {
+                    $unavailable[] = 'reset-stats';
+                }
+
+                return new Row(
+                    (string) $ad->id,
+                    [
+                        'name' => Cell::text((string) $ad->name),
+                        'position' => Cell::text(match ($location) {
+                            'after_paragraph' => 'After a paragraph',
+                            'region' => 'In a theme region',
+                            default => 'Between items on lists',
+                        }),
+                        'status' => Cell::badge($ad->status === 'active' ? 'Active' : 'Paused', $ad->status === 'active' ? 'ok' : 'neutral'),
+                        'report' => Cell::link('Open report', 'https://ads.example/report/'.$ad->id),
+                        'impressions' => Cell::number((int) $ad->impressions),
+                    ],
+                    $unavailable,
+                );
+            })->all();
 
             return new RowPage(array_values($rows), $total);
         });
@@ -135,6 +160,31 @@ final class PlacardArea implements PluginArea
 
             return new Saved($ids[0] ?? 'none');
         });
+    }
+
+    public function header(string $record, string $id, AreaContext $context): ?RecordHeader
+    {
+        return $this->called(__FUNCTION__, func_get_args(), function () use ($id): ?RecordHeader {
+            $ad = DB::table('placard_ads')->where('id', (int) $id)->first();
+
+            if ($ad === null) {
+                return null;
+            }
+
+            $status = $ad->status === 'active' ? 'Active' : 'Paused';
+            $tone = $ad->status === 'active' ? 'ok' : 'neutral';
+            $meta = [(int) $ad->impressions.' impressions in the last 30 days'];
+
+            return new RecordHeader($status, $tone, $meta);
+        });
+    }
+
+    public function counts(AreaContext $context): array
+    {
+        return $this->called(__FUNCTION__, func_get_args(), fn (): array => [
+            'overview' => 0,
+            'ads' => (int) DB::table('placard_ads')->count(),
+        ]);
     }
 
     /**

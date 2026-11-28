@@ -151,18 +151,28 @@ final readonly class DeclaredArea
     }
 
     /**
-     * The ids of round 1's actions the area's pages offer, each once.
+     * The ids of declared actions the area's pages offer, each once: from
+     * actions blocks and from custom ids named in a table's rowActions.
      *
      * @return list<string>
      */
     public function offeredActions(): array
     {
         $offered = [];
+        $builtIn = ['edit', 'duplicate', 'enable', 'disable', 'delete'];
 
         foreach ($this->pages as $page) {
             foreach ($page['blocks'] as $block) {
                 if (($block['type'] ?? null) === 'actions' && is_array($block['actions'] ?? null)) {
                     array_push($offered, ...array_filter($block['actions'], is_string(...)));
+                }
+
+                if (($block['type'] ?? null) === 'table' && is_array($block['rowActions'] ?? null)) {
+                    foreach ($block['rowActions'] as $action) {
+                        if (is_string($action) && ! in_array($action, $builtIn, true)) {
+                            $offered[] = $action;
+                        }
+                    }
                 }
             }
         }
@@ -197,12 +207,13 @@ final readonly class DeclaredArea
      */
     public function actions(string $record): array
     {
+        $builtIn = ['edit', 'duplicate', 'enable', 'disable', 'delete'];
         $actions = [];
 
         foreach ($this->tables($record) as $table) {
             foreach (['rowActions', 'bulkActions'] as $kind) {
                 foreach (is_array($table[$kind] ?? null) ? $table[$kind] : [] as $action) {
-                    if (is_string($action) && ! in_array($action, $actions, true)) {
+                    if (is_string($action) && in_array($action, $builtIn, true) && ! in_array($action, $actions, true)) {
                         $actions[] = $action;
                     }
                 }

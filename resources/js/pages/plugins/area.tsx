@@ -1,5 +1,6 @@
 import { Deferred, Head, Link, router, setLayoutProps } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { PluginAreaPage } from '@/components/patterns/plugin-area-page';
 import { AreaActions } from '@/components/plugins/area/area-actions';
@@ -10,7 +11,9 @@ import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
 import { Notice } from '@/components/ui/notice';
 import { Panel } from '@/components/ui/panel';
+import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { __ } from '@/lib/i18n';
 import type {
     AreaBlock,
     AreaChartData,
@@ -63,16 +66,30 @@ function Failed({ line, onRetry }: { line: string; onRetry: () => void }) {
  * area's own label, with the plugin's name in the badge beside it, its
  * pages as in-page navigation, then each block top to bottom, each loading
  * on its own. The top bar names the area and the current page (design
- * system 4.31).
- * Add for a table sits in the page header.
+ * system 4.31). Add for a table sits in the page header; a period select
+ * when the page has statistics; a waiting-script banner above the filters.
  */
 export default function PluginArea(props: PluginAreaPageProps) {
-    const { plugin, area, tabs, current, blocks, asks } = props;
+    const {
+        plugin,
+        area,
+        tabs,
+        current,
+        blocks,
+        asks,
+        period,
+        counts,
+        waitingScripts = 0,
+        waitingNoun = __('item'),
+        waitingNouns = __('items'),
+        reviewScripts,
+    } = props;
     const areaHome =
         tabs[0]?.href ?? PluginAreaController.show.url({ code: plugin.code });
     // The area's home page is the area alone; other pages add the tab after it.
     const onHome =
         tabs[0] !== undefined && (tabs[0].current || current.id === tabs[0].id);
+    const [periodLoading, setPeriodLoading] = useState(false);
 
     setLayoutProps({
         breadcrumbs: onHome
@@ -97,7 +114,12 @@ export default function PluginArea(props: PluginAreaPageProps) {
                 code: plugin.code,
                 page: current.id,
             }),
-            { t: { ...asks, [block]: next } },
+            {
+                t: { ...asks, [block]: next },
+                ...(period !== null && period !== undefined
+                    ? { period: period.id }
+                    : {}),
+            },
             {
                 preserveState: true,
                 preserveScroll: true,
@@ -111,6 +133,36 @@ export default function PluginArea(props: PluginAreaPageProps) {
             only: [`block_${block}`],
         });
 
+    const changePeriod = (next: string) => {
+        setPeriodLoading(true);
+        router.get(
+            PluginAreaController.show.url({
+                code: plugin.code,
+                page: current.id,
+            }),
+            { period: next, t: asks },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                only: [
+                    'period',
+                    ...blocks
+                        .filter(
+                            (block) =>
+                                block.type === 'figures' ||
+                                block.type === 'chart',
+                        )
+                        .map((block) => `block_${block.id}` as const),
+                ],
+                onFinish: () => {
+                    setPeriodLoading(false);
+                    document.getElementById('area-period')?.focus();
+                },
+            },
+        );
+    };
+
     const tableBlocks = blocks.filter(
         (block): block is AreaTableBlock => block.type === 'table',
     );
@@ -118,6 +170,33 @@ export default function PluginArea(props: PluginAreaPageProps) {
         tableBlocks[0] !== undefined
             ? areaTableAdd(plugin, tableBlocks[0])
             : null;
+
+    const countsReady = counts !== undefined;
+    const periodSelect =
+        period !== null && period !== undefined ? (
+            <div
+                className="flex min-w-40 flex-col gap-1 max-sm:w-full"
+                data-test="area-period"
+            >
+                <label
+                    htmlFor="area-period"
+                    className="text-small text-ink-3 font-medium"
+                >
+                    {__('Period')}
+                </label>
+                <SelectField
+                    id="area-period"
+                    aria-label={__('Period')}
+                    value={period.id}
+                    options={period.options.map((option) => ({
+                        value: option.id,
+                        label: option.label,
+                    }))}
+                    onValueChange={changePeriod}
+                    className="max-sm:w-full"
+                />
+            </div>
+        ) : null;
 
     return (
         <>
@@ -128,17 +207,24 @@ export default function PluginArea(props: PluginAreaPageProps) {
                 showTitle
                 description={area.description || undefined}
                 actions={
-                    add !== null ? (
-                        <Button asChild variant="primary">
-                            <Link href={add.href} data-test="area-table-add">
-                                <Plus aria-hidden="true" />
-                                {add.label}
-                            </Link>
-                        </Button>
-                    ) : undefined
+                    <div className="flex flex-wrap items-end gap-2 max-sm:w-full">
+                        {periodSelect}
+                        {add !== null ? (
+                            <Button asChild variant="primary">
+                                <Link
+                                    href={add.href}
+                                    data-test="area-table-add"
+                                >
+                                    <Plus aria-hidden="true" />
+                                    {add.label}
+                                </Link>
+                            </Button>
+                        ) : null}
+                    </div>
                 }
                 pages={tabs.map((one) => {
                     let count = one.count;
+                    let counting = false;
                     // The current page's first table total fills the tab when the server sent none.
                     if (count === undefined && one.current) {
                         const table = blocks.find(
@@ -159,6 +245,33 @@ export default function PluginArea(props: PluginAreaPageProps) {
                         }
                     }
 
+                    if (
+                        count === undefined &&
+                        !one.current &&
+                        countsReady &&
+                        counts !== null &&
+                        typeof counts[one.id] === 'number'
+                    ) {
+                        count = counts[one.id];
+                    }
+
+                    if (
+                        count === undefined &&
+                        !one.current &&
+                        !countsReady
+                    ) {
+                        counting = true;
+                    }
+
+                    if (
+                        count === undefined &&
+                        !one.current &&
+                        countsReady &&
+                        counts === null
+                    ) {
+                        counting = false;
+                    }
+
                     return {
                         href:
                             one.href ??
@@ -169,9 +282,54 @@ export default function PluginArea(props: PluginAreaPageProps) {
                         label: one.label,
                         current: one.current,
                         count,
+                        counting,
                     };
                 })}
             >
+                {period !== null && period !== undefined && (
+                    <p
+                        className="text-small text-ink-3 mb-4"
+                        role="status"
+                        data-test="area-period-range"
+                    >
+                        {periodLoading
+                            ? __('Loading the new period…')
+                            : `${period.range} ${period.compare}`}
+                    </p>
+                )}
+                {waitingScripts > 0 && (
+                    <Notice
+                        tone="warn"
+                        role="status"
+                        className="mb-4"
+                        data-test="area-scripts-waiting"
+                        action={
+                            reviewScripts ? (
+                                <Button asChild variant="neutral" size="sm">
+                                    <Link
+                                        href={reviewScripts}
+                                        data-test="area-review-scripts"
+                                    >
+                                        {__('Review scripts')}
+                                    </Link>
+                                </Button>
+                            ) : undefined
+                        }
+                    >
+                        {waitingScripts === 1
+                            ? __(
+                                  '1 script waits for approval. Until it’s approved, its :noun shows without it.',
+                                  { noun: waitingNoun },
+                              )
+                            : __(
+                                  ':count scripts wait for approval. Until they’re approved, their :nouns show without them.',
+                                  {
+                                      count: waitingScripts,
+                                      nouns: waitingNouns,
+                                  },
+                              )}
+                    </Notice>
+                )}
                 <div className="grid gap-6" data-test="area-blocks">
                     {blocks.map((block) => {
                         if (block.type === 'notice') {
@@ -201,6 +359,16 @@ export default function PluginArea(props: PluginAreaPageProps) {
                         }
 
                         const key = `block_${block.id}` as const;
+
+                        if (
+                            periodLoading &&
+                            (block.type === 'figures' ||
+                                block.type === 'chart')
+                        ) {
+                            return (
+                                <BlockSkeleton key={block.id} block={block} />
+                            );
+                        }
 
                         return (
                             <Deferred
@@ -234,6 +402,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
                                             <AreaFigures
                                                 data={data}
                                                 label={current.label}
+                                                empty={block.empty}
                                             />
                                         );
                                     }
@@ -243,6 +412,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
                                             <AreaChart
                                                 block={block}
                                                 data={data}
+                                                period={period}
                                             />
                                         );
                                     }

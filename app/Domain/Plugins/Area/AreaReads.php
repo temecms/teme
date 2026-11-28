@@ -17,15 +17,21 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Area;
 
 use App\Domain\Hooks\ListenerFaults;
+use App\Domain\Jobs\JobState;
+use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Plugins\Columns\CellText;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\Columns\PluginColumns;
+use App\Domain\Plugins\Operations\RunPluginAction;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Admin\AreaContext;
 use Teme\Contracts\Admin\Chart;
 use Teme\Contracts\Admin\Figure;
+use Teme\Contracts\Admin\HasAreaCounts;
+use Teme\Contracts\Admin\HasRecordHeader;
 use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
 use Teme\Contracts\Admin\RowPage;
 use Teme\Contracts\Admin\TableQuery;
@@ -48,6 +54,12 @@ final class AreaReads
 
     public const int MOST_SEARCH = 100;
 
+    /** The largest tab count drawn; above it the tab shows no number. @since next */
+    public const int MOST_COUNT = 1_000_000;
+
+    /** The most unavailable action ids kept on one row. @since next */
+    public const int MOST_UNAVAILABLE = 20;
+
     private int $spent = 0;
 
     public function __construct(
@@ -58,10 +70,11 @@ final class AreaReads
     /**
      * A figures block's items, each its id, label, format, value (null when
      * the plugin gave none) and change; or the line saying it couldn't be shown.
+     * An empty answer from the plugin is the "No statistics yet" state.
      *
      * @param  array<string, mixed>  $block
      *
-     * @return array{items: list<array{id: string, label: string, format: string, value: string|int|float|null, change: float|null}>, failed: string|null}
+     * @return array{items: list<array{id: string, label: string, format: string, value: string|int|float|null, change: float|null}>, failed: string|null, empty?: bool}
      */
     public function figures(AreaPlugin $plugin, string $page, array $block, AreaContext $context): array
     {
@@ -72,8 +85,14 @@ final class AreaReads
             return ['items' => [], 'failed' => $this->failure($plugin)];
         }
 
+        // An empty answer is "No statistics yet" when the block declares empty
+        // (true or its own words); otherwise each figure shows a dash.
+        if (is_array($given) && $given === [] && self::figuresDeclareEmpty($block)) {
+            return ['items' => [], 'failed' => null, 'empty' => true];
+        }
+
         $items = [];
-        $refused = ! is_array($given);
+        $refused = ! is_array($given) && $given !== [];
 
         foreach (is_array($block['items'] ?? null) ? $block['items'] : [] as $item) {
             if (! is_array($item) || ! is_string($item['id'] ?? null)) {
@@ -92,12 +111,16 @@ final class AreaReads
                 $refused = true;
             }
 
+            $label = AreaWords::text($plugin->code, is_string($item['label'] ?? null) ? $item['label'] : '');
+
             $items[] = [
                 'id' => $item['id'],
-                'label' => AreaWords::text($plugin->code, is_string($item['label'] ?? null) ? $item['label'] : ''),
+                'label' => $label,
                 'format' => $format,
                 'value' => $value === '' ? null : $value,
                 'change' => $change,
+                'thing' => $label !== '' ? mb_strtolower($label) : null,
+                'before' => $context->period !== null ? AreaPeriods::before($context->period->id) : null,
             ];
         }
 
@@ -110,11 +133,12 @@ final class AreaReads
 
     /**
      * A chart block's labels and its declared series, each with its values;
-     * or the line saying it couldn't be shown.
+     * or the line saying it couldn't be shown. Earlier-period series from
+     * the plugin are drawn dashed with core's comparison label.
      *
      * @param  array<string, mixed>  $block
      *
-     * @return array{labels: list<string>, series: list<array{id: string, label: string, values: list<int|float>}>, failed: string|null}
+     * @return array{labels: list<string>, series: list<array{id: string, label: string, values: list<int|float>, dashed: bool}>, failed: string|null, empty?: bool}
      */
     public function chart(AreaPlugin $plugin, string $page, array $block, AreaContext $context): array
     {
@@ -125,7 +149,12 @@ final class AreaReads
             return ['labels' => [], 'series' => [], 'failed' => $this->failure($plugin)];
         }
 
+        if ($given->labels === [] && $given->series === []) {
+            return ['labels' => [], 'series' => [], 'failed' => null, 'empty' => true];
+        }
+
         $series = [];
+        $before = $context->period !== null ? AreaPeriods::beforeLabel($context->period->id) : null;
 
         foreach (is_array($block['series'] ?? null) ? $block['series'] : [] as $one) {
             if (! is_array($one) || ! is_string($one['id'] ?? null)) {
@@ -136,7 +165,17 @@ final class AreaReads
                 'id' => $one['id'],
                 'label' => AreaWords::text($plugin->code, is_string($one['label'] ?? null) ? $one['label'] : ''),
                 'values' => $given->series[$one['id']] ?? array_fill(0, count($given->labels), 0),
+                'dashed' => false,
             ];
+
+            if ($before !== null && array_key_exists($one['id'], $given->compare)) {
+                $series[] = [
+                    'id' => $one['id'].'__before',
+                    'label' => $before,
+                    'values' => $given->compare[$one['id']],
+                    'dashed' => true,
+                ];
+            }
         }
 
         return [
@@ -147,13 +186,80 @@ final class AreaReads
     }
 
     /**
+     * A record's header for its form page, or null when the plugin supplies
+     * none or the read fails.
+     *
+     * @return array{status: string|null, tone: string, meta: list<string>}|null
+     */
+    public function header(AreaPlugin $plugin, string $record, string $id, AreaContext $context): ?array
+    {
+        if (! $plugin->data instanceof HasRecordHeader) {
+            return null;
+        }
+
+        $given = $this->call($plugin, "header {$record}", fn (PluginArea $data): ?RecordHeader => $data instanceof HasRecordHeader ? $data->header($record, $id, $context) : null);
+
+        if (! $given instanceof RecordHeader) {
+            return null;
+        }
+
+        $meta = [];
+
+        foreach (array_slice($given->meta, 0, 3) as $line) {
+            $clean = CellText::clean($line, PluginColumns::MOST_TEXT);
+
+            if ($clean !== null && $clean !== '') {
+                $meta[] = $clean;
+            }
+        }
+
+        $status = $given->status === null ? null : CellText::clean($given->status, PluginColumns::MOST_BADGE);
+
+        return [
+            'status' => $status === '' ? null : $status,
+            'tone' => $given->tone,
+            'meta' => $meta,
+        ];
+    }
+
+    /**
+     * Tab counts by page id, or null when the plugin has none or the read fails.
+     *
+     * @return array<string, int>|null
+     */
+    public function counts(AreaPlugin $plugin, AreaContext $context): ?array
+    {
+        if (! $plugin->data instanceof HasAreaCounts) {
+            return null;
+        }
+
+        $given = $this->call($plugin, 'counts', fn (PluginArea $data): array => $data instanceof HasAreaCounts ? $data->counts($context) : []);
+
+        if (! is_array($given)) {
+            return null;
+        }
+
+        $counts = [];
+
+        foreach ($plugin->area->pages as $page) {
+            $value = $given[$page['id']] ?? null;
+
+            if (is_int($value) && $value >= 0 && $value < self::MOST_COUNT) {
+                $counts[$page['id']] = $value;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
      * One page of a table's rows, each its id, its cleaned cells and the
      * actions not offered on it, with the total when the plugin knows it;
      * or the line saying it couldn't be shown.
      *
      * @param  array<string, mixed>  $table
      *
-     * @return array{rows: list<array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string}>, unavailable: list<string>}>, total: int|null, failed: string|null}
+     * @return array{rows: list<array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string}>, unavailable: list<string>, queued: list<string>}>, total: int|null, failed: string|null}
      */
     public function rows(AreaPlugin $plugin, array $table, TableQuery $query, AreaContext $context): array
     {
@@ -172,6 +278,11 @@ final class AreaReads
             }
         }
 
+        $custom = array_values(array_filter(
+            is_array($table['rowActions'] ?? null) ? $table['rowActions'] : [],
+            fn (mixed $id): bool => is_string($id) && ! in_array($id, AreaValidator::ROW_ACTIONS, true),
+        ));
+
         $rows = [];
         $refused = false;
 
@@ -187,6 +298,12 @@ final class AreaReads
             $this->fault($plugin, new AreaAnswerRefused("The rows of {$record} answered with the wrong shape."));
         }
 
+        $queued = $this->queuedByRow($custom, array_column($rows, 'id'));
+
+        foreach ($rows as $index => $row) {
+            $rows[$index]['queued'] = $queued[$row['id']] ?? [];
+        }
+
         return ['rows' => $rows, 'total' => $given->total, 'failed' => null];
     }
 
@@ -198,7 +315,7 @@ final class AreaReads
      * @param  mixed  $row  what the plugin put in its page of rows
      * @param  array<string, string>  $kinds  each column's kind, by its id
      *
-     * @return array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string}>, unavailable: list<string>}|null
+     * @return array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string, href?: string|null, host?: string|null}>, unavailable: list<string>}|null
      */
     private function row(mixed $row, array $kinds, bool &$refused): ?array
     {
@@ -221,16 +338,64 @@ final class AreaReads
             }
         }
 
-        return ['id' => $row->id, 'cells' => $cells, 'unavailable' => array_values(array_filter($row->unavailable, is_string(...)))];
+        $unavailable = array_values(array_filter($row->unavailable, is_string(...)));
+
+        return [
+            'id' => $row->id,
+            'cells' => $cells,
+            'unavailable' => array_slice($unavailable, 0, self::MOST_UNAVAILABLE),
+            'queued' => [],
+        ];
+    }
+
+    /**
+     * Custom action ids with a waiting or running job for each row, keyed by
+     * record id.
+     *
+     * @param  list<string>  $actions
+     * @param  list<string>  $recordIds
+     *
+     * @return array<string, list<string>>
+     */
+    private function queuedByRow(array $actions, array $recordIds): array
+    {
+        if ($actions === [] || $recordIds === []) {
+            return [];
+        }
+
+        $keys = [];
+
+        foreach ($recordIds as $recordId) {
+            foreach ($actions as $action) {
+                $keys[RunPluginAction::uniqueKey($action, $recordId)] = [$recordId, $action];
+            }
+        }
+
+        $found = [];
+
+        foreach (TrackedJob::query()
+            ->whereIn('state', [JobState::Waiting, JobState::Running])
+            ->whereIn('unique_key', array_keys($keys))
+            ->pluck('unique_key') as $key) {
+            if (! is_string($key) || ! isset($keys[$key])) {
+                continue;
+            }
+
+            [$recordId, $action] = $keys[$key];
+            $found[$recordId][] = $action;
+        }
+
+        return $found;
     }
 
     /**
      * One cell, cleaned: false when it isn't a cell of its column's kind,
-     * null when no text is left.
+     * null when no text is left. A link keeps only an https address with
+     * no user or password; anything else is drawn as no link.
      *
      * @param  mixed  $cell  what the plugin put in the row
      *
-     * @return array{kind: string, value: string|int|float, tone?: string}|false|null
+     * @return array{kind: string, value: string|int|float, tone?: string, href?: string|null, host?: string|null}|false|null
      */
     private function cell(mixed $cell, string $kind): array|false|null
     {
@@ -248,9 +413,45 @@ final class AreaReads
             return null;
         }
 
-        return $kind === Cell::BADGE
-            ? ['kind' => Cell::BADGE, 'value' => $clean, 'tone' => $cell->tone ?? 'neutral']
-            : ['kind' => Cell::TEXT, 'value' => $clean];
+        if ($kind === Cell::BADGE) {
+            return ['kind' => Cell::BADGE, 'value' => $clean, 'tone' => $cell->tone ?? 'neutral'];
+        }
+
+        if ($kind === Cell::LINK) {
+            $href = $this->safeHref($cell->href);
+            $host = $href === null ? null : parse_url($href, PHP_URL_HOST);
+
+            return [
+                'kind' => Cell::LINK,
+                'value' => $clean,
+                'href' => $href,
+                'host' => is_string($host) && $host !== '' ? $host : null,
+            ];
+        }
+
+        return ['kind' => Cell::TEXT, 'value' => $clean];
+    }
+
+    /**
+     * An https address with a host and no user or password, or null.
+     */
+    private function safeHref(?string $href): ?string
+    {
+        if ($href === null || $href === '') {
+            return null;
+        }
+
+        $parts = parse_url($href);
+
+        if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https' || ! is_string($parts['host'] ?? null) || $parts['host'] === '') {
+            return null;
+        }
+
+        if (array_key_exists('user', $parts) || array_key_exists('pass', $parts)) {
+            return null;
+        }
+
+        return $href;
     }
 
     /**
@@ -298,6 +499,23 @@ final class AreaReads
     public function failure(AreaPlugin $plugin): string
     {
         return __('This part of :plugin couldn’t be shown this time.', ['plugin' => $plugin->label]);
+    }
+
+    /**
+     * Whether a figures block asked for the "No statistics yet" state when
+     * figures() is empty: `empty: true`, or its own non-empty words.
+     *
+     * @param  array<string, mixed>  $block
+     */
+    private static function figuresDeclareEmpty(array $block): bool
+    {
+        if (! array_key_exists('empty', $block)) {
+            return false;
+        }
+
+        $empty = $block['empty'];
+
+        return $empty === true || (is_string($empty) && trim($empty) !== '');
     }
 
     /**

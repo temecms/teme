@@ -17,7 +17,11 @@ import { TextButton } from '@/components/ui/text-button';
 import { adminLocale } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import type { AreaChartBlock, AreaChartData } from '@/types/plugin-area';
+import type {
+    AreaChartBlock,
+    AreaChartData,
+    AreaPeriodProps,
+} from '@/types/plugin-area';
 
 /** The series' colours, from the design tokens, in order. */
 const COLOURS = ['var(--chart-1)', 'var(--chart-2)', 'var(--ink-3)'];
@@ -48,15 +52,16 @@ function dayLabel(label: string): string {
  * A plugin's chart (docs/plans/plugin-sockets-2.md, A9): a line or ranked
  * bar chart core draws with Recharts from the plugin's numbers, in the
  * order the plugin gave them, its legend above, day labels as "18 Oct", and
- * Show as table for the same numbers. No series is dashed: the contract
- * carries no flag for one.
+ * Show as table for the same numbers. Earlier-period series are dashed.
  */
 export function AreaChart({
     block,
     data,
+    period,
 }: {
     block: AreaChartBlock;
     data: AreaChartData;
+    period?: AreaPeriodProps | null;
 }) {
     const [asTable, setAsTable] = useState(false);
     const labels = data.labels.map(dayLabel);
@@ -76,22 +81,45 @@ export function AreaChart({
                     series.values[index] ?? 0,
                 ]),
             ),
-            total: data.series.reduce(
-                (sum, series) => sum + (series.values[index] ?? 0),
-                0,
-            ),
+            total: data.series
+                .filter((series) => !series.dashed)
+                .reduce(
+                    (sum, series) => sum + (series.values[index] ?? 0),
+                    0,
+                ),
         }));
 
         return built;
     }, [data.labels, data.series]);
     const Chart = block.kind === 'bar' ? BarChart : LineChart;
+    // Long periods group by week; the rest by day — from the period id, not
+    // how many points the plugin returned.
+    const unit =
+        period?.id === 'last_90_days' || period?.id === 'this_year'
+            ? __('by week')
+            : __('by day');
+    const title = `${block.label} ${unit}`;
+    const ariaLabel =
+        period !== null && period !== undefined
+            ? `${title}: ${period.range}.`
+            : `${title}: ${labels[0] ?? ''}–${labels.at(-1) ?? ''}.`;
+
+    if (data.empty) {
+        return (
+            <Panel data-test="area-chart-empty">
+                <p className="text-body text-ink-2 p-5">
+                    {__('No statistics yet')}
+                </p>
+            </Panel>
+        );
+    }
 
     return (
         <Panel data-test="area-chart" data-kind={block.kind}>
-            <figure className="grid gap-3 p-5">
+            <figure className="grid gap-3 p-5" aria-label={ariaLabel}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <figcaption className="text-body font-semibold">
-                        {block.label}
+                        {title}
                     </figcaption>
                     <TextButton
                         type="button"
@@ -173,7 +201,9 @@ export function AreaChart({
                                             aria-hidden="true"
                                             className={cn(
                                                 'inline-block h-0.5 w-4',
-                                                SWATCH[at],
+                                                series.dashed
+                                                    ? 'border-ink-3 border-t border-dashed bg-transparent'
+                                                    : SWATCH[at],
                                             )}
                                         />
                                         {series.label}
@@ -252,6 +282,9 @@ export function AreaChart({
                                                         index % COLOURS.length
                                                     ]
                                                 }
+                                                fillOpacity={
+                                                    series.dashed ? 0.35 : 1
+                                                }
                                                 isAnimationActive={false}
                                             />
                                         ) : (
@@ -265,6 +298,11 @@ export function AreaChart({
                                                     ]
                                                 }
                                                 strokeWidth={2}
+                                                strokeDasharray={
+                                                    series.dashed
+                                                        ? '4 4'
+                                                        : undefined
+                                                }
                                                 dot={false}
                                                 isAnimationActive={false}
                                             />

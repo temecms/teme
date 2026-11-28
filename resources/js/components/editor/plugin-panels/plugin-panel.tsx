@@ -1,15 +1,23 @@
 import {
+    Bell,
     ChartLine,
+    Code,
     ExternalLink,
+    Globe,
+    Grid2X2,
+    Inbox,
+    Layout,
     Link as LinkIcon,
+    List,
     ListChecks,
+    Mail,
     PenLine,
     Plug,
     RefreshCw,
     Send,
     Settings,
     Sparkles,
-    Bell,
+    User,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -26,7 +34,7 @@ import { PanelActionForm } from './panel-action-form';
 import { PanelSuggestions } from './panel-suggestions';
 import type { PanelApply } from './panel-suggestions';
 
-/** A panel's icon, from the closed list its manifest chooses from. */
+/** A panel's or row action's icon, from the closed list its manifest chooses from. */
 export const PANEL_ICONS: Record<string, LucideIcon> = {
     plug: Plug,
     link: LinkIcon,
@@ -39,6 +47,14 @@ export const PANEL_ICONS: Record<string, LucideIcon> = {
     sparkles: Sparkles,
     'pen-line': PenLine,
     'list-checks': ListChecks,
+    mail: Mail,
+    inbox: Inbox,
+    layout: Layout,
+    list: List,
+    user: User,
+    globe: Globe,
+    code: Code,
+    grid: Grid2X2,
 };
 
 /** How often the panel asks again while its work waits or runs, and for how long at most. */

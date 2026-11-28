@@ -50,13 +50,15 @@ A page draws its blocks in order:
 |---|---|---|
 | `figures` | A row of figures, each with its change | `items`, each an `id`, a `label` and a `format`: `number`, `percent` or `text`; one to eight a block |
 | `chart` | A line or bar chart, with a table of the same numbers for screen readers | `label`, `kind` (`line` or `bar`) and `series`, each an `id` and a `label` |
-| `table` | One record's rows, with search, filters, sorting, pages, a row menu and bulk actions | `record`, `columns` (`text`, `number` or `badge`, `sortable`), `search`, `filters`, `perPage` (up to 100), `rowActions`, `bulkActions` |
+| `table` | One record's rows, with search, filters, sorting, pages, a row menu and bulk actions | `record`, `columns` (`text`, `number`, `badge` or `link`, `sortable`), `search`, `filters`, `perPage` (up to 100), `rowActions`, `bulkActions` |
 | `actions` | Buttons that queue the jobs behind your declared actions | `actions`, ids from `contributes.actions` |
 | `notice` | One line of text | `text` and a `tone` |
 
 Each figures, chart and table block loads on its own, after the page, so one slow block never holds the others.
 
-Row actions are `edit`, `duplicate`, `enable`, `disable` and `delete`; bulk actions are the same without `edit`. Core asks before a delete, and acts on at most 100 records at once. A row can leave an action out by naming it in its `unavailable` list.
+Row actions are `edit`, `duplicate`, `enable`, `disable` and `delete`, and up to two of your own actions marked `"row": true` under `contributes.actions` (never bulk). Bulk actions are the built-in ones without `edit`. Core asks before a delete, and before a custom action that declares `confirm`. A row can leave an action out by naming it in its `unavailable` list. Core re-reads that list before queuing and refuses a listed action; the job may still check.
+
+A `link` column shows an outside address: the cell is `Cell::link($text, $href)`. Core draws only an `https://` address with no user or password, in a new tab with the host under the link; anything else shows as no link. Content lists never use link cells.
 
 ## The forms
 
@@ -89,14 +91,22 @@ The class named under `plugin` in the manifest implements `HasPluginArea` beside
 
 | Method | What it answers |
 |---|---|
-| `figures($page, $block, $context)` | `Figure` values by item id: `Figure::number()`, `Figure::percent()` or `Figure::text()`, with an optional change, 0.12 for up 12% |
-| `chart($page, $block, $context)` | A `Chart` of labels, at most 366, and one value a label for each series |
+| `figures($page, $block, $context)` | `Figure` values by item id: `Figure::number()`, `Figure::percent()` or `Figure::text()`, with an optional change, 0.12 for up 12%. An empty array shows a dash for each figure unless the figures block declares `empty`: `true` uses core's "Figures appear once there is something to count.", a string uses those words, for the "No statistics yet" state. Read `$context->period` for the window's dates in the **site's** time zone |
+| `chart($page, $block, $context)` | A `Chart` of labels, at most 366, and one value a label for each series; pass earlier-period values as the optional third `$compare` argument for dashed lines |
 | `rows($record, $query, $context)` | A `RowPage` of up to 100 `Row` values for the `TableQuery`'s page, search, filters and sort, and the total when you know it |
 | `values($record, $id, $context)` | The record's stored values by field key, or null when there is no such record |
 | `save($record, $id, $values, $context)` | Stores the checked values and answers `Saved` with the record's id; `$id` is null for a new one |
 | `act($record, $action, $ids, $context)` | Runs `duplicate`, `enable`, `disable` or `delete` on those records |
 
-A row's cells are list `Cell` values by column id: `Cell::text()`, `Cell::number()` or `Cell::badge()`. Core shows everything you hand it as text, never as markup.
+A row's cells are list `Cell` values by column id: `Cell::text()`, `Cell::number()`, `Cell::badge()`, or `Cell::link()` for a `link` column. Core shows everything you hand it as text, never as markup.
+
+### Record header, tab counts and the statistics period
+
+Implement `HasRecordHeader` beside `PluginArea` to supply a record's status pill and up to three meta lines (`RecordHeader`); return null for title only. A failed header read never becomes an error page.
+
+Implement `HasAreaCounts` to answer counts by page id for the area's tabs. Core loads them after the page; until they arrive other tabs show a quiet "Counting" pill. The open tab still uses its first table's total when you send none. A missing, failed or over-large count shows no number.
+
+Core offers six statistics periods (`Last 7 days`, `Last 30 days` as the default, `Last 90 days`, `This month`, `Last month`, `This year`) when a page has figures or charts. Plugins cannot add periods. The chosen window is `$context->period` (`AreaPeriod`): start, end, and the earlier window to compare, as `Y-m-d` in the site's time zone. Home panels use the last 30 days with no select.
 
 ## Budgets and refusals
 

@@ -820,10 +820,18 @@ final class ContributionsValidator implements ContributionsCheck
 
         $ids = [];
 
+        $rowActions = 0;
+
         foreach ($actions as $action) {
             $action = is_array($action) ? $action : [];
             $id = is_string($action['id'] ?? null) ? $action['id'] : null;
             $label = $action['label'] ?? null;
+
+            foreach (array_keys($action) as $key) {
+                if (! in_array($key, ['id', 'label', 'description', 'job', 'row', 'confirm', 'toast', 'queued', 'icon'], true)) {
+                    $errors[] = __('An action can’t have :key.', ['key' => (string) $key]);
+                }
+            }
 
             if (preg_match(self::LINK_ID, $id ?? '') !== 1) {
                 $errors[] = __('An action’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
@@ -841,11 +849,84 @@ final class ContributionsValidator implements ContributionsCheck
                 $errors[] = __('An action must name the job it queues.');
             }
 
+            if (array_key_exists('row', $action) && ! is_bool($action['row'])) {
+                $errors[] = __('An action’s row must be true or false.');
+            }
+
+            if (($action['row'] ?? false) === true) {
+                $rowActions++;
+            }
+
+            array_push($errors, ...$this->actionConfirmErrors($action['confirm'] ?? null));
+
+            if (array_key_exists('toast', $action) && (! is_string($action['toast']) || trim($action['toast']) === '' || mb_strlen($action['toast']) > 200)) {
+                $errors[] = __('An action’s toast must be text of 1 to 200 characters.');
+            }
+
+            if (array_key_exists('queued', $action) && (! is_string($action['queued']) || trim($action['queued']) === '' || mb_strlen($action['queued']) > 40)) {
+                $errors[] = __('An action’s queued pill must be text of 1 to 40 characters.');
+            }
+
+            if (array_key_exists('icon', $action) && ! in_array($action['icon'], PanelValidator::icons(), true)) {
+                $errors[] = __(':icon isn’t an icon a plugin can use.', ['icon' => is_scalar($action['icon']) ? (string) $action['icon'] : '']);
+            }
+
             if ($id !== null && in_array($id, $ids, true)) {
                 $errors[] = __('Two actions can’t share the id :id.', ['id' => $id]);
             }
 
             $ids[] = $id;
+        }
+
+        if ($rowActions > self::MOST_ROW_ACTIONS) {
+            $errors[] = __('A plugin can mark at most 2 actions for table rows.');
+        }
+
+        return $errors;
+    }
+
+    /**
+     * An action's confirm: a sentence, or an object of title, text, button
+     * and cancel, each optional within the object when at least one is set.
+     *
+     * @return list<string>
+     */
+    private function actionConfirmErrors(mixed $confirm): array
+    {
+        if ($confirm === null) {
+            return [];
+        }
+
+        if (is_string($confirm)) {
+            return trim($confirm) === '' || mb_strlen($confirm) > 200
+                ? [__('An action’s confirm sentence must be text of 1 to 200 characters.')]
+                : [];
+        }
+
+        if (! is_array($confirm)) {
+            return [__('An action’s confirm must be a sentence or an object of title, text, button and cancel.')];
+        }
+
+        $errors = [];
+
+        foreach (array_keys($confirm) as $key) {
+            if (! in_array($key, ['title', 'text', 'button', 'cancel'], true)) {
+                $errors[] = __('An action’s confirm can’t have :key.', ['key' => (string) $key]);
+            }
+        }
+
+        foreach (['title' => 120, 'text' => 200, 'button' => 40, 'cancel' => 40] as $key => $most) {
+            if (! array_key_exists($key, $confirm)) {
+                continue;
+            }
+
+            if (! is_string($confirm[$key]) || trim($confirm[$key]) === '' || mb_strlen($confirm[$key]) > $most) {
+                $errors[] = __('An action’s confirm :key must be text of 1 to :most characters.', ['key' => $key, 'most' => $most]);
+            }
+        }
+
+        if ($errors === [] && $confirm === []) {
+            $errors[] = __('An action’s confirm object needs at least one of title, text, button or cancel.');
         }
 
         return $errors;

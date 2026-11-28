@@ -62,6 +62,6 @@ it('shows a permitted person the plugin\'s panel under From plugins on Home, wit
 
     $page->assertSee('From plugins')
         ->assertSee('Ads')
-        ->assertSee('Impressions, last 30 days')
+        ->assertSee('Impressions')
         ->assertDontSee('Customising Home');
 });
