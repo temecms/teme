@@ -82,7 +82,7 @@ Choose **Start the import**. Teme asks for your password first.
 
 ## To bring a copy of the uploads folder
 
-When the old site is closed or only on a local address, or when many pictures would load a live site, make a copy of its `wp-content/uploads` folder and zip it. Under **Copy of the uploads folder** on the plan, choose the zip. It uploads in pieces, and a dropped connection carries on. Teme then takes each picture from the copy and asks the old site only for pictures the copy lacks. The copy is kept for later catch-ups. The report says how many pictures came from the copy and how many from the old site. A copy of up to 10 GB can be uploaded here; a larger one is attached by an operator.
+When the old site is closed or only on a local address, or when many pictures would load a live site, make a copy of its `wp-content/uploads` folder and zip it. Under **Copy of the uploads folder** on the plan, choose the zip. It uploads in pieces, and a dropped connection carries on. Teme then takes each picture from the copy and asks the old site only for pictures the copy lacks. The copy is kept for later catch-ups. The report says how many pictures came from the copy and how many from the old site. A copy of up to 10 GB can be uploaded here; a larger one is attached by an operator. The copy never brings the files in the folders of protected plugins, such as order forms and logs, and the report says how many were left out. To delete the copy, choose **Delete the copy now** on the plan; it can't be deleted while an import from the site is running.
 
 ## To follow, stop and carry on
 

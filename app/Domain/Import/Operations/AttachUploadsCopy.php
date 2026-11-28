@@ -74,6 +74,7 @@ final class AttachUploadsCopy extends BaseOperation
                 'kind' => $path['kind'],
                 'path' => $path['path'],
                 'prefix' => $path['prefix'],
+                'left_out' => (new UploadsCopy($path['kind'], $path['path'], $path['prefix']))->leftOut(),
                 'name' => basename($path['path']),
                 'size_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
                 'received_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,

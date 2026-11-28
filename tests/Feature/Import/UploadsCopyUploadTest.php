@@ -14,6 +14,7 @@ use App\Domain\Import\Operations\Input\StartUploadsCopyInput;
 use App\Domain\Import\Operations\Input\UploadsCopyUploadInput;
 use App\Domain\Import\Operations\ReceiveUploadsCopyPiece;
 use App\Domain\Import\Operations\StartUploadsCopy;
+use App\Domain\Import\Queries\ImportScreen;
 use App\Domain\Import\Queries\ImportUploadCopies;
 use App\Domain\Import\Uploads\SourceUploads;
 use App\Domain\Import\Uploads\UploadsCopy;
@@ -347,4 +348,25 @@ it('attaches a folder copy from the console, and refuses the application’s own
     rmdir($folder.'/2024/05');
     rmdir($folder.'/2024');
     rmdir($folder);
+});
+
+it('records on the copy what a zip leaves out, and the run’s report says how many files that is', function (): void {
+    $zip = new ZipArchive;
+    $path = tempnam(sys_get_temp_dir(), 'teme-left-zip-');
+    $zip->open($path, ZipArchive::OVERWRITE);
+    $zip->addFromString('uploads/2024/05/Harbour One.jpg', dlJpeg(640, 480));
+    $zip->addFromString('uploads/woocommerce_uploads/receipt.jpg', dlJpeg(320, 240));
+    $zip->addFromString('uploads/woocommerce_uploads/invoice.jpg', dlJpeg(320, 240));
+    $zip->close();
+    $leaving = (string) file_get_contents($path);
+    unlink($path);
+
+    $ready = uploadCopy($this->source->id, $leaving, (string) $this->admin->id);
+    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+
+    expect(app(ImportUploadCopies::class)->forSource($this->source->id)['leftOut'])->toBe(['files' => 2, 'folders' => ['woocommerce_uploads' => 2]]);
+
+    $run = importRun($this->source);
+
+    expect(app(ImportScreen::class)->report($run->id)['leftOut'])->toBe(['files' => 2, 'folders' => ['woocommerce_uploads' => 2]]);
 });

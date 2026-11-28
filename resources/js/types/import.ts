@@ -230,6 +230,8 @@ export type ImportRunRow = {
 export type RunReport = {
     /** The pictures the run brought, by where their files came from. */
     pictures: { copy: number; site: number };
+    /** What the site's uploads copy left out; null when the site has no copy. */
+    leftOut: LeftOut | null;
     types: {
         type: string;
         label: string;
@@ -281,11 +283,19 @@ export type ImportShowPage = {
     maxUploadsMb: number;
 };
 
+/** Files an uploads copy leaves out, by the protected plugin folder each is in. */
+export type LeftOut = {
+    files: number;
+    folders: Record<string, number>;
+};
+
 /** A site's uploads copy as its import screen shows it. */
 export type ImportUploadCopy = {
     id: string;
     /** Whether Teme stored the file itself, so deleting the copy deletes it. */
     keptByTeme: boolean;
+    /** The files in a protected plugin's folder, which a copy never brings; null when not counted. */
+    leftOut: LeftOut | null;
     name: string;
     sizeBytes: number;
     kind: string;

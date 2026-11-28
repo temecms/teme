@@ -18,7 +18,11 @@ namespace App\Domain\Import\Uploads;
 
 use App\Domain\Media\Downloads\DownloadedFile;
 use App\Domain\Media\FileTypes;
+use FilesystemIterator;
 use finfo;
+use Generator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 use ZipArchive;
 
@@ -165,13 +169,82 @@ final readonly class UploadsCopy
      */
     public static function protectedRelative(string $relative): ?string
     {
+        $folder = self::protectedFolder($relative);
+
+        return $folder === null ? null : 'It is in the folder of a protected plugin, '.$folder.', so Teme doesn’t bring it from a copy.';
+    }
+
+    /**
+     * The protected plugin's folder a relative path is in, or null.
+     */
+    public static function protectedFolder(string $relative): ?string
+    {
         foreach (explode('/', $relative) as $part) {
             if (in_array($part, self::PROTECTED_FOLDERS, true)) {
-                return 'It is in the folder of a protected plugin, '.$part.', so Teme doesn’t bring it from a copy.';
+                return $part;
             }
         }
 
         return null;
+    }
+
+    /**
+     * How many of the copy's files are in a protected plugin's folder, and in which folders: what the copy leaves out.
+     *
+     * @return array{files: int, folders: array<string, int>}
+     */
+    public function leftOut(): array
+    {
+        $folders = [];
+
+        foreach ($this->filesUnderPrefix() as $relative) {
+            $folder = self::protectedFolder($relative);
+
+            if ($folder !== null) {
+                $folders[$folder] = ($folders[$folder] ?? 0) + 1;
+            }
+        }
+
+        ksort($folders);
+
+        return ['files' => array_sum($folders), 'folders' => $folders];
+    }
+
+    /**
+     * Each file of the copy under its prefix, by its path under that prefix, read from the folder or the zip's entries.
+     *
+     * @return Generator<int, string>
+     */
+    private function filesUnderPrefix(): Generator
+    {
+        if ($this->kind === self::FOLDER) {
+            $root = rtrim($this->path, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$this->prefix;
+            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+
+            foreach ($files as $file) {
+                if ($file->isFile() && ! $file->isLink()) {
+                    yield substr($file->getPathname(), strlen($root));
+                }
+            }
+
+            return;
+        }
+
+        $zip = new ZipArchive;
+
+        if ($zip->open($this->path) !== true) {
+            return;
+        }
+
+        for ($index = 0; $index < $zip->numFiles; $index++) {
+            $name = (string) $zip->getNameIndex($index);
+
+            if (str_starts_with($name, $this->prefix) && ! str_ends_with($name, '/')) {
+                yield substr($name, strlen($this->prefix));
+            }
+        }
+
+        $zip->close();
     }
 
     /**

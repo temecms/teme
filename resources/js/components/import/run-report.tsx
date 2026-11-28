@@ -138,6 +138,19 @@ export function RunReport({
                 <h3 id="import-came" className="text-body font-semibold">
                     {__('What came across')}
                 </h3>
+                {report.leftOut !== null && report.leftOut.files > 0 && (
+                    <p data-test="import-report-left-out">
+                        {__(
+                            'The uploads copy left out :files files in the folders of protected plugins (:folders). Teme never brings those from a copy.',
+                            {
+                                files: String(report.leftOut.files),
+                                folders: Object.entries(report.leftOut.folders)
+                                    .map(([name, count]) => `${name}: ${count}`)
+                                    .join(', '),
+                            },
+                        )}
+                    </p>
+                )}
                 {report.pictures.copy + report.pictures.site > 0 && (
                     <p data-test="import-report-pictures">
                         {__(

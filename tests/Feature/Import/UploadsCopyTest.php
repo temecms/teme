@@ -178,3 +178,28 @@ it('refuses a picture bigger than the limit, from a folder and from a zip entry'
     unlink($zipPath);
     unlink($this->folder.'/2024/05/Big One.jpg');
 });
+
+it('counts the files a folder copy leaves out, by the protected folder each is in', function (): void {
+    $folder = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-left-'.uniqid();
+    mkdir($folder.'/uploads/woocommerce_uploads', recursive: true);
+    mkdir($folder.'/uploads/gravity_forms');
+    mkdir($folder.'/uploads/2024/05', recursive: true);
+    file_put_contents($folder.'/uploads/woocommerce_uploads/a.jpg', 'a');
+    file_put_contents($folder.'/uploads/woocommerce_uploads/b.jpg', 'b');
+    file_put_contents($folder.'/uploads/gravity_forms/c.jpg', 'c');
+    file_put_contents($folder.'/uploads/2024/05/Harbour One.jpg', dlJpeg(640, 480));
+
+    $copy = new UploadsCopy(UploadsCopy::FOLDER, $folder, 'uploads/');
+
+    expect($copy->leftOut())->toBe(['files' => 3, 'folders' => ['gravity_forms' => 1, 'woocommerce_uploads' => 2]]);
+
+    foreach (['woocommerce_uploads/a.jpg', 'woocommerce_uploads/b.jpg', 'gravity_forms/c.jpg', '2024/05/Harbour One.jpg'] as $file) {
+        unlink($folder.'/uploads/'.$file);
+    }
+    rmdir($folder.'/uploads/woocommerce_uploads');
+    rmdir($folder.'/uploads/gravity_forms');
+    rmdir($folder.'/uploads/2024/05');
+    rmdir($folder.'/uploads/2024');
+    rmdir($folder.'/uploads');
+    rmdir($folder);
+});

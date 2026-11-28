@@ -184,6 +184,22 @@ export function UploadsCopyPanel({
                         },
                     )}
                 </p>
+                {copy.leftOut !== null && copy.leftOut.files > 0 && (
+                    <p
+                        className="text-body text-ink-2"
+                        data-test="uploads-copy-left-out"
+                    >
+                        {__(
+                            'The copy leaves out :files files in the folders of protected plugins (:folders). Teme never brings those from a copy.',
+                            {
+                                files: String(copy.leftOut.files),
+                                folders: Object.entries(copy.leftOut.folders)
+                                    .map(([name, count]) => `${name}: ${count}`)
+                                    .join(', '),
+                            },
+                        )}
+                    </p>
+                )}
                 {copy.keptByTeme && (
                     <div>
                         <Button
@@ -228,7 +244,7 @@ export function UploadsCopyPanel({
                 <div className="grid max-w-(--form-max) gap-5">
                     <p className="text-body text-ink-2">
                         {__(
-                            'Zip the old site’s wp-content/uploads folder and upload the zip here. Teme takes each picture from the copy when it has it, and asks the old site only for the rest. Make the copy once, off-peak, with tar or rsync.',
+                            'Zip the old site’s wp-content/uploads folder and upload the zip here. Teme takes each picture from the copy when it has it, and asks the old site only for the rest. Zip it once, off-peak.',
                         )}
                     </p>
 

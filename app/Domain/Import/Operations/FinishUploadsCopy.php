@@ -89,14 +89,16 @@ final class FinishUploadsCopy extends BaseOperation
             ];
         }
 
-        $replaced = DB::transaction(function () use ($upload, $prefix): ?ImportUpload {
+        $leftOut = (new UploadsCopy(UploadsCopy::ZIP, (string) $upload->path, (string) $prefix))->leftOut();
+
+        $replaced = DB::transaction(function () use ($upload, $prefix, $leftOut): ?ImportUpload {
             $previous = ImportUpload::query()->where('source_id', $upload->source_id)->where('state', 'ready')->lockForUpdate()->first();
 
             if ($previous !== null) {
                 $previous->delete();
             }
 
-            $upload->forceFill(['state' => 'ready', 'prefix' => $prefix])->save();
+            $upload->forceFill(['state' => 'ready', 'prefix' => $prefix, 'left_out' => $leftOut])->save();
 
             return $previous;
         });

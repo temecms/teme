@@ -409,6 +409,7 @@ final readonly class ImportScreen
         return [
             'types' => $types,
             'pictures' => self::pictures($runId),
+            'leftOut' => app(ImportUploadCopies::class)->forSource($run->source_id)['leftOut'] ?? null,
             'messages' => $messages,
             'more' => $codes->count() > self::CODES,
             'levels' => ['error' => (int) ($levels[ImportMessageLevel::Error->value] ?? 0), 'warning' => (int) ($levels[ImportMessageLevel::Warning->value] ?? 0) + $noteWarnings],

@@ -21,7 +21,7 @@ final readonly class ImportUploadCopies
     /**
      * The site's ready copy as the screen shows it, or null when it has none.
      *
-     * @return array{id: string, keptByTeme: bool, name: string, sizeBytes: int, kind: string}|null
+     * @return array{id: string, keptByTeme: bool, leftOut: array{files: int, folders: array<string, int>}|null, name: string, sizeBytes: int, kind: string}|null
      */
     public function forSource(string $sourceId): ?array
     {
@@ -34,9 +34,29 @@ final readonly class ImportUploadCopies
         return [
             'id' => (string) $upload->id,
             'keptByTeme' => (bool) $upload->kept_by_teme,
+            'leftOut' => self::leftOut($upload->left_out),
             'name' => (string) $upload->name,
             'sizeBytes' => (int) $upload->size_bytes,
             'kind' => (string) $upload->kind,
+        ];
+    }
+
+    /**
+     * What the copy left out, as the report and the panel show it, or null when it wasn't counted.
+     *
+     * @param  array<string, mixed>|null  $stored
+     *
+     * @return array{files: int, folders: array<string, int>}|null
+     */
+    private static function leftOut(?array $stored): ?array
+    {
+        if ($stored === null) {
+            return null;
+        }
+
+        return [
+            'files' => (int) ($stored['files'] ?? 0),
+            'folders' => array_map(fn (mixed $count): int => (int) $count, (array) ($stored['folders'] ?? [])),
         ];
     }
 }
