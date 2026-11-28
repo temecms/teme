@@ -39,6 +39,7 @@ namespace Teme\Contracts\Plugins;
  * Teme verified it, and ContentSubmissions the Submissions door, which keeps
  * what a visitor sends from a public form as an item waiting for review (1.3.0).
  * Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects.
+ * TermsWrite opens the TermWriter door, to create, update, list and remove terms of the taxonomies the plugin owns.
  *
  * @since 0.5.0
  */
@@ -118,4 +119,7 @@ enum Capability: string
 
     /** @since 1.8.0 */
     case ImportRead = 'import.read';
+
+    /** @since next */
+    case TermsWrite = 'terms.write';
 }

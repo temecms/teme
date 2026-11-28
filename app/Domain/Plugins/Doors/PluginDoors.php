@@ -12,7 +12,8 @@
  * when it was granted people.read, SiteAi when it was granted ai and
  * declares AI tasks, HookSender when it declares hooks of its own, and
  * Notices for its declared kinds when it was granted notices.send, and
- * RedirectWriter when it was granted redirects.
+ * RedirectWriter when it was granted redirects, and TermWriter when it was
+ * granted terms.write.
  * Bound as the loader's PluginServices.
  *
  * @package Teme
@@ -71,6 +72,7 @@ use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
+use Teme\Contracts\Taxonomy\TermWriter;
 
 final readonly class PluginDoors implements PluginServices
 {
@@ -175,6 +177,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Redirects->value, $capabilities, true)) {
             $offered[RedirectWriter::class] = new PluginRedirects($code);
+        }
+
+        if (in_array(Capability::TermsWrite->value, $capabilities, true)) {
+            $offered[TermWriter::class] = new PluginTermWriter($name, $code);
         }
 
         $manifest = $this->registry->find($name)?->manifest;

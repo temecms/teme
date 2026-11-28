@@ -44,6 +44,7 @@ use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Redirects\RedirectWriter;
+use Teme\Contracts\Taxonomy\TermWriter;
 use UnexpectedValueException;
 
 final readonly class ManifestValidator
@@ -443,6 +444,8 @@ final readonly class ManifestValidator
                 $errors[] = __(':class asks for Notices, but the plugin doesn’t ask for notices.send.', ['class' => $class]);
             } elseif (strtolower((string) $type) === strtolower(RedirectWriter::class) && ! in_array(Capability::Redirects->value, $read->capabilities(), true)) {
                 $errors[] = __(':class asks for RedirectWriter, but the plugin doesn’t ask for redirects.', ['class' => $class]);
+            } elseif (strtolower((string) $type) === strtolower(TermWriter::class) && ! in_array(Capability::TermsWrite->value, $read->capabilities(), true)) {
+                $errors[] = __(':class asks for TermWriter, but the plugin doesn’t ask for terms.write.', ['class' => $class]);
             } elseif (strtolower((string) $type) === strtolower(HookSender::class) && DeclaredHooks::of($read) === []) {
                 $errors[] = __(':class asks for HookSender, but the plugin declares no hooks under contributes.hooks.', ['class' => $class]);
             }

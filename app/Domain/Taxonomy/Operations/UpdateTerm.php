@@ -24,7 +24,10 @@ use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Taxonomy\Operations\Concerns\ValidatesTerms;
 use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
+use App\Domain\Taxonomy\PluginTermGrant;
 use App\Domain\Taxonomy\TermSlugs;
+use App\Domain\Types\TypeOwners;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
@@ -37,6 +40,12 @@ final class UpdateTerm extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var SaveTermInput $input */
+        if ($input->plugin !== null) {
+            PluginTermGrant::require($input->plugin);
+
+            return;
+        }
+
         $this->authorizeTerms($input, $input->taxonomy);
     }
 
@@ -49,10 +58,19 @@ final class UpdateTerm extends BaseOperation
             throw ValidationException::withMessages(['taxonomy' => __('A term cannot move to another taxonomy.')]);
         }
 
+        if ($input->plugin !== null) {
+            if ($input->pluginName === null || TypeOwners::owner('taxonomies', $input->taxonomy) !== $input->pluginName) {
+                throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
+            }
+        }
+
         $parentId = $input->keepParent ? ($term->parent_id === null ? null : (string) $term->parent_id) : $input->parentId;
 
         $this->validateTerm($input->taxonomy, $input->name, $input->slug, $parentId, $term->id);
-        $this->refuseParentInOtherLanguage($input->taxonomy, $parentId, $term->language === null ? null : (string) $term->language);
+
+        if ($input->plugin === null) {
+            $this->refuseParentInOtherLanguage($input->taxonomy, $parentId, $term->language === null ? null : (string) $term->language);
+        }
     }
 
     protected function perform(OperationInput $input): Term

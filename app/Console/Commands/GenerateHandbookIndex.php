@@ -46,6 +46,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/submissions.md',
         'plugins/directory.md',
         'plugins/redirects.md',
+        'plugins/terms.md',
         'plugins/outbound-files.md',
         'plugins/jobs.md',
         'plugins/commands.md',

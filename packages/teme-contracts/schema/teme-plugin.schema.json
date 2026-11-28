@@ -110,7 +110,8 @@
                     "redirects",
                     "comments.check",
                     "search.read",
-                    "import.read"
+                    "import.read",
+                    "terms.write"
                 ]
             }
         },

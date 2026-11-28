@@ -22,7 +22,10 @@ use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Taxonomy\Operations\Concerns\ValidatesTerms;
 use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
+use App\Domain\Taxonomy\PluginTermGrant;
 use App\Domain\Taxonomy\TermWriter;
+use App\Domain\Types\TypeOwners;
+use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Taxonomy\TermCreated;
 
@@ -33,12 +36,26 @@ final class CreateTerm extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var SaveTermInput $input */
+        if ($input->plugin !== null) {
+            PluginTermGrant::require($input->plugin);
+
+            return;
+        }
+
         $this->authorizeTerms($input, $input->taxonomy);
     }
 
     protected function validate(OperationInput $input): void
     {
         /** @var SaveTermInput $input */
+        if ($input->plugin !== null) {
+            $this->refuseForeignTaxonomy($input);
+            // A plugin never makes a translation of a term.
+            $this->validateTerm($input->taxonomy, $input->name, $input->slug, $input->parentId, null);
+
+            return;
+        }
+
         LanguageChoice::check($input->language);
 
         if ($input->language !== null && app(SiteLanguages::class)->stored($input->language) !== null) {
@@ -52,7 +69,7 @@ final class CreateTerm extends BaseOperation
     protected function perform(OperationInput $input): Term
     {
         /** @var SaveTermInput $input */
-        $language = LanguageChoice::take($input->language);
+        $language = $input->plugin !== null ? null : LanguageChoice::take($input->language);
 
         if ($language !== null) {
             TranslatedTypes::refuseTaxonomy($input->taxonomy, fromRow: true);
@@ -64,5 +81,15 @@ final class CreateTerm extends BaseOperation
         $this->notifyAfterCommit(TermCreated::class, fn (): TermCreated => new TermCreated(Payloads::term($term), $input->actorId()));
 
         return $term;
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    private function refuseForeignTaxonomy(SaveTermInput $input): void
+    {
+        if ($input->pluginName === null || TypeOwners::owner('taxonomies', $input->taxonomy) !== $input->pluginName) {
+            throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
+        }
     }
 }

@@ -23,9 +23,12 @@ use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Taxonomy\Operations\Input\DeleteTermInput;
+use App\Domain\Taxonomy\PluginTermGrant;
 use App\Domain\Types\TaxonomyRegistry;
+use App\Domain\Types\TypeOwners;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Taxonomy\TermDeleted;
@@ -35,6 +38,12 @@ final class DeleteTerm extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var DeleteTermInput $input */
+        if ($input->plugin !== null) {
+            PluginTermGrant::require($input->plugin);
+
+            return;
+        }
+
         $actor = $input->actorId() === null ? null : User::query()->find($input->actorId());
         $taxonomy = (string) Term::query()->whereKey($input->termId)->value('taxonomy');
         $taxonomies = app(TaxonomyRegistry::class);
@@ -45,12 +54,52 @@ final class DeleteTerm extends BaseOperation
         }
     }
 
-    protected function validate(OperationInput $input): void {}
+    protected function validate(OperationInput $input): void
+    {
+        /** @var DeleteTermInput $input */
+        if ($input->plugin === null) {
+            return;
+        }
+
+        $term = Term::query()->findOrFail($input->termId);
+
+        if ($input->pluginName === null || TypeOwners::owner('taxonomies', (string) $term->taxonomy) !== $input->pluginName) {
+            throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
+        }
+
+        if ((int) $term->working_count > 0 || (int) $term->published_count > 0) {
+            throw ValidationException::withMessages(['term' => __('This term is in use, so it can’t be removed.')]);
+        }
+
+        if (Term::query()->where('parent_id', $term->id)->exists()) {
+            throw ValidationException::withMessages(['term' => __('This term has children, so it can’t be removed.')]);
+        }
+    }
 
     protected function perform(OperationInput $input): null
     {
         /** @var DeleteTermInput $input */
         $term = Term::query()->lockForUpdate()->findOrFail($input->termId);
+
+        if ($input->plugin !== null) {
+            if ((int) $term->working_count > 0 || (int) $term->published_count > 0) {
+                throw ValidationException::withMessages(['term' => __('This term is in use, so it can’t be removed.')]);
+            }
+
+            if (Term::query()->where('parent_id', $term->id)->exists()) {
+                throw ValidationException::withMessages(['term' => __('This term has children, so it can’t be removed.')]);
+            }
+
+            $shown = Footprints::terms([(string) $term->id]);
+            $deleted = Payloads::term($term);
+            $term->delete();
+            $this->notifyAfterCommit(TermDeleted::class, fn (): TermDeleted => new TermDeleted($deleted, $input->actorId()));
+            app(PathProjection::class)->forget('term', (string) $term->id);
+            $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::TERM, (string) $term->id, $shown[(string) $term->id] ?? []));
+
+            return null;
+        }
+
         // It and every term beneath it; its children move up, and their
         // addresses with them (I-263).
         $shown = Footprints::termAndBeneath((string) $term->id);
