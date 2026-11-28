@@ -283,8 +283,8 @@ final class Setting
     /**
      * A list of items of one shape, stored as a JSON list of objects keyed
      * by field, empty by default. Its fields are text, textarea, number,
-     * boolean, select, multiselect, email, color and code settings; min()
-     * and max() bound the items (20 at most when unset).
+     * boolean, select, multiselect, email, url, color and code settings;
+     * min() and max() bound the items (20 at most when unset).
      *
      * @param  list<Setting>  $fields
      *

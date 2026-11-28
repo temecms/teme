@@ -14,3 +14,12 @@ it('declares a colour setting with a fieldset and a visibility rule', function (
         ->and($setting->fieldset)->toBe('site')
         ->and($setting->visibleWhen)->toBe(['header_style' => ['lead', 'none']]);
 });
+
+it('lets a repeater hold a url field for each item’s address', function (): void {
+    $links = Setting::repeater('links', 'Links', 'The site’s links.', 'next', [
+        Setting::text('label', 'Label', 'Its name.', 'next'),
+        Setting::url('address', 'Address', 'Its address.', 'next'),
+    ]);
+
+    expect(array_map(fn (Setting $field): string => $field->type->value, $links->fields))->toBe(['text', 'url']);
+});
