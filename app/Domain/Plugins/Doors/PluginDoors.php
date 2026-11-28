@@ -164,7 +164,13 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
-            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued, $this->cards);
+            $offered[ContentReader::class] = new PluginContentReader(
+                $this->published,
+                $this->snapshots,
+                $this->queued,
+                $this->cards,
+                in_array(Capability::PeopleRead->value, $capabilities, true),
+            );
         }
 
         if (in_array(Capability::DirectoryRead->value, $capabilities, true)) {

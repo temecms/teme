@@ -39,6 +39,7 @@ final readonly class PluginContentReader implements ContentReader
         private ItemSnapshots $snapshots,
         private QueuedItems $queued,
         private ItemCards $cards,
+        private bool $nameOwners = false,
     ) {}
 
     public function published(ItemQuery $query): ItemPage
@@ -61,7 +62,7 @@ final readonly class PluginContentReader implements ContentReader
             throw new ReadRefused(__('You can’t edit this item, so its draft can’t be read for you.'));
         }
 
-        return $this->snapshots->of($content);
+        return $this->snapshots->of($content, $this->nameOwners);
     }
 
     public function queue(QueueQuery $query, string $actingPersonId): QueuePage
