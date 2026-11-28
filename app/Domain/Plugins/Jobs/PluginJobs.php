@@ -17,8 +17,10 @@ namespace App\Domain\Plugins\Jobs;
 use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Operations\Input\StartJobInput;
 use App\Domain\Jobs\Operations\StartJob;
+use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Manifest;
+use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\Operator;
@@ -185,6 +187,12 @@ final readonly class PluginJobs implements Jobs
             return $this->as;
         }
 
+        $current = app(CurrentJobActor::class)->get();
+
+        if ($current !== null) {
+            return $current;
+        }
+
         $id = Auth::id();
 
         if ($id !== null) {
@@ -193,6 +201,12 @@ final readonly class PluginJobs implements Jobs
 
         if (Operator::isPresent()) {
             return JobActor::operator();
+        }
+
+        $record = PluginRecord::query()->where('code', $this->code)->first();
+
+        if ($record?->consented_by !== null && app(ScheduleRunner::class)->mayManage((string) $record->consented_by)) {
+            return JobActor::person((string) $record->consented_by);
         }
 
         throw new InvalidArgumentException('Only a person or the operator queues a plugin job.');

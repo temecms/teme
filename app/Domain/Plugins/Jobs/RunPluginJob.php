@@ -184,7 +184,8 @@ final class RunPluginJob implements ShouldQueue
             throw $failure;
         }
 
-        $finish->execute(new FinishJobInput($this->trackedJobId, $context->closingMessage(), $this->actor->userId));
+        // Plugin runs stay quiet on success; FailJob still tells the inbox.
+        $finish->execute(new FinishJobInput($this->trackedJobId, $context->closingMessage(), $this->actor->userId, notify: false));
     }
 
     public function failed(?Throwable $exception): void

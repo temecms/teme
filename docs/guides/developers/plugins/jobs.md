@@ -38,7 +38,7 @@ A run the operator queued from the command line acts for nobody: `personId()` th
 
 Ask for `Jobs` in your constructor and call `queue('your-key', $payload)`. It answers the run's ID. The payload must be JSON-ready data with string keys, at most 64 KB once encoded.
 
-A job runs as someone. A job queued while a person is signed in runs as that person, and one queued from a Teme console command runs as the operator. With neither, `queue()` refuses: a listener for a public visitor's request, or a public route's handler, can't queue one.
+A job runs as someone. A job queued while a person is signed in runs as that person, and one queued from a Teme console command runs as the operator. A job queued from inside another of your plugin's running jobs runs as that run's person. With none of those, `queue()` runs as the administrator who enabled the plugin, as a schedule does — so a listener for a public visitor's request, or for a scheduled publish, can queue one. When that administrator is gone or can no longer manage plugins, `queue()` refuses.
 
 The job is sent to the queue only once the change around it commits, so a run never starts for work that was rolled back. On a site whose queue is `sync`, as on a small site and in tests, the job runs at once, inside the `queue()` call.
 
@@ -46,10 +46,12 @@ The job is sent to the queue only once the change around it commits, so a run ne
 
 Pass `QueueOptions` as the last argument:
 
-- `new QueueOptions(delaySeconds: 30)` starts the run no sooner than 30 seconds from now, up to an hour.
+- `new QueueOptions(delaySeconds: 30)` starts the run no sooner than 30 seconds from now, up to a day.
 - `new QueueOptions(uniqueKey: 'home')` queues the job once while a run with that key still waits. A second call answers the waiting run's ID and queues nothing; the first payload stands. Once that run has started, the next call queues a new one.
 
 Together they debounce: `new QueueOptions(delaySeconds: 60, uniqueKey: 'sitemap')` on every save sends one ping for a burst of saves. A key is up to 64 lower-case letters, digits and `:._-`, starting with a letter or digit; a delay or key outside those throws an `\InvalidArgumentException`.
+
+A finished plugin job stays off the inbox; a failed one still tells whoever started it, and shows on **Tools › Jobs**.
 
 ## Schedules
 
