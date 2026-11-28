@@ -29,8 +29,78 @@ final class Readers implements HasImportReader, Plugin
             'stuck' => new StuckImportReader,
             'slow' => new SlowImportReader,
             'raw' => new RawImportReader,
+            'bulk' => new BulkImportReader,
             default => new FakeImportReader,
         };
+    }
+}
+
+/**
+ * Synthesises many posts from a tiny JSON description, a page at a time,
+ * without holding the whole file in memory — for the flat-memory test.
+ */
+final class BulkImportReader implements ImportReader
+{
+    public function probe(string $path): ImportProbe
+    {
+        $file = $this->file($path);
+
+        return new ImportProbe(
+            system: 'Bulk export',
+            version: '1',
+            siteAddress: (string) $file['site'],
+            languages: ['en'],
+            counts: ['post' => (int) $file['count']],
+        );
+    }
+
+    public function page(string $path, ?string $cursor, int $limit): ImportPage
+    {
+        $file = $this->file($path);
+        $start = $cursor === null ? 0 : (int) $cursor;
+        $count = (int) $file['count'];
+        $bytes = max(1, (int) $file['contentBytes']);
+        $body = str_repeat('x', $bytes);
+        $items = [];
+        $end = min($count, $start + $limit);
+
+        for ($i = $start; $i < $end; $i++) {
+            $items[] = new ImportItem(
+                kind: 'post',
+                id: 'p'.$i,
+                title: 'Post '.$i,
+                slug: 'post-'.$i,
+                status: 'published',
+                content: '<p>'.$body.'</p>',
+            );
+        }
+
+        return new ImportPage($items, $end < $count ? (string) $end : null);
+    }
+
+    public function fetch(string $path, string $id): ImportItem
+    {
+        foreach ($this->page($path, null, 1)->items as $item) {
+            if ($item->id === $id) {
+                return $item;
+            }
+        }
+
+        throw new RuntimeException('No such item.');
+    }
+
+    /**
+     * @return array{site: string, count: int, contentBytes: int}
+     */
+    private function file(string $path): array
+    {
+        $file = json_decode((string) file_get_contents($path), true);
+
+        return [
+            'site' => (string) ($file['site'] ?? 'https://old.example.com'),
+            'count' => (int) ($file['count'] ?? 0),
+            'contentBytes' => (int) ($file['contentBytes'] ?? 2048),
+        ];
     }
 }
 

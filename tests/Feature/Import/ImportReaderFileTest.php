@@ -1050,41 +1050,34 @@ it('imports a reader’s multi-page file a second time and changes nothing', fun
 
 it('keeps memory flat while reading a reader’s file of many pages', function (): void {
     readersEnabled();
-    config(['teme.import.reader_page_size' => 2, 'teme.import.reader_pages_per_part' => 1]);
+    config(['teme.import.reader_page_size' => 50, 'teme.import.reader_pages_per_part' => 2]);
 
-    $base = fakeSiteExport();
-    $small = $base;
-    $large = $base;
-
-    for ($i = 0; $i < 20; $i++) {
-        $small['items'][] = ['kind' => 'post', 'id' => 's-'.$i, 'title' => 'S '.$i, 'slug' => 's-'.$i, 'status' => 'published', 'content' => '<p>s</p>'];
-    }
-
-    for ($i = 0; $i < 80; $i++) {
-        $large['items'][] = ['kind' => 'post', 'id' => 'l-'.$i, 'title' => 'L '.$i, 'slug' => 'l-'.$i, 'status' => 'published', 'content' => '<p>l</p>'];
-    }
+    $small = ['site' => 'https://old.example.com', 'count' => 2000, 'contentBytes' => 2048];
+    $large = ['site' => 'https://old.example.com', 'count' => 8000, 'contentBytes' => 2048];
+    $reader = readerKeyOf('bulk');
 
     memory_reset_peak_usage();
     Queue::fake();
-    $smallFile = readerUploaded('small.json', json_encode($small, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    $smallFile = readerUploaded('small.json', json_encode($small, JSON_THROW_ON_ERROR), $reader);
     (new ReadImportFile($smallFile->id, JobActor::person($smallFile->uploaded_by)))->handle();
     $smallFile->refresh();
     $firstPartRows = (int) $smallFile->read_items;
     expect($smallFile->state)->toBe('reading')
-        ->and($firstPartRows)->toBeLessThan(count($small['items']))
+        ->and($firstPartRows)->toBeLessThan($small['count'])
         ->and($firstPartRows)->toBeGreaterThan(0);
     readerReadToEnd($smallFile);
-    $smallPeak = memory_get_peak_usage(true);
+    $smallPeak = memory_get_peak_usage();
 
     memory_reset_peak_usage();
     Queue::fake();
-    $largeFile = readerUploaded('large.json', json_encode($large, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    $largeFile = readerUploaded('large.json', json_encode($large, JSON_THROW_ON_ERROR), $reader);
     readerReadToEnd($largeFile);
-    $largePeak = memory_get_peak_usage(true);
+    $largePeak = memory_get_peak_usage();
 
     expect($smallFile->refresh()->state)->toBe('ready')
         ->and($largeFile->refresh()->state)->toBe('ready')
-        ->and($largePeak)->toBeLessThan((int) ($smallPeak * 3.5) + (8 * 1024 * 1024));
+        ->and($largeFile->read_items)->toBe(8000)
+        ->and($largePeak)->toBeLessThan((int) ($smallPeak * 1.75));
 });
 
 it('imports a reader’s two-language sample: adds the missing language, keeps each item’s language, and links translations', function (): void {
