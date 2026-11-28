@@ -576,6 +576,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::post('uploads/{upload}/pieces', [UploadsCopyController::class, 'piece'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.piece');
             Route::post('uploads/{upload}/finish', [UploadsCopyController::class, 'finish'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.finish');
             Route::post('uploads/{upload}/cancel', [UploadsCopyController::class, 'cancel'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.cancel');
+            Route::delete('uploads/{upload}', [UploadsCopyController::class, 'destroy'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.destroy');
             Route::post('{source}/uploads/start', [UploadsCopyController::class, 'start'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.start');
             // A site's and a run's IDs are lower case (HasUlids, I-418).
             Route::get('{source}', [ImportScreenController::class, 'show'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('show');

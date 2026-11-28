@@ -283,6 +283,9 @@ export type ImportShowPage = {
 
 /** A site's uploads copy as its import screen shows it. */
 export type ImportUploadCopy = {
+    id: string;
+    /** Whether Teme stored the file itself, so deleting the copy deletes it. */
+    keptByTeme: boolean;
     name: string;
     sizeBytes: number;
     kind: string;

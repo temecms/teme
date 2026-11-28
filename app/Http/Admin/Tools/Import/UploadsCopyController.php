@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\Http\Admin\Tools\Import;
 
 use App\Domain\Import\Operations\CancelUploadsCopy;
+use App\Domain\Import\Operations\DeleteUploadsCopy;
 use App\Domain\Import\Operations\FinishUploadsCopy;
 use App\Domain\Import\Operations\Input\ReceiveUploadsCopyPieceInput;
 use App\Domain\Import\Operations\Input\StartUploadsCopyInput;
@@ -73,6 +74,13 @@ final class UploadsCopyController extends Controller
         $cancel->execute(new UploadsCopyUploadInput($upload, self::actor($request)));
 
         return response()->json(['cancelled' => true]);
+    }
+
+    public function destroy(Request $request, string $upload, DeleteUploadsCopy $delete): JsonResponse
+    {
+        $delete->execute(new UploadsCopyUploadInput($upload, self::actor($request)));
+
+        return response()->json(['deleted' => true]);
     }
 
     private static function actor(Request $request): ?string

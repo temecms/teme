@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportUpload;
 use App\Domain\Import\Operations\AttachUploadsCopy;
 use App\Domain\Import\Operations\CancelUploadsCopy;
+use App\Domain\Import\Operations\DeleteUploadsCopy;
 use App\Domain\Import\Operations\FinishUploadsCopy;
 use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
 use App\Domain\Import\Operations\Input\ReceiveUploadsCopyPieceInput;
@@ -185,4 +187,119 @@ it('finds the uploads folder inside a zip whose top folder is another, and refus
 it('refuses a zip that holds more entries than the copy may', function (): void {
     expect(UploadsCopy::holdsTooMany(UploadsCopy::MOST_ENTRIES + 1))->toBeTrue()
         ->and(UploadsCopy::holdsTooMany(UploadsCopy::MOST_ENTRIES))->toBeFalse();
+});
+
+it('refuses to start a copy the free disk can’t hold, in words, writing nothing', function (): void {
+    config(['teme.import.max_uploads_mb' => 2_000_000_000]);
+    $before = DB::table('import_uploads')->count();
+
+    expect(fn () => app(StartUploadsCopy::class)->execute(new StartUploadsCopyInput($this->source->id, 'uploads.zip', 10 ** 15, (string) $this->admin->id)))
+        ->toThrow(ValidationException::class, 'free space')
+        ->and(DB::table('import_uploads')->count())->toBe($before);
+});
+
+it('prunes an abandoned upload after a day, and a copy no import has used for 30 days', function (): void {
+    $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
+    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+    $readyPath = ImportUpload::query()->whereKey($ready)->value('path');
+    app(StartUploadsCopy::class)->execute(new StartUploadsCopyInput($this->source->id, 'next.zip', 10, (string) $this->admin->id));
+
+    $this->travel(2)->days();
+    $this->artisan('teme:import:prune-files')->assertSuccessful();
+
+    expect(ImportUpload::query()->where('source_id', $this->source->id)->pluck('state')->all())->toBe(['ready'])
+        ->and(is_file($readyPath))->toBeTrue();
+
+    $this->travel(28)->days();
+    $this->artisan('teme:import:prune-files')->assertSuccessful();
+
+    expect(ImportUpload::query()->where('source_id', $this->source->id)->exists())->toBeTrue();
+
+    $this->travel(2)->days();
+    $this->artisan('teme:import:prune-files')->assertSuccessful();
+
+    expect(ImportUpload::query()->where('source_id', $this->source->id)->exists())->toBeFalse()
+        ->and(is_file($readyPath))->toBeFalse();
+
+    $this->travelBack();
+});
+
+it('keeps a copy until 30 days after the last import from the site ended', function (): void {
+    $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
+    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+    $run = importRun($this->source);
+
+    $this->travel(29)->days();
+    $this->artisan('teme:import:prune-files')->assertSuccessful();
+
+    expect(ImportUpload::query()->whereKey($ready)->exists())->toBeTrue();
+
+    $this->travel(2)->days();
+    $this->artisan('teme:import:prune-files')->assertSuccessful();
+
+    expect(ImportUpload::query()->whereKey($ready)->exists())->toBeFalse()
+        ->and(ImportRun::query()->whereKey($run->id)->exists())->toBeTrue();
+
+    $this->travelBack();
+});
+
+it('never prunes a copy the operator attached by path, however old', function (): void {
+    $folder = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-prune-'.uniqid();
+    mkdir($folder.'/2024/05', recursive: true);
+    file_put_contents($folder.'/2024/05/Harbour One.jpg', dlJpeg(640, 480));
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $folder, null)));
+
+    $this->travel(90)->days();
+    $this->artisan('teme:import:prune-files')->assertSuccessful();
+
+    expect(ImportUpload::query()->where('source_id', $this->source->id)->where('state', 'ready')->exists())->toBeTrue()
+        ->and(is_file($folder.'/2024/05/Harbour One.jpg'))->toBeTrue();
+
+    unlink($folder.'/2024/05/Harbour One.jpg');
+    rmdir($folder.'/2024/05');
+    rmdir($folder.'/2024');
+    rmdir($folder);
+    $this->travelBack();
+});
+
+it('deletes the copy on request, with the file Teme kept', function (): void {
+    $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
+    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+    $path = ImportUpload::query()->whereKey($ready)->value('path');
+
+    app(DeleteUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+
+    expect(ImportUpload::query()->whereKey($ready)->exists())->toBeFalse()
+        ->and(is_file($path))->toBeFalse();
+});
+
+it('refuses to delete the copy while an import from the site is running, and deletes nothing', function (): void {
+    $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
+    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+    $run = importRun($this->source);
+    ImportRun::query()->whereKey($run->id)->update(['state' => 'running', 'ended_at' => null, 'stop_reason' => null, 'stop_message' => null, 'phase_token' => 'running-in-test']);
+
+    expect(fn () => app(DeleteUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id)))
+        ->toThrow(ValidationException::class, 'running')
+        ->and(ImportUpload::query()->whereKey($ready)->exists())->toBeTrue();
+});
+
+it('lets only an administrator delete the copy, over HTTP as well', function (): void {
+    $ready = uploadCopy($this->source->id, copyZipBytes(), (string) $this->admin->id);
+    app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->admin->id));
+
+    expect(fn () => app(DeleteUploadsCopy::class)->execute(new UploadsCopyUploadInput($ready, (string) $this->editor->id)))
+        ->toThrow(AuthorizationException::class)
+        ->and(ImportUpload::query()->whereKey($ready)->exists())->toBeTrue();
+
+    $this->actingAs($this->editor)
+        ->deleteJson("/admin/tools/import/uploads/{$ready}")
+        ->assertForbidden();
+
+    $this->actingAs($this->admin)
+        ->deleteJson("/admin/tools/import/uploads/{$ready}")
+        ->assertOk()
+        ->assertJson(['deleted' => true]);
+
+    expect(ImportUpload::query()->whereKey($ready)->exists())->toBeFalse();
 });

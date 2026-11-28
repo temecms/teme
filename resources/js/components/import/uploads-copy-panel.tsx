@@ -127,20 +127,75 @@ export function UploadsCopyPanel({
         toast.message(__('Upload cancelled. Nothing was kept.'));
     }
 
+    async function removeCopy(): Promise<void> {
+        if (copy === null) {
+            return;
+        }
+
+        const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+        const token = match ? decodeURIComponent(match[1]) : '';
+
+        try {
+            const response = await fetch(
+                `/admin/tools/import/uploads/${copy.id}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-XSRF-TOKEN': token,
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                const body = (await response.json().catch(() => null)) as {
+                    message?: string;
+                } | null;
+                toast.error(
+                    body?.message ??
+                        __('The copy couldn’t be deleted. Try again.'),
+                );
+
+                return;
+            }
+        } catch {
+            toast.error(__('The copy couldn’t be deleted. Try again.'));
+
+            return;
+        }
+
+        router.reload({ only: ['uploadsCopy'] });
+        toast.message(__('The copy is deleted, and so is its file.'));
+    }
+
     const summary =
         copy === null ? null : (
-            <p
-                className="text-body text-ink-2"
-                data-test="uploads-copy-summary"
-            >
-                {__(
-                    'The copy “:name” (:mb MB) is attached. Its pictures are taken from it first; the run’s report says how many came from it.',
-                    {
-                        name: copy.name,
-                        mb: megabytes(copy.sizeBytes),
-                    },
+            <div className="grid gap-3">
+                <p
+                    className="text-body text-ink-2"
+                    data-test="uploads-copy-summary"
+                >
+                    {__(
+                        'The copy “:name” (:mb MB) is attached. Its pictures are taken from it first; the run’s report says how many came from it.',
+                        {
+                            name: copy.name,
+                            mb: megabytes(copy.sizeBytes),
+                        },
+                    )}
+                </p>
+                {copy.keptByTeme && (
+                    <div>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void removeCopy()}
+                        >
+                            {__('Delete the copy now')}
+                        </Button>
+                    </div>
                 )}
-            </p>
+            </div>
         );
 
     if (!planning) {
