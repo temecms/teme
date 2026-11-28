@@ -14,7 +14,7 @@ An update is a new image. You never change code on a running server. You change 
 ## How an update works
 
 1. The new image is pulled.
-2. The `deploy` role runs `teme:deploy`, which migrates the database under a lock, taking a backup first when it must.
+2. The `deploy` role runs `teme:deploy`, which migrates the database under a lock, taking a backup first when it must. Under `TEME_BACKUPS=host` Teme takes no backup of its own first: your host keeps the restore point, and the update screen says so.
 3. The new `web`, `worker`, `worker-long` and `scheduler` containers start and pass their health checks.
 4. The old containers stop.
 

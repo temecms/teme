@@ -19,7 +19,6 @@ namespace App\Domain\Backups\Verify;
 
 use App\Domain\Backups\BackupAlreadyRunning;
 use App\Domain\Backups\BackupLock;
-use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupRefused;
 use App\Domain\Backups\BackupResult;
 use App\Domain\Backups\BackupRunKind;
@@ -313,8 +312,8 @@ final readonly class VerifyBackups
      */
     private function testRestoreNewest(string $runId, BackupTrigger $startedBy, ?string $actorId, Closure $say): array
     {
-        // Host-run (TEME_BACKUPS=host): a temporary database, made now and dropped after; leftovers from a dead run go first.
-        if (BackupMode::isHost()) {
+        // Host-run with no spare named: a temporary database, made now and dropped after; leftovers from a dead run go first.
+        if (SpareDatabase::testRestoreUsesTemporary()) {
             TemporaryDatabase::sweep();
             $spare = SpareDatabase::openTemporary();
         } else {

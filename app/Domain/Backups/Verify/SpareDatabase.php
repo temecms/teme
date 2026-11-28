@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Backups\Verify;
 
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupRefused;
 use App\Domain\Backups\BackupSite;
 use App\Domain\Backups\BackupTables;
@@ -49,6 +50,15 @@ final class SpareDatabase
      * @param  array<string, mixed>  $config
      */
     private function __construct(private readonly ConnectionInterface $session, public readonly string $name, private readonly array $config, private readonly bool $temporary = false) {}
+
+    /**
+     * Whether a test restore goes into a temporary database: a host-run site
+     * with no spare database named. An explicitly named spare wins (TEME_BACKUPS=host).
+     */
+    public static function testRestoreUsesTemporary(): bool
+    {
+        return BackupMode::isHost() && ! self::isNamed();
+    }
 
     /**
      * Whether the server names a spare database: TEME_VERIFY_DATABASE is set.

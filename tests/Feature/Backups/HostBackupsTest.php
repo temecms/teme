@@ -9,6 +9,7 @@ use App\Domain\Backups\BackupSettings;
 use App\Domain\Backups\BackupVerdict;
 use App\Domain\Backups\Queries\BackupsScreen;
 use App\Domain\Backups\Queries\BackupStatus;
+use App\Domain\Backups\Verify\SpareDatabase;
 use App\Domain\Backups\Verify\TemporaryDatabase;
 use App\Domain\Deployment\Health\Checks\RestoreAccount;
 use App\Domain\Deployment\Health\Checks\TestRestoreDatabase;
@@ -16,6 +17,7 @@ use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SettingsRepository;
+use App\Domain\Status\Checks\BackupsSafe;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
@@ -160,4 +162,29 @@ it('warns in the doctor when the restore account is a superuser', function (): v
     $messages = array_map(fn (Finding $finding): string => $finding->message, (new RestoreAccount)->examine());
 
     expect($messages)->toContain(collect($messages)->first(fn (string $message): bool => str_contains($message, 'is a superuser')));
+});
+
+it('uses an explicitly named spare database under host, and the temporary one only when none is named', function (): void {
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_verify.database' => null]);
+    expect(SpareDatabase::testRestoreUsesTemporary())->toBeTrue();
+
+    config(['database.connections.teme_verify.database' => 'teme_named_verify']);
+    expect(SpareDatabase::testRestoreUsesTemporary())->toBeFalse();
+
+    config(['teme.backup_mode' => 'teme']);
+    expect(SpareDatabase::testRestoreUsesTemporary())->toBeFalse();
+});
+
+it('names the restore account, not the spare database, when the test restore is skipped under host', function (): void {
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_restore.username' => null, 'database.connections.teme_verify.database' => null]);
+
+    $this->artisan('teme:backup:verify', ['--test-restore' => true])
+        ->expectsOutputToContain('TEME_RESTORE_DB_USERNAME')
+        ->assertFailed();
+});
+
+it('keeps the banner silent under host while Teme’s own backup is not set up', function (): void {
+    config(['teme.backup_mode' => 'host']);
+
+    expect(app(BackupsSafe::class)->banner())->toBeNull();
 });
