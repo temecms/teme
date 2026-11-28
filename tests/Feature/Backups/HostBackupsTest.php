@@ -7,6 +7,7 @@ use App\Domain\Backups\BackupKeyRole;
 use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupSettings;
 use App\Domain\Backups\BackupVerdict;
+use App\Domain\Backups\Queries\BackupsScreen;
 use App\Domain\Backups\Queries\BackupStatus;
 use App\Domain\Deployment\Health\Checks\TestRestoreDatabase;
 use App\Domain\Settings\Models\SettingsGroupRecord;
@@ -83,4 +84,16 @@ it('keeps the spare database warning under teme', function (): void {
 
 it('keeps the old verdict under teme when backups are not set up', function (): void {
     expect(app(BackupStatus::class)->verdict()->level())->toBe(BackupVerdict::RED);
+});
+
+it('leads Tools › Backups with one healthy line under host, while Teme’s own backup is not set up', function (): void {
+    config(['teme.backup_mode' => 'host']);
+
+    $screen = app(BackupsScreen::class)->verdict(CarbonImmutable::now());
+
+    expect($screen)->toBe([
+        'level' => 'green',
+        'sentence' => 'Backups and restore tests are done by your host.',
+        'more' => ['Teme’s own backup can still be set up as a second copy elsewhere, on Tools › Backups.'],
+    ]);
 });

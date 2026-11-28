@@ -39,6 +39,12 @@ You need only two settings to start: `TEME_IMAGE` and `APP_URL`. Everything else
 | `TEME_VERIFY_DB_PORT` | `DB_PORT` | Its port. |
 | `TEME_VERIFY_DB_USERNAME` | `DB_USERNAME` | Its role. |
 | `TEME_VERIFY_DB_PASSWORD` | `DB_PASSWORD` | Its password. |
+| `TEME_BACKUPS` | `teme` | Who backs the site up. `teme`: Teme does, as described in [Backups](backups.md). `host`: your host backs up the database, every volume and the settings, and tests the restores; Teme then asks for no spare database, and its own backup is optional. Any other value stops Teme from starting. |
+| `TEME_RESTORE_DB_USERNAME` | none | Under `host`, when Teme's own backup is set up, the account its test restore makes a temporary database with. It needs `CREATEDB`; the site's own role stays `NOCREATEDB`. |
+| `TEME_RESTORE_DB_HOST` | `DB_HOST` | That account's host, when it is not the same server. |
+| `TEME_RESTORE_DB_PORT` | `DB_PORT` | Its port. |
+| `TEME_RESTORE_DB_PASSWORD` | none | Its password. |
+| `TEME_RESTORE_DATABASE` | `postgres` | The database the account connects to when it makes and drops the temporary one. |
 | `TEME_ALLOW_DATABASE_WIPE` | off | `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `migrate:rollback` and `db:wipe` empty a database, so Teme refuses them on any database whose name doesn't end in `_test`, and on every database in production. Set this to `1` for one run, after a backup, when you really mean to empty the site's database. Never leave it set. |
 | `PGCONNECT_TIMEOUT` | `3` in the recipe | How long, in seconds, a connection waits for PostgreSQL before it gives up, so a health check never holds a worker for minutes. |
 

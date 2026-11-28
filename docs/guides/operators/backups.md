@@ -76,6 +76,18 @@ A server that was off at the hour backs up when it is back. If no backup has sta
 
 You can start a backup at any time with `teme:backup:run`, or with **Back up now** on **Tools › Backups**. **Back up now** puts a backup in line as a tracked job; the scheduler picks it up and starts it within a minute, so the scheduler must be running.
 
+## Backups done by your host
+
+Some hosts back a Teme site up completely themselves, and set `TEME_BACKUPS=host` to say so. Teme then runs no backup and no test restore of its own, asks for no spare database, and shows one healthy line on Tools › Backups: *Backups and restore tests are done by your host*. Setting `host` is a choice to rely on the host, so the host must do all of this:
+
+- **Back up the database**, every night.
+- **Back up every volume**: the media originals and their sizes, the page cache and the extensions, not only the database.
+- **Back up the settings**, with the application key among the variables, so a restore can read what is encrypted.
+- **Test the restores** regularly, including the volumes.
+- **Keep a way back without the host**: a recovery kit that restores the site with no help from the host.
+
+Teme does not check that the host really backs up; that is the host's job. If you want Teme's own backup as a second copy elsewhere, set it up on Tools › Backups as usual. Once it is set up, Teme runs it nightly and tests it weekly into a temporary database it makes and drops each time, with the restore account in `TEME_RESTORE_DB_USERNAME`. A run that dies can leave a copy of the database behind, so Teme drops any leftover temporary database before each test and every day. Before an update migrates the database, Teme takes no backup of its own under `host`: the host keeps a restore point.
+
 ## What it needs of the server
 
 - `restic`, `pg_dump`, `pg_restore` and `ssh` in every role. The image has them all, in one image.

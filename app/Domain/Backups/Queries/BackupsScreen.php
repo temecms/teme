@@ -18,6 +18,7 @@ namespace App\Domain\Backups\Queries;
 use App\Domain\Backups\BackupDestinationKind;
 use App\Domain\Backups\BackupDestinationState;
 use App\Domain\Backups\BackupKeyRole;
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupRunKind;
 use App\Domain\Backups\BackupRunState;
 use App\Domain\Backups\BackupSettings;
@@ -346,6 +347,11 @@ final readonly class BackupsScreen
      */
     public function verdict(CarbonImmutable $now): ?array
     {
+        // Under host the host does the backups and restore tests: one healthy line, until Teme's own is set up (TEME_BACKUPS=host).
+        if (BackupMode::isHost() && $this->setupState()['state'] !== 'set-up') {
+            return ['level' => 'green', 'sentence' => __('Backups and restore tests are done by your host.'), 'more' => [__('Teme’s own backup can still be set up as a second copy elsewhere, on Tools › Backups.')]];
+        }
+
         if ($this->setupState()['state'] !== 'set-up') {
             return null;
         }
