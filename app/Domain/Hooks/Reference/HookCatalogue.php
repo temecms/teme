@@ -47,6 +47,8 @@ use Teme\Contracts\Settings\SettingsChanged;
 use Teme\Contracts\Taxonomy\TermAssigned;
 use Teme\Contracts\Taxonomy\TermCreated;
 use Teme\Contracts\Taxonomy\TermDeleted;
+use Teme\Contracts\People\PersonInvited;
+use Teme\Contracts\People\PersonJoined;
 use Teme\Contracts\Taxonomy\TermUpdated;
 
 final class HookCatalogue
@@ -83,6 +85,8 @@ final class HookCatalogue
         FeedsChanged::class,
         ArticleLinks::class,
         BeforeSave::class,
+        PersonInvited::class,
+        PersonJoined::class,
     ];
 
     /**

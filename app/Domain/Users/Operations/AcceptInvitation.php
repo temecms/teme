@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Teme\Contracts\Operations\OperationInput;
+use Teme\Contracts\People\PersonJoined;
 
 final class AcceptInvitation extends BaseOperation
 {
@@ -65,6 +66,10 @@ final class AcceptInvitation extends BaseOperation
         PasswordBroker::broker('invitations')->deleteToken($user);
 
         app(SecurityLog::class)->record(SecurityEventType::InvitationAccepted, $user->id);
+
+        $personId = (string) $user->id;
+        $name = (string) $user->name;
+        $this->notifyAfterCommit(PersonJoined::class, fn (): PersonJoined => new PersonJoined($personId, $name));
 
         return null;
     }
