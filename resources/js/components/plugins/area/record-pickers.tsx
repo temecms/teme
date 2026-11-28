@@ -222,7 +222,9 @@ export function ItemsPicker({
                 options={options}
                 value={chosenOptions}
                 onValueChange={(next) => onChange(next.map((one) => one.value))}
-                removeLabel={(item) => __('Remove :title', { title: item.label })}
+                removeLabel={(item) =>
+                    __('Remove :title', { title: item.label })
+                }
                 placeholder={__('Search posts and pages')}
                 searchPlaceholder={__('Search posts and pages')}
                 search={{
@@ -234,32 +236,53 @@ export function ItemsPicker({
                 highlight={query}
                 footer={
                     search.total > search.items.length
-                        ? __('Showing :shown of :total. Type more of the title to narrow it.', {
-                              shown: search.items.length,
-                              total: search.total,
-                          })
+                        ? __(
+                              'Showing :shown of :total. Type more of the title to narrow it.',
+                              {
+                                  shown: search.items.length,
+                                  total: search.total,
+                              },
+                          )
                         : undefined
                 }
                 emptyText={
                     typed
-                        ? __('No posts and pages match “:query”. Check the spelling, or try fewer words.', {
-                              query: query.trim(),
-                          })
-                        : __('Type a few words from the title. Only posts and pages you can open are listed.')
+                        ? __(
+                              'No posts and pages match “:query”. Check the spelling, or try fewer words.',
+                              {
+                                  query: query.trim(),
+                              },
+                          )
+                        : __(
+                              'Type a few words from the title. Only posts and pages you can open are listed.',
+                          )
                 }
             />
             {typed && !search.loading && search.failed && (
-                <Notice tone="danger" role="alert" data-test="items-picker-failed">
+                <Notice
+                    tone="danger"
+                    role="alert"
+                    data-test="items-picker-failed"
+                >
                     <p>
-                        {__('The search couldn’t run this time. Nothing you chose was lost. Try again in a moment.')}
+                        {__(
+                            'The search couldn’t run this time. Nothing you chose was lost. Try again in a moment.',
+                        )}
                     </p>
-                    <Button type="button" size="sm" variant="secondary" onClick={search.again}>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={search.again}
+                    >
                         <RotateCw aria-hidden className="size-4" />
                         {__('Try again')}
                     </Button>
                 </Notice>
             )}
-            {field.description !== '' && <p className="text-small text-ink-2">{field.description}</p>}
+            {field.description !== '' && (
+                <p className="text-small text-ink-2">{field.description}</p>
+            )}
         </div>
     );
 }

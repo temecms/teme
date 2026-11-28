@@ -92,7 +92,12 @@ function PluginChoicesSelect({
                 id={id}
                 className="w-full"
                 disabled
-                options={[{ value: saved, label: __(':value, as saved', { value: saved }) }]}
+                options={[
+                    {
+                        value: saved,
+                        label: __(':value, as saved', { value: saved }),
+                    },
+                ]}
                 value={saved}
                 onValueChange={() => undefined}
             />

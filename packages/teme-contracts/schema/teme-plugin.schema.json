@@ -1531,7 +1531,21 @@
                         "name": {
                             "type": "string",
                             "pattern": "^[a-z][a-z0-9-]{2,39}$",
-                            "not": {"enum": ["path", "parent", "text", "name", "email", "url", "token", "subject", "remember", "missing-field", "too-long"]},
+                            "not": {
+                                "enum": [
+                                    "path",
+                                    "parent",
+                                    "text",
+                                    "name",
+                                    "email",
+                                    "url",
+                                    "token",
+                                    "subject",
+                                    "remember",
+                                    "missing-field",
+                                    "too-long"
+                                ]
+                            },
                             "description": "The field's name, which the check's signals are keyed by. Not a name core's comment form uses."
                         },
                         "make": {

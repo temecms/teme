@@ -330,7 +330,7 @@ final class AreaForms
      *
      * @param  array<string, mixed>  $field
      * @param  list<array{value: string, label: string}>|null  $offered
-     * @param  array<string, string>  $errors
+     * @param  array<string, array<mixed>|string>  $errors
      */
     private static function pluginChoice(array $field, mixed $value, ?array $offered, mixed $saved, string $path, array &$errors): mixed
     {

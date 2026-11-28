@@ -164,13 +164,18 @@ export function PanelActionForm({
                 }
             }}
         >
-            {savedAt === null && Object.keys(saved).length > 0 && action.fields.length > 0 && (
-                <p className="text-ink-2 text-small">
-                    {__(':plugin has no saved message for this article yet.', {
-                        plugin: panel.plugin,
-                    })}
-                </p>
-            )}
+            {savedAt === null &&
+                Object.keys(saved).length > 0 &&
+                action.fields.length > 0 && (
+                    <p className="text-ink-2 text-small">
+                        {__(
+                            ':plugin has no saved message for this article yet.',
+                            {
+                                plugin: panel.plugin,
+                            },
+                        )}
+                    </p>
+                )}
 
             {action.fields.map((field) => {
                 // A message saved without a date has no "Started from" note: the form shows the "no saved message yet" line instead.
@@ -309,7 +314,11 @@ function PanelFieldControl({
                 value={typeof value === 'string' && value !== '' ? [value] : []}
                 onChange={(next) => {
                     const chosen = Array.isArray(next) ? next : [];
-                    onChange(chosen.length > 0 ? String(chosen[chosen.length - 1]) : null);
+                    onChange(
+                        chosen.length > 0
+                            ? String(chosen[chosen.length - 1])
+                            : null,
+                    );
                 }}
             />
         );

@@ -255,11 +255,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
                         count = counts[one.id];
                     }
 
-                    if (
-                        count === undefined &&
-                        !one.current &&
-                        !countsReady
-                    ) {
+                    if (count === undefined && !one.current && !countsReady) {
                         counting = true;
                     }
 
@@ -362,8 +358,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
 
                         if (
                             periodLoading &&
-                            (block.type === 'figures' ||
-                                block.type === 'chart')
+                            (block.type === 'figures' || block.type === 'chart')
                         ) {
                             return (
                                 <BlockSkeleton key={block.id} block={block} />

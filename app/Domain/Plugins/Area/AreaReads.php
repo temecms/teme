@@ -507,7 +507,7 @@ final class AreaReads
     {
         $failed = null;
         $answered = false;
-        $given = $this->call($plugin, "choices {$record}.{$field}", function (PluginArea $data) use ($record, $field): ?array {
+        $given = $this->call($plugin, "choices {$record}.{$field}", function (PluginArea $data) use ($record, $field): array {
             if (! $data instanceof OffersFieldChoices) {
                 throw new AreaAnswerRefused("The plugin doesn’t offer choices for {$field}.");
             }

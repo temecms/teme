@@ -34,7 +34,7 @@ function Count({ count, counting }: { count?: number; counting?: boolean }) {
     if (counting) {
         return (
             <span
-                className="bg-surface-3 motion-safe:animate-pulse inline-block size-5 shrink-0 rounded-full"
+                className="bg-surface-3 inline-block size-5 shrink-0 rounded-full motion-safe:animate-pulse"
                 data-test="tab-counting"
             >
                 <span className="sr-only">{__('Counting')}</span>

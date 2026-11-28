@@ -77,13 +77,19 @@ function outcome(name: string): {
 }
 
 /** What an update does, step by step, with each step's service: what the updater's record names. */
-function updateSteps(hostKeepsRestorePoint: boolean): { code: string; title: string; line: string }[] {
+function updateSteps(
+    hostKeepsRestorePoint: boolean,
+): { code: string; title: string; line: string }[] {
     return [
         {
             code: 'deploy',
-            title: hostKeepsRestorePoint ? __('Migrate') : __('Back up and migrate'),
+            title: hostKeepsRestorePoint
+                ? __('Migrate')
+                : __('Back up and migrate'),
             line: hostKeepsRestorePoint
-                ? __('Migrates the database when it must change. Your host keeps a restore point, so Teme takes no backup first. Teme stays on the old release until this works.')
+                ? __(
+                      'Migrates the database when it must change. Your host keeps a restore point, so Teme takes no backup first. Teme stays on the old release until this works.',
+                  )
                 : __(
                       'Takes a backup when the database must change, then migrates it. Teme stays on the old release until this works.',
                   ),
@@ -724,28 +730,30 @@ export default function Updates({
                                 aria-label={__('Steps of the update')}
                                 className="grid gap-3"
                             >
-                                {updateSteps(hostKeepsRestorePoint).map((step, at) => (
-                                    <li
-                                        key={step.code}
-                                        className="flex items-start gap-3"
-                                    >
-                                        <span
-                                            aria-hidden="true"
-                                            className="bg-surface-3 text-caption text-ink-2 grid size-6 shrink-0 place-items-center rounded-full font-semibold"
+                                {updateSteps(hostKeepsRestorePoint).map(
+                                    (step, at) => (
+                                        <li
+                                            key={step.code}
+                                            className="flex items-start gap-3"
                                         >
-                                            {at + 1}
-                                        </span>
-                                        <span className="grid min-w-0 gap-1">
-                                            <span className="font-semibold">
-                                                {step.title}{' '}
-                                                <Code>{step.code}</Code>
+                                            <span
+                                                aria-hidden="true"
+                                                className="bg-surface-3 text-caption text-ink-2 grid size-6 shrink-0 place-items-center rounded-full font-semibold"
+                                            >
+                                                {at + 1}
                                             </span>
-                                            <span className="text-small text-ink-2">
-                                                {step.line}
+                                            <span className="grid min-w-0 gap-1">
+                                                <span className="font-semibold">
+                                                    {step.title}{' '}
+                                                    <Code>{step.code}</Code>
+                                                </span>
+                                                <span className="text-small text-ink-2">
+                                                    {step.line}
+                                                </span>
                                             </span>
-                                        </span>
-                                    </li>
-                                ))}
+                                        </li>
+                                    ),
+                                )}
                             </ol>
                         </Section>
                         <Section
