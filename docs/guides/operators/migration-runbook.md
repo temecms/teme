@@ -61,6 +61,8 @@ docker compose exec web php artisan teme:import:uploads https://old.example.com 
 
 The path is a folder, or a `.zip` of the folder, that the server can read. Attaching again replaces the copy. A catch-up reuses the copy. Import readers get no pictures from the copy in this release: their media carry only a file name.
 
+A copy of up to 10 GB can also be uploaded in the browser, on the import's plan, in pieces like an export file. The cap is the `teme.import.max_uploads_mb` setting (`TEME_IMPORT_MAX_UPLOADS_MB`). A larger copy goes on the server with the command. A browser copy is kept on the private disk and deleted when it is replaced; a folder named on the server is never deleted by Teme. The report counts the pictures the import brought from the copy and from the old site, since the copy was attached.
+
 ## Stage 3: Rehearse the cut-over
 
 | Step | What to do | Took | Surprise |
