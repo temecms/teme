@@ -33,6 +33,17 @@ final class FakeImportReader implements ImportReader
     /** The statuses a fake item may carry, which are Teme's. */
     private const array STATUSES = ['published', 'draft', 'private', 'scheduled', 'trashed', 'spam'];
 
+    /** How many times page() has been called since the last reset, for tests. */
+    public static int $pageCalls = 0;
+
+    /**
+     * Clears the page-call counter tests use.
+     */
+    public static function resetPageCalls(): void
+    {
+        self::$pageCalls = 0;
+    }
+
     /**
      * @since 1.8.0
      */
@@ -63,6 +74,7 @@ final class FakeImportReader implements ImportReader
      */
     public function page(string $path, ?string $cursor, int $limit): ImportPage
     {
+        self::$pageCalls++;
         $items = $this->file($path)['items'];
         $start = $cursor === null ? 0 : (int) $cursor;
         $page = array_slice($items, $start, $limit);

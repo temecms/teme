@@ -95,6 +95,11 @@ return [
          * Null means only the deadline ends a part.
          */
         'reader_pages_per_part' => null,
+        /*
+         * How many import_file_rows with reader_refs one resolve chunk loads.
+         * Tests set a small value so a short file still spans several chunks.
+         */
+        'reader_resolve_chunk' => null,
     ],
 
     /*

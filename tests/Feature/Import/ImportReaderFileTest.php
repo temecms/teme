@@ -51,6 +51,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
 use Illuminate\Validation\ValidationException;
 use Inertia\Middleware;
+use Teme\Testing\FakeImportReader;
 use Tests\Fixtures\Import\ExportFiles;
 use Tests\Fixtures\Import\FakeCompanion;
 use Tests\Fixtures\Import\FileImports;
@@ -71,7 +72,12 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     CarbonImmutable::setTestNow();
-    config(['teme.import.reader_page_size' => null, 'teme.import.reader_pages_per_part' => null]);
+    config([
+        'teme.import.reader_page_size' => null,
+        'teme.import.reader_pages_per_part' => null,
+        'teme.import.reader_resolve_chunk' => null,
+    ]);
+    FakeImportReader::resetPageCalls();
 });
 
 /**
@@ -1129,6 +1135,7 @@ it('uses the site’s default language when a reader probe names none', function
 it('resolves later-page parents without a second reader pass', function (): void {
     readersEnabled();
     config(['teme.import.reader_page_size' => 2]);
+    FakeImportReader::resetPageCalls();
 
     $export = [
         'system' => 'Fake export',
@@ -1151,7 +1158,68 @@ it('resolves later-page parents without a second reader pass', function (): void
 
     expect($file->refresh()->state)->toBe('ready')
         ->and($child['parent'])->toBe($parent['id'])
-        ->and($child['reader_refs']['parent'] ?? null)->toBe('parent-later');
+        ->and($child['reader_refs']['parent'] ?? null)->toBe('parent-later')
+        ->and(FakeImportReader::$pageCalls)->toBe(2);
+});
+
+it('resolves a term whose parent sits on a later page, with no false orphan note', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2]);
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'term', 'id' => 'child-term', 'taxonomy' => 'category', 'name' => 'Child term', 'slug' => 'child-term', 'parentId' => 'parent-term'],
+            ['kind' => 'post', 'id' => 'fill-1', 'title' => 'Fill 1', 'slug' => 'fill-1', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'post', 'id' => 'fill-2', 'title' => 'Fill 2', 'slug' => 'fill-2', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'term', 'id' => 'parent-term', 'taxonomy' => 'category', 'name' => 'Parent term', 'slug' => 'parent-term'],
+        ],
+    ];
+
+    $file = readerUploaded('term-join.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $child = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'slug' = 'child-term'")->value('payload'), true);
+    $parent = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'slug' = 'parent-term'")->value('payload'), true);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($child['parent'])->toBe($parent['id'])
+        ->and($child['parent'])->not->toBe(0)
+        ->and($file->report['notes'] ?? [])->not->toHaveKey('parent');
+});
+
+it('resolves rows on both sides of a resolve chunk boundary', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2, 'teme.import.reader_resolve_chunk' => 1]);
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'comment', 'id' => 'c1', 'postId' => 'later-post', 'status' => 'published', 'content' => 'Waiting', 'authorName' => 'Sam'],
+            ['kind' => 'post', 'id' => 'early-post', 'title' => 'Early', 'slug' => 'early', 'status' => 'published', 'content' => '<p>Early</p>', 'parentId' => 'later-post'],
+            ['kind' => 'post', 'id' => 'fill', 'title' => 'Fill', 'slug' => 'fill', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'post', 'id' => 'later-post', 'title' => 'Later', 'slug' => 'later', 'status' => 'published', 'content' => '<p>Later</p>'],
+        ],
+    ];
+
+    $file = readerUploaded('chunk-edge.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $comment = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'comments')->value('payload'), true);
+    $early = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Early'")->value('payload'), true);
+    $later = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Later'")->value('payload'), true);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($comment['post_id'])->toBe($later['id'])
+        ->and($early['parent'])->toBe($later['id'])
+        ->and($file->report['notes'] ?? [])->not->toHaveKey('comment')
+        ->and($file->report['notes'] ?? [])->not->toHaveKey('parent');
 });
 
 it('writes nothing from ResolveImportReaderRows when the person may not import', function (): void {

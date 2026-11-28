@@ -57,27 +57,41 @@ final class ResolveImportReaderRows extends BaseOperation
     {
         /** @var ResolveImportReaderRowsInput $input */
         $rewritten = 0;
-        $after = 0;
+        $afterList = null;
+        $afterId = null;
+        $chunk = $this->chunkSize();
 
         do {
-            $rows = DB::table('import_file_rows')
+            $query = DB::table('import_file_rows')
                 ->where('file_id', $input->fileId)
-                ->where('object_id', '>', $after)
                 ->whereRaw('jsonb_exists(payload, ?)', ['reader_refs'])
+                ->orderBy('list')
                 ->orderBy('object_id')
-                ->limit(self::CHUNK)
-                ->get(['list', 'object_id', 'payload']);
+                ->limit($chunk);
+
+            if ($afterList !== null) {
+                $query->where(function ($inner) use ($afterList, $afterId): void {
+                    $inner->where('list', '>', $afterList)
+                        ->orWhere(function ($same) use ($afterList, $afterId): void {
+                            $same->where('list', $afterList)->where('object_id', '>', $afterId);
+                        });
+                });
+            }
+
+            $rows = $query->get(['list', 'object_id', 'payload']);
 
             if ($rows->isEmpty()) {
                 break;
             }
 
             $wanted = [];
+            $last = $rows->last();
+            $afterList = (string) $last->list;
+            $afterId = (int) $last->object_id;
 
             foreach ($rows as $row) {
                 $payload = is_string($row->payload) ? json_decode($row->payload, true) : null;
                 $refs = is_array($payload) && is_array($payload['reader_refs'] ?? null) ? $payload['reader_refs'] : [];
-                $after = max($after, (int) $row->object_id);
 
                 foreach ($this->sourcesOf((string) $row->list, $refs) as [$kind, $sourceId]) {
                     $wanted[$kind][$sourceId] = true;
@@ -108,13 +122,24 @@ final class ResolveImportReaderRows extends BaseOperation
                 ];
             }
 
-            foreach (array_chunk($writes, self::CHUNK) as $chunk) {
-                DB::table('import_file_rows')->upsert($chunk, ['file_id', 'list', 'object_id'], ['payload']);
-                $rewritten += count($chunk);
+            foreach (array_chunk($writes, $chunk) as $batch) {
+                DB::table('import_file_rows')->upsert($batch, ['file_id', 'list', 'object_id'], ['payload']);
+                $rewritten += count($batch);
             }
-        } while ($rows->count() === self::CHUNK);
+        } while ($rows->count() === $chunk);
 
         return $rewritten;
+    }
+
+    /**
+     * How many rows one resolve chunk loads. Tests may set
+     * `teme.import.reader_resolve_chunk` so a short file spans several chunks.
+     */
+    private function chunkSize(): int
+    {
+        $size = (int) config('teme.import.reader_resolve_chunk', self::CHUNK);
+
+        return $size > 0 ? $size : self::CHUNK;
     }
 
     /**
