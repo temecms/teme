@@ -219,3 +219,65 @@ it('refuses a deferred purge of a tag core does not name for a plugin, such as e
         ->toThrow(AuthorizationException::class)
         ->and(cacheEntry('/'))->not->toBeNull();
 });
+
+it('writes nothing and purges nothing for a plugin that is not running, even inside a job', function (): void {
+    addrGet('/harbour-story/')->assertOk();
+    addrGet('/')->assertOk();
+
+    expect(fn () => ($this->asJob)(fn () => (new CoreInsertionsChanged('tests/not-running'))->notify([(string) $this->story->id])))->toThrow(AuthorizationException::class)
+        ->and(fn () => ($this->asJob)(fn () => (new CoreInsertionsChanged('tests/not-running'))->notify()))->toThrow(AuthorizationException::class)
+        ->and(cacheEntry('/harbour-story/'))->not->toBeNull()
+        ->and(cacheEntry('/'))->not->toBeNull();
+});
+
+it('purges the pages of the named content once a job says its cards changed', function (): void {
+    addrGet('/harbour-story/')->assertOk();
+    addrGet('/other-story/')->assertOk();
+
+    ($this->asJob)(fn () => (new CoreCardsChanged('billboard', 'tests/billboard'))->notify([(string) $this->story->id]));
+
+    expect(cacheEntry('/harbour-story/'))->toBeNull()
+        ->and(cacheEntry('/other-story/'))->not->toBeNull();
+});
+
+it('takes no minute for a whole-site call that rolls back, so the next one purges at once', function (): void {
+    Queue::fake();
+    addrGet('/')->assertOk();
+
+    try {
+        ($this->asJob)(fn () => DB::transaction(function (): void {
+            insertionsDoor()->notify();
+
+            throw new RuntimeException('The job failed after noting its change.');
+        }));
+    } catch (RuntimeException) {
+        // The rollback is the point of the test.
+    }
+
+    expect(cacheEntry('/'))->not->toBeNull();
+
+    ($this->asJob)(fn () => insertionsDoor()->notify());
+
+    expect(cacheEntry('/'))->toBeNull();
+    Queue::assertNotPushed(PurgeDeferredPages::class);
+});
+
+it('holds a whole-site purge of a job run during an import, taking no minute', function (): void {
+    Queue::fake();
+    addrGet('/')->assertOk();
+    $source = ImportSource::query()->create([
+        'address' => 'https://old.example', 'api_root' => 'https://old.example/wp-json/', 'user_name' => 'ada',
+        'credential' => 'abcd EFGH 1234 ijkl MNOP 5678', 'plugin_version' => '0.2.0', 'api_version' => 1, 'probed_at' => now(),
+    ]);
+    $run = ImportRun::query()->create([
+        'source_id' => $source->id, 'kind' => ImportRunKind::Full, 'state' => ImportRunState::Running, 'phase' => 'users',
+        'phase_token' => strtolower((string) Str::ulid()), 'high_water_at' => now(), 'started_at' => now(),
+    ]);
+
+    app(ImportMode::class)->during($run->id, fn () => ($this->asJob)(fn () => insertionsDoor()->notify()));
+
+    expect(cacheEntry('/'))->not->toBeNull()
+        ->and(app(ImportMode::class)->takeHeld())->toContain('insertions')
+        ->and(Cache::has(PurgeDeferredPages::WINDOW))->toBeFalse();
+    Queue::assertNotPushed(PurgeDeferredPages::class);
+});

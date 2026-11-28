@@ -46,6 +46,12 @@ final class NotePluginPagesChanged extends BaseOperation
     /** @var list<string>|null the tags a whole-site notice purges, once the commit is in */
     private ?array $wholeSite = null;
 
+    /** Whether an import run held the purges when the notice was given, asked before the commit as BaseOperation asks. */
+    private bool $importHeld = false;
+
+    /** How long the coalesced tags wait, in seconds: well past the delayed purge, so a backed-up queue still finds them. */
+    private const int PENDING_SECONDS = 900;
+
     public function __construct(private readonly LoadedPlugins $loaded) {}
 
     protected function authorize(OperationInput $input): void
@@ -81,6 +87,7 @@ final class NotePluginPagesChanged extends BaseOperation
 
         // Taken after the commit, in afterCommit(): a rolled-back notice uses up no minute.
         $this->wholeSite = $input->tags;
+        $this->importHeld = app(ImportMode::class)->active();
 
         return true;
     }
@@ -98,7 +105,7 @@ final class NotePluginPagesChanged extends BaseOperation
 
         $tags = $this->wholeSite;
 
-        if (app(ImportMode::class)->active()) {
+        if ($this->importHeld) {
             app(ImportMode::class)->hold($tags);
 
             return;
@@ -110,16 +117,19 @@ final class NotePluginPagesChanged extends BaseOperation
             return;
         }
 
-        $pending = Cache::get(PurgeDeferredPages::PENDING);
+        // The read and the write of the waiting tags under one lock, which the purge takes too, so no tags are lost between them.
+        Cache::lock(PurgeDeferredPages::LOCK, 10)->block(5, function () use ($tags): void {
+            $pending = Cache::get(PurgeDeferredPages::PENDING);
 
-        if (! is_array($pending)) {
-            Cache::put(PurgeDeferredPages::PENDING, $tags, 120);
-            PurgeDeferredPages::dispatch()->delay(now()->addSeconds(60));
+            if (! is_array($pending)) {
+                Cache::put(PurgeDeferredPages::PENDING, $tags, self::PENDING_SECONDS);
+                PurgeDeferredPages::dispatch()->delay(now()->addSeconds(60));
 
-            return;
-        }
+                return;
+            }
 
-        Cache::put(PurgeDeferredPages::PENDING, array_values(array_unique([...$pending, ...$tags])), 120);
+            Cache::put(PurgeDeferredPages::PENDING, array_values(array_unique([...$pending, ...$tags])), self::PENDING_SECONDS);
+        });
     }
 
     /**

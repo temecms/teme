@@ -33,9 +33,12 @@ final class PurgeDeferredPages implements ShouldQueue
     /** The cache key that holds the tags waiting for the next purge. */
     public const string PENDING = 'plugins.pages-changed.pending';
 
+    /** The lock around reading and writing the waiting tags. */
+    public const string LOCK = 'plugins.pages-changed.pending-lock';
+
     public function handle(): void
     {
-        $tags = Cache::pull(self::PENDING);
+        $tags = Cache::lock(self::LOCK, 10)->block(5, fn (): mixed => Cache::pull(self::PENDING));
 
         if (! is_array($tags) || $tags === []) {
             return;
