@@ -16,6 +16,7 @@ import {
     SiteAnalysis,
 } from '@/components/import/site-analysis';
 import { UploadForm } from '@/components/import/upload-form';
+import { UploadsCopyPanel } from '@/components/import/uploads-copy-panel';
 import { ListPage } from '@/components/patterns/list-page';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { StatusPill } from '@/components/ui/status-pill';
@@ -213,6 +214,8 @@ export default function ImportShow({
     rememberedHosts,
     siteTimezone,
     maxFileMb,
+    uploadsCopy,
+    maxUploadsMb,
 }: ImportShowPage) {
     const { start, stop } = usePoll(
         3000,
@@ -325,6 +328,15 @@ export default function ImportShow({
                             listedHosts={site.otherHosts}
                         />
                     </Deferred>
+                )}
+
+                {!site.forgotten && (step === 'plan' || step === 'report') && (
+                    <UploadsCopyPanel
+                        siteId={site.id}
+                        copy={uploadsCopy}
+                        maxUploadsMb={maxUploadsMb}
+                        planning={step === 'plan'}
+                    />
                 )}
 
                 {step !== 'plan' && run !== null && (

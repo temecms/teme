@@ -271,4 +271,17 @@ export type ImportShowPage = {
     siteTimezone: string;
     /** Largest export upload, in megabytes. */
     maxFileMb: number;
+    /** The site's uploads copy, or null when it has none. */
+    uploadsCopy: ImportUploadCopy | null;
+    /** Largest uploads copy the browser may send, in megabytes. */
+    maxUploadsMb: number;
+};
+
+/** A site's uploads copy as its import screen shows it. */
+export type ImportUploadCopy = {
+    name: string;
+    sizeBytes: number;
+    copiedPictures: number;
+    sitePictures: number;
+    kind: string;
 };
