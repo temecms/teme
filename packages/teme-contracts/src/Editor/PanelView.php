@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;
 
-use DateTimeInterface;
+use DateTimeImmutable;
 use InvalidArgumentException;
 use Teme\Contracts\Lists\Cell;
 
@@ -42,7 +42,7 @@ final readonly class PanelView
      * @param  list<PanelRow>  $rows  at most 10 labelled lines of detail, shown above the preview
      * @param  PanelPreview|null  $preview  the preview card of what the plugin will send, or null for none
      * @param  array<string, string|int|float|bool|null>  $saved  the saved values of the action fields, by field key; they start a field the person hasn't touched
-     * @param  DateTimeInterface|null  $savedAt  when the saved values were saved, or null
+     * @param  DateTimeImmutable|null  $savedAt  when the saved values were saved, or null
      * @param  string|null  $rowsHeading  up to 60 characters: the heading over the rows, or null for "Details"
      *
      * @throws InvalidArgumentException for a status, tone or list outside those bounds
@@ -56,7 +56,7 @@ final readonly class PanelView
         public array $rows = [],
         public ?PanelPreview $preview = null,
         public array $saved = [],
-        public ?DateTimeInterface $savedAt = null,
+        public ?DateTimeImmutable $savedAt = null,
         public ?string $rowsHeading = null,
     ) {
         if ($status !== null && mb_strlen($status) > self::MOST_STATUS) {

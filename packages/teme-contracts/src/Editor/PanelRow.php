@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;
 
-use DateTimeInterface;
+use DateTimeImmutable;
 use InvalidArgumentException;
 use Teme\Contracts\Lists\Cell;
 
@@ -34,7 +34,7 @@ final readonly class PanelRow
 
     /**
      * @param  string  $label  up to 60 characters of plain text
-     * @param  string|DateTimeInterface  $value  up to 120 characters of plain text, or a date and time
+     * @param  string|DateTimeImmutable  $value  up to 120 characters of plain text, or a date and time
      * @param  string|null  $tone  ok, neutral, info, warn or danger: the value is drawn as a pill; null for plain text
      *
      * @throws InvalidArgumentException for a label, value or tone outside those bounds
@@ -43,7 +43,7 @@ final readonly class PanelRow
      */
     public function __construct(
         public string $label,
-        public string|DateTimeInterface $value,
+        public string|DateTimeImmutable $value,
         public ?string $tone = null,
     ) {
         if ($label === '' || mb_strlen($label) > self::MOST_LABEL) {

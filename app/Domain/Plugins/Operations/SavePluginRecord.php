@@ -22,6 +22,8 @@ use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Operations\Concerns\WritesPluginArea;
 use App\Domain\Plugins\Operations\Input\SavePluginRecordInput;
+use App\Domain\Plugins\RecordHosts;
+use App\Domain\Plugins\SettingHosts;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Admin\PluginArea;
 use Teme\Contracts\Admin\Saved;
@@ -49,7 +51,7 @@ final class SavePluginRecord extends BaseOperation
     }
 
     /**
-     * @return array{id: string, changed: bool}
+     * @return array{id: string, changed: bool, waiting: list<string>}
      */
     protected function perform(OperationInput $input): array
     {
@@ -64,6 +66,11 @@ final class SavePluginRecord extends BaseOperation
 
         $saved = $this->write($plugin, fn (PluginArea $data): Saved => $data->save($input->record, $input->id, $values, $context));
 
-        return ['id' => $saved->id, 'changed' => $saved->changed];
+        // The hosts this record's url fields name now, the hidden ones left out, kept until a person agrees to them.
+        $urlKeys = array_values(array_map(fn (array $field): string => (string) $field['key'], array_filter($plugin->area->fields($input->record), fn (array $field): bool => $field['type'] === 'url')));
+        $title = $values[$plugin->area->record($input->record)['titleField'] ?? ''] ?? '';
+        $waiting = RecordHosts::noteSaved($plugin->name, $saved->id, is_string($title) && $title !== '' ? $title : $record, SettingHosts::hostsIn($values, $urlKeys));
+
+        return ['id' => $saved->id, 'changed' => $saved->changed, 'waiting' => $waiting];
     }
 }

@@ -19,16 +19,20 @@ use App\Domain\Extensions\ExtensionsAccess;
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Operations\AgreePluginHosts;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\ForgetPlugin;
+use App\Domain\Plugins\Operations\Input\AgreePluginHostsInput;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\Operations\Input\ForgetPluginInput;
 use App\Domain\Plugins\Operations\Input\MigratePluginInput;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
+use App\Domain\Plugins\Operations\Input\RemoveRecordHostInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\Plugins\Operations\RemovePluginData;
+use App\Domain\Plugins\Operations\RemoveRecordHost;
 use App\Domain\Plugins\PluginPlaces;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginSentences;
@@ -114,6 +118,53 @@ final class PluginsController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => trim(__(':name enabled: :places.', ['name' => $row->label, 'places' => $places]).' '.$list->typesReport($row->name))]);
 
         return to_route('plugins.index');
+    }
+
+    /**
+     * A person who manages plugins agrees to a host a record named. The
+     * password step runs in the operation, as for a host in the settings.
+     *
+     * @since next
+     */
+    public function agreeHost(Request $request, string $code, PluginList $list, AgreePluginHosts $agree): RedirectResponse
+    {
+        $row = $this->row($list, $code);
+
+        try {
+            $agree->execute(new AgreePluginHostsInput($row->name, [$request->string('host')->toString()], (string) $request->user()?->getAuthIdentifier(), 'records'));
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return back();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Host agreed. :name can reach :host from now on.', ['name' => $row->label, 'host' => $request->string('host')->toString()])]);
+
+        return back();
+    }
+
+    /**
+     * Removes a host agreed for a plugin's records. Anyone who manages plugins
+     * may remove one; there is no undo, since undoing would widen access.
+     *
+     * @since next
+     */
+    public function removeHost(Request $request, string $code, PluginList $list, RemoveRecordHost $remove): RedirectResponse
+    {
+        $row = $this->row($list, $code);
+        $host = $request->string('host')->toString();
+
+        try {
+            $remove->execute(new RemoveRecordHostInput($row->name, $host, (string) $request->user()?->getAuthIdentifier()));
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return back();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Removed: :host. :name can’t reach it now.', ['host' => $host, 'name' => $row->label])]);
+
+        return back();
     }
 
     public function disable(Request $request, string $code, PluginList $list, DisablePlugin $disable): RedirectResponse

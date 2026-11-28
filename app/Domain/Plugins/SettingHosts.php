@@ -132,8 +132,7 @@ final readonly class SettingHosts
     {
         $manifest = $this->registry->find($name)?->manifest;
 
-        // A plugin that takes no hosts from its settings asks nothing of the database.
-        if ($manifest === null || self::declared($manifest) === []) {
+        if ($manifest === null) {
             return [];
         }
 
@@ -149,14 +148,22 @@ final readonly class SettingHosts
             return [];
         }
 
+        // Hosts a person agreed to for the plugin's records: kept until someone removes them.
+        $fromRecords = RecordHosts::agreed($record->consent);
+
+        // A plugin that takes no hosts from its settings asks nothing more of the database.
+        if (self::declared($manifest) === []) {
+            return $fromRecords;
+        }
+
         $agreed = array_values(array_filter((array) ($record->consent['settingHosts'] ?? []), is_string(...)));
         $keys = Consent::hostsFrom($record->consent, $manifest);
 
         if ($agreed === [] || $keys === []) {
-            return [];
+            return $fromRecords;
         }
 
-        return array_values(array_intersect(self::hostsIn($this->values($manifest), $keys), $agreed));
+        return array_values(array_unique([...array_intersect(self::hostsIn($this->values($manifest), $keys), $agreed), ...$fromRecords]));
     }
 
     /**

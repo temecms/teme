@@ -242,6 +242,12 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::post('{code}/disable', [PluginsController::class, 'disable'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('disable');
+                Route::post('{code}/hosts/agree', [PluginsController::class, 'agreeHost'])
+                    ->where('code', ManifestValidator::CODE_PATTERN)
+                    ->name('hosts.agree');
+                Route::post('{code}/hosts/remove', [PluginsController::class, 'removeHost'])
+                    ->where('code', ManifestValidator::CODE_PATTERN)
+                    ->name('hosts.remove');
                 Route::post('{code}/actions/{action}', [PluginActionController::class, 'run'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->where('action', '[a-z][a-z0-9-]{1,39}')
