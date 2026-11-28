@@ -45,7 +45,7 @@ final class SavePluginRecord extends BaseOperation
         /** @var SavePluginRecordInput $input */
         $plugin = $this->writable($input->code, $input->record, $input->actorId);
 
-        AreaForms::validated($plugin->area->fields($input->record), $input->values);
+        AreaForms::validated($plugin->area->fields($input->record), $input->values, $input->actorId, $plugin->label);
     }
 
     /**
@@ -55,7 +55,7 @@ final class SavePluginRecord extends BaseOperation
     {
         /** @var SavePluginRecordInput $input */
         $plugin = $this->writable($input->code, $input->record, $input->actorId);
-        $values = AreaForms::validated($plugin->area->fields($input->record), $input->values);
+        $values = AreaForms::validated($plugin->area->fields($input->record), $input->values, $input->actorId, $plugin->label);
         $context = AreaContexts::for($input->code, $input->actorId);
         $record = AreaWords::text($plugin->code, (string) ($plugin->area->record($input->record)['label'] ?? ''));
 

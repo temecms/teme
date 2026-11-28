@@ -140,6 +140,7 @@ export type AreaField = {
         | 'datetime'
         | 'types'
         | 'terms'
+        | 'items'
         | 'region'
         | 'repeater';
     label: string;
@@ -157,6 +158,14 @@ export type AreaField = {
     itemLabel: string;
     itemTitle: string | null;
     empty: unknown;
+    /** A terms field stores each term's slug, not its ID. */
+    storeAs: 'id' | 'slug' | null;
+    /** The chosen items, or the stored slugs, with the name each one has now (null: none). */
+    chips: { value: string; label: string | null; kind?: string }[];
+    /** The slugs a terms field stores that no term has now. */
+    stale: string[];
+    /** The taxonomy a terms field draws its terms from. */
+    taxonomy?: string | null;
 };
 
 export type PluginRecordPageProps = {

@@ -43,6 +43,7 @@ use App\Http\Admin\Contents\ContentListController;
 use App\Http\Admin\Contents\ContentPreviewController;
 use App\Http\Admin\Contents\ContentTreeController;
 use App\Http\Admin\Contents\EditorPanelController;
+use App\Http\Admin\Contents\ItemChoicesController;
 use App\Http\Admin\Contents\LinkChoicesController;
 use App\Http\Admin\Contents\LinkedContentController;
 use App\Http\Admin\Contents\LinkTargetsController;
@@ -458,6 +459,9 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::get('content/link-choices', LinkChoicesController::class)
             ->middleware('can:content.create')
             ->name('content.link-choices');
+        Route::get('content/item-choices', ItemChoicesController::class)
+            ->middleware('can:content.create')
+            ->name('content.item-choices');
         Route::get('content/linked', LinkedContentController::class)
             ->middleware('can:content.create')
             ->name('content.linked');

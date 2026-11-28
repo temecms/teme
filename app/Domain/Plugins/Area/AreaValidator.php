@@ -42,7 +42,7 @@ final class AreaValidator
     public const array BULK_ACTIONS = ['duplicate', 'enable', 'disable', 'delete'];
 
     /** The types a record's field may take. */
-    public const array FIELD_TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'email', 'url', 'color', 'code', 'datetime', 'types', 'terms', 'region', 'repeater'];
+    public const array FIELD_TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'email', 'url', 'color', 'code', 'datetime', 'types', 'terms', 'region', 'repeater', 'items'];
 
     /** The most pages, blocks a page, records, sections a form, fields a section and fields a form. */
     public const int MOST_PAGES = 8;
@@ -634,7 +634,7 @@ final class AreaValidator
     {
         $type = $field['type'] ?? null;
         $key = is_string($field['key'] ?? null) ? $field['key'] : '';
-        $errors = $this->unknownKeys($field, ['key', 'type', 'label', 'description', 'required', 'maxLength', 'min', 'max', 'options', 'default', 'visibleWhen', 'scripts', 'taxonomy', 'fields', 'minItems', 'maxItems', 'itemLabel', 'itemTitle']);
+        $errors = $this->unknownKeys($field, ['key', 'type', 'label', 'description', 'required', 'maxLength', 'min', 'max', 'options', 'default', 'visibleWhen', 'scripts', 'taxonomy', 'storeAs', 'fields', 'minItems', 'maxItems', 'itemLabel', 'itemTitle']);
 
         if (preg_match(ContributionsValidator::KEY, $key) !== 1) {
             $errors[] = __('A field’s key must be 2 to 41 lower-case letters, digits and underscores, starting with a letter.');
@@ -676,6 +676,11 @@ final class AreaValidator
 
         if ($type === 'terms' && ! (is_string($field['taxonomy'] ?? null) && preg_match(ContributionsValidator::TYPE_KEY, $field['taxonomy']) === 1)) {
             $errors[] = __('The field :key must name its taxonomy.', ['key' => $key]);
+        }
+
+        // A terms field stores each term's ID, or its slug, the short form in its address.
+        if (array_key_exists('storeAs', $field) && ($type !== 'terms' || ! in_array($field['storeAs'], ['id', 'slug'], true))) {
+            $errors[] = __('Only a terms field may store its terms by id or by slug, as storeAs says.');
         }
 
         if ($type === 'repeater') {

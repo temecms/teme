@@ -15,11 +15,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
 
+use App\Domain\Contents\Models\Content;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\CoreTypes;
+use App\Domain\Users\Actors;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Settings\SettingsReader;
@@ -42,10 +46,12 @@ final class AreaForms
      *
      * @param  list<array<string, mixed>>  $fields  as DeclaredArea::fields() gives them
      * @param  array<array-key, mixed>  $values  as sent
+     * @param  string|null  $personId  the person saving: the items they may open are the only ones accepted
+     * @param  string  $plugin  the plugin's name, as a refusal names it
      *
      * @return array<string, mixed>
      */
-    public static function validated(array $fields, array $values): array
+    public static function validated(array $fields, array $values, ?string $personId = null, string $plugin = ''): array
     {
         $shown = VisibleWhen::visibleValues($fields, $values);
         $errors = [];
@@ -58,7 +64,7 @@ final class AreaForms
                 continue;
             }
 
-            $kept[$key] = self::one($field, $shown[$key], "values.{$key}", $errors);
+            $kept[$key] = self::one($field, $shown[$key], "values.{$key}", $errors, $personId, $plugin);
         }
 
         if ($errors !== []) {
@@ -135,7 +141,7 @@ final class AreaForms
         return match ($field['type']) {
             'number' => null,
             'boolean' => false,
-            'multiselect', 'types', 'terms', 'repeater' => [],
+            'multiselect', 'types', 'terms', 'items', 'repeater' => [],
             'select' => array_key_first(is_array($field['options']) ? $field['options'] : []) ?? '',
             default => '',
         };
@@ -149,7 +155,7 @@ final class AreaForms
         return match ($field['type']) {
             'number' => $value === null || is_int($value) || is_float($value),
             'boolean' => is_bool($value),
-            'multiselect', 'types', 'terms' => is_array($value) && array_is_list($value) && array_filter($value, fn (mixed $one): bool => ! is_string($one)) === [],
+            'multiselect', 'types', 'terms', 'items' => is_array($value) && array_is_list($value) && array_filter($value, fn (mixed $one): bool => ! is_string($one)) === [],
             'repeater' => is_array($value) && array_is_list($value),
             default => is_string($value),
         };
@@ -161,14 +167,14 @@ final class AreaForms
      * @param  array<string, mixed>  $field
      * @param  array<string, array<mixed>|string>  $errors  each refused value's sentence, by its path
      */
-    private static function one(array $field, mixed $value, string $path, array &$errors): mixed
+    private static function one(array $field, mixed $value, string $path, array &$errors, ?string $personId = null, string $plugin = ''): mixed
     {
         $label = (string) $field['label'];
         $empty = $value === null || $value === '' || $value === [];
 
         // An empty repeater still holds its least number of items.
         if ($empty && $field['type'] === 'repeater' && ! ($field['required'] === true)) {
-            return self::items($field, [], $path, $errors);
+            return self::items($field, [], $path, $errors, $personId, $plugin);
         }
 
         if ($empty) {
@@ -218,6 +224,18 @@ final class AreaForms
             case 'types':
             case 'terms':
                 $list = is_array($value) ? array_values(array_unique(array_map(fn (mixed $one): string => is_scalar($one) ? (string) $one : '', $value))) : null;
+
+                // A term stored as its slug is checked against the taxonomy's slugs now; a missing one is refused, named by the plugin.
+                if ($type === 'terms' && ($field['storeAs'] ?? 'id') === 'slug' && $list !== null) {
+                    $missing = array_values(array_diff($list, self::termSlugs(is_string($field['taxonomy']) ? $field['taxonomy'] : '', $list)));
+
+                    if ($missing !== []) {
+                        $errors[$path] = __('“:slug” isn’t a term on this site now, so :plugin can’t save it. Remove it, or choose the term again.', ['slug' => $missing[0], 'plugin' => $plugin !== '' ? $plugin : $label]);
+                    }
+
+                    return $list;
+                }
+
                 $allowed = match ($type) {
                     'multiselect' => array_map(strval(...), array_keys($options)),
                     'types' => array_map(fn (ContentType $type): string => $type->key, app(ContentTypeRegistry::class)->all()),
@@ -225,6 +243,15 @@ final class AreaForms
                 };
 
                 if ($list === null || array_diff($list, $allowed) !== []) {
+                    $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
+                }
+
+                return $list ?? [];
+
+            case 'items':
+                $list = is_array($value) ? array_values(array_unique(array_map(fn (mixed $one): string => is_scalar($one) ? (string) $one : '', $value))) : null;
+
+                if ($list === null || array_diff($list, self::readableItems($list, $personId)) !== []) {
                     $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
                 }
 
@@ -253,7 +280,7 @@ final class AreaForms
                 return $time->toIso8601String();
 
             case 'repeater':
-                return self::items($field, $value, $path, $errors);
+                return self::items($field, $value, $path, $errors, $personId, $plugin);
         }
 
         if (! is_string($value)) {
@@ -292,7 +319,7 @@ final class AreaForms
      *
      * @return list<array<string, mixed>>
      */
-    private static function items(array $field, mixed $value, string $path, array &$errors): array
+    private static function items(array $field, mixed $value, string $path, array &$errors, ?string $personId = null, string $plugin = ''): array
     {
         $label = (string) $field['label'];
         $minItems = is_int($field['minItems']) ? $field['minItems'] : 0;
@@ -321,7 +348,7 @@ final class AreaForms
                 $key = (string) $sub['key'];
 
                 if (array_key_exists($key, $shown)) {
-                    $kept[$key] = self::one($sub, $shown[$key], "{$path}.{$index}.{$key}", $errors);
+                    $kept[$key] = self::one($sub, $shown[$key], "{$path}.{$index}.{$key}", $errors, $personId, $plugin);
                 }
             }
 
@@ -347,5 +374,44 @@ final class AreaForms
         }
 
         return DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('id', $ulids)->pluck('id')->map(fn (mixed $id): string => (string) $id)->all();
+    }
+
+    /**
+     * Which of these content IDs the person may open: a live item, or a draft
+     * they may update, of a post or a page. Nothing else is accepted.
+     *
+     * @param  list<string>  $ids
+     *
+     * @return list<string>
+     */
+    public static function readableItems(array $ids, ?string $personId): array
+    {
+        $person = $personId === null ? null : app(Actors::class)->find($personId);
+
+        if ($person === null || $ids === []) {
+            return [];
+        }
+
+        return Content::query()->whereIn('id', $ids)->whereIn('type', [CoreTypes::POST, CoreTypes::PAGE])->whereNull('deleted_at')->get()
+            ->filter(fn (Content $item): bool => $item->status === 'published' || Gate::forUser($person)->allows('update', $item))
+            ->map(fn (Content $item): string => (string) $item->id)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Which of these slugs are terms of the taxonomy now.
+     *
+     * @param  list<string>  $slugs
+     *
+     * @return list<string>
+     */
+    public static function termSlugs(string $taxonomy, array $slugs): array
+    {
+        if ($slugs === []) {
+            return [];
+        }
+
+        return DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('slug', $slugs)->pluck('slug')->map(fn (mixed $slug): string => (string) $slug)->all();
     }
 }

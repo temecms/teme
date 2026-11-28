@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
+use App\Domain\Contents\Models\Content;
+use App\Domain\Contents\Queries\ItemChoices;
 use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Area\AreaForms;
 use App\Domain\Plugins\Area\AreaPlugin;
@@ -81,7 +83,7 @@ final readonly class PluginRecordForm
                 'id' => $section['id'],
                 'label' => $words($section['label']),
                 'description' => $words($section['description']),
-                'fields' => array_map(fn (array $field): array => $this->field($field, $plugin), $section['fields']),
+                'fields' => array_map(fn (array $field): array => $this->decorate($this->field($field, $plugin), $values, $personId), $section['fields']),
             ], $declared['sections']),
             'values' => $values,
             'failed' => $failed,
@@ -123,6 +125,10 @@ final readonly class PluginRecordForm
             'visibleWhen' => $field['visibleWhen'],
             'scripts' => $field['scripts'],
             'choices' => $choices,
+            'storeAs' => $type === 'terms' ? ($field['storeAs'] ?? 'id') : null,
+            'taxonomy' => $type === 'terms' && is_string($field['taxonomy']) ? $field['taxonomy'] : null,
+            'chips' => [],
+            'stale' => [],
             'fields' => array_map(fn (array $sub): array => $this->field($sub, $plugin), is_array($field['fields']) ? array_values($field['fields']) : []),
             'minItems' => $field['minItems'],
             'maxItems' => $field['maxItems'],
@@ -130,6 +136,40 @@ final readonly class PluginRecordForm
             'itemTitle' => $field['itemTitle'],
             'empty' => AreaForms::empty($field),
         ];
+    }
+
+    /**
+     * What a picker field needs beside its value: the chips of the chosen
+     * items (only those the person may open), and for a terms field that
+     * stores slugs, each chip's name, and the slugs no term has now.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, mixed>  $values
+     *
+     * @return array<string, mixed>
+     */
+    private function decorate(array $field, array $values, string $personId): array
+    {
+        $stored = is_array($values[$field['key']] ?? null) ? array_values(array_filter($values[$field['key']], is_string(...))) : [];
+
+        if ($field['type'] === 'items') {
+            $readable = AreaForms::readableItems($stored, $personId);
+            $found = $readable === [] ? [] : Content::query()->whereIn('id', $readable)->get(['id', 'title', 'type'])->keyBy('id');
+            $field['chips'] = array_map(fn (string $id): array => [
+                'value' => $id,
+                'label' => (string) ($found[$id]->title ?? ''),
+                'kind' => ItemChoices::kindLabel((string) ($found[$id]->type ?? '')),
+            ], array_values(array_filter($stored, fn (string $id): bool => in_array($id, $readable, true))));
+        }
+
+        if ($field['type'] === 'terms' && $field['storeAs'] === 'slug') {
+            $taxonomy = is_string($field['taxonomy'] ?? null) ? $field['taxonomy'] : '';
+            $names = $stored === [] ? [] : DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('slug', $stored)->pluck('name', 'slug')->all();
+            $field['chips'] = array_map(fn (string $slug): array => ['value' => $slug, 'label' => isset($names[$slug]) ? (string) $names[$slug] : null], $stored);
+            $field['stale'] = array_values(array_diff($stored, AreaForms::termSlugs($taxonomy, $stored)));
+        }
+
+        return $field;
     }
 
     /**
