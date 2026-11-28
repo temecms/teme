@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Updates\Queries;
 
+use App\Domain\Backups\BackupMode;
 use App\Domain\Deployment\Health\Heartbeats;
 use App\Domain\Deployment\Queries\DeployRuns;
 use App\Domain\Updates\Release;
@@ -77,6 +78,8 @@ final readonly class UpdatesScreen
             'rollback' => $previous === null ? null : ['version' => $previous, 'refusal' => $this->plan->refusal(UpdateKind::Rollback, $previous)],
             'updaterSeenAt' => $this->heartbeats->lastBeat(Heartbeats::UPDATER)?->toIso8601String(),
             'canUpdate' => $newest === null ? null : $this->plan->refusal(UpdateKind::Update, $newest->version),
+            // Under TEME_BACKUPS=host the host keeps the restore point, so no backup runs before a migration.
+            'hostKeepsRestorePoint' => BackupMode::isHost(),
         ];
     }
 
