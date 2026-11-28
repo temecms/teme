@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Export\ExportFailed;
 use App\Domain\Export\LeftOut;
+use App\Domain\Export\Operations\ExportSite;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\LoadedPlugins;
@@ -18,6 +20,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Tests\Fixtures\Export\ExportAs;
 use Tests\Fixtures\Plugins\Exporter\Exporter;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -51,6 +54,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    app()->forgetInstance(ExportSite::class);
     Exporter::reset();
     ExportAs::remove($this->folder);
     PluginFixtures::forget();
@@ -176,6 +180,28 @@ it('refuses a page with no lines that says there is another, a repeated next, an
         ->and($faults->seen)->toHaveCount(1)
         ->and($faults->seen[0][3])->toBeInstanceOf(SocketAnswerRefused::class);
 })->with(['empty', 'repeat', 'never']);
+
+it('ends the export when a plugin savepoint fails, naming the file, not blaming the plugin', function (): void {
+    ['faults' => $faults] = ($this->enable)();
+    $export = app(ExportSite::class);
+    $export->afterPluginLines = function (string $name): void {
+        throw new RuntimeException('savepoint commit failed');
+    };
+    app()->instance(ExportSite::class, $export);
+
+    try {
+        ExportAs::operator($this->folder);
+        $this->fail('The export should have failed.');
+    } catch (ExportFailed $failed) {
+        expect($failed->getMessage())->toContain('plugin_exporter_bookings.ndjson')
+            ->and($failed->getMessage())->toContain('savepoint commit failed')
+            ->and($failed->leftBehind)->toBeNull();
+    }
+
+    expect(file_exists($this->folder))->toBeFalse()
+        ->and($faults->seen)->toBe([])
+        ->and(ExportAs::leftovers($this->folder))->toBe([]);
+});
 
 it('skips a second file whose name is taken, as that plugin’s fault, and goes on', function (): void {
     app()->instance(Elevation::class, new OperatorElevation);

@@ -37,11 +37,20 @@ use App\Domain\Types\TypesFile;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
 final class ExportSite extends BaseOperation
 {
+    /**
+     * When set, called after a plugin kind's lines are written inside its
+     * savepoint; tests use it to force a savepoint failure that names the file.
+     *
+     * @var (callable(string): void)|null
+     */
+    public $afterPluginLines = null;
+
     public function __construct(
         private readonly ExportKinds $kinds,
         private readonly SecurityLog $log,
@@ -113,11 +122,22 @@ final class ExportSite extends BaseOperation
                         $file = $folder->ndjson($kind);
 
                         // Its own savepoint: a failed statement in the plugin's code can't abort the export's transaction.
-                        DB::transaction(function () use ($kind, $context, $file): void {
-                            foreach ($kind->lines($context) as $line) {
-                                $file->write($line);
-                            }
-                        });
+                        // A failure from the write itself, or at the savepoint's commit, ends the export and names the file.
+                        try {
+                            DB::transaction(function () use ($kind, $context, $file): void {
+                                foreach ($kind->lines($context) as $line) {
+                                    $file->write($line);
+                                }
+
+                                if ($this->afterPluginLines !== null) {
+                                    ($this->afterPluginLines)($kind->name());
+                                }
+                            });
+                        } catch (PluginKindFailed $failure) {
+                            throw $failure;
+                        } catch (Throwable $failed) {
+                            throw new RuntimeException('Teme couldn’t write '.$kind->name().'.ndjson: '.$failed->getMessage(), 0, $failed);
+                        }
 
                         $files[] = $file->close();
                         $pluginKinds[] = $kind->toManifest();
