@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Cache\PageTags;
+use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
@@ -127,7 +129,9 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
         }
 
         // Run after an update, so what the plugin's public routes stored may be another version's.
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code]));
+        // A comment form's field can change with a new version's declaration (docs/guides/developers/plugins/comment-check.md).
+        $manifest = $this->registry->find($record->name)?->manifest;
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code, ...(CommentField::changesForms($manifest) ? [PageTags::DISCUSSION] : [])]));
 
         DB::afterCommit(fn () => $this->records->changed());
 

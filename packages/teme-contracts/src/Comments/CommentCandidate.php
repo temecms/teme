@@ -32,7 +32,7 @@ final readonly class CommentCandidate
      * @param  int  $links  the web addresses linked in them
      * @param  string|null  $authorUserId  the account, when its writer is signed in
      * @param  string|null  $itemUrl  the item's public address
-     * @param  array<string, string>  $signals  hidden form fields the comment form carried, by name; always empty in this release, as the hidden field comes later (issue 805)
+     * @param  array<string, string>  $signals  the comment-check plugin's hidden field as the form carried it, by name, or a missing-field signal naming the field when the form didn't carry it; empty when no field is declared
      *
      * @since 0.1.0
      */

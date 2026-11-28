@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\View\Components\Teme;
 
+use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Site\ViewModels\CommentFormView;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
@@ -24,9 +25,19 @@ use Illuminate\View\Component;
 final class CommentFormFields extends Component
 {
     /**
+     * The comment-check plugin's declared field, or null when none is declared.
+     *
+     * @var array{name: string, make: string, value: string}|null
+     */
+    public ?array $field;
+
+    /**
      * @param  CommentFormView  $form  the form the fields belong to: where it posts, the item's address and the reply's parent
      */
-    public function __construct(public CommentFormView $form) {}
+    public function __construct(public CommentFormView $form, CommentChecks $checks)
+    {
+        $this->field = $checks->field();
+    }
 
     public function render(): View
     {

@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Plugins\Area\AreaValidator;
 use App\Domain\Plugins\Console\DeclaredCommands;
 use App\Domain\Plugins\Downloads\DeclaredDownloads;
@@ -253,7 +254,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'securityLog', 'downloads'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'securityLog', 'downloads', 'commentField'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -353,6 +354,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         // Its image service (docs/guides/developers/plugins/image-service.md).
         $errors = [...$errors, ...ImageServiceDeclaration::errors($contributes, $capabilities)];
+
+        // Its hidden comment field, given to the comment check (docs/guides/developers/plugins/comment-check.md).
+        $errors = [...$errors, ...CommentField::errors($contributes, $capabilities)];
 
         // Its import readers (docs/guides/developers/plugins/import-readers.md).
         $errors = [...$errors, ...ImportReaderDeclaration::errors($contributes, $capabilities)];
