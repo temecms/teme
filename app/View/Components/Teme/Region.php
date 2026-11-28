@@ -27,7 +27,8 @@ use Illuminate\View\Component;
  * head. Nothing for a region that's empty or unpublished; outside
  * production, a note for a name the theme's manifest doesn't declare. What
  * plugins place before or after a declared region is drawn around it, also
- * when it is empty.
+ * when it is empty; what they place at its start or end is drawn inside it,
+ * with its content.
  */
 final class Region extends Component
 {
@@ -53,6 +54,12 @@ final class Region extends Component
     /** What plugins place after the region, cleaned, or ''. */
     public string $after = '';
 
+    /** What plugins place inside the region, before its content, cleaned, or ''. */
+    public string $start = '';
+
+    /** What plugins place inside the region, after its content, cleaned, or ''. */
+    public string $end = '';
+
     /**
      * @param  string  $name  the region's slug, as the theme's manifest declares it
      */
@@ -65,6 +72,8 @@ final class Region extends Component
         $this->undeclared = $drawn['undeclared'];
         $this->before = $drawn['before'];
         $this->after = $drawn['after'];
+        $this->start = $drawn['start'];
+        $this->end = $drawn['end'];
         $this->minWidth = $drawn['minWidth'];
         $this->source = $this->minWidth === null ? '' : route('teme.region', [], false).'?'.http_build_query(['name' => $name, 'lang' => app(PageLanguage::class)->tag()]);
     }

@@ -47,6 +47,12 @@ final class PagePosition
     /** @since 1.0.0 */
     public const string FIXED = 'fixed';
 
+    /** Inside a theme's region, before its content. @since next */
+    public const string REGION_START = 'region_start';
+
+    /** Inside a theme's region, after its content. @since next */
+    public const string REGION_END = 'region_end';
+
     /**
      * The furthest item of a list afterItem() reaches.
      *
@@ -178,6 +184,39 @@ final class PagePosition
         }
 
         return new self(self::REGION, ['slug' => $slug, 'where' => $where]);
+    }
+
+    /**
+     * Inside a region the active theme declares, at its start, before its
+     * content. Drawn only where the region has content of its own, and never
+     * in a region that waits for a viewport width (the theme's region
+     * component prints it; see docs/guides/developers/themes/components.md).
+     *
+     * @since next
+     */
+    public static function regionStart(string $slug): self
+    {
+        return self::insideRegion(self::REGION_START, $slug);
+    }
+
+    /**
+     * Inside a region the active theme declares, at its end, after its
+     * content. The same rules as regionStart().
+     *
+     * @since next
+     */
+    public static function regionEnd(string $slug): self
+    {
+        return self::insideRegion(self::REGION_END, $slug);
+    }
+
+    private static function insideRegion(string $kind, string $slug): self
+    {
+        if (preg_match('/^[a-z0-9-]{1,64}$/', $slug) !== 1) {
+            throw new InvalidArgumentException("A region's slug [{$slug}] isn't one.");
+        }
+
+        return new self($kind, ['slug' => $slug]);
     }
 
     /**

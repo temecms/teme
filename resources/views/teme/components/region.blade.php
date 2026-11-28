@@ -1,4 +1,4 @@
-{{-- A theme's region: its published content, or nothing; what plugins place before or after it, around it, also when it's empty. A region that waits for a viewport width is a placeholder here, which core's regions script fills once, from `source`, when the viewport reaches `minWidth`, so below it nothing of the region loads. --}}
+{{-- A theme's region: its published content, or nothing, with what plugins place at its start and end inside it (`$start`, `$end`); what plugins place before or after it, around it, also when it's empty. A region that waits for a viewport width is a placeholder here, which core's regions script fills once, from `source`, when the viewport reaches `minWidth`, so below it nothing of the region loads. --}}
 {!! $before !!}
 @if ($html !== null && $minWidth !== null)
 <div {{ $attributes->merge(['class' => "teme-region teme-region-{$name}"]) }} data-region="{{ $name }}" data-teme-region-min="{{ $minWidth }}" data-teme-region-src="{{ $source }}"></div>
@@ -38,7 +38,7 @@
 @endpush
 @endonce
 @elseif ($html !== null)
-<div {{ $attributes->merge(['class' => "teme-region teme-region-{$name}"]) }} data-region="{{ $name }}">{!! $html !!}</div>
+<div {{ $attributes->merge(['class' => "teme-region teme-region-{$name}"]) }} data-region="{{ $name }}">{!! $start !!}{!! $html !!}{!! $end !!}</div>
 @elseif ($undeclared)
 <div data-teme-undeclared-region="{{ $name }}">The theme uses a region "{{ $name }}" that its manifest doesn't declare.</div>
 @endif

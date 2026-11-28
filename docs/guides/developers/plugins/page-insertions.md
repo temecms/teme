@@ -47,7 +47,9 @@ A `PageInsertion` holds a key, a `PagePosition` and the HTML. Keys follow the sa
 | `afterItem(n)` | After the nth item of a list, 1 to 100; never after the last |
 | `everyItems(n, max)` | After every nth item, at most `max` times, at most 5; never after the last |
 | `region(slug, where)` | Before or after a region the active theme declares; `where` is `before` or `after`, `after` by default |
-| `fixed(edge, width)` | Fixed to the `bottom`, `top`, `left` or `right` edge of the screen; a side rail is 160 or 300 wide |
+| `regionStart(slug)` | Inside a region the active theme declares, before its content. Drawn only where the region has content, and never in a region that waits for a width |
+| `regionEnd(slug)` | Inside a region the active theme declares, after its content. The same rules as `regionStart` |
+| `fixed(edge, width, minWidth)` | Fixed to the `bottom`, `top`, `left` or `right` edge of the screen; a side rail is 160 or 300 wide. `minWidth`, from 200 to 4000 pixels, is the screen width it shows from: below it nothing of it loads, so a bar meant for phones can stay off a desktop. 0, the default, shows it at every width |
 
 A position the page doesn't have draws nothing: a list position on an article, a region the theme doesn't declare. A position no page could have, such as item 0 or a rail 200 wide, is refused when it is made.
 
