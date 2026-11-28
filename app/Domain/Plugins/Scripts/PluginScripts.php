@@ -17,9 +17,12 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Scripts;
 
 use App\Domain\Hooks\ListenerFaults;
+use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Styles\PluginStyleUsage;
+use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Themes\ActiveTheme;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
@@ -37,6 +40,7 @@ final class PluginScripts
         private readonly ActiveTheme $theme,
         private readonly PluginScriptFile $files,
         private readonly ListenerFaults $faults,
+        private readonly PagePolicy $policy,
     ) {}
 
     /**
@@ -48,10 +52,12 @@ final class PluginScripts
     public function links(): array
     {
         $grants = [];
+        $consents = [];
         $codes = [];
 
         foreach ($this->records->enabled() as $record) {
             $codes[(string) $record->code] = (string) $record->name;
+            $consents[(string) $record->code] = (array) $record->consent;
             $grants[(string) $record->code] = array_values(array_filter((array) ($record->consent['capabilities'] ?? []), is_string(...)));
         }
 
@@ -88,6 +94,7 @@ final class PluginScripts
                 }
 
                 $sizes[$name] = ($sizes[$name] ?? 0) + strlen((string) gzencode($served['text'], 9));
+                $this->allowOrigins($manifest, $consents[$entry['code']] ?? []);
                 $versions[$name] = $manifest->version();
                 $links[] = [
                     'key' => $entry['code'].':'.$entry['output'],
@@ -99,6 +106,22 @@ final class PluginScripts
         $this->budget($sizes, $versions);
 
         return $links;
+    }
+
+    /**
+     * Lets the origins the plugin agreed to in its csp into the page's policy, for the directives the
+     * manifest declares. The page's policy is sent after the body is drawn, so a script linked late
+     * still counts.
+     *
+     * @param  array<string, mixed>  $consent
+     */
+    private function allowOrigins(Manifest $manifest, array $consent): void
+    {
+        foreach (Consent::insertionHosts($consent, $manifest) as $kind => $hosts) {
+            if (isset(PagePolicy::KINDS[$kind]) && $hosts !== []) {
+                $this->policy->allowOrigins(PagePolicy::KINDS[$kind], array_map(fn (string $host): string => 'https://'.$host, $hosts));
+            }
+        }
     }
 
     /**

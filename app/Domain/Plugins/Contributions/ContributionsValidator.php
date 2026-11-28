@@ -202,12 +202,12 @@ final class ContributionsValidator implements ContributionsCheck
     public function errors(array $contributes, string $version, ?array $capabilities = null): array
     {
         $errors = [];
-        $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true);
+        $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true) || in_array(Capability::SiteScripts->value, $capabilities, true);
 
         foreach (array_keys($contributes) as $surface) {
             // The hosts inserted content loads from, read only for a plugin that inserts (I-3375).
             if ($surface === 'csp' && ! $inserts) {
-                $errors[] = __('A plugin’s csp is read only with content.insert or pages.insert.');
+                $errors[] = __('A plugin’s csp is read only with content.insert, pages.insert or site.scripts.');
             } elseif ($surface === 'provides') {
                 array_push($errors, ...PluginSlotDeclaration::errors($contributes['provides'], $capabilities));
             } elseif ($surface === 'fixedLabel') {

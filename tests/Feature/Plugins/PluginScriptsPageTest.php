@@ -41,11 +41,11 @@ beforeEach(function (): void {
         app(PluginLoader::class)->load();
     };
 
-    // The cardbox fixture, with a built script for its note card and the site.scripts capability.
-    $this->enable = function (bool $asked = true): void {
+    // The cardbox fixture, with a built script for its note card. The capabilities and any extra
+    // contributes (such as a csp) are the test's to choose.
+    $this->enable = function (array $capabilities = ['pages.insert', 'site.scripts'], array $extra = []): void {
         $cardbox = json_decode((string) file_get_contents(PluginFixtures::path('cardbox').'/teme-plugin.json'), true, flags: JSON_THROW_ON_ERROR);
-        $contributes = [...$cardbox['contributes'], 'scripts' => [['output' => 'card:note', 'file' => 'dist/note.js']]];
-        $capabilities = $asked ? ['pages.insert', 'site.scripts'] : ['pages.insert'];
+        $contributes = [...$cardbox['contributes'], 'scripts' => [['output' => 'card:note', 'file' => 'dist/note.js']], ...$extra];
 
         PluginFixtures::use(PluginFixtures::copy('cardbox', ['capabilities' => $capabilities, 'contributes' => $contributes], [], [
             'dist/note.js' => 'document.documentElement.dataset.note = "1";',
@@ -86,7 +86,7 @@ it('does not link a script on a page that draws no card of the plugin', function
 });
 
 it('refuses at enable a plugin that declares scripts without the site.scripts capability', function (): void {
-    expect(fn () => ($this->enable)(false))->toThrow(ValidationException::class);
+    expect(fn () => ($this->enable)(['pages.insert']))->toThrow(ValidationException::class);
 });
 
 it('keeps the script link on a real page-cache hit', function (): void {
@@ -105,6 +105,20 @@ it('keeps the script link on a real page-cache hit', function (): void {
         ->and($second->getContent())->toContain('data-teme-plugin-script="cardbox:card:note"');
 
     cacheOff($folder);
+});
+
+it('lets a plugin’s agreed csp origin into the page policy when its script is linked', function (): void {
+    config(['teme.public_csp' => 'enforce']);
+    ($this->enable)(['pages.insert', 'site.scripts'], ['csp' => ['connect' => ['api.example.test']]]);
+    $region = regionCreate($this->editor, 'open', 'sidebar');
+    regionSave($region, $this->editor, [($this->note)()]);
+    listsPublish($region, $this->editor);
+    pageArticle($this->editor, 'A story');
+
+    $policy = addrGet('/a-story/')->assertOk()->headers->get('Content-Security-Policy');
+
+    expect($policy)->toContain('connect-src')
+        ->and($policy)->toContain('https://api.example.test');
 });
 
 it('answers 404 for a script the plugin does not declare', function (): void {
