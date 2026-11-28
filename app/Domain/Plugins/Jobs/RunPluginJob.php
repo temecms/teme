@@ -117,13 +117,25 @@ final class RunPluginJob implements ShouldQueue
         $manifest = $plugin?->manifest;
         $granted = in_array('jobs', $record->consent['capabilities'] ?? [], true);
 
-        // Background person runs: cancel when that person can no longer manage
-        // plugins — including a deleted account that nulls consented_by while
-        // the queued actor still holds the old id.
+        // Background enabler path: cancel when that administrator lost manage,
+        // or their account was deleted (nullOnDelete clears consented_by and
+        // started_by while the queued actor still holds the old id). A quiet
+        // Auth::id() queue from another signed-in person must still run.
         $enablerGone = ! $this->notifyOnFinish
             && $record !== null
             && ! $this->actor->isOperator()
-            && ! app(ScheduleRunner::class)->mayManage((string) $this->actor->userId);
+            && (
+                (
+                    $record->consented_by !== null
+                    && (string) $record->consented_by === (string) $this->actor->userId
+                    && ! app(ScheduleRunner::class)->mayManage((string) $record->consented_by)
+                )
+                || (
+                    $record->consented_by === null
+                    && $tracked->started_by === null
+                    && ! app(ScheduleRunner::class)->mayManage((string) $this->actor->userId)
+                )
+            );
 
         if ($record === null
             || $record->state !== PluginRecord::ENABLED
