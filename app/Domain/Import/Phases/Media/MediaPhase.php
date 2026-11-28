@@ -35,6 +35,7 @@ use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Phases\Terms\WordPressText;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Uploads\SourceUploads;
 use App\Domain\Media\Downloads\DownloadedFile;
 use App\Domain\Media\Downloads\DownloadRefused;
 use App\Domain\Media\Downloads\FileDownloader;
@@ -73,6 +74,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         private FileDownloader $downloader,
         private FileInspector $inspector,
         private SettingsReader $settings,
+        private SourceUploads $uploads,
     ) {}
 
     public function key(): string
@@ -172,7 +174,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
             }
         }
 
-        return $this->download($item, $wanted);
+        return $this->download($item, $wanted, $context);
     }
 
     public function import(SourceRef $ref, array $item, ImportContext $context, ?PreparedObject $prepared): ImportResult
@@ -305,12 +307,12 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      *
      * @throws ImportFailed when trying again later may bring it
      */
-    private function download(array $item, string $wanted): PreparedMedia
+    private function download(array $item, string $wanted, ImportContext $context): PreparedMedia
     {
         $started = (int) hrtime(true);
 
         try {
-            return PreparedMedia::file($this->fetch($wanted, self::SECONDS));
+            return PreparedMedia::file($this->fetch($wanted, self::SECONDS, $context));
         } catch (DownloadRefused|ValidationException $refused) {
             $main = is_string($item['url'] ?? null) ? trim($item['url']) : '';
 
@@ -318,7 +320,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
                 return self::refusal($refused);
             }
 
-            return $this->fallback($main, rtrim(self::reason($refused), '.'), $started);
+            return $this->fallback($main, rtrim(self::reason($refused), '.'), $started, $context);
         }
     }
 
@@ -328,12 +330,12 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      *
      * @throws ImportFailed when trying again later may bring it
      */
-    private function fallback(string $main, string $why, int $started): PreparedMedia
+    private function fallback(string $main, string $why, int $started, ImportContext $context): PreparedMedia
     {
         $left = self::ITEM_SECONDS - intdiv((int) hrtime(true) - $started, 1_000_000_000);
 
         try {
-            $file = $this->fetch($main, max(5, $left));
+            $file = $this->fetch($main, max(5, $left), $context);
         } catch (DownloadRefused|ValidationException $refused) {
             return self::refusal($refused);
         }
@@ -348,10 +350,34 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      * @throws DownloadRefused
      * @throws ValidationException
      */
-    private function fetch(string $address, int $seconds): DownloadedFile
+    private function fetch(string $address, int $seconds, ImportContext $context): DownloadedFile
     {
-        $file = $this->downloader->download($address, seconds: $seconds);
+        // The site's uploads copy first, when it has one: a picture it has is never asked of the site. One it lacks, or one Teme won't take, falls back to the site.
+        $copied = $this->uploads->download($context->sourceId, $address, $this->settings->int('media', 'max_upload_mb') * 1024 * 1024);
 
+        if ($copied !== null) {
+            try {
+                $this->judge($copied);
+
+                return $copied;
+            } catch (ValidationException) {
+                // The copy's picture is refused: the site's copy is asked for instead.
+            }
+        }
+
+        $file = $this->downloader->download($address, seconds: $seconds);
+        $this->judge($file);
+
+        return $file;
+    }
+
+    /**
+     * Judges a downloaded file as the media library will: its type, its size and its pixels, from its bytes. Releases it and throws when it won't do.
+     *
+     * @throws ValidationException
+     */
+    private function judge(DownloadedFile $file): void
+    {
         try {
             $this->inspector->inspect(
                 $file->path,
@@ -364,8 +390,6 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
 
             throw $refused;
         }
-
-        return $file;
     }
 
     /**

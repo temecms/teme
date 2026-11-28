@@ -51,6 +51,16 @@ Where the companion plugin can't be installed, or the old site is gone, use its 
 
 The file brings the content and each item's address, but not passwords and roles, site settings, widgets and theme settings, redirects kept by plugins or spam comments; the plan lists them. In Stage 3, bring what changed by exporting the site again and choosing **Upload a newer file** on the report, in place of the catch-up command in step 3.2. When the import is done, choose **Delete the file…** on the report: the file holds drafts, private posts and people's email addresses. Teme deletes it 30 days after the last import from it in any case.
 
+### If the old site's pictures are on a copy of its uploads folder
+
+When the old site is closed, offline, or only on a local address, or when a live import would put many pictures' worth of load on it, bring a copy of its `wp-content/uploads` folder instead. Copy it once, off-peak, with `tar` or `rsync`. Teme matches each picture by its path under `uploads/` and fetches only what the copy lacks. Attach the copy to the site's import on the server, where it stays where it is and Teme never changes or deletes it:
+
+```bash
+docker compose exec web php artisan teme:import:uploads https://old.example.com /srv/old-site/wp-content/uploads
+```
+
+The path is a folder, or a `.zip` of the folder, that the server can read. Attaching again replaces the copy. A catch-up reuses the copy. Import readers get no pictures from the copy in this release: their media carry only a file name.
+
 ## Stage 3: Rehearse the cut-over
 
 | Step | What to do | Took | Surprise |

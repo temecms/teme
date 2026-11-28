@@ -9,6 +9,8 @@ use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Operations\AttachUploadsCopy;
+use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
 use App\Domain\Import\Operations\Input\StartImportRunInput;
 use App\Domain\Import\Operations\StartImportRun;
 use App\Domain\Import\Phases\Finish\DeletedStep;
@@ -627,4 +629,23 @@ it('reads no media list when the articles come first, live or from a file, and k
         ->and($context(['media' => 'links'], null)->keepsOldSiteMedia())->toBeFalse()
         ->and($context(['media' => 'download'], 'file-1')->keepsOldSiteMedia())->toBeFalse()
         ->and($context([], null)->keepsOldSiteMedia())->toBeFalse();
+});
+
+it('brings a picture the uploads copy has with no request to the old site, and asks the site for one it lacks', function (): void {
+    $copy = $this->folder.'-copy';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    impRun($this->companion, $this->source, [impAttachment(12), impAttachment(13, 'Gone')]);
+
+    expect(impFileRequests())->not->toContain('/wp-content/uploads/2024/05/Harbour One.jpg')
+        ->and(impFileRequests())->toContain('/wp-content/uploads/2024/05/Gone.jpg')
+        ->and(Media::query()->count())->toBe(1)
+        ->and(is_file($copy.'/2024/05/Harbour One.jpg'))->toBeTrue();
+
+    unlink($copy.'/2024/05/Harbour One.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
 });
