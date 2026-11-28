@@ -31,8 +31,6 @@ return new class extends Migration
             $table->string('state', 16)->default('ready');
             $table->unsignedBigInteger('received_bytes')->default(0);
             $table->boolean('kept_by_teme')->default(false);
-            $table->unsignedInteger('copied_pictures')->default(0);
-            $table->unsignedInteger('site_pictures')->default(0);
         });
 
         DB::statement(<<<'SQL'
@@ -49,7 +47,7 @@ return new class extends Migration
         DB::statement('DROP INDEX IF EXISTS import_uploads_ready_source');
 
         Schema::table('import_uploads', function (Blueprint $table): void {
-            $table->dropColumn(['state', 'received_bytes', 'kept_by_teme', 'copied_pictures', 'site_pictures']);
+            $table->dropColumn(['state', 'received_bytes', 'kept_by_teme']);
             $table->unique('source_id');
         });
     }

@@ -299,7 +299,7 @@ function FileChoices({
         }
     }, [resume]);
 
-    // The media choices are open when the site answers, or when a copy of its uploads can supply the pictures (#791).
+    // The media choices are open when the site answers, or when a copy of its uploads can supply the pictures.
     const answers = siteAnswers || copyReady;
 
     const [media, setMedia] = useState<string>(answers ? form.media : 'links');
