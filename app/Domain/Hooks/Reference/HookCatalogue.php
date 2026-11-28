@@ -42,13 +42,13 @@ use Teme\Contracts\Media\MediaRestored;
 use Teme\Contracts\Media\MediaStored;
 use Teme\Contracts\Media\MediaTrashed;
 use Teme\Contracts\Media\MediaUpdated;
+use Teme\Contracts\People\PersonInvited;
+use Teme\Contracts\People\PersonJoined;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
 use Teme\Contracts\Settings\SettingsChanged;
 use Teme\Contracts\Taxonomy\TermAssigned;
 use Teme\Contracts\Taxonomy\TermCreated;
 use Teme\Contracts\Taxonomy\TermDeleted;
-use Teme\Contracts\People\PersonInvited;
-use Teme\Contracts\People\PersonJoined;
 use Teme\Contracts\Taxonomy\TermUpdated;
 
 final class HookCatalogue
