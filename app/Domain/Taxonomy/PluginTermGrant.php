@@ -16,6 +16,7 @@ namespace App\Domain\Taxonomy;
 
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Support\Security\JobActor;
+use App\Domain\Support\Security\Operator;
 use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Plugins\Capability;
 
@@ -42,7 +43,9 @@ final readonly class PluginTermGrant
     /**
      * Who queued work from a plugin term write acts as: the administrator
      * who enabled the plugin, as schedules do. Without one, the operator
-     * when present.
+     * when present; otherwise the write is refused, as a schedule is.
+     *
+     * @throws AuthorizationException
      */
     public static function jobActor(PluginRecord $record): JobActor
     {
@@ -50,6 +53,10 @@ final readonly class PluginTermGrant
             return JobActor::person((string) $record->consented_by);
         }
 
-        return JobActor::of(null);
+        if (! Operator::isPresent()) {
+            throw new AuthorizationException(__('No administrator enabled this plugin, so its term changes that move addresses can’t run. Enable it again from Site › Plugins.'));
+        }
+
+        return JobActor::operator();
     }
 }

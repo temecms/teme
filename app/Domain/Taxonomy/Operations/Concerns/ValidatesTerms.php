@@ -108,7 +108,7 @@ trait ValidatesTerms
     }
 
     /**
-     * Refuses a plugin write of a term that is a translation (I-3360): the
+     * Refuses a plugin write of a term that is a translation: the
      * terms door never makes or changes translations.
      *
      * @throws ValidationException

@@ -196,6 +196,18 @@ it('queues address recompute as the enabling administrator when a plugin renames
         && ! $job->actor->isOperator());
 });
 
+it('refuses, writing nothing, a rename that moves items when no administrator enabled the plugin and no operator is present', function (): void {
+    ($this->enable)();
+    $term = ($this->door)()->create('cuisine', 'Italian');
+    PluginRecord::query()->where('name', 'tests/cuisines')->update(['consented_by' => null]);
+    app()->forgetInstance(Elevation::class);
+    Queue::fake();
+
+    expect(fn () => ($this->door)()->update($term->id, 'Italia', 'italia'))->toThrow(WriteRefused::class)
+        ->and(Term::query()->find($term->id)?->name)->toBe('Italian');
+    Queue::assertNotPushed(RecomputeAddresses::class);
+});
+
 it('refuses update and remove of a translated term, and a parent that is a translation', function (): void {
     ($this->enable)();
     $default = ($this->door)()->create('cuisine', 'Italian');
