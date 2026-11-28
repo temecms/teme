@@ -192,7 +192,8 @@ export function PanelActionForm({
                             error={errors[field.key]}
                             onChange={(value) => set(field.key, value)}
                         />
-                        {hasSaved && !changed && (
+                        {/* The prefill notes belong to the message, a multi-line field, and not to a choice such as a select. */}
+                        {field.type === 'textarea' && hasSaved && !changed && (
                             <p className="text-ink-2 text-small">
                                 {__(
                                     'Started from the message :plugin saved with this article on :date. Change anything; nothing goes out until you queue it.',
@@ -200,7 +201,7 @@ export function PanelActionForm({
                                 )}
                             </p>
                         )}
-                        {hasSaved && changed && (
+                        {field.type === 'textarea' && hasSaved && changed && (
                             <div className="flex flex-wrap items-center gap-2">
                                 <p className="text-ink-2 text-small">
                                     {__(
