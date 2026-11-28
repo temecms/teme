@@ -40,7 +40,7 @@ it('gives article contributors the title and social fields', function (): void {
 
         public function insertions(ArticleFacts $article): array
         {
-            $this->seen[] = [$article->title, $article->socialTitle, $article->socialDescription, $article->path];
+            $this->seen[] = [$article->title, $article->socialTitle, $article->socialDescription, $article->excerpt, $article->path];
 
             return [];
         }
@@ -49,10 +49,11 @@ it('gives article contributors the title and social fields', function (): void {
 
     addrGet('/dawn-ferry/')->assertOk();
 
-    expect($seen->getArrayCopy())->toBe([['Dawn ferry', 'Ferry at dawn', 'The first crossing.', '/dawn-ferry/']]);
+    expect($seen->getArrayCopy())->toBe([['Dawn ferry', 'Ferry at dawn', 'The first crossing.', 'Leaves at six.', '/dawn-ferry/']]);
 });
 
-it('gives null social fields when none were set', function (): void {
+it('gives null social fields and excerpt when none were set', function (): void {
+    pageArticle($this->editor, 'Bare facts', words: 20);
     $seen = new ArrayObject;
     app()->instance('test.insertions.empty-social', new readonly class($seen) implements InsertionContributor
     {
@@ -65,14 +66,14 @@ it('gives null social fields when none were set', function (): void {
 
         public function insertions(ArticleFacts $article): array
         {
-            $this->seen[] = [$article->title, $article->socialTitle, $article->socialDescription];
+            $this->seen[] = [$article->title, $article->socialTitle, $article->socialDescription, $article->excerpt];
 
             return [];
         }
     });
     app()->tag(['test.insertions.empty-social'], InsertionPoints::CONTRIBUTORS);
 
-    addrGet('/harbour-story/')->assertOk();
+    addrGet('/bare-facts/')->assertOk();
 
-    expect($seen->getArrayCopy())->toBe([['Harbour story', null, null]]);
+    expect($seen->getArrayCopy())->toBe([['Bare facts', null, null, null]]);
 });

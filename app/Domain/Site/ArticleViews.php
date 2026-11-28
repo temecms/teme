@@ -213,6 +213,7 @@ final readonly class ArticleViews
             title: (string) $revision->title,
             socialTitle: self::text($fields[BuiltInFields::SOCIAL_TITLE] ?? null),
             socialDescription: self::text($fields[BuiltInFields::SOCIAL_DESCRIPTION] ?? null),
+            excerpt: self::text($fields[BuiltInFields::EXCERPT] ?? null),
         );
 
         // The page's own contributors are asked with this article's facts (docs/plans/plugin-sockets-2.md).
