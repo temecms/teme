@@ -36,12 +36,14 @@ use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Notices\NoticeSender;
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Hooks\PluginHookSender;
 use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Notices\NoticeRate;
 use App\Domain\Plugins\Notices\PluginNotices;
+use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\SettingHosts;
@@ -169,7 +171,7 @@ final readonly class PluginDoors implements PluginServices
                 $this->snapshots,
                 $this->queued,
                 $this->cards,
-                in_array(Capability::PeopleRead->value, $capabilities, true),
+                $this->namesOwners($name, $capabilities),
             );
         }
 
@@ -203,5 +205,22 @@ final readonly class PluginDoors implements PluginServices
         }
 
         return $offered;
+    }
+
+    /**
+     * Whether this plugin may name draft owners: people.read granted, and
+     * either no installed consent yet (door tests) or the wider stamp.
+     *
+     * @param  list<string>  $capabilities
+     */
+    private function namesOwners(string $name, array $capabilities): bool
+    {
+        if (! in_array(Capability::PeopleRead->value, $capabilities, true)) {
+            return false;
+        }
+
+        $record = collect(app(PluginRecords::class)->enabled())->first(fn ($row): bool => $row->name === $name);
+
+        return $record === null || Consent::coversWiderPeopleRead((array) $record->consent);
     }
 }

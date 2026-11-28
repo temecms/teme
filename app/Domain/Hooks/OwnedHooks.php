@@ -15,12 +15,16 @@ declare(strict_types=1);
 
 namespace App\Domain\Hooks;
 
+use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\PluginRecords;
 use Closure;
 use Teme\Contracts\Hooks\Hook;
 use Teme\Contracts\Hooks\HookRefused;
 use Teme\Contracts\Hooks\Hooks;
 use Teme\Contracts\Hooks\Order;
 use Teme\Contracts\Hooks\Subscription;
+use Teme\Contracts\People\PersonInvited;
+use Teme\Contracts\People\PersonJoined;
 
 final class OwnedHooks implements Hooks
 {
@@ -69,12 +73,30 @@ final class OwnedHooks implements Hooks
 
         $this->dispatcher->warnDeprecated($this->owner, $hook);
 
-        if (! in_array($subscription->id, $this->quarantined, true)) {
+        // Older people.read grants keep the plugin running; invite/join wait for the wider stamp.
+        if (! in_array($subscription->id, $this->quarantined, true) && $this->mayReceive($hook)) {
             $this->mine[$subscription->id] = $hook;
             $this->dispatcher->add($hook, $subscription->id, $this->owner, Closure::fromCallable($listener), $order ?? Order::normal());
         }
 
         return $subscription;
+    }
+
+    /**
+     * PersonInvited and PersonJoined need the wider people.read stamp when
+     * the plugin is installed; core and door tests with no consent still hear them.
+     *
+     * @param  class-string<Hook>  $hook
+     */
+    private function mayReceive(string $hook): bool
+    {
+        if ($this->owner === HookDispatcher::CORE || ! in_array($hook, [PersonInvited::class, PersonJoined::class], true)) {
+            return true;
+        }
+
+        $record = collect(app(PluginRecords::class)->enabled())->first(fn ($row): bool => $row->name === $this->owner);
+
+        return $record === null || Consent::coversWiderPeopleRead((array) $record->consent);
     }
 
     public function off(Subscription $subscription): void

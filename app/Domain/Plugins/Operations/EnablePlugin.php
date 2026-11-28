@@ -204,7 +204,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
                 ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
                 ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
-                // people.read now covers invites and joins; grants from before that wait for a new yes.
+                // people.read stamp: invites, joins and owner names. Older grants keep running without it.
                 ...(in_array(Capability::PeopleRead->value, $input->capabilities, true) ? ['peopleRead' => true] : []),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.

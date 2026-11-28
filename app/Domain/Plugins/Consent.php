@@ -45,9 +45,9 @@ final readonly class Consent
             return false;
         }
 
-        if (self::peopleReadAdded($consent, $manifest)) {
-            return false;
-        }
+        // people.read's wider meaning (invites, joins, owner names) is gated on
+        // the stamp alone: an older grant still covers the plugin so it keeps
+        // running; Consent::added marks people.read NEW until someone agrees.
 
         if (PluginAiTasks::added($consent['aiTasks'] ?? [], $manifest) !== []) {
             return false;
@@ -282,13 +282,26 @@ final readonly class Consent
 
     /**
      * Whether people.read is asked for but was never agreed under the wider
-     * meaning (invites and joins as well as writers).
+     * meaning (invites, joins and owner names as well as writers). The plugin
+     * still runs; only those surfaces wait for a new yes.
      *
      * @param  array{capabilities?: list<string>, peopleRead?: bool}  $consent
      */
     public static function peopleReadAdded(array $consent, Manifest $manifest): bool
     {
-        return in_array('people.read', $manifest->capabilities(), true) && ($consent['peopleRead'] ?? false) !== true;
+        return in_array('people.read', $manifest->capabilities(), true) && ! self::coversWiderPeopleRead($consent);
+    }
+
+    /**
+     * Whether people.read was agreed under the wider meaning: invites, joins
+     * and draft owner names. An older grant that only named writers has no
+     * stamp and returns false.
+     *
+     * @param  array{peopleRead?: bool}  $consent
+     */
+    public static function coversWiderPeopleRead(array $consent): bool
+    {
+        return ($consent['peopleRead'] ?? false) === true;
     }
 
     /**
