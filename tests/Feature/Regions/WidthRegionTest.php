@@ -56,7 +56,10 @@ it('puts a placeholder in the page and none of the region’s content, scripts i
 it('carries core’s regions script once, whatever the number of placeholders', function (): void {
     ($this->place)($this->ad);
 
-    expect(substr_count((string) addrGet('/a-story/')->getContent(), 'data-teme="regions"'))->toBe(1);
+    $html = (string) addrGet('/a-story/')->getContent();
+
+    expect(substr_count($html, 'data-teme="regions"'))->toBe(1)
+        ->and($html)->toContain("querySelectorAll('[data-teme-region-wrap] > [data-teme-region-min]')");
 });
 
 it('draws a region with no width as before, and carries no script for it', function (): void {

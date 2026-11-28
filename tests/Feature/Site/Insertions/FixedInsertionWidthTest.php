@@ -58,7 +58,7 @@ it('reveals the width-gated bar with a script that waits for the width and then 
     preg_match('~<script data-teme="fixed-insertions">(.*?)</script>~s', $html, $script);
 
     expect($script)->toHaveCount(2)
-        ->and($script[1])->toContain("querySelectorAll('template[data-teme-fixed-from]')")
+        ->and($script[1])->toContain("querySelectorAll('[data-teme-fixed-root] > template[data-teme-fixed-from]')")
         ->toContain("matchMedia('(min-width: '")
         ->toContain('template.content.cloneNode(true)');
 });

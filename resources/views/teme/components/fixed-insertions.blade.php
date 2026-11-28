@@ -5,6 +5,7 @@
 <style>@layer teme.core{@media (max-width:{{ $item['minWidth'] - 1 }}px){.teme-fixed[data-teme-fixed="{{ $item['key'] }}"]{display:none!important}}}</style>
 @endif
 @endforeach
+<div data-teme-fixed-root style="display:contents">
 @foreach ($fixed as $item)
 @if ($item['showFrom'] > 0)
 <template data-teme-fixed-from="{{ $item['showFrom'] }}">
@@ -17,6 +18,7 @@
 </template>
 @endif
 @endforeach
+</div>
 <x-teme::inline-script name="fixed-insertions">
 (() => {
     'use strict';
@@ -25,7 +27,7 @@
         const style = document.body.style;
         style.paddingBlockEnd = '';
         style.paddingBlockStart = '';
-        for (const bar of document.querySelectorAll('.teme-fixed[data-edge="bottom"], .teme-fixed[data-edge="top"]')) {
+        for (const bar of document.querySelectorAll('[data-teme-fixed-root] > .teme-fixed[data-edge="bottom"], [data-teme-fixed-root] > .teme-fixed[data-edge="top"]')) {
             const height = bar.getBoundingClientRect().height + 'px';
             if (bar.dataset.edge === 'bottom') { style.paddingBlockEnd = height; } else { style.paddingBlockStart = height; }
         }
@@ -36,8 +38,8 @@
         const close = aside.querySelector('[data-teme-fixed-close]');
         if (close) { close.addEventListener('click', () => { store(key, true); aside.remove(); pad(); }); }
     };
-    for (const aside of document.querySelectorAll('.teme-fixed')) arm(aside);
-    for (const template of document.querySelectorAll('template[data-teme-fixed-from]')) {
+    for (const aside of document.querySelectorAll('[data-teme-fixed-root] > .teme-fixed')) arm(aside);
+    for (const template of document.querySelectorAll('[data-teme-fixed-root] > template[data-teme-fixed-from]')) {
         const wide = matchMedia('(min-width: ' + template.dataset.temeFixedFrom + 'px)');
         const show = () => {
             if (!wide.matches) return;
