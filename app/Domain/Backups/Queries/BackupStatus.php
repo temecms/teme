@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
 
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupVerdict;
 use App\Domain\Backups\BackupWords;
 use App\Domain\Backups\Verify\SpareDatabase;
@@ -67,6 +68,11 @@ final readonly class BackupStatus
             SQL);
 
         // Set up exactly as BackupPlaces::isSetUp() says: a recovery key on a place in use (I-2401).
+        // Under host the host does the backups: nothing to be red or amber about until Teme's own is set up (TEME_BACKUPS=host).
+        if ($facts->set_up_at === null && BackupMode::isHost()) {
+            return new BackupVerdict([], [], [], null);
+        }
+
         if ($facts->set_up_at === null) {
             return new BackupVerdict([self::NOT_SET_UP], [], [], null);
         }
@@ -125,7 +131,7 @@ final readonly class BackupStatus
         }
 
         // I-2406.
-        if (! SpareDatabase::isNamed()) {
+        if (! BackupMode::isHost() && ! SpareDatabase::isNamed()) {
             $cautions[] = self::NO_SPARE;
         }
 
