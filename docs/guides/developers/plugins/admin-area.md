@@ -34,7 +34,7 @@ Put the area under `contributes.area`:
 - `icon`, optional: the Lucide name for the menu entry and Tools card (`plug` when absent); the same set editor panels may use;
 - `purges`, the page-cache tags a write clears after it commits: `insertions`, `page-insertions`, or neither;
 - `pages`, one to eight, each with an `id`, a `label` and up to eight `blocks` (the ids `records` and `settings` are reserved);
-- `records`, up to three kinds of thing the area keeps, each with a form.
+- `records`, up to six kinds of thing the area keeps, each with a form.
 
 The menu entry and the area's heading show the area's own label, with the plugin's name as a plug mark beside it. The admin menu holds five plugin entries at most, in the order the plugins were enabled; a sixth area, and any area whose `menu` is `tools`, gets a card on the Tools page instead.
 
@@ -48,7 +48,7 @@ A page draws its blocks in order:
 
 | Block | What it draws | What it declares |
 |---|---|---|
-| `figures` | A row of figures, each with its change | `items`, each an `id`, a `label` and a `format`: `number`, `percent` or `text` |
+| `figures` | A row of figures, each with its change | `items`, each an `id`, a `label` and a `format`: `number`, `percent` or `text`; one to eight a block |
 | `chart` | A line or bar chart, with a table of the same numbers for screen readers | `label`, `kind` (`line` or `bar`) and `series`, each an `id` and a `label` |
 | `table` | One record's rows, with search, filters, sorting, pages, a row menu and bulk actions | `record`, `columns` (`text`, `number` or `badge`, `sortable`), `search`, `filters`, `perPage` (up to 100), `rowActions`, `bulkActions` |
 | `actions` | Buttons that queue the jobs behind your declared actions | `actions`, ids from `contributes.actions` |

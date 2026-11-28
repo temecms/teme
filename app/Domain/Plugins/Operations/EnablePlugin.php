@@ -26,6 +26,7 @@ use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Console\CommandNames;
 use App\Domain\Plugins\Dependencies;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Manifest;
@@ -204,6 +205,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
                 ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
                 ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
+                // So a larger file limit in an update asks again (docs/guides/developers/plugins/outbound-files.md).
+                ...(DeclaredDownloads::declared($manifest) === null ? [] : ['downloads' => ['maxBytes' => DeclaredDownloads::declared($manifest)]]),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.
             'consented_by' => $consentedBy === null ? null : (int) $consentedBy,

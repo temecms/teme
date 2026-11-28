@@ -49,7 +49,10 @@ final class AreaValidator
 
     public const int MOST_BLOCKS = 8;
 
-    public const int MOST_RECORDS = 3;
+    public const int MOST_RECORDS = 6;
+
+    /** The most figures a figures block holds. @since next */
+    public const int MOST_FIGURES = 8;
 
     public const int MOST_SECTIONS = 8;
 
@@ -193,7 +196,7 @@ final class AreaValidator
         $recordIds = [];
 
         if (! is_array($records) || ! array_is_list($records) || count($records) > self::MOST_RECORDS) {
-            $errors[] = __('An area holds at most 3 kinds of record.');
+            $errors[] = __('An area holds at most 6 kinds of record.');
             $records = [];
         }
 
@@ -384,8 +387,8 @@ final class AreaValidator
         $errors = $this->unknownKeys($block, ['type', 'id', 'items']);
         $items = $block['items'] ?? null;
 
-        if (! is_array($items) || ! array_is_list($items) || $items === [] || count($items) > 4) {
-            return [...$errors, __('A figures block holds 1 to 4 figures.')];
+        if (! is_array($items) || ! array_is_list($items) || $items === [] || count($items) > self::MOST_FIGURES) {
+            return [...$errors, __('A figures block holds 1 to 8 figures.')];
         }
 
         foreach ($items as $item) {

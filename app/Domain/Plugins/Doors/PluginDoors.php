@@ -35,6 +35,8 @@ use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Notices\NoticeSender;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Hooks\PluginHookSender;
 use App\Domain\Plugins\Jobs\PluginJobs;
@@ -43,7 +45,9 @@ use App\Domain\Plugins\Notices\NoticeRate;
 use App\Domain\Plugins\Notices\PluginNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\SettingHosts;
+use App\Domain\Security\SecurityLog;
 use App\Domain\Site\CoreSiteInfo;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use App\Domain\Site\Insertions\Scripts\PluginInlineScripts;
@@ -58,6 +62,7 @@ use Teme\Contracts\Directory\VerifiedDirectory;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Hooks\HookSender;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
@@ -67,6 +72,8 @@ use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Redirects\RedirectWriter;
+use Teme\Contracts\Security\SecurityLines;
+use Teme\Contracts\Settings\PluginSecretStore;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -90,6 +97,7 @@ final readonly class PluginDoors implements PluginServices
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
         private HtmlToDocument $html,
+        private SecurityLog $securityLog,
     ) {}
 
     /**
@@ -125,7 +133,15 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
             // The hosts agreed in its settings are read at each call, never fixed here (docs/plans/plugin-sockets-1.md, A2).
-            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path);
+            // Downloads are a long job's only, into the plugin's own folder (docs/guides/developers/plugins/outbound-files.md).
+            $downloadManifest = $this->registry->find($name)?->manifest;
+            $downloads = $downloadManifest === null ? DeclaredDownloads::DEFAULT_BYTES : DeclaredDownloads::of($downloadManifest);
+            $http = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path, downloadFolder: $long ? DownloadFolders::pathFor($code) : null, downloadBytes: $downloads);
+            $offered[OutboundHttp::class] = $http;
+
+            if ($long) {
+                $offered[OutboundDownloads::class] = $http;
+            }
         }
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
@@ -178,6 +194,16 @@ final readonly class PluginDoors implements PluginServices
         }
 
         $manifest = $this->registry->find($name)?->manifest;
+        // Its free secrets, for a plugin that declares a secret setting (docs/guides/developers/plugins/settings.md).
+        if (is_array($manifest?->contributes()['settings'] ?? null) && array_any($manifest->contributes()['settings'], fn (mixed $setting): bool => is_array($setting) && ($setting['type'] ?? null) === 'secret')) {
+            $offered[PluginSecretStore::class] = new PluginSecretStoreWrites($code);
+        }
+
+        // Its lines under the plugin's name, of the kinds its manifest declares (docs/guides/developers/plugins/security-log.md).
+        if (in_array(Capability::SecurityLog->value, $capabilities, true)) {
+            $offered[SecurityLines::class] = new PluginSecurityLines($code, $manifest === null ? [] : DeclaredSecurityKinds::of($manifest), $this->securityLog);
+        }
+
         $declaredHooks = $manifest === null ? [] : DeclaredHooks::of($manifest);
 
         // Only a plugin that declares a task it may ask for (I-3434).

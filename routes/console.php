@@ -39,6 +39,7 @@ Schedule::command('teme:csp:record')->everyMinute()->withoutOverlapping();
 Schedule::command('teme:inbox:prune')->daily();
 Schedule::command('teme:privacy:prune')->daily();
 Schedule::command('teme:jobs:prune')->daily();
+Schedule::command('teme:plugin-downloads:prune')->daily();
 Schedule::command('teme:plugins:run-due-schedules')->everyMinute()->withoutOverlapping()->onOneServer();
 Schedule::command('teme:fediverse:prune')->daily();
 

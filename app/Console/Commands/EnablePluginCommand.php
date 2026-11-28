@@ -20,6 +20,7 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Editor\DeclaredPanel;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
@@ -29,6 +30,7 @@ use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginSentences;
 use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\PublicRoutes\RootFile;
@@ -119,8 +121,9 @@ final class EnablePluginCommand extends Command
                 Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
                 Capability::PeopleRead->value => __('See the names of the people who write on this site'),
                 Capability::NoticesSend->value => PluginWords::capability($capability, notices: array_column(DeclaredNotices::of($manifest), 'label')),
+                Capability::SecurityLog->value => PluginWords::capability($capability, securityKinds: array_values(DeclaredSecurityKinds::of($manifest))),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
-                Capability::Http->value => $http,
+                Capability::Http->value => $fromSettings !== [] ? $http : PluginWords::capability(Capability::Http->value, $hosts, downloadBytes: DeclaredDownloads::declared($manifest)),
                 Capability::Ai->value => PluginWords::capability($capability, aiTasks: array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks)),
                 default => $capability,
             });

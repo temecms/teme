@@ -64,7 +64,7 @@ it('refuses an area out of bounds, in one plain sentence each', function (array 
     'a page called settings' => [[['pages.0.id', 'settings']], 'A page’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter, and not records or settings.'],
     'nine blocks' => [[['pages.0.blocks', array_map(fn (int $n): array => ['type' => 'notice', 'id' => "note-{$n}", 'text' => 'Hello.'], range(1, 9))]], 'A page needs 1 to 8 blocks.'],
     'an unknown block' => [[['pages.0.blocks.0.type', 'map']], 'A block’s type must be figures, chart, table, actions or notice.'],
-    'five figures' => [[['pages.0.blocks.0.items', array_map(fn (int $n): array => ['id' => "f{$n}", 'label' => "F{$n}", 'format' => 'number'], range(1, 5))]], 'A figures block holds 1 to 4 figures.'],
+    'nine figures' => [[['pages.0.blocks.0.items', array_map(fn (int $n): array => ['id' => "f{$n}", 'label' => "F{$n}", 'format' => 'number'], range(1, 9))]], 'A figures block holds 1 to 8 figures.'],
     'an unknown format' => [[['pages.0.blocks.0.items.0.format', 'money']], 'A figure’s format must be number, percent or text.'],
     'a pie chart' => [[['pages.0.blocks.1.kind', 'pie']], 'A chart’s kind must be line or bar.'],
     'four series' => [[['pages.0.blocks.1.series', array_map(fn (int $n): array => ['id' => "s{$n}", 'label' => "S{$n}"], range(1, 4))]], 'A chart has 1 to 3 series.'],
@@ -76,7 +76,7 @@ it('refuses an area out of bounds, in one plain sentence each', function (array 
     'a page of 101 rows' => [[['pages.1.blocks.0.perPage', 101]], 'A table shows 1 to 100 rows a page.'],
     'an unknown row action' => [[['pages.1.blocks.0.rowActions', ['archive']]], 'A table’s row actions must be edit, duplicate, enable, disable or delete.'],
     'edit in bulk' => [[['pages.1.blocks.0.bulkActions', ['edit']]], 'A table’s bulk actions must be duplicate, enable, disable or delete.'],
-    'four records' => [[['records', array_map(fn (int $n): array => ['id' => "ad-{$n}", 'label' => 'Ad', 'plural' => 'Ads', 'titleField' => 'name', 'sections' => [['id' => 'basics', 'label' => 'Basics', 'fields' => [['key' => 'name', 'type' => 'text', 'label' => 'Name']]]]], range(1, 4))]], 'An area holds at most 3 kinds of record.'],
+    'seven records' => [[['records', array_map(fn (int $n): array => ['id' => "ad-{$n}", 'label' => 'Ad', 'plural' => 'Ads', 'titleField' => 'name', 'sections' => [['id' => 'basics', 'label' => 'Basics', 'fields' => [['key' => 'name', 'type' => 'text', 'label' => 'Name']]]]], range(1, 7))]], 'An area holds at most 6 kinds of record.'],
     'nine sections' => [[['records.0.sections', array_map(fn (int $n): array => ['id' => "s{$n}", 'label' => "S{$n}", 'fields' => [['key' => "f{$n}", 'type' => 'text', 'label' => "F{$n}"]]], range(1, 9))]], 'A record’s form needs 1 to 8 sections.'],
     'thirty-one fields' => [[['records.0.sections.0.fields', array_map(fn (int $n): array => ['key' => "f{$n}", 'type' => 'text', 'label' => "F{$n}"], range(1, 31))]], 'A section holds 1 to 30 fields.'],
     'sixty-one fields' => [[['records.0.sections', array_map(fn (int $s): array => ['id' => "s{$s}", 'label' => "S{$s}", 'fields' => array_map(fn (int $n): array => ['key' => "f{$s}_{$n}", 'type' => 'text', 'label' => 'F'], range(1, 21))], range(1, 3))], ['records.0.titleField', 'f1_1']], 'A record’s form holds at most 60 fields, a repeater’s counted.'],
@@ -91,6 +91,15 @@ it('refuses an area out of bounds, in one plain sentence each', function (array 
     'a title of no field' => [[['records.0.titleField', 'title']], 'A record’s titleField must name one of its fields.'],
     'no permission' => [[['permission', 'report']], 'An area must name one of the permissions the plugin declares.'],
 ]);
+
+it('accepts an area at its limits: six records and eight figures', function (): void {
+    $area = $this->area;
+    $extra = array_map(fn (int $n): array => ['id' => "ad-{$n}", 'label' => 'Ad', 'plural' => 'Ads', 'titleField' => 'name', 'sections' => [['id' => 'basics', 'label' => 'Basics', 'fields' => [['key' => 'name', 'type' => 'text', 'label' => 'Name']]]]], range(1, 6 - count($area['records'])));
+    $area['records'] = [...$area['records'], ...$extra];
+    Arr::set($area, 'pages.0.blocks.0.items', array_map(fn (int $n): array => ['id' => "f{$n}", 'label' => "F{$n}", 'format' => 'number'], range(1, 8)));
+
+    expect(app(ContributionsValidator::class)->errors([...$this->contributes, 'area' => $area], '1.0.0', ['jobs']))->toBe([]);
+});
 
 it('keeps the schema’s area in step with the validator', function (): void {
     $schema = json_decode((string) file_get_contents(base_path('packages/teme-contracts/schema/teme-plugin.schema.json')), true, 512, JSON_THROW_ON_ERROR);

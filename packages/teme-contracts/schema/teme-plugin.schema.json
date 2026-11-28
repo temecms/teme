@@ -110,7 +110,8 @@
                     "redirects",
                     "comments.check",
                     "search.read",
-                    "import.read"
+                    "import.read",
+                    "security.log"
                 ]
             }
         },
@@ -507,7 +508,7 @@
                             },
                             "multiple": {
                                 "type": "boolean",
-                                "description": "For a term: whether several may be chosen."
+                                "description": "For a term or a type: whether several may be chosen."
                             },
                             "section": {
                                 "type": "string",
@@ -1503,6 +1504,44 @@
                         }
                     }
                 },
+                "downloads": {
+                    "type": "object",
+                    "required": ["maxBytes"],
+                    "additionalProperties": false,
+                    "description": "The largest file the plugin's downloads may hold, with http; 16 MB when none is declared, 1 MB to 128 MB when one is.",
+                    "properties": {
+                        "maxBytes": {
+                            "type": "integer",
+                            "minimum": 1048576,
+                            "maximum": 134217728,
+                            "description": "The largest file, in bytes."
+                        }
+                    }
+                },
+                "securityLog": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 10,
+                    "description": "Kinds of line the plugin writes into the security log, with security.log; never required.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{1,31}$",
+                                "description": "Its id within the plugin."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "description": "What an administrator reads for this kind."
+                            }
+                        }
+                    }
+                },
                 "notices": {
                     "type": "array",
                     "maxItems": 5,
@@ -1708,7 +1747,7 @@
                         },
                         "records": {
                             "type": "array",
-                            "maxItems": 3,
+                            "maxItems": 6,
                             "items": {
                                 "type": "object"
                             },

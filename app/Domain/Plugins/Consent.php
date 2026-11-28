@@ -22,6 +22,7 @@ namespace App\Domain\Plugins;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\PluginPermissions;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\PublicRoutes\DeclaredRoute;
 use App\Domain\PublicRoutes\RootFile;
@@ -35,7 +36,7 @@ final readonly class Consent
      * to import, and every AI task as it stands. Hooks are shown, never
      * agreed to: a new hook that needs no new capability needs no new yes.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>, downloads?: array{maxBytes: int}}  $consent
      */
     public static function covers(array $consent, Manifest $manifest): bool
     {
@@ -72,6 +73,13 @@ final readonly class Consent
 
         // A new permission, or a new role given one (docs/plans/plugin-sockets-2.md, A1).
         if (self::permissionsAdded($consent, $manifest) !== []) {
+            return false;
+        }
+
+        // A larger file limit than the one agreed to asks again (docs/guides/developers/plugins/outbound-files.md).
+        $wanted = DeclaredDownloads::declared($manifest);
+
+        if ($wanted !== null && $wanted > (int) ($consent['downloads']['maxBytes'] ?? DeclaredDownloads::DEFAULT_BYTES)) {
             return false;
         }
 
@@ -236,7 +244,7 @@ final readonly class Consent
      * from, the names it declares to import that were never agreed and the
      * ids of its AI tasks never agreed as they stand.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>, downloads?: array{maxBytes: int}}  $consent
      *
      * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, insertionHosts?: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}, aiTasks?: list<string>, notices?: list<string>, requires?: list<string>}
      */

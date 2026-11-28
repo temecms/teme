@@ -260,13 +260,14 @@ final class Setting
 
     /**
      * One of the site's content types with public addresses, stored as its
-     * key, or `''` when none is chosen.
+     * key, or `''` when none is chosen. With $multiple, a list of keys, empty
+     * by default.
      *
-     * @since 1.0.0
+     * @since 1.0.0 The $multiple argument is @since next.
      */
-    public static function contentType(string $key, string $label, string $description, string $since): self
+    public static function contentType(string $key, string $label, string $description, string $since, bool $multiple = false): self
     {
-        return new self($key, SettingType::ContentType, $label, $description, $since, '');
+        return new self($key, SettingType::ContentType, $label, $description, $since, $multiple ? [] : '', multiple: $multiple);
     }
 
     /**

@@ -69,7 +69,8 @@ export function SettingsField({
     // Ticked boxes are a group: their name is a line that labels the group, not a label for one control.
     const group =
         field.type === 'multiselect' ||
-        (field.type === 'term' && field.multiple === true);
+        ((field.type === 'term' || field.type === 'type') &&
+            field.multiple === true);
     const words = (
         <>
             {field.label}
