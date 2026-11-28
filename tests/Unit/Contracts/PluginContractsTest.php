@@ -65,6 +65,7 @@ use Teme\Contracts\Insertions\PageInsertion;
 use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Insertions\PagePosition;
 use Teme\Contracts\Jobs\JobContext;
+use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\JobHandler;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\JobStopped;
@@ -234,6 +235,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ImageSize::class, 'next'],
     [PersonInvited::class, 'next'],
     [PersonJoined::class, 'next'],
+    [JobFailed::class, 'next'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -273,7 +275,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
     ]);
 });
 
-it('gives every jobs contract its @since 1.0.0 and nothing from a framework', function (string $class): void {
+it('gives every jobs contract its @since 1.0.0 and nothing from a framework', function (string $class, array $later = []): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since 1.0.0');
@@ -283,7 +285,8 @@ it('gives every jobs contract its @since 1.0.0 and nothing from a framework', fu
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since 1.0.0');
+        // A method added later carries the release it arrived in (.ai/rules/contracts.md).
+        expect($method->getDocComment())->toContain('@since '.($later[$method->getName()] ?? '1.0.0'));
     }
 
     $types = [];
@@ -312,11 +315,11 @@ it('gives every jobs contract its @since 1.0.0 and nothing from a framework', fu
         }
     }
 })->with([
-    Jobs::class,
-    JobHandler::class,
-    JobContext::class,
-    JobStopped::class,
-    PluginHasJobs::class,
+    [Jobs::class],
+    [JobHandler::class],
+    [JobContext::class, ['summary' => 'next', 'permissions' => 'next']],
+    [JobStopped::class],
+    [PluginHasJobs::class],
 ]);
 
 it('decodes an answer’s JSON, and refuses JSON that isn’t', function (): void {

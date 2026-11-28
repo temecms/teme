@@ -100,7 +100,7 @@ final class RunEditorPanelAction extends BaseOperation
             ?? throw ValidationException::withMessages(['action' => __('This panel has no such action.')]);
         $title = trim((string) ContentRevision::query()->whereKey($content->working_revision_id)->value('title'));
 
-        $jobs = new PluginJobs($panel->name, $panel->code, $this->start, $this->registry, JobActor::person($input->actorId));
+        $jobs = new PluginJobs($panel->name, $panel->code, $this->start, $this->registry, JobActor::person($input->actorId), notifyOnFinish: true);
         $id = $jobs->queue(
             $action['job'],
             [

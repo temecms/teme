@@ -21,7 +21,8 @@ namespace Teme\Contracts\Jobs;
 interface Jobs
 {
     /**
-     * Queues the declared job. Returns the tracked job's ID.
+     * Queues the declared job. Returns the tracked job's ID. The payload is
+     * stored as plain JSON and shown on Tools › Jobs — never put a secret in it.
      *
      * @param  array<string, mixed>  $payload  JSON-ready data, at most 64 KB.
      * @param  QueueOptions|null  $options  a delay, and a key that queues it once while one waits (@since 1.0.0)

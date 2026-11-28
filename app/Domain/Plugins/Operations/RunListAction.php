@@ -103,7 +103,7 @@ final class RunListAction extends BaseOperation
             throw new AuthorizationException(__('Not permitted.'));
         }
 
-        $jobs = new PluginJobs($action['name'], $input->code, $this->start, $this->registry, JobActor::person($input->actorId));
+        $jobs = new PluginJobs($action['name'], $input->code, $this->start, $this->registry, JobActor::person($input->actorId), notifyOnFinish: true);
         $id = $jobs->queue(
             $action['job'],
             ['action' => $action['id'], 'items' => $editable],

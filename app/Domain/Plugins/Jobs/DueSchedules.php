@@ -119,6 +119,7 @@ final readonly class DueSchedules
             $this->start,
             $this->registry,
             JobActor::person($record->consented_by),
+            notifyOnFinish: false,
         );
         $runs = $record->schedule_runs;
         $queued = 0;

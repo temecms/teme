@@ -20,6 +20,7 @@ final readonly class FinishJobInput implements OperationInput
         public string $jobId,
         public string $message,
         public ?string $actorId = null,
+        public bool $notify = true,
     ) {}
 
     public function actorId(): ?string

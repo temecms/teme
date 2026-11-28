@@ -74,7 +74,7 @@ final class RunPluginAction extends BaseOperation
         $action = $this->actions->find($input->code, $input->action)
             ?? throw new AuthorizationException(__('Not permitted.'));
 
-        $jobs = new PluginJobs($action['name'], $input->code, $this->start, $this->registry, JobActor::person($input->actorId));
+        $jobs = new PluginJobs($action['name'], $input->code, $this->start, $this->registry, JobActor::person($input->actorId), notifyOnFinish: true);
         $id = $jobs->queue($action['job'], ['action' => $action['id']], $action['label'], new QueueOptions(uniqueKey: "action:{$action['id']}"));
 
         return ['job' => $id, 'label' => $action['label']];
