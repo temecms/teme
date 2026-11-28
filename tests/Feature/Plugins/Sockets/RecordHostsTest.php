@@ -70,12 +70,13 @@ it('keeps a host a record names as waiting, and the plugin does not reach it', f
         ->and(app(SettingHosts::class)->reachable('tests/hub'))->not->toContain('reports.example.org');
 });
 
-it('lets someone who manages plugins agree, then the plugin reaches that host and no other', function (): void {
+it('lets someone who manages plugins agree, but the plugin reaches no record host its manifest never declares', function (): void {
     ($this->named)();
 
+    // The hub manifest declares no record url field in hostsFrom, so a host a record names is never reachable.
     expect(($this->agree)('reports.example.org'))->toBe(['reports.example.org'])
         ->and(RecordHosts::waiting(($this->consent)()))->toBe([])
-        ->and(app(SettingHosts::class)->reachable('tests/hub'))->toBe(['reports.example.org']);
+        ->and(app(SettingHosts::class)->reachable('tests/hub'))->toBe([]);
 });
 
 it('writes nothing when someone without plugin management agrees, even with the area permission', function (): void {

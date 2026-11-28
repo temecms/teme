@@ -33,7 +33,8 @@ final readonly class SettingHosts
     ) {}
 
     /**
-     * Returns the setting keys the manifest takes hosts from, as it lists them.
+     * Returns what the manifest takes hosts from, as it lists them: its
+     * settings' keys, and its record url fields as "record.field".
      *
      * @return list<string>
      */
@@ -42,6 +43,39 @@ final readonly class SettingHosts
         $keys = $manifest->raw()['hostsFrom'] ?? [];
 
         return is_array($keys) ? array_values(array_unique(array_filter($keys, is_string(...)))) : [];
+    }
+
+    /**
+     * Returns the setting keys among what the manifest takes hosts from.
+     *
+     * @return list<string>
+     */
+    public static function settingKeys(Manifest $manifest): array
+    {
+        return array_values(array_filter(self::declared($manifest), fn (string $entry): bool => ! str_contains($entry, '.')));
+    }
+
+    /**
+     * Returns the record url fields the manifest takes hosts from, as
+     * "record.field" each, in its order.
+     *
+     * @return list<string>
+     */
+    public static function recordFields(Manifest $manifest): array
+    {
+        return array_values(array_filter(self::declared($manifest), fn (string $entry): bool => str_contains($entry, '.')));
+    }
+
+    /**
+     * Returns the url field keys of one record the manifest takes hosts from.
+     *
+     * @return list<string>
+     */
+    public static function recordKeys(Manifest $manifest, string $record): array
+    {
+        $prefix = $record.'.';
+
+        return array_values(array_map(fn (string $entry): string => substr($entry, strlen($prefix)), array_filter(self::recordFields($manifest), fn (string $entry): bool => str_starts_with($entry, $prefix))));
     }
 
     /**
@@ -75,7 +109,7 @@ final readonly class SettingHosts
         $words = ManifestText::for($manifest->code());
         $locale = app()->getLocale();
 
-        return array_map(fn (string $key): string => isset($labels[$key]) ? $words->text($labels[$key], $locale) : $key, self::declared($manifest));
+        return array_map(fn (string $key): string => isset($labels[$key]) ? $words->text($labels[$key], $locale) : $key, self::settingKeys($manifest));
     }
 
     /**
@@ -115,7 +149,7 @@ final readonly class SettingHosts
      */
     public function current(Manifest $manifest): array
     {
-        $keys = self::declared($manifest);
+        $keys = self::settingKeys($manifest);
 
         return $keys === [] ? [] : self::hostsIn($this->values($manifest), $keys);
     }
@@ -148,16 +182,13 @@ final readonly class SettingHosts
             return [];
         }
 
-        // Hosts a person agreed to for the plugin's records: kept until someone removes them.
-        $fromRecords = RecordHosts::agreed($record->consent);
-
-        // A plugin that takes no hosts from its settings asks nothing more of the database.
-        if (self::declared($manifest) === []) {
-            return $fromRecords;
-        }
+        // Hosts a person agreed to for the plugin's record url fields, kept until someone removes them;
+        // only while the manifest still takes hosts from a record field that was agreed.
+        $agreedFields = array_values(array_filter(Consent::hostsFrom($record->consent, $manifest), fn (string $entry): bool => str_contains($entry, '.')));
+        $fromRecords = $agreedFields === [] ? [] : RecordHosts::agreed($record->consent);
 
         $agreed = array_values(array_filter((array) ($record->consent['settingHosts'] ?? []), is_string(...)));
-        $keys = Consent::hostsFrom($record->consent, $manifest);
+        $keys = array_values(array_filter(Consent::hostsFrom($record->consent, $manifest), fn (string $entry): bool => ! str_contains($entry, '.')));
 
         if ($agreed === [] || $keys === []) {
             return $fromRecords;
@@ -183,7 +214,7 @@ final readonly class SettingHosts
         $code = substr($group, strlen('plugin.'));
 
         foreach ($this->registry->all() as $plugin) {
-            if ($plugin->code !== $code || $plugin->manifest === null || self::declared($plugin->manifest) === []) {
+            if ($plugin->code !== $code || $plugin->manifest === null || self::settingKeys($plugin->manifest) === []) {
                 continue;
             }
 
@@ -198,7 +229,7 @@ final readonly class SettingHosts
             return [
                 'name' => $plugin->name,
                 'label' => $plugin->manifest->label(),
-                'keys' => self::declared($plugin->manifest),
+                'keys' => self::settingKeys($plugin->manifest),
                 'agreed' => array_values(array_filter((array) ($consent['settingHosts'] ?? []), is_string(...))),
                 'hosts' => $consent === [] ? [] : Consent::hosts($consent, $plugin->manifest),
             ];

@@ -22,6 +22,7 @@ use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Operations\Concerns\WritesPluginArea;
 use App\Domain\Plugins\Operations\Input\SavePluginRecordInput;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\RecordHosts;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\Support\Operations\BaseOperation;
@@ -66,10 +67,12 @@ final class SavePluginRecord extends BaseOperation
 
         $saved = $this->write($plugin, fn (PluginArea $data): Saved => $data->save($input->record, $input->id, $values, $context));
 
-        // The hosts this record's url fields name now, the hidden ones left out, kept until a person agrees to them.
-        $urlKeys = array_values(array_map(fn (array $field): string => (string) $field['key'], array_filter($plugin->area->fields($input->record), fn (array $field): bool => $field['type'] === 'url')));
+        // Only the url fields the manifest's hostsFrom declares name hosts, and only those the form sent (a hidden field is not sent).
+        $manifest = app(PluginRegistry::class)->find($plugin->name)?->manifest;
+        $declaredKeys = $manifest === null ? [] : SettingHosts::recordKeys($manifest, $input->record);
+        $sent = array_values(array_intersect($declaredKeys, array_keys($input->values)));
         $title = $values[$plugin->area->record($input->record)['titleField'] ?? ''] ?? '';
-        $waiting = RecordHosts::noteSaved($plugin->name, $saved->id, is_string($title) && $title !== '' ? $title : $record, SettingHosts::hostsIn($values, $urlKeys));
+        $waiting = RecordHosts::noteSaved($plugin->name, $saved->id, is_string($title) && $title !== '' ? $title : $record, SettingHosts::hostsIn($values, $sent));
 
         return ['id' => $saved->id, 'changed' => $saved->changed, 'waiting' => $waiting];
     }
