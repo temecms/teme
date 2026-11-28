@@ -88,6 +88,18 @@ final class ContributionsValidator implements ContributionsCheck
      */
     public const int MOST_COLUMNS = 3;
 
+    /** At most this many list filters per plugin (issue 802). */
+    public const int MOST_LIST_FILTERS = 2;
+
+    /** Options per list filter, 2 to this many. */
+    public const int MOST_FILTER_OPTIONS = 20;
+
+    /** A list filter's table, column and item: a column or table name. */
+    public const string LIST_FILTER_NAME = '/^[a-z][a-z0-9_]{0,62}$/D';
+
+    /** One option's value, matched exactly against the column. */
+    public const string FILTER_VALUE = '/^[a-z0-9][a-z0-9_-]{0,39}$/D';
+
     /**
      * The relations a feed link may take: hub alone in this round (docs/plans/plugin-sockets-1.md, A3).
      *
@@ -237,7 +249,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'listFilters'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -271,6 +283,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         $columns = $contributes['columns'] ?? [];
         $errors = [...$errors, ...$this->columnErrors(is_array($columns) ? $columns : [null])];
+
+        $listFilters = $contributes['listFilters'] ?? [];
+        $errors = [...$errors, ...$this->listFilterErrors(is_array($listFilters) ? $listFilters : [null])];
 
         $feedLinks = $contributes['feedLinks'] ?? [];
         $errors = [...$errors, ...$this->feedLinkErrors(is_array($feedLinks) ? $feedLinks : [null], is_array($settings) ? $settings : [])];
@@ -610,6 +625,112 @@ final class ContributionsValidator implements ContributionsCheck
                         break;
                     }
                 }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $filters
+     *
+     * @return list<string>
+     */
+    private function listFilterErrors(array $filters): array
+    {
+        $errors = [];
+
+        if (count($filters) > self::MOST_LIST_FILTERS) {
+            $errors[] = __('A plugin can add at most 2 list filters.');
+        }
+
+        $ids = [];
+
+        foreach ($filters as $filter) {
+            $errors = [...$errors, ...$this->oneListFilterErrors(is_array($filter) ? $filter : [])];
+            $id = is_array($filter) && is_string($filter['id'] ?? null) ? $filter['id'] : null;
+
+            if ($id !== null && in_array($id, $ids, true)) {
+                $errors[] = __('Two list filters can’t share the id :id.', ['id' => $id]);
+            }
+
+            $ids[] = $id;
+        }
+
+        return $errors;
+    }
+
+    /**
+     * One list filter: its id, label, the content types it applies to, its
+     * declared options, and the plugin table, column and item column it reads.
+     *
+     * @param  array<array-key, mixed>  $filter
+     *
+     * @return list<string>
+     */
+    private function oneListFilterErrors(array $filter): array
+    {
+        $errors = [];
+
+        foreach (array_keys($filter) as $key) {
+            if (! in_array($key, ['id', 'label', 'types', 'options', 'table', 'column', 'item'], true)) {
+                $errors[] = __('A list filter can’t have :key.', ['key' => (string) $key]);
+            }
+        }
+
+        if (preg_match(self::COLUMN_ID, is_string($filter['id'] ?? null) ? $filter['id'] : '') !== 1) {
+            $errors[] = __('A list filter’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
+        }
+
+        $label = is_string($filter['label'] ?? null) ? trim($filter['label']) : '';
+
+        if ($label === '' || mb_strlen($label) > 40) {
+            $errors[] = __('A list filter’s label must be 1 to 40 characters.');
+        }
+
+        $types = $filter['types'] ?? null;
+
+        if (! is_array($types) || $types === [] || ! array_is_list($types)) {
+            $errors[] = __('A list filter needs at least one content type.');
+        } else {
+            foreach ($types as $type) {
+                if (! is_string($type) || preg_match(self::TYPE_KEY, $type) !== 1) {
+                    $errors[] = __('A list filter’s type must be a lower-case content type key.');
+                    break;
+                }
+            }
+        }
+
+        $options = $filter['options'] ?? null;
+
+        if (! is_array($options) || ! array_is_list($options) || count($options) < 2 || count($options) > self::MOST_FILTER_OPTIONS) {
+            $errors[] = __('A list filter needs 2 to 20 options.');
+        } else {
+            $values = [];
+
+            foreach ($options as $option) {
+                $value = is_array($option) && is_string($option['value'] ?? null) ? $option['value'] : '';
+                $optionLabel = is_array($option) && is_string($option['label'] ?? null) ? trim($option['label']) : '';
+
+                if (preg_match(self::FILTER_VALUE, $value) !== 1 || $optionLabel === '' || mb_strlen($optionLabel) > 40) {
+                    $errors[] = __('An option needs a value of lower-case letters, digits, hyphens or underscores, and a label of 1 to 40 characters.');
+
+                    break;
+                }
+
+                if (in_array($value, $values, true)) {
+                    $errors[] = __('Two options of a list filter can’t share the value :value.', ['value' => $value]);
+                }
+
+                $values[] = $value;
+            }
+        }
+
+        foreach (['table', 'column', 'item'] as $name) {
+            if (preg_match(self::LIST_FILTER_NAME, is_string($filter[$name] ?? null) ? $filter[$name] : '') !== 1) {
+                $errors[] = __('A list filter’s table, column and item must be lower-case letters, digits and underscores, starting with a letter.');
+
+                break;
             }
         }
 
