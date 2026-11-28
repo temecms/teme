@@ -86,3 +86,13 @@ it('refuses a width a screen can\'t have', function (): void {
     expect(fn () => PagePosition::fixed('top', 0, 100))->toThrow(InvalidArgumentException::class)
         ->and(fn () => PagePosition::fixed('top', 0, 5000))->toThrow(InvalidArgumentException::class);
 });
+
+it('mounts a rail declared from a narrow width no sooner than the width its room needs', function (): void {
+    // The default theme's content is 680 wide: 680 + 2 × (300 + 48) = 1376, the narrowest a 300 rail has room for.
+    Billboard::$gives = [new PageInsertion('billboard.rail', PagePosition::fixed('right', 300, 800), '<div data-test="billboard-rail">Rail</div>')];
+
+    $html = (string) addrGet('/')->assertOk()->getContent();
+
+    expect($html)->toContain('<template data-teme-fixed-from="1376">')
+        ->not->toContain('<template data-teme-fixed-from="800">');
+});

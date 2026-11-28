@@ -70,12 +70,15 @@ final readonly class FixedInsertions
 
             $width = (int) ($at->args['width'] ?? 0);
             $label = $this->label($entry['owner']);
+            $room = $width === 0 ? 0 : $content + 2 * ($width + self::RAIL_GAP);
+            $declared = (int) ($at->args['minWidth'] ?? 0);
             $drawn[$edge] = [
                 'key' => $entry['insertion']->key,
                 'edge' => $edge,
                 'width' => $width,
-                'minWidth' => $width === 0 ? 0 : $content + 2 * ($width + self::RAIL_GAP),
-                'showFrom' => (int) ($at->args['minWidth'] ?? 0),
+                'minWidth' => $room,
+                // A rail mounts no sooner than its room, so a narrower width it declared is raised to that: nothing loads where it can't show.
+                'showFrom' => $declared === 0 ? 0 : max($declared, $room),
                 'label' => $label,
                 'name' => self::name($label, $edge),
                 'html' => $html,
