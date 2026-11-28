@@ -248,14 +248,14 @@ final class ReadImportFile implements ShouldQueue
 
             $next = $page->nextCursor;
 
-            if ($next !== null && isset($given[$next])) {
+            if ($next !== null && isset($given[(string) $next])) {
                 $this->refuseReader('The import reader repeated a page of this file, so Teme stopped reading it.');
 
                 return;
             }
 
             if ($next !== null) {
-                $given[$next] = true;
+                $given[(string) $next] = true;
 
                 if (count($given) > 64) {
                     $given = array_slice($given, -64, preserve_keys: true);
@@ -289,7 +289,7 @@ final class ReadImportFile implements ShouldQueue
 
             $counted = self::noFacts();
             $counted['readerCursor'] = $next;
-            $counted['readerGiven'] = array_keys($given);
+            $counted['readerGiven'] = array_map(strval(...), array_keys($given));
             $counted['readerLanguages'] = $languages;
             $counted['readerDefaultLanguage'] = $defaultLanguage;
             $counted['readerTypes'] = array_keys($types);
@@ -369,7 +369,7 @@ final class ReadImportFile implements ShouldQueue
         $progress = self::noFacts();
         $progress['notes'] = $result['notes'];
         $progress['readerCursor'] = null;
-        $progress['readerGiven'] = array_keys($state['given']);
+        $progress['readerGiven'] = array_map(strval(...), array_keys($state['given']));
         $progress['readerLanguages'] = $state['languages'];
         $progress['readerDefaultLanguage'] = $defaultLanguage;
         $progress['readerTypes'] = array_keys($state['types']);

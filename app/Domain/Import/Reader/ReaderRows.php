@@ -132,6 +132,9 @@ final class ReaderRows
         $menuIds = [];
         $loginKeys = [];
 
+        /** @var list<string> $loginBases */
+        $loginBases = [];
+
         foreach ($items as $item) {
             if ($item->kind === ImportKind::PERSON) {
                 $peopleIds[$item->id] = true;
@@ -142,11 +145,7 @@ final class ReaderRows
                 } else {
                     $name = trim((string) ($item->fields['displayName'] ?? '')) ?: trim($item->title);
                     $base = Slugs::fromText($name !== '' ? $name : $item->id) ?: 'author';
-                    $loginKeys[$base] = true;
-
-                    for ($number = 2; $number <= 5; $number++) {
-                        $loginKeys[$base.'-'.$number] = true;
-                    }
+                    $loginBases[] = $base;
                 }
             }
 
@@ -207,20 +206,32 @@ final class ReaderRows
         $reserved = [];
         $logins = [];
 
-        if ($enginePeople !== [] || $loginKeys !== []) {
+        if ($enginePeople !== [] || $loginKeys !== [] || $loginBases !== []) {
             $query = DB::table('import_file_rows')->where('file_id', $fileId)->where('list', ItemRows::USERS);
 
-            if ($enginePeople !== []) {
-                $query->where(function ($inner) use ($enginePeople, $loginKeys): void {
-                    $inner->whereIn('object_id', $enginePeople);
+            $query->where(function ($inner) use ($enginePeople, $loginKeys, $loginBases): void {
+                $started = false;
 
-                    if ($loginKeys !== []) {
-                        $inner->orWhereIn(DB::raw("payload->>'login'"), array_keys($loginKeys));
-                    }
-                });
-            } else {
-                $query->whereIn(DB::raw("payload->>'login'"), array_keys($loginKeys));
-            }
+                if ($enginePeople !== []) {
+                    $inner->whereIn('object_id', $enginePeople);
+                    $started = true;
+                }
+
+                if ($loginKeys !== []) {
+                    $method = $started ? 'orWhereIn' : 'whereIn';
+                    $inner->{$method}(DB::raw("payload->>'login'"), array_keys($loginKeys));
+                    $started = true;
+                }
+
+                foreach (array_values(array_unique($loginBases)) as $base) {
+                    $method = $started ? 'orWhere' : 'where';
+                    $inner->{$method}(function ($login) use ($base): void {
+                        $login->where(DB::raw("payload->>'login'"), $base)
+                            ->orWhere(DB::raw("payload->>'login'"), 'LIKE', $base.'-%');
+                    });
+                    $started = true;
+                }
+            });
 
             foreach ($query->get(['object_id', 'payload']) as $row) {
                 $payload = is_string($row->payload) ? json_decode($row->payload, true) : [];

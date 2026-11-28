@@ -751,6 +751,70 @@ it('stores a reader’s upload without the .xml of a WordPress export', function
         ->and(Storage::disk('local')->exists($file->path()))->toBeTrue();
 });
 
+it('never reuses a made-up login an earlier page already took', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 1]);
+
+    $items = [];
+
+    for ($i = 1; $i <= 7; $i++) {
+        $items[] = ['kind' => 'person', 'id' => 'p'.$i, 'displayName' => 'John Smith', 'email' => 'john'.$i.'@example.com'];
+    }
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => $items,
+    ];
+
+    $file = readerUploaded('logins.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $logins = DB::table('import_file_rows')
+        ->where('file_id', $file->id)
+        ->where('list', 'users')
+        ->get()
+        ->map(fn ($row): string => (string) (json_decode((string) $row->payload, true)['login'] ?? ''))
+        ->all();
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and($logins)->toHaveCount(7)
+        ->and($logins)->toBe(array_values(array_unique($logins)))
+        ->and($logins)->toContain('john-smith')
+        ->and($logins)->toContain('john-smith-6')
+        ->and($logins)->toContain('john-smith-7');
+});
+
+it('treats a numeric reader cursor as a string so a repeat is still refused', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $file = readerUploaded('cursor-keys.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    // Put the file back into reading with a numeric cursor already in given, as JSON numbers round-trip.
+    $facts = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'file-facts')->value('payload'), true);
+    $facts['readerCursor'] = '2';
+    $facts['readerGiven'] = [2];
+    $facts['readerResolving'] = null;
+    DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'file-facts')->update([
+        'payload' => json_encode($facts, JSON_THROW_ON_ERROR),
+    ]);
+    DB::table('import_files')->where('id', $file->id)->update([
+        'state' => 'reading',
+        'read_items' => 2,
+        'reader' => readerKeyOf('stuck'),
+    ]);
+
+    Queue::fake();
+    (new ReadImportFile($file->id, JobActor::person($file->uploaded_by)))->handle();
+
+    expect($file->refresh()->state)->toBe('refused')
+        ->and($file->refused)->toContain('repeated a page');
+});
+
 it('never makes up a login another person of the file has, so a guest is not merged into a real person', function (): void {
     readersEnabled();
 
