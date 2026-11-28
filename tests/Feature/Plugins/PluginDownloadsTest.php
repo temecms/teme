@@ -3,13 +3,17 @@
 declare(strict_types=1);
 
 use App\Domain\Plugins\Contributions\ContributionsValidator;
+use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\Doors\PluginHttp;
 use App\Domain\Plugins\Downloads\DeclaredDownloads;
+use App\Domain\Plugins\Downloads\DownloadFolders;
+use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\RequestFailed;
 use Tests\Fixtures\Plugins\Lists\FakeResolver;
 
@@ -139,4 +143,67 @@ it('refuses downloads a plugin declares without asking for http', function (): v
     expect(app(ContributionsValidator::class)->errors(['downloads' => ['maxBytes' => 52_428_800]], '1.0.0', []))
         ->toBe(['It declares downloads, but the plugin doesn’t ask for http.'])
         ->and(app(ContributionsValidator::class)->errors(['downloads' => ['maxBytes' => 52_428_800]], '1.0.0', ['http']))->toBe([]);
+});
+
+it('sends a plugin’s headers only to the host it asked, never to a redirect on another host', function (): void {
+    Http::fake([
+        'https://api.example.com/start' => Http::response('', 302, ['Location' => 'https://cdn.example.com/file']),
+        'https://cdn.example.com/file' => Http::response('payload', 200),
+    ]);
+
+    ($this->door)()->download('https://api.example.com/start', ['Authorization' => 'Bearer secret-token', 'Cookie' => 'session=1']);
+
+    Http::assertSent(fn (Request $sent): bool => str_contains($sent->url(), 'api.example.com') && $sent->hasHeader('Authorization', 'Bearer secret-token'));
+    Http::assertSent(fn (Request $sent): bool => str_contains($sent->url(), 'cdn.example.com') && ! $sent->hasHeader('Authorization') && ! $sent->hasHeader('Cookie'));
+});
+
+it('keeps the plugin’s headers on a redirect that stays on the same host', function (): void {
+    Http::fake([
+        'https://api.example.com/start' => Http::response('', 302, ['Location' => '/second']),
+        'https://api.example.com/second' => Http::response('payload', 200),
+    ]);
+
+    ($this->door)()->download('https://api.example.com/start', ['Authorization' => 'Bearer secret-token']);
+
+    Http::assertSent(fn (Request $sent): bool => str_ends_with($sent->url(), '/second') && $sent->hasHeader('Authorization', 'Bearer secret-token'));
+});
+
+it('stops a download at the room its plugin’s folder has left, and keeps no part of it', function (): void {
+    Http::fake(['https://api.example.com/*' => Http::response(str_repeat('a', 30), 200)]);
+    File::ensureDirectoryExists($this->folder);
+    File::put($this->folder.'/held.download', str_repeat('x', 40));
+
+    expect(fn () => ($this->door)(folderBytes: 64)->download('https://api.example.com/file.zip'))->toThrow(AnswerTooLarge::class);
+    expect(File::files($this->folder))->toHaveCount(1);
+});
+
+it('stops a stream as its progress or its declared length passes the limit, even where no request is faked', function (): void {
+    $transport = PluginHttp::transport('api.example.com', '93.184.215.14', 1024);
+    $tooLarge = fn (): AnswerTooLarge => new AnswerTooLarge('too large');
+
+    expect(fn () => $transport['progress'](0, 2048))->toThrow(AnswerTooLarge::class)
+        ->and(fn () => $transport['on_headers'](new Psr7Response(200, ['Content-Length' => '2048'])))->toThrow(AnswerTooLarge::class)
+        ->and($transport['progress'](0, 512))->toBeFalse()
+        ->and($tooLarge())->toBeInstanceOf(AnswerTooLarge::class);
+});
+
+it('offers OutboundDownloads only inside a long job', function (): void {
+    $doors = app(PluginDoors::class);
+
+    expect($doors->for('tests/sharely', 'sharely', ['http'], ['api.example.com'])[OutboundDownloads::class] ?? null)->toBeNull()
+        ->and($doors->for('tests/sharely', 'sharely', ['http'], ['api.example.com'], long: true)[OutboundDownloads::class] ?? null)->toBeInstanceOf(PluginHttp::class);
+});
+
+it('removes a plugin’s old downloads with the daily prune, and keeps the fresh ones', function (): void {
+    $folder = DownloadFolders::pathFor('sharely');
+    File::ensureDirectoryExists($folder);
+    File::put($folder.'/old.download', 'stale');
+    touch($folder.'/old.download', time() - 2 * 86_400);
+    File::put($folder.'/fresh.download', 'new');
+
+    $this->artisan('teme:plugin-downloads:prune')->assertSuccessful();
+
+    expect(file_exists($folder.'/old.download'))->toBeFalse()
+        ->and(file_exists($folder.'/fresh.download'))->toBeTrue();
+    File::deleteDirectory($folder);
 });

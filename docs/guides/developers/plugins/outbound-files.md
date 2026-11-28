@@ -45,13 +45,13 @@ Next: [Feeds and the site](feeds-and-site.md), and the generated [contracts refe
 
 ## Downloading a large file
 
-A plugin with `http` that keeps a large file, such as a country database of several megabytes served through a redirect to a storage host, can use two more calls beside the ones above. They are offered as their own door, `OutboundDownloads`, to every plugin that asks for `http`:
+A plugin with `http` that keeps a large file, such as a country database of several megabytes served through a redirect to a storage host, can use two more calls beside the ones above. They are offered as their own door, `OutboundDownloads`, to a plugin that asks for `http` and only inside a long job. Outside one, a download is refused:
 
 - `head($url)` asks for an address's headers with no body, for a freshness check such as its size or last change.
 - `download($url)` streams the answer into a file in the plugin's own private folder and returns an `HttpDownload`, with the file's `path`, its `bytes`, the final `status` and its `contentType`.
 
-Both follow redirects, at most five a request. Every hop is checked as a first request is: the host must be one the consent covers, and its addresses must be public. A redirect to any other host stops the call.
+Both follow redirects, at most five a request. Every hop is checked as a first request is: the host must be one the consent covers, and its addresses must be public. A hop to another host, scheme or port is sent none of the plugin's headers, so no `Authorization` or `Cookie` leaves for it; a redirect that stays on the same host keeps them.
 
-The largest file is 16 MB unless the manifest says otherwise, with `contributes.downloads.maxBytes`, between 1 MB and 128 MB. Teme shows that limit when the administrator agrees to the plugin. A plugin's whole folder holds at most 512 MB; when it is full, a download is refused until the plugin removes a file.
+The largest file is 16 MB unless the manifest says otherwise, with `contributes.downloads.maxBytes`, between 1 MB and 128 MB. Teme shows that limit on the `http` line when the administrator agrees to the plugin, and a later update with a larger limit asks for that agreement again. A plugin's whole folder holds at most 512 MB; when it is full, a download is refused until the plugin removes a file.
 
-Remove a file with `unlink()` when you are done with it. A file left over is removed a day after it was written, the next time the plugin downloads. The folder is Teme's own, outside the public site and its exports.
+Remove a file with `unlink()` when you are done with it. Teme's daily sweep removes a file left over a day after it was written, and removing the plugin removes its folder. The folders sit under the application's storage at `app/plugin-downloads`, one per plugin, outside the public site and its exports.

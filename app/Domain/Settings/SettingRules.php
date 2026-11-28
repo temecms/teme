@@ -390,7 +390,7 @@ final class SettingRules
     }
 
     /**
-     * A type setting's value must be a content type with public addresses.
+     * Each of several chosen content types must be one the site shows to readers.
      * An empty value clears the setting, and never reaches this rule.
      */
     private static function contentTypes(string $attribute, mixed $value, Closure $fail): void
@@ -406,6 +406,10 @@ final class SettingRules
         }
     }
 
+    /**
+     * A type setting's value must be a content type with public addresses.
+     * An empty value clears the setting, and never reaches this rule.
+     */
     private static function contentType(string $attribute, mixed $value, Closure $fail): void
     {
         $types = app(ContentTypeRegistry::class);

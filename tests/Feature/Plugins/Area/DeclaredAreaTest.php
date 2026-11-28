@@ -92,6 +92,15 @@ it('refuses an area out of bounds, in one plain sentence each', function (array 
     'no permission' => [[['permission', 'report']], 'An area must name one of the permissions the plugin declares.'],
 ]);
 
+it('accepts an area at its limits: six records and eight figures', function (): void {
+    $area = $this->area;
+    $extra = array_map(fn (int $n): array => ['id' => "ad-{$n}", 'label' => 'Ad', 'plural' => 'Ads', 'titleField' => 'name', 'sections' => [['id' => 'basics', 'label' => 'Basics', 'fields' => [['key' => 'name', 'type' => 'text', 'label' => 'Name']]]]], range(1, 6 - count($area['records'])));
+    $area['records'] = [...$area['records'], ...$extra];
+    Arr::set($area, 'pages.0.blocks.0.items', array_map(fn (int $n): array => ['id' => "f{$n}", 'label' => "F{$n}", 'format' => 'number'], range(1, 8)));
+
+    expect(app(ContributionsValidator::class)->errors([...$this->contributes, 'area' => $area], '1.0.0', ['jobs']))->toBe([]);
+});
+
 it('keeps the schema’s area in step with the validator', function (): void {
     $schema = json_decode((string) file_get_contents(base_path('packages/teme-contracts/schema/teme-plugin.schema.json')), true, 512, JSON_THROW_ON_ERROR);
     $contributes = $schema['properties']['contributes']['properties'];

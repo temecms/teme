@@ -36,6 +36,7 @@ use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Notices\NoticeSender;
 use App\Domain\Plugins\Downloads\DeclaredDownloads;
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Hooks\PluginHookSender;
 use App\Domain\Plugins\Jobs\PluginJobs;
@@ -132,12 +133,15 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
             // The hosts agreed in its settings are read at each call, never fixed here (docs/plans/plugin-sockets-1.md, A2).
-            // Its downloads go to its own private folder, which nothing else shares (docs/guides/developers/plugins/outbound-files.md).
+            // Downloads are a long job's only, into the plugin's own folder (docs/guides/developers/plugins/outbound-files.md).
             $downloadManifest = $this->registry->find($name)?->manifest;
             $downloads = $downloadManifest === null ? DeclaredDownloads::DEFAULT_BYTES : DeclaredDownloads::of($downloadManifest);
-            $http = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path, downloadFolder: storage_path('framework/plugin-downloads/'.$code), downloadBytes: $downloads);
+            $http = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path, downloadFolder: $long ? DownloadFolders::pathFor($code) : null, downloadBytes: $downloads);
             $offered[OutboundHttp::class] = $http;
-            $offered[OutboundDownloads::class] = $http;
+
+            if ($long) {
+                $offered[OutboundDownloads::class] = $http;
+            }
         }
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {

@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
 
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\HostPattern;
 use Closure;
 use Exception;
@@ -46,17 +47,14 @@ final readonly class PluginHttp implements OutboundDownloads, OutboundHttp
 {
     public const int MOST_SECONDS = 10;
 
-    /** The largest file a download may hold, in bytes. @since next */
+    /** The largest file a download may hold, in bytes. */
     public const int MOST_DOWNLOAD_BYTES = 134_217_728;
 
-    /** The most a plugin's downloads may hold together, in bytes. @since next */
+    /** The most a plugin's downloads may hold together, in bytes. */
     public const int MOST_FOLDER_BYTES = 536_870_912;
 
-    /** Redirects followed for one request. @since next */
+    /** Redirects followed for one request. */
     public const int MOST_REDIRECTS = 5;
-
-    /** How long a leftover download is kept, in seconds. @since next */
-    public const int DOWNLOAD_KEPT_SECONDS = 86_400;
 
     public const int MOST_BYTES = 1_048_576;
 
@@ -117,12 +115,15 @@ final readonly class PluginHttp implements OutboundDownloads, OutboundHttp
     public function download(string $url, array $headers = [], int $timeoutSeconds = 60): HttpDownload
     {
         if ($this->downloadFolder === null) {
-            throw new RequestFailed(__('This plugin keeps no downloads.'));
+            throw new RequestFailed(__('Downloads work only inside a long job.'));
         }
 
-        $this->sweepDownloads();
+        DownloadFolders::sweepFolder($this->downloadFolder);
 
-        if ($this->folderSize() >= $this->folderBytes) {
+        // The stream stops at whichever is smaller: the manifest's file limit, or the room the plugin's whole folder has left.
+        $room = $this->folderBytes - $this->folderSize();
+
+        if ($room <= 0) {
             throw new RequestFailed(__('The plugin’s downloads already fill its folder, so Teme didn’t download the file.'));
         }
 
@@ -133,7 +134,7 @@ final readonly class PluginHttp implements OutboundDownloads, OutboundHttp
         $path = $this->downloadFolder.DIRECTORY_SEPARATOR.bin2hex(random_bytes(16)).'.download';
 
         try {
-            $answer = $this->follow('GET', $url, $headers, $timeoutSeconds, $this->downloadBytes, $path);
+            $answer = $this->follow('GET', $url, $headers, $timeoutSeconds, min($this->downloadBytes, $room), $path);
         } catch (Exception $failure) {
             @unlink($path);
 
@@ -258,9 +259,14 @@ final readonly class PluginHttp implements OutboundDownloads, OutboundHttp
     private function follow(string $method, string $url, array $headers, int $timeoutSeconds, int $limit, ?string $sink): HttpAnswer
     {
         $current = $url;
+        $previous = null;
 
         for ($followed = 0; ; $followed++) {
-            $answer = $this->send($method, $current, null, '', $headers, $timeoutSeconds, false, $limit, $sink);
+            // A hop to another scheme, host or port gets none of the plugin's headers: no Authorization, no Cookie, nothing it set.
+            $here = new Uri($current);
+            $sameOrigin = $previous === null || (strtolower($here->getScheme()) === strtolower($previous->getScheme()) && strtolower($here->getHost()) === strtolower($previous->getHost()) && ($here->getPort() ?? 443) === ($previous->getPort() ?? 443));
+            $answer = $this->send($method, $current, null, '', $sameOrigin ? $headers : [], $timeoutSeconds, false, $limit, $sink);
+            $previous = $here;
 
             if (! in_array($answer->status, [301, 302, 303, 307, 308], true)) {
                 return $answer;
@@ -307,23 +313,6 @@ final readonly class PluginHttp implements OutboundDownloads, OutboundHttp
         }
 
         return $total;
-    }
-
-    /**
-     * Removes the plugin's downloads older than a day, so a file a plugin
-     * forgot to remove does not stay on the disk.
-     */
-    private function sweepDownloads(): void
-    {
-        if ($this->downloadFolder === null || ! is_dir($this->downloadFolder)) {
-            return;
-        }
-
-        foreach (new FilesystemIterator($this->downloadFolder, FilesystemIterator::SKIP_DOTS) as $file) {
-            if ($file->isFile() && $file->getMTime() < time() - self::DOWNLOAD_KEPT_SECONDS) {
-                @unlink($file->getPathname());
-            }
-        }
     }
 
     /**

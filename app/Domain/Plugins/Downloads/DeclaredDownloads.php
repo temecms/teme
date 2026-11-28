@@ -26,6 +26,17 @@ final class DeclaredDownloads
     public const int LEAST_BYTES = 1_048_576;
 
     /**
+     * The file size limit the manifest declares, or null when it declares none.
+     */
+    public static function declared(Manifest $manifest): ?int
+    {
+        $downloads = $manifest->contributes()['downloads'] ?? null;
+        $bytes = is_array($downloads) ? ($downloads['maxBytes'] ?? null) : null;
+
+        return is_int($bytes) ? $bytes : null;
+    }
+
+    /**
      * The file size limit the manifest declares, or the default.
      */
     public static function of(Manifest $manifest): int

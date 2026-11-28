@@ -52,6 +52,8 @@ use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
+use Teme\Contracts\Http\HttpDownload;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
 use Teme\Contracts\Insertions\InlineScripts;
@@ -77,6 +79,8 @@ use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\People\PersonPage;
 use Teme\Contracts\People\PersonRef;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Security\SecurityLines;
+use Teme\Contracts\Settings\PluginSecretStore;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Site\SiteInfo;
 use Teme\Contracts\Sitemaps\HasSitemaps;
@@ -142,6 +146,10 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ChecksStatus::class, '0.5.0'],
     [OutboundHttp::class, '0.5.0', ['postForm' => '1.0.0', 'postMultipart' => '1.7.0', 'postRaw' => '1.7.0']],
     [HttpAnswer::class, '0.5.0'],
+    [OutboundDownloads::class, 'next'],
+    [HttpDownload::class, 'next'],
+    [SecurityLines::class, 'next'],
+    [PluginSecretStore::class, 'next'],
     [HostRefused::class, '0.5.0'],
     [AnswerTooLarge::class, '0.5.0'],
     [RequestFailed::class, '0.5.0'],
@@ -251,6 +259,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'comments.check',
         'search.read',
         'import.read',
+        'security.log',
     ]);
 });
 

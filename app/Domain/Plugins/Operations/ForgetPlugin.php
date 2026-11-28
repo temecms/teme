@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\ForgetPluginInput;
@@ -99,6 +100,7 @@ final class ForgetPlugin extends BaseOperation implements RequiresElevation
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
 
         DB::afterCommit(fn () => $this->records->changed());
+        DB::afterCommit(fn () => DownloadFolders::remove($code));
 
         return $name;
     }

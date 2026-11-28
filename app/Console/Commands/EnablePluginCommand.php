@@ -20,6 +20,7 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Editor\DeclaredPanel;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
@@ -122,7 +123,7 @@ final class EnablePluginCommand extends Command
                 Capability::NoticesSend->value => PluginWords::capability($capability, notices: array_column(DeclaredNotices::of($manifest), 'label')),
                 Capability::SecurityLog->value => PluginWords::capability($capability, securityKinds: array_values(DeclaredSecurityKinds::of($manifest))),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
-                Capability::Http->value => $http,
+                Capability::Http->value => $fromSettings !== [] ? $http : PluginWords::capability(Capability::Http->value, $hosts, downloadBytes: DeclaredDownloads::declared($manifest)),
                 Capability::Ai->value => PluginWords::capability($capability, aiTasks: array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks)),
                 default => $capability,
             });
