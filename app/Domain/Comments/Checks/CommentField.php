@@ -20,6 +20,12 @@ use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Slots\PluginSlots;
 use Teme\Contracts\Plugins\Capability;
 
+/**
+ * The one hidden field a comment-check plugin may add to the comment form, declared in its manifest. It names the field, says how
+ * its value is made, and is read back only after the manifest's own checks have passed again.
+ *
+ * @since next
+ */
 final class CommentField
 {
     /** The kinds a field may take: a fixed value, the browser's time, or an off-screen trap. */
@@ -47,7 +53,27 @@ final class CommentField
             return null;
         }
 
-        return ['name' => $declared['name'], 'make' => $declared['make'], 'value' => is_string($declared['value'] ?? null) ? $declared['value'] : ''];
+        // Checked again here, as the manifest on disk may have changed since it was validated.
+        $name = $declared['name'];
+        $value = is_string($declared['value'] ?? null) ? $declared['value'] : '';
+
+        if (preg_match(self::NAME, $name) !== 1 || in_array($name, self::RESERVED, true) || mb_strlen($value) > self::MOST_VALUE) {
+            return null;
+        }
+
+        return ['name' => $name, 'make' => $declared['make'], 'value' => $value];
+    }
+
+    /**
+     * Whether a manifest gives the comment form's fields a reason to change: it declares a field or fills the comment-check slot. Core's pages with a comment form are purged when it does.
+     */
+    public static function changesForms(?Manifest $manifest): bool
+    {
+        if ($manifest === null) {
+            return false;
+        }
+
+        return array_key_exists('commentField', $manifest->contributes()) || in_array(PluginSlots::COMMENT_CHECK, (array) ($manifest->contributes()['provides'] ?? []), true);
     }
 
     /**

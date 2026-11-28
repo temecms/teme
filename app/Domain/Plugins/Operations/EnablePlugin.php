@@ -22,6 +22,7 @@ namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Cache\PageTags;
+use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Console\CommandNames;
@@ -231,7 +232,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             ...($input->actorId() === null && $input->schedulesAs !== null ? ['schedules_as' => $input->schedulesAs] : []),
         ]);
         // A stored "not found" at an address its root files now answer goes too (docs/guides/developers/plugins/root-files.md).
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES]), ...(CommentField::changesForms($manifest) ? [PageTags::DISCUSSION] : [])]));
 
         // Every page is drawn again with its head tags and structured data, and the sitemaps with its own (docs/guides/developers/plugins/seo.md).
         $seoTags = [

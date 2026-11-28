@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Jobs\Operations\CancelJob;
@@ -98,7 +99,7 @@ final class DisablePlugin extends BaseOperation
         $this->log->record(SecurityEventType::PluginDisabled, $input->actorId(), context: ['plugin' => $input->name]);
         // Its root files stop answering, so a stored "not found" at their addresses can stand again (docs/guides/developers/plugins/root-files.md).
         $manifest = $this->registry->find($input->name)?->manifest;
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...($manifest !== null && RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...($manifest !== null && RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES]), ...(CommentField::changesForms($manifest) ? [PageTags::DISCUSSION] : [])]));
 
         // Its head tags, structured data and sitemaps leave every page (docs/guides/developers/plugins/seo.md).
         $granted = (array) ($record->consent['capabilities'] ?? []);

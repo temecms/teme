@@ -81,6 +81,11 @@ final class ChooseSlotProvider extends BaseOperation
             ->all();
 
         // Searches drawn by either engine, or by core while none was chosen, change with the engine: the lists go.
+        // A comment form's field follows the chosen check, so the pages with a comment form go (docs/guides/developers/plugins/comment-check.md).
+        if ($input->slot === PluginSlots::COMMENT_CHECK) {
+            $codes[] = PageTags::DISCUSSION;
+        }
+
         if ($input->slot === PluginSlots::SEARCH) {
             $codes = [...$codes, ...array_map(PageTags::listOf(...), app(PostgresSiteSearch::class)->searchable(null))];
         }
