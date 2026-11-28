@@ -8,12 +8,16 @@ use App\Domain\Jobs\Operations\CancelJob;
 use App\Domain\Jobs\Operations\FailJob;
 use App\Domain\Jobs\Operations\FinishJob;
 use App\Domain\Jobs\Operations\ReportJobProgress;
+use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Plugins\Doors\CurrentJobActor;
+use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\RunPluginActionInput;
+use App\Domain\Plugins\Operations\RunPluginAction;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\SafeMode;
@@ -104,12 +108,21 @@ it('queues a nested job as the running job’s actor when CurrentJobActor is set
 
 it('queues a nested job through a real handler as the outer run’s person', function (): void {
     Queue::fake();
-    Auth::login($this->admin);
-    $outer = ($this->jobs)()->queue('nest-queue', ['line' => 'from nest']);
+    // Explicit person action: notify carries into the nested queue via CurrentJobActor.
+    $jobs = new PluginJobs(
+        'tests/jobs',
+        'jobs',
+        app(StartJob::class),
+        app(PluginRegistry::class),
+        JobActor::person($this->admin->id),
+        notifyOnFinish: true,
+    );
+    $outer = $jobs->queue('nest-queue', ['line' => 'from nest']);
     $outerJob = Queue::pushed(RunPluginJob::class)->first();
     expect($outerJob->jobKey)->toBe('nest-queue');
 
     Queue::fake();
+    Auth::logout();
     ($this->handle)($outerJob);
 
     Queue::assertPushed(RunPluginJob::class, function (RunPluginJob $job): bool {
@@ -155,7 +168,24 @@ it('finishes a background plugin job quietly, and fails loudly with an inbox ite
         ->and(DB::table('inbox_items')->where('user_id', $this->admin->id)->value('kind'))->toBe('job.failed');
 });
 
-it('puts a person-started job’s summary in that person’s inbox on finish', function (): void {
+it('puts a RunPluginAction job’s summary in that person’s inbox on finish', function (): void {
+    Queue::fake();
+
+    $result = app(RunPluginAction::class)->execute(new RunPluginActionInput('jobs', 'summarise-now', (string) $this->admin->id));
+
+    ($this->handle)(Queue::pushed(RunPluginJob::class)->first());
+
+    expect(TrackedJob::query()->findOrFail($result['job'])->only(['state', 'message']))
+        ->toEqual(['state' => JobState::Finished, 'message' => 'Wrote the line.'])
+        ->and(DB::table('inbox_items')->where('user_id', $this->admin->id)->get(['kind', 'body'])->map(fn ($row) => [
+            'kind' => $row->kind,
+            'text' => json_decode((string) $row->body, true)['text'] ?? null,
+        ])->all())->toBe([
+            ['kind' => 'job.finished', 'text' => 'Wrote the line.'],
+        ]);
+});
+
+it('keeps a bare Auth::id() queue quiet on success, as a hook during a signed-in save', function (): void {
     Queue::fake();
     Auth::login($this->admin);
     $id = ($this->jobs)()->queue('summarise', []);
@@ -164,12 +194,7 @@ it('puts a person-started job’s summary in that person’s inbox on finish', f
 
     expect(TrackedJob::query()->findOrFail($id)->only(['state', 'message']))
         ->toEqual(['state' => JobState::Finished, 'message' => 'Wrote the line.'])
-        ->and(DB::table('inbox_items')->where('user_id', $this->admin->id)->get(['kind', 'body'])->map(fn ($row) => [
-            'kind' => $row->kind,
-            'text' => json_decode((string) $row->body, true)['text'] ?? null,
-        ])->all())->toBe([
-            ['kind' => 'job.finished', 'text' => 'Wrote the line.'],
-        ]);
+        ->and(DB::table('inbox_items')->where('user_id', $this->admin->id)->count())->toBe(0);
 });
 
 it('refuses to queue when the enabling administrator is gone or can no longer manage plugins', function (string $case): void {

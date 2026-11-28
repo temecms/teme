@@ -42,6 +42,7 @@ final readonly class PluginJobs implements Jobs
         private StartJob $start,
         private PluginRegistry $registry,
         private ?JobActor $as = null,
+        private bool $notifyOnFinish = false,
     ) {}
 
     public function queue(string $key, array $payload = [], ?string $label = null, ?QueueOptions $options = null): string
@@ -49,7 +50,7 @@ final readonly class PluginJobs implements Jobs
         $payload = $this->ready($payload);
         $declared = $this->declared($key);
         $actor = $this->actor();
-        $notify = $this->notifyOnFinish();
+        $notify = $this->shouldNotifyOnFinish();
         $label ??= $declared['label'];
 
         if ($options?->uniqueKey === null) {
@@ -215,17 +216,14 @@ final readonly class PluginJobs implements Jobs
 
     /**
      * Whether this queue should tell the person's inbox when the run finishes:
-     * a signed-in person, or a nested queue from such a run. Schedules, the
-     * enabling-administrator fallback, and the operator stay quiet.
+     * an explicit person action (constructor flag), or a nested queue from such
+     * a run. Schedules, hooks (including a bare Auth::id() during a signed-in
+     * save), the enabling-administrator fallback, and the operator stay quiet.
      */
-    private function notifyOnFinish(): bool
+    private function shouldNotifyOnFinish(): bool
     {
         if ($this->as !== null) {
-            return false;
-        }
-
-        if (Auth::id() !== null) {
-            return true;
+            return $this->notifyOnFinish;
         }
 
         $current = app(CurrentJobActor::class);

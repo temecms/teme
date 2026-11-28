@@ -25,6 +25,9 @@
     ],
     "owns": { "tables": ["jobs_lines"] },
     "contributes": {
+        "actions": [
+            { "id": "summarise-now", "label": "Summarise now", "description": "Runs the summarise job from a settings action.", "job": "summarise" }
+        ],
         "permissions": [
             {
                 "id": "manage-lines",
