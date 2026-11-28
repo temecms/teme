@@ -1708,7 +1708,7 @@
                         },
                         "records": {
                             "type": "array",
-                            "maxItems": 3,
+                            "maxItems": 6,
                             "items": {
                                 "type": "object"
                             },
