@@ -49,17 +49,18 @@ final readonly class PluginJobs implements Jobs
         $payload = $this->ready($payload);
         $declared = $this->declared($key);
         $actor = $this->actor();
+        $notify = $this->notifyOnFinish();
         $label ??= $declared['label'];
 
         if ($options?->uniqueKey === null) {
-            return $this->startRun($key, $payload, $label, $declared, $actor, null, $options->delaySeconds ?? 0);
+            return $this->startRun($key, $payload, $label, $declared, $actor, null, $options->delaySeconds ?? 0, $notify);
         }
 
         $unique = $options->uniqueKey;
 
         // Once while one waits: the lock keeps two callers from both missing
         // the waiting run; the partial unique index is the backstop.
-        return DB::transaction(function () use ($key, $payload, $label, $declared, $actor, $unique, $options): string {
+        return DB::transaction(function () use ($key, $payload, $label, $declared, $actor, $unique, $options, $notify): string {
             DB::select('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', ["plugin-job:{$this->code}:{$key}:{$unique}"]);
 
             $waiting = DB::table('tracked_jobs')
@@ -74,7 +75,7 @@ final readonly class PluginJobs implements Jobs
                 return $waiting;
             }
 
-            return $this->startRun($key, $payload, $label, $declared, $actor, $unique, $options->delaySeconds);
+            return $this->startRun($key, $payload, $label, $declared, $actor, $unique, $options->delaySeconds, $notify);
         });
     }
 
@@ -85,7 +86,7 @@ final readonly class PluginJobs implements Jobs
      * @param  array<string, mixed>  $payload
      * @param  array{key: string, label: string, long: bool, tries: int, backoff: list<int>}  $declared
      */
-    private function startRun(string $key, array $payload, string $label, array $declared, JobActor $actor, ?string $uniqueKey, int $delaySeconds): string
+    private function startRun(string $key, array $payload, string $label, array $declared, JobActor $actor, ?string $uniqueKey, int $delaySeconds, bool $notifyOnFinish): string
     {
         $id = $this->start->execute(new StartJobInput(
             kind: PluginJobKind::KEY,
@@ -99,7 +100,7 @@ final readonly class PluginJobs implements Jobs
         ));
 
         $job = RunPluginJob::configure(
-            new RunPluginJob($this->code, $key, $id, $actor),
+            new RunPluginJob($this->code, $key, $id, $actor, $notifyOnFinish),
             $declared,
         );
 
@@ -210,5 +211,25 @@ final readonly class PluginJobs implements Jobs
         }
 
         throw new InvalidArgumentException('Only a person or the operator queues a plugin job.');
+    }
+
+    /**
+     * Whether this queue should tell the person's inbox when the run finishes:
+     * a signed-in person, or a nested queue from such a run. Schedules, the
+     * enabling-administrator fallback, and the operator stay quiet.
+     */
+    private function notifyOnFinish(): bool
+    {
+        if ($this->as !== null) {
+            return false;
+        }
+
+        if (Auth::id() !== null) {
+            return true;
+        }
+
+        $current = app(CurrentJobActor::class);
+
+        return $current->get() !== null && $current->notifyOnFinish();
     }
 }

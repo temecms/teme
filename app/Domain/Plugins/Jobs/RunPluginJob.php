@@ -55,6 +55,7 @@ final class RunPluginJob implements ShouldQueue
         public readonly string $jobKey,
         public readonly string $trackedJobId,
         public readonly JobActor $actor,
+        public readonly bool $notifyOnFinish = false,
     ) {}
 
     /**
@@ -81,7 +82,7 @@ final class RunPluginJob implements ShouldQueue
         $this->actor->bind();
 
         $current = app(CurrentJobActor::class);
-        $current->set($this->actor);
+        $current->set($this->actor, $this->notifyOnFinish);
 
         try {
             $this->run($registry, $loader, $safeMode, $cancel, $fail, $finish, $report);
@@ -113,13 +114,20 @@ final class RunPluginJob implements ShouldQueue
         $manifest = $plugin?->manifest;
         $granted = in_array('jobs', $record->consent['capabilities'] ?? [], true);
 
+        $enablerGone = ! $this->notifyOnFinish
+            && $record !== null
+            && $record->consented_by !== null
+            && (string) $record->consented_by === (string) $this->actor->userId
+            && ! app(ScheduleRunner::class)->mayManage((string) $record->consented_by);
+
         if ($record === null
             || $record->state !== PluginRecord::ENABLED
             || $plugin === null
             || $manifest === null
             || ! $granted
             || ! Consent::covers($record->consent, $manifest)
-            || $safeMode->active()) {
+            || $safeMode->active()
+            || $enablerGone) {
             try {
                 $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
             } catch (ValidationException) {
@@ -184,8 +192,13 @@ final class RunPluginJob implements ShouldQueue
             throw $failure;
         }
 
-        // Plugin runs stay quiet on success; FailJob still tells the inbox.
-        $finish->execute(new FinishJobInput($this->trackedJobId, $context->closingMessage(), $this->actor->userId, notify: false));
+        // Background runs stay quiet on success; a person-started run tells their inbox.
+        $finish->execute(new FinishJobInput(
+            $this->trackedJobId,
+            $context->closingMessage(),
+            $this->actor->userId,
+            notify: $this->notifyOnFinish,
+        ));
     }
 
     public function failed(?Throwable $exception): void

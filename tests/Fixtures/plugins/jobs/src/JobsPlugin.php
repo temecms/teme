@@ -38,6 +38,7 @@ final class JobsPlugin implements Plugin, PluginHasJobs
             'fail-for-good' => new FailForGoodHandler,
             'summarise' => new SummariseHandler,
             'list-permissions' => new PermissionsHandler,
+            'nest-queue' => new NestQueueHandler($this->jobs),
         ];
     }
 }

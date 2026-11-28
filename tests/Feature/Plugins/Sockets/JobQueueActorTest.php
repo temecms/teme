@@ -11,6 +11,7 @@ use App\Domain\Jobs\Operations\ReportJobProgress;
 use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
@@ -101,7 +102,42 @@ it('queues a nested job as the running job’s actor when CurrentJobActor is set
     Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $job): bool => $job->actor->userId === (string) $editor->id);
 });
 
-it('finishes a plugin job quietly with no inbox item, and fails loudly with one', function (): void {
+it('queues a nested job through a real handler as the outer run’s person', function (): void {
+    Queue::fake();
+    Auth::login($this->admin);
+    $outer = ($this->jobs)()->queue('nest-queue', ['line' => 'from nest']);
+    $outerJob = Queue::pushed(RunPluginJob::class)->first();
+    expect($outerJob->jobKey)->toBe('nest-queue');
+
+    Queue::fake();
+    ($this->handle)($outerJob);
+
+    Queue::assertPushed(RunPluginJob::class, function (RunPluginJob $job): bool {
+        return $job->jobKey === 'write-line'
+            && $job->actor->userId === (string) $this->admin->id
+            && $job->notifyOnFinish === true;
+    });
+    expect(TrackedJob::query()->where('run_id', 'write-line')->value('started_by'))->toBe($this->admin->id)
+        ->and(TrackedJob::query()->findOrFail($outer)->state)->toBe(JobState::Finished);
+});
+
+it('cancels a background run when the enabling administrator can no longer manage plugins', function (): void {
+    Queue::fake();
+    ($this->asGuest)();
+    $id = ($this->jobs)()->queue('write-line', ['line' => 'later']);
+    $job = Queue::pushed(RunPluginJob::class)->first();
+
+    $this->admin->removeRole('administrator');
+    $this->admin->assignRole('editor');
+
+    ($this->handle)($job);
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Cancelled)
+        ->and(DB::table('jobs_lines')->count())->toBe(0)
+        ->and(DB::table('inbox_items')->count())->toBe(0);
+});
+
+it('finishes a background plugin job quietly, and fails loudly with an inbox item', function (): void {
     Queue::fake();
     ($this->asGuest)();
 
@@ -118,6 +154,47 @@ it('finishes a plugin job quietly with no inbox item, and fails loudly with one'
     expect(TrackedJob::query()->findOrFail($bad)->state)->toBe(JobState::Failed)
         ->and(DB::table('inbox_items')->where('user_id', $this->admin->id)->value('kind'))->toBe('job.failed');
 });
+
+it('puts a person-started job’s summary in that person’s inbox on finish', function (): void {
+    Queue::fake();
+    Auth::login($this->admin);
+    $id = ($this->jobs)()->queue('summarise', []);
+
+    ($this->handle)(Queue::pushed(RunPluginJob::class)->first());
+
+    expect(TrackedJob::query()->findOrFail($id)->only(['state', 'message']))
+        ->toEqual(['state' => JobState::Finished, 'message' => 'Wrote the line.'])
+        ->and(DB::table('inbox_items')->where('user_id', $this->admin->id)->get(['kind', 'body'])->map(fn ($row) => [
+            'kind' => $row->kind,
+            'text' => json_decode((string) $row->body, true)['text'] ?? null,
+        ])->all())->toBe([
+            ['kind' => 'job.finished', 'text' => 'Wrote the line.'],
+        ]);
+});
+
+it('refuses to queue when the enabling administrator is gone or can no longer manage plugins', function (string $case): void {
+    Queue::fake();
+    ($this->asGuest)();
+
+    match ($case) {
+        'consented_by null' => PluginRecord::query()->where('code', 'jobs')->update(['consented_by' => null]),
+        'lost manage plugins' => tap($this->admin, function (User $admin): void {
+            $admin->removeRole('administrator');
+            $admin->assignRole('editor');
+        }),
+        // nullOnDelete clears consented_by when the account goes.
+        'deleted account' => $this->admin->delete(),
+    };
+
+    expect(fn () => ($this->jobs)()->queue('write-line', ['line' => 'no']))
+        ->toThrow(InvalidArgumentException::class, 'Only a person or the operator queues a plugin job.')
+        ->and(DB::table('tracked_jobs')->count())->toBe(0);
+    Queue::assertNothingPushed();
+})->with([
+    'consented_by null',
+    'lost manage plugins',
+    'deleted account',
+]);
 
 it('takes a delay up to one day', function (): void {
     expect((new QueueOptions(delaySeconds: 86_400))->delaySeconds)->toBe(86_400);
