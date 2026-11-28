@@ -28,6 +28,8 @@ use App\Domain\Plugins\Console\CommandNames;
 use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
+use App\Domain\Plugins\ListFilters\ListFilterIndexes;
+use App\Domain\Plugins\ListFilters\PluginListFilters;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
@@ -72,6 +74,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly ScheduleRunner $schedules,
         private readonly Dependencies $dependencies,
         private readonly ApplyPluginTypes $types,
+        private readonly PluginListFilters $listFilters,
+        private readonly ListFilterIndexes $listFilterIndexes,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -119,6 +123,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         if ($collisions !== []) {
             throw ValidationException::withMessages(['plugin' => $collisions]);
+        }
+
+        // Nor more list filters on one list than the lists hold (issue 802).
+        $refusedFilters = $this->listFilters->refusalBeside($manifest, array_values(array_filter($others, fn (Manifest $other): bool => $other->raw()['name'] !== $manifest->raw()['name'])));
+
+        if ($refusedFilters !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedFilters]]);
         }
 
         // Nor a console command that exists: a plugin never replaces one.
@@ -178,6 +189,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             $migrations = $this->migrations->run($found, $record->migrations);
         } catch (PluginTablesRefused $refused) {
             throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
+        }
+
+        // Each list filter reads a column of the plugin's own table that a valid index leads with, checked here so a refusal undoes the migrations too (issue 802).
+        $unindexed = $this->listFilterIndexes->refusal($manifest);
+
+        if ($unindexed !== null) {
+            throw ValidationException::withMessages(['plugin' => [$unindexed]]);
         }
 
         $consentedBy = $input->actorId() ?? $input->schedulesAs;
