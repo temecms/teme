@@ -30,15 +30,15 @@ A handler's `handle()` receives a `JobContext`: `payload()` is what the job was 
 
 ## The person a run acts for
 
-`JobContext::personId()` gives the account ID the run acts for: the person who queued it, or for a scheduled or other background run the administrator who enabled the plugin. Pass it to every door that acts for a person, such as `ContentWriter` and `ContentReader`. Don't keep a "write as" setting of your own.
+`JobContext::personId()` gives the account ID the run acts for: the person who queued it, the person an outer plugin job was acting for when this one was nested from it, or for a scheduled or other background run the administrator who enabled the plugin. Pass it to every door that acts for a person, such as `ContentWriter` and `ContentReader`. Don't keep a "write as" setting of your own.
 
 A run the operator queued from the command line acts for nobody: `personId()` throws, and the run fails at once, without another try, with "This run has no person to act for."
 
 ## Queue a job
 
-Ask for `Jobs` in your constructor and call `queue('your-key', $payload)`. It answers the run's ID. The payload must be JSON-ready data with string keys, at most 64 KB once encoded.
+Ask for `Jobs` in your constructor and call `queue('your-key', $payload)`. It answers the run's ID. The payload must be JSON-ready data with string keys, at most 64 KB once encoded. It is stored as plain JSON and shown on **Tools › Jobs** — never put a secret in it.
 
-A job runs as someone. A job queued while a person is signed in runs as that person, and one queued from a Teme console command runs as the operator. A job queued from inside any plugin's running job runs as that run's person. With none of those, `queue()` runs as the administrator who enabled the plugin, as a schedule does — so a listener for a public visitor's request, or for a scheduled publish, can queue one. When that administrator is gone or can no longer manage plugins, `queue()` refuses, and a background run already waiting is cancelled if they lose that ability before it starts.
+A job runs as someone. A job queued while a person is signed in runs as that person, and one queued from a Teme console command runs as the operator. A job queued from inside any plugin's running job runs as that run's person. With none of those, `queue()` runs as the administrator who enabled the plugin, as a schedule does — so a listener for a public visitor's request, or for a scheduled publish, can queue one. When that administrator is gone or can no longer manage plugins, `queue()` refuses, and a background run already waiting is cancelled if they lose that ability, or their account is deleted, before it starts.
 
 The job is sent to the queue only once the change around it commits, so a run never starts for work that was rolled back. On a site whose queue is `sync`, as on a small site and in tests, the job runs at once, inside the `queue()` call.
 
@@ -48,6 +48,7 @@ The job is sent to the queue only once the change around it commits, so a run ne
 - Check visitor input in the request (or refuse it) before you queue; a job must not trust what a visitor sent.
 - Prefer a `uniqueKey` when the same work can be asked for twice in a burst, so one waiting run stands.
 - Put a version (or similar) in a delayed payload when the work depends on settings that may change before the delay ends.
+- Never put a secret in the payload: it is stored as plain JSON and shown on **Tools › Jobs**.
 - `permissions()` on a background run is the enabling administrator's set of your permissions — not a visitor's, and not a role name.
 
 ## After a delay, or once while one waits
@@ -59,7 +60,7 @@ Pass `QueueOptions` as the last argument:
 
 Together they debounce: `new QueueOptions(delaySeconds: 60, uniqueKey: 'sitemap')` on every save sends one ping for a burst of saves. A key is up to 64 lower-case letters, digits and `:._-`, starting with a letter or digit; a delay or key outside those throws an `\InvalidArgumentException`.
 
-A job a person started tells that person's inbox when it finishes (with the summary, or "Finished."). Background runs — schedules, hooks with no signed-in person, nested queues from those — stay off the inbox on success. A failed run always tells whoever started it, and shows on **Tools › Jobs**.
+A job a person started from an admin action (list actions, Run now, editor-panel actions) tells that person's inbox when it finishes (with the summary, or "Finished."). Background runs — schedules, hooks (including a queue during a signed-in save), nested queues from those — stay off the inbox on success. A failed run always tells whoever started it, and shows on **Tools › Jobs**.
 
 ## Schedules
 
@@ -117,7 +118,7 @@ A run that needs longer than its limit is cut short and retried, so cut big work
 
 When a handler throws, Teme reports the exception to the site's log with your plugin's name, and the run is tried again after its backoff, until its tries are used. The last failure marks the run failed in **Tools › Jobs**, with the first line of the exception's message, cut at 200 characters, so write that line for the person who reads it.
 
-To end a run for good without another try — for example when Search Console isn't connected — throw `JobFailed::permanently('reason in plain words')`. Teme marks the run failed with that reason, does not retry whatever `tries` says, and does not write the failure to the site's log.
+To end a run for good without another try — for example when Search Console isn't connected — throw `JobFailed::permanently('reason in plain words')`. Teme marks the run failed with the first line of that reason, cut at 200 characters (or "It failed." when blank), does not retry whatever `tries` says, and does not write the failure to the site's log.
 
 On a `sync` queue a thrown exception that isn't a permanent failure also reaches the code that called `queue()`, after the run is marked failed.
 

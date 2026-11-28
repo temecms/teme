@@ -106,6 +106,27 @@ it('queues a nested job as the running job’s actor when CurrentJobActor is set
     Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $job): bool => $job->actor->userId === (string) $editor->id);
 });
 
+it('shares CurrentJobActor across plugins so any plugin’s running job supplies the actor', function (): void {
+    Queue::fake();
+    ($this->asGuest)();
+    PluginFixtures::use('jobs', 'workbench');
+    PluginFixtures::installed(['tests/jobs' => 'jobs', 'tests/workbench' => 'workbench']);
+
+    $editor = User::factory()->create()->assignRole('editor');
+    app(CurrentJobActor::class)->set(JobActor::person($editor->id), notifyOnFinish: true);
+
+    // A second plugin's Jobs door still reads the shared CurrentJobActor.
+    $other = new PluginJobs('tests/workbench', 'workbench', app(StartJob::class), app(PluginRegistry::class));
+    $id = $other->queue('ping', ['from' => 'shared-actor']);
+
+    expect(TrackedJob::query()->findOrFail($id)->started_by)->toBe($editor->id);
+    Queue::assertPushed(RunPluginJob::class, function (RunPluginJob $job) use ($editor): bool {
+        return $job->pluginCode === 'workbench'
+            && $job->actor->userId === (string) $editor->id
+            && $job->notifyOnFinish === true;
+    });
+});
+
 it('queues a nested job through a real handler as the outer run’s person', function (): void {
     Queue::fake();
     // Explicit person action: notify carries into the nested queue via CurrentJobActor.

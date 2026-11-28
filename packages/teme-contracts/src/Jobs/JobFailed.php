@@ -22,7 +22,8 @@ use RuntimeException;
 final class JobFailed extends RuntimeException
 {
     /**
-     * Ends this run as failed with this reason, with no retry, whatever
+     * Ends this run as failed with this reason (first line, at most 200
+     * characters, or "It failed." when blank), with no retry, whatever
      * `tries` says.
      *
      * @since next
