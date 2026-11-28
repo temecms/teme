@@ -29,7 +29,8 @@ final readonly class PluginSecretStoreWrites implements PluginSecretStore
 
     public function get(string $key): ?string
     {
-        $value = SettingsGroupRecord::query()->whereKey("plugin.{$this->code}")->first()?->secrets[ChangePluginSecret::PREFIX.$key] ?? null;
+        $record = SettingsGroupRecord::query()->whereKey("plugin.{$this->code}")->first();
+        $value = $record === null ? null : ($record->secrets[ChangePluginSecret::PREFIX.$key] ?? null);
 
         return is_string($value) ? $value : null;
     }

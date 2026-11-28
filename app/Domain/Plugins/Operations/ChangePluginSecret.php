@@ -75,7 +75,8 @@ final class ChangePluginSecret extends BaseOperation
         }
 
         if ($problems === [] && $input->value !== null) {
-            $kept = SettingsGroupRecord::query()->whereKey("plugin.{$input->code}")->first()?->secrets ?? [];
+            $record = SettingsGroupRecord::query()->whereKey("plugin.{$input->code}")->first();
+            $kept = $record === null ? [] : ($record->secrets ?? []);
             $free = count(array_filter(array_keys($kept), fn (string $name): bool => str_starts_with($name, self::PREFIX)));
 
             if (! array_key_exists(self::PREFIX.$input->key, $kept) && $free >= self::MOST_KEYS) {
