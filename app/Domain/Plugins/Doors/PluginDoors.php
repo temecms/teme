@@ -61,6 +61,7 @@ use Teme\Contracts\Cards\CardsChanged;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\HtmlToDocument;
+use Teme\Contracts\Content\ItemCardReader;
 use Teme\Contracts\Content\Submissions;
 use Teme\Contracts\Directory\VerifiedDirectory;
 use Teme\Contracts\Fediverse\FediverseFollowers;
@@ -184,13 +185,15 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
-            $offered[ContentReader::class] = new PluginContentReader(
+            $reader = new PluginContentReader(
                 $this->published,
                 $this->snapshots,
                 $this->queued,
                 $this->cards,
                 $this->namesOwners($name, $capabilities),
             );
+            $offered[ContentReader::class] = $reader;
+            $offered[ItemCardReader::class] = $reader;
         }
 
         if (in_array(Capability::DirectoryRead->value, $capabilities, true)) {

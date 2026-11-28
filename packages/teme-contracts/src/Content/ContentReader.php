@@ -2,8 +2,8 @@
 
 /**
  * Reads the site's content for a plugin granted content.read: published items
- * for anyone, a published public item's card, and drafts and the queue of
- * unpublished items for a person who may edit them.
+ * for anyone, and drafts and the queue of unpublished items for a person who
+ * may edit them. A published item's card is ItemCardReader's.
  *
  * @package Teme
  * @since   1.0.0
@@ -18,7 +18,7 @@ use InvalidArgumentException;
 
 /**
  * Reads the site's content for a plugin granted content.read: published
- * items for anyone, a published public item's card, and drafts and the
+ * items for anyone, and drafts and the
  * queue of unpublished items for a person who may edit them.
  *
  * @since 1.0.0
@@ -56,16 +56,4 @@ interface ContentReader
      * @since 1.0.0
      */
     public function queue(QueueQuery $query, string $actingPersonId): QueuePage;
-
-    /**
-     * A published, public item's card: its excerpt and featured image
-     * (address and the sizes that exist), built from the published revision
-     * and the current site address. Never a draft, private or
-     * password-protected item, and never needs a person.
-     *
-     * @throws ReadRefused when the item isn't a published public item
-     *
-     * @since next
-     */
-    public function card(string $itemId): ItemCard;
 }

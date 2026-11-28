@@ -67,7 +67,8 @@ beforeEach(function (): void {
     $this->id = fn (string $name): string => (string) DB::table('placard_ads')->where('name', $name)->value('id');
     $this->status = fn (string $name): ?string => DB::table('placard_ads')->where('name', $name)->value('status');
     $this->seen = fn (mixed $page, string $text): mixed => cmWaitUntil($page, 'document.body.innerText.includes('.json_encode($text).')');
-    $this->rows = 'document.querySelectorAll(\'[data-test="area-table"] tbody tr\').length';
+    // Under 640 pixels the table draws as cards, one per row.
+    $this->rows = 'document.querySelectorAll(\'[data-test="area-table"] tbody tr, [data-test="area-table"] [data-slot="list-card"]\').length';
     $this->sideways = fn (mixed $page): int => (int) $page->script('() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)');
 
     $this->actingAs($this->editor)->get('/admin/plugin/placard')->assertOk();

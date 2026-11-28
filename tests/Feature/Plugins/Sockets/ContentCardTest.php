@@ -15,8 +15,8 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ItemCard;
+use Teme\Contracts\Content\ItemCardReader;
 use Teme\Contracts\Content\ReadRefused;
 use Tests\Fixtures\Languages\Languages;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -28,8 +28,8 @@ beforeEach(function (): void {
     PluginFixtures::use('librarian');
     config(['filesystems.disks.media.url' => 'https://harbour.example/storage/media']);
 
-    $this->reader = fn (): ContentReader => app(PluginDoors::class)
-        ->for('tests/librarian', 'librarian', ['content.read'], [])[ContentReader::class];
+    $this->reader = fn (): ItemCardReader => app(PluginDoors::class)
+        ->for('tests/librarian', 'librarian', ['content.read'], [])[ItemCardReader::class];
 });
 
 afterEach(function (): void {

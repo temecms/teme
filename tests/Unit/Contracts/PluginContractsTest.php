@@ -30,6 +30,7 @@ use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\FeaturedImage;
 use Teme\Contracts\Content\ImageSize;
 use Teme\Contracts\Content\ItemCard;
+use Teme\Contracts\Content\ItemCardReader;
 use Teme\Contracts\Content\ItemChanges;
 use Teme\Contracts\Content\ItemPage;
 use Teme\Contracts\Content\ItemQuery;
@@ -189,7 +190,8 @@ it('gives every new contract its @since and nothing from a framework', function 
     [AiAnswer::class, '1.0.0'],
     [AiStanding::class, '1.0.0'],
     [AiRefused::class, '1.0.0'],
-    [ContentReader::class, '1.0.0', ['card' => 'next']],
+    [ContentReader::class, '1.0.0'],
+    [ItemCardReader::class, 'next'],
     [ItemQuery::class, '1.0.0'],
     [ItemPage::class, '1.0.0'],
     [ItemSnapshot::class, '1.0.0'],

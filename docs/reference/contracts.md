@@ -34,6 +34,7 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Redirects\RedirectWriter` | granted `redirects` | 1.7.0 |
 | `Teme\Contracts\Taxonomy\TermWriter` | granted `terms.write` | next |
 | `Teme\Contracts\Security\SecurityLines` | granted `security.log` | next |
+| `Teme\Contracts\Content\ItemCardReader` | granted `content.read` | next |
 
 ## Teme\Contracts\Admin
 
@@ -395,12 +396,11 @@ A hook: its parameters are in the [hooks reference](hooks.md#contentpublished).
 
 `Teme\Contracts\Content\ContentReader`, interface. Since 1.0.0.
 
-Reads the site's content for a plugin granted content.read: published items for anyone, a published public item's card, and drafts and the queue of unpublished items for a person who may edit them.
+Reads the site's content for a plugin granted content.read: published items for anyone, and drafts and the queue of unpublished items for a person who may edit them.
 
 - `published(ItemQuery $query): ItemPage` — Published, public items, newest first, one page at a time: what a visitor can open. Since 1.0.0.
 - `draft(string $itemId, string $actingPersonId): ItemSnapshot` — The item's working revision, as the editor holds it, for a person who may edit it. Since 1.0.0.
 - `queue(QueueQuery $query, string $actingPersonId): QueuePage` — Unpublished items by status, draft, in review or scheduled, that the person may edit, oldest first, one page at a time: the queue as it stands, including what was there before the plugin was enabled. Since 1.0.0.
-- `card(string $itemId): ItemCard` — A published, public item's card: its excerpt and featured image (address and the sizes that exist), built from the published revision and the current site address. Since next.
 
 ### ContentRestored
 
@@ -494,6 +494,14 @@ One size of a published item's featured image: its name, pixel size and public a
 A published public item's card for sharing and posting: its excerpt and featured image, never a person and never a draft or private item. Built from the published revision and the current site address.
 
 - `__construct(ItemRef $item, ?string $excerpt, ?FeaturedImage $featuredImage)`. Since next.
+
+### ItemCardReader
+
+`Teme\Contracts\Content\ItemCardReader`, interface. Since next.
+
+A published public item's card for a plugin granted content.read, given beside ContentReader to the same plugins.
+
+- `card(string $itemId): ItemCard` — A published, public item's card: its excerpt and featured image (address and the sizes that exist), built from the published revision and the current site address. Since next.
 
 ### ItemChanges
 

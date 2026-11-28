@@ -277,7 +277,7 @@ export function UploadsCopyPanel({
                                     ref={inputRef}
                                     type="file"
                                     accept=".zip,application/zip"
-                                    className="sr-only"
+                                    hidden
                                     data-test="uploads-copy-input"
                                     onChange={(event) => {
                                         const file = event.target.files?.[0];

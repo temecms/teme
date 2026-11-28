@@ -22,7 +22,6 @@ use Illuminate\Support\Facades\DB;
 use Tests\Fixtures\Export\ExportAs;
 use Tests\Fixtures\Plugins\Exporter\Exporter;
 use Tests\Fixtures\Plugins\PluginFixtures;
-use Throwable;
 
 require_once dirname(__DIR__).'/Plugins/Seo/Seokit.php';
 

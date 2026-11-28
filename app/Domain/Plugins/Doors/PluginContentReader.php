@@ -24,6 +24,7 @@ use App\Domain\Users\Actors;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ItemCard;
+use Teme\Contracts\Content\ItemCardReader;
 use Teme\Contracts\Content\ItemPage;
 use Teme\Contracts\Content\ItemQuery;
 use Teme\Contracts\Content\ItemSnapshot;
@@ -32,7 +33,7 @@ use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
 
-final readonly class PluginContentReader implements ContentReader
+final readonly class PluginContentReader implements ContentReader, ItemCardReader
 {
     public function __construct(
         private PublishedItems $published,
