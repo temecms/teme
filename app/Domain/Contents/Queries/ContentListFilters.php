@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
+use App\Domain\Plugins\ListFilters\PluginListFilters;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
@@ -25,11 +26,13 @@ final readonly class ContentListFilters
      * @param  array<string, string>  $values  the keys kept, as the address had them
      * @param  array{0: string|null, 1: string|null}  $bounds  the Date filter's bounds as UTC instants
      * @param  list<string>  $taxonomyKeys  the type's taxonomies, whose keys carry a term ID
+     * @param  list<array{table: string, column: string, item: string, value: string}>  $pluginFilters  the plugins' filters the address names, with an offered value
      */
     private function __construct(
         public array $values,
         private array $bounds,
         private array $taxonomyKeys,
+        private array $pluginFilters = [],
     ) {}
 
     /**
@@ -55,6 +58,18 @@ final readonly class ContentListFilters
             }
         }
 
+        // A plugin's filter: one of its declared options, matched exactly; any other value is no filter (issue 802).
+        $pluginFilters = [];
+
+        foreach (app(PluginListFilters::class)->forType($type->key) as $filter) {
+            $value = $query[$filter->key] ?? null;
+
+            if (is_string($value) && array_key_exists($value, $filter->options)) {
+                $values[$filter->key] = $value;
+                $pluginFilters[] = ['table' => $filter->table, 'column' => $filter->column, 'item' => $filter->item, 'value' => $value];
+            }
+        }
+
         // One Date value (I-3129): the site's month, or a range of its days; the month wins.
         $month = self::monthBounds(is_string($query['month'] ?? null) ? $query['month'] : '', $timezone);
 
@@ -77,7 +92,7 @@ final readonly class ContentListFilters
             }
         }
 
-        return new self($values, $bounds, $taxonomyKeys);
+        return new self($values, $bounds, $taxonomyKeys, $pluginFilters);
     }
 
     /** The tab the address names, `all` when it names none. */
@@ -101,6 +116,7 @@ final readonly class ContentListFilters
         }
 
         return new ContentListRequest(
+            pluginFilters: $this->pluginFilters,
             type: $type->key,
             tab: $this->tab(),
             sort: $this->values['sort'] ?? 'updated',
@@ -129,7 +145,8 @@ final readonly class ContentListFilters
      */
     public function narrowsBesideDate(): bool
     {
-        return array_intersect_key($this->values, array_flip(['search', 'author', 'review', 'language', ...$this->taxonomyKeys])) !== [];
+        return array_intersect_key($this->values, array_flip(['search', 'author', 'review', 'language', ...$this->taxonomyKeys])) !== []
+            || $this->pluginFilters !== [];
     }
 
     /**

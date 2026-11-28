@@ -684,7 +684,15 @@
                     "description": "Filters the plugin adds to the content lists: a select of declared options, matched exactly against a column the plugin keeps in its own table, keyed by content id.",
                     "items": {
                         "type": "object",
-                        "required": ["id", "label", "types", "options", "table", "column", "item"],
+                        "required": [
+                            "id",
+                            "label",
+                            "types",
+                            "options",
+                            "table",
+                            "column",
+                            "item"
+                        ],
                         "additionalProperties": false,
                         "properties": {
                             "id": {
@@ -701,7 +709,10 @@
                             "types": {
                                 "type": "array",
                                 "minItems": 1,
-                                "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                                },
                                 "description": "The content type keys the filter applies to."
                             },
                             "options": {
@@ -714,14 +725,35 @@
                                     "required": ["value", "label"],
                                     "additionalProperties": false,
                                     "properties": {
-                                        "value": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,39}$", "description": "The value kept in the column." },
-                                        "label": { "type": "string", "minLength": 1, "maxLength": 40, "description": "The option's text." }
+                                        "value": {
+                                            "type": "string",
+                                            "pattern": "^[a-z0-9][a-z0-9_-]{0,39}$",
+                                            "description": "The value kept in the column."
+                                        },
+                                        "label": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 40,
+                                            "description": "The option's text."
+                                        }
                                     }
                                 }
                             },
-                            "table": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,62}$", "description": "The plugin's table, listed under owns.tables." },
-                            "column": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,62}$", "description": "The column read, which must lead a valid index on the table." },
-                            "item": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,62}$", "description": "The column holding the content id the row belongs to." }
+                            "table": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,62}$",
+                                "description": "The plugin's table, listed under owns.tables."
+                            },
+                            "column": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,62}$",
+                                "description": "The column read, which must lead a valid index on the table."
+                            },
+                            "item": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,62}$",
+                                "description": "The column holding the content id the row belongs to."
+                            }
                         }
                     }
                 },
