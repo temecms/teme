@@ -3,14 +3,15 @@ import { MoreHorizontal } from 'lucide-react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { PANEL_ICONS } from '@/components/editor/plugin-panels/plugin-panel';
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+    ResponsiveMenu,
+    ResponsiveMenuContent,
+    ResponsiveMenuItem,
+    ResponsiveMenuSeparator,
+    ResponsiveMenuTrigger,
+} from '@/components/patterns/responsive-menu';
+import { Button } from '@/components/ui/button';
+import { DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import {
     Tooltip,
     TooltipContent,
@@ -39,9 +40,9 @@ function ActionIcon({ name }: { name: string | null | undefined }) {
  * A row's "…" menu (docs/architecture/design-system.md, section 4.17): the
  * state action that applies, then plugins' actions in their order, then the
  * destructive ones last, in red, a separator between the groups (I-3398). Area
- * tables pass `pluginsFirst` so custom actions sit above Enable/Disable. It
- * opens below its button and never locks the page; Esc and Tab close it and
- * focus returns to the button.
+ * tables pass `pluginsFirst` so custom actions sit above Enable/Disable. From
+ * 640px up it is a dropdown; below that a sheet from the foot. Esc and Tab
+ * close it and focus returns to the button.
  */
 export function RowMenu({
     items,
@@ -73,10 +74,10 @@ export function RowMenu({
           );
 
     return (
-        <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+        <ResponsiveMenu open={open} onOpenChange={setOpen} modal={false}>
             <Tooltip open={tip && !open} onOpenChange={setTip}>
                 <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
+                    <ResponsiveMenuTrigger asChild>
                         <Button
                             type="button"
                             variant="ghost"
@@ -86,26 +87,32 @@ export function RowMenu({
                         >
                             <MoreHorizontal aria-hidden="true" />
                         </Button>
-                    </DropdownMenuTrigger>
+                    </ResponsiveMenuTrigger>
                 </TooltipTrigger>
                 <TooltipContent>{__('More actions')}</TooltipContent>
             </Tooltip>
-            {/* Drawn inside the main landmark, not at the end of the page, so the open menu stays in it, as the account menu stays in the banner. */}
-            <DropdownMenuContent
-                container={container}
-                side="bottom"
+            <ResponsiveMenuContent
+                title={label}
                 align="end"
-                onCloseAutoFocus={(event) => {
-                    // An action that puts focus somewhere of its own keeps it there.
-                    if (handOff.current) {
-                        handOff.current = false;
-                        event.preventDefault();
-                    }
-                }}
+                renderDesktop={(children) => (
+                    <DropdownMenuContent
+                        container={container}
+                        side="bottom"
+                        align="end"
+                        onCloseAutoFocus={(event) => {
+                            if (handOff.current) {
+                                handOff.current = false;
+                                event.preventDefault();
+                            }
+                        }}
+                    >
+                        {children}
+                    </DropdownMenuContent>
+                )}
             >
                 {groups.map((group, at) => (
                     <Fragment key={group[0].id}>
-                        {at > 0 && <DropdownMenuSeparator />}
+                        {at > 0 && <ResponsiveMenuSeparator />}
                         {group.map((item) => (
                             <MenuItem
                                 key={item.id}
@@ -118,8 +125,8 @@ export function RowMenu({
                         ))}
                     </Fragment>
                 ))}
-            </DropdownMenuContent>
-        </DropdownMenu>
+            </ResponsiveMenuContent>
+        </ResponsiveMenu>
     );
 }
 
@@ -137,7 +144,7 @@ function MenuItem({
 
     if ('href' in item) {
         return (
-            <DropdownMenuItem asChild variant={variant}>
+            <ResponsiveMenuItem asChild variant={variant}>
                 {item.newTab ? (
                     <a
                         href={item.href}
@@ -158,16 +165,15 @@ function MenuItem({
                         {item.label}
                     </Link>
                 )}
-            </DropdownMenuItem>
+            </ResponsiveMenuItem>
         );
     }
 
     if ('onSelect' in item) {
         return (
-            <DropdownMenuItem
+            <ResponsiveMenuItem
+                asChild
                 variant={variant}
-                data-action={item.id}
-                className="gap-2"
                 onSelect={() => {
                     if (item.movesFocus) {
                         onHandOff();
@@ -176,9 +182,15 @@ function MenuItem({
                     item.onSelect();
                 }}
             >
-                <ActionIcon name={item.icon} />
-                {item.label}
-            </DropdownMenuItem>
+                <button
+                    type="button"
+                    data-action={item.id}
+                    className="flex w-full items-center gap-2"
+                >
+                    <ActionIcon name={item.icon} />
+                    {item.label}
+                </button>
+            </ResponsiveMenuItem>
         );
     }
 
@@ -186,24 +198,31 @@ function MenuItem({
         <Form {...item.form} onSuccess={onDone}>
             {({ processing, errors }) => {
                 const button = (
-                    <DropdownMenuItem
+                    <ResponsiveMenuItem
                         asChild
                         variant={variant}
                         disabled={processing}
-                        // The form submits; the menu stays open until it has,
-                        // so an error can show beside the action.
-                        onSelect={(event) => event.preventDefault()}
+                        onSelect={() => {
+                            // Form submit is handled by the button; keep the menu
+                            // open until success so an error can show.
+                        }}
                     >
                         <Button
                             type="submit"
                             variant="ghost"
                             data-action={item.id}
                             className="w-full justify-start gap-2"
+                            onClick={(event) => {
+                                // Phone sheet items close on click; prevent that
+                                // until the form has finished by stopping close via
+                                // not using onSelect close for asChild submit.
+                                event.stopPropagation();
+                            }}
                         >
                             <ActionIcon name={item.icon} />
                             {item.label}
                         </Button>
-                    </DropdownMenuItem>
+                    </ResponsiveMenuItem>
                 );
 
                 return (
