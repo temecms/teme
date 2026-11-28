@@ -21,9 +21,11 @@ namespace App\Http\Site;
 
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\CardUsage;
+use App\Domain\Design\SiteDesign;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\SlotMenus;
+use App\Domain\Plugins\Styles\PluginStyleUsage;
 use App\Domain\Regions\Regions;
 use App\Domain\Settings\DesignPreview;
 use App\Domain\Site\Insertions\InsertionOrigins;
@@ -56,7 +58,9 @@ final class PublicPage
     {
         app(PageWarnings::class)->start();
         app(CardUsage::class)->start();
+        app(PluginStyleUsage::class)->start();
         app(SlotMenus::class)->start($request->getPathInfo());
+        app(SiteDesign::class)->start($request->getPathInfo());
         app(Regions::class)->start();
     }
 

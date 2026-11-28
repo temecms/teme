@@ -94,7 +94,7 @@ final class RecordImportFileRows extends BaseOperation
     /**
      * Adds the part's counts to the file's own row of them.
      *
-     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>}  $facts
+     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes?: array<string, array{count: int, examples: list<string>, sentence: string}>}  $facts
      */
     private function keepFacts(string $fileId, array $facts): void
     {
@@ -118,11 +118,23 @@ final class RecordImportFileRows extends BaseOperation
 
         $dropped = is_array($kept['dropped'] ?? null) ? $kept['dropped'] : [];
 
+        $notes = is_array($kept['notes'] ?? null) ? $kept['notes'] : [];
+
+        foreach ($facts['notes'] ?? [] as $kind => $note) {
+            $held = is_array($notes[$kind] ?? null) ? $notes[$kind] : ['count' => 0, 'examples' => [], 'sentence' => $note['sentence']];
+            $notes[$kind] = [
+                'count' => (int) $held['count'] + $note['count'],
+                'examples' => array_slice([...$held['examples'], ...$note['examples']], 0, 5),
+                'sentence' => $held['sentence'],
+            ];
+        }
+
         $payload = [
             'seo' => $seo,
             'images' => $images,
             'dropped' => array_slice([...$dropped, ...$facts['dropped']], 0, self::DROPPED),
             'dropped_count' => (int) ($kept['dropped_count'] ?? 0) + count($facts['dropped']),
+            'notes' => $notes,
         ];
 
         DB::table('import_file_rows')->upsert(

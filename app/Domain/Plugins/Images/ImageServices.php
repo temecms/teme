@@ -26,6 +26,8 @@ use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Seo\SeoPlugin;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Plugins\Seo\SocketAnswerRefused;
+use App\Domain\Plugins\Slots\PluginSlots;
+use App\Domain\Plugins\Slots\SlotProviders;
 use App\Domain\Site\Policy\PagePolicy;
 use Teme\Contracts\Media\HasImageService;
 use Teme\Contracts\Media\ImageService;
@@ -48,6 +50,7 @@ final class ImageServices
     public function __construct(
         private readonly SeoPlugins $plugins,
         private readonly LoadedPlugins $loaded,
+        private readonly SlotProviders $providers,
     ) {}
 
     /**
@@ -168,10 +171,16 @@ final class ImageServices
             return null;
         }
 
+        $chosen = $this->providers->chosenFor(PluginSlots::IMAGE_SERVICE);
+
+        if ($chosen === null) {
+            return null;
+        }
+
         foreach ($this->plugins->all() as $plugin) {
             $declared = ImageServiceDeclaration::of($plugin->manifest);
 
-            if ($declared === null || ! $plugin->grants(Capability::MediaRead->value) || ! $plugin->running instanceof HasImageService) {
+            if ($plugin->name !== $chosen || $declared === null || ! $plugin->grants(Capability::MediaRead->value) || ! $plugin->running instanceof HasImageService) {
                 continue;
             }
 

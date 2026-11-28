@@ -15,6 +15,7 @@ import BulkMatchingController from '@/actions/App/Http/Admin/Contents/BulkMatchi
 import ContentActionController from '@/actions/App/Http/Admin/Contents/ContentActionController';
 import ContentListController from '@/actions/App/Http/Admin/Contents/ContentListController';
 import ReviewController from '@/actions/App/Http/Admin/Contents/ReviewController';
+import PluginListActionController from '@/actions/App/Http/Admin/PluginListActionController';
 import { CommentsCell } from '@/components/comments/comments-cell';
 import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
@@ -87,6 +88,7 @@ import {
 import { show as showMedia } from '@/routes/media';
 import type {
     ContentIndexPage,
+    ContentListAction,
     ContentRow,
     ContentTab,
     FeaturedImage,
@@ -629,7 +631,39 @@ function menuActions(row: ContentRow, page: ContentIndexPage): RowAction[] {
             ? [action('unpublish', __('Revert to draft'))]
             : [];
 
-    return [...state, action('trash', __('Trash'), true)];
+    // A plugin's row actions come after the state change and before Trash, at most two (contributes.listActions).
+    const plugins: RowAction[] = (page.listActions ?? [])
+        .filter((plugin) => plugin.row)
+        .map((plugin) => pluginAction(plugin, row));
+
+    return [...state, ...plugins, action('trash', __('Trash'), true)];
+}
+
+/** One of a plugin's list actions on one row: its form posts the row's ID, and a confirm sentence asks first. */
+function pluginAction(plugin: ContentListAction, row: ContentRow): RowAction {
+    return {
+        id: `${plugin.code}:${plugin.id}`,
+        owner: plugin.code,
+        label: plugin.label,
+        form: PluginListActionController.run.form({
+            code: plugin.code,
+            action: plugin.id,
+        }),
+        fields: { item: row.id },
+        wrap:
+            plugin.confirm === null
+                ? undefined
+                : (button) => (
+                      <ConfirmAction
+                          title={plugin.label}
+                          description={plugin.confirm ?? ''}
+                          confirmLabel={plugin.label}
+                          confirmVariant="default"
+                      >
+                          {button}
+                      </ConfirmAction>
+                  ),
+    };
 }
 
 /**
@@ -783,6 +817,17 @@ export default function ContentIndex(page: ContentIndexPage) {
     const chosenTitles = page.rows
         .filter((row) => selected.includes(row.id))
         .map(titleOf);
+
+    // A plugin's bulk action sends the selection to its own route, which queues the job for the items the person can edit.
+    const bulkPlugin = (plugin: ContentListAction) =>
+        router.post(
+            PluginListActionController.run.url({
+                code: plugin.code,
+                action: plugin.id,
+            }),
+            { items: selected, bulk: true },
+            { preserveScroll: true },
+        );
 
     // Each button sends the selection at once; the server runs one
     // Operation per item and reports what it skipped (I-143).
@@ -1852,6 +1897,42 @@ export default function ContentIndex(page: ContentIndexPage) {
                             </Button>
                         </>
                     )}
+                    {/* Bulk actions are for the selected items only: not while every match is chosen, nor in the trash. */}
+                    {!allMatching &&
+                        !inTrash &&
+                        (page.listActions ?? [])
+                            .filter((plugin) => plugin.bulk)
+                            .map((plugin) => {
+                                const button = (
+                                    <Button
+                                        key={`${plugin.code}:${plugin.id}`}
+                                        type="button"
+                                        variant="neutral"
+                                        size="sm"
+                                        className="bg-surface"
+                                        disabled={bulkBusy}
+                                        aria-describedby="bulk-error"
+                                        onClick={() => bulkPlugin(plugin)}
+                                    >
+                                        {plugin.label}
+                                    </Button>
+                                );
+
+                                return plugin.confirm === null ? (
+                                    button
+                                ) : (
+                                    <ConfirmAction
+                                        key={`${plugin.code}:${plugin.id}`}
+                                        title={plugin.label}
+                                        description={plugin.confirm}
+                                        confirmLabel={plugin.label}
+                                        confirmVariant="default"
+                                        onConfirm={() => bulkPlugin(plugin)}
+                                    >
+                                        {button}
+                                    </ConfirmAction>
+                                );
+                            })}
                     {!allMatching && (
                         <SelectAllMatching
                             page={page}

@@ -58,6 +58,12 @@ final class Setting
         public readonly ?int $min = null,
         public readonly ?int $max = null,
         public readonly ?int $maxLength = null,
+        /**
+         * A number setting's step on the form; null when any whole number in bounds is fine.
+         *
+         * @since next
+         */
+        public readonly ?int $step = null,
         public readonly bool $required = false,
         public readonly ?string $example = null,
         public readonly ?string $env = null,
@@ -80,6 +86,13 @@ final class Setting
         public readonly ?string $itemTitle = null,
         /** A code setting whose inline scripts wait for an administrator's approval. @since 1.0.0 */
         public readonly bool $scripts = false,
+        /**
+         * A titled foldable section inside a theme fieldset; null when the
+         * setting sits at the top of its fieldset with no group.
+         *
+         * @since next
+         */
+        public readonly ?string $group = null,
     ) {}
 
     /** @since 0.1.0 */
@@ -279,7 +292,7 @@ final class Setting
      */
     public static function repeater(string $key, string $label, string $description, string $since, array $fields): self
     {
-        $allowed = [SettingType::Text, SettingType::Textarea, SettingType::Number, SettingType::Boolean, SettingType::Select, SettingType::MultiSelect, SettingType::Email, SettingType::Color, SettingType::Code];
+        $allowed = [SettingType::Text, SettingType::Textarea, SettingType::Number, SettingType::Boolean, SettingType::Select, SettingType::MultiSelect, SettingType::Email, SettingType::Url, SettingType::Color, SettingType::Code];
 
         if ($fields === []) {
             throw new InvalidArgumentException("Repeater [{$key}] needs its fields.");
@@ -345,6 +358,20 @@ final class Setting
     public function maxLength(int $maxLength): self
     {
         return $this->with(['maxLength' => $maxLength]);
+    }
+
+    /**
+     * A number setting's step: the value must be a multiple of this, at least 1.
+     *
+     * @since next
+     */
+    public function step(int $step): self
+    {
+        if ($this->type !== SettingType::Number || $step < 1) {
+            throw new InvalidArgumentException("Only number settings take a step of at least 1; [{$this->key}] is {$this->type->value}.");
+        }
+
+        return $this->with(['step' => $step]);
     }
 
     /** @since 0.1.0 */
@@ -431,6 +458,20 @@ final class Setting
         }
 
         return $this->with(['section' => $id]);
+    }
+
+    /**
+     * A titled foldable section inside a theme fieldset. Empty is refused.
+     *
+     * @since next
+     */
+    public function group(string $label): self
+    {
+        if (trim($label) === '') {
+            throw new InvalidArgumentException("Setting [{$this->key}] needs a group label.");
+        }
+
+        return $this->with(['group' => $label]);
     }
 
     /**

@@ -34,6 +34,9 @@
         "<x-teme::between-items> last": {
             "type": "bool"
         },
+        "<x-teme::comment-form-fields> form": {
+            "type": "CommentFormView"
+        },
         "<x-teme::comment-form> form": {
             "type": "CommentFormView"
         },
@@ -132,6 +135,9 @@
         },
         "ArticleView::$firstImageId": {
             "type": "?string"
+        },
+        "ArticleView::$headings": {
+            "type": "list<array{level: int, text: string, id: string}>"
         },
         "ArticleView::$id": {
             "type": "string"

@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Contents\PluginWrites;
 use App\Domain\Jobs\JobKinds;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\Columns\SystemClock;
@@ -39,10 +40,12 @@ use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\Seo\PluginHead;
 use App\Domain\Plugins\Seo\PluginSitemaps;
 use App\Domain\Plugins\Seo\SlowSockets;
+use App\Domain\Plugins\Styles\PluginStyleUsage;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Sitemaps\SitemapProvider;
 use App\Domain\Status\Checks\PluginsRunning;
+use App\Domain\Status\Checks\ProviderChoiceGone;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Console\Application as Console;
 use Illuminate\Support\ServiceProvider;
@@ -56,6 +59,7 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->scoped(PluginCommands::class);
         // Scoped: holds the job actor for one job/request only (I-087).
         $this->app->scoped(CurrentJobActor::class);
+        $this->app->scoped(PluginWrites::class);
         // Scoped: the compiled list changes when a plugin is enabled or
         // disabled in this request; Octane and the queue forget it between.
         $this->app->scoped(PublicRouteRegistry::class);
@@ -63,6 +67,7 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->scoped(SlowSockets::class);
         // Scoped: finds the image service's driver once a request or job.
         $this->app->scoped(ImageServices::class);
+        $this->app->scoped(PluginStyleUsage::class);
 
         $this->app->singleton(HookSubscriptions::class, DispatcherSubscriptions::class);
 
@@ -85,6 +90,7 @@ final class PluginServiceProvider extends ServiceProvider
     {
         $this->optimizes(optimize: 'teme:plugins:cache', clear: 'teme:plugins:clear', key: 'teme-plugins');
         $this->app->make(StatusChecks::class)->register(PluginsRunning::class);
+        $this->app->make(StatusChecks::class)->register(ProviderChoiceGone::class);
 
         // The console is built after every provider has booted, so by then each plugin that started has kept its commands.
         if ($this->app->runningInConsole()) {

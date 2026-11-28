@@ -25,12 +25,14 @@ use App\Http\Site\Middleware\MarkCacheable;
 use App\Http\Site\Middleware\MatchDeclaredRoutes;
 use App\Http\Site\Middleware\ServeRootFiles;
 use App\Http\Site\PendingCommentsController;
+use App\Http\Site\PluginStylesheetController;
 use App\Http\Site\PolicyReportController;
 use App\Http\Site\PublicController;
 use App\Http\Site\RegionFragmentController;
 use App\Http\Site\RobotsTxtController;
 use App\Http\Site\SessionController;
 use App\Http\Site\SitemapController;
+use App\Http\Site\SiteWebManifestController;
 use App\Http\Site\SuggestController;
 use App\Http\Site\UnlockController;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +56,13 @@ Route::get('_teme/comment/{comment}', [CommentController::class, 'show'])->where
 Route::get('_teme/comment/{comment}/reply', [CommentController::class, 'reply'])->where('comment', '[0-9a-z]{26}')->name('teme.comments.reply');
 Route::get('_teme/comments/pending', PendingCommentsController::class)->name('teme.comments.pending');
 
+// A plugin's declared stylesheet, wrapped in the teme.plugins layer (docs/guides/developers/plugins/styles.md).
+// Its code and its file, a path inside the package; anything not declared answers 404.
+Route::middleware(['throttle:plugin-styles'])->get('_teme/plugins/{code}/{file}', PluginStylesheetController::class)
+    ->where('code', '[a-z][a-z0-9-]*')
+    ->where('file', '.+\.css')
+    ->name('teme.plugins.styles');
+
 // The password form's post for an item protected by one (I-1700): no session and no token,
 // tries counted per address; reserved (_teme), so the page cache passes it by.
 Route::post('_teme/unlock', UnlockController::class)->name('teme.unlock');
@@ -76,6 +85,9 @@ Route::middleware(['public', MarkCacheable::class])->get('robots.txt', RobotsTxt
 
 // ads.txt from Settings › Site code (I-064), stored by the page cache like robots.txt.
 Route::middleware(['public', MarkCacheable::class])->get('ads.txt', AdsTxtController::class)->name('ads-txt');
+
+// The web app manifest for the site icon's 192 and 512 sizes (issue 388).
+Route::middleware(['public', 'throttle:api', MarkCacheable::class])->get('site.webmanifest', SiteWebManifestController::class)->name('site-webmanifest');
 
 // Sitemaps (I-296): the index, every page of each child and the stylesheet, stored by
 // the page cache like pages; WordPress's and Yoast's index addresses sent to the index.

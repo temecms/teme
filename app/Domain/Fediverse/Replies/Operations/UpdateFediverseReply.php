@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace App\Domain\Fediverse\Replies\Operations;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\CommentEmails;
 use App\Domain\Comments\CommentPurges;
 use App\Domain\Comments\CommentStats;
@@ -58,15 +59,35 @@ final class UpdateFediverseReply extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var FediverseReplyInput $input */
-        if (! FediverseObject::query()->whereKey($input->uri())->where('kind', FediverseObject::REPLY)->whereNull('deleted_at')->exists()) {
+        self::admit($input, record: true);
+    }
+
+    /**
+     * The checks an edit must pass before it is saved, and nothing is written:
+     * the reply it changes, that its writer made it, its words and the hourly
+     * limit. With $record the limit counts this edit; without it the limit is
+     * only read, so a plugin is asked only about an edit that will be judged.
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    public static function admit(FediverseReplyInput $input, bool $record): void
+    {
+        $object = FediverseObject::query()->whereKey($input->uri())->where('kind', FediverseObject::REPLY)->whereNull('deleted_at')->first();
+
+        if ($object === null) {
             throw ValidationException::withMessages(['object' => 'No reply of this site’s is at that address.']);
+        }
+
+        if ($object->remote_actor_id !== $input->remoteActorId) {
+            throw new AuthorizationException('Only the account that wrote a reply changes it.');
         }
 
         if (app(RemoteWords::class)->document(is_string($input->object['content'] ?? null) ? $input->object['content'] : '') === null) {
             throw ValidationException::withMessages(['object' => 'The reply holds no words, or too many.']);
         }
 
-        ReceiveFediverseReply::count(RemoteActor::query()->findOrFail($input->remoteActorId));
+        ReceiveFediverseReply::count(RemoteActor::query()->findOrFail($input->remoteActorId), $record);
     }
 
     protected function perform(OperationInput $input): string
@@ -87,7 +108,7 @@ final class UpdateFediverseReply extends BaseOperation
             return $comment->id;
         }
 
-        $verdict = $this->judge($comment, RemoteActor::query()->findOrFail($input->remoteActorId));
+        $verdict = $this->judge($comment, RemoteActor::query()->findOrFail($input->remoteActorId), $input->checked);
 
         if ($verdict->status === ModerationVerdict::APPROVED && CommentText::links($document) === $links) {
             $this->purgeAfterCommit(CommentPurges::changed($comment->content_id, $comment->id));
@@ -113,18 +134,22 @@ final class UpdateFediverseReply extends BaseOperation
     }
 
     /**
-     * The bound moderator's verdict on the edited words.
+     * The comment an edit would leave, as a plugin's check reads it: built with no writes, so
+     * InboxReplies can ask the check before the transaction. $document is the edit's new words, as
+     * RemoteWords reads them; the stored body is used when none is given.
+     *
+     * @param  array<string, mixed>|null  $document
      */
-    private function judge(Comment $comment, RemoteActor $remote): ModerationVerdict
+    public static function candidate(Comment $comment, RemoteActor $remote, ?array $document = null): CommentCandidate
     {
-        $moderator = app(CommentModerator::class);
         $item = Content::withTrashed()->findOrFail($comment->content_id);
+        $body = $document ?? $comment->body;
 
-        return ReceiveFediverseReply::known($moderator->name(), $moderator->judge(new CommentCandidate(
+        return new CommentCandidate(
             contentId: $comment->content_id,
             parentId: $comment->parent_id,
-            text: CommentText::plain($comment->body),
-            links: CommentText::links($comment->body),
+            text: CommentText::plain($body),
+            links: CommentText::links($body),
             authorName: $comment->author_name,
             authorEmail: null,
             authorUrl: $comment->author_url,
@@ -133,6 +158,18 @@ final class UpdateFediverseReply extends BaseOperation
             userAgent: null,
             returning: ReceiveFediverseReply::returning($remote),
             itemUrl: Addresses::urlFor($item),
-        )));
+        );
+    }
+
+    /**
+     * The bound moderator's verdict on the edited words, with a plugin's check, asked before the transaction, merged strictest first.
+     */
+    private function judge(Comment $comment, RemoteActor $remote, ?ModerationVerdict $checked): ModerationVerdict
+    {
+        $moderator = app(CommentModerator::class);
+
+        $verdict = ReceiveFediverseReply::known($moderator->name(), $moderator->judge(self::candidate($comment, $remote)));
+
+        return CommentChecks::strictest($checked, $verdict) ?? $verdict;
     }
 }

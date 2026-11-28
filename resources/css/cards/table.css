@@ -1,0 +1,6 @@
+/* Sideways scroll for tables in the body: linked only on pages that draw one. */
+@layer teme.core {
+    .table-scroll {
+        overflow-x: auto;
+    }
+}

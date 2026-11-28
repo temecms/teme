@@ -59,7 +59,10 @@ final class ManifestValidator
     public const string SETTING_KEY = '/^[a-z][a-z0-9_]{1,40}$/';
 
     /** The setting types a theme may declare. */
-    public const array SETTING_TYPES = ['select', 'boolean', 'text', 'color'];
+    public const array SETTING_TYPES = ['select', 'boolean', 'text', 'color', 'number', 'image', 'menu', 'links', 'url', 'textarea'];
+
+    /** How many links a links setting may hold. */
+    public const int MOST_LINKS = 12;
 
     private const string COLOR = '/^#[0-9a-fA-F]{6}$/';
 
@@ -75,10 +78,24 @@ final class ManifestValidator
      * @var list<string>
      */
     public const array TOKENS = [
-        'base', 'contrast', 'accent', 'on-accent', 'muted', 'rule', 'font-body', 'font-heading', 'font-mono',
+        'base', 'contrast', 'accent', 'on-accent', 'muted', 'rule', 'brand', 'font-body', 'font-heading', 'font-mono',
         'step--1', 'step-0', 'step-1', 'step-2', 'step-3', 'step-4', 'step-5',
         'space-1', 'space-2', 'space-3', 'space-4', 'space-5', 'space-6', 'space-7', 'space-8',
     ];
+
+    /**
+     * Core tokens a theme must not set: Document writes them from the site
+     * (issue 261).
+     *
+     * @var list<string>
+     */
+    public const array READ_ONLY_TOKENS = ['brand'];
+
+    /**
+     * A theme's own token name: lower-case letters, digits and hyphens
+     * (issue 370).
+     */
+    public const string CUSTOM_TOKEN = '/^[a-z][a-z0-9-]*$/';
 
     /**
      * The top-level keys `errors()` reads, in its order (I-246: the tokens are
@@ -90,8 +107,19 @@ final class ManifestValidator
     public const array KEYS = [
         'manifest', 'code', 'name', 'version', 'description', 'requires', 'author_url', 'homepage', 'templates', 'navigations', 'regions',
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
-        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'composers', 'per_page', 'csp', 'icon', 'screenshots',
+        'custom_tokens', 'custom_tokens_dark', 'styles',
+        'speculation', 'breadcrumbs', 'screenshot', 'cards', 'overrides', 'composers', 'per_page', 'csp', 'icon', 'site_icon', 'screenshots',
+        'plugin_styles',
     ];
+
+    /** The setting core adds when a theme declares styles (issue 371). */
+    public const string STYLE_SETTING = 'style';
+
+    /**
+     * The manifest's `site_icon`: a path inside the theme's public folder,
+     * with no `..`, to a .png, .jpg, .jpeg, .webp or .svg picture.
+     */
+    public const string SITE_ICON = '~^(?!/)(?!(?:.*/)?\.\.(?:/|$))[^\\\\\s:]+\.(?:png|jpe?g|webp|svg)$~i';
 
     public function __construct(private readonly CardRegistry $cards) {}
 
@@ -142,6 +170,9 @@ final class ManifestValidator
         array_push($errors, ...$this->fonts($manifest, $themePath));
         array_push($errors, ...$this->tokens($manifest, 'tokens'));
         array_push($errors, ...$this->tokens($manifest, 'tokens_dark'));
+        array_push($errors, ...$this->customTokens($manifest, 'custom_tokens'));
+        array_push($errors, ...$this->customTokens($manifest, 'custom_tokens_dark'));
+        array_push($errors, ...$this->styles($manifest, $themePath));
         array_push($errors, ...$this->speculation($manifest));
         array_push($errors, ...$this->breadcrumbs($manifest));
         array_push($errors, ...$this->csp($manifest));
@@ -150,8 +181,14 @@ final class ManifestValidator
             $errors[] = 'screenshot must be a path inside the theme, with no .., to a .png, .jpg or .webp image.';
         }
 
+        if (array_key_exists('site_icon', $manifest) && (! is_string($manifest['site_icon']) || preg_match(self::SITE_ICON, $manifest['site_icon']) !== 1)) {
+            $errors[] = 'site_icon must be a path inside the theme\'s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture.';
+        }
+
         array_push($errors, ...PackagePictures::errors($manifest, 'theme'));
         array_push($errors, ...$this->cards($manifest, $themePath));
+        array_push($errors, ...$this->overrides($manifest, $themePath));
+        array_push($errors, ...$this->pluginStyles($manifest));
 
         $composers = $manifest['composers'] ?? [];
 
@@ -380,6 +417,10 @@ final class ManifestValidator
                 $errors[] = "The setting \"{$key}\" can't start with nav_, which is kept for navigation slots.";
             }
 
+            if ($key === self::STYLE_SETTING && array_key_exists('styles', $manifest)) {
+                $errors[] = "The setting \"{$key}\" is kept for the theme's style variations.";
+            }
+
             if (in_array($key, $declared, true)) {
                 $errors[] = "The setting \"{$key}\" is declared twice.";
             }
@@ -406,7 +447,7 @@ final class ManifestValidator
         $type = $setting['type'] ?? null;
 
         if (! is_string($type) || ! in_array($type, self::SETTING_TYPES, true)) {
-            $errors[] = "The setting \"{$key}\" has type \"{$this->show($type)}\": a theme setting is a select, boolean, text or color.";
+            $errors[] = "The setting \"{$key}\" has type \"{$this->show($type)}\": a theme setting is a select, boolean, text, color, number, image, menu, links, url or textarea.";
             $type = null;
         }
 
@@ -422,6 +463,10 @@ final class ManifestValidator
             $errors[] = "The setting \"{$key}\" needs a fieldset: ".implode(', ', Setting::FIELDSETS).'.';
         }
 
+        if (array_key_exists('group', $setting) && (! is_string($setting['group']) || trim($setting['group']) === '')) {
+            $errors[] = "The setting \"{$key}\" has an empty group: leave it out, or name the group.";
+        }
+
         $options = $this->settingOptions($setting['options'] ?? null);
 
         if ($type === 'select' && $options === null) {
@@ -432,19 +477,64 @@ final class ManifestValidator
             $errors[] = "The setting \"{$key}\" has options, which only a select takes.";
         }
 
+        array_push($errors, ...$this->numberBounds($key, $type, $setting));
+
         if (! array_key_exists('default', $setting)) {
             $errors[] = "The setting \"{$key}\" needs a default.";
-        } elseif ($type !== null && ($type !== 'select' || $options !== null) && ! $this->validDefault($type, $setting['default'], $options ?? [])) {
+        } elseif ($type !== null && ($type !== 'select' || $options !== null) && ! $this->validDefault($type, $setting['default'], $options ?? [], $setting)) {
             $errors[] = match ($type) {
                 'select' => "The setting \"{$key}\" has a default that isn't one of its options.",
                 'boolean' => "The setting \"{$key}\" needs a default of true or false.",
-                'text' => "The setting \"{$key}\" needs a default that is text.",
+                'text', 'textarea' => "The setting \"{$key}\" needs a default that is text.",
+                'menu' => "The setting \"{$key}\" needs a default that is an empty string.",
+                'number' => "The setting \"{$key}\" needs a default that is a whole number".(isset($setting['min'], $setting['max']) ? ' between its min and max.' : '.'),
+                'image' => "The setting \"{$key}\" needs a default of \"\".",
+                'url' => "The setting \"{$key}\" needs a default of \"\" or an http(s) address.",
+                'links' => "The setting \"{$key}\" needs a default that is a list of at most ".self::MOST_LINKS.' links, each with a label and an address.',
                 default => "The setting \"{$key}\" needs a default of \"\" or a colour written #rrggbb.",
             };
         }
 
         if (array_key_exists('visible_when', $setting)) {
             array_push($errors, ...$this->visibleWhen($key, $setting['visible_when'], $earlier));
+        }
+
+        return $errors;
+    }
+
+    /**
+     * A number setting's min, max, step and unit, when present.
+     *
+     * @param  array<array-key, mixed>  $setting
+     *
+     * @return list<string>
+     */
+    private function numberBounds(string $key, ?string $type, array $setting): array
+    {
+        if ($type !== 'number') {
+            foreach (['min', 'max', 'step', 'unit'] as $bound) {
+                if (array_key_exists($bound, $setting)) {
+                    return ["The setting \"{$key}\" has {$bound}, which only a number takes."];
+                }
+            }
+
+            return [];
+        }
+
+        $errors = [];
+
+        foreach (['min', 'max', 'step'] as $bound) {
+            if (array_key_exists($bound, $setting) && (! is_int($setting[$bound]) || ($bound === 'step' && $setting[$bound] < 1))) {
+                $errors[] = "The setting \"{$key}\" needs a whole-number {$bound}".($bound === 'step' ? ' of at least 1.' : '.');
+            }
+        }
+
+        if (isset($setting['min'], $setting['max']) && is_int($setting['min']) && is_int($setting['max']) && $setting['min'] > $setting['max']) {
+            $errors[] = "The setting \"{$key}\" has a min greater than its max.";
+        }
+
+        if (array_key_exists('unit', $setting) && (! is_string($setting['unit']) || trim($setting['unit']) === '')) {
+            $errors[] = "The setting \"{$key}\" has an empty unit: leave it out, or name the unit.";
         }
 
         return $errors;
@@ -477,15 +567,42 @@ final class ManifestValidator
 
     /**
      * @param  array<string, string>  $options
+     * @param  array<array-key, mixed>  $setting
      */
-    private function validDefault(string $type, mixed $default, array $options): bool
+    private function validDefault(string $type, mixed $default, array $options, array $setting = []): bool
     {
         return match ($type) {
             'select' => is_string($default) && array_key_exists($default, $options),
             'boolean' => is_bool($default),
-            'text' => is_string($default),
+            'text', 'textarea' => is_string($default),
+            'menu' => $default === '',
+            'image' => $default === '',
+            'url' => $default === '' || (is_string($default) && preg_match('~^https?://[^\s]+$~i', $default) === 1),
+            'number' => is_int($default)
+                && (! isset($setting['min']) || ! is_int($setting['min']) || $default >= $setting['min'])
+                && (! isset($setting['max']) || ! is_int($setting['max']) || $default <= $setting['max']),
+            'links' => $this->validLinksDefault($default),
             default => $default === '' || (is_string($default) && preg_match(self::COLOR, $default) === 1),
         };
+    }
+
+    /** Whether a links setting's default is a short list of labelled addresses. */
+    private function validLinksDefault(mixed $default): bool
+    {
+        if (! is_array($default) || ! array_is_list($default) || count($default) > self::MOST_LINKS) {
+            return false;
+        }
+
+        foreach ($default as $link) {
+            if (! is_array($link)
+                || ! is_string($link['label'] ?? null)
+                || ! is_string($link['address'] ?? null)
+                || preg_match('~^https?://[^\s]+$~i', $link['address']) !== 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -685,6 +802,24 @@ final class ManifestValidator
                 $errors[] = "The font {$font['family']} has a style that isn't normal, italic or oblique.";
             }
 
+            $weight = is_scalar($font['weight'] ?? null) ? (string) $font['weight'] : '400';
+
+            if (preg_match('/[;{}<>"\\\\]/', $font['family'].$weight) === 1) {
+                $errors[] = "The font {$font['family']} needs a family and weight with no ; { } < > \" or \\.";
+            }
+
+            if (array_key_exists('face', $font) && ! is_bool($font['face'])) {
+                $errors[] = "The font {$font['family']} has a face that isn't true or false.";
+            }
+
+            if (array_key_exists('unicode_range', $font)) {
+                $range = $font['unicode_range'];
+
+                if (! is_string($range) || trim($range) === '' || preg_match('/[;{}<>"\\\\]/', $range) === 1) {
+                    $errors[] = "The font {$font['family']} needs a unicode_range with no ; { } < > \" or \\.";
+                }
+            }
+
             if (($font['preload'] ?? false) === true) {
                 $preloaded++;
             }
@@ -728,11 +863,131 @@ final class ManifestValidator
                 continue;
             }
 
+            if (in_array($name, self::READ_ONLY_TOKENS, true)) {
+                $errors[] = "The token \"{$name}\"{$where} is read-only: core writes it from the site's brand colour.";
+
+                continue;
+            }
+
             // The value goes into the page's <style>, so nothing that could end a rule or the tag.
             if (! is_string($value) || trim($value) === '' || preg_match('/[;{}<>]/', $value) === 1) {
                 $errors[] = "The token \"{$name}\"{$where} must have a CSS value, with no ; { } < or >.";
             } elseif (in_array($name, self::HEX_TOKENS, true) && preg_match(self::HEX, $value) !== 1) {
                 $errors[] = "The token \"{$name}\"{$where} must be a hex colour, #rgb or #rrggbb: Teme checks the accent's contrast against it.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * A theme's own tokens beyond the core list (issue 370): names of
+     * lower-case letters, digits and hyphens that are not a core token,
+     * with the same value rule as core tokens.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function customTokens(array $manifest, string $key): array
+    {
+        if (! array_key_exists($key, $manifest)) {
+            return [];
+        }
+
+        $tokens = $manifest[$key];
+
+        if (! is_array($tokens) || (array_is_list($tokens) && $tokens !== [])) {
+            return ["{$key} must map each token name to its value."];
+        }
+
+        $errors = [];
+        $where = $key === 'custom_tokens' ? '' : " in {$key}";
+
+        foreach ($tokens as $name => $value) {
+            if (! is_string($name) || preg_match(self::CUSTOM_TOKEN, $name) !== 1) {
+                $errors[] = "The custom token name \"{$name}\"{$where} must be lower-case letters, digits and hyphens, starting with a letter.";
+
+                continue;
+            }
+
+            if (in_array($name, self::TOKENS, true)) {
+                $errors[] = "The custom token \"{$name}\"{$where} is a core token name: put it under tokens, or pick another name.";
+
+                continue;
+            }
+
+            if (! is_string($value) || trim($value) === '' || preg_match('/[;{}<>]/', $value) === 1) {
+                $errors[] = "The custom token \"{$name}\"{$where} must have a CSS value, with no ; { } < or >.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Named token sets a theme can switch between (issue 371): each needs a
+     * label; tokens, tokens_dark and custom_tokens follow the same rules as
+     * the top-level keys; fonts names one declared font file to preload.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function styles(array $manifest, string $themePath): array
+    {
+        if (! array_key_exists('styles', $manifest)) {
+            return [];
+        }
+
+        $styles = $manifest['styles'];
+
+        if (! is_array($styles) || $styles === [] || array_is_list($styles)) {
+            return ['styles must map each style name to its label and optional tokens.'];
+        }
+
+        $errors = [];
+        $files = [];
+
+        foreach (is_array($manifest['fonts'] ?? null) ? $manifest['fonts'] : [] as $font) {
+            if (is_array($font) && is_string($font['file'] ?? null)) {
+                $files[] = $font['file'];
+            }
+        }
+
+        foreach ($styles as $name => $style) {
+            if (! is_string($name) || preg_match(self::SLUG, $name) !== 1) {
+                $errors[] = "The style name \"{$name}\" must be lower-case letters, digits and hyphens.";
+
+                continue;
+            }
+
+            if (! is_array($style) || ! is_string($style['label'] ?? null) || trim($style['label']) === '') {
+                $errors[] = "styles.{$name} needs a label.";
+
+                continue;
+            }
+
+            foreach (['tokens', 'tokens_dark'] as $key) {
+                if (array_key_exists($key, $style)) {
+                    foreach ($this->tokens([$key => $style[$key]], $key) as $error) {
+                        $errors[] = "styles.{$name}: {$error}";
+                    }
+                }
+            }
+
+            if (array_key_exists('custom_tokens', $style)) {
+                foreach ($this->customTokens(['custom_tokens' => $style['custom_tokens']], 'custom_tokens') as $error) {
+                    $errors[] = "styles.{$name}: {$error}";
+                }
+            }
+
+            if (array_key_exists('fonts', $style)) {
+                $file = $style['fonts'];
+
+                if (! is_string($file) || $file === '' || ! in_array($file, $files, true)) {
+                    $errors[] = "styles.{$name}.fonts must be the file of one font declared under fonts.";
+                }
             }
         }
 
@@ -808,6 +1063,94 @@ final class ManifestValidator
         return array_key_exists('breadcrumbs', $manifest) && ! is_bool($manifest['breadcrumbs'])
             ? ['breadcrumbs must be true or false.']
             : [];
+    }
+
+    /**
+     * The overrides of core's components (docs/guides/developers/themes/components.md):
+     * each names a component a theme may replace, states the contract it was
+     * written against, and ships its view under views/components/.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function overrides(array $manifest, string $themePath): array
+    {
+        if (! array_key_exists('overrides', $manifest)) {
+            return [];
+        }
+
+        $overrides = $manifest['overrides'];
+
+        if (! is_array($overrides) || array_is_list($overrides)) {
+            return ['overrides must map each component the theme overrides to {"contract": N}.'];
+        }
+
+        $errors = [];
+
+        foreach ($overrides as $name => $declaration) {
+            $name = (string) $name;
+
+            if (! array_key_exists($name, ComponentOverrides::CLASSES)) {
+                $errors[] = "overrides names \"{$this->show($name)}\", which isn't a component a theme can override.";
+
+                continue;
+            }
+
+            if (! is_array($declaration) || ! is_int($declaration['contract'] ?? null) || $declaration['contract'] < 1) {
+                $errors[] = "overrides.{$name} must give the contract the override was written against, a whole number from 1.";
+
+                continue;
+            }
+
+            $view = "{$themePath}/views/components/{$name}.blade.php";
+
+            if (! is_file($view)) {
+                $errors[] = "overrides {$name}, but views/components/{$name}.blade.php is missing.";
+
+                continue;
+            }
+
+            $core = ComponentOverrides::CLASSES[$name]::CONTRACT;
+
+            if ($declaration['contract'] > $core) {
+                $errors[] = "overrides.{$name} is written against contract {$declaration['contract']}, but core is at contract {$core}: this theme needs a newer Teme.";
+            }
+
+            if ($name === 'comment-form') {
+                array_push($errors, ...$this->commentFormErrors((string) file_get_contents($view)));
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * What a comment-form override must keep for its comments to be read: core's fields inside the form, a form that
+     * posts to the form's action, and the data-teme-form hook core's script finds the form by.
+     *
+     * @return list<string>
+     */
+    private function commentFormErrors(string $view): array
+    {
+        $errors = [];
+
+        if (! str_contains($view, '<x-teme::comment-form-fields')) {
+            $errors[] = 'overrides.comment-form: the view must include <x-teme::comment-form-fields :form="$form" /> inside its form.';
+        }
+
+        if (preg_match('/<form\b[^>]*\baction\s*=\s*["\']\{\{\s*\$form->action\s*\}\}["\']/i', $view) !== 1) {
+            $errors[] = 'overrides.comment-form: the form must post to {{ $form->action }}.';
+        }
+
+        // Blade's {{ }} can hold a '>' (as in ->), so the tags are read without them.
+        $markup = preg_replace('/\{\{.*?\}\}/s', '""', $view) ?? $view;
+
+        if (preg_match('/<form\b[^>]*\bdata-teme-form\b/i', $markup) !== 1) {
+            $errors[] = 'overrides.comment-form: the form must carry data-teme-form, which core\'s script finds the form by.';
+        }
+
+        return $errors;
     }
 
     /**
@@ -936,5 +1279,34 @@ final class ManifestValidator
     private function show(mixed $value): string
     {
         return is_scalar($value) ? (string) $value : get_debug_type($value);
+    }
+
+    /**
+     * The plugin stylesheets the theme switches off, as `code:output` keys
+     * (docs/guides/developers/plugins/styles.md): a list of strings.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function pluginStyles(array $manifest): array
+    {
+        if (! array_key_exists('plugin_styles', $manifest)) {
+            return [];
+        }
+
+        $off = is_array($manifest['plugin_styles']) ? ($manifest['plugin_styles']['off'] ?? null) : null;
+
+        if (! is_array($off) || ! array_is_list($off)) {
+            return ['plugin_styles.off must list the plugin stylesheets the theme switches off.'];
+        }
+
+        foreach ($off as $key) {
+            if (! is_string($key) || preg_match('/^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$/', $key) !== 1) {
+                return ['plugin_styles.off must name each stylesheet as code:card:<id> or code:insertion:<id>.'];
+            }
+        }
+
+        return [];
     }
 }

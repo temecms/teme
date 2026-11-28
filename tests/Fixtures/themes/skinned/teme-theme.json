@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "code": "skinned",
+    "name": "Fixture Skinned",
+    "version": "0.1.0",
+    "description": "A theme whose lists live in a skin folder.",
+    "requires": { "teme": "^0.1" },
+    "navigations": { "primary": "Header" },
+    "assets": { "manifest": "public/build/manifest.json", "entries": ["assets/css/theme.css"] },
+    "images": { "content": "(min-width: 720px) 680px, 100vw" },
+    "fonts": [{ "family": "Newsreader", "file": "fonts/newsreader.woff2", "weight": "400 700", "style": "normal", "preload": true }],
+    "tokens": { "base": "#ffffff", "accent": "#b3261e" },
+    "per_page": 10
+}

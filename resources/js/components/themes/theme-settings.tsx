@@ -8,11 +8,21 @@ import {
 import { ThemeRegions } from '@/components/themes/theme-regions';
 import type { useDesignDraft } from '@/components/themes/use-design-draft';
 import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Field } from '@/components/ui/field';
 import { SelectField } from '@/components/ui/select-field';
 import { __ } from '@/lib/i18n';
 import { index as navigationIndex } from '@/routes/navigation';
-import type { DesignFieldset, DesignPage, DesignSettingsPage } from '@/types';
+import type {
+    DesignField,
+    DesignFieldset,
+    DesignPage,
+    DesignSettingsPage,
+} from '@/types';
 
 /** The settings sections, in the order Themes shows them. */
 function sections(): { key: DesignFieldset; label: string }[] {
@@ -61,6 +71,38 @@ function Section({
 }
 
 /**
+ * The visible fields of one fieldset, ungrouped first, then each group in
+ * manifest order as a foldable section.
+ */
+function groupedFields(fields: DesignField[]): {
+    top: DesignField[];
+    groups: { label: string; fields: DesignField[] }[];
+} {
+    const top: DesignField[] = [];
+    const groups: { label: string; fields: DesignField[] }[] = [];
+    const seen = new Map<string, number>();
+
+    for (const field of fields) {
+        if (field.group === null || field.group === '') {
+            top.push(field);
+
+            continue;
+        }
+
+        const index = seen.get(field.group);
+
+        if (index === undefined) {
+            seen.set(field.group, groups.length);
+            groups.push({ label: field.group, fields: [field] });
+        } else {
+            groups[index].fields.push(field);
+        }
+    }
+
+    return { top, groups };
+}
+
+/**
  * The chosen theme's own settings and menu places: drafted as they change,
  * each section with a Preview of its page, and nothing live until Publish.
  * Drawn on the theme's settings page (issue 714).
@@ -79,6 +121,7 @@ export function ThemeSettings({
         'regions' in page && page.regions !== undefined ? page.regions : null;
     const canEditRegions =
         'canEditRegions' in page ? page.canEditRegions === true : false;
+    const media = page.media ?? {};
 
     return (
         <div
@@ -86,6 +129,32 @@ export function ThemeSettings({
             data-test="theme-settings"
             className="grid max-w-(--form-max) scroll-mt-4 gap-4"
         >
+            <Section id="theme-settings-site-icon" title={__('Site icon')}>
+                <DesignFieldInput
+                    field={{
+                        key: 'site_icon',
+                        type: 'media',
+                        label: __('Site icon'),
+                        description: __(
+                            'The favicon and home-screen icon. Empty uses the active theme’s default, when it has one.',
+                        ),
+                        options: {},
+                        visibleWhen: {},
+                        group: null,
+                        min: null,
+                        max: null,
+                        step: null,
+                        unit: null,
+                    }}
+                    value={design.designValues.site_icon}
+                    media={media.site_icon}
+                    error={design.errorOf('design', 'site_icon')}
+                    onChange={(value) =>
+                        design.change('design', 'site_icon', value)
+                    }
+                />
+            </Section>
+
             {themeGroup === null ? (
                 <p className="text-small text-ink-2">
                     {__(':name has no settings or menu places of its own.', {
@@ -98,39 +167,46 @@ export function ThemeSettings({
                         .filter(
                             (section) => page.fieldsets[section.key].length > 0,
                         )
-                        .map((section) => (
-                            <Section
-                                key={section.key}
-                                id={`theme-settings-${section.key}`}
-                                title={section.label}
-                                action={
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        variant="neutral"
-                                        onClick={() =>
-                                            void design.preview(section.key)
-                                        }
-                                    >
-                                        {__('Preview')}
-                                        <span className="sr-only">
-                                            {' '}
-                                            {section.label}
-                                        </span>
-                                    </Button>
-                                }
-                            >
-                                {page.fieldsets[section.key]
-                                    .filter((field) =>
-                                        visible(field, design.themeValues),
-                                    )
-                                    .map((field) => (
+                        .map((section) => {
+                            const visibleFields = page.fieldsets[
+                                section.key
+                            ].filter((field) =>
+                                visible(field, design.themeValues),
+                            );
+                            const { top, groups } =
+                                groupedFields(visibleFields);
+
+                            return (
+                                <Section
+                                    key={section.key}
+                                    id={`theme-settings-${section.key}`}
+                                    title={section.label}
+                                    action={
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="neutral"
+                                            onClick={() =>
+                                                void design.preview(section.key)
+                                            }
+                                        >
+                                            {__('Preview')}
+                                            <span className="sr-only">
+                                                {' '}
+                                                {section.label}
+                                            </span>
+                                        </Button>
+                                    }
+                                >
+                                    {top.map((field) => (
                                         <DesignFieldInput
                                             key={field.key}
                                             field={field}
                                             value={
                                                 design.themeValues[field.key]
                                             }
+                                            media={media[field.key]}
+                                            menus={page.menus}
                                             error={design.errorOf(
                                                 themeGroup,
                                                 field.key,
@@ -144,8 +220,47 @@ export function ThemeSettings({
                                             }
                                         />
                                     ))}
-                            </Section>
-                        ))}
+                                    {groups.map((group) => (
+                                        <Collapsible
+                                            key={group.label}
+                                            defaultOpen
+                                            className="grid gap-3"
+                                            data-test="setting-group"
+                                        >
+                                            <CollapsibleTrigger className="text-body text-ink flex items-center justify-between gap-2 font-medium">
+                                                {group.label}
+                                            </CollapsibleTrigger>
+                                            <CollapsibleContent className="grid gap-5">
+                                                {group.fields.map((field) => (
+                                                    <DesignFieldInput
+                                                        key={field.key}
+                                                        field={field}
+                                                        value={
+                                                            design.themeValues[
+                                                                field.key
+                                                            ]
+                                                        }
+                                                        media={media[field.key]}
+                                                        menus={page.menus}
+                                                        error={design.errorOf(
+                                                            themeGroup,
+                                                            field.key,
+                                                        )}
+                                                        onChange={(value) =>
+                                                            design.change(
+                                                                themeGroup,
+                                                                field.key,
+                                                                value,
+                                                            )
+                                                        }
+                                                    />
+                                                ))}
+                                            </CollapsibleContent>
+                                        </Collapsible>
+                                    ))}
+                                </Section>
+                            );
+                        })}
 
                     {page.slots.length > 0 && (
                         <Section

@@ -40,7 +40,7 @@ it('saves General and its brand color in one request, with one toast', function 
         ->assertInertiaFlash('toast.message', 'Settings saved.');
 
     expect(app(SettingsReader::class)->string('general', 'site_title'))->toBe('The Garden City Ledger')
-        ->and(app(SettingsReader::class)->string('design', 'accent'))->toBe('#0b5394');
+        ->and(app(SettingsReader::class)->string('design', 'brand'))->toBe('#0b5394');
 });
 
 it('saves nothing of the page when the brand color fails contrast, naming it under its field', function (): void {
@@ -88,7 +88,7 @@ it('takes a brand color only from General', function (): void {
         ->assertSessionHasNoErrors();
 
     expect(sspVersion('design'))->toBe($design)
-        ->and(app(SettingsReader::class)->string('design', 'accent'))->toBe('');
+        ->and(app(SettingsReader::class)->string('design', 'brand'))->toBe('');
 });
 
 it('saves Reading and its home page in one request, saying when addresses move', function (): void {

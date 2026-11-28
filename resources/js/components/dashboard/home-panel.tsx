@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, EyeOff, GripVertical } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { DashboardPanelRows } from '@/components/dashboard/dashboard-panel';
 import type { Section } from '@/components/dashboard/home-layout';
+import { PluginPanelBlocks } from '@/components/dashboard/plugin-panel-blocks';
 import { panelSpanClass } from '@/components/dashboard/panel-grid';
 import { QuickDraft } from '@/components/dashboard/quick-draft';
 import { SiteStatusPanel } from '@/components/dashboard/site-status-panel';
@@ -267,13 +268,27 @@ export function HomePanel({
                             <Skeleton className="h-4 w-2/3" />
                         </div>
                     ) : failed ? (
-                        <ErrorState
-                            message={__(
-                                "This panel couldn't load. The rest of Home is unaffected.",
+                        <>
+                            <ErrorState
+                                message={__(
+                                    "This panel couldn't load. The rest of Home is unaffected.",
+                                )}
+                                onRetry={retry}
+                                retryLabel={__('Try again')}
+                                className="px-0 pt-0 pb-0"
+                            />
+                            {entry.kind === 'plugin' && (
+                                <PluginPanelBlocks
+                                    blocks={panel?.blocks ?? []}
+                                    label={name}
+                                    noticesOnly
+                                />
                             )}
-                            onRetry={retry}
-                            retryLabel={__('Try again')}
-                            className="px-0 pt-0 pb-0"
+                        </>
+                    ) : entry.kind === 'plugin' ? (
+                        <PluginPanelBlocks
+                            blocks={panel?.blocks ?? []}
+                            label={name}
                         />
                     ) : (
                         <DashboardPanelRows

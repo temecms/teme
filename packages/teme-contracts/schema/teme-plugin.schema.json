@@ -107,7 +107,10 @@
                     "sitemaps",
                     "directory.read",
                     "content.submissions",
-                    "redirects"
+                    "redirects",
+                    "comments.check",
+                    "search.read",
+                    "import.read"
                 ]
             }
         },
@@ -733,6 +736,48 @@
                         }
                     }
                 },
+                "listActions": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "description": "Buttons on the content lists, each queuing one of the plugin's declared jobs as the person, for a row, the selected items, or both. At most two row actions. Needs jobs.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "job"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The action's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The button's words."
+                            },
+                            "row": {
+                                "type": "boolean",
+                                "description": "Offered in each row's menu, before Trash."
+                            },
+                            "bulk": {
+                                "type": "boolean",
+                                "description": "Offered in the bulk bar, for the selected items."
+                            },
+                            "confirm": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "A sentence the person reads before the job is queued."
+                            },
+                            "job": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{0,47}$",
+                                "description": "The key of the declared job it queues."
+                            }
+                        }
+                    }
+                },
                 "actions": {
                     "type": "array",
                     "maxItems": 3,
@@ -1303,6 +1348,38 @@
                         }
                     }
                 },
+                "provides": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "uniqueItems": true,
+                    "description": "The provider slots the plugin fills: the administrator picks one plugin per slot in Plugins > Provider choices (docs/guides/developers/plugins/provider-slots.md). A slot names what the plugin implements; the image service slot also needs imageService.",
+                    "items": {
+                        "type": "string",
+                        "enum": ["image-service", "search", "comment-check"]
+                    }
+                },
+                "styles": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "description": "Built stylesheets, one per card or page insertion. Linked only on a page that draws that output, in the plugins cascade layer.",
+                    "items": {
+                        "type": "object",
+                        "required": ["output", "file"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "output": {
+                                "type": "string",
+                                "pattern": "^(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$",
+                                "description": "The output the sheet styles: card:<id> or insertion:<id>."
+                            },
+                            "file": {
+                                "type": "string",
+                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css$",
+                                "description": "A .css file inside the plugin's package, relative to its root."
+                            }
+                        }
+                    }
+                },
                 "imageService": {
                     "type": "object",
                     "additionalProperties": false,
@@ -1319,6 +1396,41 @@
                             "type": "string",
                             "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$",
                             "description": "The host its addresses are on, served over https, which joins the img-src of the content security policy."
+                        }
+                    }
+                },
+                "importReaders": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "description": "Readers for another system's export files, which Teme's import engine reads: each file is probed, listed and fetched through the reader. Needs import.read; the plugin implements HasImportReader.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "fileTypes"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{0,39}$",
+                                "description": "The reader's ID, which HasImportReader::importReader() receives."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The reader's name, as the import screen names it."
+                            },
+                            "fileTypes": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 5,
+                                "uniqueItems": true,
+                                "description": "The file extensions it reads, without the dot, such as json.",
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9]{1,8}$"
+                                }
+                            }
                         }
                     }
                 },
@@ -1601,6 +1713,47 @@
                                 "type": "object"
                             },
                             "description": "The kinds of record the area's tables list and its forms edit."
+                        }
+                    }
+                },
+                "homePanels": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "description": "Panels on the admin's Home, each built from one page's blocks of the plugin's area; shown to people with the area's permission.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "title", "page", "blocks"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$"
+                            },
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The panel's heading on Home."
+                            },
+                            "size": {
+                                "type": "string",
+                                "enum": ["small", "medium", "large", "full"],
+                                "description": "How wide the panel is drawn until a person changes it. Small when none is named."
+                            },
+                            "page": {
+                                "type": "string",
+                                "description": "The id of a page of the area that holds the blocks."
+                            },
+                            "blocks": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 4,
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "The ids of blocks on that page: figures, chart, table or notice."
+                            }
                         }
                     }
                 }

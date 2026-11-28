@@ -9,6 +9,7 @@
     "plugin": "Tests\\Fixtures\\Plugins\\Cardbox\\Cardbox",
     "capabilities": ["pages.insert"],
     "contributes": {
+        "styles": [{ "output": "card:note", "file": "dist/note.css" }],
         "cards": [
             {
                 "id": "note",

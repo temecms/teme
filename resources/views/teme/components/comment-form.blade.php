@@ -23,10 +23,7 @@
             @unless ($form->standalone)
                 <p class="teme-replying" data-teme-replying hidden>{{ __('Replying to') }} <a href="#respond"></a></p>
             @endunless
-            <input type="hidden" name="path" value="{{ $form->path }}">
-            <input type="hidden" name="parent" value="{{ $form->parentId ?? '' }}">
-            <input type="hidden" name="token" value="">
-            <input type="hidden" name="_token" value="">
+            <x-teme::comment-form-fields :form="$form" />
             @include('teme::components.comment-field', ['id' => 'c-text', 'name' => 'text', 'label' => $reply ? __('Your reply') : __('Comment'), 'hint' => __('Plain text. A blank line starts a new paragraph, and web addresses become links.'), 'textarea' => true])
             <div class="teme-guest" data-teme-guest>
                 @include('teme::components.comment-field', ['id' => 'c-name', 'name' => 'name', 'label' => __('Name'), 'hint' => __('Shown with your comment.'), 'type' => 'text', 'autocomplete' => 'name', 'width' => 'name'])
@@ -40,8 +37,6 @@
                 </div>
             </div>
             <p class="teme-as" data-teme-as hidden>{{ __('You’re signed in, so you’ll comment as') }} <strong></strong>.</p>
-            {{-- The honeypot: no person sees or hears it; a bot that fills it is answered as held, and nothing is kept. --}}
-            <div class="teme-hp" aria-hidden="true"><label for="c-subject">{{ __('Leave this empty') }}</label><input id="c-subject" name="subject" tabindex="-1" autocomplete="off"></div>
             <p class="teme-privacy">{{ $form->askWebsite ? __('Your name and website are shown with your comment; your email address never is.') : __('Your name is shown with your comment; your email address never is.') }} {{ __('To fight spam, we keep your IP address and browser details for :days days, then delete them.', ['days' => $form->keepIpDays]) }}</p>
             <div class="teme-submit">
                 <button class="button" type="submit">{{ $reply ? __('Post reply') : __('Post comment') }}</button>
@@ -51,7 +46,5 @@
                 <p class="teme-status" role="status" data-teme-status></p>
             </div>
         </form>
-        {{-- Never with the line for signed-in people only: there is no form to help. --}}
-        <x-teme::thread-script />
     @endif
 </div>

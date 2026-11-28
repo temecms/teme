@@ -74,8 +74,21 @@ final class SaveDesignDraft extends BaseOperation
                     continue;
                 }
 
+                $key = (string) $key;
                 $rules[$key] = SettingRules::for($setting);
                 $labels[$key] = $setting->label;
+
+                // A repeater's items and fields, as SettingRules::validateValues
+                // does for live settings (theme links among them).
+                if ($setting->type === SettingType::Repeater) {
+                    $values[$key] = $values[$key] === '' || $values[$key] === null ? [] : $values[$key];
+                    $rules["{$key}.*"] = ['array'];
+
+                    foreach ($setting->fields as $field) {
+                        $rules["{$key}.*.{$field->key}"] = SettingRules::for($field);
+                        $labels["{$key}.*.{$field->key}"] = $field->label;
+                    }
+                }
             }
 
             // One group at a time, keyed by setting key: a group key such as
@@ -149,19 +162,23 @@ final class SaveDesignDraft extends BaseOperation
     }
 
     /**
-     * A slot's menu must be none or a menu that exists; locked, so one being
-     * deleted now can't be drafted as it goes. Slot settings are text, so
-     * their type rule alone takes any string.
+     * A slot's menu, or a theme menu setting, must be none or a menu that
+     * exists; locked, so one being deleted now can't be drafted as it goes.
+     * Both are stored as text, so their type rule alone takes any string.
      *
      * @param  array<string, array<string, mixed>>  $values
      */
     private function checkMenus(array $values): void
     {
         $problems = [];
+        $menuKeys = $this->menuSettingKeys(array_keys($values));
 
         foreach ($values as $group => $changes) {
             foreach ($changes as $key => $value) {
-                if (str_starts_with($key, ThemeSlotSettings::SETTING_PREFIX) && $value !== '' && Navigation::query()->lockForUpdate()->find($value) === null) {
+                $isMenu = str_starts_with($key, ThemeSlotSettings::SETTING_PREFIX)
+                    || in_array($key, $menuKeys[$group] ?? [], true);
+
+                if ($isMenu && $value !== '' && Navigation::query()->lockForUpdate()->find($value) === null) {
                     $problems["groups.{$group}.{$key}"] = __('There is no such menu.');
                 }
             }
@@ -173,9 +190,39 @@ final class SaveDesignDraft extends BaseOperation
     }
 
     /**
-     * When this save changes the accent or the theme, the accent that would
+     * Each theme group's keys whose manifest type is menu.
+     *
+     * @param  list<array-key>  $groups
+     *
+     * @return array<string, list<string>>
+     */
+    private function menuSettingKeys(array $groups): array
+    {
+        $keys = [];
+
+        foreach ($groups as $group) {
+            $group = (string) $group;
+
+            if (! str_starts_with($group, ThemeSlotSettings::GROUP_PREFIX)) {
+                continue;
+            }
+
+            $theme = $this->themes->find(substr($group, strlen(ThemeSlotSettings::GROUP_PREFIX)));
+
+            foreach ($theme?->manifest?->settings() ?? [] as $setting) {
+                if (($setting['type'] ?? null) === 'menu' && is_string($setting['key'] ?? null)) {
+                    $keys[$group][] = $setting['key'];
+                }
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * When this save changes the brand or the theme, the brand that would
      * be live must pass contrast against the light background of the theme
-     * that would be active, so a theme switch can't slip past an accent the
+     * that would be active, so a theme switch can't slip past a brand the
      * new theme fails; the dark scheme takes a lighter version of it (I-457).
      * Each is this save's, else the draft's, else the live one.
      *
@@ -186,24 +233,24 @@ final class SaveDesignDraft extends BaseOperation
     {
         $changes = $values[self::DESIGN_GROUP] ?? [];
 
-        if (! array_key_exists('accent', $changes) && ! array_key_exists('theme', $changes)) {
+        if (! array_key_exists('brand', $changes) && ! array_key_exists('theme', $changes)) {
             return;
         }
 
         $record = $records[self::DESIGN_GROUP];
         $wouldBe = fn (string $key): string => (string) ($changes[$key] ?? $record->draft_values[$key] ?? $this->live($record, $this->setting(self::DESIGN_GROUP, $key)));
 
-        $accent = $wouldBe('accent');
+        $brand = $wouldBe('brand');
 
-        if ($accent === '') {
+        if ($brand === '') {
             return;
         }
 
         $theme = $this->themes->find($wouldBe('theme'));
-        $problems = Contrast::accentProblems($accent, Contrast::bases($theme !== null && $theme->usable() ? $theme->manifest : null)['light']);
+        $problems = Contrast::accentProblems($brand, Contrast::bases($theme !== null && $theme->usable() ? $theme->manifest : null)['light']);
 
         if ($problems !== []) {
-            $field = array_key_exists('accent', $changes) ? 'accent' : 'theme';
+            $field = array_key_exists('brand', $changes) ? 'brand' : 'theme';
 
             throw ValidationException::withMessages(['groups.'.self::DESIGN_GROUP.".{$field}" => implode(' ', $problems)]);
         }

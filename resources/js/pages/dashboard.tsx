@@ -389,6 +389,13 @@ export default function Dashboard({
 
             const panel = panelsByKey[key];
 
+            if (entry.kind === 'plugin') {
+                return (
+                    panel !== undefined &&
+                    ((panel.blocks ?? []).length > 0 || panel.failed)
+                );
+            }
+
             return (
                 panel !== undefined && (panel.rows.length > 0 || panel.failed)
             );

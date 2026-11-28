@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\View\Components\Teme;
 
 use App\Domain\Site\Insertions\PageInsertions;
+use App\Domain\Themes\ComponentOverrides;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 use Teme\Contracts\Insertions\PagePosition;
@@ -27,6 +28,9 @@ use Teme\Contracts\Insertions\PagePosition;
  */
 final class BetweenItems extends Component
 {
+    /** The contract a theme's override of this component is written against (docs/guides/developers/themes/components.md). */
+    public const int CONTRACT = 1;
+
     /** @var list<string> the cleaned markup drawn after this item */
     public array $html = [];
 
@@ -54,6 +58,6 @@ final class BetweenItems extends Component
 
     public function render(): View
     {
-        return view('teme::components.between-items');
+        return app(ComponentOverrides::class)->render('between-items', 'teme::components.between-items');
     }
 }

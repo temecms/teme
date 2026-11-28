@@ -20,8 +20,10 @@ use App\Domain\Plugins\Console\PluginCommands;
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
+use App\Domain\Plugins\Readers\ImportReaderDeclaration;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seo\SeoValidator;
+use App\Domain\Plugins\Slots\PluginSlotDeclaration;
 use App\Domain\PublicRoutes\RootFileNames;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
@@ -73,10 +75,13 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
         array_push($errors, ...$this->cardHandlers($contributes['cards'] ?? [], $plugin));
         array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
+        array_push($errors, ...$this->actionJobs($contributes['listActions'] ?? [], $jobs));
         array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
         array_push($errors, ...app(SeoValidator::class)->startErrors($contributes, $plugin));
         array_push($errors, ...DeclaredExports::startErrors($contributes, $plugin));
         array_push($errors, ...ImageServiceDeclaration::startErrors($contributes, $plugin));
+        array_push($errors, ...PluginSlotDeclaration::startErrors($contributes, $plugin));
+        array_push($errors, ...ImportReaderDeclaration::startErrors($contributes, $plugin));
         array_push($errors, ...DeclaredCommands::prefixErrors($code, $contributes));
         array_push($errors, ...DeclaredCommands::startErrors($contributes, $plugin));
 

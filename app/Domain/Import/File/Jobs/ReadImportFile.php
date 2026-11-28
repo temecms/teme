@@ -20,18 +20,32 @@ use App\Domain\Import\File\TermRows;
 use App\Domain\Import\File\WxrRefused;
 use App\Domain\Import\File\WxrStream;
 use App\Domain\Import\Models\ImportFile;
+use App\Domain\Import\Operations\AssignImportReaderIds;
 use App\Domain\Import\Operations\FinishReadingImportFile;
+use App\Domain\Import\Operations\Input\AssignImportReaderIdsInput;
 use App\Domain\Import\Operations\Input\FinishReadingImportFileInput;
 use App\Domain\Import\Operations\Input\RecordImportFileRowsInput;
 use App\Domain\Import\Operations\Input\RefuseImportFileInput;
 use App\Domain\Import\Operations\RecordImportFileRows;
 use App\Domain\Import\Operations\RefuseImportFile;
+use App\Domain\Import\Reader\ReaderRows;
+use App\Domain\Import\Reader\ReaderSite;
+use App\Domain\Plugins\Readers\ImportReaders;
+use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Support\Security\JobActor;
+use App\Domain\Types\TaxonomyRegistry;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Teme\Contracts\Import\ImportItem;
+use Teme\Contracts\Import\ImportKind;
+use Teme\Contracts\Import\ImportMenuItemType;
+use Teme\Contracts\Import\ImportReader;
+use Teme\Contracts\Import\ImportReaderRefused;
+use Teme\Contracts\Import\ImportTaxonomy;
+use Throwable;
 
 final class ReadImportFile implements ShouldQueue
 {
@@ -43,6 +57,12 @@ final class ReadImportFile implements ShouldQueue
      * (ImportListPage::SECONDS).
      */
     public const int SECONDS = 45;
+
+    /**
+     * The largest file an import reader reads: a reader's whole file is read in one
+     * job, under the deadline, so a larger one is refused when its upload starts.
+     */
+    public const int READER_BYTES = 64 * 1024 * 1024;
 
     /** The items kept together, so a long part writes as it goes. */
     public const int ITEMS = 500;
@@ -74,6 +94,12 @@ final class ReadImportFile implements ShouldQueue
         $file = ImportFile::query()->find($this->fileId);
 
         if ($file === null || $file->state !== 'reading' || $file->deleted_at !== null) {
+            return;
+        }
+
+        if ($file->reader !== null) {
+            $this->readReader($file, $deadline);
+
             return;
         }
 
@@ -132,6 +158,299 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
+     * Reads a file a plugin's import reader reads: the whole file, then its
+     * rows in one record. A refusal stops the file with its sentence; any
+     * other failure is recorded as the plugin's fault and stops it too.
+     */
+    private function readReader(ImportFile $file, CarbonImmutable $deadline): void
+    {
+        $readers = app(ImportReaders::class);
+        $offer = $readers->find((string) $file->reader);
+
+        if ($offer === null) {
+            $this->refuseReader('That import reader isn’t on this site any more.');
+
+            return;
+        }
+
+        $path = Storage::disk('local')->path($file->path());
+
+        try {
+            $reader = $readers->reader($offer);
+            $probe = $reader->probe($path);
+            $items = [];
+            $cursor = null;
+            $given = [];
+
+            do {
+                $page = $reader->page($path, $cursor, self::ITEMS);
+                array_push($items, ...$page->items);
+                $cursor = $page->nextCursor;
+
+                if ($cursor !== null && isset($given[$cursor])) {
+                    $this->refuseReader('The import reader repeated a page of this file, so Teme stopped reading it.');
+
+                    return;
+                }
+
+                if ($cursor !== null) {
+                    $given[$cursor] = true;
+                }
+
+                if (self::outOfTime($deadline)) {
+                    $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+
+                    return;
+                }
+            } while ($cursor !== null);
+        } catch (ImportReaderRefused $refusal) {
+            $this->refuseReader($refusal->getMessage());
+
+            return;
+        } catch (Throwable $failure) {
+            app(SeoPlugins::class)->fault($offer->plugin, 'import-reader', ImportReader::class, $failure);
+            $this->refuseReader('The import reader couldn’t read this file.');
+
+            return;
+        }
+
+        if (trim((string) $probe->siteAddress) === '') {
+            $this->refuseReader('This export doesn’t name its site, so Teme can’t tell where it came from.');
+
+            return;
+        }
+
+        $unknown = $this->unknownWord($items);
+
+        if ($unknown !== null) {
+            $this->refuseReader($unknown);
+
+            return;
+        }
+
+        $ids = app(AssignImportReaderIds::class)->execute(new AssignImportReaderIdsInput(
+            ReaderSite::address((string) $probe->siteAddress),
+            (string) $file->reader,
+            array_map(fn (ImportItem $item): array => ['kind' => $item->kind, 'id' => $item->id], $items),
+            $this->actor->userId,
+        ));
+
+        if (self::outOfTime($deadline)) {
+            $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+
+            return;
+        }
+
+        $rows = ReaderRows::build($items, $this->blocks(), $ids);
+
+        if (self::outOfTime($deadline)) {
+            $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+
+            return;
+        }
+        $facts = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
+        $counted = self::noFacts();
+        $counted['notes'] = $this->notesOf($items, $probe->languages);
+
+        if (! $this->keep(0, count($items), $rows, $counted, $facts)) {
+            return;
+        }
+
+        app(FinishReadingImportFile::class)->execute(new FinishReadingImportFileInput($this->fileId, $this->actor->userId));
+    }
+
+    /**
+     * What a reader's file holds that Teme doesn't bring, counted and named
+     * for the report: comments on posts the file doesn't have, menu items in
+     * menus it doesn't have, menu items that point at nothing in the file,
+     * terms and featured pictures the file doesn't have, and a file in more
+     * than one language, whose items come across in the site's default language.
+     *
+     * @param  list<ImportItem>  $items
+     * @param  list<string>  $languages
+     *
+     * @return array<string, array{count: int, examples: list<string>, sentence: string}>
+     */
+    private function notesOf(array $items, array $languages): array
+    {
+        $posts = [];
+        $menus = [];
+
+        foreach ($items as $item) {
+            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
+                $posts[$item->id] = true;
+            } elseif ($item->kind === ImportKind::MENU) {
+                $menus[$item->id] = true;
+            }
+        }
+
+        $notes = [];
+        $comments = array_values(array_filter($items, fn (ImportItem $item): bool => $item->kind === ImportKind::COMMENT && ! isset($posts[(string) $item->postId])));
+        $menuItems = array_values(array_filter($items, fn (ImportItem $item): bool => $item->kind === ImportKind::MENU_ITEM && ! isset($menus[(string) $item->menuId])));
+
+        if ($comments !== []) {
+            $notes['comment'] = ['count' => count($comments), 'examples' => array_map(fn (ImportItem $item): string => $item->id, array_slice($comments, 0, 5)), 'sentence' => 'Comments on posts that aren’t in this file weren’t brought.'];
+        }
+
+        if ($menuItems !== []) {
+            $notes['menu-item'] = ['count' => count($menuItems), 'examples' => array_map(fn (ImportItem $item): string => $item->id, array_slice($menuItems, 0, 5)), 'sentence' => 'Menu items in menus that aren’t in this file weren’t brought.'];
+        }
+
+        $terms = [];
+        $media = [];
+
+        foreach ($items as $item) {
+            if ($item->kind === ImportKind::TERM) {
+                $terms[$item->id] = true;
+            } elseif ($item->kind === ImportKind::MEDIA) {
+                $media[$item->id] = true;
+            }
+        }
+
+        $withoutTerm = [];
+        $withoutPicture = [];
+        $withoutTarget = [];
+
+        foreach ($items as $item) {
+            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
+                foreach ($item->termIds as $termId) {
+                    if (! isset($terms[$termId])) {
+                        $withoutTerm[] = $item->id;
+
+                        break;
+                    }
+                }
+
+                if ($item->featuredMediaId !== null && ! isset($media[$item->featuredMediaId])) {
+                    $withoutPicture[] = $item->id;
+                }
+            } elseif ($item->kind === ImportKind::MENU_ITEM && isset($menus[(string) $item->menuId])) {
+                $known = $item->itemType === ImportMenuItemType::CONTENT ? $posts : $terms;
+
+                if (in_array($item->itemType, [ImportMenuItemType::CONTENT, ImportMenuItemType::TERM], true) && ! isset($known[(string) $item->objectId])) {
+                    $withoutTarget[] = $item->id;
+                }
+            }
+        }
+
+        foreach ([
+            'term' => [$withoutTerm, 'Terms of posts and pages that aren’t in this file weren’t brought, so those posts aren’t filed under them.'],
+            'featured-image' => [$withoutPicture, 'Featured pictures that aren’t in this file weren’t brought, so those posts have none for now.'],
+            'menu-target' => [$withoutTarget, 'Menu items that point at a post, page or term that isn’t in this file were brought with nothing to point at.'],
+        ] as $kind => [$ids, $sentence]) {
+            if ($ids !== []) {
+                $notes[$kind] = ['count' => count($ids), 'examples' => array_slice($ids, 0, 5), 'sentence' => $sentence];
+            }
+        }
+
+        $orphans = $this->withoutParent($items, $posts, $terms, $menus);
+
+        if ($orphans !== []) {
+            $notes['parent'] = ['count' => count($orphans), 'examples' => array_slice($orphans, 0, 5), 'sentence' => 'Items whose parent isn’t in this file were placed at the top, with no parent.'];
+        }
+
+        if (count(array_unique($languages)) > 1) {
+            $notes['language'] = ['count' => 1, 'examples' => [], 'sentence' => 'This file has more than one language, and its items come across in the site’s default language.'];
+        }
+
+        return $notes;
+    }
+
+    /**
+     * The IDs, in the file's order, of the items that name a parent the file doesn't have: a post, page or
+     * picture whose parent isn't a post or page of the file, a term or comment or menu item whose parent
+     * isn't one of its own kind. A comment on a post, or a menu item in a menu, the file doesn't have is
+     * already noted, so it isn't counted here.
+     *
+     * @param  list<ImportItem>  $items
+     * @param  array<string, true>  $posts  the source IDs of the file's posts and pages
+     * @param  array<string, true>  $terms  the source IDs of the file's terms
+     * @param  array<string, true>  $menus  the source IDs of the file's menus
+     *
+     * @return list<string>
+     */
+    private function withoutParent(array $items, array $posts, array $terms, array $menus): array
+    {
+        $own = [];
+
+        foreach ($items as $item) {
+            $own[$item->kind][$item->id] = true;
+        }
+
+        $missing = [];
+
+        foreach ($items as $item) {
+            if ($item->parentId === null) {
+                continue;
+            }
+
+            $known = match ($item->kind) {
+                ImportKind::POST, ImportKind::PAGE, ImportKind::MEDIA => isset($posts[$item->parentId]),
+                ImportKind::TERM => isset($terms[$item->parentId]),
+                ImportKind::COMMENT => ! isset($posts[(string) $item->postId]) || isset($own[ImportKind::COMMENT][$item->parentId]),
+                ImportKind::MENU_ITEM => ! isset($menus[(string) $item->menuId]) || isset($own[ImportKind::MENU_ITEM][$item->parentId]),
+                default => true,
+            };
+
+            if (! $known) {
+                $missing[] = $item->id;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
+     * The sentence that refuses a file for a word a reader gave that Teme
+     * doesn't know, or null when every word is one Teme knows.
+     *
+     * @param  list<ImportItem>  $items
+     */
+    private function unknownWord(array $items): ?string
+    {
+        foreach ($items as $item) {
+            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true) && ! ReaderRows::postStatusKnown($item->status)) {
+                return 'A post or page of this file has a status Teme doesn’t know.';
+            }
+
+            if ($item->kind === ImportKind::COMMENT && ! ReaderRows::commentStatusKnown($item->status)) {
+                return 'A comment of this file has a status Teme doesn’t know.';
+            }
+
+            if ($item->kind === ImportKind::TERM && ! $this->taxonomyKnown((string) ($item->fields['taxonomy'] ?? 'category'))) {
+                return 'A term of this file has a taxonomy Teme doesn’t know.';
+            }
+
+            if ($item->kind === ImportKind::MENU_ITEM && ! in_array($item->itemType, ImportMenuItemType::all(), true)) {
+                return 'A menu item of this file has a type Teme doesn’t know.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether a reader may give a term this taxonomy: categories and tags, or a
+     * taxonomy Teme has registered that isn't one Teme keeps for itself, such
+     * as navigation menus or languages.
+     */
+    private function taxonomyKnown(string $taxonomy): bool
+    {
+        if ($taxonomy === ImportTaxonomy::CATEGORY || $taxonomy === ImportTaxonomy::TAG) {
+            return true;
+        }
+
+        return ImportTaxonomy::valid($taxonomy)
+            && ! in_array($taxonomy, TermRows::INTERNAL, true)
+            && app(TaxonomyRegistry::class)->has($taxonomy);
+    }
+
+    private function refuseReader(string $sentence): void
+    {
+        app(RefuseImportFile::class)->execute(new RefuseImportFileInput($this->fileId, $sentence, $this->actor->userId));
+    }
+
+    /**
      * Keeps the items from $from up to $to; false when another read has moved the file on.
      *
      * @param  list<array{list: string, id: int, payload: array<string, mixed>}>  $rows
@@ -176,11 +495,11 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
-     * @return array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>}
+     * @return array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes: array<string, array{count: int, examples: list<string>, sentence: string}>}
      */
     private static function noFacts(): array
     {
-        return ['seo' => [], 'images' => ['total' => 0, 'own' => 0, 'hosts' => []], 'dropped' => []];
+        return ['seo' => [], 'images' => ['total' => 0, 'own' => 0, 'hosts' => []], 'dropped' => [], 'notes' => []];
     }
 
     /**
@@ -200,5 +519,16 @@ final class ReadImportFile implements ShouldQueue
             'images' => ['total' => $counted['images']['total'] + $more['images']['total'], 'own' => $counted['images']['own'] + $more['images']['own'], 'hosts' => $counted['images']['hosts']],
             'dropped' => [...$counted['dropped'], ...$more['dropped']],
         ];
+    }
+
+    /**
+     * Whether the reader's time is up. Asked again after each stage, since
+     * each takes time: never a value to remember between calls.
+     *
+     * @phpstan-impure
+     */
+    private static function outOfTime(CarbonImmutable $deadline): bool
+    {
+        return CarbonImmutable::now()->greaterThanOrEqualTo($deadline);
     }
 }

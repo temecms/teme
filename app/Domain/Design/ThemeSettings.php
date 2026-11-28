@@ -18,6 +18,7 @@ use App\Domain\Cache\PageTags;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Themes\Manifest;
+use App\Domain\Themes\ManifestValidator;
 use App\Domain\Themes\ThemeRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
@@ -41,6 +42,7 @@ final readonly class ThemeSettings
             }
 
             $settings = [
+                ...$this->styleSetting($manifest),
                 ...array_map($this->setting(...), $manifest->settings()),
                 ...ThemeSlotSettings::settings($manifest),
             ];
@@ -66,6 +68,33 @@ final readonly class ThemeSettings
     }
 
     /**
+     * The Style select core adds when the theme declares styles (issue 371),
+     * defaulting to the first style, or [] when it declares none.
+     *
+     * @return list<Setting>
+     */
+    private function styleSetting(Manifest $manifest): array
+    {
+        $styles = $manifest->styles();
+
+        if ($styles === []) {
+            return [];
+        }
+
+        $options = [];
+
+        foreach ($styles as $name => $style) {
+            $options[$name] = $style['label'];
+        }
+
+        return [
+            Setting::select(ManifestValidator::STYLE_SETTING, 'Style', 'Which look the theme draws with.', 'next', $options)
+                ->default((string) array_key_first($options))
+                ->fieldset('site'),
+        ];
+    }
+
+    /**
      * One manifest setting as a declaration. ManifestValidator has checked
      * it, so the theme is usable only when this can't throw; a setting
      * without a description is described by its label.
@@ -83,11 +112,53 @@ final readonly class ThemeSettings
             'select' => Setting::select($key, $label, $description, '0.1.0', array_map(strval(...), (array) $declared['options']))->default((string) $default),
             'boolean' => Setting::boolean($key, $label, $description, '0.1.0')->default((bool) $default),
             'color' => Setting::color($key, $label, $description, '0.1.0')->default(strtolower((string) $default)),
+            'number' => $this->number($key, $label, $description, $declared, (int) $default),
+            'image' => Setting::media($key, $label, $description, '1.8.0')->default(''),
+            'menu' => Setting::text($key, $label, $description, '1.8.0')->default((string) $default),
+            'links' => Setting::repeater($key, $label, $description, '1.8.0', [
+                Setting::text('label', 'Label', 'The link’s label.', '1.8.0')->required(),
+                Setting::url('address', 'Address', 'The link’s address.', '1.8.0')->required(),
+            ])->max(ManifestValidator::MOST_LINKS)->itemTitle('label')->default(is_array($default) ? $default : []),
+            'url' => Setting::url($key, $label, $description, '1.8.0')->default((string) $default),
+            'textarea' => Setting::textarea($key, $label, $description, '1.8.0')->default((string) $default),
             default => Setting::text($key, $label, $description, '0.1.0')->default((string) $default),
         };
 
         $setting = $setting->fieldset((string) $declared['fieldset']);
 
+        if (isset($declared['group']) && is_string($declared['group'])) {
+            $setting = $setting->group($declared['group']);
+        }
+
         return isset($declared['visible_when']) ? $setting->visibleWhen((array) $declared['visible_when']) : $setting;
+    }
+
+    /**
+     * A number setting with its optional min, max and unit.
+     *
+     * @param  array<string, mixed>  $declared
+     */
+    private function number(string $key, string $label, string $description, array $declared, int $default): Setting
+    {
+        // Required so clearing the field can't store 0 when that is below min.
+        $setting = Setting::number($key, $label, $description, '1.8.0')->default($default)->required();
+
+        if (isset($declared['min']) && is_int($declared['min'])) {
+            $setting = $setting->min($declared['min']);
+        }
+
+        if (isset($declared['max']) && is_int($declared['max'])) {
+            $setting = $setting->max($declared['max']);
+        }
+
+        if (isset($declared['step']) && is_int($declared['step']) && $declared['step'] >= 1) {
+            $setting = $setting->step($declared['step']);
+        }
+
+        if (isset($declared['unit']) && is_string($declared['unit']) && $declared['unit'] !== '') {
+            $setting = $setting->unit($declared['unit']);
+        }
+
+        return $setting;
     }
 }

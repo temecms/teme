@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace App\View\Components\Teme;
 
 use App\Domain\Menus\SlotMenus;
+use App\Domain\Themes\ComponentOverrides;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
@@ -29,6 +30,9 @@ use Illuminate\View\Component;
  */
 final class Navigation extends Component
 {
+    /** The contract a theme's override of this component is written against (docs/guides/developers/themes/components.md). */
+    public const int CONTRACT = 1;
+
     public string $slotKey;
 
     /** The slot's label in the theme's manifest, such as "Header". */
@@ -63,6 +67,6 @@ final class Navigation extends Component
 
     public function render(): View
     {
-        return view('teme::components.navigation');
+        return app(ComponentOverrides::class)->render('navigation', 'teme::components.navigation');
     }
 }

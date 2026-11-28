@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace App\Domain\Fediverse\Replies\Operations;
 
 use App\Domain\Addresses\Addresses;
+use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\CommentEmails;
 use App\Domain\Comments\CommentKind;
 use App\Domain\Comments\CommentPlace;
@@ -66,6 +67,20 @@ final class ReceiveFediverseReply extends BaseOperation
     protected function validate(OperationInput $input): void
     {
         /** @var FediverseReplyInput $input */
+        self::admit($input, record: true);
+    }
+
+    /**
+     * The checks a reply must pass before it is saved, and nothing is written:
+     * its address, its writer, whether it was taken, its target, its words and
+     * the hourly limit. With $record the limit counts this reply; without it the
+     * limit is only read, so a plugin is asked only about a reply that will be kept.
+     *
+     * @throws ValidationException
+     */
+    public static function admit(FediverseReplyInput $input, bool $record): void
+    {
+        /** @var FediverseReplyInput $input */
         $remote = RemoteActor::query()->findOrFail($input->remoteActorId);
         $object = $input->object;
         $uri = $input->uri();
@@ -98,7 +113,39 @@ final class ReceiveFediverseReply extends BaseOperation
             throw ValidationException::withMessages(['object' => 'The reply holds no words, or too many.']);
         }
 
-        self::count($remote);
+        self::count($remote, $record);
+    }
+
+    /**
+     * The comment a reply would be, as a plugin's check reads it, built with no
+     * writes so that the check can be asked before the save's transaction; null
+     * when the reply has no target or no words.
+     *
+     * @param  array<string, mixed>  $object
+     */
+    public static function candidate(RemoteActor $remote, array $object): ?CommentCandidate
+    {
+        $target = is_string($object['inReplyTo'] ?? null) ? ReplyTarget::of($object['inReplyTo']) : null;
+        $document = is_string($object['content'] ?? null) ? app(RemoteWords::class)->document($object['content']) : null;
+
+        if ($target === null || $document === null) {
+            return null;
+        }
+
+        return new CommentCandidate(
+            contentId: $target->item->id,
+            parentId: $target->parent?->id,
+            text: CommentText::plain($document),
+            links: CommentText::links($document),
+            authorName: mb_substr(trim((string) ($remote->name ?: $remote->handle ?: $remote->uri)), 0, 100),
+            authorEmail: null,
+            authorUrl: self::website($remote),
+            authorUserId: null,
+            ip: null,
+            userAgent: null,
+            returning: self::returning($remote),
+            itemUrl: null,
+        );
     }
 
     /**
@@ -107,7 +154,7 @@ final class ReceiveFediverseReply extends BaseOperation
      *
      * @throws ValidationException
      */
-    public static function count(RemoteActor $remote): void
+    public static function count(RemoteActor $remote, bool $record = true): void
     {
         $key = 'comments:fediverse:'.sha1($remote->uri);
 
@@ -115,7 +162,9 @@ final class ReceiveFediverseReply extends BaseOperation
             throw ValidationException::withMessages(['object' => 'Dropped: the account sent too many replies in an hour.']);
         }
 
-        RateLimiter::hit($key, self::DECAY);
+        if ($record) {
+            RateLimiter::hit($key, self::DECAY);
+        }
     }
 
     protected function perform(OperationInput $input): string
@@ -157,6 +206,9 @@ final class ReceiveFediverseReply extends BaseOperation
             returning: self::returning($remote),
             itemUrl: Addresses::urlFor($item),
         )));
+
+        // A plugin's check was asked before the transaction, by InboxReplies; core's judgment still applies after it.
+        $verdict = CommentChecks::strictest($input->checked, $verdict) ?? $verdict;
 
         $id = strtolower((string) Str::ulid(now()));
 

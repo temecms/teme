@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
 
+use App\Domain\Import\File\FileNotes;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportRun;
@@ -141,6 +142,20 @@ final readonly class ImportFiles
         }
 
         return $this->scannedCounts($fileId);
+    }
+
+    /**
+     * Returns what a reader's file holds that Teme doesn't bring, as rows for the plan and the report: each with its kind, its plain name, its count, the first IDs and its sentence. Empty for a file with none, or a WordPress file.
+     *
+     * @since next
+     *
+     * @return list<array{kind: string, group: string, count: int, examples: list<string>, sentence: string}>
+     */
+    public function notes(string $fileId): array
+    {
+        $file = ImportFile::query()->whereKey($fileId)->first(['report']);
+
+        return FileNotes::rows(is_array($file?->report['notes'] ?? null) ? $file->report['notes'] : []);
     }
 
     /**

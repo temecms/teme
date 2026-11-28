@@ -2,13 +2,21 @@
 title: Addresses, listings and bodies in a template
 type: how-to
 audience: theme
-summary: The values and tags a template can read for the site's own addresses, breadcrumbs, a page's siblings, a type's items, a listing's totals, reading time, search sections, the body's blocks, and for knowing which region a card is drawn in.
+summary: The values and tags a template can read for the site's own addresses, breadcrumbs, a page's siblings, a type's items, a listing's totals, reading time, search sections, heading ids and a contents list, the body's blocks, and for knowing which region a card is drawn in.
 rests_on: [app/Domain/Site/SiteAddresses.php, app/Domain/Site/ViewModels, app/Domain/Site/Breadcrumbs.php, app/Domain/Site/PageFamily.php, app/View/Components/Teme/Items.php, app/Domain/Regions/RegionDrawing.php, app/Domain/Cards/DocumentRenderer.php, resources/css/cards, docs/reference/theme.md, themes/default]
 ---
 
 # Addresses, listings and bodies in a template
 
 This page covers what a template can read beyond the basics, so it needn't count, parse or hard-code. Every value is worked out for the page's language and for what a reader may see: nothing unpublished, private or in the trash reaches a template, and every address is made from the site's current address when the page is drawn, so none is stored. Each type and field is listed in the [theme reference](../../../reference/theme.md). It describes `main` today.
+
+## Theme settings a template reads
+
+`$themeSettings` is the active theme's own settings, key to value, without its menu places. An `image` setting is `{url, alt}` or `null` when none is chosen; a `menu` setting is the menu's tree (each item with `label`, `url`, `current`, and the rest) or `null`; a `links` setting is a list of `{label, address}`; numbers, text, urls and the older types keep the stored value. The list is built once per page.
+
+In `teme-theme.json`, a setting may carry a `group`, a short label. Settings that share one are drawn together as a foldable section inside their fieldset, in manifest order; a setting with no group stays at the top. The group only changes how the screen draws them. It has no effect on `$themeSettings`.
+
+`site_icon` is a manifest key, not a setting: a path inside the theme's `public` folder to the picture the site shows as its icon until a person chooses one. The icon chosen under Settings › Design always wins over it. A chosen picture is made into PNG icons in the background, so the page names each icon with the size it really has, and a picture smaller than a size gives a smaller icon.
 
 ## The posts page and each archive's address
 
@@ -87,6 +95,21 @@ The page's own `pagination` keeps the chosen section on every page. The search t
 @foreach ($page->search->sections as $section)
     <a href="{{ $section->url }}">{{ $section->label }} ({{ $section->count }})</a>
 @endforeach
+```
+
+## Headings and a contents list
+
+Every heading in `$page->bodyHtml` has an `id`: the heading's permanent node id when the editor stored one, otherwise one made from its words (lowercase, hyphens; `heading` when the words leave an empty slug), unique on the page (`heading-2`, `heading-3` when the same base is used again). A same-page link reaches that heading when its `href` is that id — nothing rewrites links to match. `$page->headings` lists every level-2–4 heading in order, each with `level`, `text` and `id`, from the same pass that draws the body, so a theme can draw an "In this story" list without parsing HTML:
+
+```blade
+// docs/guides/developers/examples/themes/contents-list.blade.php
+@if ($page->headings !== [])
+    <nav aria-label="{{ __('In this story') }}">
+        <ol>@foreach ($page->headings as $heading)
+            <li><a href="#{{ $heading['id'] }}">{{ $heading['text'] }}</a></li>
+        @endforeach</ol>
+    </nav>
+@endif
 ```
 
 ## The body as blocks

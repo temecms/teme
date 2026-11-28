@@ -118,7 +118,7 @@ export function BrandColourSetting({
                         value={brand.version}
                         disabled={locked}
                     />
-                    <Label htmlFor="field-accent">{__('Brand colour')}</Label>
+                    <Label htmlFor="field-brand">{__('Brand colour')}</Label>
                     <div className="flex flex-wrap items-center gap-3">
                         <input
                             type="color"
@@ -129,9 +129,9 @@ export function BrandColourSetting({
                             className="border-edge bg-surface h-(--ctl-h) w-(--ctl-h) rounded-md border p-1"
                         />
                         <Input
-                            id="field-accent"
+                            id="field-brand"
                             name="accent"
-                            aria-describedby="field-accent-hint brand-colour-readout field-accent-error"
+                            aria-describedby="field-brand-hint brand-colour-readout field-brand-error"
                             aria-invalid={error !== undefined}
                             className="w-32"
                             value={text}
@@ -182,11 +182,11 @@ export function BrandColourSetting({
                         </span>
                     </div>
                     <p
-                        id="field-accent-hint"
+                        id="field-brand-hint"
                         className="text-caption text-ink-3 text-pretty"
                     >
                         {__(
-                            'The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme. Empty uses the theme’s own.',
+                            'The site’s identity colour: the browser tab, and --teme-brand for themes. Empty leaves the token unset. A theme may opt to use it as its accent.',
                         )}
                     </p>
                     {problems.length > 0 && (
@@ -198,7 +198,7 @@ export function BrandColourSetting({
                     )}
                     {error !== undefined && error !== '' && (
                         <p
-                            id="field-accent-error"
+                            id="field-brand-error"
                             className="text-small text-danger-ink flex items-start gap-1"
                         >
                             <span className="flex h-lh shrink-0 items-center">

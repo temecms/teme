@@ -1,3 +1,4 @@
+import type { CardMedia } from './editor';
 import type { ExtensionOrigin, ExtensionsData } from './extensions';
 import type { RegionsIndexPage } from './regions';
 import type { FieldType } from './settings';
@@ -7,12 +8,21 @@ export type DesignFieldset = 'site' | 'latest' | 'content' | 'archive';
 
 export type DesignField = {
     key: string;
-    type: FieldType;
+    type: FieldType | 'menu';
     label: string;
     description: string;
     options: Record<string, string>;
     /** Shown only while every other setting named here has this value, or one of these. */
     visibleWhen: Record<string, unknown>;
+    /** A foldable section inside the fieldset; null when the setting sits at the top. */
+    group: string | null;
+    min: number | null;
+    max: number | null;
+    step: number | null;
+    unit: string | null;
+    /** A links (repeater) setting's fields. */
+    fields?: DesignField[];
+    itemTitle?: string | null;
 };
 
 /** A theme's state on Site › Themes, as the server names it. */
@@ -91,6 +101,8 @@ export type DesignPage = {
         design: Record<string, unknown>;
         theme: Record<string, unknown>;
     };
+    /** Each media setting's chosen image, or null when none or gone. */
+    media: Record<string, CardMedia | null>;
     slots: DesignSlot[];
     menus: { id: string; name: string }[];
     draft: DesignDraft | null;

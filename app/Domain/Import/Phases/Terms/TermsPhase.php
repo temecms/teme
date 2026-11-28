@@ -77,7 +77,7 @@ final readonly class TermsPhase implements ListPhase
     public function import(SourceRef $ref, array $item, ImportContext $context, ?PreparedObject $prepared): ImportResult
     {
         $wordpressTaxonomy = (string) ($item['taxonomy'] ?? '');
-        $taxonomy = $this->taxonomyFor($wordpressTaxonomy);
+        $taxonomy = $this->taxonomyFor($wordpressTaxonomy, ($item['reader'] ?? false) === true);
 
         if ($taxonomy === null) {
             return ImportResult::skipped($wordpressTaxonomy === self::POST_FORMAT
@@ -216,11 +216,15 @@ final readonly class TermsPhase implements ListPhase
 
     /**
      * The taxonomy whose WordPress name this is, or null when Teme has none.
+     * A reader's term names its taxonomy by WordPress's name when Teme has
+     * one, else by the taxonomy's key, so it is matched on that name.
      */
-    private function taxonomyFor(string $wordpress): ?Taxonomy
+    private function taxonomyFor(string $name, bool $reader): ?Taxonomy
     {
         foreach ($this->taxonomies->all() as $taxonomy) {
-            if ($wordpress !== '' && $taxonomy->wordpress === $wordpress) {
+            $known = $reader ? ($taxonomy->wordpress ?? $taxonomy->key) : $taxonomy->wordpress;
+
+            if ($name !== '' && $known === $name) {
                 return $taxonomy;
             }
         }

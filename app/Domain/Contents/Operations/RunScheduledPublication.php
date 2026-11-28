@@ -115,7 +115,7 @@ final class RunScheduledPublication extends BaseOperation
         // this may have typed since. Nobody is there to read a refusal, so a
         // page under it whose new address is taken keeps its old one.
         app(PublishRevision::class)->execute(new PublishRevisionInput(
-            $content->id, (string) $schedule->revision_id, $input->actorId(), clearAutosave: false, checkRequired: false, keepClashingChildren: true,
+            $content->id, (string) $schedule->revision_id, $input->actorId(), clearAutosave: false, checkRequired: false, keepClashingChildren: true, askBeforeSave: false,
         ));
 
         return [

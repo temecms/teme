@@ -145,7 +145,7 @@
         },
         "settings": {
             "type": "array",
-            "description": "The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it.",
+            "description": "The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. A number may give min, max, step and unit; a links default is a list of label and address, at most 12; group names a foldable section inside the fieldset.",
             "items": {
                 "type": "object",
                 "required": ["key", "type", "label", "fieldset", "default"],
@@ -157,13 +157,29 @@
                     },
                     "type": {
                         "type": "string",
-                        "enum": ["select", "boolean", "text", "color"]
+                        "enum": [
+                            "select",
+                            "boolean",
+                            "text",
+                            "color",
+                            "number",
+                            "image",
+                            "menu",
+                            "links",
+                            "url",
+                            "textarea"
+                        ]
                     },
                     "label": { "type": "string", "minLength": 1 },
                     "description": { "type": "string", "minLength": 1 },
                     "fieldset": {
                         "type": "string",
                         "enum": ["site", "latest", "content", "archive"]
+                    },
+                    "group": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "A titled foldable section inside the fieldset. Settings without a group stay at the top."
                     },
                     "options": {
                         "type": "object",
@@ -173,8 +189,26 @@
                         },
                         "description": "Stored value, then label. Only a select takes options."
                     },
+                    "min": {
+                        "type": "integer",
+                        "description": "A number setting's least value."
+                    },
+                    "max": {
+                        "type": "integer",
+                        "description": "A number setting's greatest value."
+                    },
+                    "step": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "A number setting's step on the form."
+                    },
+                    "unit": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "A number setting's unit, shown beside its field."
+                    },
                     "default": {
-                        "description": "A select's default is one of its options; a boolean's is true or false; a text's is text; a colour's is an empty string or #rrggbb."
+                        "description": "A select's default is one of its options; a boolean's is true or false; a text's or textarea's is text; a menu's or image's is \"\"; a colour's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}."
                     },
                     "visible_when": {
                         "type": "object",
@@ -228,7 +262,7 @@
         },
         "fonts": {
             "type": "array",
-            "description": "The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there.",
+            "description": "The theme's fonts. Core writes an @font-face for each with face true or absent (family, weight, style, src as the same-origin theme file, font-display swap, optional unicode_range) and preloads at most one. face false means preload only — the theme ships its own @font-face. Each file is relative to the theme's public folder and exists there. A theme that writes every face itself may leave this key out, or keep it for preload with face false.",
             "items": {
                 "type": "object",
                 "required": ["family", "file"],
@@ -245,13 +279,22 @@
                     },
                     "preload": {
                         "description": "Only true preloads the font; any other value, or none, does not."
+                    },
+                    "face": {
+                        "type": "boolean",
+                        "description": "Whether core writes an @font-face for this font; true when absent. false keeps preload and leaves the face to the theme."
+                    },
+                    "unicode_range": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Optional unicode-range for the @font-face core writes; omitted when face is false."
                     }
                 }
             }
         },
         "tokens": {
             "type": "object",
-            "description": "Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours.",
+            "description": "Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -260,6 +303,7 @@
                     "on-accent",
                     "muted",
                     "rule",
+                    "brand",
                     "font-body",
                     "font-heading",
                     "font-mono",
@@ -294,7 +338,7 @@
         },
         "tokens_dark": {
             "type": "object",
-            "description": "The same tokens and rules, for the theme's dark scheme.",
+            "description": "The same core tokens and rules, for the theme's dark scheme. brand is read-only.",
             "propertyNames": {
                 "enum": [
                     "base",
@@ -303,6 +347,7 @@
                     "on-accent",
                     "muted",
                     "rule",
+                    "brand",
                     "font-body",
                     "font-heading",
                     "font-mono",
@@ -335,6 +380,44 @@
                 }
             }
         },
+        "custom_tokens": {
+            "type": "object",
+            "description": "The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens.",
+            "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "custom_tokens_dark": {
+            "type": "object",
+            "description": "The theme's own dark-scheme tokens, same name and value rules as custom_tokens.",
+            "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "styles": {
+            "type": "object",
+            "description": "Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload.",
+            "propertyNames": {
+                "pattern": "^[a-z0-9-]+$"
+            },
+            "additionalProperties": {
+                "type": "object",
+                "required": ["label"],
+                "properties": {
+                    "label": { "type": "string", "minLength": 1 },
+                    "tokens": { "$ref": "#/properties/tokens" },
+                    "tokens_dark": { "$ref": "#/properties/tokens_dark" },
+                    "custom_tokens": { "$ref": "#/properties/custom_tokens" },
+                    "fonts": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "The file of one font declared under fonts; that font is preloaded for this style."
+                    }
+                }
+            }
+        },
         "speculation": {
             "type": "boolean",
             "description": "A theme may only opt out: false leaves the prerendering rules out."
@@ -353,6 +436,12 @@
             "pattern": "^(?!/)(?!(?:.*/)?\\.\\.(?:/|$))[^\\\\\\s:]+\\.(?:[pP][nN][gG]|[jJ][pP][eE]?[gG]|[wW][eE][bB][pP]|[sS][vV][gG])$",
             "$comment": "@since 1.3.0",
             "description": "The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error."
+        },
+        "site_icon": {
+            "type": "string",
+            "pattern": "^(?!/)(?!(?:.*/)?\\.\\.(?:/|$))[^\\\\\\s:]+\\.(?:[pP][nN][gG]|[jJ][pP][eE]?[gG]|[wW][eE][bB][pP]|[sS][vV][gG])$",
+            "$comment": "@since next",
+            "description": "The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this."
         },
         "screenshots": {
             "type": "array",
@@ -373,6 +462,48 @@
                         "type": "string",
                         "maxLength": 140,
                         "description": "What the picture shows, in at most 140 characters."
+                    }
+                }
+            }
+        },
+        "overrides": {
+            "type": "object",
+            "description": "Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md).",
+            "propertyNames": {
+                "enum": [
+                    "region",
+                    "navigation",
+                    "languages",
+                    "image",
+                    "between-items",
+                    "comment-form"
+                ]
+            },
+            "additionalProperties": {
+                "type": "object",
+                "required": ["contract"],
+                "additionalProperties": false,
+                "properties": {
+                    "contract": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "The contract number the override was written against."
+                    }
+                }
+            }
+        },
+        "plugin_styles": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Plugin stylesheets the theme switches off, so it styles that output itself.",
+            "properties": {
+                "off": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "description": "Each stylesheet as its plugin's code and output: code:card:<id> or code:insertion:<id>.",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$"
                     }
                 }
             }

@@ -23,7 +23,10 @@ use App\Domain\Dashboard\DashboardPanel;
 use App\Domain\Dashboard\DashboardPanelQuery;
 use App\Domain\Dashboard\DashboardRegistry;
 use App\Domain\Dashboard\MainType;
+use App\Domain\Plugins\Area\HomePanelDeclaration;
+use App\Domain\Plugins\Area\PluginHomePanels;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Queries\PluginAreaScreen;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Seo\Queries\SearchEnginesNotice;
 use App\Domain\Types\ContentType;
@@ -43,6 +46,8 @@ final readonly class Dashboard
         private GettingStarted $gettingStarted,
         private SearchEnginesNotice $searchEngines,
         private PluginRegistry $plugins,
+        private PluginHomePanels $homePanels,
+        private PluginAreaScreen $areaScreen,
     ) {}
 
     /**
@@ -51,8 +56,8 @@ final readonly class Dashboard
      * the main type, with whether they may create one or upload media.
      *
      * @return array{
-     *   panels: list<array{key: string, label: string, rows: list<array{id: string, title: string, subtitle: string, url: string, at: string}>, seeAll: string|null, failed: bool}>,
-     *   catalogue: list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft'|'site-status', owner: string, ownerName: string|null}>,
+     *   panels: list<array{key: string, label: string, rows: list<array{id: string, title: string, subtitle: string, url: string, at: string}>, seeAll: string|null, failed: bool, blocks: list<array<string, mixed>>}>,
+     *   catalogue: list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft'|'site-status'|'plugin', owner: string, ownerName: string|null}>,
      *   layout: array{order: list<string>, hidden: list<string>, sizes: array<string, 'small'|'medium'|'large'|'full'>},
      *   figures: list<array{key: string, label: string, dot: string, value: int, url: string|null}>,
      *   mainType: array{singular: string, segment: string, canCreate: bool},
@@ -85,6 +90,16 @@ final readonly class Dashboard
 
             $entry = collect($catalogue)->firstWhere('key', $key);
 
+            if ($entry !== null && $entry['kind'] === 'plugin') {
+                $declared = $this->homePanels->find($key);
+
+                if ($declared !== null) {
+                    $panels[] = $this->pluginPanel($viewer, $declared);
+                }
+
+                continue;
+            }
+
             if ($entry === null || $entry['kind'] !== 'rows') {
                 continue;
             }
@@ -108,6 +123,7 @@ final readonly class Dashboard
                     'rows' => [],
                     'seeAll' => $this->seeAll($panel, $main, $viewer),
                     'failed' => true,
+                    'blocks' => [],
                 ];
 
                 continue;
@@ -120,6 +136,7 @@ final readonly class Dashboard
                     'rows' => $rows,
                     'seeAll' => $this->seeAll($panel, $main, $viewer),
                     'failed' => false,
+                    'blocks' => [],
                 ];
             }
         }
@@ -175,7 +192,7 @@ final readonly class Dashboard
      *
      * @param  array<string, list<string>>  $held
      *
-     * @return list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft'|'site-status', owner: string, ownerName: string|null}>
+     * @return list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft'|'site-status'|'plugin', owner: string, ownerName: string|null}>
      */
     private function catalogue(User $viewer, array $held, bool $canQuickDraft): array
     {
@@ -188,6 +205,13 @@ final readonly class Dashboard
                 }
             } elseif ($panel->kind === 'site-status') {
                 // Everyone who opens Home may see the site status summary.
+            } elseif ($panel->kind === 'plugin') {
+                // A plugin's panel is for the people who may open its area.
+                $declared = $this->homePanels->find($panel->key);
+
+                if ($declared === null || ! $viewer->can($declared->plugin->ability())) {
+                    continue;
+                }
             } else {
                 $types = array_values(array_filter(
                     $this->listed(),
@@ -269,6 +293,58 @@ final readonly class Dashboard
             'hidden' => $hidden,
             'sizes' => $sizes,
         ];
+    }
+
+    /**
+     * A plugin's panel: each of its blocks read for the viewer under the
+     * area's budgets. A block that couldn't be read says so, and the panel is
+     * failed when every block that reads data couldn't be shown.
+     *
+     * @return array{key: string, label: string, rows: list<never>, seeAll: null, failed: bool, blocks: list<array<string, mixed>>}
+     */
+    private function pluginPanel(User $viewer, HomePanelDeclaration $declared): array
+    {
+        $blocks = [];
+
+        foreach ($declared->blocks as $blockId) {
+            $block = $declared->plugin->area->block($declared->page, $blockId);
+
+            if ($block === null) {
+                continue;
+            }
+
+            try {
+                $blocks[] = $this->areaScreen->homeBlock($declared->plugin, $declared->page, $block, (string) $viewer->getAuthIdentifier());
+            } catch (Throwable $e) {
+                report($e);
+                $blocks[] = ['id' => $blockId, 'type' => (string) ($block['type'] ?? ''), 'data' => null, 'failed' => true];
+            }
+        }
+
+        $reading = array_filter($blocks, fn (array $block): bool => in_array($block['type'] ?? null, ['figures', 'chart', 'table'], true));
+        $failed = $reading !== [] && array_all($reading, fn (array $block): bool => self::blockFailed($block));
+
+        return [
+            'key' => $declared->key,
+            'label' => $declared->title,
+            'rows' => [],
+            'seeAll' => null,
+            'failed' => $failed,
+            'blocks' => $blocks,
+        ];
+    }
+
+    /**
+     * Whether a block's data couldn't be shown: the block failed to read, or
+     * its data carries the line saying why.
+     *
+     * @param  array<string, mixed>  $block
+     */
+    private static function blockFailed(array $block): bool
+    {
+        $data = $block['data'] ?? null;
+
+        return ($block['failed'] ?? false) === true || (is_array($data) && is_string($data['failed'] ?? null));
     }
 
     /**

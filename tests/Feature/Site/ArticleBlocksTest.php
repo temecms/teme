@@ -33,7 +33,7 @@ it('lists the body\'s top-level blocks with their type, attributes and HTML', fu
 
     expect(array_map(fn (Block $block): string => $block->type, $blocks))->toBe(['heading', 'paragraph', 'horizontalRule', 'heading', 'callout'])
         ->and($blocks[0]->attrs['level'])->toBe(2)
-        ->and($blocks[0]->html)->toBe('<h2>First</h2>')
+        ->and($blocks[0]->html)->toBe('<h2 id="first">First</h2>')
         ->and($blocks[1]->html)->toBe('<p>Opening words.</p>')
         ->and($blocks[4]->html)->toContain('card-callout')->toContain('Mind the gap.');
 });

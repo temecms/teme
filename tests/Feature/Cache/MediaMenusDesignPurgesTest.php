@@ -169,11 +169,11 @@ it('purges every page of the design when a menu is placed', function (): void {
 it('purges every page of the design when the design is published', function (): void {
     cacheShown(['/the-design/' => ['theme'], '/shows-an-article/' => ['content:unrelated']]);
 
-    cacheRolledBack(fn () => designPublish(['design' => ['accent' => '#1d4ed8']]));
+    cacheRolledBack(fn () => designPublish(['design' => ['brand' => '#1d4ed8']]));
 
     expect(cacheKept('/the-design/', '/shows-an-article/'))->toHaveCount(2);
 
-    designPublish(['design' => ['accent' => '#1d4ed8']]);
+    designPublish(['design' => ['brand' => '#1d4ed8']]);
 
     expect(cacheKept('/the-design/', '/shows-an-article/'))->toBe(['/shows-an-article/']);
 });

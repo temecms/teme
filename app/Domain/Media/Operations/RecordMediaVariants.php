@@ -24,6 +24,7 @@ use App\Domain\Media\Jobs\GenerateMediaVariants;
 use App\Domain\Media\Models\Media;
 use App\Domain\Media\Operations\Input\RecordMediaVariantsInput;
 use App\Domain\Media\Queries\ShareImageUse;
+use App\Domain\Media\Queries\SiteIconUse;
 use App\Domain\Media\RecordedVariants;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\JobActor;
@@ -55,7 +56,7 @@ final class RecordMediaVariants extends BaseOperation
         }
 
         // Whoever used the image as an item's featured or social image may
-        // have its variants made, the share images among them (I-855).
+        // have its variants made, the share images among them.
         $item = $input->usedBy === null ? null : Content::query()->find($input->usedBy);
 
         if ($user !== null && $item !== null && Gate::forUser($user)->allows('update', $item) && ShareImageUse::usedBy((string) $media->id, (string) $item->id)) {
@@ -93,8 +94,12 @@ final class RecordMediaVariants extends BaseOperation
         ])->save();
 
         // A remake that began before the image was first used so lands
-        // without its share images: make them now (I-855).
-        if (! isset($input->variants['social']) && ShareImageUse::wanted((string) $media->id)) {
+        // without its share images: make them now. Same for the
+        // site icon's favicon sizes (issue 388).
+        $needsShare = ! isset($input->variants['social']) && ShareImageUse::wanted((string) $media->id);
+        $needsIcon = ! isset($input->variants['icon-32']) && SiteIconUse::wanted((string) $media->id);
+
+        if ($needsShare || $needsIcon) {
             GenerateMediaVariants::dispatch((string) $media->id, (int) $media->file_version, JobActor::of($input->actorId()), $input->usedBy)->afterCommit();
         }
 

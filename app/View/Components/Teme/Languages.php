@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace App\View\Components\Teme;
 
 use App\Domain\Site\LanguageLinks;
+use App\Domain\Themes\ComponentOverrides;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
@@ -25,6 +26,9 @@ use Illuminate\View\Component;
  */
 final class Languages extends Component
 {
+    /** The contract a theme's override of this component is written against (docs/guides/developers/themes/components.md). */
+    public const int CONTRACT = 1;
+
     /** @var list<array{label: string, url: string, current: bool, language: string}> */
     public array $links;
 
@@ -39,6 +43,6 @@ final class Languages extends Component
 
     public function render(): View
     {
-        return view('teme::components.languages');
+        return app(ComponentOverrides::class)->render('languages', 'teme::components.languages');
     }
 }

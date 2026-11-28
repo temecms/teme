@@ -25,14 +25,19 @@
 | `regions.*.size` | string | no | The region's size in pixels, width x height, told to its cards; advice only. | ^[1-9]\d{1,4}x[1-9]\d{1,4}$ |
 | `regions.*.max` | integer | no | How many cards the region holds; 50 when absent. |  |
 | `regions.*.minWidth` | integer | no | The narrowest viewport, in pixels, the region is drawn at. Below it nothing of the region is loaded, scripts included; the page carries a placeholder that core's script fills when the viewport reaches this width. |  |
-| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. |  |
+| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. A number may give min, max, step and unit; a links default is a list of label and address, at most 12; group names a foldable section inside the fieldset. |  |
 | `settings[].key` | string | yes | 2 to 41 lower-case letters, digits and underscores, starting with a letter; never starting with nav_. | ^[a-z][a-z0-9_]{1,40}$ |
-| `settings[].type` | string | yes |  | "select", "boolean", "text", "color" |
+| `settings[].type` | string | yes |  | "select", "boolean", "text", "color", "number", "image", "menu", "links", "url", "textarea" |
 | `settings[].label` | string | yes |  |  |
 | `settings[].description` | string | no |  |  |
 | `settings[].fieldset` | string | yes |  | "site", "latest", "content", "archive" |
+| `settings[].group` | string | no | A titled foldable section inside the fieldset. Settings without a group stay at the top. |  |
 | `settings[].options` | object | no | Stored value, then label. Only a select takes options. |  |
-| `settings[].default` |  | yes | A select's default is one of its options; a boolean's is true or false; a text's is text; a colour's is an empty string or #rrggbb. |  |
+| `settings[].min` | integer | no | A number setting's least value. |  |
+| `settings[].max` | integer | no | A number setting's greatest value. |  |
+| `settings[].step` | integer | no | A number setting's step on the form. |  |
+| `settings[].unit` | string | no | A number setting's unit, shown beside its field. |  |
+| `settings[].default` |  | yes | A select's default is one of its options; a boolean's is true or false; a text's or textarea's is text; a menu's or image's is ""; a colour's is an empty string or #rrggbb; a number's is a whole number in its bounds; a url's is empty or http(s); a links' is a list of {label, address}. |  |
 | `settings[].visible_when` | object | no | Earlier setting keys, each with a value or a list of values. |  |
 | `assets` | object | no | The theme's Vite build. |  |
 | `assets.manifest` | string | yes | A relative path inside the theme. |  |
@@ -43,25 +48,40 @@
 | `layout.wide` | integer | yes |  |  |
 | `layout.full` | integer\|null | no | Null for the whole viewport. |  |
 | `images` | object | no | Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses. |  |
-| `fonts` | array | no | The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there. |  |
+| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each with face true or absent (family, weight, style, src as the same-origin theme file, font-display swap, optional unicode_range) and preloads at most one. face false means preload only — the theme ships its own @font-face. Each file is relative to the theme's public folder and exists there. A theme that writes every face itself may leave this key out, or keep it for preload with face false. |  |
 | `fonts[].family` | string | yes |  |  |
 | `fonts[].file` | string | yes |  |  |
 | `fonts[].weight` | string\|integer | no | Any number or text, such as 400 or "400 700". |  |
 | `fonts[].style` | string | no |  | "normal", "italic", "oblique" |
 | `fonts[].preload` |  | no | Only true preloads the font; any other value, or none, does not. |  |
-| `tokens` | object | no | Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours. |  |
+| `fonts[].face` | boolean | no | Whether core writes an @font-face for this font; true when absent. false keeps preload and leaves the face to the theme. |  |
+| `fonts[].unicode_range` | string | no | Optional unicode-range for the @font-face core writes; omitted when face is false. |  |
+| `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens. |  |
 | `tokens.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
-| `tokens_dark` | object | no | The same tokens and rules, for the theme's dark scheme. |  |
+| `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. brand is read-only. |  |
 | `tokens_dark.base` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
 | `tokens_dark.accent` | string | no |  | ^#(?:[0-9a-fA-F]{3}\|[0-9a-fA-F]{6})$ |
+| `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |  |
+| `custom_tokens_dark` | object | no | The theme's own dark-scheme tokens, same name and value rules as custom_tokens. |  |
+| `styles` | object | no | Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload. |  |
+| `styles.*.label` | string | yes |  |  |
+| `styles.*.tokens` |  | no |  |  |
+| `styles.*.tokens_dark` |  | no |  |  |
+| `styles.*.custom_tokens` |  | no |  |  |
+| `styles.*.fonts` | string | no | The file of one font declared under fonts; that font is preloaded for this style. |  |
 | `speculation` | boolean | no | A theme may only opt out: false leaves the prerendering rules out. |  |
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |  |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][gG]\|[wW][eE][bB][pP])$ |
 | `icon` | string | no | The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP]\|[sS][vV][gG])$ |
+| `site_icon` | string | no | The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP]\|[sS][vV][gG])$ |
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |  |
 | `screenshots[].path` | string | yes | A path inside the theme, with no .., to a .png, .jpg, .jpeg or .webp picture, in any case. | ^(?!/)(?!(?:.*/)?\.\.(?:/\|$))[^\\\s:]+\.(?:[pP][nN][gG]\|[jJ][pP][eE]?[gG]\|[wW][eE][bB][pP])$ |
 | `screenshots[].caption` | string | no | What the picture shows, in at most 140 characters. |  |
+| `overrides` | object | no | Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md). |  |
+| `overrides.*.contract` | integer | yes | The contract number the override was written against. |  |
+| `plugin_styles` | object | no | Plugin stylesheets the theme switches off, so it styles that output itself. |  |
+| `plugin_styles.off` | array | no | Each stylesheet as its plugin's code and output: code:card:<id> or code:insertion:<id>. |  |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |  |
 | `cards.replaces` | array | no | Registered card names whose core stylesheets the theme replaces with its own. |  |
 | `cards.provides` | object | no | Cards the theme brings for its own regions, by id, at most 12. Each is drawn by views/cards/own/{id}.blade.php while the theme is active; its key is code:id, and a region's cards name it by its id. |  |

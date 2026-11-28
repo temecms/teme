@@ -15,9 +15,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
 
+use App\Domain\Import\File\Jobs\ReadImportFile;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\StartImportUploadInput;
+use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -48,7 +50,27 @@ final class StartImportUpload extends BaseOperation
             ],
         )->validate();
 
-        if (! str_ends_with(strtolower($input->name), '.xml')) {
+        if ($input->reader !== null) {
+            $offer = app(ImportReaders::class)->find($input->reader);
+
+            if ($offer === null) {
+                throw ValidationException::withMessages([
+                    'reader' => 'That import reader isn’t on this site any more.',
+                ]);
+            }
+
+            if ($input->sizeBytes > ReadImportFile::READER_BYTES) {
+                throw ValidationException::withMessages([
+                    'name' => 'A reader reads a file of up to 64 MB in one go, and this one is larger. Split it or export less.',
+                ]);
+            }
+
+            if (! in_array(strtolower(pathinfo($input->name, PATHINFO_EXTENSION)), $offer->fileTypes, true)) {
+                throw ValidationException::withMessages([
+                    'name' => 'Choose a file the reader reads: '.implode(', ', array_map(fn (string $type): string => '.'.$type, $offer->fileTypes)).'.',
+                ]);
+            }
+        } elseif (! str_ends_with(strtolower($input->name), '.xml')) {
             throw ValidationException::withMessages([
                 'name' => 'Choose the .xml file from WordPress’s Tools › Export.',
             ]);
@@ -81,6 +103,7 @@ final class StartImportUpload extends BaseOperation
             ->where('state', 'uploading')
             ->whereNull('deleted_at')
             ->where('created_at', '>=', now()->subDay())
+            ->where('reader', $input->reader)
             ->lockForUpdate()
             ->first();
 
@@ -99,6 +122,7 @@ final class StartImportUpload extends BaseOperation
             'size_bytes' => $input->sizeBytes,
             'received_bytes' => 0,
             'state' => 'uploading',
+            'reader' => $input->reader,
         ]);
 
         return [

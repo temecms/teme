@@ -148,6 +148,17 @@ final readonly class Manifest
     }
 
     /**
+     * The theme's default site icon, relative to its public folder, or ''
+     * when it declares none. The design setting wins over this (issue 388).
+     *
+     * @since next
+     */
+    public function siteIcon(): string
+    {
+        return $this->string('site_icon');
+    }
+
+    /**
      * The theme's Vite manifest, relative to the theme, or '' when it has no built assets.
      */
     public function assetsManifest(): string
@@ -233,7 +244,7 @@ final readonly class Manifest
     /**
      * The theme's fonts, their files relative to its public folder.
      *
-     * @return list<array{family: string, file: string, weight: string, style: string, preload: bool}>
+     * @return list<array{family: string, file: string, weight: string, style: string, preload: bool, face: bool, unicode_range: string|null}>
      */
     public function fonts(): array
     {
@@ -248,6 +259,8 @@ final readonly class Manifest
                     'weight' => is_scalar($font['weight'] ?? null) ? (string) $font['weight'] : '400',
                     'style' => is_string($font['style'] ?? null) ? $font['style'] : 'normal',
                     'preload' => ($font['preload'] ?? false) === true,
+                    'face' => ($font['face'] ?? true) !== false,
+                    'unicode_range' => is_string($font['unicode_range'] ?? null) ? $font['unicode_range'] : null,
                 ];
             }
         }
@@ -258,7 +271,7 @@ final readonly class Manifest
     /**
      * The one font the page preloads, or null.
      *
-     * @return array{family: string, file: string, weight: string, style: string, preload: bool}|null
+     * @return array{family: string, file: string, weight: string, style: string, preload: bool, face: bool, unicode_range: string|null}|null
      */
     public function preloadedFont(): ?array
     {
@@ -297,6 +310,68 @@ final readonly class Manifest
     }
 
     /**
+     * The theme's own tokens beyond the core list (issue 370), name => CSS
+     * value, or [] when it ships none. Written after the core tokens as
+     * `--teme-<name>`.
+     *
+     * @return array<string, string>
+     *
+     * @since next
+     */
+    public function customTokens(): array
+    {
+        return $this->tokenMap('custom_tokens');
+    }
+
+    /**
+     * The theme's own dark-scheme tokens beyond the core list (issue 370),
+     * or [] when it ships none.
+     *
+     * @return array<string, string>
+     *
+     * @since next
+     */
+    public function customTokensDark(): array
+    {
+        return $this->tokenMap('custom_tokens_dark');
+    }
+
+    /**
+     * Named style variations (issue 371): name => label, tokens, tokens_dark,
+     * custom_tokens and the font file to preload, or [] when the theme has
+     * none. The first name is the default Style setting.
+     *
+     * @return array<string, array{label: string, tokens: array<string, string>|null, tokens_dark: array<string, string>|null, custom_tokens: array<string, string>|null, fonts: string|null}>
+     *
+     * @since next
+     */
+    public function styles(): array
+    {
+        $styles = $this->raw['styles'] ?? null;
+        $clean = [];
+
+        if (! is_array($styles)) {
+            return [];
+        }
+
+        foreach ($styles as $name => $style) {
+            if (! is_string($name) || ! is_array($style) || ! is_string($style['label'] ?? null)) {
+                continue;
+            }
+
+            $clean[$name] = [
+                'label' => $style['label'],
+                'tokens' => array_key_exists('tokens', $style) ? $this->mapOf($style['tokens']) : null,
+                'tokens_dark' => array_key_exists('tokens_dark', $style) ? $this->mapOf($style['tokens_dark']) : null,
+                'custom_tokens' => array_key_exists('custom_tokens', $style) ? $this->mapOf($style['custom_tokens']) : null,
+                'fonts' => is_string($style['fonts'] ?? null) ? $style['fonts'] : null,
+            ];
+        }
+
+        return $clean;
+    }
+
+    /**
      * Whether pages carry speculation rules; a theme may only opt out.
      */
     public function speculation(): bool
@@ -315,6 +390,20 @@ final readonly class Manifest
     }
 
     /**
+     * The plugin stylesheets the theme switches off, as `code:output` keys
+     * (plugin_styles.off in the theme manifest).
+     *
+     * @return list<string>
+     */
+    public function pluginStylesOff(): array
+    {
+        $styles = $this->raw['plugin_styles'] ?? null;
+        $off = is_array($styles) ? ($styles['off'] ?? null) : null;
+
+        return is_array($off) ? array_values(array_filter($off, 'is_string')) : [];
+    }
+
+    /**
      * The cards the theme styles itself, whose core stylesheets it replaces (I-248).
      *
      * @return list<string>
@@ -325,6 +414,26 @@ final readonly class Manifest
         $replaces = is_array($cards) ? ($cards['replaces'] ?? null) : null;
 
         return is_array($replaces) ? array_values(array_filter($replaces, 'is_string')) : [];
+    }
+
+    /**
+     * The core components the theme overrides, by name, each with the contract
+     * the override was written against (docs/guides/developers/themes/components.md).
+     *
+     * @return array<string, int>
+     */
+    public function overrides(): array
+    {
+        $overrides = is_array($this->raw['overrides'] ?? null) ? $this->raw['overrides'] : [];
+        $declared = [];
+
+        foreach ($overrides as $name => $declaration) {
+            if (is_string($name) && is_array($declaration) && is_int($declaration['contract'] ?? null)) {
+                $declared[$name] = $declaration['contract'];
+            }
+        }
+
+        return $declared;
     }
 
     /**
@@ -395,6 +504,22 @@ final readonly class Manifest
         $value = $this->raw[$key] ?? null;
 
         return is_string($value) ? $value : '';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function tokenMap(string $key): array
+    {
+        return $this->mapOf($this->raw[$key] ?? null);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function mapOf(mixed $tokens): array
+    {
+        return is_array($tokens) ? array_filter($tokens, fn (mixed $value, mixed $name): bool => is_string($name) && is_string($value), ARRAY_FILTER_USE_BOTH) : [];
     }
 
     /**

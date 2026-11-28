@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Notice } from '@/components/ui/notice';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { Progress } from '@/components/ui/progress';
+import { SelectField } from '@/components/ui/select-field';
 import { Spinner } from '@/components/ui/spinner';
 import { __ } from '@/lib/i18n';
+import type { ImportReaderChoice } from '@/types/import';
 import { uploadInPieces } from '@/lib/upload-in-pieces';
 import { router } from '@inertiajs/react';
 
@@ -14,7 +16,14 @@ type Phase = 'choose' | 'uploading' | 'retrying' | 'reading' | 'refused';
 /**
  * Uploading a WordPress export file in pieces on Tools › Import.
  */
-export function UploadForm({ maxFileMb }: { maxFileMb: number }) {
+export function UploadForm({
+    maxFileMb,
+    readers = [],
+}: {
+    maxFileMb: number;
+    /** The import readers to choose from; a screen that offers WordPress's export alone passes none. */
+    readers?: ImportReaderChoice[];
+}) {
     const inputRef = useRef<HTMLInputElement>(null);
     const abortRef = useRef<AbortController | null>(null);
     const fileIdRef = useRef<string | null>(null);
@@ -25,6 +34,9 @@ export function UploadForm({ maxFileMb }: { maxFileMb: number }) {
     const [pieceLabel, setPieceLabel] = useState('');
     const [refused, setRefused] = useState('');
     const [dragging, setDragging] = useState(false);
+    /** The reader the file is read with; empty for WordPress's export. */
+    const [reader, setReader] = useState('');
+    const chosenReader = readers.find((offer) => offer.key === reader);
 
     const maxGb = Math.max(1, Math.floor(maxFileMb / 1024));
 
@@ -42,6 +54,7 @@ export function UploadForm({ maxFileMb }: { maxFileMb: number }) {
 
         const result = await uploadInPieces({
             file,
+            reader: reader === '' ? undefined : reader,
             signal: controller.signal,
             urls: {
                 start: '/admin/tools/import/files/start',
@@ -221,14 +234,44 @@ export function UploadForm({ maxFileMb }: { maxFileMb: number }) {
                                     : 'border-edge grid gap-2 rounded-md border border-dashed p-8 text-center'
                             }
                         >
+                            {readers.length > 0 && (
+                                <div className="grid gap-1 text-left">
+                                    <span className="text-small text-ink-3">
+                                        {__('Read the file with')}
+                                    </span>
+                                    <SelectField
+                                        aria-label={__('Read the file with')}
+                                        value={reader}
+                                        onValueChange={setReader}
+                                        emptyLabel={__(
+                                            'WordPress export (.xml)',
+                                        )}
+                                        options={readers.map((offer) => ({
+                                            value: offer.key,
+                                            label: offer.label,
+                                        }))}
+                                    />
+                                </div>
+                            )}
                             <p className="text-body font-medium">
                                 {__('Drop the export file here, or choose it')}
                             </p>
                             <p className="text-small text-ink-3">
-                                {__(
-                                    'The .xml file from Tools › Export in WordPress, up to :n GB.',
-                                    { n: String(maxGb) },
-                                )}
+                                {chosenReader
+                                    ? __(
+                                          'The file :type that :label reads, up to :n GB.',
+                                          {
+                                              type: chosenReader.fileTypes
+                                                  .map((type) => `.${type}`)
+                                                  .join(', '),
+                                              label: chosenReader.label,
+                                              n: String(maxGb),
+                                          },
+                                      )
+                                    : __(
+                                          'The .xml file from Tools › Export in WordPress, up to :n GB.',
+                                          { n: String(maxGb) },
+                                      )}
                             </p>
                             <div>
                                 <Button
@@ -242,7 +285,13 @@ export function UploadForm({ maxFileMb }: { maxFileMb: number }) {
                                 <input
                                     ref={inputRef}
                                     type="file"
-                                    accept=".xml,text/xml,application/xml"
+                                    accept={
+                                        chosenReader
+                                            ? chosenReader.fileTypes
+                                                  .map((type) => `.${type}`)
+                                                  .join(',')
+                                            : '.xml,text/xml,application/xml'
+                                    }
                                     className="sr-only"
                                     data-test="import-upload-input"
                                     onChange={(event) =>

@@ -23,8 +23,11 @@ use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Notices\DeclaredNotices;
+use App\Domain\Plugins\Readers\ImportReaderDeclaration;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seo\SeoValidator;
+use App\Domain\Plugins\Slots\PluginSlotDeclaration;
+use App\Domain\Plugins\Styles\DeclaredStyles;
 use App\Domain\Plugins\Types\PluginTypesFile;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
@@ -114,6 +117,20 @@ final class ContributionsValidator implements ContributionsCheck
     public const int MOST_ACTIONS = 3;
 
     /**
+     * At most this many list actions per plugin.
+     *
+     * @since next
+     */
+    public const int MOST_LIST_ACTIONS = 3;
+
+    /**
+     * At most this many of a plugin's list actions offered on each row.
+     *
+     * @since next
+     */
+    public const int MOST_ROW_ACTIONS = 2;
+
+    /**
      * At most this many lists per plugin.
      *
      * @since 1.0.0
@@ -190,6 +207,8 @@ final class ContributionsValidator implements ContributionsCheck
             // The hosts inserted content loads from, read only for a plugin that inserts (I-3375).
             if ($surface === 'csp' && ! $inserts) {
                 $errors[] = __('A plugin’s csp is read only with content.insert or pages.insert.');
+            } elseif ($surface === 'provides') {
+                array_push($errors, ...PluginSlotDeclaration::errors($contributes['provides'], $capabilities));
             } elseif ($surface === 'fixedLabel') {
                 $label = $contributes['fixedLabel'];
 
@@ -218,7 +237,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -259,6 +278,14 @@ final class ContributionsValidator implements ContributionsCheck
         $actions = $contributes['actions'] ?? [];
         $errors = [...$errors, ...$this->actionErrors(is_array($actions) ? $actions : [null])];
 
+        $listActions = $contributes['listActions'] ?? [];
+
+        if ($listActions !== [] && $capabilities !== null && ! in_array(Capability::Jobs->value, $capabilities, true)) {
+            $errors[] = __('A plugin’s list actions need jobs.');
+        }
+
+        $errors = [...$errors, ...$this->listActionErrors(is_array($listActions) ? $listActions : [null])];
+
         $lists = $contributes['lists'] ?? [];
         $errors = [...$errors, ...$this->listErrors(is_array($lists) ? $lists : [null])];
 
@@ -289,6 +316,11 @@ final class ContributionsValidator implements ContributionsCheck
             $errors = [...$errors, ...$area->areaErrors($contributes['area'], $contributes)];
         }
 
+        // Panels on Home, each built from blocks of the area (docs/guides/developers/plugins/home-panels.md).
+        if (array_key_exists('homePanels', $contributes)) {
+            $errors = [...$errors, ...$area->homePanelErrors($contributes['homePanels'], $contributes['area'] ?? null)];
+        }
+
         if (array_key_exists('aiTasks', $contributes)) {
             $errors = [...$errors, ...PluginAiTasks::errors($contributes['aiTasks'])];
         }
@@ -305,6 +337,12 @@ final class ContributionsValidator implements ContributionsCheck
 
         // Its image service (docs/guides/developers/plugins/image-service.md).
         $errors = [...$errors, ...ImageServiceDeclaration::errors($contributes, $capabilities)];
+
+        // Its import readers (docs/guides/developers/plugins/import-readers.md).
+        $errors = [...$errors, ...ImportReaderDeclaration::errors($contributes, $capabilities)];
+
+        // Its stylesheets, one per output (docs/guides/developers/plugins/styles.md).
+        $errors = [...$errors, ...DeclaredStyles::errors($contributes)];
 
         return $errors;
     }
@@ -663,6 +701,70 @@ final class ContributionsValidator implements ContributionsCheck
             }
 
             $ids[] = $id;
+        }
+
+        return $errors;
+    }
+
+    /**
+     * List actions: buttons on the content lists that queue one of the
+     * plugin's declared jobs as the person who clicked, for a row, the
+     * selected items, or both. At most two of them are row actions. Contributions::add
+     * checks that each job is declared.
+     *
+     * @param  array<array-key, mixed>  $actions
+     *
+     * @return list<string>
+     */
+    private function listActionErrors(array $actions): array
+    {
+        $errors = [];
+
+        if (count($actions) > self::MOST_LIST_ACTIONS) {
+            $errors[] = __('A plugin can add at most 3 list actions.');
+        }
+
+        $ids = [];
+        $rowActions = 0;
+
+        foreach ($actions as $action) {
+            $action = is_array($action) ? $action : [];
+            $id = is_string($action['id'] ?? null) ? $action['id'] : null;
+            $label = $action['label'] ?? null;
+
+            if (preg_match(self::LINK_ID, $id ?? '') !== 1) {
+                $errors[] = __('A list action’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
+            }
+
+            if (! is_string($label) || trim($label) === '' || mb_strlen($label) > 40) {
+                $errors[] = __('A list action needs a label of 1 to 40 characters.');
+            }
+
+            if (! is_string($action['job'] ?? null) || $action['job'] === '') {
+                $errors[] = __('A list action must name the job it queues.');
+            }
+
+            if (($action['row'] ?? false) !== true && ($action['bulk'] ?? false) !== true) {
+                $errors[] = __('A list action must be offered on rows, in bulk, or both.');
+            }
+
+            if (($action['row'] ?? false) === true) {
+                $rowActions++;
+            }
+
+            if (array_key_exists('confirm', $action) && (! is_string($action['confirm']) || trim($action['confirm']) === '' || mb_strlen($action['confirm']) > 200)) {
+                $errors[] = __('A list action’s confirm sentence must be text of 1 to 200 characters.');
+            }
+
+            if ($id !== null && in_array($id, $ids, true)) {
+                $errors[] = __('Two list actions can’t share the id :id.', ['id' => $id]);
+            }
+
+            $ids[] = $id;
+        }
+
+        if ($rowActions > self::MOST_ROW_ACTIONS) {
+            $errors[] = __('A plugin can add at most 2 row actions.');
         }
 
         return $errors;

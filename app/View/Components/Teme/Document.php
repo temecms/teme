@@ -19,6 +19,7 @@ use App\Domain\Design\Contrast;
 use App\Domain\Design\SiteDesign;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Plugins\Styles\PluginStyles;
 use App\Domain\Site\Document\DocumentHead;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Site\Document\DocumentPage;
@@ -27,6 +28,7 @@ use App\Domain\Site\Document\JsonLd;
 use App\Domain\Site\Document\Placement;
 use App\Domain\Site\Document\Placements;
 use App\Domain\Site\DocumentTitle;
+use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Site\SiteLanguage;
 use App\Domain\Site\ViewModels\ArticleView;
@@ -39,14 +41,16 @@ use Illuminate\View\Component;
 
 /**
  * `<x-teme::document>`: core's document shell around every public page,
- * so a template writes only its own markup. It writes the `lang`
- * and `dir`,
+ * so a template writes only its own markup. It writes the `lang` and `dir`,
  * the colour scheme, the title, the head's typed entries (DocumentMeta, the
- * robots value among them), the one preloaded font, the theme's tokens and
- * its dark ones, with the site's accent, lightened for the dark scheme,
- * the theme's assets, the styles of the cards the page drew, the
- * page's JSON-LD graph, the three placements, with their fragments, the skip
- * link and its style, the speculation rules, and core's small script, which in a browser that
+ * robots value among them), the one preloaded font, `@font-face` rules from
+ * the manifest's fonts (skipped when a font sets `face` false), the theme's
+ * tokens and custom tokens with the chosen style overlaid, `--teme-brand`
+ * from `design.brand`, and when the theme opts in with `use_brand_colour` the
+ * site's brand as accent (lightened for the dark scheme), the theme's assets,
+ * the styles of the cards the page drew, the page's JSON-LD graph, the three
+ * placements, with their fragments, the skip link and its style, the
+ * speculation rules, and core's small script, which in a browser that
  * signed in asks who is reading and adds the "Edit" link.
  * It reads the page from ComposerRegistry, where PublicPage started it,
  * never the template's variables.
@@ -103,6 +107,9 @@ final class Document extends Component
     /** The head's entries, gathered once (head()). */
     private ?DocumentHead $head = null;
 
+    /** @var list<array{key: string, href: string}> the plugin stylesheets the head linked */
+    private array $headPluginStyles = [];
+
     public function __construct(
         ComposerRegistry $composers,
         ActiveTheme $active,
@@ -130,10 +137,25 @@ final class Document extends Component
         $this->lang = $model instanceof ArticleView ? $language->forContent($model->id) : app(PageLanguage::class)->tag();
         $this->dir = app(SiteLanguages::class)->direction($this->lang);
         $this->title = $titles->for($model, $composers->intent()->isFront ?? false);
-        $this->preload = $this->preloadOf($code, $manifest?->preloadedFont()['file'] ?? null);
+        $chosen = $design->style();
+        $variation = $chosen === null ? null : ($manifest?->styles()[$chosen] ?? null);
+        $preloadFile = is_array($variation) ? ($variation['fonts'] ?? null) : null;
+        $preloadFile ??= $manifest?->preloadedFont()['file'] ?? null;
+        $this->preload = $this->preloadOf($code, $preloadFile);
         $this->scheme = $design->scheme();
-        $accent = $design->accent();
-        $this->tokens = $this->styleOf($manifest?->tokens() ?? [], $manifest?->tokensDark() ?? [], $accent === '' ? null : Contrast::accentSchemes($accent, $manifest));
+        $brand = $design->brand();
+        $useBrand = $brand !== '' && $design->usesBrandAsAccent();
+        // A style's tokens overlay the base ([...base, ...style]), never replace.
+        $this->tokens = $this->styleOf(
+            [...($manifest?->tokens() ?? []), ...(is_array($variation) ? ($variation['tokens'] ?? []) : [])],
+            [...($manifest?->tokensDark() ?? []), ...(is_array($variation) ? ($variation['tokens_dark'] ?? []) : [])],
+            $useBrand ? Contrast::accentSchemes($brand, $manifest) : null,
+            [...($manifest?->customTokens() ?? []), ...(is_array($variation) ? ($variation['custom_tokens'] ?? []) : [])],
+            $manifest?->customTokensDark() ?? [],
+            $code,
+            $manifest?->fonts() ?? [],
+            $brand === '' ? null : $brand,
+        );
         $this->assets = $assets->tags();
         $this->replacedCards = $manifest?->replacedCards() ?? [];
         $this->speculation = ($manifest?->speculation() ?? true) && ! SignedInMarker::present(request())
@@ -202,25 +224,85 @@ final class Document extends Component
 
     /**
      * The theme's tokens as custom properties on :root, then its dark ones
-     * for the dark scheme, chosen or the reader's own, or '' for
-     * none. With the site's accent set, each scheme takes its pair, the dark
-     * one lightened, in place of the theme's accent and on-accent.
+     * for the dark scheme, chosen or the reader's own, or '' for none. When
+     * the theme uses the site's brand as accent, each scheme takes its pair,
+     * the dark one lightened, in place of the theme's accent and on-accent.
+     * A theme's own tokens (issue 370) follow the core list; a chosen style
+     * overlays them (issue 371). `--teme-brand` is always the site's brand
+     * when set (issue 261). Each fonts entry with face true becomes an
+     * `@font-face` rule (issue 372); face false is preload only.
      *
      * @param  array<string, string>  $tokens
      * @param  array<string, string>  $tokensDark
      * @param  array{light: array{accent: string, onAccent: string, ratio: float}, dark: array{accent: string, onAccent: string, ratio: float}|null}|null  $schemes
+     * @param  array<string, string>  $custom
+     * @param  array<string, string>  $customDark
+     * @param  list<array{family: string, file: string, weight: string, style: string, preload: bool}>  $fonts
+     * @param  string|null  $brand  the site's brand colour as `--teme-brand` (issue 261)
      */
-    private function styleOf(array $tokens, array $tokensDark, ?array $schemes): string
+    private function styleOf(array $tokens, array $tokensDark, ?array $schemes, array $custom = [], array $customDark = [], ?string $code = null, array $fonts = [], ?string $brand = null): string
     {
-        $light = $this->declarations($schemes === null ? $tokens : $this->withAccent($tokens, $schemes['light']));
-        $dark = $tokensDark === [] ? '' : $this->declarations($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
-        $style = $light === '' ? '' : ':root{'.$light.'}';
+        $faces = $this->fontFaces($code, $fonts);
+        $lightCore = $schemes === null ? $tokens : $this->withAccent($tokens, $schemes['light']);
+        if ($brand !== null) {
+            $lightCore['brand'] = $brand;
+        }
+        $light = $this->declarations([...$lightCore, ...$custom]);
+        $darkCore = $tokensDark === [] && $customDark === [] && $brand === null ? [] : ($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
+        if ($brand !== null) {
+            $darkCore['brand'] = $brand;
+        }
+        $dark = $this->declarations([...$darkCore, ...$customDark]);
+        $style = $faces.($light === '' ? '' : ':root{'.$light.'}');
 
         if ($dark !== '') {
             $style .= ':root[data-scheme="dark"]{'.$dark.'}@media (prefers-color-scheme: dark){:root[data-scheme="auto"]{'.$dark.'}}';
         }
 
         return $style;
+    }
+
+    /**
+     * `@font-face` rules for the theme's fonts (issue 372), or '' when it
+     * declares none. Family is quoted; src is the same-origin theme address.
+     * A font with `face` false is preloaded only; core writes no face for it.
+     *
+     * @param  list<array{family: string, file: string, weight: string, style: string, preload: bool, face?: bool, unicode_range?: string|null}>  $fonts
+     */
+    private function fontFaces(?string $code, array $fonts): string
+    {
+        if ($code === null || $fonts === []) {
+            return '';
+        }
+
+        $rules = [];
+
+        foreach ($fonts as $font) {
+            if (($font['face'] ?? true) === false) {
+                continue;
+            }
+
+            if (preg_match('/[;{}<>"\\\\]/', $font['family'].$font['weight'].$font['style'].$font['file'].($font['unicode_range'] ?? '')) === 1) {
+                continue;
+            }
+
+            $format = match (strtolower(pathinfo($font['file'], PATHINFO_EXTENSION))) {
+                'woff' => 'woff',
+                'ttf' => 'truetype',
+                'otf' => 'opentype',
+                default => 'woff2',
+            };
+            $href = asset("themes/{$code}/{$font['file']}");
+            $rule = '@font-face{font-family:"'.$font['family'].'";font-weight:'.$font['weight'].';font-style:'.$font['style'].';src:url("'.$href.'") format("'.$format.'");font-display:swap';
+
+            if (is_string($font['unicode_range'] ?? null) && $font['unicode_range'] !== '') {
+                $rule .= ';unicode-range:'.$font['unicode_range'];
+            }
+
+            $rules[] = $rule.'}';
+        }
+
+        return implode('', $rules);
     }
 
     /**
@@ -258,6 +340,36 @@ final class Document extends Component
         }
 
         return implode(';', $declarations);
+    }
+
+    /**
+     * The stylesheets of the plugin outputs the page draws, each keyed as `code:output`,
+     * linked into the teme.plugins layer (docs/guides/developers/plugins/styles.md). Head and
+     * body placements are declared first, so their sheets are linked here as well. The sheets this
+     * returns are kept, so lateStyles() links only what the head did not.
+     *
+     * @return list<array{key: string, href: string}>
+     */
+    public function pluginStyles(): array
+    {
+        app(PageInsertions::class)->declareStyles();
+
+        $this->headPluginStyles = app(PluginStyles::class)->links();
+
+        return $this->headPluginStyles;
+    }
+
+    /**
+     * The stylesheets of plugin outputs drawn after the head was written, such as a fixed-edge
+     * insertion's, linked after the body's end: the outputs drawn since, not linked in the head.
+     *
+     * @return list<array{key: string, href: string}>
+     */
+    public function lateStyles(): array
+    {
+        $linked = array_column($this->headPluginStyles, 'key');
+
+        return array_values(array_filter(app(PluginStyles::class)->links(), fn (array $style): bool => ! in_array($style['key'], $linked, true)));
     }
 
     /**

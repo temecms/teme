@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Site\Head;
 
+use App\Domain\Design\SiteDesign;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\Alternates;
@@ -37,6 +38,7 @@ final class HeadTags implements HeadContributor
         private readonly Alternates $alternates,
         private readonly PageLanguage $language,
         private readonly SiteLanguages $languages,
+        private readonly SiteDesign $design,
     ) {}
 
     public function precedence(): Precedence
@@ -51,6 +53,12 @@ final class HeadTags implements HeadContributor
 
         if ($values->description !== null) {
             $entries[] = MetaTag::name('description', $values->description);
+        }
+
+        $brand = $this->design->brand();
+
+        if ($brand !== '') {
+            $entries[] = MetaTag::name('theme-color', $brand);
         }
 
         $alternates = $this->alternates->for($page);

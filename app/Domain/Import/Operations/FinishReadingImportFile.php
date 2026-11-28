@@ -24,6 +24,7 @@ use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\FinishReadingImportFileInput;
+use App\Domain\Import\Reader\ReaderSite;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -60,7 +61,7 @@ final class FinishReadingImportFile extends BaseOperation
             return null;
         }
 
-        $address = $file->site_address === null ? '' : rtrim($file->site_address, '/');
+        $address = $file->site_address === null ? '' : ReaderSite::address($file->site_address);
 
         if ($address === '') {
             DB::table('import_file_rows')->where('file_id', $file->id)->delete();
@@ -69,11 +70,20 @@ final class FinishReadingImportFile extends BaseOperation
             return null;
         }
 
+        $kind = $file->reader ?? 'wordpress';
+        $source = ImportSource::query()->where('address', $address)->lockForUpdate()->first();
+
+        if ($source !== null && $source->kind !== $kind) {
+            DB::table('import_file_rows')->where('file_id', $file->id)->delete();
+            $file->forceFill(['state' => 'refused', 'refused' => 'This site was imported from another system, so this file can’t join its import.'])->save();
+
+            return null;
+        }
+
         $this->placeMenus($file->id);
         $this->count($file->id);
 
-        $source = ImportSource::query()->where('address', $address)->lockForUpdate()->first();
-        $source ??= ImportSource::query()->create(['address' => $address, 'created_by' => $input->actorId() === null ? null : (int) $input->actorId()]);
+        $source ??= ImportSource::query()->create(['address' => $address, 'created_by' => $input->actorId() === null ? null : (int) $input->actorId(), 'kind' => $kind]);
 
         $file->forceFill([
             'report' => FileReport::build($file->id, $address, $file->made_at),

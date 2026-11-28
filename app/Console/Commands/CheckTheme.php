@@ -4,10 +4,11 @@
  * `teme:theme:check {code?}`: the preflight check for a theme, the active one
  * by default. It lists every manifest error, finds the built assets and
  * measures each file compressed, and warns past the budgets (study Q §4:
- * 15 KB of CSS, 5 KB of JavaScript). It refuses an inline script in the
- * theme's views. It draws the home page and a published item's page with the
- * theme, as the public site does, and refuses a page with no `<h1>` or more
- * than one. It fails when there are errors.
+ * 15 KB of CSS, 20 KB of JavaScript). Going over either budget is a warning
+ * that never blocks. It refuses an inline script in the theme's views. It
+ * draws the home page and a published item's page with the theme, as the
+ * public site does, and refuses a page with no `<h1>` or more than one. It
+ * fails when there are errors.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -23,13 +24,17 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\PathResolver;
 use App\Domain\Site\ReaderKeys;
 use App\Domain\Themes\ActiveTheme;
+use App\Domain\Themes\ComponentOverrides;
 use App\Domain\Themes\Theme;
 use App\Domain\Themes\ThemeH1Check;
 use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Themes\ThemeScripts;
 use App\Http\Site\PublicPage;
+use FilesystemIterator;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 
 final class CheckTheme extends Command
@@ -37,8 +42,8 @@ final class CheckTheme extends Command
     /** Compressed bytes of CSS a page may load before a warning. */
     private const int CSS_BUDGET = 15 * 1024;
 
-    /** Compressed bytes of JavaScript a page may load before a warning. */
-    private const int JS_BUDGET = 5 * 1024;
+    /** Compressed bytes of JavaScript a page may load before a warning (issue 374). */
+    private const int JS_BUDGET = 20 * 1024;
 
     /** @var string */
     protected $signature = 'teme:theme:check {code? : The theme\'s code; the active theme by default} {--json : Print the report as JSON}';
@@ -51,7 +56,7 @@ final class CheckTheme extends Command
         $code = (string) ($this->argument('code') ?? $active->chosen());
         $theme = $themes->find($code);
         $report = $theme === null
-            ? ['code' => $code, 'errors' => ["No theme has the code \"{$code}\"."], 'warnings' => [], 'files' => [], 'css' => 0, 'js' => 0]
+            ? ['code' => $code, 'errors' => ["No theme has the code \"{$code}\"."], 'warnings' => [], 'files' => [], 'css' => 0, 'js' => 0, 'headingsRan' => false]
             : $this->check($theme);
 
         $this->option('json')
@@ -62,7 +67,7 @@ final class CheckTheme extends Command
     }
 
     /**
-     * @return array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int}
+     * @return array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int, headingsRan: bool}
      */
     private function check(Theme $theme): array
     {
@@ -73,6 +78,7 @@ final class CheckTheme extends Command
         $headings = app(ThemeH1Check::class)->run($theme, $this->draw(...));
         $errors = [...$errors, ...$headings['errors']];
         $warnings = $headings['warnings'];
+        $headingsRan = $headings['ran'];
         $manifest = $theme->manifest;
         $built = $manifest?->assetsManifest() ?? '';
         $entries = $manifest?->assetEntries() ?? [];
@@ -109,6 +115,8 @@ final class CheckTheme extends Command
             $warnings[] = __('Lists don’t call x-teme::between-items, so plugins can’t place content between items.');
         }
 
+        $warnings = [...$warnings, ...$this->overrideWarnings($theme)];
+
         $css = array_sum(array_map(fn (array $file): int => str_ends_with($file['file'], '.css') ? $file['bytes'] : 0, $files));
         $js = array_sum(array_map(fn (array $file): int => str_ends_with($file['file'], '.js') ? $file['bytes'] : 0, $files));
 
@@ -120,7 +128,49 @@ final class CheckTheme extends Command
             $warnings[] = sprintf('JavaScript is %.1f KB compressed, over the %d KB budget.', $js / 1024, self::JS_BUDGET / 1024);
         }
 
-        return ['code' => $theme->code, 'errors' => $errors, 'warnings' => $warnings, 'files' => array_values($files), 'css' => $css, 'js' => $js];
+        return [
+            'code' => $theme->code,
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'files' => array_values($files),
+            'css' => $css,
+            'js' => $js,
+            'headingsRan' => $headingsRan,
+        ];
+    }
+
+    /**
+     * Warnings about the theme's overrides of core's components: one for each
+     * declared override written against an older contract than core's, and one
+     * for each of core's six components whose view the theme ships without
+     * declaring it. Returns [] when there are none.
+     *
+     * @return list<string>
+     */
+    private function overrideWarnings(Theme $theme): array
+    {
+        $declared = $theme->manifest?->overrides() ?? [];
+        $warnings = [];
+
+        foreach ($declared as $name => $contract) {
+            if (! array_key_exists($name, ComponentOverrides::CLASSES)) {
+                continue;
+            }
+
+            $core = app(ComponentOverrides::class)->contractOf($name);
+
+            if ($contract < $core) {
+                $warnings[] = __('The override of :name is written against contract :theirs, and core is at contract :core. Check it against the components guide, then declare contract :core.', ['name' => $name, 'theirs' => $contract, 'core' => $core]);
+            }
+        }
+
+        foreach (array_keys(ComponentOverrides::CLASSES) as $name) {
+            if (is_file($theme->path.'/views/components/'.$name.'.blade.php') && ! array_key_exists($name, $declared)) {
+                $warnings[] = __('views/components/:name.blade.php isn’t declared under overrides, so core’s :name is drawn instead.', ['name' => $name]);
+            }
+        }
+
+        return $warnings;
     }
 
     /**
@@ -144,14 +194,36 @@ final class CheckTheme extends Command
     }
 
     /**
-     * Whether the theme's listing templates, those it has, call
-     * x-teme::between-items; true for a theme with none.
+     * Whether any of the theme's views call x-teme::between-items, including
+     * skin folders a root template only includes; true when it has no views.
      */
     private static function drawsBetweenItems(string $path): bool
     {
-        $listings = array_filter(array_map(fn (string $name): string => "{$path}/views/templates/{$name}.blade.php", ['archive', 'latest', 'search']), is_file(...));
+        $views = self::viewFiles("{$path}/views");
 
-        return $listings === [] || array_any($listings, fn (string $file): bool => str_contains((string) file_get_contents($file), 'x-teme::between-items'));
+        return $views === [] || array_any($views, fn (string $file): bool => str_contains((string) file_get_contents($file), 'x-teme::between-items'));
+    }
+
+    /**
+     * Every Blade view under the theme's views folder.
+     *
+     * @return list<string>
+     */
+    private static function viewFiles(string $views): array
+    {
+        if (! is_dir($views)) {
+            return [];
+        }
+
+        $files = [];
+
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($views, FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ($file->isFile() && str_ends_with($file->getFilename(), '.blade.php')) {
+                $files[] = $file->getPathname();
+            }
+        }
+
+        return $files;
     }
 
     /**
@@ -167,7 +239,7 @@ final class CheckTheme extends Command
     }
 
     /**
-     * @param  array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int}  $report
+     * @param  array{code: string, errors: list<string>, warnings: list<string>, files: list<array{file: string, bytes: int}>, css: int, js: int, headingsRan: bool}  $report
      */
     private function show(array $report): void
     {
@@ -188,8 +260,15 @@ final class CheckTheme extends Command
             $this->components->warn($warning);
         }
 
-        $report['errors'] === []
-            ? $this->components->info('The theme passes.')
-            : $this->components->error(sprintf('The theme has %d %s.', count($report['errors']), count($report['errors']) === 1 ? 'error' : 'errors'));
+        if ($report['errors'] !== []) {
+            $this->components->error(sprintf('The theme has %d %s.', count($report['errors']), count($report['errors']) === 1 ? 'error' : 'errors'));
+
+            return;
+        }
+
+        // When the heading check could not run, its warn line is enough (issue 686).
+        if ($report['headingsRan']) {
+            $this->components->info('The theme passes.');
+        }
     }
 }

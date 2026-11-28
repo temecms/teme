@@ -24,19 +24,25 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `templates` | object | no | Content type, then template slug, then label. Every slug but default needs views/templates/single-{type}-{slug}.blade.php: only the theme's files can say whether it exists. |
 | `navigations` | object | no | The places the theme draws a menu: slot, then label. |
 | `regions` | object | no | The places the theme puts the site's own content: slug, then label, group, cards, max, size and minWidth. A region takes every card unless its cards name the ones it takes: Teme's cards by name, a plugin's as code:id. Every core card named must be a registered card: only Teme's registry can say which are. |
-| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. |
+| `settings` | array | no | The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it. A number may give min, max, step and unit; a links default is a list of label and address, at most 12; group names a foldable section inside the fieldset. |
 | `assets` | object | no | The theme's Vite build. |
 | `title_separator` | string | no | Between the parts of a page's title; – when absent. |
 | `layout` | object | no | The content, wide and full widths in pixels. |
 | `images` | object | no | Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses. |
-| `fonts` | array | no | The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there. |
-| `tokens` | object | no | Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours. |
-| `tokens_dark` | object | no | The same tokens and rules, for the theme's dark scheme. |
+| `fonts` | array | no | The theme's fonts. Core writes an @font-face for each with face true or absent (family, weight, style, src as the same-origin theme file, font-display swap, optional unicode_range) and preloads at most one. face false means preload only — the theme ships its own @font-face. Each file is relative to the theme's public folder and exists there. A theme that writes every face itself may leave this key out, or keep it for preload with face false. |
+| `tokens` | object | no | Core design tokens only: base, contrast, accent, on-accent, muted, rule, brand, font-body, font-heading, font-mono, step--1 to step-5, space-1 to space-8. Each value is CSS with no ; { } < or >. base and accent are hex colours. brand is read-only: core writes it from the site's brand colour. For a theme's own names, use custom_tokens. |
+| `tokens_dark` | object | no | The same core tokens and rules, for the theme's dark scheme. brand is read-only. |
+| `custom_tokens` | object | no | The theme's own design tokens beyond the core list, written as --teme-<name> after the core tokens. Names are lower-case letters, digits and hyphens, starting with a letter, and must not equal a core token. Values follow the same rule as tokens. |
+| `custom_tokens_dark` | object | no | The theme's own dark-scheme tokens, same name and value rules as custom_tokens. |
+| `styles` | object | no | Named looks the theme can switch between. Core adds a Style select (fieldset site), defaulting to the first style. Each style may set tokens, tokens_dark, custom_tokens, and fonts (one declared font file to preload). Document and design previews overlay the chosen style on the base tokens ([...base, ...style]) and follow its preload. |
 | `speculation` | boolean | no | A theme may only opt out: false leaves the prerendering rules out. |
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. |
 | `icon` | string | no | The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. |
+| `site_icon` | string | no | The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this. |
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |
+| `overrides` | object | no | Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md). |
+| `plugin_styles` | object | no | Plugin stylesheets the theme switches off, so it styles that output itself. |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |
 | `per_page` | integer | no | Items per page of a listing; 10 when absent. |
@@ -130,6 +136,7 @@ One article as its template sees it, as `$page`, from its published revision, or
 | `$parent` | `?ItemLink` | the item it sits under, while readers can see it; null at the top, for a type that doesn't nest, and while its parent is hidden |
 | `$ancestors` | `list<ItemLink>` | the items above it that readers can see, the top first; the trail is made from them |
 | `$children` | `list<ItemLink>` | the published items under it, in their order, at most 100 |
+| `$headings` | `list<array{level: int, text: string, id: string}>` | the body's level-2–4 headings in order, each with the HTML id bodyHtml writes |
 | `$siblings` | `list<ItemLink>` | The published items of its type under the same parent, itself among them, in menu order, at most 100. Top-level pages are siblings of each other. None for a type that doesn't nest. Read from the database the first time a template asks, never otherwise. |
 | `$previous` | `?ItemLink` | The sibling before it in menu order; null for the first, and for a type that doesn't nest. Read when a template asks. |
 | `$next` | `?ItemLink` | The sibling after it in menu order; null for the last, and for a type that doesn't nest. Read when a template asks. |
@@ -514,9 +521,17 @@ A field reaches a template as a `FieldView`, from `$page->field('handle')` or a 
 |---|---|---|---|
 | `form` | `CommentFormView` | — | what the form is drawn with |
 
+### `<x-teme::comment-form-fields>`
+
+The fields a comment form must carry for its submission to be read: the item's address, the reply's parent, the tokens and the honeypot, with the script that shows them. It draws only inside a form that posts to the form's action.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `form` | `CommentFormView` | — | the form the fields belong to: where it posts, the item's address and the reply's parent |
+
 ### `<x-teme::document>`
 
-`<x-teme::document>`: core's document shell around every public page, so a template writes only its own markup. It writes the `lang` and `dir`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, the theme's tokens and its dark ones, with the site's accent, lightened for the dark scheme, the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link. It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
+`<x-teme::document>`: core's document shell around every public page, so a template writes only its own markup. It writes the `lang` and `dir`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, `@font-face` rules from the manifest's fonts (skipped when a font sets `face` false), the theme's tokens and custom tokens with the chosen style overlaid, `--teme-brand` from `design.brand`, and when the theme opts in with `use_brand_colour` the site's brand as accent (lightened for the dark scheme), the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link. It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
 
 No attributes.
 

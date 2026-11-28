@@ -25,7 +25,109 @@ type Context = {
     manifest: CardManifest;
     /** An article's address by its ID; a term's or a person's by `term:{id}` or `user:{id}`. */
     links: Record<string, string>;
+    /** The ids the document's headings have taken so far, as HeadingIds does for a page. */
+    headings: Set<string>;
 };
+
+/**
+ * The ids a heading must not take: the landmarks core and the default theme
+ * write. Keep in step with HeadingIds::RESERVED.
+ */
+const RESERVED_IDS = [
+    'main',
+    'content',
+    'comments',
+    'comments-h',
+    'respond',
+    'respond-h',
+    'respond-errors',
+    'page-h',
+    'related-title',
+    'echo-h',
+    'c-keep',
+    'c-subject',
+    'search-results',
+    'c-text',
+    'c-text-hint',
+    'c-text-error',
+    'c-name',
+    'c-name-hint',
+    'c-name-error',
+    'c-email',
+    'c-email-hint',
+    'c-email-error',
+    'c-url',
+    'c-url-hint',
+    'c-url-error',
+    'search-wide',
+    'search-narrow',
+    'search-notfound',
+    'teme-password',
+    'teme-password-error',
+];
+
+/** A fresh set of taken heading ids, seeded with the landmarks. */
+function newHeadingIds(): Set<string> {
+    return new Set(RESERVED_IDS);
+}
+
+/** A node id as DocumentSchema::NODE_ID spells it: 26 Crockford base-32 characters. */
+const NODE_ID = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+
+/** A heading's plain text, marks left out. */
+function textOf(node: DocNode): string {
+    if (typeof node.text === 'string') {
+        return node.text;
+    }
+
+    return (node.content ?? []).map(textOf).join('');
+}
+
+/**
+ * A slug from a heading's words as Laravel's Str::slug() makes it: accents
+ * dropped, lower case, anything but letters, numbers and spaces removed,
+ * words joined by single hyphens. Str::slug() also transliterates other
+ * scripts to Latin, which the browser cannot, so a heading in one differs
+ * here from the site's id.
+ */
+function headingSlug(words: string): string {
+    return words
+        .normalize('NFKD')
+        .replace(/\p{M}+/gu, '')
+        .replace(/_+/g, '-')
+        .replaceAll('@', '-at-')
+        .toLowerCase()
+        .replace(/[^-\p{L}\p{N}\s]+/gu, '')
+        .replace(/[-\s]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * The id the site writes on a heading: its permanent node id when it has
+ * one, else one from its words, made unique with -2, -3 as HeadingIds does.
+ */
+function headingId(node: DocNode, taken: Set<string>): string {
+    const permanent = node.attrs?.id;
+    const slug = headingSlug(textOf(node));
+    const base =
+        typeof permanent === 'string' && NODE_ID.test(permanent)
+            ? permanent
+            : slug !== ''
+              ? slug
+              : 'heading';
+    let id = base;
+    let n = 2;
+
+    // comment-<n> and author-<n> are the anchors the comments list writes.
+    while (taken.has(id) || /^(?:comment|author)-\d+$/.test(id)) {
+        id = `${base}-${n}`;
+        n++;
+    }
+
+    taken.add(id);
+
+    return id;
+}
 
 /**
  * Escapes as PHP's e() and htmlspecialchars(ENT_QUOTES) do: these five
@@ -90,7 +192,7 @@ const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
  * The opening and closing tags of each prose node, exactly as tiptap-php's
  * extensions render them. A node not listed renders nothing but its content.
  */
-function nodeTags(node: DocNode): [string, string] | null {
+function nodeTags(node: DocNode, context: Context): [string, string] | null {
     const attrs = node.attrs ?? {};
 
     switch (node.type) {
@@ -102,7 +204,7 @@ function nodeTags(node: DocNode): [string, string] | null {
                 : 1;
 
             return [
-                `<h${level}${attributes(alignment(node))}>`,
+                `<h${level}${attributes([...alignment(node), ['id', headingId(node, context.headings)]])}>`,
                 `</h${level}>`,
             ];
         }
@@ -149,7 +251,11 @@ function nodeTags(node: DocNode): [string, string] | null {
         case 'hardBreak':
             return ['<br>', ''];
         case 'table':
-            return ['<table><tbody>', '</tbody></table>'];
+            // In a sideways-scroll region, as DocumentRenderer wraps a table for the site; its label is English here.
+            return [
+                '<div class="table-scroll" tabindex="0" role="region" aria-label="Table"><table><tbody>',
+                '</tbody></table></div>',
+            ];
         case 'tableRow':
             return ['<tr>', '</tr>'];
         case 'tableHeader':
@@ -330,7 +436,7 @@ function renderNode(
         stack.push({ mark, tags });
     }
 
-    const tags = nodeTags(node);
+    const tags = nodeTags(node, context);
     html += tags?.[0] ?? '';
 
     if (node.content !== undefined) {
@@ -640,7 +746,12 @@ export function renderCard(
         }
     }
 
-    return render(withDefaults, { media, manifest, links });
+    return render(withDefaults, {
+        media,
+        manifest,
+        links,
+        headings: newHeadingIds(),
+    });
 }
 
 /**
@@ -657,7 +768,12 @@ export function renderDocument(
     manifest: CardManifest,
     links: Record<string, string> = {},
 ): string {
-    const context: Context = { media, manifest, links };
+    const context: Context = {
+        media,
+        manifest,
+        links,
+        headings: newHeadingIds(),
+    };
     const cards = new Set(manifest.cards.map((card) => card.name));
     let html = '';
     let run: DocNode[] = [];

@@ -19,6 +19,7 @@ use App\Domain\Media\Images\ImageEngine;
 use App\Domain\Media\Jobs\DeleteMediaFiles;
 use App\Domain\Media\Queries\MediaForProcessing;
 use App\Domain\Media\Queries\ShareImageUse;
+use App\Domain\Media\Queries\SiteIconUse;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -54,7 +55,11 @@ final class VariantMaker
                 fclose($in);
             }
 
-            $made = $this->engine->variants($source, MediaVariants::widthsFor($item['width']), MediaVariants::THUMBNAIL, $item['focalX'], $item['focalY'], $work, ShareImageUse::wanted($item['id']) ? MediaVariants::SHARE : []);
+            $extra = [
+                ...(ShareImageUse::wanted($item['id']) ? MediaVariants::SHARE : []),
+                ...(SiteIconUse::wanted($item['id']) ? MediaVariants::ICONS : []),
+            ];
+            $made = $this->engine->variants($source, MediaVariants::widthsFor($item['width']), MediaVariants::THUMBNAIL, $item['focalX'], $item['focalY'], $work, $extra);
             $variants = [];
 
             foreach ($made as $key => $variant) {
@@ -66,10 +71,10 @@ final class VariantMaker
             return $variants;
         } finally {
             // A local temporary folder this method made, emptied by the names
-            // the engine writes (<key>.webp): nothing here lists a folder.
-            $keys = ['thumb', ...array_keys(MediaVariants::SHARE), ...array_map(fn (int $width): string => "w{$width}", MediaVariants::widthsFor($item['width']))];
+            // the engine writes (<key>.webp, or <key>.png for an icon): nothing here lists a folder.
+            $keys = ['thumb', ...array_keys(MediaVariants::SHARE), ...array_keys(MediaVariants::ICONS), ...array_map(fn (int $width): string => "w{$width}", MediaVariants::widthsFor($item['width']))];
 
-            foreach ([$source, ...array_map(fn (string $key): string => $work.DIRECTORY_SEPARATOR.$key.'.webp', $keys)] as $file) {
+            foreach ([$source, ...array_map(fn (string $key): string => $work.DIRECTORY_SEPARATOR.$key.'.'.MediaVariants::extensionOf($key), $keys)] as $file) {
                 if (is_file($file)) {
                     unlink($file);
                 }

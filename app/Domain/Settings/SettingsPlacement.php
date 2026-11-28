@@ -35,7 +35,7 @@ final class SettingsPlacement
      * @var array<string, string>
      */
     public const array PLACED = [
-        'design.accent' => 'general',
+        'design.brand' => 'general',
         'addresses.front_shows' => 'reading',
         'addresses.front_page_id' => 'reading',
         'addresses.posts_page_id' => 'reading',

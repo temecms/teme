@@ -28,6 +28,7 @@ export function ConfirmAction({
     confirmLabel,
     confirmVariant = 'destructive',
     when = true,
+    onConfirm,
     children,
 }: {
     title: string;
@@ -36,6 +37,8 @@ export function ConfirmAction({
     /** `default` for a step that asks first but removes nothing, such as a restore. */
     confirmVariant?: 'destructive' | 'default';
     when?: boolean;
+    /** Runs instead of submitting the form, for a button that isn't in one. */
+    onConfirm?: () => void;
     children: SubmitButton;
 }) {
     const [open, setOpen] = useState(false);
@@ -68,6 +71,13 @@ export function ConfirmAction({
                             variant={confirmVariant}
                             onClick={() => {
                                 setOpen(false);
+
+                                if (onConfirm !== undefined) {
+                                    onConfirm();
+
+                                    return;
+                                }
+
                                 button.current?.form?.requestSubmit(
                                     button.current,
                                 );

@@ -118,9 +118,9 @@ it('records the group\'s purge tag and each version\'s own', function (): void {
         ->and($recorded)->not->toContain(PageTags::content($this->site->postEs));
 });
 
-it('lets core give the three reserved names', function (): void {
+it('lets core give the reserved names', function (): void {
     expect(array_keys(LanguageTheme::read(addrGet('/fr/bonjour/')->assertOk())))->toContain('language', 'direction', 'alternates')
-        ->and(ComposerRegistry::RESERVED)->toBe(['language', 'direction', 'alternates']);
+        ->and(ComposerRegistry::RESERVED)->toBe(['language', 'direction', 'alternates', 'plugins']);
 });
 
 it('tells a theme\'s composer the locale of the page being drawn', function (): void {

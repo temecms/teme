@@ -15,7 +15,7 @@
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `requires.plugins` | object | no | Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions", "redirects" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions", "redirects", "comments.check", "search.read", "import.read" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -114,6 +114,13 @@
 | `contributes.feedLinks` | array | no | Links core writes in every feed, after its own rel="self". Needs feeds.links. |  |
 | `contributes.feedLinks[].rel` | enum | yes |  | "hub" |
 | `contributes.feedLinks[].href` | string | yes | An https:// address, or {key} naming one of the plugin's own url or urls settings (a urls setting gives a link for each address, at most 5). | ^(https://.+\|\{[a-z][a-z0-9_]{1,40}\})$ |
+| `contributes.listActions` | array | no | Buttons on the content lists, each queuing one of the plugin's declared jobs as the person, for a row, the selected items, or both. At most two row actions. Needs jobs. |  |
+| `contributes.listActions[].id` | string | yes | The action's id. | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.listActions[].label` | string | yes | The button's words. |  |
+| `contributes.listActions[].row` | boolean | no | Offered in each row's menu, before Trash. |  |
+| `contributes.listActions[].bulk` | boolean | no | Offered in the bulk bar, for the selected items. |  |
+| `contributes.listActions[].confirm` | string | no | A sentence the person reads before the job is queued. |  |
+| `contributes.listActions[].job` | string | yes | The key of the declared job it queues. | ^[a-z][a-z0-9-]{0,47}$ |
 | `contributes.actions` | array | no | Buttons on the plugin's settings page, each queuing one of its declared jobs. Needs jobs. |  |
 | `contributes.actions[].id` | string | yes | The action's id. | ^[a-z][a-z0-9-]{1,39}$ |
 | `contributes.actions[].label` | string | yes | The button's words. |  |
@@ -192,9 +199,17 @@
 | `contributes.structuredData` | object | no | The schema.org terms the plugin's graph nodes use beyond the graph's own list. Needs pages.head. |  |
 | `contributes.structuredData.types` | array | no | schema.org types, such as FAQPage. |  |
 | `contributes.structuredData.properties` | array | no | schema.org properties, such as acceptedAnswer. |  |
+| `contributes.provides` | array | no | The provider slots the plugin fills: the administrator picks one plugin per slot in Plugins > Provider choices (docs/guides/developers/plugins/provider-slots.md). A slot names what the plugin implements; the image service slot also needs imageService. | "image-service", "search", "comment-check" |
+| `contributes.styles` | array | no | Built stylesheets, one per card or page insertion. Linked only on a page that draws that output, in the plugins cascade layer. |  |
+| `contributes.styles[].output` | string | yes | The output the sheet styles: card:<id> or insertion:<id>. | ^(card:[a-z][a-z0-9-]{1,40}\|insertion:[a-z][a-z0-9-]{1,40})$ |
+| `contributes.styles[].file` | string | yes | A .css file inside the plugin's package, relative to its root. | ^(?!/)(?!.*\\)(?!.*(^\|/)\.\.(/\|$)).+\.css$ |
 | `contributes.imageService` | object | no | An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService. |  |
 | `contributes.imageService.label` | string | yes | The service's name, as the consent names it. |  |
 | `contributes.imageService.host` | string | yes | The host its addresses are on, served over https, which joins the img-src of the content security policy. | ^(?:\*\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ |
+| `contributes.importReaders` | array | no | Readers for another system's export files, which Teme's import engine reads: each file is probed, listed and fetched through the reader. Needs import.read; the plugin implements HasImportReader. |  |
+| `contributes.importReaders[].id` | string | yes | The reader's ID, which HasImportReader::importReader() receives. | ^[a-z][a-z0-9-]{0,39}$ |
+| `contributes.importReaders[].label` | string | yes | The reader's name, as the import screen names it. |  |
+| `contributes.importReaders[].fileTypes` | array | yes | The file extensions it reads, without the dot, such as json. |  |
 | `contributes.commands` | array | no | Console commands the plugin adds to php artisan while it is enabled; the plugin implements HasCommands. Each name starts with the plugin's code and a colon. |  |
 | `contributes.commands[].name` | string | yes | The command's name, starting with the plugin's code and a colon, such as sharely:resend. | ^[a-z0-9][a-z0-9-]{1,39}:[a-z][a-z0-9-]{0,31}(?::[a-z][a-z0-9-]{0,31}){0,2}$ |
 | `contributes.commands[].description` | string | yes | One line saying what the command does, as php artisan list shows it. |  |
@@ -234,6 +249,12 @@
 | `contributes.area.purges` | array | no | What core purges after a write that changed something. | "insertions", "page-insertions" |
 | `contributes.area.pages` | array | yes | The area's pages, each its id, label and blocks. |  |
 | `contributes.area.records` | array | no | The kinds of record the area's tables list and its forms edit. |  |
+| `contributes.homePanels` | array | no | Panels on the admin's Home, each built from one page's blocks of the plugin's area; shown to people with the area's permission. |  |
+| `contributes.homePanels[].id` | string | yes |  | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.homePanels[].title` | string | yes | The panel's heading on Home. |  |
+| `contributes.homePanels[].size` | string | no | How wide the panel is drawn until a person changes it. Small when none is named. | "small", "medium", "large", "full" |
+| `contributes.homePanels[].page` | string | yes | The id of a page of the area that holds the blocks. |  |
+| `contributes.homePanels[].blocks` | array | yes | The ids of blocks on that page: figures, chart, table or notice. |  |
 | `owns` | object | no | Tables this plugin creates. Each name starts with the plugin’s code as a prefix (hyphens become underscores). |  |
 | `owns.tables` | array | yes | Table names the plugin’s migrations create: lower-case letters, digits and underscores, starting with the prefix, at most 63 characters. |  |
 | `author` | string | no | Who wrote the plugin. |  |

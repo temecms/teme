@@ -18,7 +18,7 @@ use Teme\Contracts\Operations\OperationInput;
 final readonly class SaveDesignDraftInput implements OperationInput
 {
     /**
-     * @param  array<string, mixed>  $groups  such as ['design' => ['accent' => '#0b5394'], 'theme.good' => ['feed_layout' => 'grid']]
+     * @param  array<string, mixed>  $groups  such as ['design' => ['brand' => '#0b5394'], 'theme.good' => ['feed_layout' => 'grid']]
      */
     public function __construct(
         public array $groups,

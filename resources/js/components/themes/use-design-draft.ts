@@ -41,6 +41,10 @@ export function useDesignDraft(page: DesignSettingsPage) {
         ...page.values.theme,
         ...(themeGroup === null ? {} : edits[themeGroup]),
     };
+    const designValues = {
+        ...page.values.design,
+        ...edits.design,
+    };
     const errorOf = (group: string, key: string): string | undefined =>
         errors[`groups.${group}.${key}`] ??
         pageErrors[`groups.${group}.${key}`];
@@ -257,6 +261,7 @@ export function useDesignDraft(page: DesignSettingsPage) {
         pressed,
         activating,
         themeValues,
+        designValues,
         errorOf,
         unbound,
         save,

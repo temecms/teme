@@ -81,14 +81,14 @@ it('stops previewing: the switch and the previewed theme\'s own changes go, the 
     $menu = navCreate($this->admin);
     app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['theme.good' => ['feed_layout' => 'grid']], $this->adminId));
     // Another key waiting in the design group's own draft, which must outlive the switch.
-    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['accent' => '#1d4ed8']], $this->adminId));
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['brand' => '#1d4ed8']], $this->adminId));
     app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['design' => ['theme' => 'cream'], 'theme.cream' => ['nav_primary' => $menu->id]], $this->adminId));
 
     $this->actingAs($this->admin)->delete('/admin/themes/cream/preview')
         ->assertRedirect('/admin/themes')
         ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Stopped previewing Cream.']);
 
-    expect(($this->draftOf)('design'))->toBe(['accent' => '#1d4ed8'])
+    expect(($this->draftOf)('design'))->toBe(['brand' => '#1d4ed8'])
         ->and(DB::table('settings')->where('group_key', 'theme.cream')->exists())->toBeFalse()
         ->and(($this->draftOf)('theme.good'))->toBe(['feed_layout' => 'grid'])
         ->and(app(SettingsReader::class)->string('design', 'theme'))->toBe('good');

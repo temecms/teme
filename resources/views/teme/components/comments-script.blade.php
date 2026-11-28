@@ -172,6 +172,10 @@
     const post = async (form) => {
         const button = form.querySelector('button[type="submit"]');
         const status = form.querySelector('[data-teme-status]');
+        if (!button || !status) {
+            HTMLFormElement.prototype.submit.call(form);
+            return;
+        }
         if (button.getAttribute('aria-disabled') === 'true') return;
         button.setAttribute('aria-disabled', 'true');
         status.textContent = field(form, 'parent').value !== '' ? words.postingReply : words.postingComment;

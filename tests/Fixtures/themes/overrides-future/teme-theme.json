@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "overrides-future",
+    "name": "Fixture overrides-future",
+    "version": "0.1.0",
+    "description": "Fixture for the component overrides review.",
+    "requires": { "teme": "^0.1" },
+    "overrides": { "navigation": { "contract": 2 } }
+}

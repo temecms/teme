@@ -346,6 +346,19 @@
                     ]
                 }
             ]
-        }
+        },
+        "homePanels": [
+            {
+                "id": "ads",
+                "title": "Ads",
+                "size": "medium",
+                "page": "overview",
+                "blocks": [
+                    "totals",
+                    "daily",
+                    "hint"
+                ]
+            }
+        ]
     }
 }

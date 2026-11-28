@@ -7,10 +7,16 @@
     "author": "Teme",
     "license": "MIT",
     "screenshot": "screenshot.png",
-    "requires": { "teme": ">=0.1.0-dev <2.0" },
+    "requires": {
+        "teme": ">=0.1.0-dev <2.0"
+    },
     "title_separator": "–",
     "per_page": 12,
-    "layout": { "content": 680, "wide": 1152, "full": null },
+    "layout": {
+        "content": 680,
+        "wide": 1152,
+        "full": null
+    },
     "images": {
         "content": "(min-width: 48rem) 720px, 100vw",
         "wide": "(min-width: 72rem) 1152px, 100vw",
@@ -25,42 +31,48 @@
             "file": "fonts/newsreader-latin-opsz-normal.woff2",
             "weight": "400 700",
             "style": "normal",
-            "preload": true
+            "preload": true,
+            "face": false
         },
         {
             "family": "Newsreader",
             "file": "fonts/newsreader-latin-ext-opsz-normal.woff2",
             "weight": "400 700",
             "style": "normal",
-            "preload": false
+            "preload": false,
+            "face": false
         },
         {
             "family": "Newsreader",
             "file": "fonts/newsreader-latin-opsz-italic.woff2",
             "weight": "400 700",
             "style": "italic",
-            "preload": false
+            "preload": false,
+            "face": false
         },
         {
             "family": "Newsreader",
             "file": "fonts/newsreader-latin-ext-opsz-italic.woff2",
             "weight": "400 700",
             "style": "italic",
-            "preload": false
+            "preload": false,
+            "face": false
         },
         {
             "family": "Instrument Sans",
             "file": "fonts/instrument-sans-latin-wght-normal.woff2",
             "weight": "400 700",
             "style": "normal",
-            "preload": false
+            "preload": false,
+            "face": false
         },
         {
             "family": "Instrument Sans",
             "file": "fonts/instrument-sans-latin-ext-wght-normal.woff2",
             "weight": "400 700",
             "style": "normal",
-            "preload": false
+            "preload": false,
+            "face": false
         }
     ],
     "tokens": {
@@ -81,16 +93,38 @@
         "on-accent": "#111111"
     },
     "templates": {
-        "page": { "default": "Default", "full-width": "Full width" }
+        "page": {
+            "default": "Default",
+            "full-width": "Full width"
+        }
     },
-    "navigations": { "primary": "Header", "footer": "Footer" },
+    "navigations": {
+        "primary": "Header",
+        "footer": "Footer"
+    },
     "regions": {
         "after-content": {
             "label": "After the article",
             "max": 5
+        },
+        "front-top": {
+            "label": "Front page top",
+            "max": 3
+        },
+        "front-sections": {
+            "label": "Front page sections",
+            "max": 8
         }
     },
     "settings": [
+        {
+            "key": "use_brand_colour",
+            "type": "boolean",
+            "label": "Use the site's brand colour",
+            "description": "When on, the theme's accent follows the site's brand colour from Settings › General.",
+            "fieldset": "site",
+            "default": true
+        },
         {
             "key": "header_layout",
             "type": "select",
@@ -108,7 +142,10 @@
             "type": "select",
             "label": "Header and footer colour",
             "fieldset": "site",
-            "options": { "page": "Page colour", "accent": "Accent" },
+            "options": {
+                "page": "Page colour",
+                "accent": "Accent"
+            },
             "default": "page"
         },
         {
@@ -128,7 +165,10 @@
             "type": "select",
             "label": "Latest posts header",
             "fieldset": "latest",
-            "options": { "lead": "Lead story", "none": "None" },
+            "options": {
+                "lead": "Lead story",
+                "none": "None"
+            },
             "default": "lead"
         },
         {
@@ -137,14 +177,19 @@
             "label": "Show pinned posts under the lead story",
             "fieldset": "latest",
             "default": true,
-            "visible_when": { "latest_header": "lead" }
+            "visible_when": {
+                "latest_header": "lead"
+            }
         },
         {
             "key": "feed_layout",
             "type": "select",
             "label": "Feed layout",
             "fieldset": "latest",
-            "options": { "list": "List", "grid": "Grid" },
+            "options": {
+                "list": "List",
+                "grid": "Grid"
+            },
             "default": "list"
         },
         {
@@ -153,7 +198,9 @@
             "label": "Images in the list",
             "fieldset": "latest",
             "default": true,
-            "visible_when": { "feed_layout": "list" }
+            "visible_when": {
+                "feed_layout": "list"
+            }
         },
         {
             "key": "featured_image_style",
@@ -214,5 +261,7 @@
     },
     "composers": [],
     "speculation": true,
-    "cards": { "replaces": [] }
+    "cards": {
+        "replaces": []
+    }
 }

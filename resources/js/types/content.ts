@@ -85,9 +85,21 @@ export type TypeTaxonomy = {
     canCreate: boolean;
 };
 
+/** A plugin's action on the content lists (contributes.listActions). */
+export type ContentListAction = {
+    code: string;
+    id: string;
+    label: string;
+    row: boolean;
+    bulk: boolean;
+    confirm: string | null;
+};
+
 export type ContentIndexPage = {
     /** The URL segment, such as posts. */
     type: string;
+    /** The plugins' list actions, offered on rows and in bulk where their scope says. */
+    listActions: ContentListAction[];
     rows: ContentRow[];
     /** Its place among the pages (I-3421). */
     paging: ListPages;
