@@ -30,12 +30,15 @@ final class DeclaredScripts
      * relative path to a .js file inside the package, each output has at most one script, a card
      * output names a card the plugin declares, and the plugin must ask for site.scripts.
      *
+     * The capability is checked only when the capabilities are given, as with the image service: null where the
+     * manifest's validator already held the contributes to them, as when a plugin starts (consent covers it then).
+     *
      * @param  array<array-key, mixed>  $contributes
-     * @param  list<string>  $capabilities
+     * @param  list<string>|null  $capabilities
      *
      * @return list<string>
      */
-    public static function errors(array $contributes, array $capabilities): array
+    public static function errors(array $contributes, ?array $capabilities): array
     {
         if (! array_key_exists('scripts', $contributes)) {
             return [];
@@ -51,7 +54,7 @@ final class DeclaredScripts
             return [__('A plugin can declare at most 40 scripts.')];
         }
 
-        if ($scripts !== [] && ! in_array(Capability::SiteScripts->value, $capabilities, true)) {
+        if ($scripts !== [] && $capabilities !== null && ! in_array(Capability::SiteScripts->value, $capabilities, true)) {
             return [__('The plugin declares scripts, but it doesn’t ask for :capability.', ['capability' => Capability::SiteScripts->value])];
         }
 
