@@ -56,7 +56,7 @@ A page draws its blocks in order:
 
 Each figures, chart and table block loads on its own, after the page, so one slow block never holds the others.
 
-Row actions are `edit`, `duplicate`, `enable`, `disable` and `delete`, and up to two of your own actions marked `"row": true` under `contributes.actions` (never bulk). Bulk actions are the built-in ones without `edit`. Core asks before a delete, and before a custom action that declares `confirm`. A row can leave an action out by naming it in its `unavailable` list. Core re-reads that list before queuing and refuses a listed action; the job may still check.
+Row actions are `edit`, `duplicate`, `enable`, `disable` and `delete`, and up to two of your own actions marked `"row": true` under `contributes.actions` (never bulk). Bulk actions are the built-in ones without `edit`. Core asks before a delete, and before a custom action that declares `confirm`. A row can leave an action out by naming it in its `unavailable` list. Core re-reads that list before queuing, under the area's time budgets, and refuses a listed action, or any action when your rows can't be read in time; the job may still check.
 
 A `link` column shows an outside address: the cell is `Cell::link($text, $href)`. Core draws only an `https://` address with no user or password, in a new tab with the host under the link; anything else shows as no link. Content lists never use link cells.
 

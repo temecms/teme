@@ -33,6 +33,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
+use Teme\Contracts\Admin\AreaContext;
+use Teme\Contracts\Admin\RowPage;
+use Teme\Contracts\Admin\TableQuery;
 use Tests\Fixtures\Plugins\Placard\PlacardArea;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -245,6 +248,52 @@ it('refuses, queuing nothing, a row action listed as unavailable on that row', f
         'plugin.placard.manage',
         $this->id,
     )))->toThrow(ValidationException::class);
+
+    expect(TrackedJob::query()->count())->toBe(0);
+    Queue::assertNothingPushed();
+});
+
+it('refuses, queuing nothing, a row action posted with a kind whose tables don’t offer it', function (): void {
+    DB::table('placard_ads')->where('id', $this->id)->update(['status' => 'paused', 'impressions' => 0]);
+
+    // The plugin answers another kind with no rows, so a trusted posted kind would find nothing to refuse.
+    PlacardArea::$on['rows'] = function (string $record, TableQuery $query, AreaContext $context): RowPage {
+        if ($record !== 'ad') {
+            return new RowPage([], 0);
+        }
+
+        $replaced = PlacardArea::$on;
+        PlacardArea::$on = [];
+
+        try {
+            return (new PlacardArea)->rows($record, $query, $context);
+        } finally {
+            PlacardArea::$on = $replaced;
+        }
+    };
+
+    $this->actingAs($this->editor)
+        ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
+            'record' => $this->id,
+            'kind' => 'anything-else',
+        ])
+        ->assertInertiaFlash('toast.type', 'error');
+
+    expect(TrackedJob::query()->count())->toBe(0);
+    Queue::assertNothingPushed();
+});
+
+it('refuses, queuing nothing, a row action when the plugin’s rows can’t be read', function (): void {
+    PlacardArea::$on['rows'] = fn (): never => throw new RuntimeException('The ads table is gone.');
+
+    $this->actingAs($this->editor)
+        ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
+            'record' => $this->id,
+            'kind' => 'ad',
+        ])
+        ->assertInertiaFlash('toast.type', 'error');
 
     expect(TrackedJob::query()->count())->toBe(0);
     Queue::assertNothingPushed();

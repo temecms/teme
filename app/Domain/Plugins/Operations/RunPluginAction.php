@@ -19,6 +19,7 @@ namespace App\Domain\Plugins\Operations;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Area\AreaPlugin;
+use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\Lists\PluginActions;
@@ -34,7 +35,6 @@ use Teme\Contracts\Admin\PluginArea;
 use Teme\Contracts\Admin\TableQuery;
 use Teme\Contracts\Jobs\QueueOptions;
 use Teme\Contracts\Operations\OperationInput;
-use Throwable;
 
 final class RunPluginAction extends BaseOperation
 {
@@ -47,6 +47,7 @@ final class RunPluginAction extends BaseOperation
         private readonly StartJob $start,
         private readonly PluginRegistry $registry,
         private readonly PluginAreas $areas,
+        private readonly AreaReads $reads,
     ) {}
 
     protected function authorize(OperationInput $input): void
@@ -91,21 +92,28 @@ final class RunPluginAction extends BaseOperation
 
     /**
      * Re-reads the row's unavailable list the same way the table does, and
-     * refuses when this action is listed. The job may still check; core
-     * refuses first so a stale menu cannot queue work the UI hid.
+     * refuses when this action is listed, or when the rows can't be read.
+     * The job may still check; core refuses first so a stale menu or a
+     * crafted post cannot queue work the UI hid.
      *
      * @since next
      */
     private function refuseUnavailable(RunPluginActionInput $input): void
     {
         $plugin = $this->areas->find($input->code);
-        $kind = $this->recordKind($input, $plugin);
+        $table = $plugin === null ? null : $this->tableFor($input, $plugin);
 
-        if ($plugin === null || $kind === null || $input->recordId === null || $input->recordId === '') {
+        if ($plugin === null || $table === null || $input->recordId === null || $input->recordId === '') {
             return;
         }
 
-        $unavailable = $this->unavailableFor($plugin, $kind, $input->recordId, $input->actorId);
+        $unavailable = $this->unavailableFor($plugin, $table, $input->recordId, $input->actorId);
+
+        if ($unavailable === false) {
+            throw ValidationException::withMessages([
+                'action' => __('That row couldn’t be checked just now. Try again.'),
+            ]);
+        }
 
         if ($unavailable !== null && in_array($input->action, $unavailable, true)) {
             throw ValidationException::withMessages([
@@ -115,64 +123,72 @@ final class RunPluginAction extends BaseOperation
     }
 
     /**
-     * The record kind for this row action: the posted kind, or the first
-     * record whose tables offer the action.
+     * The table this row action came from: one of the posted kind's tables
+     * that offers the action, else the first table of any declared record
+     * that does. A posted kind is a hint, never trusted on its own.
+     *
+     * @return array<string, mixed>|null
      *
      * @since next
      */
-    private function recordKind(RunPluginActionInput $input, ?AreaPlugin $plugin): ?string
+    private function tableFor(RunPluginActionInput $input, AreaPlugin $plugin): ?array
     {
-        if ($input->recordKind !== null && $input->recordKind !== '') {
-            return $input->recordKind;
-        }
-
-        if ($plugin === null) {
-            return null;
-        }
+        $posted = $input->recordKind !== null && $input->recordKind !== '' ? $input->recordKind : null;
+        $found = null;
 
         foreach ($plugin->area->records as $record) {
             foreach ($plugin->area->tables($record['id']) as $table) {
                 $actions = is_array($table['rowActions'] ?? null) ? $table['rowActions'] : [];
 
-                if (in_array($input->action, $actions, true)) {
-                    return $record['id'];
+                if (! in_array($input->action, $actions, true)) {
+                    continue;
                 }
+
+                if ($record['id'] === $posted) {
+                    return $table;
+                }
+
+                $found ??= $table;
             }
         }
 
-        return null;
+        return $found;
     }
 
     /**
-     * Fresh unavailable action ids for this row, or null when the row isn't
-     * found on the pages read (up to 1,000 rows).
+     * Fresh unavailable action ids for this row, read under the area's
+     * budgets; false when a read failed or ran over, and null when the row
+     * isn't on the pages read (up to 1,000 rows). Later: a socket that reads
+     * one row by id would close that last gap.
      *
-     * @return list<string>|null
+     * @param  array<string, mixed>  $table
+     *
+     * @return list<string>|false|null
      *
      * @since next
      */
-    private function unavailableFor(AreaPlugin $plugin, string $kind, string $recordId, string $actorId): ?array
+    private function unavailableFor(AreaPlugin $plugin, array $table, string $recordId, string $actorId): array|false|null
     {
         if (! $plugin->data instanceof PluginArea) {
-            return null;
+            return false;
         }
 
         $context = AreaContexts::for($plugin->code, $actorId);
 
         for ($page = 1; $page <= 10; $page++) {
-            try {
-                $given = $plugin->data->rows($kind, new TableQuery($page, 100, '', [], null, 'asc'), $context);
-            } catch (Throwable) {
-                return null;
+            $given = $this->reads->rows($plugin, $table, new TableQuery($page, 100, '', [], null, 'asc'), $context);
+
+            if ($given['failed'] !== null) {
+                return false;
             }
 
-            foreach ($given->rows as $row) {
-                if ($row->id === $recordId) {
-                    return array_values(array_filter($row->unavailable, is_string(...)));
+            foreach ($given['rows'] as $row) {
+                if ($row['id'] === $recordId) {
+                    return $row['unavailable'];
                 }
             }
 
-            if (count($given->rows) < 100) {
+            if (count($given['rows']) < 100) {
                 break;
             }
         }
