@@ -28,7 +28,7 @@ interface CardsChanged
     /**
      * Notes that this plugin's cards changed, for the page cache to purge after commit.
      *
-     * @param  list<string>|null  $contentIds  the content items whose pages changed, from a job; null for the whole site
+     * @param  list<string>|null  $contentIds  the content items whose pages changed, from a job (since next); null for the plugin's tag
      *
      * @since 1.5.0
      */

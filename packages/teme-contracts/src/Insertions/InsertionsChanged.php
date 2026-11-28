@@ -27,7 +27,7 @@ interface InsertionsChanged
     /**
      * Notes that insertion rules changed, for the page cache to purge after commit.
      *
-     * @param  list<string>|null  $contentIds  the content items whose pages changed, from a job; null for the whole site
+     * @param  list<string>|null  $contentIds  the content items whose pages changed, from a job (since next); null for the whole site
      *
      * @since 1.0.0
      */

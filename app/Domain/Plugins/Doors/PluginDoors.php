@@ -26,7 +26,6 @@ namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\Plugins\PluginSiteAi;
-use App\Domain\Cache\PublicChanges;
 use App\Domain\Cards\Plugin\CoreCardsChanged;
 use App\Domain\Contents\Queries\ItemSnapshots;
 use App\Domain\Contents\Queries\PublishedItems;
@@ -83,7 +82,6 @@ final readonly class PluginDoors implements PluginServices
         private PluginRegistry $registry,
         private SettingHosts $settingHosts,
         private CoreSiteInfo $site,
-        private PublicChanges $changes,
         private PublishedItems $published,
         private ItemSnapshots $snapshots,
         private QueuedItems $queued,
@@ -134,7 +132,7 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true)) {
-            $offered[InsertionsChanged::class] = new CoreInsertionsChanged($this->changes, $name);
+            $offered[InsertionsChanged::class] = new CoreInsertionsChanged($name);
             $offered[InlineScripts::class] = new PluginInlineScripts($code);
         }
 

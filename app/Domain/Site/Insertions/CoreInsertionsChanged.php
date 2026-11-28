@@ -1,11 +1,11 @@
 <?php
 
 /**
- * The door plugins call when their insertion rules change (I-064): inside
- * an Operation, notes the insertions and page-insertions tags for the page
- * cache to purge after the Operation commits (rule 6); from a plugin's job,
- * which acts for nobody, runs NotePluginPagesChanged, which purges the named
- * content items' pages, or the whole site at most once a minute.
+ * The door plugins call when their insertion rules change (I-064). Inside an
+ * Operation it notes the change for the page cache to purge after the
+ * Operation commits (rule 6): the named items' pages, or the insertions and
+ * page-insertions tags. From a plugin's job, which acts for nobody, it runs
+ * NotePluginPagesChanged, which does the same after the job's work commits.
  *
  * @package Teme
  * @since   1.0.0
@@ -26,22 +26,30 @@ use Teme\Contracts\Insertions\InsertionsChanged;
 final readonly class CoreInsertionsChanged implements InsertionsChanged
 {
     /** @param  string|null  $plugin  the plugin this door is given to; null for core's own calls */
-    public function __construct(
-        private PublicChanges $changes,
-        private ?string $plugin = null,
-    ) {}
+    public function __construct(private ?string $plugin = null) {}
 
     /**
-     * @param  list<string>|null  $contentIds
+     * @param  list<string>|null  $contentIds  the content items whose pages changed, from a job (since next); null for the whole site
      */
     public function notify(?array $contentIds = null): void
     {
-        if ($this->changes->inOperation() || $this->plugin === null) {
-            $this->changes->add(new CacheKeysFor(CacheKeysFor::SETTINGS, 'insertions', [PageTags::INSERTIONS, PageTags::PAGE_INSERTIONS]));
+        $changes = app(PublicChanges::class);
+        $tags = [PageTags::INSERTIONS, PageTags::PAGE_INSERTIONS];
+
+        if ($changes->inOperation()) {
+            $changes->add(...($contentIds === null
+                ? [new CacheKeysFor(CacheKeysFor::SETTINGS, 'insertions', $tags)]
+                : NotePluginPagesChanged::keysFor($contentIds)));
 
             return;
         }
 
-        app(NotePluginPagesChanged::class)->execute(new NotePluginPagesChangedInput($this->plugin, $contentIds));
+        if ($this->plugin === null) {
+            $changes->add(new CacheKeysFor(CacheKeysFor::SETTINGS, 'insertions', $tags));
+
+            return;
+        }
+
+        app(NotePluginPagesChanged::class)->execute(new NotePluginPagesChangedInput($this->plugin, $contentIds, $tags));
     }
 }
