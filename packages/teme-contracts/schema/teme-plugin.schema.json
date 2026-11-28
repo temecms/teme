@@ -1504,6 +1504,20 @@
                         }
                     }
                 },
+                "downloads": {
+                    "type": "object",
+                    "required": ["maxBytes"],
+                    "additionalProperties": false,
+                    "description": "The largest file the plugin's downloads may hold, with http; 16 MB when none is declared, 1 MB to 128 MB when one is.",
+                    "properties": {
+                        "maxBytes": {
+                            "type": "integer",
+                            "minimum": 1048576,
+                            "maximum": 134217728,
+                            "description": "The largest file, in bytes."
+                        }
+                    }
+                },
                 "securityLog": {
                     "type": "array",
                     "minItems": 1,

@@ -18,6 +18,7 @@ namespace App\Domain\Plugins\Contributions;
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\AreaValidator;
 use App\Domain\Plugins\Console\DeclaredCommands;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
@@ -220,6 +221,13 @@ final class ContributionsValidator implements ContributionsCheck
                 // A kind may go to the holders of a permission the plugin declares (docs/plans/plugin-sockets-3.md, D-T5).
                 $permissions = array_values(array_filter(array_column(array_filter(is_array($contributes['permissions'] ?? null) ? $contributes['permissions'] : [], is_array(...)), 'id'), is_string(...)));
                 array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
+            } elseif ($surface === 'downloads') {
+                // Larger downloads need http, which they reach their hosts with (docs/guides/developers/plugins/outbound-files.md).
+                if ($capabilities !== null && ! in_array(Capability::Http->value, $capabilities, true)) {
+                    $errors[] = __('It declares downloads, but the plugin doesn’t ask for http.');
+                }
+
+                array_push($errors, ...DeclaredDownloads::errors($contributes['downloads']));
             } elseif ($surface === 'securityLog') {
                 // Its lines need security.log, as its notices need notices.send (docs/guides/developers/plugins/security-log.md).
                 if ($capabilities !== null && ! in_array(Capability::SecurityLog->value, $capabilities, true)) {
@@ -245,7 +253,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'securityLog'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'securityLog', 'downloads'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }

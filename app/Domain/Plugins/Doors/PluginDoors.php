@@ -35,6 +35,7 @@ use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Notices\NoticeSender;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Hooks\PluginHookSender;
 use App\Domain\Plugins\Jobs\PluginJobs;
@@ -60,6 +61,7 @@ use Teme\Contracts\Directory\VerifiedDirectory;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Hooks\HookSender;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
@@ -130,7 +132,12 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
             // The hosts agreed in its settings are read at each call, never fixed here (docs/plans/plugin-sockets-1.md, A2).
-            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path);
+            // Its downloads go to its own private folder, which nothing else shares (docs/guides/developers/plugins/outbound-files.md).
+            $downloadManifest = $this->registry->find($name)?->manifest;
+            $downloads = $downloadManifest === null ? DeclaredDownloads::DEFAULT_BYTES : DeclaredDownloads::of($downloadManifest);
+            $http = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path, downloadFolder: storage_path('framework/plugin-downloads/'.$code), downloadBytes: $downloads);
+            $offered[OutboundHttp::class] = $http;
+            $offered[OutboundDownloads::class] = $http;
         }
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
