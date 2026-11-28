@@ -41,6 +41,11 @@ These are all Notifications, sent after commit.
 | `TermDeleted` | A category or tag was deleted. It carries the term as it was before its row went. | `content.read` |
 | `TermAssigned` | An item's terms changed. | `content.read` |
 | `PagesPurged` | A change removed public pages from the page cache. | `content.read` |
+
+## Hooks for people
+
+| Hook | When it is sent | Capability |
+|---|---|---|
 | `PersonInvited` | Someone was invited to the site. Carries their account ID and display name only, never a role or email. | `people.read` |
 | `PersonJoined` | An invited person chose their password and joined. Carries their account ID and display name only, never a role or email. | `people.read` |
 

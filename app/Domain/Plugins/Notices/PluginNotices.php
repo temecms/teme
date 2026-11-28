@@ -19,10 +19,8 @@ namespace App\Domain\Plugins\Notices;
 
 use App\Domain\Notices\NoticeSender;
 use App\Domain\Plugins\Doors\ActingPerson;
-use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\PluginKeys;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Notices\NoticeMessage;
@@ -134,22 +132,12 @@ final readonly class PluginNotices implements Notices
      */
     private function starterId(): string
     {
-        $job = app(CurrentJobActor::class)->get();
-
-        if ($job !== null) {
-            if ($job->isOperator() || $job->userId === null) {
-                throw new InvalidArgumentException(__('This kind of notice goes only to the person the plugin’s work acts for.'));
-            }
-
-            return $job->userId;
-        }
-
-        $id = Auth::id();
+        $id = ActingPerson::currentId();
 
         if ($id === null) {
             throw new InvalidArgumentException(__('This kind of notice goes only to the person the plugin’s work acts for.'));
         }
 
-        return (string) $id;
+        return $id;
     }
 }

@@ -114,6 +114,12 @@
                         "description": "In pixels.",
                         "min": 50,
                         "max": 600
+                    },
+                    {
+                        "key": "link",
+                        "type": "url",
+                        "label": "Link",
+                        "description": "Where the slot leads."
                     }
                 ]
             }

@@ -46,7 +46,7 @@ final class ActingPerson
      * The job's person when CurrentJobActor holds one; otherwise the
      * signed-in request person.
      */
-    private static function currentId(): ?string
+    public static function currentId(): ?string
     {
         $job = app(CurrentJobActor::class)->get();
 

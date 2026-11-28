@@ -9,7 +9,6 @@ use App\Domain\Users\Operations\Input\AcceptInvitationInput;
 use App\Domain\Users\Operations\Input\InviteUserInput;
 use App\Domain\Users\Operations\InviteUser;
 use App\Models\User;
-use ArrayObject;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,16 +25,16 @@ beforeEach(function (): void {
 });
 
 /**
- * @return ArrayObject<int, array{hook: string, payload: object, depth: int}>
+ * @return object{items: list<array{hook: string, payload: object, depth: int}>}
  */
-function personHookRecord(string ...$hooks): ArrayObject
+function personHookRecord(string ...$hooks): object
 {
-    $heard = new ArrayObject;
+    $heard = (object) ['items' => []];
     $core = app(HookDispatcher::class)->subscriber('core');
 
     foreach ($hooks as $hook) {
         $core->on($hook, function (object $payload) use ($heard, $hook): void {
-            $heard[] = ['hook' => $hook, 'payload' => $payload, 'depth' => DB::transactionLevel()];
+            $heard->items[] = ['hook' => $hook, 'payload' => $payload, 'depth' => DB::transactionLevel()];
         });
     }
 
@@ -55,14 +54,14 @@ it('sends PersonInvited after commit with id and name only, never a role or emai
         deliver: false,
     ));
 
-    expect($heard)->toHaveCount(1)
-        ->and($heard[0]['depth'])->toBe($base)
-        ->and($heard[0]['payload'])->toBeInstanceOf(PersonInvited::class)
-        ->and($heard[0]['payload']->personId)->toBe((string) $result['userId'])
-        ->and($heard[0]['payload']->name)->toBe('Ada Harbour')
-        ->and($heard[0]['payload']->actorId)->toBe((string) $this->admin->id)
-        ->and(json_encode($heard[0]['payload']))->not->toContain('ada@harbour.example')
-        ->and(json_encode($heard[0]['payload']))->not->toContain('editor');
+    expect($heard->items)->toHaveCount(1)
+        ->and($heard->items[0]['depth'])->toBe($base)
+        ->and($heard->items[0]['payload'])->toBeInstanceOf(PersonInvited::class)
+        ->and($heard->items[0]['payload']->personId)->toBe((string) $result['userId'])
+        ->and($heard->items[0]['payload']->name)->toBe('Ada Harbour')
+        ->and($heard->items[0]['payload']->actorId)->toBe((string) $this->admin->id)
+        ->and(json_encode($heard->items[0]['payload']))->not->toContain('ada@harbour.example')
+        ->and(json_encode($heard->items[0]['payload']))->not->toContain('editor');
 });
 
 it('sends PersonJoined after commit when the invitation is accepted', function (): void {
@@ -84,12 +83,12 @@ it('sends PersonJoined after commit when the invitation is accepted', function (
         'a-brand-new-long-passphrase',
     ));
 
-    expect($heard)->toHaveCount(1)
-        ->and($heard[0]['depth'])->toBe($base)
-        ->and($heard[0]['payload']->personId)->toBe((string) $result['userId'])
-        ->and($heard[0]['payload']->name)->toBe('Ada Harbour')
-        ->and(json_encode($heard[0]['payload']))->not->toContain('ada@harbour.example')
-        ->and(json_encode($heard[0]['payload']))->not->toContain('author');
+    expect($heard->items)->toHaveCount(1)
+        ->and($heard->items[0]['depth'])->toBe($base)
+        ->and($heard->items[0]['payload']->personId)->toBe((string) $result['userId'])
+        ->and($heard->items[0]['payload']->name)->toBe('Ada Harbour')
+        ->and(json_encode($heard->items[0]['payload']))->not->toContain('ada@harbour.example')
+        ->and(json_encode($heard->items[0]['payload']))->not->toContain('author');
 });
 
 it('refuses a PersonInvited subscription without people.read', function (): void {
@@ -119,7 +118,7 @@ it('sends no PersonInvited when the invite is refused, and writes nothing', func
         deliver: false,
     )))->toThrow(AuthorizationException::class);
 
-    expect($heard)->toHaveCount(0)
+    expect($heard->items)->toHaveCount(0)
         ->and(User::query()->where('email', 'ada@harbour.example')->exists())->toBeFalse();
 });
 
@@ -141,7 +140,7 @@ it('sends no PersonJoined when accepting the invitation is refused', function ()
         'a-brand-new-long-passphrase',
     )))->toThrow(AuthorizationException::class);
 
-    expect($heard)->toHaveCount(0)
+    expect($heard->items)->toHaveCount(0)
         ->and(User::query()->find($result['userId'])?->email_verified_at)->toBeNull();
 });
 
@@ -164,6 +163,6 @@ it('sends no PersonInvited when the invite’s transaction rolls back', function
     } catch (RuntimeException) {
     }
 
-    expect($heard)->toHaveCount(0)
+    expect($heard->items)->toHaveCount(0)
         ->and(User::query()->where('email', 'ada@harbour.example')->exists())->toBeFalse();
 });

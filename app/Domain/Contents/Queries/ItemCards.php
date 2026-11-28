@@ -108,7 +108,7 @@ final readonly class ItemCards
             return null;
         }
 
-        return new FeaturedImage($mediaId, $address, $sizes);
+        return new FeaturedImage($mediaId, $address, $sizes, is_string($entry['alt'] ?? null) ? self::text($entry['alt']) : null);
     }
 
     private static function text(mixed $value): ?string

@@ -26,6 +26,7 @@ final readonly class FeaturedImage
      * @param  string  $id  the media item's ID
      * @param  string  $address  the main public address (the widest size), absolute
      * @param  list<ImageSize>  $sizes  every size that exists, narrowest first
+     * @param  string|null  $alt  the alt text when set; null when empty
      *
      * @since next
      */
@@ -33,5 +34,6 @@ final readonly class FeaturedImage
         public string $id,
         public string $address,
         public array $sizes,
+        public ?string $alt = null,
     ) {}
 }

@@ -28,7 +28,7 @@ To read on, pass the page's `next` as the next query's `after`, with the same fi
 
 ## Read a published item's card
 
-`card()` takes an item's ID and answers an `ItemCard`: the published public item as an `ItemRef`, the excerpt someone wrote (or null), and its featured image when it has one. The featured image carries the media ID, the main public address (the widest size) and every size that exists, each with its name, width, height and address. Addresses are absolute and made when the card is read, so they follow the site to a new domain. The card never needs a person.
+`card()` takes an item's ID and answers an `ItemCard`: the published public item as an `ItemRef` (title from the published revision), the excerpt someone wrote (or null), and its featured image when it has one. The featured image carries the media ID, optional alt text, the main public address (the widest size) and every size that exists, each with its name, width, height and address — only sizes that were generated, never placeholders for missing ones. Addresses are absolute and made when the card is read, so they follow the site to a new domain. The card never needs a person.
 
 Only what a visitor can open fully is answered: published, public (not private and not behind a password), not in the trash, of a type with public addresses, in a language readers are shown. A draft, a private or password-protected item, or a missing ID throws `ReadRefused` with one plain sentence. The card always uses the published revision, never a later working draft's fields.
 

@@ -53,7 +53,8 @@ it('gives a published item’s excerpt, featured image address and the sizes tha
         ->and($card->featuredImage->sizes[0]->name)->toBeString()
         ->and($card->featuredImage->sizes[0]->width)->toBeInt()
         ->and($card->featuredImage->sizes[0]->height)->toBeInt()
-        ->and($card->featuredImage->sizes[0]->address)->toStartWith('https://harbour.example/');
+        ->and($card->featuredImage->sizes[0]->address)->toStartWith('https://harbour.example/')
+        ->and($card->featuredImage->alt)->toBeNull();
 });
 
 it('gives a published item with no excerpt or featured image nulls for both', function (): void {

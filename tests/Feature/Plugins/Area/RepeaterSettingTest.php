@@ -62,8 +62,8 @@ it('stores a repeater as a JSON list of its items, each by its fields', function
 
     ($this->save)(['slots' => [['name' => 'Top', 'size' => '90'], ['name' => 'Side', 'size' => 250]]]);
 
-    expect(app(SettingsReader::class)->get('plugin.placard', 'slots'))->toBe([['name' => 'Top', 'size' => 90], ['name' => 'Side', 'size' => 250]])
-        ->and(json_decode((string) ($this->stored)(), true)['slots'] ?? null)->toBe([['name' => 'Top', 'size' => 90], ['name' => 'Side', 'size' => 250]]);
+    expect(app(SettingsReader::class)->get('plugin.placard', 'slots'))->toBe([['link' => '', 'name' => 'Top', 'size' => 90], ['link' => '', 'name' => 'Side', 'size' => 250]])
+        ->and(json_decode((string) ($this->stored)(), true)['slots'] ?? null)->toBe([['link' => '', 'name' => 'Top', 'size' => 90], ['link' => '', 'name' => 'Side', 'size' => 250]]);
 });
 
 it('refuses a repeater beyond its item count, or an item a field’s rule refuses, writing nothing', function (array $slots, string $key): void {
@@ -124,5 +124,5 @@ it('never lets a plugin write code, or a repeater that holds code, for itself', 
 
     $write(['slots' => [['name' => 'Top', 'size' => 90]]]);
 
-    expect(app(SettingsReader::class)->get('plugin.placard', 'slots'))->toBe([['name' => 'Top', 'size' => 90]]);
+    expect(app(SettingsReader::class)->get('plugin.placard', 'slots'))->toBe([['link' => '', 'name' => 'Top', 'size' => 90]]);
 });
