@@ -68,7 +68,9 @@ Editors can turn them off on one item with the built-in field **No inserted cont
 
 Pages that asked for insertions are kept in the page cache under the `insertions` tag. Core purges them after it enables or disables a plugin that has `content.insert`, and after someone saves that plugin's settings, so a plugin whose rules live in its own settings needs no `notify()`.
 
-When your rules change any other way, ask for `InsertionsChanged` in your plugin's constructor and call `notify()` inside an Operation. Core purges those pages, and the pages of plugins with `pages.insert`, after that Operation commits, never before. Outside an Operation it does nothing useful and may refuse.
+When your rules change any other way, ask for `InsertionsChanged` in your plugin's constructor and call `notify()` inside an Operation. Core purges those pages, and the pages of plugins with `pages.insert`, after that Operation commits, never before.
+
+A job can call `notify()` too, when its work changes what the pages show, such as share counts it refreshes. Core then runs its own step after the job's work commits: it purges the pages of the content items you pass as a list of IDs, or, with no list, the whole site, at most once a minute, since a whole-site purge warms every page again. A second whole-site call within the same minute is not purged again, so pass the IDs when you can. A plugin that is not running gets nothing purged.
 
 A page is cached whole, for everyone. A random or weighted pick, and anything chosen per visitor, is frozen into the cached copy until it is purged. Choose per device with CSS media queries, never on the server, and per visitor only in the browser, with a script your plugin serves from its own route or an approved inline script.
 
