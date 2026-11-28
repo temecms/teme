@@ -91,7 +91,7 @@ The class named under `plugin` in the manifest implements `HasPluginArea` beside
 
 | Method | What it answers |
 |---|---|
-| `figures($page, $block, $context)` | `Figure` values by item id: `Figure::number()`, `Figure::percent()` or `Figure::text()`, with an optional change, 0.12 for up 12%. An empty array is the "No statistics yet" state. Read `$context->period` for the window's dates in the person's time zone |
+| `figures($page, $block, $context)` | `Figure` values by item id: `Figure::number()`, `Figure::percent()` or `Figure::text()`, with an optional change, 0.12 for up 12%. An empty array shows a dash for each figure; declare `empty` on the figures block for the "No statistics yet" state instead. Read `$context->period` for the window's dates in the **site's** time zone |
 | `chart($page, $block, $context)` | A `Chart` of labels, at most 366, and one value a label for each series; pass earlier-period values as the optional third `$compare` argument for dashed lines |
 | `rows($record, $query, $context)` | A `RowPage` of up to 100 `Row` values for the `TableQuery`'s page, search, filters and sort, and the total when you know it |
 | `values($record, $id, $context)` | The record's stored values by field key, or null when there is no such record |

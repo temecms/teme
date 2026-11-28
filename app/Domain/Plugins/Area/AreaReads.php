@@ -85,12 +85,14 @@ final class AreaReads
             return ['items' => [], 'failed' => $this->failure($plugin)];
         }
 
-        if (is_array($given) && $given === []) {
+        // An empty answer is "No statistics yet" only when the block declares
+        // its empty line; otherwise each figure shows a dash (the old meaning).
+        if (is_array($given) && $given === [] && is_string($block['empty'] ?? null) && trim($block['empty']) !== '') {
             return ['items' => [], 'failed' => null, 'empty' => true];
         }
 
         $items = [];
-        $refused = ! is_array($given);
+        $refused = ! is_array($given) && $given !== [];
         $index = 0;
 
         foreach (is_array($block['items'] ?? null) ? $block['items'] : [] as $item) {

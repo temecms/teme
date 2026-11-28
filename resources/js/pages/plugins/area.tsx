@@ -155,7 +155,10 @@ export default function PluginArea(props: PluginAreaPageProps) {
                         )
                         .map((block) => `block_${block.id}` as const),
                 ],
-                onFinish: () => setPeriodLoading(false),
+                onFinish: () => {
+                    setPeriodLoading(false);
+                    document.getElementById('area-period')?.focus();
+                },
             },
         );
     };
@@ -357,6 +360,16 @@ export default function PluginArea(props: PluginAreaPageProps) {
 
                         const key = `block_${block.id}` as const;
 
+                        if (
+                            periodLoading &&
+                            (block.type === 'figures' ||
+                                block.type === 'chart')
+                        ) {
+                            return (
+                                <BlockSkeleton key={block.id} block={block} />
+                            );
+                        }
+
                         return (
                             <Deferred
                                 key={block.id}
@@ -399,6 +412,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
                                             <AreaChart
                                                 block={block}
                                                 data={data}
+                                                period={period}
                                             />
                                         );
                                     }

@@ -84,3 +84,25 @@ it('counts several waiting scripts for the area banner', function (): void {
         ->get(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->assertInertia(fn (Assert $page) => $page->where('waitingScripts', 2));
 });
+
+it('hides the waiting-script banner on pages without a table', function (): void {
+    ScriptRequests::fromMarkup('placard', 'Ad: Ad code', '<script>adsbygoogle.push({})</script>', (string) $this->editor->id);
+
+    $this->actingAs($this->editor)
+        ->get(route('plugins.area.show', ['code' => 'placard']))
+        ->assertInertia(fn (Assert $page) => $page->where('waitingScripts', 0));
+});
+
+it('offers Review scripts only to someone who may manage site code', function (): void {
+    ScriptRequests::fromMarkup('placard', 'Ad: Ad code', '<script>adsbygoogle.push({})</script>', (string) $this->editor->id);
+
+    $this->actingAs($this->editor)
+        ->get(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->assertInertia(fn (Assert $page) => $page->where('reviewScripts', null));
+
+    $admin = User::factory()->create()->assignRole('administrator');
+
+    $this->actingAs($admin)
+        ->get(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
+        ->assertInertia(fn (Assert $page) => $page->where('reviewScripts', '/admin/settings/site-code'));
+});

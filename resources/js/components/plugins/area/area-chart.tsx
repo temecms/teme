@@ -17,7 +17,11 @@ import { TextButton } from '@/components/ui/text-button';
 import { adminLocale } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import type { AreaChartBlock, AreaChartData } from '@/types/plugin-area';
+import type {
+    AreaChartBlock,
+    AreaChartData,
+    AreaPeriodProps,
+} from '@/types/plugin-area';
 
 /** The series' colours, from the design tokens, in order. */
 const COLOURS = ['var(--chart-1)', 'var(--chart-2)', 'var(--ink-3)'];
@@ -53,9 +57,11 @@ function dayLabel(label: string): string {
 export function AreaChart({
     block,
     data,
+    period,
 }: {
     block: AreaChartBlock;
     data: AreaChartData;
+    period?: AreaPeriodProps | null;
 }) {
     const [asTable, setAsTable] = useState(false);
     const labels = data.labels.map(dayLabel);
@@ -86,7 +92,14 @@ export function AreaChart({
         return built;
     }, [data.labels, data.series]);
     const Chart = block.kind === 'bar' ? BarChart : LineChart;
-    const ariaLabel = `${block.label}: ${labels[0] ?? ''}–${labels.at(-1) ?? ''}`;
+    const unit =
+        data.labels.length > 14
+            ? __('by week')
+            : __('by day');
+    const ariaLabel =
+        period !== null && period !== undefined
+            ? `${block.label}: ${period.range}. ${unit}.`
+            : `${block.label}: ${labels[0] ?? ''}–${labels.at(-1) ?? ''}. ${unit}.`;
 
     if (data.empty) {
         return (

@@ -34,10 +34,10 @@ function Count({ count, counting }: { count?: number; counting?: boolean }) {
     if (counting) {
         return (
             <span
-                className="bg-surface-3 text-ink-3 text-caption motion-safe:animate-pulse rounded-full px-2 py-1 font-medium tabular-nums"
+                className="bg-surface-3 motion-safe:animate-pulse inline-block size-5 shrink-0 rounded-full"
                 data-test="tab-counting"
             >
-                {__('Counting')}
+                <span className="sr-only">{__('Counting')}</span>
             </span>
         );
     }

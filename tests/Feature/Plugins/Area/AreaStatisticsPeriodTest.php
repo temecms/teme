@@ -10,6 +10,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Area\AreaContexts;
+use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -112,7 +114,7 @@ it('hands the chosen period’s dates to figures and charts', function (): void 
         ->and(collect($chart['series'])->firstWhere('dashed', true)['label'] ?? null)->toBe('The 7 days before');
 });
 
-it('marks a figures block empty when the plugin returns no figures', function (): void {
+it('marks a figures block empty when the plugin returns no figures and declared empty', function (): void {
     PlacardArea::$on['figures'] = fn (): array => [];
 
     $plugin = app(PluginAreas::class)->find('placard');
@@ -121,4 +123,22 @@ it('marks a figures block empty when the plugin returns no figures', function ()
 
     expect($data['empty'] ?? false)->toBeTrue()
         ->and($data['failed'])->toBeNull();
+});
+
+it('shows dashes for an empty figures() answer when the block declared no empty line', function (): void {
+    $plugin = app(PluginAreas::class)->find('placard');
+    $block = $plugin->area->page('overview')['blocks'][0];
+    unset($block['empty']);
+    PlacardArea::$on['figures'] = fn (): array => [];
+
+    $data = app(AreaReads::class)->figures(
+        $plugin,
+        'overview',
+        $block,
+        AreaContexts::for('placard', (string) $this->editor->id),
+    );
+
+    expect($data['empty'] ?? false)->toBeFalse()
+        ->and($data['items'][0]['value'])->toBeNull()
+        ->and($data['items'])->not->toBeEmpty();
 });

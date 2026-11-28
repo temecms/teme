@@ -45,6 +45,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Teme\Contracts\Admin\HasAreaCounts;
 
 final class PluginAreaController extends Controller
 {
@@ -76,6 +77,8 @@ final class PluginAreaController extends Controller
         }
 
         $noun = $this->waitingNoun($plugin, $frame['blocks']);
+        $listPage = collect($frame['blocks'])->contains(fn (array $block): bool => ($block['type'] ?? null) === 'table');
+        $hasCounts = $plugin->data instanceof HasAreaCounts;
 
         return Inertia::render('plugins/area', [
             ...$frame,
@@ -83,11 +86,15 @@ final class PluginAreaController extends Controller
             'parent' => app(AreaEntries::class)->onTools($code) ? ['title' => __('Tools'), 'href' => route('tools.index', [], false)] : null,
             'asks' => $asks,
             'period' => $period,
-            'counts' => Inertia::defer(fn (): ?array => $screen->counts($plugin, $personId), 'counts'),
-            'waitingScripts' => ScriptRequests::waiting($plugin->code),
+            'counts' => $hasCounts
+                ? Inertia::defer(fn (): ?array => $screen->counts($plugin, $personId), 'counts')
+                : null,
+            'waitingScripts' => $listPage ? ScriptRequests::waiting($plugin->code) : 0,
             'waitingNoun' => $noun['singular'],
             'waitingNouns' => $noun['plural'],
-            'reviewScripts' => route('settings.site-code', absolute: false),
+            'reviewScripts' => $user?->can('site-code.manage')
+                ? route('settings.site-code', absolute: false)
+                : null,
             ...$data,
         ]);
     }
