@@ -16,6 +16,7 @@ use App\Domain\Import\Planning\CompanionPlugin;
 use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Planning\ImportChoices;
 use App\Domain\Import\Queries\ImportScreen;
+use App\Domain\Import\Queries\ImportUploadCopies;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Import\Tracking\ImportRunJobs;
 use App\Domain\Jobs\Queries\TrackedJobList;
@@ -47,7 +48,7 @@ final class ImportScreenController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $source, ImportScreen $screen, TrackedJobList $jobs, ImportAnalysis $analysis, ImportChoices $choices, SettingsReader $settings): Response
+    public function show(Request $request, string $source, ImportScreen $screen, TrackedJobList $jobs, ImportAnalysis $analysis, ImportChoices $choices, SettingsReader $settings, ImportUploadCopies $copies): Response
     {
         $site = $screen->site($source);
         abort_if($site === null, 404);
@@ -80,6 +81,9 @@ final class ImportScreenController extends Controller
             'rememberedHosts' => $rememberedHosts,
             'siteTimezone' => $settings->string('general', 'timezone'),
             'maxFileMb' => max(1, (int) config('teme.import.max_file_mb')),
+            // The site's uploads copy, and the largest one the browser may send.
+            'uploadsCopy' => $copies->forSource($source),
+            'maxUploadsMb' => max(1, (int) config('teme.import.max_uploads_mb')),
         ]);
     }
 

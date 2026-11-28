@@ -19,6 +19,7 @@ use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Models\ImportUpload;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
+use App\Domain\Import\Uploads\KeptUploads;
 use App\Domain\Import\Uploads\UploadsCopy;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\DB;
@@ -54,20 +55,34 @@ final class AttachUploadsCopy extends BaseOperation
         $source = $this->sourceFor($input->source);
         $path = $this->kindOf($input->path);
 
-        return DB::transaction(function () use ($source, $path, $input): array {
-            $upload = ImportUpload::query()->updateOrCreate(
-                ['source_id' => $source->id],
-                [
-                    'kind' => $path['kind'],
-                    'path' => $path['path'],
-                    'name' => basename($path['path']),
-                    'size_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
-                    'attached_by' => $input->actorId() === null ? null : (int) $input->actorId(),
-                ],
-            );
+        $replaced = DB::transaction(function () use ($source, $path, $input): ?ImportUpload {
+            $previous = ImportUpload::query()->where('source_id', $source->id)->where('state', 'ready')->lockForUpdate()->first();
 
-            return ['sourceId' => (string) $source->id, 'kind' => (string) $upload->kind, 'path' => (string) $upload->path];
+            if ($previous !== null) {
+                $previous->delete();
+            }
+
+            ImportUpload::query()->create([
+                'source_id' => $source->id,
+                'state' => 'ready',
+                'kind' => $path['kind'],
+                'path' => $path['path'],
+                'name' => basename($path['path']),
+                'size_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
+                'received_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
+                'kept_by_teme' => false,
+                'attached_by' => $input->actorId() === null ? null : (int) $input->actorId(),
+            ]);
+
+            return $previous;
         });
+
+        // A copy Teme stored is deleted only after the change is committed; one the operator named never is.
+        if ($replaced !== null) {
+            KeptUploads::forget($replaced);
+        }
+
+        return ['sourceId' => (string) $source->id, 'kind' => $path['kind'], 'path' => $path['path']];
     }
 
     /**

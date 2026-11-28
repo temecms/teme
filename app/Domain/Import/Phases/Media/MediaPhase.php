@@ -21,6 +21,8 @@ use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Convert\Media\ImageTrace;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Models\ImportMapEntry;
+use App\Domain\Import\Operations\CountUploadsPicture;
+use App\Domain\Import\Operations\Input\CountUploadsPictureInput;
 use App\Domain\Import\Operations\Input\RecordMediaFilesInput;
 use App\Domain\Import\Operations\RecordMediaFiles;
 use App\Domain\Import\Phases\ImportContext;
@@ -358,6 +360,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         if ($copied !== null) {
             try {
                 $this->judge($copied);
+                $this->counted(true, $context);
 
                 return $copied;
             } catch (ValidationException) {
@@ -367,8 +370,17 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
 
         $file = $this->downloader->download($address, seconds: $seconds);
         $this->judge($file);
+        $this->counted(false, $context);
 
         return $file;
+    }
+
+    /**
+     * Counts a picture the import brought from the site's uploads copy or from the old site, for the report.
+     */
+    private function counted(bool $fromCopy, ImportContext $context): void
+    {
+        app(CountUploadsPicture::class)->execute(new CountUploadsPictureInput($context->sourceId, $fromCopy, $context->actorId()));
     }
 
     /**

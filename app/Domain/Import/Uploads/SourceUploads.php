@@ -31,7 +31,7 @@ final readonly class SourceUploads
      */
     public function download(string $sourceId, string $address, int $maxBytes): ?DownloadedFile
     {
-        $upload = ImportUpload::query()->where('source_id', $sourceId)->first();
+        $upload = ImportUpload::query()->where('source_id', $sourceId)->where('state', 'ready')->first();
 
         if ($upload === null || ! $this->onTheSite($sourceId, $address)) {
             return null;
