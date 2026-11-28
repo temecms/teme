@@ -183,6 +183,20 @@ it('shows dashes for an empty figures() answer when the block declared no empty'
         ->and($data['items'])->not->toBeEmpty();
 });
 
+it('hands the 90 days before as the comparison label', function (): void {
+    PlacardArea::$on['chart'] = fn (): Chart => new Chart(
+        ['2026-09-01', '2026-09-08'],
+        ['impressions' => [1, 2]],
+        ['impressions' => [0, 1]],
+    );
+
+    $plugin = app(PluginAreas::class)->find('placard');
+    $chart = app(PluginAreaScreen::class)
+        ->data($plugin, 'overview', 'daily', (string) $this->editor->id, [], AreaPeriod::LAST_90_DAYS);
+
+    expect(collect($chart['series'])->firstWhere('dashed', true)['label'] ?? null)->toBe('The 90 days before');
+});
+
 it('accepts empty true on a figures block and refuses a bad empty', function (): void {
     $area = PluginFixtures::manifest('placard')['contributes']['area'];
     $area['pages'][0]['blocks'][0]['empty'] = true;

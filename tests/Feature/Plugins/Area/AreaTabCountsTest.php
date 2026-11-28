@@ -10,6 +10,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Area\AreaContexts;
+use App\Domain\Plugins\Area\AreaPlugin;
+use App\Domain\Plugins\Area\AreaReads;
+use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -23,6 +27,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Teme\Contracts\Admin\AreaContext;
+use Teme\Contracts\Admin\Chart;
+use Teme\Contracts\Admin\HasAreaCounts;
+use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\RowPage;
+use Teme\Contracts\Admin\Saved;
+use Teme\Contracts\Admin\TableQuery;
 use Tests\Fixtures\Plugins\Placard\PlacardArea;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -89,4 +99,45 @@ it('omits counts when the plugin throws', function (): void {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->loadDeferredProps('counts', fn (Assert $reload) => $reload->where('counts', null)));
+});
+
+it('answers no counts when the area data is not HasAreaCounts', function (): void {
+    $plugin = app(PluginAreas::class)->find('placard');
+    expect($plugin)->not->toBeNull();
+
+    $plain = new AreaPlugin($plugin->name, $plugin->code, $plugin->label, $plugin->area, new class implements PluginArea
+    {
+        public function figures(string $page, string $block, AreaContext $context): array
+        {
+            return [];
+        }
+
+        public function chart(string $page, string $block, AreaContext $context): Chart
+        {
+            return new Chart([], []);
+        }
+
+        public function rows(string $record, TableQuery $query, AreaContext $context): RowPage
+        {
+            return new RowPage([], 0);
+        }
+
+        public function values(string $record, string $id, AreaContext $context): ?array
+        {
+            return null;
+        }
+
+        public function save(string $record, ?string $id, array $values, AreaContext $context): Saved
+        {
+            return new Saved('1');
+        }
+
+        public function act(string $record, string $action, array $ids, AreaContext $context): Saved
+        {
+            return new Saved('1');
+        }
+    });
+
+    expect($plain->data instanceof HasAreaCounts)->toBeFalse()
+        ->and(app(AreaReads::class)->counts($plain, AreaContexts::for('placard', (string) $this->editor->id)))->toBeNull();
 });

@@ -12,6 +12,9 @@ declare(strict_types=1);
 
 use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Models\TrackedJob;
+use App\Domain\Plugins\Area\AreaPlugin;
+use App\Domain\Plugins\Area\DeclaredArea;
+use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -20,6 +23,7 @@ use App\Domain\Plugins\Operations\Input\RunPluginActionInput;
 use App\Domain\Plugins\Operations\RunPluginAction;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Queries\PluginAreaScreen;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -104,6 +108,25 @@ it('hands the figures block its own empty line', function (): void {
             ->where('blocks.0.empty', 'Figures appear the day after an ad first shows.'));
 });
 
+it('defaults empty:true figures and a link without empty text', function (): void {
+    $area = PluginFixtures::manifest('placard')['contributes']['area'];
+    $area['pages'][0]['blocks'][0]['empty'] = true;
+    unset($area['pages'][1]['blocks'][0]['columns'][3]['empty']);
+
+    expect(app(ContributionsValidator::class)->errors(
+        [...PluginFixtures::manifest('placard')['contributes'], 'area' => $area],
+        '1.0.0',
+        ['jobs'],
+    ))->toBe([]);
+
+    $plugin = new AreaPlugin('tests/placard', 'placard', 'Placard', DeclaredArea::from($area), null);
+    $frame = app(PluginAreaScreen::class)->frame($plugin, 'overview');
+    $ads = app(PluginAreaScreen::class)->frame($plugin, 'ads');
+
+    expect($frame['blocks'][0]['empty'] ?? null)->toBe('Figures appear once there is something to count.')
+        ->and($ads['blocks'][0]['columns'][3]['empty'] ?? null)->toBe('None');
+});
+
 it('queues a custom row action as the clicker for that row, with the plugin’s toast', function (): void {
     $this->actingAs($this->editor)
         ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
@@ -152,7 +175,7 @@ it('refuses, queuing nothing, a custom row action for a person without the area�
     Queue::assertNothingPushed();
 });
 
-it('leaves row-only actions off the settings group and refuses the wrong record shape', function (): void {
+it('leaves row-only actions off the settings group and refuses the wrong record shape, queuing nothing', function (): void {
     expect(app(PluginActions::class)->forGroup('plugin.placard'))
         ->toBe([
             ['id' => 'prune-now', 'label' => 'Prune now', 'description' => 'Removes statistics older than a year.'],
@@ -172,6 +195,23 @@ it('leaves row-only actions off the settings group and refuses the wrong record 
         'plugin.placard.manage',
         $this->id,
     )))->toThrow(ValidationException::class);
+
+    expect(TrackedJob::query()->count())->toBe(0);
+    Queue::assertNothingPushed();
+});
+
+it('refuses a record id longer than 120 characters, queuing nothing', function (): void {
+    expect(fn () => app(RunPluginAction::class)->execute(new RunPluginActionInput(
+        'placard',
+        'check-code',
+        (string) $this->editor->id,
+        'plugin.placard.manage',
+        str_repeat('x', 121),
+        'ad',
+    )))->toThrow(ValidationException::class);
+
+    expect(TrackedJob::query()->count())->toBe(0);
+    Queue::assertNothingPushed();
 });
 
 it('keeps the record id’s case in the unique key and hashes a long one', function (): void {

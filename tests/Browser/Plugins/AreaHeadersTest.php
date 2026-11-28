@@ -125,9 +125,7 @@ it('keeps title only when the plugin supplies no record header', function (): vo
     cmNoJavaScriptErrors($page);
 });
 
-it('draws the period select, range line and Counting pill on overview', function (): void {
-    PlacardArea::$on['counts'] = fn (AreaContext $context): array => ['overview' => 0, 'ads' => 1];
-
+it('draws the period select and range line on overview', function (): void {
     $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="area-period"]\') !== null');
 
@@ -136,18 +134,26 @@ it('draws the period select, range line and Counting pill on overview', function
         ->assertSee('in the')
         ->assertSee('time zone')
         ->assertSee('Compared with');
+    cmNoJavaScriptErrors($page);
+});
 
-    // On the way: Counting is sr-only inside the pulsing pill, or the count has already arrived.
-    cmWaitUntil($page, 'document.querySelector(\'[data-test="tab-counting"]\') !== null || /Ads\\s*1/.test(document.body.innerText)');
+it('shows Counting on the way while deferred tab counts load', function (): void {
+    PlacardArea::$on['counts'] = function (AreaContext $context): array {
+        // Slow enough that the Counting pill is painted before counts arrive.
+        usleep(400_000);
+
+        return ['overview' => 0, 'ads' => 1];
+    };
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="tab-counting"]\') !== null');
+
     $page->assertScript(<<<'JS'
         () => {
             const pill = document.querySelector('[data-test="tab-counting"]');
-            if (pill !== null) {
-                const name = pill.querySelector('.sr-only');
-                return (name?.textContent ?? '').includes('Counting');
-            }
+            const name = pill?.querySelector('.sr-only');
 
-            return /Ads\s*1/.test(document.body.innerText);
+            return (name?.textContent ?? '').includes('Counting');
         }
         JS);
     cmNoJavaScriptErrors($page);
@@ -166,14 +172,13 @@ it('shows the Ads tab count once deferred counts arrive', function (): void {
     cmNoJavaScriptErrors($page);
 });
 
-it('shows no tab count when deferred counts fail', function (): void {
+it('shows no Counting pill when deferred counts fail', function (): void {
     PlacardArea::$on['counts'] = function (): never {
         throw new RuntimeException('counts broken');
     };
 
     $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="area-period"]\') !== null');
-    // Wait until the Counting pill has gone and Ads has no trailing number.
     cmWaitUntil($page, <<<'JS'
         (() => {
             if (document.querySelector('[data-test="tab-counting"]') !== null) {
@@ -188,15 +193,31 @@ it('shows no tab count when deferred counts fail', function (): void {
     cmNoJavaScriptErrors($page);
 });
 
-it('shows Loading the new period… then the Last 7 days range', function (): void {
+it('shows Loading the new period… and skeletons, then the Last 7 days range', function (): void {
     $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
     cmWaitUntil($page, 'document.querySelector(\'#area-period\') !== null');
+
+    // Catch the brief Loading… + skeleton flash even when the request is fast.
+    $page->script(<<<'JS'
+        () => {
+            window.__seenPeriodLoading = false;
+            const watch = () => {
+                if (document.body.innerText.includes('Loading the new period…')
+                    && document.querySelector('[data-test="area-skeleton"]') !== null) {
+                    window.__seenPeriodLoading = true;
+                }
+            };
+            watch();
+            window.__periodLoadingObs = new MutationObserver(watch);
+            window.__periodLoadingObs.observe(document.body, { childList: true, subtree: true, characterData: true });
+        }
+        JS);
 
     $page->click('#area-period');
     cmWaitUntil($page, 'document.querySelector(\'[role="option"]\') !== null');
     $page->click('[role="option"] >> text="Last 7 days"');
 
-    cmWaitUntil($page, 'document.body.innerText.includes("Loading the new period…") || document.body.innerText.includes("Last 7 days")');
+    cmWaitUntil($page, 'window.__seenPeriodLoading === true');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="area-period-range"]\')?.textContent?.includes("Compared with") === true && !document.body.innerText.includes("Loading the new period…")');
 
     $page->assertSee('Last 7 days')

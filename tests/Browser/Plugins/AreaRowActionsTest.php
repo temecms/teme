@@ -77,6 +77,26 @@ afterEach(function (): void {
     PluginFixtures::forget();
 });
 
+it('orders custom actions before Enable/Disable/Delete and shows their icons', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.querySelectorAll(\'[data-test="area-table"] tbody tr\').length === 3');
+
+    $page->click('[data-test="area-table"] tbody tr:has-text("Ad 01") [data-test="row-menu"]');
+    cmWaitUntil($page, 'document.querySelector(\'[role="menu"]\') !== null');
+
+    expect($page->script(<<<'JS'
+        () => [...document.querySelectorAll('[role="menu"] [data-action]')].map((el) => el.dataset.action).join('|')
+        JS))->toBe('check-code|reset-stats|disable|delete')
+        ->and($page->script(<<<'JS'
+            () => {
+                const check = document.querySelector('[role="menu"] [data-action="check-code"] svg');
+                const reset = document.querySelector('[role="menu"] [data-action="reset-stats"] svg');
+                return check !== null && reset !== null;
+            }
+            JS))->toBeTrue();
+    cmNoJavaScriptErrors($page);
+});
+
 it('draws the network report link, custom row actions, confirm, and queued pill with the exact words', function (): void {
     $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
     cmWaitUntil($page, 'document.querySelectorAll(\'[data-test="area-table"] tbody tr\').length === 3');
