@@ -150,6 +150,23 @@ it('cancels a background run when the enabling administrator can no longer manag
         ->and(DB::table('inbox_items')->count())->toBe(0);
 });
 
+it('cancels a background run when the enabling administrator’s account was deleted', function (): void {
+    Queue::fake();
+    ($this->asGuest)();
+    $id = ($this->jobs)()->queue('write-line', ['line' => 'later']);
+    $job = Queue::pushed(RunPluginJob::class)->first();
+
+    // nullOnDelete clears consented_by; the queued actor still holds the old id.
+    $this->admin->delete();
+
+    ($this->handle)($job);
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Cancelled)
+        ->and(PluginRecord::query()->where('code', 'jobs')->value('consented_by'))->toBeNull()
+        ->and(DB::table('jobs_lines')->count())->toBe(0)
+        ->and(DB::table('inbox_items')->count())->toBe(0);
+});
+
 it('finishes a background plugin job quietly, and fails loudly with an inbox item', function (): void {
     Queue::fake();
     ($this->asGuest)();

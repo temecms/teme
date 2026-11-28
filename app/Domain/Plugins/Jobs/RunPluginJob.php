@@ -29,7 +29,10 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\SafeMode;
+use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
+use App\Domain\Support\Security\OperatorElevation;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Validation\ValidationException;
@@ -114,11 +117,13 @@ final class RunPluginJob implements ShouldQueue
         $manifest = $plugin?->manifest;
         $granted = in_array('jobs', $record->consent['capabilities'] ?? [], true);
 
+        // Background person runs: cancel when that person can no longer manage
+        // plugins — including a deleted account that nulls consented_by while
+        // the queued actor still holds the old id.
         $enablerGone = ! $this->notifyOnFinish
             && $record !== null
-            && $record->consented_by !== null
-            && (string) $record->consented_by === (string) $this->actor->userId
-            && ! app(ScheduleRunner::class)->mayManage((string) $record->consented_by);
+            && ! $this->actor->isOperator()
+            && ! app(ScheduleRunner::class)->mayManage((string) $this->actor->userId);
 
         if ($record === null
             || $record->state !== PluginRecord::ENABLED
@@ -128,11 +133,7 @@ final class RunPluginJob implements ShouldQueue
             || ! Consent::covers($record->consent, $manifest)
             || $safeMode->active()
             || $enablerGone) {
-            try {
-                $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
-            } catch (ValidationException) {
-                // DisablePlugin or another cancel may have ended it after we loaded the row.
-            }
+            $this->cancelQuietly($cancel);
 
             return;
         }
@@ -210,6 +211,31 @@ final class RunPluginJob implements ShouldQueue
             $exception === null ? __('It failed.') : self::failureMessage($exception->getMessage()),
             $this->actor->userId,
         ));
+    }
+
+    /**
+     * Ends the run as cancelled without an inbox line. Falls back to the
+     * operator when the queued person can no longer authorise (a deleted
+     * account nulls started_by), as DisablePlugin does for waiting jobs.
+     */
+    private function cancelQuietly(CancelJob $cancel): void
+    {
+        try {
+            $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
+        } catch (AuthorizationException) {
+            $previous = app(Elevation::class);
+            app()->instance(Elevation::class, new OperatorElevation);
+
+            try {
+                $cancel->execute(new CancelJobInput($this->trackedJobId, null));
+            } catch (ValidationException) {
+                // DisablePlugin or another cancel may have ended it after we loaded the row.
+            } finally {
+                app()->instance(Elevation::class, $previous);
+            }
+        } catch (ValidationException) {
+            // DisablePlugin or another cancel may have ended it after we loaded the row.
+        }
     }
 
     /**
