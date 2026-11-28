@@ -32,6 +32,7 @@ use Illuminate\Validation\Rule;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
+use Teme\Contracts\People\PersonInvited;
 
 final class InviteUser extends BaseOperation implements RequiresElevation
 {
@@ -89,6 +90,11 @@ final class InviteUser extends BaseOperation implements RequiresElevation
         if ($input->deliver) {
             DB::afterCommit(fn () => $user->notify(new InvitationLink($token, $user->id)));
         }
+
+        $personId = (string) $user->id;
+        $name = (string) $user->name;
+        $actorId = $input->actorId();
+        $this->notifyAfterCommit(PersonInvited::class, fn (): PersonInvited => new PersonInvited($personId, $name, $actorId));
 
         return ['userId' => $user->id, 'token' => $token];
     }

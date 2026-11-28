@@ -47,7 +47,9 @@ A `PageInsertion` holds a key, a `PagePosition` and the HTML. Keys follow the sa
 | `afterItem(n)` | After the nth item of a list, 1 to 100; never after the last |
 | `everyItems(n, max)` | After every nth item, at most `max` times, at most 5; never after the last |
 | `region(slug, where)` | Before or after a region the active theme declares; `where` is `before` or `after`, `after` by default |
-| `fixed(edge, width)` | Fixed to the `bottom`, `top`, `left` or `right` edge of the screen; a side rail is 160 or 300 wide |
+| `regionStart(slug)` | Inside a region the active theme declares, before its content. Drawn only where the region has content, and never in a region that waits for a width |
+| `regionEnd(slug)` | Inside a region the active theme declares, after its content. The same rules as `regionStart` |
+| `fixed(edge, width, minWidth)` | Fixed to the `bottom`, `top`, `left` or `right` edge of the screen; a side rail is 160 or 300 wide. `minWidth`, from 200 to 4000 pixels, is the narrowest screen it shows on: below that width nothing of it loads, so a bar meant for desktops stays off phones. There is no maximum; 0, the default, shows it at every width |
 
 A position the page doesn't have draws nothing: a list position on an article, a region the theme doesn't declare. A position no page could have, such as item 0 or a rail 200 wide, is refused when it is made.
 
@@ -71,6 +73,10 @@ These are cleaned exactly as article insertions are; see [What core cleans](inse
 ## Fixed to an edge
 
 Core draws what is fixed, once, at the end of the body, as an `<aside>` with a label and a close button. One per edge per page, the first by plugin code. A bar at the top or bottom is full width and at most `min(30vh, 250px)` high, and the page is padded so nothing is covered at the end. A side rail shows only on a screen wide enough for the theme's content and the rail on both sides: `content + 2 × (width + 48)` pixels. A visitor's close keeps it closed for the browser tab's session. Nothing moves or animates.
+
+A bar or rail with a `minWidth` waits in core's template until the screen reaches that width, and its scripts are recreated when it appears. Those scripts therefore run after the page has loaded, asynchronously, so `document.write` does nothing in them. Write to the page with DOM calls instead.
+
+The first insertion per edge wins before the width is checked. If your bar on an edge is the first one and it waits for a width, that edge stays empty below the width, even when another plugin offers a bar for the same edge. Give a width-gated bar the edge only when you are sure nothing else should show there below that width.
 
 The label is your manifest's `contributes.fixedLabel`, 1 to 24 characters, such as Sponsored; without one it reads Advertisement. A theme can refuse fixed content with `"fixed": false` in its manifest.
 

@@ -29,10 +29,14 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\SafeMode;
+use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
+use App\Domain\Support\Security\OperatorElevation;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\JobStopped;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Throwable;
@@ -54,6 +58,7 @@ final class RunPluginJob implements ShouldQueue
         public readonly string $jobKey,
         public readonly string $trackedJobId,
         public readonly JobActor $actor,
+        public readonly bool $notifyOnFinish = false,
     ) {}
 
     /**
@@ -80,7 +85,7 @@ final class RunPluginJob implements ShouldQueue
         $this->actor->bind();
 
         $current = app(CurrentJobActor::class);
-        $current->set($this->actor);
+        $current->set($this->actor, $this->notifyOnFinish);
 
         try {
             $this->run($registry, $loader, $safeMode, $cancel, $fail, $finish, $report);
@@ -112,18 +117,35 @@ final class RunPluginJob implements ShouldQueue
         $manifest = $plugin?->manifest;
         $granted = in_array('jobs', $record->consent['capabilities'] ?? [], true);
 
+        // Background enabler path: cancel when that administrator lost manage,
+        // or their account was deleted (nullOnDelete clears consented_by and
+        // started_by while the queued actor still holds the old id). A quiet
+        // Auth::id() queue from another signed-in person must still run.
+        $enablerGone = ! $this->notifyOnFinish
+            && $record !== null
+            && ! $this->actor->isOperator()
+            && (
+                (
+                    $record->consented_by !== null
+                    && (string) $record->consented_by === (string) $this->actor->userId
+                    && ! app(ScheduleRunner::class)->mayManage((string) $record->consented_by)
+                )
+                || (
+                    $record->consented_by === null
+                    && $tracked->started_by === null
+                    && ! app(ScheduleRunner::class)->mayManage((string) $this->actor->userId)
+                )
+            );
+
         if ($record === null
             || $record->state !== PluginRecord::ENABLED
             || $plugin === null
             || $manifest === null
             || ! $granted
             || ! Consent::covers($record->consent, $manifest)
-            || $safeMode->active()) {
-            try {
-                $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
-            } catch (ValidationException) {
-                // DisablePlugin or another cancel may have ended it after we loaded the row.
-            }
+            || $safeMode->active()
+            || $enablerGone) {
+            $this->cancelQuietly($cancel);
 
             return;
         }
@@ -156,6 +178,7 @@ final class RunPluginJob implements ShouldQueue
             $tracked->payload,
             max(1, $this->attempts()),
             $record->name,
+            $record->code,
             $this->actor,
             $report,
         );
@@ -168,6 +191,12 @@ final class RunPluginJob implements ShouldQueue
             $fail->execute(new FailJobInput($this->trackedJobId, $nobody->getMessage(), $this->actor->userId));
 
             return;
+        } catch (JobFailed $failed) {
+            // The handler said this failure isn't worth another try.
+            $this->tries = 1;
+            $fail->execute(new FailJobInput($this->trackedJobId, self::failureMessage($failed->getMessage()), $this->actor->userId));
+
+            return;
         } catch (JobStopped) {
             return;
         } catch (Throwable $failure) {
@@ -176,21 +205,65 @@ final class RunPluginJob implements ShouldQueue
             throw $failure;
         }
 
-        $finish->execute(new FinishJobInput($this->trackedJobId, __('Finished.'), $this->actor->userId));
+        // Background runs stay quiet on success; a person-started run tells their inbox.
+        $finish->execute(new FinishJobInput(
+            $this->trackedJobId,
+            $context->closingMessage(),
+            $this->actor->userId,
+            notify: $this->notifyOnFinish,
+        ));
     }
 
     public function failed(?Throwable $exception): void
     {
         $this->actor->bind();
 
-        $message = $exception === null ? __('It failed.') : self::firstLine($exception->getMessage());
+        app(FailJob::class)->execute(new FailJobInput(
+            $this->trackedJobId,
+            $exception === null ? __('It failed.') : self::failureMessage($exception->getMessage()),
+            $this->actor->userId,
+        ));
+    }
 
-        app(FailJob::class)->execute(new FailJobInput($this->trackedJobId, $message, $this->actor->userId));
+    /**
+     * Ends the run as cancelled without an inbox line. Falls back to the
+     * operator when the queued person can no longer authorise (a deleted
+     * account nulls started_by), as DisablePlugin does for waiting jobs.
+     */
+    private function cancelQuietly(CancelJob $cancel): void
+    {
+        try {
+            $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
+        } catch (AuthorizationException) {
+            $previous = app(Elevation::class);
+            app()->instance(Elevation::class, new OperatorElevation);
+
+            try {
+                $cancel->execute(new CancelJobInput($this->trackedJobId, null));
+            } catch (ValidationException) {
+                // DisablePlugin or another cancel may have ended it after we loaded the row.
+            } finally {
+                app()->instance(Elevation::class, $previous);
+            }
+        } catch (ValidationException) {
+            // DisablePlugin or another cancel may have ended it after we loaded the row.
+        }
+    }
+
+    /**
+     * The first line of a failure, cut at 200 characters, or "It failed." when blank.
+     */
+    private static function failureMessage(string $message): string
+    {
+        $line = self::firstLine($message);
+
+        return $line === '' ? __('It failed.') : $line;
     }
 
     private static function firstLine(string $message): string
     {
-        $line = strtok(str_replace("\r\n", "\n", $message), "\n") ?: $message;
+        $line = strtok(str_replace("\r\n", "\n", $message), "\n");
+        $line = is_string($line) ? trim($line) : trim($message);
 
         return mb_substr($line, 0, 200);
     }

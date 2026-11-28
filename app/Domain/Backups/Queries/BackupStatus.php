@@ -16,9 +16,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
 
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupVerdict;
 use App\Domain\Backups\BackupWords;
 use App\Domain\Backups\Verify\SpareDatabase;
+use App\Domain\Backups\Verify\TemporaryDatabase;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
@@ -33,6 +35,8 @@ final readonly class BackupStatus
     public const string OFF_SERVER = 'Every backup is on this server, which a failed disk or a lost server would take with it. Add a place off this server.';
 
     public const string NO_SPARE = 'Backups aren’t test-restored each week: no spare database is named. At the server, name one as TEME_VERIFY_DATABASE.';
+
+    public const string NO_RESTORE_ACCOUNT = 'Under TEME_BACKUPS=host, Teme’s own backup can’t test-restore each week without a restore account: name one as TEME_RESTORE_DB_USERNAME, with CREATEDB.';
 
     public const string NO_REASON = 'Teme recorded no reason; the log may say more.';
 
@@ -67,6 +71,11 @@ final readonly class BackupStatus
             SQL);
 
         // Set up exactly as BackupPlaces::isSetUp() says: a recovery key on a place in use (I-2401).
+        // Under host the host does the backups: nothing to be red or amber about until Teme's own is set up (TEME_BACKUPS=host).
+        if ($facts->set_up_at === null && BackupMode::isHost()) {
+            return new BackupVerdict([], [], [], null);
+        }
+
         if ($facts->set_up_at === null) {
             return new BackupVerdict([self::NOT_SET_UP], [], [], null);
         }
@@ -124,8 +133,13 @@ final readonly class BackupStatus
             $cautions[] = self::OFF_SERVER;
         }
 
+        // Under host with no spare named, the test restore needs its own account (TEME_BACKUPS=host); a named spare wins.
+        if (SpareDatabase::testRestoreUsesTemporary() && ! TemporaryDatabase::configured()) {
+            $cautions[] = self::NO_RESTORE_ACCOUNT;
+        }
+
         // I-2406.
-        if (! SpareDatabase::isNamed()) {
+        if (! BackupMode::isHost() && ! SpareDatabase::isNamed()) {
             $cautions[] = self::NO_SPARE;
         }
 

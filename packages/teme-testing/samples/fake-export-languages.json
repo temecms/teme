@@ -1,0 +1,62 @@
+{
+    "system": "Fake export",
+    "version": "2",
+    "site": "https://old.example.com",
+    "languages": ["en", "fr"],
+    "defaultLanguage": "en",
+    "items": [
+        {
+            "kind": "person",
+            "id": "p1",
+            "login": "ada",
+            "email": "ada@example.com",
+            "displayName": "Ada"
+        },
+        {
+            "kind": "term",
+            "id": "t1",
+            "taxonomy": "category",
+            "name": "News",
+            "slug": "news",
+            "language": "en",
+            "translationGroup": "news"
+        },
+        {
+            "kind": "term",
+            "id": "t2",
+            "taxonomy": "category",
+            "name": "Actualités",
+            "slug": "actualites",
+            "language": "fr",
+            "translationGroup": "news"
+        },
+        {
+            "kind": "post",
+            "id": "i1",
+            "title": "Hello",
+            "slug": "hello",
+            "status": "published",
+            "publishedAt": "2026-01-02 03:04:05",
+            "oldAddress": "https://old.example.com/hello/",
+            "content": "<p>Hi there</p>",
+            "authorId": "p1",
+            "termIds": ["t1"],
+            "language": "en",
+            "translationGroup": "hello"
+        },
+        {
+            "kind": "post",
+            "id": "i2",
+            "title": "Bonjour",
+            "slug": "bonjour",
+            "status": "published",
+            "publishedAt": "2026-01-02 03:04:06",
+            "oldAddress": "https://old.example.com/fr/bonjour/",
+            "content": "<p>Bonjour</p>",
+            "authorId": "p1",
+            "termIds": ["t2"],
+            "language": "fr",
+            "translationGroup": "hello"
+        }
+    ]
+}

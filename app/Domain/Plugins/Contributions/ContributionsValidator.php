@@ -16,15 +16,19 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Plugins\Area\AreaValidator;
 use App\Domain\Plugins\Console\DeclaredCommands;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Exports\DeclaredExports;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Readers\ImportReaderDeclaration;
+use App\Domain\Plugins\Scripts\DeclaredScripts;
 use App\Domain\Plugins\Seams\ContributionsCheck;
+use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\Seo\SeoValidator;
 use App\Domain\Plugins\Slots\PluginSlotDeclaration;
 use App\Domain\Plugins\Styles\DeclaredStyles;
@@ -87,6 +91,18 @@ final class ContributionsValidator implements ContributionsCheck
      * @since 1.0.0
      */
     public const int MOST_COLUMNS = 3;
+
+    /** At most this many list filters per plugin (issue 802). */
+    public const int MOST_LIST_FILTERS = 2;
+
+    /** Options per list filter, 2 to this many. */
+    public const int MOST_FILTER_OPTIONS = 20;
+
+    /** A list filter's table, column and item: a column or table name. */
+    public const string LIST_FILTER_NAME = '/^[a-z][a-z0-9_]{0,62}$/D';
+
+    /** One option's value, matched exactly against the column. */
+    public const string FILTER_VALUE = '/^[a-z0-9][a-z0-9_-]{0,39}$/D';
 
     /**
      * The relations a feed link may take: hub alone in this round (docs/plans/plugin-sockets-1.md, A3).
@@ -201,12 +217,12 @@ final class ContributionsValidator implements ContributionsCheck
     public function errors(array $contributes, string $version, ?array $capabilities = null): array
     {
         $errors = [];
-        $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true);
+        $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true) || in_array(Capability::SiteScripts->value, $capabilities, true);
 
         foreach (array_keys($contributes) as $surface) {
-            // The hosts inserted content loads from, read only for a plugin that inserts (I-3375).
+            // The hosts inserted content or a plugin's own scripts load from, read only for a plugin that inserts or serves scripts (I-3375).
             if ($surface === 'csp' && ! $inserts) {
-                $errors[] = __('A plugin’s csp is read only with content.insert or pages.insert.');
+                $errors[] = __('A plugin’s csp is read only with content.insert, pages.insert or site.scripts.');
             } elseif ($surface === 'provides') {
                 array_push($errors, ...PluginSlotDeclaration::errors($contributes['provides'], $capabilities));
             } elseif ($surface === 'fixedLabel') {
@@ -219,6 +235,20 @@ final class ContributionsValidator implements ContributionsCheck
                 // A kind may go to the holders of a permission the plugin declares (docs/plans/plugin-sockets-3.md, D-T5).
                 $permissions = array_values(array_filter(array_column(array_filter(is_array($contributes['permissions'] ?? null) ? $contributes['permissions'] : [], is_array(...)), 'id'), is_string(...)));
                 array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
+            } elseif ($surface === 'downloads') {
+                // Larger downloads need http, which they reach their hosts with (docs/guides/developers/plugins/outbound-files.md).
+                if ($capabilities !== null && ! in_array(Capability::Http->value, $capabilities, true)) {
+                    $errors[] = __('It declares downloads, but the plugin doesn’t ask for http.');
+                }
+
+                array_push($errors, ...DeclaredDownloads::errors($contributes['downloads']));
+            } elseif ($surface === 'securityLog') {
+                // Its lines need security.log, as its notices need notices.send (docs/guides/developers/plugins/security-log.md).
+                if ($capabilities !== null && ! in_array(Capability::SecurityLog->value, $capabilities, true)) {
+                    $errors[] = __('It declares kinds of security log line, but the plugin doesn’t ask for security.log.');
+                }
+
+                array_push($errors, ...DeclaredSecurityKinds::errors($contributes['securityLog']));
             } elseif ($surface === 'commands') {
                 array_push($errors, ...DeclaredCommands::errors($contributes['commands']));
             } elseif ($surface === 'hooks') {
@@ -237,7 +267,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'securityLog', 'downloads', 'commentField', 'scripts', 'listFilters'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -271,6 +301,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         $columns = $contributes['columns'] ?? [];
         $errors = [...$errors, ...$this->columnErrors(is_array($columns) ? $columns : [null])];
+
+        $listFilters = $contributes['listFilters'] ?? [];
+        $errors = [...$errors, ...$this->listFilterErrors(is_array($listFilters) ? $listFilters : [null])];
 
         $feedLinks = $contributes['feedLinks'] ?? [];
         $errors = [...$errors, ...$this->feedLinkErrors(is_array($feedLinks) ? $feedLinks : [null], is_array($settings) ? $settings : [])];
@@ -338,11 +371,17 @@ final class ContributionsValidator implements ContributionsCheck
         // Its image service (docs/guides/developers/plugins/image-service.md).
         $errors = [...$errors, ...ImageServiceDeclaration::errors($contributes, $capabilities)];
 
+        // Its hidden comment field, given to the comment check (docs/guides/developers/plugins/comment-check.md).
+        $errors = [...$errors, ...CommentField::errors($contributes, $capabilities)];
+
         // Its import readers (docs/guides/developers/plugins/import-readers.md).
         $errors = [...$errors, ...ImportReaderDeclaration::errors($contributes, $capabilities)];
 
         // Its stylesheets, one per output (docs/guides/developers/plugins/styles.md).
         $errors = [...$errors, ...DeclaredStyles::errors($contributes)];
+
+        // Its scripts, one per output, which need site.scripts (docs/guides/developers/plugins/scripts.md).
+        $errors = [...$errors, ...DeclaredScripts::errors($contributes, $capabilities)];
 
         return $errors;
     }
@@ -617,6 +656,112 @@ final class ContributionsValidator implements ContributionsCheck
     }
 
     /**
+     * @param  array<array-key, mixed>  $filters
+     *
+     * @return list<string>
+     */
+    private function listFilterErrors(array $filters): array
+    {
+        $errors = [];
+
+        if (count($filters) > self::MOST_LIST_FILTERS) {
+            $errors[] = __('A plugin can add at most 2 list filters.');
+        }
+
+        $ids = [];
+
+        foreach ($filters as $filter) {
+            $errors = [...$errors, ...$this->oneListFilterErrors(is_array($filter) ? $filter : [])];
+            $id = is_array($filter) && is_string($filter['id'] ?? null) ? $filter['id'] : null;
+
+            if ($id !== null && in_array($id, $ids, true)) {
+                $errors[] = __('Two list filters can’t share the id :id.', ['id' => $id]);
+            }
+
+            $ids[] = $id;
+        }
+
+        return $errors;
+    }
+
+    /**
+     * One list filter: its id, label, the content types it applies to, its
+     * declared options, and the plugin table, column and item column it reads.
+     *
+     * @param  array<array-key, mixed>  $filter
+     *
+     * @return list<string>
+     */
+    private function oneListFilterErrors(array $filter): array
+    {
+        $errors = [];
+
+        foreach (array_keys($filter) as $key) {
+            if (! in_array($key, ['id', 'label', 'types', 'options', 'table', 'column', 'item'], true)) {
+                $errors[] = __('A list filter can’t have :key.', ['key' => (string) $key]);
+            }
+        }
+
+        if (preg_match(self::COLUMN_ID, is_string($filter['id'] ?? null) ? $filter['id'] : '') !== 1) {
+            $errors[] = __('A list filter’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
+        }
+
+        $label = is_string($filter['label'] ?? null) ? trim($filter['label']) : '';
+
+        if ($label === '' || mb_strlen($label) > 40) {
+            $errors[] = __('A list filter’s label must be 1 to 40 characters.');
+        }
+
+        $types = $filter['types'] ?? null;
+
+        if (! is_array($types) || $types === [] || ! array_is_list($types)) {
+            $errors[] = __('A list filter needs at least one content type.');
+        } else {
+            foreach ($types as $type) {
+                if (! is_string($type) || preg_match(self::TYPE_KEY, $type) !== 1) {
+                    $errors[] = __('A list filter’s type must be a lower-case content type key.');
+                    break;
+                }
+            }
+        }
+
+        $options = $filter['options'] ?? null;
+
+        if (! is_array($options) || ! array_is_list($options) || count($options) < 2 || count($options) > self::MOST_FILTER_OPTIONS) {
+            $errors[] = __('A list filter needs 2 to 20 options.');
+        } else {
+            $values = [];
+
+            foreach ($options as $option) {
+                $value = is_array($option) && is_string($option['value'] ?? null) ? $option['value'] : '';
+                $optionLabel = is_array($option) && is_string($option['label'] ?? null) ? trim($option['label']) : '';
+
+                if (preg_match(self::FILTER_VALUE, $value) !== 1 || $optionLabel === '' || mb_strlen($optionLabel) > 40) {
+                    $errors[] = __('An option needs a value of lower-case letters, digits, hyphens or underscores, and a label of 1 to 40 characters.');
+
+                    break;
+                }
+
+                if (in_array($value, $values, true)) {
+                    $errors[] = __('Two options of a list filter can’t share the value :value.', ['value' => $value]);
+                }
+
+                $values[] = $value;
+            }
+        }
+
+        foreach (['table', 'column', 'item'] as $name) {
+            if (preg_match(self::LIST_FILTER_NAME, is_string($filter[$name] ?? null) ? $filter[$name] : '') !== 1) {
+                $errors[] = __('A list filter’s table, column and item must be lower-case letters, digits and underscores, starting with a letter.');
+
+                break;
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * Feed links: at most two, each `hub` and an https address of at most
      * 2,048 characters or `{key}` naming one of its own url or urls
      * settings (docs/plans/plugin-sockets-1.md, A3).
@@ -675,10 +820,18 @@ final class ContributionsValidator implements ContributionsCheck
 
         $ids = [];
 
+        $rowActions = 0;
+
         foreach ($actions as $action) {
             $action = is_array($action) ? $action : [];
             $id = is_string($action['id'] ?? null) ? $action['id'] : null;
             $label = $action['label'] ?? null;
+
+            foreach (array_keys($action) as $key) {
+                if (! in_array($key, ['id', 'label', 'description', 'job', 'row', 'confirm', 'toast', 'queued', 'icon'], true)) {
+                    $errors[] = __('An action can’t have :key.', ['key' => (string) $key]);
+                }
+            }
 
             if (preg_match(self::LINK_ID, $id ?? '') !== 1) {
                 $errors[] = __('An action’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
@@ -696,11 +849,84 @@ final class ContributionsValidator implements ContributionsCheck
                 $errors[] = __('An action must name the job it queues.');
             }
 
+            if (array_key_exists('row', $action) && ! is_bool($action['row'])) {
+                $errors[] = __('An action’s row must be true or false.');
+            }
+
+            if (($action['row'] ?? false) === true) {
+                $rowActions++;
+            }
+
+            array_push($errors, ...$this->actionConfirmErrors($action['confirm'] ?? null));
+
+            if (array_key_exists('toast', $action) && (! is_string($action['toast']) || trim($action['toast']) === '' || mb_strlen($action['toast']) > 200)) {
+                $errors[] = __('An action’s toast must be text of 1 to 200 characters.');
+            }
+
+            if (array_key_exists('queued', $action) && (! is_string($action['queued']) || trim($action['queued']) === '' || mb_strlen($action['queued']) > 40)) {
+                $errors[] = __('An action’s queued pill must be text of 1 to 40 characters.');
+            }
+
+            if (array_key_exists('icon', $action) && ! in_array($action['icon'], PanelValidator::icons(), true)) {
+                $errors[] = __(':icon isn’t an icon a plugin can use.', ['icon' => is_scalar($action['icon']) ? (string) $action['icon'] : '']);
+            }
+
             if ($id !== null && in_array($id, $ids, true)) {
                 $errors[] = __('Two actions can’t share the id :id.', ['id' => $id]);
             }
 
             $ids[] = $id;
+        }
+
+        if ($rowActions > self::MOST_ROW_ACTIONS) {
+            $errors[] = __('A plugin can mark at most 2 actions for table rows.');
+        }
+
+        return $errors;
+    }
+
+    /**
+     * An action's confirm: a sentence, or an object of title, text, button
+     * and cancel, each optional within the object when at least one is set.
+     *
+     * @return list<string>
+     */
+    private function actionConfirmErrors(mixed $confirm): array
+    {
+        if ($confirm === null) {
+            return [];
+        }
+
+        if (is_string($confirm)) {
+            return trim($confirm) === '' || mb_strlen($confirm) > 200
+                ? [__('An action’s confirm sentence must be text of 1 to 200 characters.')]
+                : [];
+        }
+
+        if (! is_array($confirm)) {
+            return [__('An action’s confirm must be a sentence or an object of title, text, button and cancel.')];
+        }
+
+        $errors = [];
+
+        foreach (array_keys($confirm) as $key) {
+            if (! in_array($key, ['title', 'text', 'button', 'cancel'], true)) {
+                $errors[] = __('An action’s confirm can’t have :key.', ['key' => (string) $key]);
+            }
+        }
+
+        foreach (['title' => 120, 'text' => 200, 'button' => 40, 'cancel' => 40] as $key => $most) {
+            if (! array_key_exists($key, $confirm)) {
+                continue;
+            }
+
+            if (! is_string($confirm[$key]) || trim($confirm[$key]) === '' || mb_strlen($confirm[$key]) > $most) {
+                $errors[] = __('An action’s confirm :key must be text of 1 to :most characters.', ['key' => $key, 'most' => $most]);
+            }
+        }
+
+        if ($errors === [] && $confirm === []) {
+            $errors[] = __('An action’s confirm object needs at least one of title, text, button or cancel.');
         }
 
         return $errors;

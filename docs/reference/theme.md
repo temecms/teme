@@ -42,6 +42,7 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `site_icon` | string | no | The theme’s default favicon: a path inside the theme’s public folder, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture. The design setting site_icon wins over this. |
 | `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |
 | `overrides` | object | no | Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md). |
+| `plugin_scripts` | object | no | Plugin scripts the theme switches off, so it does without them on that output. |
 | `plugin_styles` | object | no | Plugin stylesheets the theme switches off, so it styles that output itself. |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |
@@ -595,7 +596,7 @@ No attributes.
 
 ### `<x-teme::region>`
 
-`<x-teme::region name="after-content" />`: the site's own content a theme places, such as a newsletter box after the article, drawn from the region's published revision, its cards recorded for the page's head. Nothing for a region that's empty or unpublished; outside production, a note for a name the theme's manifest doesn't declare. What plugins place before or after a declared region is drawn around it, also when it is empty.
+`<x-teme::region name="after-content" />`: the site's own content a theme places, such as a newsletter box after the article, drawn from the region's published revision, its cards recorded for the page's head. Nothing for a region that's empty or unpublished; outside production, a note for a name the theme's manifest doesn't declare. What plugins place before or after a declared region is drawn around it, also when it is empty; what they place at its start or end is drawn inside it, with its content.
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|

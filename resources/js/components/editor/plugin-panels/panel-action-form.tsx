@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import EditorPanelController from '@/actions/App/Http/Admin/Contents/EditorPanelController';
 import { send } from '@/components/editor/editor-http';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ItemsPicker } from '@/components/plugins/area/record-pickers';
 import { SelectField } from '@/components/ui/select-field';
 import { Textarea } from '@/components/ui/textarea';
+import type { AreaField } from '@/types/plugin-area';
+import { adminLocale, siteZone } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
 import type {
     EditorPluginPanel,
@@ -43,6 +46,8 @@ export function PanelActionForm({
     checkpoint,
     onStale,
     onAnswer,
+    saved,
+    savedAt,
 }: {
     action: PanelAction;
     panel: EditorPluginPanel;
@@ -51,18 +56,47 @@ export function PanelActionForm({
     checkpoint: () => Promise<string | null>;
     onStale: (answer: Record<string, unknown>) => void;
     onAnswer: (answer: PanelAnswer) => void;
+    /** The saved values by field key; they start a field the person hasn't touched. */
+    saved: PanelAnswer['saved'];
+    savedAt: string | null;
 }) {
     const id = useId();
     const [values, setValues] = useState<Record<string, Value>>(() =>
         starting(action.fields),
     );
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+    // The view is read again while work runs. A refresh fills only the
+    // fields nobody has touched, so it never resets what is being typed.
+    useEffect(() => {
+        setValues((was) => {
+            const next = { ...was };
+
+            for (const field of action.fields) {
+                if (!touched[field.key] && field.key in saved) {
+                    next[field.key] = saved[field.key];
+                }
+            }
+
+            return next;
+        });
+    }, [saved, touched, action.fields]);
     const [confirming, setConfirming] = useState(false);
     const [sending, setSending] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [problem, setProblem] = useState<string | null>(null);
 
-    const set = (key: string, value: Value) =>
+    const set = (key: string, value: Value) => {
         setValues((was) => ({ ...was, [key]: value }));
+        setTouched((was) => ({ ...was, [key]: true }));
+    };
+
+    // The saved value goes back into its field, which keeps focus.
+    const useSaved = (key: string) => {
+        setValues((was) => ({ ...was, [key]: saved[key] }));
+        setTouched((was) => ({ ...was, [key]: false }));
+        document.getElementById(`${id}-${key}`)?.focus();
+    };
 
     const run = async () => {
         setConfirming(false);
@@ -130,16 +164,73 @@ export function PanelActionForm({
                 }
             }}
         >
-            {action.fields.map((field) => (
-                <PanelFieldControl
-                    key={field.key}
-                    id={`${id}-${field.key}`}
-                    field={field}
-                    value={values[field.key] ?? null}
-                    error={errors[field.key]}
-                    onChange={(value) => set(field.key, value)}
-                />
-            ))}
+            {savedAt === null &&
+                Object.keys(saved).length > 0 &&
+                action.fields.length > 0 && (
+                    <p className="text-ink-2 text-small">
+                        {__(
+                            ':plugin has no saved message for this article yet.',
+                            {
+                                plugin: panel.plugin,
+                            },
+                        )}
+                    </p>
+                )}
+
+            {action.fields.map((field) => {
+                // A message saved without a date has no "Started from" note: the form shows the "no saved message yet" line instead.
+                const hasSaved = savedAt !== null && field.key in saved;
+                const changed =
+                    hasSaved && values[field.key] !== saved[field.key];
+                const when =
+                    savedAt === null
+                        ? ''
+                        : new Intl.DateTimeFormat(adminLocale(), {
+                              timeZone: siteZone(),
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                          }).format(new Date(savedAt));
+
+                return (
+                    <div key={field.key} className="grid gap-2">
+                        <PanelFieldControl
+                            id={`${id}-${field.key}`}
+                            field={field}
+                            value={values[field.key] ?? null}
+                            error={errors[field.key]}
+                            onChange={(value) => set(field.key, value)}
+                        />
+                        {/* The prefill notes belong to the message, a multi-line field, and not to a choice such as a select. */}
+                        {field.type === 'textarea' && hasSaved && !changed && (
+                            <p className="text-ink-2 text-small">
+                                {__(
+                                    'Started from the message :plugin saved with this article on :date. Change anything; nothing goes out until you queue it.',
+                                    { plugin: panel.plugin, date: when },
+                                )}
+                            </p>
+                        )}
+                        {field.type === 'textarea' && hasSaved && changed && (
+                            <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-ink-2 text-small">
+                                    {__(
+                                        'You changed it. :plugin’s saved message, from :date, is unchanged.',
+                                        { plugin: panel.plugin, date: when },
+                                    )}
+                                </p>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => useSaved(field.key)}
+                                >
+                                    {__('Use the saved message')}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
 
             {confirming ? (
                 <div
@@ -206,6 +297,33 @@ function PanelFieldControl({
     error?: string;
     onChange: (value: Value) => void;
 }) {
+    // A post or page, one at a time: a new choice replaces the one before it.
+    if (field.type === 'items') {
+        return (
+            <ItemsPicker
+                id={id}
+                field={
+                    {
+                        key: field.key,
+                        label: field.label,
+                        description: '',
+                        chips: [],
+                        stale: [],
+                    } as unknown as AreaField
+                }
+                value={typeof value === 'string' && value !== '' ? [value] : []}
+                onChange={(next) => {
+                    const chosen = Array.isArray(next) ? next : [];
+                    onChange(
+                        chosen.length > 0
+                            ? String(chosen[chosen.length - 1])
+                            : null,
+                    );
+                }}
+            />
+        );
+    }
+
     if (field.type === 'boolean') {
         return (
             <div className="grid gap-1">
@@ -244,14 +362,24 @@ function PanelFieldControl({
                     }
                 />
             ) : field.type === 'textarea' ? (
-                <Textarea
-                    id={id}
-                    rows={3}
-                    maxLength={field.maxLength ?? undefined}
-                    required={field.required}
-                    value={typeof value === 'string' ? value : ''}
-                    onChange={(event) => onChange(event.target.value)}
-                />
+                <>
+                    <Textarea
+                        id={id}
+                        rows={4}
+                        maxLength={field.maxLength ?? undefined}
+                        required={field.required}
+                        value={typeof value === 'string' ? value : ''}
+                        onChange={(event) => onChange(event.target.value)}
+                    />
+                    {field.maxLength !== null && (
+                        <p className="text-ink-2 text-small">
+                            {__(':n of :max characters.', {
+                                n: typeof value === 'string' ? value.length : 0,
+                                max: field.maxLength,
+                            })}
+                        </p>
+                    )}
+                </>
             ) : field.type === 'number' ? (
                 <Input
                     id={id}

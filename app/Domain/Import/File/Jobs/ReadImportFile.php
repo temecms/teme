@@ -26,10 +26,13 @@ use App\Domain\Import\Operations\Input\AssignImportReaderIdsInput;
 use App\Domain\Import\Operations\Input\FinishReadingImportFileInput;
 use App\Domain\Import\Operations\Input\RecordImportFileRowsInput;
 use App\Domain\Import\Operations\Input\RefuseImportFileInput;
+use App\Domain\Import\Operations\Input\ResolveImportReaderRowsInput;
 use App\Domain\Import\Operations\RecordImportFileRows;
 use App\Domain\Import\Operations\RefuseImportFile;
+use App\Domain\Import\Operations\ResolveImportReaderRows;
 use App\Domain\Import\Reader\ReaderRows;
 use App\Domain\Import\Reader\ReaderSite;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\Readers\ImportReaders;
 use App\Domain\Plugins\Seo\SeoPlugins;
 use App\Domain\Support\Security\JobActor;
@@ -57,12 +60,6 @@ final class ReadImportFile implements ShouldQueue
      * (ImportListPage::SECONDS).
      */
     public const int SECONDS = 45;
-
-    /**
-     * The largest file an import reader reads: a reader's whole file is read in one
-     * job, under the deadline, so a larger one is refused when its upload starts.
-     */
-    public const int READER_BYTES = 64 * 1024 * 1024;
 
     /** The items kept together, so a long part writes as it goes. */
     public const int ITEMS = 500;
@@ -158,9 +155,14 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
-     * Reads a file a plugin's import reader reads: the whole file, then its
-     * rows in one record. A refusal stops the file with its sentence; any
-     * other failure is recorded as the plugin's fault and stops it too.
+     * Reads a file a plugin's import reader reads, a page at a time through
+     * keep(), as a WordPress export is. A stored cursor resumes the next
+     * part; later-page references are resolved by joining stored source IDs
+     * to import_reader_ids once every page is kept — the reader runs once.
+     * Resolve itself resumes under the deadline from a stored marker, so a
+     * timed-out job never opens the file again. A refusal stops the file with
+     * its sentence; any other failure is recorded as the plugin's fault and
+     * stops it too.
      */
     private function readReader(ImportFile $file, CarbonImmutable $deadline): void
     {
@@ -174,35 +176,34 @@ final class ReadImportFile implements ShouldQueue
         }
 
         $path = Storage::disk('local')->path($file->path());
+        $state = $this->readerState($file);
+        $address = ReaderSite::address((string) ($file->site_address ?: ''));
+        $readerKey = (string) $file->reader;
+        $channel = ['siteAddress' => $file->site_address, 'version' => $file->wxr_version, 'madeAt' => null];
+
+        if ($state['resolving'] !== null) {
+            if ($address === '' || $channel['siteAddress'] === null || $channel['siteAddress'] === '') {
+                $this->refuseReader('This export doesn’t name its site, so Teme can’t tell where it came from.');
+
+                return;
+            }
+
+            $this->resolveReader(
+                $file,
+                $address,
+                $readerKey,
+                $channel,
+                $state,
+                $deadline,
+                is_string($state['defaultLanguage'] ?? null) ? $state['defaultLanguage'] : app(SiteLanguages::class)->defaultTag(),
+            );
+
+            return;
+        }
 
         try {
             $reader = $readers->reader($offer);
             $probe = $reader->probe($path);
-            $items = [];
-            $cursor = null;
-            $given = [];
-
-            do {
-                $page = $reader->page($path, $cursor, self::ITEMS);
-                array_push($items, ...$page->items);
-                $cursor = $page->nextCursor;
-
-                if ($cursor !== null && isset($given[$cursor])) {
-                    $this->refuseReader('The import reader repeated a page of this file, so Teme stopped reading it.');
-
-                    return;
-                }
-
-                if ($cursor !== null) {
-                    $given[$cursor] = true;
-                }
-
-                if (self::outOfTime($deadline)) {
-                    $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
-
-                    return;
-                }
-            } while ($cursor !== null);
         } catch (ImportReaderRefused $refusal) {
             $this->refuseReader($refusal->getMessage());
 
@@ -220,39 +221,183 @@ final class ReadImportFile implements ShouldQueue
             return;
         }
 
-        $unknown = $this->unknownWord($items);
+        $channel = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
+        $address = ReaderSite::address((string) $probe->siteAddress);
+        $from = $file->read_items;
+        $cursor = $state['cursor'];
+        $given = $state['given'];
+        $languages = $state['languages'];
+        $types = $state['types'];
+        $taxonomies = $state['taxonomies'];
+        $defaultLanguage = $probe->defaultLanguage ?? app(SiteLanguages::class)->defaultTag();
+        $pagesThisPart = 0;
 
-        if ($unknown !== null) {
-            $this->refuseReader($unknown);
+        do {
+            try {
+                $page = $reader->page($path, $cursor, self::readerPageSize());
+            } catch (ImportReaderRefused $refusal) {
+                $this->refuseReader($refusal->getMessage());
 
-            return;
-        }
+                return;
+            } catch (Throwable $failure) {
+                app(SeoPlugins::class)->fault($offer->plugin, 'import-reader', ImportReader::class, $failure);
+                $this->refuseReader('The import reader couldn’t read this file.');
 
-        $ids = app(AssignImportReaderIds::class)->execute(new AssignImportReaderIdsInput(
-            ReaderSite::address((string) $probe->siteAddress),
-            (string) $file->reader,
-            array_map(fn (ImportItem $item): array => ['kind' => $item->kind, 'id' => $item->id], $items),
+                return;
+            }
+
+            $next = $page->nextCursor;
+
+            if ($next !== null && isset($given[(string) $next])) {
+                $this->refuseReader('The import reader repeated a page of this file, so Teme stopped reading it.');
+
+                return;
+            }
+
+            if ($next !== null) {
+                $given[(string) $next] = true;
+
+                if (count($given) > 64) {
+                    $given = array_slice($given, -64, preserve_keys: true);
+                }
+            }
+
+            $unknown = $this->unknownWord($page->items);
+
+            if ($unknown !== null) {
+                $this->refuseReader($unknown);
+
+                return;
+            }
+
+            $ids = app(AssignImportReaderIds::class)->execute(new AssignImportReaderIdsInput(
+                $address,
+                $readerKey,
+                array_map(fn (ImportItem $item): array => ['kind' => $item->kind, 'id' => $item->id], $page->items),
+                $this->actor->userId,
+            ));
+            $ids = $this->withReferencedIds($ids, $page->items, $address, $readerKey);
+            $known = $from === 0 ? [] : ReaderRows::knownOf($file->id, $address, $readerKey, $page->items);
+            $rows = ReaderRows::build($page->items, $this->blocks(), $ids, $known);
+            $to = $from + count($page->items);
+            [$languages, $types, $taxonomies] = $this->gatherLanguages($page->items, $probe->languages, $languages, $types, $taxonomies);
+            $bytes = 0;
+
+            foreach ($rows as $row) {
+                $bytes += strlen((string) json_encode($row['payload']));
+            }
+
+            $counted = self::noFacts();
+            $counted['readerCursor'] = $next;
+            $counted['readerGiven'] = array_map(strval(...), array_keys($given));
+            $counted['readerLanguages'] = $languages;
+            $counted['readerDefaultLanguage'] = $defaultLanguage;
+            $counted['readerTypes'] = array_keys($types);
+            $counted['readerTaxonomies'] = array_keys($taxonomies);
+            $counted['notes'] = $this->notesOf($page->items, $from === 0 ? $languages : [], null);
+
+            if ($next === null) {
+                $counted['readerResolving'] = ['list' => null, 'object_id' => null];
+            }
+
+            if (! $this->keep($from, $to, $rows, $counted, $channel)) {
+                return;
+            }
+
+            if ($next === null) {
+                $this->resolveReader(
+                    $file->refresh(),
+                    $address,
+                    $readerKey,
+                    $channel,
+                    [
+                        'cursor' => null,
+                        'given' => $given,
+                        'languages' => $languages,
+                        'types' => $types,
+                        'taxonomies' => $taxonomies,
+                        'resolving' => ['list' => null, 'object_id' => null],
+                        'defaultLanguage' => $defaultLanguage,
+                    ],
+                    $deadline,
+                    $defaultLanguage,
+                );
+
+                return;
+            }
+
+            $from = $to;
+            $cursor = $next;
+            $pagesThisPart++;
+
+            if (self::outOfTime($deadline) || $pagesThisPart >= self::readerPagesPerPart() || $bytes >= self::BYTES) {
+                dispatch(new self($this->fileId, $this->actor));
+
+                return;
+            }
+        } while (true);
+    }
+
+    /**
+     * Fills later-page references under the deadline, counting gap notes per
+     * chunk, and finishes the file when every row has been visited.
+     *
+     * @param  array{siteAddress: string|null, version: string|null, madeAt: string|null}  $channel
+     * @param  array{cursor: string|null, given: array<string, true>, languages: list<string>, types: array<string, true>, taxonomies: array<string, true>, resolving: array{list: ?string, object_id: ?int}|null, defaultLanguage?: string|null}  $state
+     */
+    private function resolveReader(
+        ImportFile $file,
+        string $address,
+        string $readerKey,
+        array $channel,
+        array $state,
+        CarbonImmutable $deadline,
+        string $defaultLanguage,
+    ): void {
+        $resolving = $state['resolving'] ?? ['list' => null, 'object_id' => null];
+        $result = app(ResolveImportReaderRows::class)->execute(new ResolveImportReaderRowsInput(
+            $file->id,
+            $address,
+            $readerKey,
             $this->actor->userId,
+            $resolving['list'],
+            $resolving['object_id'],
+            $deadline,
         ));
 
-        if (self::outOfTime($deadline)) {
-            $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
+        $at = (int) $file->read_items;
+        $progress = self::noFacts();
+        $progress['notes'] = $result['notes'];
+        $progress['readerCursor'] = null;
+        $progress['readerGiven'] = array_map(strval(...), array_keys($state['given']));
+        $progress['readerLanguages'] = $state['languages'];
+        $progress['readerDefaultLanguage'] = $defaultLanguage;
+        $progress['readerTypes'] = array_keys($state['types']);
+        $progress['readerTaxonomies'] = array_keys($state['taxonomies']);
+
+        if (! $result['done']) {
+            $progress['readerResolving'] = [
+                'list' => $result['afterList'],
+                'object_id' => $result['afterObjectId'],
+            ];
+
+            if (! $this->keep($at, $at, [], $progress, $channel)) {
+                return;
+            }
+
+            dispatch(new self($this->fileId, $this->actor));
 
             return;
         }
 
-        $rows = ReaderRows::build($items, $this->blocks(), $ids);
+        $progress['notes'] = $this->withLanguagePrefixNote(
+            $this->mergedResolveNotes($file->id, $result['notes']),
+            $state['languages'],
+        );
+        $progress['replaceNotes'] = true;
+        $progress['readerResolving'] = null;
 
-        if (self::outOfTime($deadline)) {
-            $this->refuseReader('This file took too long to read in one go, so Teme couldn’t finish reading it.');
-
-            return;
-        }
-        $facts = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
-        $counted = self::noFacts();
-        $counted['notes'] = $this->notesOf($items, $probe->languages);
-
-        if (! $this->keep(0, count($items), $rows, $counted, $facts)) {
+        if (! $this->keep($at, $at, [], $progress, $channel)) {
             return;
         }
 
@@ -260,144 +405,264 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
-     * What a reader's file holds that Teme doesn't bring, counted and named
-     * for the report: comments on posts the file doesn't have, menu items in
-     * menus it doesn't have, menu items that point at nothing in the file,
-     * terms and featured pictures the file doesn't have, and a file in more
-     * than one language, whose items come across in the site's default language.
+     * Gap notes already kept from earlier resolve parts, plus this part's, so
+     * a replaceNotes finish does not drop what a timed-out part already counted.
      *
-     * @param  list<ImportItem>  $items
-     * @param  list<string>  $languages
+     * @param  array<string, array{count: int, examples: list<string>, sentence: string}>  $fresh
      *
      * @return array<string, array{count: int, examples: list<string>, sentence: string}>
      */
-    private function notesOf(array $items, array $languages): array
+    private function mergedResolveNotes(string $fileId, array $fresh): array
     {
-        $posts = [];
-        $menus = [];
+        $stored = DB::table('import_file_rows')->where(['file_id' => $fileId, 'list' => ItemRows::FACTS, 'object_id' => 0])->value('payload');
+        $facts = is_string($stored) ? json_decode($stored, true) : null;
+        $notes = is_array($facts) && is_array($facts['notes'] ?? null) ? $facts['notes'] : [];
+        unset($notes['language-prefix']);
 
-        foreach ($items as $item) {
-            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
-                $posts[$item->id] = true;
-            } elseif ($item->kind === ImportKind::MENU) {
-                $menus[$item->id] = true;
-            }
-        }
-
-        $notes = [];
-        $comments = array_values(array_filter($items, fn (ImportItem $item): bool => $item->kind === ImportKind::COMMENT && ! isset($posts[(string) $item->postId])));
-        $menuItems = array_values(array_filter($items, fn (ImportItem $item): bool => $item->kind === ImportKind::MENU_ITEM && ! isset($menus[(string) $item->menuId])));
-
-        if ($comments !== []) {
-            $notes['comment'] = ['count' => count($comments), 'examples' => array_map(fn (ImportItem $item): string => $item->id, array_slice($comments, 0, 5)), 'sentence' => 'Comments on posts that aren’t in this file weren’t brought.'];
-        }
-
-        if ($menuItems !== []) {
-            $notes['menu-item'] = ['count' => count($menuItems), 'examples' => array_map(fn (ImportItem $item): string => $item->id, array_slice($menuItems, 0, 5)), 'sentence' => 'Menu items in menus that aren’t in this file weren’t brought.'];
-        }
-
-        $terms = [];
-        $media = [];
-
-        foreach ($items as $item) {
-            if ($item->kind === ImportKind::TERM) {
-                $terms[$item->id] = true;
-            } elseif ($item->kind === ImportKind::MEDIA) {
-                $media[$item->id] = true;
-            }
-        }
-
-        $withoutTerm = [];
-        $withoutPicture = [];
-        $withoutTarget = [];
-
-        foreach ($items as $item) {
-            if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
-                foreach ($item->termIds as $termId) {
-                    if (! isset($terms[$termId])) {
-                        $withoutTerm[] = $item->id;
-
-                        break;
-                    }
-                }
-
-                if ($item->featuredMediaId !== null && ! isset($media[$item->featuredMediaId])) {
-                    $withoutPicture[] = $item->id;
-                }
-            } elseif ($item->kind === ImportKind::MENU_ITEM && isset($menus[(string) $item->menuId])) {
-                $known = $item->itemType === ImportMenuItemType::CONTENT ? $posts : $terms;
-
-                if (in_array($item->itemType, [ImportMenuItemType::CONTENT, ImportMenuItemType::TERM], true) && ! isset($known[(string) $item->objectId])) {
-                    $withoutTarget[] = $item->id;
-                }
-            }
-        }
-
-        foreach ([
-            'term' => [$withoutTerm, 'Terms of posts and pages that aren’t in this file weren’t brought, so those posts aren’t filed under them.'],
-            'featured-image' => [$withoutPicture, 'Featured pictures that aren’t in this file weren’t brought, so those posts have none for now.'],
-            'menu-target' => [$withoutTarget, 'Menu items that point at a post, page or term that isn’t in this file were brought with nothing to point at.'],
-        ] as $kind => [$ids, $sentence]) {
-            if ($ids !== []) {
-                $notes[$kind] = ['count' => count($ids), 'examples' => array_slice($ids, 0, 5), 'sentence' => $sentence];
-            }
-        }
-
-        $orphans = $this->withoutParent($items, $posts, $terms, $menus);
-
-        if ($orphans !== []) {
-            $notes['parent'] = ['count' => count($orphans), 'examples' => array_slice($orphans, 0, 5), 'sentence' => 'Items whose parent isn’t in this file were placed at the top, with no parent.'];
-        }
-
-        if (count(array_unique($languages)) > 1) {
-            $notes['language'] = ['count' => 1, 'examples' => [], 'sentence' => 'This file has more than one language, and its items come across in the site’s default language.'];
+        foreach ($fresh as $kind => $note) {
+            $held = is_array($notes[$kind] ?? null) ? $notes[$kind] : ['count' => 0, 'examples' => [], 'sentence' => $note['sentence']];
+            $notes[$kind] = [
+                'count' => (int) $held['count'] + $note['count'],
+                'examples' => array_slice([...$held['examples'], ...$note['examples']], 0, 5),
+                'sentence' => $held['sentence'],
+            ];
         }
 
         return $notes;
     }
 
     /**
-     * The IDs, in the file's order, of the items that name a parent the file doesn't have: a post, page or
-     * picture whose parent isn't a post or page of the file, a term or comment or menu item whose parent
-     * isn't one of its own kind. A comment on a post, or a menu item in a menu, the file doesn't have is
-     * already noted, so it isn't counted here.
+     * The cursor and recent given cursors, and the languages, types and
+     * taxonomies gathered so far, as the last keep stored them.
+     *
+     * @return array{cursor: string|null, given: array<string, true>, languages: list<string>, types: array<string, true>, taxonomies: array<string, true>, resolving: array{list: ?string, object_id: ?int}|null, defaultLanguage: string|null}
+     */
+    private function readerState(ImportFile $file): array
+    {
+        $stored = DB::table('import_file_rows')->where(['file_id' => $file->id, 'list' => ItemRows::FACTS, 'object_id' => 0])->value('payload');
+        $facts = is_string($stored) ? json_decode($stored, true) : null;
+        $facts = is_array($facts) ? $facts : [];
+        $given = [];
+
+        foreach (is_array($facts['readerGiven'] ?? null) ? $facts['readerGiven'] : [] as $cursor) {
+            if (is_string($cursor) && $cursor !== '') {
+                $given[$cursor] = true;
+            } elseif (is_int($cursor) || (is_float($cursor) && $cursor == (int) $cursor)) {
+                $given[(string) (int) $cursor] = true;
+            }
+        }
+
+        $cursor = $facts['readerCursor'] ?? null;
+        $languages = array_values(array_filter(array_map(strval(...), is_array($facts['readerLanguages'] ?? null) ? $facts['readerLanguages'] : []), fn (string $tag): bool => $tag !== ''));
+        $types = [];
+        $taxonomies = [];
+
+        foreach (is_array($facts['readerTypes'] ?? null) ? $facts['readerTypes'] : [] as $type) {
+            if (is_string($type) && $type !== '') {
+                $types[$type] = true;
+            }
+        }
+
+        foreach (is_array($facts['readerTaxonomies'] ?? null) ? $facts['readerTaxonomies'] : [] as $taxonomy) {
+            if (is_string($taxonomy) && $taxonomy !== '') {
+                $taxonomies[$taxonomy] = true;
+            }
+        }
+
+        $resolving = null;
+
+        if (array_key_exists('readerResolving', $facts) && is_array($facts['readerResolving'])) {
+            $resolving = [
+                'list' => isset($facts['readerResolving']['list']) && is_string($facts['readerResolving']['list'])
+                    ? $facts['readerResolving']['list']
+                    : null,
+                'object_id' => isset($facts['readerResolving']['object_id']) && is_numeric($facts['readerResolving']['object_id'])
+                    ? (int) $facts['readerResolving']['object_id']
+                    : null,
+            ];
+        }
+
+        $defaultLanguage = is_string($facts['readerDefaultLanguage'] ?? null) && $facts['readerDefaultLanguage'] !== ''
+            ? (string) $facts['readerDefaultLanguage']
+            : null;
+
+        return [
+            'cursor' => is_string($cursor) && $cursor !== '' ? $cursor : null,
+            'given' => $given,
+            'languages' => $languages,
+            'types' => $types,
+            'taxonomies' => $taxonomies,
+            'resolving' => $resolving,
+            'defaultLanguage' => $defaultLanguage,
+        ];
+    }
+
+    /**
+     * Languages the probe named plus tags items on this page use, and the
+     * content types and taxonomies that carry a language, for the languages step.
      *
      * @param  list<ImportItem>  $items
-     * @param  array<string, true>  $posts  the source IDs of the file's posts and pages
-     * @param  array<string, true>  $terms  the source IDs of the file's terms
-     * @param  array<string, true>  $menus  the source IDs of the file's menus
+     * @param  list<string>  $probeLanguages
+     * @param  list<string>  $languages
+     * @param  array<string, true>  $types
+     * @param  array<string, true>  $taxonomies
      *
-     * @return list<string>
+     * @return array{0: list<string>, 1: array<string, true>, 2: array<string, true>}
      */
-    private function withoutParent(array $items, array $posts, array $terms, array $menus): array
+    private function gatherLanguages(array $items, array $probeLanguages, array $languages, array $types, array $taxonomies): array
     {
-        $own = [];
+        $tags = [];
 
-        foreach ($items as $item) {
-            $own[$item->kind][$item->id] = true;
-        }
-
-        $missing = [];
-
-        foreach ($items as $item) {
-            if ($item->parentId === null) {
-                continue;
-            }
-
-            $known = match ($item->kind) {
-                ImportKind::POST, ImportKind::PAGE, ImportKind::MEDIA => isset($posts[$item->parentId]),
-                ImportKind::TERM => isset($terms[$item->parentId]),
-                ImportKind::COMMENT => ! isset($posts[(string) $item->postId]) || isset($own[ImportKind::COMMENT][$item->parentId]),
-                ImportKind::MENU_ITEM => ! isset($menus[(string) $item->menuId]) || isset($own[ImportKind::MENU_ITEM][$item->parentId]),
-                default => true,
-            };
-
-            if (! $known) {
-                $missing[] = $item->id;
+        foreach ([...$probeLanguages, ...$languages] as $tag) {
+            if ($tag !== '') {
+                $tags[$tag] = true;
             }
         }
 
-        return $missing;
+        foreach ($items as $item) {
+            if ($item->language !== null && $item->language !== '') {
+                $tags[$item->language] = true;
+
+                if (in_array($item->kind, [ImportKind::POST, ImportKind::PAGE], true)) {
+                    $types[$item->kind] = true;
+                } elseif ($item->kind === ImportKind::TERM) {
+                    $taxonomy = (string) ($item->fields['taxonomy'] ?? 'category');
+
+                    if ($taxonomy !== '') {
+                        $taxonomies[$taxonomy] = true;
+                    }
+                }
+            }
+        }
+
+        return [array_keys($tags), $types, $taxonomies];
+    }
+
+    /**
+     * Engine IDs already kept for items this page names as parents, authors,
+     * terms, pictures, posts, menus or targets, so an earlier page's item is
+     * found without loading every ID the site has.
+     *
+     * @param  array<string, int>  $ids
+     * @param  list<ImportItem>  $items
+     *
+     * @return array<string, int>
+     */
+    private function withReferencedIds(array $ids, array $items, string $address, string $reader): array
+    {
+        $wanted = [];
+
+        foreach ($items as $item) {
+            foreach ([
+                [ImportKind::POST, $item->parentId],
+                [ImportKind::PAGE, $item->parentId],
+                [ImportKind::PERSON, $item->authorId],
+                [ImportKind::MEDIA, $item->featuredMediaId],
+                [ImportKind::POST, $item->postId],
+                [ImportKind::PAGE, $item->postId],
+                [ImportKind::MENU, $item->menuId],
+                [ImportKind::COMMENT, $item->parentId],
+                [ImportKind::MENU_ITEM, $item->parentId],
+                [ImportKind::TERM, $item->parentId],
+                [ImportKind::MEDIA, $item->parentId],
+            ] as [$kind, $sourceId]) {
+                if (is_string($sourceId) && $sourceId !== '' && ! isset($ids[ReaderRows::key($kind, $sourceId)])) {
+                    $wanted[$kind][$sourceId] = true;
+                }
+            }
+
+            foreach ($item->termIds as $termId) {
+                if (! isset($ids[ReaderRows::key(ImportKind::TERM, $termId)])) {
+                    $wanted[ImportKind::TERM][$termId] = true;
+                }
+            }
+
+            if (is_string($item->objectId) && $item->objectId !== '') {
+                foreach ([ImportKind::POST, ImportKind::PAGE, ImportKind::TERM] as $kind) {
+                    if (! isset($ids[ReaderRows::key($kind, $item->objectId)])) {
+                        $wanted[$kind][$item->objectId] = true;
+                    }
+                }
+            }
+        }
+
+        foreach ($wanted as $kind => $sourceIds) {
+            foreach (array_chunk(array_keys($sourceIds), 500) as $chunk) {
+                foreach (DB::table('import_reader_ids')
+                    ->where('address', $address)
+                    ->where('reader', $reader)
+                    ->where('object_type', $kind)
+                    ->whereIn('source_id', $chunk)
+                    ->get(['object_type', 'source_id', 'object_id']) as $row) {
+                    $ids[ReaderRows::key((string) $row->object_type, (string) $row->source_id)] = (int) $row->object_id;
+                }
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Gap notes from resolve, plus the language-prefix note naming each
+     * language the site lacks and its /prefix/.
+     *
+     * @param  array<string, array{count: int, examples: list<string>, sentence: string}>  $notes
+     * @param  list<string>  $languages
+     *
+     * @return array<string, array{count: int, examples: list<string>, sentence: string}>
+     */
+    private function withLanguagePrefixNote(array $notes, array $languages): array
+    {
+        foreach ($this->languagePrefixNote($languages) as $kind => $note) {
+            $notes[$kind] = $note;
+        }
+
+        return $notes;
+    }
+
+    /**
+     * The language-prefix note for the first page, naming each language the
+     * site lacks and its /prefix/. Cross-page gaps are counted during resolve.
+     *
+     * @param  list<ImportItem>  $items
+     * @param  list<string>  $languages
+     *
+     * @return array<string, array{count: int, examples: list<string>, sentence: string}>
+     */
+    private function notesOf(array $items, array $languages, mixed $presence = null): array
+    {
+        unset($items, $presence);
+
+        return $this->languagePrefixNote($languages);
+    }
+
+    /**
+     * @param  list<string>  $languages
+     *
+     * @return array<string, array{count: int, examples: list<string>, sentence: string}>
+     */
+    private function languagePrefixNote(array $languages): array
+    {
+        $notes = [];
+        $named = array_values(array_unique(array_filter($languages, fn (string $tag): bool => $tag !== '')));
+        $site = app(SiteLanguages::class);
+        $offered = (array) config('languages');
+        $lacking = array_values(array_filter($named, fn (string $tag): bool => $tag !== $site->defaultTag() && ! $site->has($tag)));
+
+        if ($lacking !== []) {
+            $listed = implode(', ', array_map(function (string $tag) use ($offered): string {
+                $name = is_array($offered[$tag] ?? null) ? (string) ($offered[$tag]['label'] ?? $tag) : $tag;
+
+                return $name.' (/'.$tag.'/)';
+            }, $lacking));
+            $notes['language-prefix'] = [
+                'count' => count($lacking),
+                'examples' => $lacking,
+                'sentence' => 'This file brings languages the site doesn’t have yet — '.$listed.' — each added with that first part of the address.',
+            ];
+        }
+
+        return $notes;
     }
 
     /**
@@ -530,5 +795,33 @@ final class ReadImportFile implements ShouldQueue
     private static function outOfTime(CarbonImmutable $deadline): bool
     {
         return CarbonImmutable::now()->greaterThanOrEqualTo($deadline);
+    }
+
+    /**
+     * How many items a reader is asked for on each page. Tests may set
+     * `teme.import.reader_page_size` so a small file still spans several pages.
+     */
+    private static function readerPageSize(): int
+    {
+        $size = (int) config('teme.import.reader_page_size', self::ITEMS);
+
+        return $size > 0 ? $size : self::ITEMS;
+    }
+
+    /**
+     * How many reader pages one job keeps. Tests may set
+     * `teme.import.reader_pages_per_part` so a part ends after one page.
+     */
+    private static function readerPagesPerPart(): int
+    {
+        $pages = config('teme.import.reader_pages_per_part');
+
+        if ($pages === null || $pages === '') {
+            return PHP_INT_MAX;
+        }
+
+        $count = (int) $pages;
+
+        return $count > 0 ? $count : PHP_INT_MAX;
     }
 }

@@ -110,7 +110,10 @@
                     "redirects",
                     "comments.check",
                     "search.read",
-                    "import.read"
+                    "import.read",
+                    "security.log",
+                    "terms.write",
+                    "site.scripts"
                 ]
             }
         },
@@ -507,7 +510,7 @@
                             },
                             "multiple": {
                                 "type": "boolean",
-                                "description": "For a term: whether several may be chosen."
+                                "description": "For a term or a type: whether several may be chosen."
                             },
                             "section": {
                                 "type": "string",
@@ -678,6 +681,85 @@
                         }
                     }
                 },
+                "listFilters": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "description": "Filters the plugin adds to the content lists: a select of declared options, matched exactly against a column the plugin keeps in its own table, keyed by content id.",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "label",
+                            "types",
+                            "options",
+                            "table",
+                            "column",
+                            "item"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The filter's id, unique within the plugin."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The filter's name on the list."
+                            },
+                            "types": {
+                                "type": "array",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                                },
+                                "description": "The content type keys the filter applies to."
+                            },
+                            "options": {
+                                "type": "array",
+                                "minItems": 2,
+                                "maxItems": 20,
+                                "description": "The values the select offers, each matched exactly.",
+                                "items": {
+                                    "type": "object",
+                                    "required": ["value", "label"],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "value": {
+                                            "type": "string",
+                                            "pattern": "^[a-z0-9][a-z0-9_-]{0,39}$",
+                                            "description": "The value kept in the column."
+                                        },
+                                        "label": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 40,
+                                            "description": "The option's text."
+                                        }
+                                    }
+                                }
+                            },
+                            "table": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,62}$",
+                                "description": "The plugin's table, listed under owns.tables."
+                            },
+                            "column": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,62}$",
+                                "description": "The column read, which must lead a valid index on the table."
+                            },
+                            "item": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,62}$",
+                                "description": "The column holding the content id the row belongs to."
+                            }
+                        }
+                    }
+                },
                 "columns": {
                     "type": "array",
                     "maxItems": 3,
@@ -781,7 +863,7 @@
                 "actions": {
                     "type": "array",
                     "maxItems": 3,
-                    "description": "Buttons on the plugin's settings page, each queuing one of its declared jobs. Needs jobs.",
+                    "description": "Buttons on the plugin's settings page, each queuing one of its declared jobs. An action marked row may also appear in an area table's row menu. Needs jobs.",
                     "items": {
                         "type": "object",
                         "required": ["id", "label", "job"],
@@ -807,6 +889,87 @@
                                 "type": "string",
                                 "pattern": "^[a-z][a-z0-9-]{0,47}$",
                                 "description": "The key of the declared job it queues."
+                            },
+                            "row": {
+                                "type": "boolean",
+                                "$comment": "@since next",
+                                "description": "Offered in an area table's row menu when that table names this action. Never bulk. At most two actions may be marked."
+                            },
+                            "confirm": {
+                                "$comment": "@since next",
+                                "description": "Ask before queuing from a row: a sentence (the dialog text), or title, text, button and cancel. Core fills defaults for anything left out.",
+                                "oneOf": [
+                                    {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 200
+                                    },
+                                    {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "title": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 120
+                                            },
+                                            "text": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 200
+                                            },
+                                            "button": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 40
+                                            },
+                                            "cancel": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 40
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "toast": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "$comment": "@since next",
+                                "description": "The success toast after the row action queues. May use {name}, {action} and {plugin}. Core's default is Queued: {action} for “{name}”."
+                            },
+                            "queued": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "$comment": "@since next",
+                                "description": "The quiet pill after the row's status while the job runs. Core's default is Queued."
+                            },
+                            "icon": {
+                                "enum": [
+                                    "plug",
+                                    "link",
+                                    "external-link",
+                                    "settings",
+                                    "send",
+                                    "bell",
+                                    "refresh-cw",
+                                    "chart-line",
+                                    "sparkles",
+                                    "pen-line",
+                                    "list-checks",
+                                    "mail",
+                                    "inbox",
+                                    "layout",
+                                    "list",
+                                    "user",
+                                    "globe",
+                                    "code",
+                                    "grid"
+                                ],
+                                "$comment": "@since next",
+                                "description": "The Lucide icon beside the action in a row menu."
                             }
                         }
                     }
@@ -1099,7 +1262,8 @@
                                                             "textarea",
                                                             "select",
                                                             "boolean",
-                                                            "number"
+                                                            "number",
+                                                            "items"
                                                         ],
                                                         "description": "The kind of field."
                                                     },
@@ -1358,6 +1522,45 @@
                         "enum": ["image-service", "search", "comment-check"]
                     }
                 },
+                "commentField": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "make"],
+                    "description": "One hidden field the comment form carries for the comment-check plugin, whose check is given its value as a signal. Needs comments.check and the comment-check slot in provides; the field is drawn only for the plugin the administrator chose for that slot (docs/guides/developers/plugins/comment-check.md).",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9-]{2,39}$",
+                            "not": {
+                                "enum": [
+                                    "path",
+                                    "parent",
+                                    "text",
+                                    "name",
+                                    "email",
+                                    "url",
+                                    "token",
+                                    "subject",
+                                    "remember",
+                                    "missing-field",
+                                    "too-long"
+                                ]
+                            },
+                            "description": "The field's name, which the check's signals are keyed by. Not a name core's comment form uses."
+                        },
+                        "make": {
+                            "type": "string",
+                            "enum": ["static", "time", "trap"],
+                            "description": "static: a fixed value; time: the browser's time, filled in when the form is first touched; trap: an off-screen field no person sees."
+                        },
+                        "value": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "description": "The fixed value of a static field. Only a static field takes one."
+                        }
+                    }
+                },
                 "styles": {
                     "type": "array",
                     "maxItems": 40,
@@ -1376,6 +1579,28 @@
                                 "type": "string",
                                 "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css$",
                                 "description": "A .css file inside the plugin's package, relative to its root."
+                            }
+                        }
+                    }
+                },
+                "scripts": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "description": "Built scripts, one per card or page insertion. Linked only on a page that draws that output, as a module after the body.",
+                    "items": {
+                        "type": "object",
+                        "required": ["output", "file"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "output": {
+                                "type": "string",
+                                "pattern": "^(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$",
+                                "description": "The output the script belongs to: card:<id> or insertion:<id>."
+                            },
+                            "file": {
+                                "type": "string",
+                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.js$",
+                                "description": "A self-contained .js file inside the plugin's package, relative to its root."
                             }
                         }
                     }
@@ -1499,6 +1724,44 @@
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                },
+                "downloads": {
+                    "type": "object",
+                    "required": ["maxBytes"],
+                    "additionalProperties": false,
+                    "description": "The largest file the plugin's downloads may hold, with http; 16 MB when none is declared, 1 MB to 128 MB when one is.",
+                    "properties": {
+                        "maxBytes": {
+                            "type": "integer",
+                            "minimum": 1048576,
+                            "maximum": 134217728,
+                            "description": "The largest file, in bytes."
+                        }
+                    }
+                },
+                "securityLog": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 10,
+                    "description": "Kinds of line the plugin writes into the security log, with security.log; never required.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{1,31}$",
+                                "description": "Its id within the plugin."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "description": "What an administrator reads for this kind."
                             }
                         }
                     }
@@ -1708,7 +1971,7 @@
                         },
                         "records": {
                             "type": "array",
-                            "maxItems": 3,
+                            "maxItems": 6,
                             "items": {
                                 "type": "object"
                             },

@@ -43,6 +43,7 @@ use App\Http\Admin\Contents\ContentListController;
 use App\Http\Admin\Contents\ContentPreviewController;
 use App\Http\Admin\Contents\ContentTreeController;
 use App\Http\Admin\Contents\EditorPanelController;
+use App\Http\Admin\Contents\ItemChoicesController;
 use App\Http\Admin\Contents\LinkChoicesController;
 use App\Http\Admin\Contents\LinkedContentController;
 use App\Http\Admin\Contents\LinkTargetsController;
@@ -103,6 +104,7 @@ use App\Http\Admin\Tools\Import\ImportFileController;
 use App\Http\Admin\Tools\Import\ImportRunController;
 use App\Http\Admin\Tools\Import\ImportScreenController;
 use App\Http\Admin\Tools\Import\ImportSourceController;
+use App\Http\Admin\Tools\Import\UploadsCopyController;
 use App\Http\Admin\Tools\ImportRedirectsController;
 use App\Http\Admin\Tools\JobsController;
 use App\Http\Admin\Tools\PageCacheController;
@@ -458,6 +460,9 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::get('content/link-choices', LinkChoicesController::class)
             ->middleware('can:content.create')
             ->name('content.link-choices');
+        Route::get('content/item-choices', ItemChoicesController::class)
+            ->middleware('can:content.create')
+            ->name('content.item-choices');
         Route::get('content/linked', LinkedContentController::class)
             ->middleware('can:content.create')
             ->name('content.linked');
@@ -571,6 +576,12 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::post('files/{file}/finish', [ImportFileController::class, 'finish'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.finish');
             Route::post('files/{file}/cancel', [ImportFileController::class, 'cancel'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.cancel');
             Route::post('files/{file}/delete', [ImportFileController::class, 'destroy'])->where('file', '[0-9a-hjkmnp-tv-z]{26}')->name('files.destroy');
+            // A site's uploads copy, in pieces: before {source}, so "uploads" is never a site ID.
+            Route::post('uploads/{upload}/pieces', [UploadsCopyController::class, 'piece'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.piece');
+            Route::post('uploads/{upload}/finish', [UploadsCopyController::class, 'finish'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.finish');
+            Route::post('uploads/{upload}/cancel', [UploadsCopyController::class, 'cancel'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.cancel');
+            Route::delete('uploads/{upload}', [UploadsCopyController::class, 'destroy'])->where('upload', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.destroy');
+            Route::post('{source}/uploads/start', [UploadsCopyController::class, 'start'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('uploads.start');
             // A site's and a run's IDs are lower case (HasUlids, I-418).
             Route::get('{source}', [ImportScreenController::class, 'show'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('show');
             Route::post('{source}/analyze', [ImportSourceController::class, 'analyze'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('analyze');

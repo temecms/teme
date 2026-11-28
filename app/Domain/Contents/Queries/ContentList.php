@@ -475,6 +475,12 @@ final class ContentList
 
         $dateColumn = $tab === 'published' ? 'contents.published_at' : 'contents.updated_at';
 
+        // A plugin's filter: one indexed lookup in its own table, by content id (issue 802).
+        foreach ($request->pluginFilters as $filter) {
+            $query->whereIn('contents.id', DB::table($filter['table'])->select($filter['item'])->where($filter['column'], $filter['value']));
+            $filtered = true;
+        }
+
         // The Date filter's bounds, in the site's zone, worked out by ContentListFilters (I-3129).
         if ($request->startsAt !== null) {
             $query->where($dateColumn, '>=', $request->startsAt);

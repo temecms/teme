@@ -45,7 +45,7 @@ final readonly class PluginJobKind implements JobKind
         $declared = $this->declared($row->owner, $job->runId);
 
         $queued = RunPluginJob::configure(
-            new RunPluginJob($row->owner, $job->runId, $job->id, $actor),
+            new RunPluginJob($row->owner, $job->runId, $job->id, $actor, notifyOnFinish: $actorId !== null),
             $declared ?? [
                 'key' => $job->runId,
                 'label' => $job->label,

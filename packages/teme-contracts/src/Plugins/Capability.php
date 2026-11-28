@@ -29,8 +29,9 @@ namespace Teme\Contracts\Plugins;
  * page: the head, the top and bottom of the body, between the items of a
  * list, beside a theme's regions, and fixed to the screen's edge. Ai opens
  * SiteAi, the site's own AI connection, for the tasks the plugin declares
- * (1.0.0). PeopleRead opens the door that names the people who write on the
- * site. NoticesSend opens the Notices door, for the kinds of notice the
+ * (1.0.0). PeopleRead opens the door that names the site's people: who
+ * writes, who is invited, who joins; never an email or a role. NoticesSend
+ * opens the Notices door, for the kinds of notice the
  * plugin declares, and ContentLinks the hook that sets attributes on the
  * links an article draws. PagesHead lets the plugin add `<meta>` tags and
  * structured data to public pages' heads, and Sitemaps its own sitemaps to
@@ -38,7 +39,12 @@ namespace Teme\Contracts\Plugins;
  * DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as
  * Teme verified it, and ContentSubmissions the Submissions door, which keeps
  * what a visitor sends from a public form as an item waiting for review (1.3.0).
+ * SecurityLog opens the SecurityLines door, which writes lines of the kinds the
+ * plugin declares under `contributes.securityLog` into core's security log (next).
  * Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects.
+ * TermsWrite opens the TermWriter door, to create, update, list and remove terms of the taxonomies the plugin owns.
+ * SiteScripts lets the plugin's built scripts, those its manifest declares under contributes.scripts,
+ * run in visitors' browsers on the public pages that draw its output (@since next).
  *
  * @since 0.5.0
  */
@@ -118,4 +124,13 @@ enum Capability: string
 
     /** @since 1.8.0 */
     case ImportRead = 'import.read';
+
+    /** @since next */
+    case SecurityLog = 'security.log';
+
+    /** @since next */
+    case TermsWrite = 'terms.write';
+
+    /** @since next */
+    case SiteScripts = 'site.scripts';
 }

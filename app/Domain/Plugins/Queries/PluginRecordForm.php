@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
+use App\Domain\Contents\Models\Content;
+use App\Domain\Contents\Queries\ItemChoices;
 use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Area\AreaForms;
 use App\Domain\Plugins\Area\AreaPlugin;
@@ -23,13 +25,11 @@ use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
 final readonly class PluginRecordForm
 {
-    /** The most terms a picker offers. */
-    public const int MOST_TERMS = 500;
-
     public function __construct(
         private AreaReads $reads,
         private ContentTypeRegistry $types,
@@ -70,6 +70,27 @@ final readonly class PluginRecordForm
             $values[$field['key']] = array_key_exists($field['key'], $stored) ? $stored[$field['key']] : AreaForms::empty($field);
         }
 
+        // The options of each select whose choices come from the plugin, asked as the form opens.
+        $answers = [];
+
+        foreach ($declared['sections'] as $section) {
+            foreach ($section['fields'] as $declaredField) {
+                if (($declaredField['choices'] ?? null) !== 'plugin') {
+                    continue;
+                }
+
+                $answerFailed = null;
+                $answers[$declaredField['key']] = [
+                    'choices' => $this->reads->fieldChoices($plugin, $record, $declaredField['key'], $answerFailed) ?? [],
+                    'failed' => $answerFailed === null ? null : __(':plugin couldn’t list its :field this time. The :record keeps its saved :field, and you can save everything else. The fault is recorded under the plugin.', [
+                        'plugin' => $plugin->label,
+                        'field' => mb_strtolower(AreaWords::text($plugin->code, (string) $declaredField['label'])),
+                        'record' => mb_strtolower(AreaWords::text($plugin->code, (string) $declared['label'])),
+                    ]),
+                ];
+            }
+        }
+
         $title = $id === null ? '' : (is_string($values[$declared['titleField']] ?? null) ? $values[$declared['titleField']] : '');
         $words = fn (string $english): string => AreaWords::text($plugin->code, $english);
 
@@ -81,7 +102,7 @@ final readonly class PluginRecordForm
                 'id' => $section['id'],
                 'label' => $words($section['label']),
                 'description' => $words($section['description']),
-                'fields' => array_map(fn (array $field): array => $this->field($field, $plugin), $section['fields']),
+                'fields' => array_map(fn (array $field): array => $this->decorate($this->withChoices($this->field($field, $plugin), $answers), $values, $personId), $section['fields']),
             ], $declared['sections']),
             'values' => $values,
             'failed' => $failed,
@@ -106,7 +127,8 @@ final readonly class PluginRecordForm
         $choices = match ($type) {
             'select', 'multiselect' => array_map(fn (mixed $value, mixed $label): array => ['value' => (string) $value, 'label' => $words($label)], array_keys($options), array_values($options)),
             'types' => array_map(fn ($contentType): array => ['value' => $contentType->key, 'label' => $contentType->plural], $this->types->all()),
-            'terms' => $this->terms(is_string($field['taxonomy']) ? $field['taxonomy'] : ''),
+            // A terms field searches as the person types, for both ways it stores terms: no list is sent.
+            'terms' => [],
             'region' => array_map(fn (string $slug, array $region): array => ['value' => $slug, 'label' => $region['label']], array_keys($this->regions->forActive()), array_values($this->regions->forActive())),
             default => [],
         };
@@ -123,6 +145,15 @@ final readonly class PluginRecordForm
             'visibleWhen' => $field['visibleWhen'],
             'scripts' => $field['scripts'],
             'choices' => $choices,
+            'choicesFailed' => null,
+            'fromPlugin' => ($field['choices'] ?? null) === 'plugin',
+            'storeAs' => $type === 'terms' ? ($field['storeAs'] ?? 'id') : null,
+            'taxonomy' => $type === 'terms' && is_string($field['taxonomy']) ? $field['taxonomy'] : null,
+            'taxonomySingular' => $type === 'terms' && is_string($field['taxonomy']) ? $this->singular($field['taxonomy']) : null,
+            'taxonomyPlural' => $type === 'terms' && is_string($field['taxonomy']) ? $this->plural($field['taxonomy']) : null,
+            'plugin' => $plugin->label,
+            'chips' => [],
+            'stale' => [],
             'fields' => array_map(fn (array $sub): array => $this->field($sub, $plugin), is_array($field['fields']) ? array_values($field['fields']) : []),
             'minItems' => $field['minItems'],
             'maxItems' => $field['maxItems'],
@@ -133,13 +164,95 @@ final readonly class PluginRecordForm
     }
 
     /**
-     * The taxonomy's terms by name, at most MOST_TERMS.
-     *
-     * @return list<array{value: string, label: string}>
+     * A taxonomy's singular name in the admin's language, in lower case, as a sentence needs it.
      */
-    private function terms(string $taxonomy): array
+    private function singular(string $taxonomy): string
     {
-        return DB::table('terms')->where('taxonomy', $taxonomy)->orderBy('name')->limit(self::MOST_TERMS)->get(['id', 'name'])
-            ->map(fn (object $term): array => ['value' => (string) $term->id, 'label' => (string) $term->name])->values()->all();
+        return app(TaxonomyRegistry::class)->has($taxonomy)
+            ? mb_strtolower(app(TaxonomyRegistry::class)->get($taxonomy)->singular)
+            : $taxonomy;
+    }
+
+    /**
+     * A taxonomy's plural name in the admin's language, in lower case, as a sentence needs it.
+     */
+    private function plural(string $taxonomy): string
+    {
+        return app(TaxonomyRegistry::class)->has($taxonomy)
+            ? mb_strtolower(app(TaxonomyRegistry::class)->get($taxonomy)->plural)
+            : $taxonomy;
+    }
+
+    /**
+     * A field whose choices the plugin listed: its options, or the line that
+     * says it couldn't list them this time.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, array{choices: list<array{value: string, label: string}>, failed: string|null}>  $answers
+     *
+     * @return array<string, mixed>
+     */
+    private function withChoices(array $field, array $answers): array
+    {
+        if (! array_key_exists($field['key'], $answers)) {
+            return $field;
+        }
+
+        $field['choices'] = $answers[$field['key']]['choices'];
+        $field['choicesFailed'] = $answers[$field['key']]['failed'];
+
+        return $field;
+    }
+
+    /**
+     * What a picker field needs beside its value: the chips of the chosen
+     * items (only those the person may open), and for a terms field that
+     * stores slugs, each chip's name, and the slugs no term has now.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, mixed>  $values
+     *
+     * @return array<string, mixed>
+     */
+    private function decorate(array $field, array $values, string $personId): array
+    {
+        // A repeater's pickers get the chips of every item's choices: a chip is only looked up by its value.
+        if ($field['type'] === 'repeater') {
+            $items = is_array($values[$field['key']] ?? null) ? array_values(array_filter($values[$field['key']], is_array(...))) : [];
+            $field['fields'] = array_map(function (array $sub) use ($items, $personId): array {
+                $all = array_merge(...array_map(fn (array $item): array => is_array($item[$sub['key']] ?? null) ? array_values($item[$sub['key']]) : [], $items));
+
+                return $this->decorate($sub, [$sub['key'] => array_values(array_unique(array_filter($all, is_string(...))))], $personId);
+            }, $field['fields']);
+
+            return $field;
+        }
+
+        $stored = is_array($values[$field['key']] ?? null) ? array_values(array_filter($values[$field['key']], is_string(...))) : [];
+
+        if ($field['type'] === 'items') {
+            $readable = AreaForms::readableItems($stored, $personId);
+            $found = $readable === [] ? [] : Content::query()->whereIn('id', $readable)->get(['id', 'title', 'type'])->keyBy('id');
+            $field['chips'] = array_map(fn (string $id): array => [
+                'value' => $id,
+                'label' => (string) ($found[$id]->title ?? ''),
+                'kind' => ItemChoices::kindLabel((string) ($found[$id]->type ?? '')),
+            ], array_values(array_filter($stored, fn (string $id): bool => in_array($id, $readable, true))));
+        }
+
+        if ($field['type'] === 'terms' && $field['storeAs'] !== 'slug') {
+            $taxonomy = is_string($field['taxonomy'] ?? null) ? $field['taxonomy'] : '';
+            $names = $stored === [] ? [] : DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('id', $stored)->pluck('name', 'id')->all();
+            $field['chips'] = array_map(fn (string $id): array => ['value' => $id, 'label' => isset($names[$id]) ? (string) $names[$id] : null], $stored);
+        }
+
+        if ($field['type'] === 'terms' && $field['storeAs'] === 'slug') {
+            $taxonomy = is_string($field['taxonomy'] ?? null) ? $field['taxonomy'] : '';
+            $names = $stored === [] ? [] : DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('slug', $stored)->pluck('name', 'slug')->all();
+            $field['chips'] = array_map(fn (string $slug): array => ['value' => $slug, 'label' => isset($names[$slug]) ? (string) $names[$slug] : null], $stored);
+            $field['stale'] = array_values(array_diff($stored, AreaForms::termSlugs($taxonomy, $stored)));
+        }
+
+        return $field;
     }
 }

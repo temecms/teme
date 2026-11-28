@@ -15,9 +15,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
 
+use App\Domain\Contents\Queries\ItemChoices;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
+use App\Domain\Users\Actors;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -42,10 +45,14 @@ final class AreaForms
      *
      * @param  list<array<string, mixed>>  $fields  as DeclaredArea::fields() gives them
      * @param  array<array-key, mixed>  $values  as sent
+     * @param  string|null  $personId  the person saving: the items they may open are the only ones accepted
+     * @param  string  $plugin  the plugin's name, as a refusal names it
+     * @param  array<string, mixed>  $stored  the values the record stores now, by key: an item it already holds is kept, not refused, when this person can't read it
+     * @param  array<string, list<array{value: string, label: string}>|null>  $offered  a select whose choices the plugin lists, by key: what it offers now, or null when it couldn't answer, which keeps the saved value
      *
      * @return array<string, mixed>
      */
-    public static function validated(array $fields, array $values): array
+    public static function validated(array $fields, array $values, ?string $personId = null, string $plugin = '', array $stored = [], array $offered = []): array
     {
         $shown = VisibleWhen::visibleValues($fields, $values);
         $errors = [];
@@ -58,7 +65,13 @@ final class AreaForms
                 continue;
             }
 
-            $kept[$key] = self::one($field, $shown[$key], "values.{$key}", $errors);
+            if (($field['choices'] ?? null) === 'plugin' && array_key_exists($key, $offered)) {
+                $kept[$key] = self::pluginChoice($field, $shown[$key], $offered[$key], $stored[$key] ?? null, "values.{$key}", $errors);
+
+                continue;
+            }
+
+            $kept[$key] = self::one($field, $shown[$key], "values.{$key}", $errors, $personId, $plugin, is_array($stored[$key] ?? null) ? $stored[$key] : []);
         }
 
         if ($errors !== []) {
@@ -135,7 +148,7 @@ final class AreaForms
         return match ($field['type']) {
             'number' => null,
             'boolean' => false,
-            'multiselect', 'types', 'terms', 'repeater' => [],
+            'multiselect', 'types', 'terms', 'items', 'repeater' => [],
             'select' => array_key_first(is_array($field['options']) ? $field['options'] : []) ?? '',
             default => '',
         };
@@ -149,7 +162,7 @@ final class AreaForms
         return match ($field['type']) {
             'number' => $value === null || is_int($value) || is_float($value),
             'boolean' => is_bool($value),
-            'multiselect', 'types', 'terms' => is_array($value) && array_is_list($value) && array_filter($value, fn (mixed $one): bool => ! is_string($one)) === [],
+            'multiselect', 'types', 'terms', 'items' => is_array($value) && array_is_list($value) && array_filter($value, fn (mixed $one): bool => ! is_string($one)) === [],
             'repeater' => is_array($value) && array_is_list($value),
             default => is_string($value),
         };
@@ -160,15 +173,16 @@ final class AreaForms
      *
      * @param  array<string, mixed>  $field
      * @param  array<string, array<mixed>|string>  $errors  each refused value's sentence, by its path
+     * @param  list<mixed>  $held  the items the record stores now: kept, not refused, when this person can't read them
      */
-    private static function one(array $field, mixed $value, string $path, array &$errors): mixed
+    private static function one(array $field, mixed $value, string $path, array &$errors, ?string $personId = null, string $plugin = '', array $held = []): mixed
     {
         $label = (string) $field['label'];
         $empty = $value === null || $value === '' || $value === [];
 
         // An empty repeater still holds its least number of items.
         if ($empty && $field['type'] === 'repeater' && ! ($field['required'] === true)) {
-            return self::items($field, [], $path, $errors);
+            return self::items($field, [], $path, $errors, $personId, $plugin);
         }
 
         if ($empty) {
@@ -218,6 +232,20 @@ final class AreaForms
             case 'types':
             case 'terms':
                 $list = is_array($value) ? array_values(array_unique(array_map(fn (mixed $one): string => is_scalar($one) ? (string) $one : '', $value))) : null;
+
+                // A term stored as its slug is checked against the taxonomy's slugs now; a missing one is refused, named by the plugin.
+                if ($type === 'terms' && ($field['storeAs'] ?? 'id') === 'slug' && $list !== null) {
+                    $missing = array_values(array_diff($list, self::termSlugs(is_string($field['taxonomy']) ? $field['taxonomy'] : '', $list)));
+
+                    if ($missing !== []) {
+                        $taxonomy = is_string($field['taxonomy']) ? $field['taxonomy'] : '';
+                        $singular = mb_strtolower(app(TaxonomyRegistry::class)->get($taxonomy)->singular);
+                        $errors[$path] = __('“:slug” isn’t a :singular on this site now, so :plugin can’t save it. Remove it, or choose the :singular again.', ['slug' => $missing[0], 'singular' => $singular, 'plugin' => $plugin !== '' ? $plugin : $label]);
+                    }
+
+                    return $list;
+                }
+
                 $allowed = match ($type) {
                     'multiselect' => array_map(strval(...), array_keys($options)),
                     'types' => array_map(fn (ContentType $type): string => $type->key, app(ContentTypeRegistry::class)->all()),
@@ -225,6 +253,18 @@ final class AreaForms
                 };
 
                 if ($list === null || array_diff($list, $allowed) !== []) {
+                    $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
+                }
+
+                return $list ?? [];
+
+            case 'items':
+                $list = is_array($value) ? array_values(array_unique(array_map(fn (mixed $one): string => is_scalar($one) ? (string) $one : '', $value))) : null;
+
+                // An item the record already stores, which this person can't read now, is kept as it is, not refused.
+                $alreadyStored = array_map(strval(...), $held);
+
+                if ($list === null || array_diff($list, self::readableItems($list, $personId), $alreadyStored) !== []) {
                     $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
                 }
 
@@ -253,7 +293,7 @@ final class AreaForms
                 return $time->toIso8601String();
 
             case 'repeater':
-                return self::items($field, $value, $path, $errors);
+                return self::items($field, $value, $path, $errors, $personId, $plugin, $held);
         }
 
         if (! is_string($value)) {
@@ -285,14 +325,50 @@ final class AreaForms
     }
 
     /**
+     * A select whose choices the plugin lists: the value must be one it offers
+     * now. When the plugin couldn't answer, the saved value stays as it is.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  list<array{value: string, label: string}>|null  $offered
+     * @param  array<string, array<mixed>|string>  $errors
+     */
+    private static function pluginChoice(array $field, mixed $value, ?array $offered, mixed $saved, string $path, array &$errors): mixed
+    {
+        $label = (string) $field['label'];
+
+        if ($offered === null) {
+            return $saved;
+        }
+
+        if ($value === null || $value === '') {
+            if (($field['required'] ?? false) === true) {
+                $errors[$path] = __(':field is required.', ['field' => $label]);
+            }
+
+            return null;
+        }
+
+        foreach ($offered as $choice) {
+            if ($value === $choice['value']) {
+                return $value;
+            }
+        }
+
+        $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
+
+        return null;
+    }
+
+    /**
      * A repeater's items, each its shown sub-fields checked.
      *
      * @param  array<string, mixed>  $field
      * @param  array<string, array<mixed>|string>  $errors  each refused value's sentence, by its path
+     * @param  list<mixed>  $held  the items the record stores now, whose picked items are kept, not refused, when this person can't read them
      *
      * @return list<array<string, mixed>>
      */
-    private static function items(array $field, mixed $value, string $path, array &$errors): array
+    private static function items(array $field, mixed $value, string $path, array &$errors, ?string $personId = null, string $plugin = '', array $held = []): array
     {
         $label = (string) $field['label'];
         $minItems = is_int($field['minItems']) ? $field['minItems'] : 0;
@@ -321,7 +397,9 @@ final class AreaForms
                 $key = (string) $sub['key'];
 
                 if (array_key_exists($key, $shown)) {
-                    $kept[$key] = self::one($sub, $shown[$key], "{$path}.{$index}.{$key}", $errors);
+                    // Items reorder, so what any stored item holds for this sub-field is kept.
+                    $stored = array_merge(...array_map(fn (mixed $was): array => is_array($was) && is_array($was[$key] ?? null) ? array_values($was[$key]) : [], $held));
+                    $kept[$key] = self::one($sub, $shown[$key], "{$path}.{$index}.{$key}", $errors, $personId, $plugin, $stored);
                 }
             }
 
@@ -347,5 +425,40 @@ final class AreaForms
         }
 
         return DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('id', $ulids)->pluck('id')->map(fn (mixed $id): string => (string) $id)->all();
+    }
+
+    /**
+     * Which of these content IDs the person may open: a live item, or a draft
+     * they may update, of a post or a page. Nothing else is accepted.
+     *
+     * @param  list<string>  $ids
+     *
+     * @return list<string>
+     */
+    public static function readableItems(array $ids, ?string $personId): array
+    {
+        $person = $personId === null ? null : app(Actors::class)->find($personId);
+
+        if ($person === null || $ids === []) {
+            return [];
+        }
+
+        return ItemChoices::readableIds($ids, $person);
+    }
+
+    /**
+     * Which of these slugs are terms of the taxonomy now.
+     *
+     * @param  list<string>  $slugs
+     *
+     * @return list<string>
+     */
+    public static function termSlugs(string $taxonomy, array $slugs): array
+    {
+        if ($slugs === []) {
+            return [];
+        }
+
+        return DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('slug', $slugs)->pluck('slug')->map(fn (mixed $slug): string => (string) $slug)->all();
     }
 }

@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Domain\Deployment;
 
 use App\Domain\Backups\BackupAlreadyRunning;
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupResult;
 use App\Domain\Backups\BackupSite;
 use App\Domain\Backups\BackupTrigger;
@@ -211,6 +212,14 @@ final readonly class DeploySite
      */
     private function backUp(DeployReport $report, int $waitSeconds, Closure $say): bool
     {
+        // Under host the host backs up and keeps the restore point, so Teme takes no backup before migrating (TEME_BACKUPS=host).
+        if (BackupMode::isHost()) {
+            $say('Backups are done by your host, so Teme takes no backup before migrating. The host keeps a restore point.');
+            $report->backupState('host')->step('backup', 'skipped');
+
+            return true;
+        }
+
         // A new database has no backup tables to ask, and nothing to lose.
         if ($report->newDatabase || ! $this->backupsSetUp->now()) {
             $say("Backups aren't set up on this site, so nothing was backed up before migrating. To set them up: php artisan teme:backup:setup.");

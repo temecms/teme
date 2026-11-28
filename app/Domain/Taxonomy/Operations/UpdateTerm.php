@@ -24,7 +24,10 @@ use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Taxonomy\Operations\Concerns\ValidatesTerms;
 use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
+use App\Domain\Taxonomy\PluginTermGrant;
 use App\Domain\Taxonomy\TermSlugs;
+use App\Domain\Types\TypeOwners;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
@@ -37,6 +40,12 @@ final class UpdateTerm extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var SaveTermInput $input */
+        if ($input->plugin !== null) {
+            PluginTermGrant::require($input->plugin);
+
+            return;
+        }
+
         $this->authorizeTerms($input, $input->taxonomy);
     }
 
@@ -47,6 +56,16 @@ final class UpdateTerm extends BaseOperation
 
         if ($term->taxonomy !== $input->taxonomy) {
             throw ValidationException::withMessages(['taxonomy' => __('A term cannot move to another taxonomy.')]);
+        }
+
+        if ($input->plugin !== null) {
+            $record = PluginTermGrant::require($input->plugin);
+
+            if (TypeOwners::owner('taxonomies', $input->taxonomy) !== $record->name) {
+                throw new AuthorizationException(__('This plugin may only change terms of the taxonomies it brought.'));
+            }
+
+            $this->refusePluginTranslation($term->language === null ? null : (string) $term->language);
         }
 
         $parentId = $input->keepParent ? ($term->parent_id === null ? null : (string) $term->parent_id) : $input->parentId;
@@ -84,7 +103,10 @@ final class UpdateTerm extends BaseOperation
 
         // So do the items filed under it, where an address takes {category} from its taxonomy.
         if (AddressSettings::current()->termsMoveItems((string) $term->taxonomy)) {
-            RecomputeAddresses::dispatch(JobActor::of($input->actorId()), (string) $term->id)->afterCommit();
+            $actor = $input->plugin !== null
+                ? PluginTermGrant::jobActor(PluginTermGrant::require($input->plugin))
+                : JobActor::of($input->actorId());
+            RecomputeAddresses::dispatch($actor, (string) $term->id)->afterCommit();
         }
 
         return $term;

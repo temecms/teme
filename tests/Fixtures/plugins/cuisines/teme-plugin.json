@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "name": "tests/cuisines",
+    "code": "cuisines",
+    "label": "Cuisines",
+    "description": "A plugin the tests enable, which brings a taxonomy and writes its terms through TermWriter.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Cuisines\\Cuisines",
+    "capabilities": ["terms.write"],
+    "contributes": { "types": "types/teme-types.json" }
+}

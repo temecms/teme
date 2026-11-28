@@ -16,6 +16,8 @@ type InPageNavItem = {
     href: string;
     label: string;
     count?: number;
+    /** The count is on its way: a quiet pulsing pill, still for reduced motion. */
+    counting?: boolean;
     current?: boolean;
     /** Planned and not built: drawn with its Soon tag, opening nothing (I-3408). */
     soon?: boolean;
@@ -28,7 +30,18 @@ const ITEM =
     'text-body text-ink-2 hover:bg-surface-3 hover:text-ink aria-[current=page]:bg-surface-3 aria-[current=page]:text-ink focus-visible:outline-ring inline-flex h-(--ctl-h) shrink-0 items-center gap-2 rounded-md px-3 font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:-outline-offset-2';
 
 /** An item's count, after its label, for information. */
-function Count({ count }: { count?: number }) {
+function Count({ count, counting }: { count?: number; counting?: boolean }) {
+    if (counting) {
+        return (
+            <span
+                className="bg-surface-3 inline-block size-5 shrink-0 rounded-full motion-safe:animate-pulse"
+                data-test="tab-counting"
+            >
+                <span className="sr-only">{__('Counting')}</span>
+            </span>
+        );
+    }
+
     return count === undefined ? null : (
         <span className="text-ink-3 tabular-nums">{count}</span>
     );
@@ -82,7 +95,10 @@ export function InPageNav({
                                     className={ITEM}
                                 >
                                     {item.label}
-                                    <Count count={item.count} />
+                                    <Count
+                                        count={item.count}
+                                        counting={item.counting}
+                                    />
                                 </Link>
                             )}
                         </li>

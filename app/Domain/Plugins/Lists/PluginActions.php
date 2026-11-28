@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Lists;
 
+use App\Domain\Plugins\Area\RowActionWords;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestText;
@@ -53,6 +54,11 @@ final readonly class PluginActions
         $locale = app()->getLocale();
 
         foreach ($this->declared($record) as $action) {
+            // Row-only actions belong on area tables, never as settings buttons.
+            if ($action['row'] === true) {
+                continue;
+            }
+
             $actions[] = [
                 'id' => $action['id'],
                 'label' => $words->text($action['label'], $locale),
@@ -65,9 +71,11 @@ final readonly class PluginActions
 
     /**
      * One declared action of an enabled plugin granted jobs, by the plugin's
-     * code and the action's id; null when there is none.
+     * code and the action's id; null when there is none. Confirm, toast and
+     * queued are the plugin's words with core defaults already applied; confirm
+     * title and toast may still hold {name} for the caller to fill.
      *
-     * @return array{id: string, label: string, description: string|null, job: string, name: string}|null
+     * @return array{id: string, label: string, description: string|null, job: string, row: bool, confirm: array{title: string, text: string|null, button: string, cancel: string}|null, toast: string, queued: string, icon: string|null, name: string}|null
      */
     public function find(string $code, string $id): ?array
     {
@@ -75,7 +83,20 @@ final readonly class PluginActions
 
         foreach ($record === null ? [] : $this->declared($record) as $action) {
             if ($action['id'] === $id) {
-                return [...$action, 'name' => $record->name];
+                $words = ManifestText::for($record->code);
+                $locale = app()->getLocale();
+                $translate = fn (string $english): string => $words->text($english, $locale);
+                $label = $translate($action['label']);
+
+                return [
+                    ...$action,
+                    'label' => $label,
+                    'description' => $action['description'] === null ? null : $translate($action['description']),
+                    'confirm' => RowActionWords::confirm($label, $action['confirm'], $translate),
+                    'toast' => RowActionWords::toast($label, $action['toast'], $translate),
+                    'queued' => RowActionWords::queued($label, $action['queued'], $translate),
+                    'name' => $record->name,
+                ];
             }
         }
 
@@ -96,7 +117,7 @@ final readonly class PluginActions
     }
 
     /**
-     * @return list<array{id: string, label: string, description: string|null, job: string}>
+     * @return list<array{id: string, label: string, description: string|null, job: string, row: bool, confirm: array{title?: string, text?: string, button?: string, cancel?: string}|string|null, toast: string|null, queued: string|null, icon: string|null}>
      */
     private function declared(PluginRecord $record): array
     {
@@ -112,10 +133,39 @@ final readonly class PluginActions
                     'label' => $entry['label'],
                     'description' => is_string($entry['description'] ?? null) ? $entry['description'] : null,
                     'job' => $entry['job'],
+                    'row' => ($entry['row'] ?? false) === true,
+                    'confirm' => $this->confirmOf($entry['confirm'] ?? null),
+                    'toast' => is_string($entry['toast'] ?? null) ? $entry['toast'] : null,
+                    'queued' => is_string($entry['queued'] ?? null) ? $entry['queued'] : null,
+                    'icon' => is_string($entry['icon'] ?? null) ? $entry['icon'] : null,
                 ];
             }
         }
 
         return $actions;
+    }
+
+    /**
+     * @return array{title?: string, text?: string, button?: string, cancel?: string}|string|null
+     */
+    private function confirmOf(mixed $confirm): array|string|null
+    {
+        if (is_string($confirm)) {
+            return $confirm;
+        }
+
+        if (! is_array($confirm)) {
+            return null;
+        }
+
+        $out = [];
+
+        foreach (['title', 'text', 'button', 'cancel'] as $key) {
+            if (is_string($confirm[$key] ?? null) && trim($confirm[$key]) !== '') {
+                $out[$key] = trim($confirm[$key]);
+            }
+        }
+
+        return $out === [] ? null : $out;
     }
 }

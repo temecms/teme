@@ -86,7 +86,7 @@ final class InsertionOrigins
 
             $capabilities = $record->consent['capabilities'] ?? [];
 
-            if (! in_array(Capability::ContentInsert->value, $capabilities, true) && ! in_array(Capability::PagesInsert->value, $capabilities, true)) {
+            if (! in_array(Capability::ContentInsert->value, $capabilities, true) && ! in_array(Capability::PagesInsert->value, $capabilities, true) && ! in_array(Capability::SiteScripts->value, $capabilities, true)) {
                 return [];
             }
 

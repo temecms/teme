@@ -93,11 +93,11 @@ it('queues a new run once the waiting one has started', function (): void {
         ->and(TrackedJob::query()->where('owner', 'jobs')->count())->toBe(2);
 });
 
-it('refuses a delay outside 0 to 3600 seconds, or a malformed key', function (int $delay, ?string $key): void {
+it('refuses a delay outside 0 to 86400 seconds, or a malformed key', function (int $delay, ?string $key): void {
     expect(fn () => new QueueOptions($delay, $key))->toThrow(InvalidArgumentException::class);
 })->with([
     'negative' => [-1, null],
-    'over an hour' => [3601, null],
+    'over a day' => [86_401, null],
     'upper case' => [0, 'Batch'],
     'empty' => [0, ''],
     'too long' => [0, str_repeat('a', 65)],
@@ -105,7 +105,7 @@ it('refuses a delay outside 0 to 3600 seconds, or a malformed key', function (in
 ]);
 
 it('takes the edges of the allowed delay and key', function (): void {
-    expect((new QueueOptions(3600, 'action:test-ping.1_x'))->delaySeconds)->toBe(3600)
+    expect((new QueueOptions(86_400, 'action:test-ping.1_x'))->delaySeconds)->toBe(86_400)
         ->and((new QueueOptions(0, str_repeat('a', 64)))->uniqueKey)->toHaveLength(64);
 });
 

@@ -43,4 +43,15 @@ interface Notices
      * @since 0.5.0
      */
     public function sendToAddress(string $kind, string $email, NoticeMessage $message): void;
+
+    /**
+     * To everyone in the kind's audience: holders of its ability (such as
+     * plugins.manage), without the sender listing account IDs. A kind with
+     * no audience ability is refused.
+     *
+     * @throws InvalidArgumentException for an unregistered kind, a kind with no audience, or an action naming no route
+     *
+     * @since next
+     */
+    public function sendToAudience(string $kind, NoticeMessage $message): void;
 }

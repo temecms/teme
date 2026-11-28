@@ -106,4 +106,17 @@ trait ValidatesTerms
             'singular' => mb_strtolower(app(TaxonomyRegistry::class)->get($taxonomy)->singular),
         ])]);
     }
+
+    /**
+     * Refuses a plugin write of a term that is a translation: the
+     * terms door never makes or changes translations.
+     *
+     * @throws ValidationException
+     */
+    private function refusePluginTranslation(?string $language): void
+    {
+        if ($language !== null) {
+            throw ValidationException::withMessages(['term' => __('A plugin can’t change a translation of a term.')]);
+        }
+    }
 }

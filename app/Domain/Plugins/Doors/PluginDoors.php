@@ -12,7 +12,8 @@
  * when it was granted people.read, SiteAi when it was granted ai and
  * declares AI tasks, HookSender when it declares hooks of its own, and
  * Notices for its declared kinds when it was granted notices.send, and
- * RedirectWriter when it was granted redirects.
+ * RedirectWriter when it was granted redirects, and TermWriter when it was
+ * granted terms.write.
  * Bound as the loader's PluginServices.
  *
  * @package Teme
@@ -27,6 +28,7 @@ namespace App\Domain\Plugins\Doors;
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\Plugins\PluginSiteAi;
 use App\Domain\Cards\Plugin\CoreCardsChanged;
+use App\Domain\Contents\Queries\ItemCards;
 use App\Domain\Contents\Queries\ItemSnapshots;
 use App\Domain\Contents\Queries\PublishedItems;
 use App\Domain\Contents\Queries\QueuedItems;
@@ -35,15 +37,21 @@ use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Notices\NoticeSender;
+use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Hooks\PluginHookSender;
 use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Notices\NoticeRate;
 use App\Domain\Plugins\Notices\PluginNotices;
+use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\SettingHosts;
+use App\Domain\Security\SecurityLog;
 use App\Domain\Site\CoreSiteInfo;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use App\Domain\Site\Insertions\Scripts\PluginInlineScripts;
@@ -53,11 +61,13 @@ use Teme\Contracts\Cards\CardsChanged;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\HtmlToDocument;
+use Teme\Contracts\Content\ItemCardReader;
 use Teme\Contracts\Content\Submissions;
 use Teme\Contracts\Directory\VerifiedDirectory;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Hooks\HookSender;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
@@ -67,10 +77,13 @@ use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Redirects\RedirectWriter;
+use Teme\Contracts\Security\SecurityLines;
+use Teme\Contracts\Settings\PluginSecretStore;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
+use Teme\Contracts\Taxonomy\TermWriter;
 
 final readonly class PluginDoors implements PluginServices
 {
@@ -80,16 +93,17 @@ final readonly class PluginDoors implements PluginServices
         private HostResolver $resolver,
         private StartJob $start,
         private PluginRegistry $registry,
-        private CoreInsertionsChanged $insertionsChanged,
         private SettingHosts $settingHosts,
         private CoreSiteInfo $site,
         private PublishedItems $published,
         private ItemSnapshots $snapshots,
         private QueuedItems $queued,
+        private ItemCards $cards,
         private AuthorOptions $authors,
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
         private HtmlToDocument $html,
+        private SecurityLog $securityLog,
     ) {}
 
     /**
@@ -125,7 +139,16 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
             // The hosts agreed in its settings are read at each call, never fixed here (docs/plans/plugin-sockets-1.md, A2).
-            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path);
+            // Downloads are a long job's only, into the plugin's own folder (docs/guides/developers/plugins/outbound-files.md).
+            $longRun = $long || $httpSeconds !== null;
+            $downloadManifest = $this->registry->find($name)?->manifest;
+            $downloads = $downloadManifest === null ? DeclaredDownloads::DEFAULT_BYTES : DeclaredDownloads::of($downloadManifest);
+            $http = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path, downloadFolder: $longRun ? DownloadFolders::pathFor($code) : null, downloadBytes: $downloads);
+            $offered[OutboundHttp::class] = $http;
+
+            if ($longRun) {
+                $offered[OutboundDownloads::class] = $http;
+            }
         }
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
@@ -133,13 +156,13 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true)) {
-            $offered[InsertionsChanged::class] = $this->insertionsChanged;
+            $offered[InsertionsChanged::class] = new CoreInsertionsChanged($name);
             $offered[InlineScripts::class] = new PluginInlineScripts($code);
         }
 
         // What its cards draw changed (docs/guides/developers/plugins/cards.md).
         if (in_array(Capability::PagesInsert->value, $capabilities, true)) {
-            $offered[CardsChanged::class] = new CoreCardsChanged($code);
+            $offered[CardsChanged::class] = new CoreCardsChanged($code, $name);
         }
 
         if (in_array(Capability::FediverseRead->value, $capabilities, true)) {
@@ -162,7 +185,15 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
-            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued);
+            $reader = new PluginContentReader(
+                $this->published,
+                $this->snapshots,
+                $this->queued,
+                $this->cards,
+                $this->namesOwners($name, $capabilities),
+            );
+            $offered[ContentReader::class] = $reader;
+            $offered[ItemCardReader::class] = $reader;
         }
 
         if (in_array(Capability::DirectoryRead->value, $capabilities, true)) {
@@ -177,7 +208,21 @@ final readonly class PluginDoors implements PluginServices
             $offered[RedirectWriter::class] = new PluginRedirects($code);
         }
 
+        if (in_array(Capability::TermsWrite->value, $capabilities, true)) {
+            $offered[TermWriter::class] = new PluginTermWriter($name, $code);
+        }
+
         $manifest = $this->registry->find($name)?->manifest;
+        // Its free secrets, for a plugin that declares a secret setting (docs/guides/developers/plugins/settings.md).
+        if (is_array($manifest?->contributes()['settings'] ?? null) && array_any($manifest->contributes()['settings'], fn (mixed $setting): bool => is_array($setting) && ($setting['type'] ?? null) === 'secret')) {
+            $offered[PluginSecretStore::class] = new PluginSecretStoreWrites($code);
+        }
+
+        // Its lines under the plugin's name, of the kinds its manifest declares (docs/guides/developers/plugins/security-log.md).
+        if (in_array(Capability::SecurityLog->value, $capabilities, true)) {
+            $offered[SecurityLines::class] = new PluginSecurityLines($code, $manifest === null ? [] : DeclaredSecurityKinds::of($manifest), $this->securityLog);
+        }
+
         $declaredHooks = $manifest === null ? [] : DeclaredHooks::of($manifest);
 
         // Only a plugin that declares a task it may ask for (I-3434).
@@ -195,5 +240,22 @@ final readonly class PluginDoors implements PluginServices
         }
 
         return $offered;
+    }
+
+    /**
+     * Whether this plugin may name draft owners: people.read granted, and
+     * the wider stamp on its enabled record; no record names no one.
+     *
+     * @param  list<string>  $capabilities
+     */
+    private function namesOwners(string $name, array $capabilities): bool
+    {
+        if (! in_array(Capability::PeopleRead->value, $capabilities, true)) {
+            return false;
+        }
+
+        $record = collect(app(PluginRecords::class)->enabled())->first(fn ($row): bool => $row->name === $name);
+
+        return $record !== null && Consent::coversWiderPeopleRead((array) $record->consent);
     }
 }

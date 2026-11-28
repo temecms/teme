@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportRun;
+use App\Domain\Import\Operations\AttachUploadsCopy;
+use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
 use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Planning\ImportChoices;
 use App\Domain\Import\Queries\ImportFiles;
@@ -212,4 +214,27 @@ it('deletes the uploaded file from its report, and goes back to it saying so', f
     expect($file->refresh()->deleted_at)->not->toBeNull()
         ->and(DB::table('contents')->count())->toBeGreaterThan(0)
         ->and(ImportRun::query()->whereKey($run->id)->exists())->toBeTrue();
+});
+
+it('keeps the media choices open on the file plan when the old site is silent but an uploads copy is attached', function (): void {
+    $file = FileImports::ready('companion-site.xml', $this->admin);
+    $show = '/admin/tools/import/'.$file->source_id;
+    $folder = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-plan-copy-'.uniqid();
+    mkdir($folder.'/2024', recursive: true);
+    file_put_contents($folder.'/2024/Harbour One.jpg', dlJpeg(640, 480));
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($file->source_id, $folder, null)));
+    Http::swap(new HttpFactory);
+    dlServe(
+        [FakeCompanion::HOST => [FakeCompanion::IP]],
+        [FakeCompanion::HOST.'*' => Http::response('', 503)],
+    );
+
+    $this->actingAs($this->admin)->get($show)
+        ->assertInertia(fn (Assert $page) => $page->loadDeferredProps(fn (Assert $reload) => $reload
+            ->where('plan.oldSiteAnswers', false)
+            ->where('plan.copyReady', true)));
+
+    unlink($folder.'/2024/Harbour One.jpg');
+    rmdir($folder.'/2024');
+    rmdir($folder);
 });

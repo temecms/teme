@@ -33,6 +33,15 @@ final class PublicChanges
     }
 
     /**
+     * Whether an Operation is performing now, so a change may be noted to
+     * the list of its tags rather than purged by a call of its own.
+     */
+    public function inOperation(): bool
+    {
+        return $this->open !== [];
+    }
+
+    /**
      * Adds these changes' tags to the list of the innermost Operation
      * executing.
      *

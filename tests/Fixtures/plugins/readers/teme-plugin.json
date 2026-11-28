@@ -41,6 +41,13 @@
                 "fileTypes": [
                     "json"
                 ]
+            },
+            {
+                "id": "bulk",
+                "label": "Bulk",
+                "fileTypes": [
+                    "json"
+                ]
             }
         ]
     }

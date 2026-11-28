@@ -57,3 +57,23 @@ it('keeps ordinary markup as it was', function (): void {
 
     expect(InsertionCleaner::clean($html)['html'])->toBe($html);
 });
+
+it('drops a base and a meta http-equiv from plugin markup, and keeps an ordinary meta', function (): void {
+    $cleaned = InsertionCleaner::clean('<base href="https://evil.example/"><meta http-equiv="refresh" content="0;url=https://evil.example/"><meta itemprop="name" content="Ad"><p>Ad</p>')['html'];
+    $lower = strtolower($cleaned);
+
+    expect($lower)->not->toContain('<base')
+        ->and($lower)->not->toContain('http-equiv')
+        ->and($lower)->not->toContain('evil.example')
+        ->and($cleaned)->toContain('<meta itemprop="name" content="Ad">')
+        ->and($cleaned)->toContain('<p>Ad</p>');
+});
+
+it('drops an object data address that runs script, and keeps an https one', function (): void {
+    $unsafe = InsertionCleaner::clean('<object data="javascript:alert(1)"></object><object data="data:text/html,<script>alert(2)</script>"></object>')['html'];
+    $safe = InsertionCleaner::clean('<object data="https://ads.example/a.svg"></object>')['html'];
+
+    expect(strtolower($unsafe))->not->toContain('javascript:')
+        ->and(strtolower($unsafe))->not->toContain('data:text/html')
+        ->and($safe)->toContain('data="https://ads.example/a.svg"');
+});

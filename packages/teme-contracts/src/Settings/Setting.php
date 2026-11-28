@@ -260,13 +260,14 @@ final class Setting
 
     /**
      * One of the site's content types with public addresses, stored as its
-     * key, or `''` when none is chosen.
+     * key, or `''` when none is chosen. With $multiple, a list of keys, empty
+     * by default.
      *
-     * @since 1.0.0
+     * @since 1.0.0 The $multiple argument is @since next.
      */
-    public static function contentType(string $key, string $label, string $description, string $since): self
+    public static function contentType(string $key, string $label, string $description, string $since, bool $multiple = false): self
     {
-        return new self($key, SettingType::ContentType, $label, $description, $since, '');
+        return new self($key, SettingType::ContentType, $label, $description, $since, $multiple ? [] : '', multiple: $multiple);
     }
 
     /**
@@ -283,8 +284,8 @@ final class Setting
     /**
      * A list of items of one shape, stored as a JSON list of objects keyed
      * by field, empty by default. Its fields are text, textarea, number,
-     * boolean, select, multiselect, email, color and code settings; min()
-     * and max() bound the items (20 at most when unset).
+     * boolean, select, multiselect, email, url, color and code settings;
+     * min() and max() bound the items (20 at most when unset).
      *
      * @param  list<Setting>  $fields
      *

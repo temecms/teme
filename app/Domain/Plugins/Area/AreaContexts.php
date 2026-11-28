@@ -17,16 +17,20 @@ namespace App\Domain\Plugins\Area;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Admin\AreaContext;
+use Teme\Contracts\Admin\AreaPeriod;
 use Teme\Contracts\Settings\SettingsReader;
 
 final class AreaContexts
 {
     /**
-     * The context for this person and this plugin, now.
+     * The context for this person and this plugin, now, with an optional
+     * statistics period for figures and charts.
      */
-    public static function for(string $code, string $personId): AreaContext
+    public static function for(string $code, string $personId, ?AreaPeriod $period = null): AreaContext
     {
-        return new AreaContext($personId, app()->getLocale(), app(SettingsReader::class)->string('general', 'timezone'), self::held($code, $personId));
+        $timezone = app(SettingsReader::class)->string('general', 'timezone');
+
+        return new AreaContext($personId, app()->getLocale(), $timezone, self::held($code, $personId), $period);
     }
 
     /**

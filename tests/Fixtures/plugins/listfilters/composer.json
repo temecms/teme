@@ -1,0 +1,6 @@
+{
+    "name": "tests/listfilters",
+    "type": "teme-plugin",
+    "require": { "teme/contracts": "*" },
+    "autoload": { "psr-4": { "Tests\\Fixtures\\Plugins\\ListFilters\\": "src/" } }
+}

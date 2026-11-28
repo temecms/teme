@@ -278,3 +278,38 @@ it('refuses, writing nothing, a person without the permission, a disabled plugin
         expect(fn () => ($this->save)($this->ad, record: 'banner'))->toThrow(AuthorizationException::class);
     }],
 ]);
+
+it('stores a terms field’s slugs as they are, and refuses a slug no term has now, naming the taxonomy’s singular', function (): void {
+    // The placard fixture with its terms field stored by slug: the slug is what the plugin receives and what is saved.
+    $bySlug = function (array $node) use (&$bySlug): array {
+        if (($node['key'] ?? null) === 'terms') {
+            $node['storeAs'] = 'slug';
+        }
+
+        foreach ($node as $key => $child) {
+            if (is_array($child)) {
+                $node[$key] = $bySlug($child);
+            }
+        }
+
+        return $node;
+    };
+    PluginFixtures::use(PluginFixtures::copy('placard', $bySlug(PluginFixtures::manifest('placard'))));
+    app(PluginLoader::class)->load();
+    DB::table('terms')->insert(['id' => (string) Str::ulid(), 'taxonomy' => 'category', 'name' => 'Rivers State budget', 'slug' => 'rivers-state-budget', 'fields' => '{}', 'created_at' => now(), 'updated_at' => now()]);
+
+    $saved = ($this->save)([...$this->ad, 'terms' => ['rivers-state-budget']]);
+
+    expect(PlacardArea::$calls[0][1][2]['terms'])->toBe(['rivers-state-budget'])
+        ->and(DB::table('placard_ads')->where('id', (int) $saved['id'])->value('data'))->toContain('rivers-state-budget');
+
+    PlacardArea::reset();
+
+    try {
+        ($this->save)([...$this->ad, 'terms' => ['gone-slug']]);
+        $this->fail('The stale slug was not refused.');
+    } catch (ValidationException $refused) {
+        expect($refused->errors()['values.terms'][0])->toContain('“gone-slug” isn’t a category on this site now')
+            ->and(PlacardArea::$calls)->toBe([]);
+    }
+});

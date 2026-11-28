@@ -110,12 +110,12 @@ it('hands the figures and the chart to the page, cleaned', function (): void {
     ($this->overview)($this->editor)->assertInertia(fn (Assert $page) => $page
         ->loadDeferredProps(['block_totals', 'block_daily'], fn (Assert $reload) => $reload
             ->where('block_totals', ['items' => [
-                ['id' => 'impressions', 'label' => 'Impressions, last 30 days', 'format' => 'number', 'value' => 1500, 'change' => 0.12],
-                ['id' => 'ctr', 'label' => 'Click rate', 'format' => 'percent', 'value' => 0.031, 'change' => -0.5],
+                ['id' => 'impressions', 'label' => 'Impressions', 'format' => 'number', 'value' => 1500, 'change' => 0.12, 'thing' => 'impressions', 'before' => 'the 30 days before'],
+                ['id' => 'ctr', 'label' => 'Click rate', 'format' => 'percent', 'value' => 0.031, 'change' => -0.5, 'thing' => 'click rate', 'before' => 'the 30 days before'],
             ], 'failed' => null])
             ->where('block_daily', ['labels' => ['2026-11-01', '2026-11-02', '2026-11-03'], 'series' => [
-                ['id' => 'impressions', 'label' => 'Impressions', 'values' => [10, 20, 15]],
-                ['id' => 'clicks', 'label' => 'Clicks', 'values' => [1, 3, 2]],
+                ['id' => 'impressions', 'label' => 'Impressions', 'values' => [10, 20, 15], 'dashed' => false],
+                ['id' => 'clicks', 'label' => 'Clicks', 'values' => [1, 3, 2], 'dashed' => false],
             ], 'failed' => null])));
 });
 
@@ -128,10 +128,12 @@ it('hands a table its rows as the person asks: search, filter, sort and page', f
                 ->where('block_ads.rows.0.id', '2')
                 ->where('block_ads.rows.0.cells', [
                     'name' => ['kind' => 'text', 'value' => 'Winter sale'],
+                    'position' => ['kind' => 'text', 'value' => 'Between items on lists'],
                     'status' => ['kind' => 'badge', 'value' => 'Paused', 'tone' => 'neutral'],
+                    'report' => ['kind' => 'link', 'value' => 'Open report', 'href' => 'https://ads.example/report/2', 'host' => 'ads.example'],
                     'impressions' => ['kind' => 'number', 'value' => 300],
                 ])
-                ->where('block_ads.rows.0.unavailable', ['disable'])));
+                ->where('block_ads.rows.0.unavailable', ['disable', 'check-code'])));
 
     $query = PlacardArea::$calls[0][1][1];
 

@@ -20,18 +20,30 @@ final class CurrentJobActor
 {
     private ?JobActor $actor = null;
 
-    public function set(JobActor $actor): void
+    private bool $notifyOnFinish = false;
+
+    public function set(JobActor $actor, bool $notifyOnFinish = false): void
     {
         $this->actor = $actor;
+        $this->notifyOnFinish = $notifyOnFinish;
     }
 
     public function clear(): void
     {
         $this->actor = null;
+        $this->notifyOnFinish = false;
     }
 
     public function get(): ?JobActor
     {
         return $this->actor;
+    }
+
+    /**
+     * Whether a nested queue from this run should tell the person's inbox on finish.
+     */
+    public function notifyOnFinish(): bool
+    {
+        return $this->notifyOnFinish;
     }
 }

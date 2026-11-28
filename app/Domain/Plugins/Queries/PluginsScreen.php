@@ -22,6 +22,7 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\Editor\DeclaredPanel;
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Manifest;
@@ -31,6 +32,8 @@ use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\Scripts\ScriptSize;
+use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Settings\Models\SettingsGroupRecord;
@@ -92,6 +95,8 @@ final readonly class PluginsScreen
             $words = ManifestText::for($row->code);
             $locale = app()->getLocale();
             $notices = $manifest === null ? [] : array_column(DeclaredNotices::of($manifest), 'label');
+            $securityKinds = $manifest === null ? [] : array_values(DeclaredSecurityKinds::of($manifest));
+            $downloadBytes = $manifest === null ? null : DeclaredDownloads::declared($manifest);
 
             return [
                 'name' => $row->name,
@@ -108,6 +113,8 @@ final readonly class PluginsScreen
                 'reason' => $row->reason,
                 // Why its schedules don't run, shown as a warning in its row (docs/proposals/plugin-sockets-1.md).
                 'schedules' => $row->schedules,
+                // How big its declared scripts are, compressed, and whether they pass the budget: a warning, never a block (docs/guides/developers/plugins/scripts.md).
+                'scripts' => ScriptSize::of($this->registry->find($row->name)),
                 'enabled' => $enabled,
                 'needsAttention' => in_array($row->state, self::NEEDS_ATTENTION, true),
                 'action' => $this->action($row, $enabled, $newImports || ($row->added['aiTasks'] ?? []) !== []),
@@ -115,7 +122,7 @@ final readonly class PluginsScreen
                 'adds' => array_map(fn (string $label): string => $words->text($label, $locale), [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)]),
                 'agreedVersion' => $record?->version,
                 'agreed' => [
-                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : []))), notices: $notices),
+                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : []))), notices: $notices, securityKinds: $securityKinds, downloadBytes: isset($row->consent['downloads']) ? $row->consent['downloads']['maxBytes'] : null),
                     ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
                     ...$this->permissionLines($manifest, (array) ($row->consent['permissions'] ?? []), false),
                     ...$this->panelLines($manifest, $row->consent['capabilities'] ?? []),
@@ -135,6 +142,8 @@ final readonly class PluginsScreen
                     $aiTasks,
                     $newAiTasks,
                     notices: $notices,
+                    securityKinds: $securityKinds,
+                    downloadBytes: $downloadBytes,
                 ), ...$this->insertionHostsLine(
                     $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
                     $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
@@ -326,10 +335,30 @@ final readonly class PluginsScreen
         }
 
         if ($enabled) {
-            return 'disable';
+            return self::addsOnlyWiderPeopleRead($row, $newImports) ? 'review' : 'disable';
         }
 
         return in_array($row->state, [PluginState::NotEnabled, PluginState::Disabled, PluginState::StoppedByTeme], true) ? 'enable' : null;
+    }
+
+    /**
+     * Whether an Enabled plugin's only addition is the wider people.read:
+     * an older grant keeps running, and agreeing again adds the invite and
+     * join events and owner names, so its row offers Review access.
+     */
+    private static function addsOnlyWiderPeopleRead(PluginRow $row, bool $newImports): bool
+    {
+        if ($row->consent === [] || $row->added['capabilities'] !== [Capability::PeopleRead->value] || $newImports) {
+            return false;
+        }
+
+        foreach (['hosts', 'routes', 'insertionHosts', 'permissions', 'notices', 'requires'] as $kind) {
+            if (($row->added[$kind] ?? []) !== []) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -347,14 +376,15 @@ final readonly class PluginsScreen
      * @param  list<DeclaredAiTask>  $aiTasks
      * @param  list<string>  $newAiTasks
      * @param  list<string>  $notices  the labels of the kinds of notice it declares
+     * @param  list<string>  $securityKinds  the labels of the kinds of security log line it declares
      *
      * @return list<array{words: string, new: bool}>
      */
-    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false, array $aiTasks = [], array $newAiTasks = [], array $notices = []): array
+    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false, array $aiTasks = [], array $newAiTasks = [], array $notices = [], array $securityKinds = [], ?int $downloadBytes = null): array
     {
         $labels = array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks);
         $lines = array_map(fn (string $capability): array => [
-            'words' => PluginWords::capability($capability, $hosts, $imports, $labels, $notices),
+            'words' => PluginWords::capability($capability, $hosts, $imports, $labels, $notices, $securityKinds, $downloadBytes),
             'new' => in_array($capability, $newCapabilities, true) || ($capability === 'http' && $newHosts !== []) || ($capability === Capability::ImportWordPress->value && $newImports),
         ], $capabilities);
 

@@ -19,6 +19,7 @@ use Teme\Contracts\Cards\CardsChanged;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\HtmlToDocument;
+use Teme\Contracts\Content\ItemCardReader;
 use Teme\Contracts\Content\Submissions;
 use Teme\Contracts\Directory\VerifiedDirectory;
 use Teme\Contracts\Fediverse\FediverseFollowers;
@@ -32,15 +33,17 @@ use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Redirects\RedirectWriter;
+use Teme\Contracts\Security\SecurityLines;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
+use Teme\Contracts\Taxonomy\TermWriter;
 
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class, HookSender::class, Notices::class, HtmlToDocument::class, VerifiedDirectory::class, Submissions::class, CardsChanged::class, RedirectWriter::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class, HookSender::class, Notices::class, HtmlToDocument::class, VerifiedDirectory::class, Submissions::class, CardsChanged::class, RedirectWriter::class, TermWriter::class, SecurityLines::class, ItemCardReader::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

@@ -22,12 +22,16 @@ namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Cache\PageTags;
+use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Console\CommandNames;
 use App\Domain\Plugins\Dependencies;
+use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
+use App\Domain\Plugins\ListFilters\ListFilterIndexes;
+use App\Domain\Plugins\ListFilters\PluginListFilters;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
@@ -72,6 +76,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly ScheduleRunner $schedules,
         private readonly Dependencies $dependencies,
         private readonly ApplyPluginTypes $types,
+        private readonly PluginListFilters $listFilters,
+        private readonly ListFilterIndexes $listFilterIndexes,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -119,6 +125,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         if ($collisions !== []) {
             throw ValidationException::withMessages(['plugin' => $collisions]);
+        }
+
+        // Nor more list filters on one list than the lists hold, asked before its migrations run (issue 802); perform checks again under a lock.
+        $refusedBeside = $this->listFilters->refusalBeside(PluginListFilters::declared($manifest), $input->name, PluginRecord::query()->where('state', PluginRecord::ENABLED)->get()->all());
+
+        if ($refusedBeside !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedBeside]]);
         }
 
         // Nor a console command that exists: a plugin never replaces one.
@@ -180,6 +193,16 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
         }
 
+        // Its list filters are checked against the tables its own migrations made, and against the other plugins' filters on each list, under a lock on every enabled plugin's row (issue 802). A refusal undoes the migrations too.
+        $enabledRecords = PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->lockForUpdate()->get()->all();
+        $declaredFilters = PluginListFilters::declared($manifest);
+        $refusedFilters = $this->listFilters->refusalBeside($declaredFilters, $input->name, $enabledRecords)
+            ?? $this->listFilterIndexes->refusal($manifest, $this->migrations->ownedTables($migrations));
+
+        if ($refusedFilters !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedFilters]]);
+        }
+
         $consentedBy = $input->actorId() ?? $input->schedulesAs;
         // The permission lines agreed before, so an update gives only a role newly agreed to.
         $agreedBefore = array_values(array_filter((array) ($record->consent['permissions'] ?? []), is_string(...)));
@@ -202,8 +225,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->permissions($manifest),
                 ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
                 // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
+                ...($declaredFilters === [] ? [] : ['listFilters' => $declaredFilters]),
                 ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
                 ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
+                // So a larger file limit in an update asks again (docs/guides/developers/plugins/outbound-files.md).
+                ...(DeclaredDownloads::declared($manifest) === null ? [] : ['downloads' => ['maxBytes' => DeclaredDownloads::declared($manifest)]]),
+                // people.read stamp: invites, joins and owner names. Older grants keep running without it.
+                ...(in_array(Capability::PeopleRead->value, $input->capabilities, true) ? ['peopleRead' => true] : []),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.
             'consented_by' => $consentedBy === null ? null : (int) $consentedBy,
@@ -231,7 +259,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             ...($input->actorId() === null && $input->schedulesAs !== null ? ['schedules_as' => $input->schedulesAs] : []),
         ]);
         // A stored "not found" at an address its root files now answer goes too (docs/guides/developers/plugins/root-files.md).
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES]), ...(CommentField::changesForms($manifest) ? [PageTags::DISCUSSION] : [])]));
 
         // Every page is drawn again with its head tags and structured data, and the sitemaps with its own (docs/guides/developers/plugins/seo.md).
         $seoTags = [

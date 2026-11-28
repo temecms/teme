@@ -34,3 +34,18 @@ it('lists what an update adds', function (): void {
     expect($added)->toBe(['capabilities' => ['media.read'], 'hosts' => ['*.example.com', 'api.example.org'], 'routes' => []])
         ->and(Consent::added($this->agreed, ($this->asks)(['content.read'])))->toBe(['capabilities' => [], 'hosts' => [], 'routes' => []]);
 });
+
+it('asks again when a plugin raises the file limit its downloads may hold', function (): void {
+    $manifest = fn (?int $bytes): Manifest => new Manifest([
+        ...PluginFixtures::manifest('widened'),
+        'capabilities' => ['content.read', 'http'],
+        'hosts' => ['api.example.com', '*.cdn.example.com'],
+        'hooks' => ['ContentPublished'],
+        ...($bytes === null ? [] : ['contributes' => [...(PluginFixtures::manifest('widened')['contributes'] ?? []), 'downloads' => ['maxBytes' => $bytes]]]),
+    ]);
+    $agreed = [...$this->agreed, 'downloads' => ['maxBytes' => 16_777_216]];
+
+    expect(Consent::covers($agreed, $manifest(16_777_216)))->toBeTrue()
+        ->and(Consent::covers($agreed, $manifest(8_388_608)))->toBeTrue()
+        ->and(Consent::covers($agreed, $manifest(52_428_800)))->toBeFalse();
+});

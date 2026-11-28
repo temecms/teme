@@ -17,6 +17,7 @@ use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Doors\HostResolver;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\Doors\PluginHttp;
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Jobs\PluginJobContext;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\LoadedPlugins;
@@ -39,9 +40,13 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\JobStopped;
 use Tests\Fixtures\Plugins\Lists\FakeResolver;
@@ -200,6 +205,64 @@ it('fails a throwing handler with the first line of its message', function (): v
     expect($row->state)->toBe(JobState::Failed)
         ->and($row->message)->toBe('The workspace answered nothing.');
 });
+
+it('fails a permanent JobFailed once, without a retry or a log line, whatever tries says', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    Exceptions::fake();
+    $id = ($this->jobs)()->queue('fail-for-good', []);
+
+    $job = new RunPluginJob('jobs', 'fail-for-good', $id, JobActor::operator());
+    $job->handle(
+        app(PluginRegistry::class),
+        app(PluginLoader::class),
+        app(SafeMode::class),
+        app(CancelJob::class),
+        app(FailJob::class),
+        app(FinishJob::class),
+        app(ReportJobProgress::class),
+    );
+
+    $row = TrackedJob::query()->findOrFail($id);
+
+    expect($row->state)->toBe(JobState::Failed)
+        ->and($row->message)->toBe('Search Console isn’t connected.')
+        ->and($job->tries)->toBe(1)
+        ->and(DB::table('jobs_lines')->count())->toBe(0);
+
+    Exceptions::assertNotReported(JobFailed::class);
+});
+
+it('cuts a permanent JobFailed reason to its first line, and empty to It failed', function (string $reason, string $message): void {
+    ($this->enable)();
+    Queue::fake();
+    Exceptions::fake();
+    $id = ($this->jobs)()->queue('fail-for-good', ['reason' => $reason]);
+
+    $job = new RunPluginJob('jobs', 'fail-for-good', $id, JobActor::operator());
+    $job->handle(
+        app(PluginRegistry::class),
+        app(PluginLoader::class),
+        app(SafeMode::class),
+        app(CancelJob::class),
+        app(FailJob::class),
+        app(FinishJob::class),
+        app(ReportJobProgress::class),
+    );
+
+    expect(TrackedJob::query()->findOrFail($id)->only(['state', 'message']))
+        ->toEqual(['state' => JobState::Failed, 'message' => $message])
+        ->and($job->tries)->toBe(1);
+
+    Exceptions::assertNotReported(JobFailed::class);
+})->with([
+    'long multi-line' => [
+        str_repeat('b', 250)."\nAnd more detail that must not show.",
+        str_repeat('b', 200),
+    ],
+    'empty' => ['', 'It failed.'],
+    'whitespace only' => ["  \n", 'It failed.'],
+]);
 
 it('refuses a payload over 64 KB or with an object', function (): void {
     ($this->enable)();
@@ -366,6 +429,7 @@ it('stops progress after the plugin is disabled', function (): void {
         ['line' => 'should not write'],
         1,
         'tests/jobs',
+        'jobs',
         JobActor::operator(),
         app(ReportJobProgress::class),
     );
@@ -454,6 +518,26 @@ it('builds a long job with a 300-second outbound ceiling and 1800-second timeout
     $ceiling = (new ReflectionProperty($doors[OutboundHttp::class], 'mostSeconds'))->getValue($doors[OutboundHttp::class]);
 
     expect($ceiling)->toBe(300);
+});
+
+it('offers downloads to a plugin built for a long job’s run, as RunPluginJob builds it', function (): void {
+    ($this->enable)();
+    Http::fake(['https://api.example.com/*' => Http::response('country data', 200)]);
+
+    $plugin = app(PluginRegistry::class)->find('tests/jobs') ?? throw new RuntimeException('The jobs plugin is missing.');
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $instance = app(PluginLoader::class)->instance($plugin, $record, httpSeconds: 300, answerBytes: PluginHttp::LONG_ANSWER_BYTES);
+    $doors = app(PluginDoors::class)->for('tests/jobs', 'jobs', ['http'], ['api.example.com'], httpSeconds: 300);
+
+    try {
+        $file = $instance->http->download('https://api.example.com/countries.mmdb');
+
+        expect($doors[OutboundDownloads::class] ?? null)->toBeInstanceOf(PluginHttp::class)
+            ->and(file_get_contents($file->path))->toBe('country data')
+            ->and(str_starts_with($file->path, DownloadFolders::pathFor('jobs')))->toBeTrue();
+    } finally {
+        File::deleteDirectory(DownloadFolders::pathFor('jobs'));
+    }
 });
 
 it('runs a job queued by a person as that person', function (): void {

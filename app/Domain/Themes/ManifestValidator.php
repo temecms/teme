@@ -109,7 +109,7 @@ final class ManifestValidator
         'settings', 'assets', 'title_separator', 'layout', 'images', 'fonts', 'tokens', 'tokens_dark',
         'custom_tokens', 'custom_tokens_dark', 'styles',
         'speculation', 'breadcrumbs', 'screenshot', 'cards', 'overrides', 'composers', 'per_page', 'csp', 'icon', 'site_icon', 'screenshots',
-        'plugin_styles',
+        'plugin_styles', 'plugin_scripts',
     ];
 
     /** The setting core adds when a theme declares styles (issue 371). */
@@ -189,6 +189,7 @@ final class ManifestValidator
         array_push($errors, ...$this->cards($manifest, $themePath));
         array_push($errors, ...$this->overrides($manifest, $themePath));
         array_push($errors, ...$this->pluginStyles($manifest));
+        array_push($errors, ...$this->pluginScripts($manifest));
 
         $composers = $manifest['composers'] ?? [];
 
@@ -1279,6 +1280,35 @@ final class ManifestValidator
     private function show(mixed $value): string
     {
         return is_scalar($value) ? (string) $value : get_debug_type($value);
+    }
+
+    /**
+     * The plugin scripts the theme switches off, as `code:output` keys
+     * (docs/guides/developers/plugins/scripts.md): a list of strings.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function pluginScripts(array $manifest): array
+    {
+        if (! array_key_exists('plugin_scripts', $manifest)) {
+            return [];
+        }
+
+        $off = is_array($manifest['plugin_scripts']) ? ($manifest['plugin_scripts']['off'] ?? null) : null;
+
+        if (! is_array($off) || ! array_is_list($off)) {
+            return ['plugin_scripts.off must list the plugin scripts the theme switches off.'];
+        }
+
+        foreach ($off as $key) {
+            if (! is_string($key) || preg_match('/^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$/', $key) !== 1) {
+                return ['plugin_scripts.off must name each script as code:card:<id> or code:insertion:<id>.'];
+            }
+        }
+
+        return [];
     }
 
     /**

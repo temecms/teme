@@ -53,8 +53,10 @@ final readonly class PluginWords
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
      * @param  list<string>  $aiTasks  the declared AI tasks' labels
      * @param  list<string>  $notices  the labels of the kinds of notice it declares
+     * @param  list<string>  $securityKinds  the labels of the kinds of security log line it declares
+     * @param  int|null  $downloadBytes  the largest file its downloads may hold, when its manifest declares one
      */
-    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = [], array $notices = []): string
+    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = [], array $notices = [], array $securityKinds = [], ?int $downloadBytes = null): string
     {
         return self::core(fn (): string => match ($capability) {
             Capability::Ai->value => __('Use your site’s AI connection (Settings › AI) for: :tasks. What it sends goes to the AI service chosen there, and it spends your site’s AI budget.', ['tasks' => implode(', ', $aiTasks)]),
@@ -70,18 +72,23 @@ final readonly class PluginWords
             Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
             Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
             Capability::Jobs->value => __('Run work in the background and on a schedule'),
-            Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
+            Capability::Http->value => $downloadBytes === null
+                ? __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)])
+                : __('Connect to services outside this site: :hosts, and download files of up to :size MB', ['hosts' => implode(', ', $hosts), 'size' => intdiv($downloadBytes, 1_048_576)]),
             Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
             Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
             Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
-            Capability::PeopleRead->value => __('See the names of the people who write on this site'),
+            Capability::PeopleRead->value => __('See the names and IDs of the site’s people: who writes, who is invited, who joins. Never an email or a role.'),
             Capability::NoticesSend->value => __('Send notices to people on this site, by email or in their inbox: :kinds', ['kinds' => implode('; ', $notices)]),
             Capability::PagesHead->value => __('Add tags that search engines and social sites read, and structured data, to the head of your site’s public pages'),
             Capability::Sitemaps->value => __('Add its own sitemaps to your site’s sitemap index'),
             Capability::DirectoryRead->value => __('Read the plugins and themes listed in Teme’s directory, as Teme verified them'),
             Capability::ContentSubmissions->value => __('Keep what visitors send from its public forms, as items waiting for someone to review them'),
             Capability::Redirects->value => __('Add redirects from old addresses of your site, and remove the ones it added'),
+            Capability::SecurityLog->value => __('Write lines into your site’s security log under its own name: :kinds', ['kinds' => implode('; ', $securityKinds)]),
+            Capability::TermsWrite->value => __('Create, change and remove terms of the taxonomies it brings'),
+            Capability::SiteScripts->value => __('Run its own code in visitors’ browsers on the pages that show its output'),
             default => $capability,
         });
     }

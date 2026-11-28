@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Plugins\Area\PluginPermissions;
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
@@ -111,6 +112,10 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
         }
 
         $record->fill(['migrations' => []])->save();
+
+        // The plugin's downloads go with its data, after commit (DownloadFolders).
+        $downloads = $record->code;
+        DB::afterCommit(fn () => DownloadFolders::remove($downloads));
 
         // Its saved settings and its secrets are one row, `plugin.{code}`; no other group is touched.
         $group = 'plugin.'.$record->code;

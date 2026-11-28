@@ -29,6 +29,8 @@ use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Import\Translations\PolylangLanguages;
+use App\Domain\Languages\DefaultLanguageCheck;
+use App\Domain\Languages\SiteLanguages;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
@@ -81,6 +83,24 @@ final readonly class AddressSettingsStep implements StepPhase
         $early = WordPressSettings::early($options, $locale);
         $values = $early['values'] === [] ? [] : ['general' => $early['values']];
         $messages = $early['messages'];
+
+        // A multilingual site keeps its default: DefaultLanguageCheck refuses a change, with words.
+        if (isset($values['general']['language'])) {
+            $problems = app(DefaultLanguageCheck::class)->problems(['language' => $values['general']['language']]);
+
+            if ($problems !== []) {
+                $messages[] = new ImportMessage('address.language-kept', (string) $problems['values.language'], [
+                    'was' => $values['general']['language'],
+                    'kept' => app(SiteLanguages::class)->defaultTag(),
+                ]);
+                unset($values['general']['language']);
+
+                if ($values['general'] === []) {
+                    unset($values['general']);
+                }
+            }
+        }
+
         $structure = self::text($options['permalink_structure'] ?? '');
 
         if ($structure === '') {

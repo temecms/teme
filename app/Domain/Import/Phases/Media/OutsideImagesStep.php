@@ -34,6 +34,8 @@ use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Source\SourceReader;
+use App\Domain\Import\Uploads\SourceUploads;
+use App\Domain\Media\Downloads\DownloadedFile;
 use App\Domain\Media\Downloads\DownloadRefused;
 use App\Domain\Media\Downloads\FileDownloader;
 use App\Domain\Media\Operations\ImportMedia;
@@ -41,6 +43,7 @@ use App\Domain\Media\Operations\Input\ImportMediaInput;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Settings\SettingsReader;
 
 final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
 {
@@ -57,6 +60,8 @@ final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
         private ImportMap $map,
         private FileDownloader $downloader,
         private ContentSite $sites,
+        private SourceUploads $uploads,
+        private SettingsReader $settings,
     ) {}
 
     public function key(): string
@@ -157,6 +162,22 @@ final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
     }
 
     /**
+     * A picture from the old site's uploads copy when it has one, and it is an image; else null, and the site is asked.
+     */
+    private function fromCopy(string $address, ImportContext $context): ?DownloadedFile
+    {
+        $copied = $this->uploads->download($context->sourceId, $address, $this->settings->int('media', 'max_upload_mb') * 1024 * 1024);
+
+        if ($copied === null || $copied->kind !== 'image') {
+            $copied?->release();
+
+            return null;
+        }
+
+        return $copied;
+    }
+
+    /**
      * One image downloaded, stored by its bytes and recorded; what to say
      * when it couldn't come, else null. The download is deleted whatever
      * happened.
@@ -169,7 +190,8 @@ final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
         $file = basename(rawurldecode((string) parse_url($image['address'], PHP_URL_PATH)));
 
         try {
-            $download = $this->downloader->download($image['address'], imagesOnly: true, seconds: $seconds);
+            $copied = $this->fromCopy($image['address'], $context);
+            $download = $copied ?? $this->downloader->download($image['address'], imagesOnly: true, seconds: $seconds);
         } catch (DownloadRefused $refused) {
             return $this->refused($refused->retryable, $refused->sentence(), $key, $image['host'], $file, $context);
         }
@@ -200,6 +222,7 @@ final readonly class OutsideImagesStep implements RunsInMediaPass, StepPhase
             $stored['mediaId'],
             $image['host'],
             $context->actorId(),
+            $copied === null ? 'site' : 'copy',
         ));
 
         return null;

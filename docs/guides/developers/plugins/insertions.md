@@ -23,7 +23,7 @@ The class named under `plugin` in the manifest implements `InsertionContributor`
 - `precedence()` answers `"plugin"`. Core's own contributors answer `"site"` or `"core"`, and a plugin's entry wins a key they share.
 - `insertions()` takes the article's `ArticleFacts` and answers a list of `Insertion` values, or an empty list to add nothing to this article.
 
-`ArticleFacts` tells the plugin enough to choose: the item's ID and content type, its term IDs by taxonomy, its language, its authors' IDs, and its word and paragraph counts. Answer from those; do nothing slow, because the page waits for the answer.
+`ArticleFacts` tells the plugin enough to choose: the item's ID and content type, its term IDs by taxonomy, its language, its authors' IDs, its word and paragraph counts, its title, and its social title and social description when set (null when empty). Answer from those; do nothing slow, because the page waits for the answer.
 
 An `Insertion` holds a key, a `Position` and the HTML. The key is lower-case letters, digits, dots, hyphens and underscores, up to 100 characters, such as `ads.after-2`. Each key is drawn once per article: when two contributors give one key, the first by precedence wins. A contributor that throws is recorded as its plugin's fault, and the article is drawn without it.
 
@@ -51,7 +51,8 @@ Every insertion is cleaned before it is drawn, in HTML, SVG and MathML alike:
 
 - a `<script>` without `src` is removed, with its body;
 - every attribute starting with `on`, and `srcdoc`, is removed;
-- an `href`, `src`, `xlink:href`, `action` or `formaction` that starts with `javascript:` or `data:text/html` is removed, compared as a browser reads it;
+- a `<base>`, and a `<meta>` with `http-equiv`, is removed, since it would change every address on the page or send the reader elsewhere;
+- an `href`, `src`, `xlink:href`, `action`, `formaction` or `data` that starts with `javascript:` or `data:text/html` is removed, compared as a browser reads it;
 - an SVG `animate` or `set` that would change an `href` is removed.
 
 Everything else is kept as written: a `<style>`, an ad network's `<ins>` with its `data-*` attributes, a `<script src>`, an `<iframe>` and an `<img>`. An inline script is kept only when a person approved its exact text for your plugin; see [Inline scripts](page-insertions.md#inline-scripts).
@@ -68,7 +69,11 @@ Editors can turn them off on one item with the built-in field **No inserted cont
 
 Pages that asked for insertions are kept in the page cache under the `insertions` tag. Core purges them after it enables or disables a plugin that has `content.insert`, and after someone saves that plugin's settings, so a plugin whose rules live in its own settings needs no `notify()`.
 
-When your rules change any other way, ask for `InsertionsChanged` in your plugin's constructor and call `notify()` inside an Operation. Core purges those pages, and the pages of plugins with `pages.insert`, after that Operation commits, never before. Outside an Operation it does nothing useful and may refuse.
+When your rules change any other way, ask for `InsertionsChanged` in your plugin's constructor and call `notify()` inside an Operation. Core purges those pages, and the pages of plugins with `pages.insert`, after that Operation commits, never before.
+
+A job can call `notify()` too, when its work changes what the pages show, such as share counts it refreshes. Core then runs its own step after the job's work commits, so a rolled-back job purges nothing. The door passes the pages of the content items you name, as a list of IDs, at most 500 of them, each a content ID. A list that breaks those rules is refused with a validation error, inside an Operation too: a listener that passes a bad ID fails the Operation it runs in, such as a publish, so check your IDs before you call. With no list, it purges the pages that carry your insertions, at most once a minute: a call in a minute that already purged waits, and core purges once more when that minute ends, so no change is dropped. A whole-site purge still costs a warm of those pages, so pass the IDs when you can.
+
+A `notify()` call from outside a job, such as a public route of your plugin handling a visitor's request, is refused with an authorization error, and so fails the request. A job that throws it fails the job. A `PagesPurged` listener of your own runs after each such purge, so a listener that calls `notify()` again can loop: keep it to reading.
 
 A page is cached whole, for everyone. A random or weighted pick, and anything chosen per visitor, is frozen into the cached copy until it is purged. Choose per device with CSS media queries, never on the server, and per visitor only in the browser, with a script your plugin serves from its own route or an approved inline script.
 

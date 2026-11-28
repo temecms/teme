@@ -3,7 +3,7 @@
 /**
  * Reads the site's content for a plugin granted content.read: published items
  * for anyone, and drafts and the queue of unpublished items for a person who
- * may edit them.
+ * may edit them. A published item's card is ItemCardReader's.
  *
  * @package Teme
  * @since   1.0.0
@@ -18,8 +18,8 @@ use InvalidArgumentException;
 
 /**
  * Reads the site's content for a plugin granted content.read: published
- * items for anyone, and drafts and the queue of unpublished items for a
- * person who may edit them.
+ * items for anyone, and drafts and the
+ * queue of unpublished items for a person who may edit them.
  *
  * @since 1.0.0
  */

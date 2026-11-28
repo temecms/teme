@@ -28,6 +28,8 @@ Schedule::command('teme:ai-activity:prune')->daily();
 Schedule::command('teme:counts:rebuild')->weekly();
 
 Schedule::command('teme:backup:due')->everyMinute()->withoutOverlapping(10)->onOneServer();
+// Host-run test restores leave a temporary database only when a run dies; drop it daily (TEME_BACKUPS=host).
+Schedule::command('teme:backup:sweep')->daily()->onOneServer();
 
 Schedule::command('teme:trash:purge')->daily();
 Schedule::command('teme:comments:erase-addresses')->daily();
@@ -39,6 +41,7 @@ Schedule::command('teme:csp:record')->everyMinute()->withoutOverlapping();
 Schedule::command('teme:inbox:prune')->daily();
 Schedule::command('teme:privacy:prune')->daily();
 Schedule::command('teme:jobs:prune')->daily();
+Schedule::command('teme:plugin-downloads:prune')->daily();
 Schedule::command('teme:plugins:run-due-schedules')->everyMinute()->withoutOverlapping()->onOneServer();
 Schedule::command('teme:fediverse:prune')->daily();
 

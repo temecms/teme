@@ -19,14 +19,17 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
 
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\HostPattern;
 use Closure;
 use Exception;
+use FilesystemIterator;
 use GuzzleHttp\Exception\ConnectTimeoutException;
 use GuzzleHttp\Exception\NetworkTimeoutException;
 use GuzzleHttp\Exception\ResponseTimeoutException;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
 use JsonException;
@@ -34,13 +37,24 @@ use Psr\Http\Message\ResponseInterface;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
+use Teme\Contracts\Http\HttpDownload;
 use Teme\Contracts\Http\HttpFile;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
 
-final readonly class PluginHttp implements OutboundHttp
+final readonly class PluginHttp implements OutboundDownloads, OutboundHttp
 {
     public const int MOST_SECONDS = 10;
+
+    /** The largest file a download may hold, in bytes. */
+    public const int MOST_DOWNLOAD_BYTES = 134_217_728;
+
+    /** The most a plugin's downloads may hold together, in bytes. */
+    public const int MOST_FOLDER_BYTES = 536_870_912;
+
+    /** Redirects followed for one request. */
+    public const int MOST_REDIRECTS = 5;
 
     public const int MOST_BYTES = 1_048_576;
 
@@ -71,6 +85,9 @@ final readonly class PluginHttp implements OutboundHttp
      * @param  int  $mostSeconds  the upper limit for each call: 10 normally, 300 inside a long job (I-3445)
      * @param  (Closure(): list<string>)|null  $settingHosts  the exact hosts agreed in its settings, read at each call (docs/plans/plugin-sockets-1.md)
      * @param  string|null  $ownPath  the plugin's own folder, the only place a multipart file may be read from
+     * @param  string|null  $downloadFolder  the plugin's private folder for downloads, which holds nothing else; null refuses a download
+     * @param  int  $downloadBytes  the largest file a download may hold, from the manifest's downloads (16 MB by default)
+     * @param  int  $folderBytes  the most the folder may hold together
      */
     public function __construct(
         private array $hosts,
@@ -79,7 +96,55 @@ final readonly class PluginHttp implements OutboundHttp
         private int $mostSeconds = self::MOST_SECONDS,
         private ?Closure $settingHosts = null,
         private ?string $ownPath = null,
+        private ?string $downloadFolder = null,
+        private int $downloadBytes = self::LONG_ANSWER_BYTES,
+        private int $folderBytes = self::MOST_FOLDER_BYTES,
     ) {}
+
+    /**
+     * @since next
+     */
+    public function head(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
+    {
+        return $this->follow('HEAD', $url, $headers, $timeoutSeconds, $this->maxBytes, null);
+    }
+
+    /**
+     * @since next
+     */
+    public function download(string $url, array $headers = [], int $timeoutSeconds = 60): HttpDownload
+    {
+        if ($this->downloadFolder === null) {
+            throw new RequestFailed(__('Downloads work only inside a long job.'));
+        }
+
+        DownloadFolders::sweepFolder($this->downloadFolder);
+
+        // The stream stops at whichever is smaller: the manifest's file limit, or the room the plugin's whole folder has left.
+        $room = $this->folderBytes - $this->folderSize();
+
+        if ($room <= 0) {
+            throw new RequestFailed(__('The plugin’s downloads already fill its folder, so Teme didn’t download the file.'));
+        }
+
+        if (! is_dir($this->downloadFolder) && ! mkdir($this->downloadFolder, 0700, true) && ! is_dir($this->downloadFolder)) {
+            throw new RequestFailed(__('Teme couldn’t make the folder for downloads.'));
+        }
+
+        $path = $this->downloadFolder.DIRECTORY_SEPARATOR.bin2hex(random_bytes(16)).'.download';
+
+        try {
+            $answer = $this->follow('GET', $url, $headers, $timeoutSeconds, min($this->downloadBytes, $room), $path);
+        } catch (Exception $failure) {
+            @unlink($path);
+
+            throw $failure;
+        }
+
+        clearstatcache(true, $path);
+
+        return new HttpDownload($path, (int) filesize($path), $answer->status, $this->header($answer, 'content-type'));
+    }
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
@@ -136,8 +201,10 @@ final readonly class PluginHttp implements OutboundHttp
      * @param  array<string, string>  $headers
      * @param  bool  $ownContentType  the body's content type is the one sent, so one the plugin passes is dropped
      */
-    private function send(string $method, string $url, ?Closure $body, string $contentType, array $headers, int $timeoutSeconds, bool $ownContentType = false): HttpAnswer
+    private function send(string $method, string $url, ?Closure $body, string $contentType, array $headers, int $timeoutSeconds, bool $ownContentType = false, ?int $answerBytes = null, ?string $sink = null): HttpAnswer
     {
+        $limit = $answerBytes ?? $this->maxBytes;
+
         // Parsed once, by the parser Guzzle sends with, so the host checked is the host connected to.
         try {
             $uri = new Uri($url);
@@ -155,21 +222,97 @@ final readonly class PluginHttp implements OutboundHttp
             ->withoutRedirecting()
             ->timeout($seconds)
             ->connectTimeout(min($seconds, 5))
-            ->withOptions(self::transport($host, $address, $this->maxBytes));
+            ->withOptions(self::transport($host, $address, $limit));
+
+        // A download's bytes go straight to its file, which the transport's progress check keeps within the limit.
+        if ($sink !== null) {
+            $request = $request->withOptions(['sink' => $sink]);
+        }
 
         try {
-            $response = $method === 'GET' ? $request->get((string) $uri) : $request->withBody((string) $body, $contentType)->post((string) $uri);
+            $response = match ($method) {
+                'GET' => $request->get((string) $uri),
+                'HEAD' => $request->head((string) $uri),
+                default => $request->withBody((string) $body, $contentType)->post((string) $uri),
+            };
         } catch (Exception $failure) {
             throw self::failure($failure, $host, $uri);
         }
 
-        $body = $response->body();
+        $answered = $sink === null ? $response->body() : '';
+        $size = $sink === null ? strlen($answered) : (int) (is_file($sink) ? filesize($sink) : 0);
 
-        if (strlen($body) > $this->maxBytes) {
-            throw new AnswerTooLarge(self::tooLargeWords($host, $this->maxBytes));
+        if ($size > $limit) {
+            throw new AnswerTooLarge(self::tooLargeWords($host, $limit));
         }
 
-        return new HttpAnswer($response->status(), $body, $response->headers());
+        return new HttpAnswer($response->status(), $answered, $response->headers());
+    }
+
+    /**
+     * Makes one request, then follows its redirects (a download's and a HEAD's
+     * only), each hop checked as a first request is, until an answer that is
+     * not a redirect, or until MOST_REDIRECTS have been followed.
+     *
+     * @param  array<string, string>  $headers
+     */
+    private function follow(string $method, string $url, array $headers, int $timeoutSeconds, int $limit, ?string $sink): HttpAnswer
+    {
+        $current = $url;
+        $previous = null;
+
+        for ($followed = 0; ; $followed++) {
+            // A hop to another scheme, host or port gets none of the plugin's headers: no Authorization, no Cookie, nothing it set.
+            $here = new Uri($current);
+            $sameOrigin = $previous === null || (strtolower($here->getScheme()) === strtolower($previous->getScheme()) && strtolower($here->getHost()) === strtolower($previous->getHost()) && ($here->getPort() ?? 443) === ($previous->getPort() ?? 443));
+            $answer = $this->send($method, $current, null, '', $sameOrigin ? $headers : [], $timeoutSeconds, false, $limit, $sink);
+            $previous = $here;
+
+            if (! in_array($answer->status, [301, 302, 303, 307, 308], true)) {
+                return $answer;
+            }
+
+            $location = $this->header($answer, 'location');
+
+            if ($followed >= self::MOST_REDIRECTS || $location === '') {
+                throw new RequestFailed(__('Too many redirects from :host, so Teme stopped.', ['host' => (string) parse_url($current, PHP_URL_HOST)]));
+            }
+
+            // A relative location is resolved against the address that sent it; the host check then runs on the result.
+            $current = (string) UriResolver::resolve(new Uri($current), new Uri($location));
+        }
+    }
+
+    /**
+     * The first value of a header, by its name in any case, or '' when none.
+     */
+    private function header(HttpAnswer $answer, string $name): string
+    {
+        foreach ($answer->headers as $key => $values) {
+            if (strcasecmp((string) $key, $name) === 0 && $values !== []) {
+                return (string) $values[0];
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * The bytes the plugin's download folder holds now.
+     */
+    private function folderSize(): int
+    {
+        if ($this->downloadFolder === null || ! is_dir($this->downloadFolder)) {
+            return 0;
+        }
+
+        $total = 0;
+
+        foreach (new FilesystemIterator($this->downloadFolder, FilesystemIterator::SKIP_DOTS) as $file) {
+            $total += $file->isFile() ? $file->getSize() : 0;
+        }
+
+        return $total;
     }
 
     /**

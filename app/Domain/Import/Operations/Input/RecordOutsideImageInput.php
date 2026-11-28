@@ -26,6 +26,8 @@ final readonly class RecordOutsideImageInput implements OperationInput
         public ?string $mediaId,
         public string $host,
         public ?string $actorId,
+        /** Where the picture's file came from, 'copy' or 'site', for the run's counts; null when not known. */
+        public ?string $source = null,
     ) {}
 
     public function actorId(): ?string

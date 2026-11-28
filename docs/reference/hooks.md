@@ -353,6 +353,35 @@ A file's details were changed: its title, alt text, caption, credit, licence or 
 | `media` | the media item, as it is after the change |
 | `actorId` | the account ID of the person who changed it, or null when no signed-in person did |
 
+## PersonInvited
+
+Someone was invited to the site: a new account waits for them to choose a password. Carries their account ID and display name only, never a role or email. Sent after the invitation is saved. Needs people.read.
+
+- **Class:** `Teme\Contracts\People\PersonInvited`
+- **Verb:** Notification
+- **Capability:** `people.read`
+- **Since:** next
+
+| Parameter | Description |
+|---|---|
+| `personId` | the invited person's account ID |
+| `name` | the name the site shows for them |
+| `actorId` | the account ID of who invited them, or null when the operator did |
+
+## PersonJoined
+
+An invited person joined the site by choosing their password. Carries their account ID and display name only, never a role or email. Sent after they join. Needs people.read.
+
+- **Class:** `Teme\Contracts\People\PersonJoined`
+- **Verb:** Notification
+- **Capability:** `people.read`
+- **Since:** next
+
+| Parameter | Description |
+|---|---|
+| `personId` | the person's account ID |
+| `name` | the name the site shows for them |
+
 ## CollectPersonalDataHolders
 
 Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed.

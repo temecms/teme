@@ -7,10 +7,14 @@ use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
 use Teme\Contracts\Admin\AreaContext;
+use Teme\Contracts\Admin\AreaPeriod;
 use Teme\Contracts\Admin\Chart;
 use Teme\Contracts\Admin\Figure;
+use Teme\Contracts\Admin\HasAreaCounts;
 use Teme\Contracts\Admin\HasPluginArea;
+use Teme\Contracts\Admin\HasRecordHeader;
 use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
 use Teme\Contracts\Admin\RowPage;
 use Teme\Contracts\Admin\Saved;
@@ -23,6 +27,10 @@ use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ArticleLinks;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Content\FeaturedImage;
+use Teme\Contracts\Content\ImageSize;
+use Teme\Contracts\Content\ItemCard;
+use Teme\Contracts\Content\ItemCardReader;
 use Teme\Contracts\Content\ItemChanges;
 use Teme\Contracts\Content\ItemPage;
 use Teme\Contracts\Content\ItemQuery;
@@ -52,6 +60,8 @@ use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
+use Teme\Contracts\Http\HttpDownload;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
 use Teme\Contracts\Insertions\InlineScripts;
@@ -60,6 +70,7 @@ use Teme\Contracts\Insertions\PageInsertion;
 use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Insertions\PagePosition;
 use Teme\Contracts\Jobs\JobContext;
+use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\JobHandler;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\JobStopped;
@@ -74,9 +85,13 @@ use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Lists\PluginList;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\People\PeopleReader;
+use Teme\Contracts\People\PersonInvited;
+use Teme\Contracts\People\PersonJoined;
 use Teme\Contracts\People\PersonPage;
 use Teme\Contracts\People\PersonRef;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Security\SecurityLines;
+use Teme\Contracts\Settings\PluginSecretStore;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Site\SiteInfo;
 use Teme\Contracts\Sitemaps\HasSitemaps;
@@ -142,6 +157,10 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ChecksStatus::class, '0.5.0'],
     [OutboundHttp::class, '0.5.0', ['postForm' => '1.0.0', 'postMultipart' => '1.7.0', 'postRaw' => '1.7.0']],
     [HttpAnswer::class, '0.5.0'],
+    [OutboundDownloads::class, 'next'],
+    [HttpDownload::class, 'next'],
+    [SecurityLines::class, 'next'],
+    [PluginSecretStore::class, 'next'],
     [HostRefused::class, '0.5.0'],
     [AnswerTooLarge::class, '0.5.0'],
     [RequestFailed::class, '0.5.0'],
@@ -155,15 +174,15 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListColumn::class, '1.0.0'],
     [ListRows::class, '1.0.0'],
     [ListRow::class, '1.0.0'],
-    [Cell::class, '1.0.0'],
-    [SiteInfo::class, '1.0.0'],
+    [Cell::class, '1.0.0', ['link' => 'next']],
+    [SiteInfo::class, '1.0.0', ['timeZone' => 'next']],
     [PluginSettingsWriter::class, '1.0.0'],
     [QueueOptions::class, '1.0.0'],
     [HasPluginLists::class, '1.0.0'],
     [PluginList::class, '1.0.0'],
     [PageInsertionContributor::class, '1.0.0'],
     [PageInsertion::class, '1.0.0'],
-    [PagePosition::class, '1.0.0'],
+    [PagePosition::class, '1.0.0', ['regionStart' => 'next', 'regionEnd' => 'next']],
     [PageFacts::class, '1.0.0'],
     [InlineScripts::class, '1.0.0'],
     [SiteAi::class, '1.0.0'],
@@ -172,6 +191,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [AiStanding::class, '1.0.0'],
     [AiRefused::class, '1.0.0'],
     [ContentReader::class, '1.0.0'],
+    [ItemCardReader::class, 'next'],
     [ItemQuery::class, '1.0.0'],
     [ItemPage::class, '1.0.0'],
     [ItemSnapshot::class, '1.0.0'],
@@ -189,6 +209,10 @@ it('gives every new contract its @since and nothing from a framework', function 
     [HasPluginArea::class, '1.0.0'],
     [PluginArea::class, '1.0.0'],
     [AreaContext::class, '1.0.0'],
+    [AreaPeriod::class, 'next'],
+    [HasRecordHeader::class, 'next'],
+    [RecordHeader::class, 'next'],
+    [HasAreaCounts::class, 'next'],
     [Figure::class, '1.0.0'],
     [Chart::class, '1.0.0'],
     [TableQuery::class, '1.0.0'],
@@ -216,6 +240,12 @@ it('gives every new contract its @since and nothing from a framework', function 
     [HasSitemaps::class, '1.1.0'],
     [PluginSitemap::class, '1.1.0'],
     [SitemapEntry::class, '1.1.0'],
+    [ItemCard::class, 'next'],
+    [FeaturedImage::class, 'next'],
+    [ImageSize::class, 'next'],
+    [PersonInvited::class, 'next'],
+    [PersonJoined::class, 'next'],
+    [JobFailed::class, 'next'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -251,10 +281,11 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'comments.check',
         'search.read',
         'import.read',
+        'security.log', 'terms.write', 'site.scripts',
     ]);
 });
 
-it('gives every jobs contract its @since 1.0.0 and nothing from a framework', function (string $class): void {
+it('gives every jobs contract its @since 1.0.0 and nothing from a framework', function (string $class, array $later = []): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since 1.0.0');
@@ -264,7 +295,8 @@ it('gives every jobs contract its @since 1.0.0 and nothing from a framework', fu
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since 1.0.0');
+        // A method added later carries the release it arrived in (.ai/rules/contracts.md).
+        expect($method->getDocComment())->toContain('@since '.($later[$method->getName()] ?? '1.0.0'));
     }
 
     $types = [];
@@ -293,11 +325,11 @@ it('gives every jobs contract its @since 1.0.0 and nothing from a framework', fu
         }
     }
 })->with([
-    Jobs::class,
-    JobHandler::class,
-    JobContext::class,
-    JobStopped::class,
-    PluginHasJobs::class,
+    [Jobs::class],
+    [JobHandler::class],
+    [JobContext::class, ['summary' => 'next', 'permissions' => 'next']],
+    [JobStopped::class],
+    [PluginHasJobs::class],
 ]);
 
 it('decodes an answer’s JSON, and refuses JSON that isn’t', function (): void {

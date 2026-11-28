@@ -26,6 +26,22 @@
             "backoff": [
                 1
             ]
+        },
+        {
+            "key": "check-code",
+            "label": "Check the ad code",
+            "tries": 1,
+            "backoff": [
+                1
+            ]
+        },
+        {
+            "key": "reset-stats",
+            "label": "Reset statistics",
+            "tries": 1,
+            "backoff": [
+                1
+            ]
         }
     ],
     "contributes": {
@@ -114,6 +130,12 @@
                         "description": "In pixels.",
                         "min": 50,
                         "max": 600
+                    },
+                    {
+                        "key": "link",
+                        "type": "url",
+                        "label": "Link",
+                        "description": "Where the slot leads."
                     }
                 ]
             }
@@ -124,6 +146,30 @@
                 "label": "Prune now",
                 "description": "Removes statistics older than a year.",
                 "job": "prune"
+            },
+            {
+                "id": "check-code",
+                "label": "Check the ad code",
+                "job": "check-code",
+                "row": true,
+                "icon": "code",
+                "toast": "Check queued for “{name}”. Its status updates when Placard has finished.",
+                "queued": "Check queued"
+            },
+            {
+                "id": "reset-stats",
+                "label": "Reset statistics…",
+                "job": "reset-stats",
+                "row": true,
+                "icon": "refresh-cw",
+                "confirm": {
+                    "title": "Reset the statistics for “{name}”?",
+                    "text": "Its impressions and clicks go back to zero for every period. This can’t be undone.",
+                    "button": "Reset statistics",
+                    "cancel": "Keep them"
+                },
+                "toast": "Reset queued for “{name}”. Its figures show zero once Placard has finished.",
+                "queued": "Reset queued"
             }
         ],
         "area": {
@@ -143,10 +189,11 @@
                         {
                             "type": "figures",
                             "id": "totals",
+                            "empty": "Figures appear the day after an ad first shows.",
                             "items": [
                                 {
                                     "id": "impressions",
-                                    "label": "Impressions, last 30 days",
+                                    "label": "Impressions",
                                     "format": "number"
                                 },
                                 {
@@ -202,9 +249,20 @@
                                     "kind": "text"
                                 },
                                 {
+                                    "id": "position",
+                                    "label": "Position",
+                                    "kind": "text"
+                                },
+                                {
                                     "id": "status",
                                     "label": "Status",
                                     "kind": "badge"
+                                },
+                                {
+                                    "id": "report",
+                                    "label": "Network report",
+                                    "kind": "link",
+                                    "empty": "No report link"
                                 },
                                 {
                                     "id": "impressions",
@@ -228,6 +286,8 @@
                             "rowActions": [
                                 "edit",
                                 "duplicate",
+                                "check-code",
+                                "reset-stats",
                                 "enable",
                                 "disable",
                                 "delete"

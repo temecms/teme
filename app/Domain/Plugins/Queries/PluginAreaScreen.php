@@ -18,6 +18,7 @@ namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Plugins\Area\AreaContexts;
+use App\Domain\Plugins\Area\AreaPeriods;
 use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\AreaValidator;
@@ -27,6 +28,7 @@ use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\PluginRegistry;
 use App\Models\User;
 use Closure;
+use Teme\Contracts\Admin\AreaPeriod;
 use Teme\Contracts\Admin\TableQuery;
 
 /**
@@ -108,7 +110,7 @@ final readonly class PluginAreaScreen
      * The address of the plugin's own icon for the area header, or null when
      * the package declares none or the file is missing.
      */
-    private function iconUrl(AreaPlugin $plugin): ?string
+    public function iconUrl(AreaPlugin $plugin): ?string
     {
         $found = $this->registry->find($plugin->name);
         $manifest = $found?->manifest;
@@ -123,16 +125,19 @@ final readonly class PluginAreaScreen
     /**
      * A block's data, read from the plugin under the budgets: a figures
      * block's items, a chart's labels and series, a table's rows; null for
-     * a block that needs none.
+     * a block that needs none. Pass a period id for figures and charts.
      *
      * @param  TableAsk  $ask  what the table's search, filters, sort and page ask
      *
      * @return array<string, mixed>|null
      */
-    public function data(AreaPlugin $plugin, string $page, string $block, string $personId, array $ask = []): ?array
+    public function data(AreaPlugin $plugin, string $page, string $block, string $personId, array $ask = [], ?string $periodId = null): ?array
     {
         $declared = $plugin->area->block($page, $block);
-        $context = AreaContexts::for($plugin->code, $personId);
+        $base = AreaContexts::for($plugin->code, $personId);
+        $needsPeriod = in_array($declared['type'] ?? null, ['figures', 'chart'], true);
+        $period = $needsPeriod ? AreaPeriods::of(AreaPeriods::id($periodId), $base->timezone) : null;
+        $context = AreaContexts::for($plugin->code, $personId, $period);
 
         return match ($declared['type'] ?? null) {
             'figures' => $this->reads->figures($plugin, $page, $declared, $context),
@@ -140,6 +145,74 @@ final readonly class PluginAreaScreen
             'table' => $this->reads->rows($plugin, $declared, $this->query($declared, $ask), $context),
             default => null,
         };
+    }
+
+    /**
+     * The statistics period the page draws: its id, options, range line parts
+     * and comparison phrase. Null when the page has no figures or charts.
+     *
+     * @return array{id: string, options: list<array{id: string, label: string}>, range: string, compare: string, timezone: string, lower: string, before: string}|null
+     */
+    public function period(AreaPlugin $plugin, string $page, string $personId, ?string $periodId = null): ?array
+    {
+        $current = $plugin->area->page($page);
+
+        if ($current === null) {
+            return null;
+        }
+
+        $hasStats = false;
+
+        foreach ($current['blocks'] as $block) {
+            if (in_array($block['type'] ?? null, ['figures', 'chart'], true)) {
+                $hasStats = true;
+                break;
+            }
+        }
+
+        if (! $hasStats) {
+            return null;
+        }
+
+        $context = AreaContexts::for($plugin->code, $personId);
+        $period = AreaPeriods::of(AreaPeriods::id($periodId), $context->timezone);
+
+        return [
+            'id' => $period->id,
+            'options' => AreaPeriods::options(),
+            'range' => __(':start to :end, in the :zone time zone.', [
+                'start' => AreaPeriods::shown($period->start, $context->timezone, $context->locale),
+                'end' => AreaPeriods::shown($period->end, $context->timezone, $context->locale),
+                'zone' => $context->timezone,
+            ]),
+            'compare' => __('Compared with :start to :end.', [
+                'start' => AreaPeriods::shown($period->compareStart, $context->timezone, $context->locale),
+                'end' => AreaPeriods::shown($period->compareEnd, $context->timezone, $context->locale),
+            ]),
+            'timezone' => $context->timezone,
+            'lower' => AreaPeriods::lower($period->id),
+            'before' => AreaPeriods::before($period->id),
+        ];
+    }
+
+    /**
+     * A record's header props, or null.
+     *
+     * @return array{status: string|null, tone: string, meta: list<string>}|null
+     */
+    public function header(AreaPlugin $plugin, string $record, string $id, string $personId): ?array
+    {
+        return $this->reads->header($plugin, $record, $id, AreaContexts::for($plugin->code, $personId));
+    }
+
+    /**
+     * Tab counts by page id, or null when the plugin has none.
+     *
+     * @return array<string, int>|null
+     */
+    public function counts(AreaPlugin $plugin, string $personId): ?array
+    {
+        return $this->reads->counts($plugin, AreaContexts::for($plugin->code, $personId));
     }
 
     /**
@@ -156,7 +229,11 @@ final readonly class PluginAreaScreen
         $words = fn (string $english): string => AreaWords::text($plugin->code, $english);
         $frame = $this->blockFrame($plugin, $declared, $words);
         $id = is_string($declared['id'] ?? null) ? $declared['id'] : '';
-        $context = AreaContexts::for($plugin->code, $personId);
+        $base = AreaContexts::for($plugin->code, $personId);
+        $period = in_array($frame['type'], ['figures', 'chart'], true)
+            ? AreaPeriods::of(AreaPeriod::LAST_30_DAYS, $base->timezone)
+            : null;
+        $context = AreaContexts::for($plugin->code, $personId, $period);
 
         $data = match ($frame['type']) {
             'figures' => $this->reads->figures($plugin, $page, $declared, $context),
@@ -221,6 +298,10 @@ final readonly class PluginAreaScreen
 
         if ($type === 'figures') {
             $frame['items'] = array_map(fn (array $item): array => ['id' => (string) ($item['id'] ?? ''), 'label' => $text($item['label'] ?? null), 'format' => (string) ($item['format'] ?? 'number')], $entries('items'));
+            // true or absent of a string → core's default line; a string → those words.
+            $frame['empty'] = is_string($block['empty'] ?? null) && trim($block['empty']) !== ''
+                ? $text($block['empty'])
+                : __('Figures appear once there is something to count.');
         } elseif ($type === 'chart') {
             $frame['label'] = $text($block['label'] ?? null);
             $frame['kind'] = (string) ($block['kind'] ?? 'line');
@@ -228,7 +309,23 @@ final readonly class PluginAreaScreen
         } elseif ($type === 'table') {
             $record = $plugin->area->record(is_string($block['record'] ?? null) ? $block['record'] : '');
             $frame['record'] = ['id' => $record['id'] ?? '', 'label' => $text($record['label'] ?? null), 'plural' => $text($record['plural'] ?? null)];
-            $frame['columns'] = array_map(fn (array $column): array => ['id' => (string) ($column['id'] ?? ''), 'label' => $text($column['label'] ?? null), 'kind' => (string) ($column['kind'] ?? 'text'), 'sortable' => ($column['sortable'] ?? false) === true], $entries('columns'));
+            $frame['columns'] = array_map(function (array $column) use ($text): array {
+                $kind = (string) ($column['kind'] ?? 'text');
+                $frame = [
+                    'id' => (string) ($column['id'] ?? ''),
+                    'label' => $text($column['label'] ?? null),
+                    'kind' => $kind,
+                    'sortable' => ($column['sortable'] ?? false) === true,
+                ];
+
+                if ($kind === 'link') {
+                    $frame['empty'] = is_string($column['empty'] ?? null) && trim($column['empty']) !== ''
+                        ? $text($column['empty'])
+                        : __('None');
+                }
+
+                return $frame;
+            }, $entries('columns'));
             $frame['search'] = ($block['search'] ?? false) === true;
             $frame['filters'] = array_map(fn (array $filter): array => [
                 'id' => (string) ($filter['id'] ?? ''),
@@ -238,6 +335,29 @@ final readonly class PluginAreaScreen
             $frame['perPage'] = is_int($block['perPage'] ?? null) ? $block['perPage'] : 20;
             $frame['rowActions'] = array_values(array_filter(is_array($block['rowActions'] ?? null) ? $block['rowActions'] : [], is_string(...)));
             $frame['bulkActions'] = array_values(array_filter(is_array($block['bulkActions'] ?? null) ? $block['bulkActions'] : [], is_string(...)));
+            $custom = [];
+
+            foreach ($frame['rowActions'] as $actionId) {
+                if (in_array($actionId, ['edit', 'duplicate', 'enable', 'disable', 'delete'], true)) {
+                    continue;
+                }
+
+                $action = $this->actions->find($plugin->code, $actionId);
+
+                if ($action === null || $action['row'] !== true) {
+                    continue;
+                }
+
+                $custom[] = [
+                    'id' => $action['id'],
+                    'label' => $action['label'],
+                    'confirm' => $action['confirm'],
+                    'queued' => $action['queued'],
+                    'icon' => $action['icon'],
+                ];
+            }
+
+            $frame['customActions'] = $custom;
         } elseif ($type === 'actions') {
             $offered = [];
 

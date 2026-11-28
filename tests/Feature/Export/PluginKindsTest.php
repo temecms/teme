@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Export\ExportFailed;
 use App\Domain\Export\LeftOut;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Exports\DeclaredExports;
@@ -176,6 +177,34 @@ it('refuses a page with no lines that says there is another, a repeated next, an
         ->and($faults->seen)->toHaveCount(1)
         ->and($faults->seen[0][3])->toBeInstanceOf(SocketAnswerRefused::class);
 })->with(['empty', 'repeat', 'never']);
+
+it('ends the export when a plugin savepoint fails, naming the file, not blaming the plugin', function (): void {
+    // A fixture that swallows a failing statement leaves the savepoint aborted;
+    // ExportSite's select 1 after the lines then fails and names the file.
+    ['faults' => $faults] = ($this->enable)();
+    Exporter::$lines = function (?string $after): array {
+        try {
+            DB::select('select * from no_such_table');
+        } catch (Throwable) {
+        }
+
+        return ['lines' => [['id' => 1, 'guest' => 'Ada']], 'next' => null];
+    };
+
+    try {
+        ExportAs::operator($this->folder);
+        $this->fail('The export should have failed.');
+    } catch (ExportFailed $failed) {
+        expect($failed->getMessage())->toBe('Teme couldn’t write plugin_exporter_bookings.ndjson.')
+            ->and($failed->getPrevious())->toBeInstanceOf(Throwable::class)
+            ->and($failed->leftBehind)->toBeNull();
+    }
+
+    expect(file_exists($this->folder))->toBeFalse()
+        ->and($faults->seen)->toBe([])
+        ->and(ExportAs::leftovers($this->folder))->toBe([])
+        ->and(DB::table('security_events')->where('type', 'export.made')->count())->toBe(0);
+});
 
 it('skips a second file whose name is taken, as that plugin’s fault, and goes on', function (): void {
     app()->instance(Elevation::class, new OperatorElevation);

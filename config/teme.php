@@ -85,6 +85,27 @@ return [
     'import' => [
         'local_sources' => env('APP_ENV', 'production') === 'local',
         'max_file_mb' => (int) env('TEME_IMPORT_MAX_FILE_MB', 2048),
+        /*
+         * The largest uploads copy (a zip of the old site's wp-content/uploads)
+         * the browser may send in pieces, in megabytes, 10 GB by default. A
+         * larger copy is attached on the server with teme:import:uploads.
+         */
+        'max_uploads_mb' => (int) env('TEME_IMPORT_MAX_UPLOADS_MB', 10240),
+        /*
+         * How many items a plugin import reader is asked for on each page.
+         * Tests set a small value so a short file still spans several pages.
+         */
+        'reader_page_size' => null,
+        /*
+         * How many reader pages one job keeps before queuing the next part.
+         * Null means only the deadline ends a part.
+         */
+        'reader_pages_per_part' => null,
+        /*
+         * How many import_file_rows with reader_refs one resolve chunk loads.
+         * Tests set a small value so a short file still spans several chunks.
+         */
+        'reader_resolve_chunk' => null,
     ],
 
     /*
@@ -101,6 +122,9 @@ return [
      * every stored page takes the new mode.
      */
     'public_csp' => (string) env('TEME_PUBLIC_CSP', 'report-only'),
+
+    // Who backs the site up: teme (Teme does, the default) or host (the host does; Teme asks for nothing it doesn't need).
+    'backup_mode' => (string) env('TEME_BACKUPS', 'teme'),
 
     /*
      * The host's lock on the site's own content types (I-411): true refuses

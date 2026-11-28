@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -21,6 +22,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -205,4 +207,25 @@ it('offers Forget only for a disabled plugin whose package is gone and that owns
     app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
 
     expect(($rows)()['tests/tables']['canForget'])->toBeTrue();
+});
+
+it('deletes the plugin’s download folder when it is forgotten', function (): void {
+    $old = PluginFixtures::copy('hello');
+    PluginFixtures::use($old);
+    ($this->enable)('tests/hello');
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/hello', null));
+    (new Filesystem)->deleteDirectory($old);
+    PluginFixtures::use();
+    app(PluginRegistry::class)->flush();
+
+    File::ensureDirectoryExists(DownloadFolders::pathFor('hello'));
+    File::put(DownloadFolders::pathFor('hello').'/countries.download', 'left by a job');
+
+    try {
+        app(ForgetPlugin::class)->execute(new ForgetPluginInput('tests/hello', null));
+
+        expect(is_dir(DownloadFolders::pathFor('hello')))->toBeFalse();
+    } finally {
+        File::deleteDirectory(DownloadFolders::pathFor('hello'));
+    }
 });

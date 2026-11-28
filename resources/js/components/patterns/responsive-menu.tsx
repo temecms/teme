@@ -1,5 +1,10 @@
 import { Slot } from '@radix-ui/react-slot';
-import type { ComponentProps, KeyboardEvent, ReactNode } from 'react';
+import type {
+    ComponentProps,
+    KeyboardEvent,
+    MouseEvent as ReactMouseEvent,
+    ReactNode,
+} from 'react';
 import {
     createContext,
     useCallback,
@@ -273,17 +278,22 @@ const PHONE_ITEM =
 
 /**
  * One of the menu's choices. Choosing it runs `onSelect` and closes the menu;
- * with `asChild`, a link's own click runs first.
+ * with `asChild`, a link's own click runs first. Call `event.preventDefault()`
+ * in `onSelect` to keep the menu open (forms that show an error beside the
+ * action), as Radix's dropdown does. `onClick` is forwarded so ConfirmAction
+ * can ask before a form submits (it clones this item and adds the handler).
  */
 export function ResponsiveMenuItem({
     onSelect,
+    onClick,
     asChild = false,
     disabled = false,
     variant = 'default',
     className,
     children,
 }: {
-    onSelect?: () => void;
+    onSelect?: (event: Event) => void;
+    onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
     asChild?: boolean;
     disabled?: boolean;
     variant?: 'default' | 'destructive';
@@ -299,7 +309,8 @@ export function ResponsiveMenuItem({
                 disabled={disabled}
                 variant={variant}
                 className={className}
-                onSelect={onSelect ? () => onSelect() : undefined}
+                onSelect={onSelect}
+                onClick={onClick}
             >
                 {children}
             </DropdownMenuItem>
@@ -316,15 +327,21 @@ export function ResponsiveMenuItem({
             data-slot="responsive-menu-item"
             data-variant={variant}
             className={cn(PHONE_ITEM, className)}
-            onClick={(event) => {
+            onClick={(event: ReactMouseEvent<HTMLElement>) => {
                 if (disabled) {
                     event.preventDefault();
 
                     return;
                 }
 
-                onSelect?.();
-                close();
+                onClick?.(event);
+
+                const selectEvent = new Event('select', { cancelable: true });
+                onSelect?.(selectEvent);
+
+                if (!selectEvent.defaultPrevented) {
+                    close();
+                }
             }}
         >
             {children}

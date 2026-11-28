@@ -32,6 +32,11 @@ final readonly class TestRestoreDatabase implements DoctorCheck
 
     public function examine(): array
     {
+        // Under host with no spare named, the test restore uses a temporary database, so none is asked for (TEME_BACKUPS=host); a named spare is checked.
+        if (SpareDatabase::testRestoreUsesTemporary()) {
+            return [];
+        }
+
         $role = (string) config('database.connections.'.SpareDatabase::CONNECTION.'.username');
 
         if (! SpareDatabase::isNamed()) {

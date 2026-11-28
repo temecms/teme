@@ -300,3 +300,15 @@ it('says with --check which migrations wait and which need maintenance mode, exi
             'steps' => [],
         ]);
 });
+
+it('takes no backup before migrating under TEME_BACKUPS=host, and says the host keeps a restore point', function (): void {
+    config(['teme.backup_mode' => 'host']);
+    app('migrator')->path(DeployRun::migrations('probe'));
+
+    $run = DeployRun::here();
+
+    expect($run->status)->toBe(0)
+        ->and($run->output)->toContain('Backups are done by your host, so Teme takes no backup before migrating. The host keeps a restore point.')
+        ->and($run->output)->not->toContain('Backing up before migrating.')
+        ->and(Schema::hasTable('deploy_probe'))->toBeTrue();
+});

@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Area;
 
 /**
- * @phpstan-type Field array{key: string, type: string, label: string, description: string, required: bool, maxLength: int|null, min: int|null, max: int|null, options: array<string, string>, default: mixed, visibleWhen: array<string, mixed>, scripts: bool, taxonomy: string|null, fields: list<array<string, mixed>>, minItems: int, maxItems: int, itemLabel: string, itemTitle: string|null}
+ * @phpstan-type Field array{key: string, type: string, label: string, description: string, required: bool, maxLength: int|null, min: int|null, max: int|null, options: array<string, string>, default: mixed, visibleWhen: array<string, mixed>, scripts: bool, taxonomy: string|null, storeAs: string|null, choices: string|null, fields: list<array<string, mixed>>, minItems: int, maxItems: int, itemLabel: string, itemTitle: string|null}
  * @phpstan-type Block array<string, mixed>
  * @phpstan-type Page array{id: string, label: string, blocks: list<array<string, mixed>>}
  * @phpstan-type Section array{id: string, label: string, description: string, fields: list<Field>}
@@ -151,18 +151,28 @@ final readonly class DeclaredArea
     }
 
     /**
-     * The ids of round 1's actions the area's pages offer, each once.
+     * The ids of declared actions the area's pages offer, each once: from
+     * actions blocks and from custom ids named in a table's rowActions.
      *
      * @return list<string>
      */
     public function offeredActions(): array
     {
         $offered = [];
+        $builtIn = ['edit', 'duplicate', 'enable', 'disable', 'delete'];
 
         foreach ($this->pages as $page) {
             foreach ($page['blocks'] as $block) {
                 if (($block['type'] ?? null) === 'actions' && is_array($block['actions'] ?? null)) {
                     array_push($offered, ...array_filter($block['actions'], is_string(...)));
+                }
+
+                if (($block['type'] ?? null) === 'table' && is_array($block['rowActions'] ?? null)) {
+                    foreach ($block['rowActions'] as $action) {
+                        if (is_string($action) && ! in_array($action, $builtIn, true)) {
+                            $offered[] = $action;
+                        }
+                    }
                 }
             }
         }
@@ -197,12 +207,13 @@ final readonly class DeclaredArea
      */
     public function actions(string $record): array
     {
+        $builtIn = ['edit', 'duplicate', 'enable', 'disable', 'delete'];
         $actions = [];
 
         foreach ($this->tables($record) as $table) {
             foreach (['rowActions', 'bulkActions'] as $kind) {
                 foreach (is_array($table[$kind] ?? null) ? $table[$kind] : [] as $action) {
-                    if (is_string($action) && ! in_array($action, $actions, true)) {
+                    if (is_string($action) && in_array($action, $builtIn, true) && ! in_array($action, $actions, true)) {
                         $actions[] = $action;
                     }
                 }
@@ -247,6 +258,8 @@ final readonly class DeclaredArea
             'visibleWhen' => $visibleWhen,
             'scripts' => ($field['scripts'] ?? false) === true,
             'taxonomy' => is_string($field['taxonomy'] ?? null) ? $field['taxonomy'] : null,
+            'storeAs' => is_string($field['storeAs'] ?? null) ? $field['storeAs'] : null,
+            'choices' => ($field['choices'] ?? null) === 'plugin' ? 'plugin' : null,
             'fields' => array_map(self::field(...), self::list($field['fields'] ?? null)),
             'minItems' => is_int($field['minItems'] ?? null) ? $field['minItems'] : 0,
             'maxItems' => is_int($field['maxItems'] ?? null) ? $field['maxItems'] : AreaValidator::DEFAULT_MOST_ITEMS,

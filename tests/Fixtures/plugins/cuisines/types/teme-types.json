@@ -1,0 +1,54 @@
+{
+    "format": "teme-types",
+    "version": 1,
+    "types": [
+        {
+            "key": "recipe",
+            "singular": "Recipe",
+            "plural": "Recipes",
+            "segment": "recipes",
+            "icon": "file",
+            "single": false,
+            "public": true,
+            "archive": true,
+            "searchable": true,
+            "taxonomies": [
+                "cuisine"
+            ],
+            "supports": [],
+            "comments": null,
+            "pattern": "/recipes/{category}/{slug}/",
+            "permissions": "shared"
+        }
+    ],
+    "fields": [
+        {
+            "key": "01JQ0000000000000000000SRV",
+            "type": "recipe",
+            "handle": "serves",
+            "label": "Serves",
+            "fieldType": "number"
+        },
+        {
+            "key": "01JQ0000000000000000000TME",
+            "type": "recipe",
+            "handle": "cook_time",
+            "label": "Cooking time",
+            "fieldType": "text"
+        }
+    ],
+    "taxonomies": [
+        {
+            "key": "cuisine",
+            "singular": "Cuisine",
+            "plural": "Cuisines",
+            "segment": "cuisines",
+            "icon": "tag",
+            "hierarchical": true,
+            "public": true,
+            "base": "cuisine",
+            "code_types": []
+        }
+    ],
+    "grants": []
+}

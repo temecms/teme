@@ -52,11 +52,17 @@ export function PluginPanelBlocks({
 
                 if (block.type === 'figures') {
                     const data = block.data as AreaFiguresData;
+                    const figures = block as { empty?: string };
 
                     return data.failed !== null ? (
                         unreadable(block.id)
                     ) : (
-                        <AreaFigures key={block.id} data={data} label={label} />
+                        <AreaFigures
+                            key={block.id}
+                            data={data}
+                            label={label}
+                            empty={figures.empty}
+                        />
                     );
                 }
 

@@ -44,13 +44,32 @@ interface JobContext
     public function progress(int $done, int $total, string $message = ''): void;
 
     /**
-     * The account ID this run acts for: the person who queued it, or for a
-     * schedule the administrator who enabled the plugin. Pass it to every
-     * door that acts for a person. For a run with no person to act for, such
-     * as one the operator queued, it throws, and the run fails at once
+     * The account ID this run acts for: the person who queued it, the person
+     * an outer plugin job was acting for when this one was nested from it, or
+     * for a schedule the administrator who enabled the plugin. Pass it to
+     * every door that acts for a person. For a run with no person to act for,
+     * such as one the operator queued, it throws, and the run fails at once
      * without another try.
      *
      * @since 1.0.0
      */
     public function personId(): string;
+
+    /**
+     * Sets the closing line shown when the run finishes. Without a call, it
+     * stays "Finished."
+     *
+     * @since next
+     */
+    public function summary(string $message): void;
+
+    /**
+     * The ids of this plugin's own permissions the person this run acts for
+     * holds, such as `manage-lines`; never another plugin's, and never a role.
+     *
+     * @return list<string>
+     *
+     * @since next
+     */
+    public function permissions(): array;
 }

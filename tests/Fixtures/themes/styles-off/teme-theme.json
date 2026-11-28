@@ -57,5 +57,10 @@
         "off": [
             "cardbox:card:note"
         ]
+    },
+    "plugin_scripts": {
+        "off": [
+            "cardbox:card:note"
+        ]
     }
 }

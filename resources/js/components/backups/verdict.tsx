@@ -341,6 +341,26 @@ function Facts({ page }: { page: BackupsPage }) {
 export function Verdict({ page }: { page: BackupsPage }) {
     const { setup, verdict } = page;
 
+    // Under TEME_BACKUPS=host the host does the backups: a healthy block, with Teme's own as a second copy.
+    if (setup.state === 'none' && verdict?.level === 'green') {
+        return (
+            <VerdictBlock
+                tone="ok"
+                word={__('Safe')}
+                title={verdict.sentence}
+                actions={
+                    <Button asChild data-test="backup-set-up">
+                        <Link href={setupRoute()}>{__('Set up backups')}</Link>
+                    </Button>
+                }
+            >
+                {verdict.more.map((line) => (
+                    <p key={line}>{line}</p>
+                ))}
+            </VerdictBlock>
+        );
+    }
+
     if (setup.state === 'none') {
         return (
             <VerdictBlock

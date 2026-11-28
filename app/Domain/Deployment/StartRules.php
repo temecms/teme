@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Deployment;
 
+use App\Domain\Backups\BackupMode;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Encryption\Encrypter;
@@ -76,6 +77,13 @@ final class StartRules
             $problems[] = 'APP_KEY is empty. Teme never makes one: set APP_KEY, or APP_KEY_FILE, in the server\'s environment. To make a key: echo "base64:$(openssl rand -base64 32)"';
         } elseif (! Encrypter::supported(self::keyBytes($key), $cipher)) {
             $problems[] = "APP_KEY isn't a key for {$cipher}: write base64: followed by 32 random bytes in base64, as echo \"base64:\$(openssl rand -base64 32)\" makes one.";
+        }
+
+        // TEME_BACKUPS names a mode Teme knows (BackupMode); refused here, as the other settings are, not at boot.
+        $backups = BackupMode::problemFor($config->get('teme.backup_mode'));
+
+        if ($backups !== null) {
+            $problems[] = $backups;
         }
 
         if ((string) parse_url($url, PHP_URL_HOST) === '') {

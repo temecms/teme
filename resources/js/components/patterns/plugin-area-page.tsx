@@ -19,6 +19,7 @@ export type PluginAreaPageProps = {
         href: string;
         label: string;
         count?: number;
+        counting?: boolean;
         current?: boolean;
         soon?: boolean;
     }[];

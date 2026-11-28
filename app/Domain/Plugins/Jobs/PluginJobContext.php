@@ -18,6 +18,7 @@ use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Jobs\Operations\Input\ReportJobProgressInput;
 use App\Domain\Jobs\Operations\ReportJobProgress;
+use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Support\Security\JobActor;
 use Teme\Contracts\Jobs\JobContext;
@@ -27,6 +28,8 @@ final class PluginJobContext implements JobContext
 {
     private int $reported = 0;
 
+    private ?string $summary = null;
+
     /**
      * @param  array<string, mixed>  $payload
      */
@@ -35,6 +38,7 @@ final class PluginJobContext implements JobContext
         private readonly array $payload,
         private readonly int $attempt,
         private readonly string $pluginName,
+        private readonly string $pluginCode,
         private readonly JobActor $actor,
         private readonly ReportJobProgress $report,
     ) {}
@@ -56,6 +60,40 @@ final class PluginJobContext implements JobContext
         }
 
         return $this->actor->userId;
+    }
+
+    public function summary(string $message): void
+    {
+        $this->summary = $message;
+    }
+
+    /**
+     * The closing line FinishJob should record: the summary's first line cut
+     * at 500 characters, or "Finished." when none was set or it is blank.
+     */
+    public function closingMessage(): string
+    {
+        if ($this->summary === null) {
+            return __('Finished.');
+        }
+
+        $line = strtok(str_replace("\r\n", "\n", $this->summary), "\n");
+        $line = is_string($line) ? trim($line) : '';
+
+        if ($line === '') {
+            return __('Finished.');
+        }
+
+        return mb_substr($line, 0, 500);
+    }
+
+    public function permissions(): array
+    {
+        if ($this->actor->isOperator() || $this->actor->userId === null) {
+            return [];
+        }
+
+        return AreaContexts::for($this->pluginCode, $this->actor->userId)->permissions;
     }
 
     public function progress(int $done, int $total, string $message = ''): void

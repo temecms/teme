@@ -90,7 +90,7 @@ What you answer is cleaned as a page insertion is, with the same rules for scrip
 
 and draws nothing at all when you draw nothing. Plugins load no stylesheet of their own yet: the theme styles your card, by those classes, so keep your markup plain and say in your plugin's description what it needs.
 
-A page that draws one of your cards carries the cache tag `plugin:{code}`. Saving your plugin's settings purges those pages. When something else your cards draw changes, such as an ad in your own tables, ask for `CardsChanged` in your constructor and call `notify()` inside the Operation that changed it.
+A page that draws one of your cards carries the cache tag `plugin:{code}`. Saving your plugin's settings purges those pages. When something else your cards draw changes, such as an ad in your own tables, ask for `CardsChanged` in your constructor and call `notify()` inside the Operation that changed it. A job can call it too, with the same rules as `InsertionsChanged`: a list of content IDs, or with no list the pages that carry `plugin:{code}`, at most once a minute.
 
 ## While the plugin is disabled
 

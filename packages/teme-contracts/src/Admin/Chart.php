@@ -34,6 +34,7 @@ final readonly class Chart
     /**
      * @param  list<string>  $labels
      * @param  array<string, list<int|float>>  $series  by declared series id
+     * @param  array<string, list<int|float>>  $compare  earlier-period values by the same series id, drawn dashed
      *
      * @throws InvalidArgumentException for more than 366 labels, a series not as long as the labels, or a number that isn't finite
      *
@@ -42,12 +43,20 @@ final readonly class Chart
     public function __construct(
         public array $labels,
         public array $series,
+        /**
+         * Earlier-period values by declared series id; core draws them dashed.
+         *
+         * @var array<string, list<int|float>>
+         *
+         * @since next
+         */
+        public array $compare = [],
     ) {
         if (count($labels) > self::MOST_LABELS) {
             throw new InvalidArgumentException('A chart has at most 366 labels.');
         }
 
-        foreach ($series as $id => $values) {
+        foreach ([...$series, ...$compare] as $id => $values) {
             if (count($values) !== count($labels)) {
                 throw new InvalidArgumentException("The chart's series [{$id}] must have one value a label.");
             }

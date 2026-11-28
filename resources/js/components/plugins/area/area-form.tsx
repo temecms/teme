@@ -1,14 +1,19 @@
 import { router } from '@inertiajs/react';
-import { createContext, useContext, useRef, useState } from 'react';
+import { RotateCw } from 'lucide-react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { toast } from 'sonner';
 import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { CodeField } from '@/components/fields/code-field';
 import { RepeaterField } from '@/components/fields/repeater-field';
 import type { WaitingScript } from '@/components/fields/code-field';
 import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
+import { ItemsPicker, TermsPicker } from './record-pickers';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Notice } from '@/components/ui/notice';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SelectField } from '@/components/ui/select-field';
@@ -37,6 +42,87 @@ export const AreaScriptsProvider = ScriptsContext.Provider;
 /** The waiting scripts handed down by the nearest AreaScriptsProvider. */
 export function useAreaScripts(): AreaScripts {
     return useContext(ScriptsContext);
+}
+
+/**
+ * A select whose options the plugin lists as the form opens. When it couldn't
+ * list them, the select is disabled and shows the saved value, with the
+ * line that says so and Try again, which asks the page for the form again.
+ * Listing again that works says so in a toast.
+ */
+function PluginChoicesSelect({
+    id,
+    field,
+    value,
+    onChange,
+}: {
+    id: string;
+    field: AreaField;
+    value: unknown;
+    onChange: (value: unknown) => void;
+}) {
+    const [retrying, setRetrying] = useState(false);
+    const failed = field.choicesFailed != null;
+    const wasFailed = useRef(false);
+    const saved = text(value);
+
+    useEffect(() => {
+        if (wasFailed.current && !failed && retrying === false) {
+            toast.success(__(':field listed.', { field: field.label }));
+        }
+
+        wasFailed.current = failed;
+    }, [failed, retrying, field.label]);
+
+    if (!failed) {
+        return (
+            <SelectField
+                id={id}
+                className="w-full"
+                options={field.choices}
+                value={saved}
+                onValueChange={onChange}
+            />
+        );
+    }
+
+    return (
+        <div className="grid gap-2">
+            <SelectField
+                id={id}
+                className="w-full"
+                disabled
+                options={[
+                    {
+                        value: saved,
+                        label: __(':value, as saved', { value: saved }),
+                    },
+                ]}
+                value={saved}
+                onValueChange={() => undefined}
+            />
+            <Notice tone="danger" role="alert">
+                <p>{field.choicesFailed}</p>
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={retrying}
+                    onClick={() => {
+                        wasFailed.current = true;
+                        setRetrying(true);
+                        router.reload({
+                            only: ['sections'],
+                            onFinish: () => setRetrying(false),
+                        });
+                    }}
+                >
+                    <RotateCw aria-hidden className="size-4" />
+                    {__('Try again')}
+                </Button>
+            </Notice>
+        </div>
+    );
 }
 
 /**
@@ -302,6 +388,27 @@ export function AreaFieldInput({
                     />
                 );
             case 'select':
+                if (field.fromPlugin) {
+                    return (
+                        <PluginChoicesSelect
+                            id={id}
+                            field={field}
+                            value={value}
+                            onChange={onChange}
+                        />
+                    );
+                }
+
+                return (
+                    <SelectField
+                        id={id}
+                        className="w-full"
+                        options={field.choices}
+                        value={text(value)}
+                        onValueChange={onChange}
+                    />
+                );
+
             case 'region':
                 return (
                     <SelectField
@@ -315,9 +422,26 @@ export function AreaFieldInput({
                         onValueChange={onChange}
                     />
                 );
+            case 'items':
+                return (
+                    <ItemsPicker
+                        id={id}
+                        field={field}
+                        value={value}
+                        onChange={onChange}
+                    />
+                );
+            case 'terms':
+                return (
+                    <TermsPicker
+                        id={id}
+                        field={field}
+                        value={value}
+                        onChange={onChange}
+                    />
+                );
             case 'multiselect':
             case 'types':
-            case 'terms':
                 return (
                     <Choices
                         id={id}

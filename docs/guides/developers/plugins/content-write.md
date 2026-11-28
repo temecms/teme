@@ -22,7 +22,7 @@ The person's own permissions then apply as in the editor: an author can publish 
 
 ## What it can do
 
-- `create(new NewItem(...), $personId)` makes a draft of a type, with a title, a body, fields, terms, a featured image and a language, and answers its `ItemRef`. The body is a Tiptap document, the same JSON the editor stores; fields are keyed by their handle; terms are listed by taxonomy, as slugs or names.
+- `create(new NewItem(...), $personId)` makes a draft of a type, with a title, a body, fields, terms, a featured image and a language, and answers its `ItemRef`. The body is a Tiptap document, the same JSON the editor stores; fields are keyed by their handle; terms are listed by taxonomy, as slugs or names. A name that is not yet a term is created under the person's rights; for creating, renaming or removing terms of a taxonomy your plugin brought, use [Creating terms from a plugin](terms.md) instead.
 - `change($item, new ItemChanges(...), $personId)` saves a new revision of the item's draft; each part left null stays as it is.
 - `publish($item, $personId)` publishes the item's latest revision now.
 - `unpublish($item, $personId)` takes a published item off the site, back to a draft, with its revisions kept. Only a published item can be; anything else is refused. From the next release.

@@ -1,0 +1,15 @@
+{
+    "manifest": 1,
+    "name": "tests/fielded",
+    "code": "fielded",
+    "label": "Fielded",
+    "description": "A plugin the tests enable, which judges each comment and adds one hidden field to its form.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Fielded\\Fielded",
+    "capabilities": ["comments.check"],
+    "contributes": {
+        "provides": ["comment-check"],
+        "commentField": { "name": "hp-stamp", "make": "static", "value": "lively" }
+    }
+}

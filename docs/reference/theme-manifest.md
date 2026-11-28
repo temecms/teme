@@ -80,6 +80,8 @@
 | `screenshots[].caption` | string | no | What the picture shows, in at most 140 characters. |  |
 | `overrides` | object | no | Core components the theme replaces with its own view under views/components/, each with the contract number the override was written against (docs/guides/developers/themes/components.md). |  |
 | `overrides.*.contract` | integer | yes | The contract number the override was written against. |  |
+| `plugin_scripts` | object | no | Plugin scripts the theme switches off, so it does without them on that output. |  |
+| `plugin_scripts.off` | array | no | Each script as its plugin's code and output: code:card:<id> or code:insertion:<id>. |  |
 | `plugin_styles` | object | no | Plugin stylesheets the theme switches off, so it styles that output itself. |  |
 | `plugin_styles.off` | array | no | Each stylesheet as its plugin's code and output: code:card:<id> or code:insertion:<id>. |  |
 | `cards` | object | no | Cards the theme styles itself, and cards it brings for its own regions. |  |

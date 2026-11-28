@@ -16,6 +16,7 @@ namespace App\Providers;
 use App\Domain\Deployment\Health\CheckHealth;
 use App\Domain\Deployment\Health\Checks\BackupPrograms;
 use App\Domain\Deployment\Health\Checks\PublicPolicy;
+use App\Domain\Deployment\Health\Checks\RestoreAccount;
 use App\Domain\Deployment\Health\Checks\TestRestoreDatabase;
 use App\Domain\Deployment\Health\Doctor;
 use App\Domain\Deployment\Health\RecordQueueHeartbeat;
@@ -54,6 +55,7 @@ final class DeploymentServiceProvider extends ServiceProvider
         // The backup checks, which a deploy's preflight reads with the rest (I-377).
         $this->app->make(Doctor::class)->register('backup-tools', BackupPrograms::class);
         $this->app->make(Doctor::class)->register('verify-database', TestRestoreDatabase::class);
+        $this->app->make(Doctor::class)->register('restore-account', RestoreAccount::class);
 
         // The public site's policy and what browsers reported of it (I-3375); not a core check.
         $this->app->make(Doctor::class)->register('public-csp', PublicPolicy::class);

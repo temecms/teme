@@ -24,6 +24,7 @@ final readonly class ImportProbe
     /**
      * @param  list<string>  $languages  the languages the site's content is in, as BCP 47 tags
      * @param  array<string, int>  $counts  how many items of each kind the file holds
+     * @param  string|null  $defaultLanguage  the file's default language tag, or null when it doesn't name one
      *
      * @since 1.8.0
      */
@@ -33,5 +34,9 @@ final readonly class ImportProbe
         public ?string $siteAddress,
         public array $languages,
         public array $counts,
+        /**
+         * @since next
+         */
+        public ?string $defaultLanguage = null,
     ) {}
 }

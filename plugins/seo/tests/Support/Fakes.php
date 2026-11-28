@@ -50,6 +50,16 @@ final class SeoFakeJob implements JobContext
     {
         return $this->person;
     }
+
+    public function summary(string $message): void
+    {
+        $this->messages[] = $message;
+    }
+
+    public function permissions(): array
+    {
+        return [];
+    }
 }
 
 /** The site's AI, answering with the data given, and keeping what it was asked. */

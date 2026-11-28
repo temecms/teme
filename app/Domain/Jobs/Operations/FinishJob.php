@@ -54,7 +54,7 @@ final class FinishJob extends BaseOperation
 
         $job->update(['state' => JobState::Finished, 'done' => $job->total ?? $job->done, 'message' => $input->message, 'ended_at' => now()]);
 
-        if ($job->started_by !== null) {
+        if ($input->notify && $job->started_by !== null) {
             $this->inbox->execute(new SendToInboxInput(
                 recipientId: (string) $job->started_by,
                 kind: 'job.finished',

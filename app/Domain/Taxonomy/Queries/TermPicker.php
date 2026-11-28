@@ -39,13 +39,14 @@ final class TermPicker
             ->orderByRaw('lower(name)')
             ->orderBy('id')
             ->limit(self::LIMIT)
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'slug']);
 
         $paths = $this->tree->nests($taxonomy) ? $this->tree->paths($rows->pluck('id')->all()) : [];
 
         return $rows->map(fn (object $row): array => [
             'id' => (string) $row->id,
             'name' => (string) $row->name,
+            'slug' => (string) $row->slug,
             'path' => $paths[$row->id] ?? (string) $row->name,
         ])->values()->all();
     }

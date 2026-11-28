@@ -76,17 +76,28 @@ export function PageHeader({
                     {plugin !== undefined && <PluginMark name={plugin} />}
                     {badge}
                 </div>
-                {description && (
-                    <p
-                        className={
-                            showTitle
-                                ? 'text-body text-ink-2'
-                                : 'text-small text-ink-2'
-                        }
-                    >
-                        {description}
-                    </p>
-                )}
+                {description &&
+                    (typeof description === 'string' ? (
+                        <p
+                            className={
+                                showTitle
+                                    ? 'text-body text-ink-2'
+                                    : 'text-small text-ink-2'
+                            }
+                        >
+                            {description}
+                        </p>
+                    ) : (
+                        <div
+                            className={
+                                showTitle
+                                    ? 'text-body text-ink-2'
+                                    : 'text-small text-ink-2'
+                            }
+                        >
+                            {description}
+                        </div>
+                    ))}
             </div>
             {actions && (
                 <div className="flex flex-wrap gap-2 self-end max-sm:w-full max-sm:[&>*:first-child]:flex-1">

@@ -13,4 +13,10 @@ export type PluginCellValue =
           kind: 'badge';
           value: string;
           tone: 'ok' | 'neutral' | 'info' | 'warn' | 'danger';
+      }
+    | {
+          kind: 'link';
+          value: string;
+          href: string | null;
+          host: string | null;
       };

@@ -312,7 +312,13 @@ final readonly class VerifyBackups
      */
     private function testRestoreNewest(string $runId, BackupTrigger $startedBy, ?string $actorId, Closure $say): array
     {
-        $spare = SpareDatabase::open();
+        // Host-run with no spare named: a temporary database, made now and dropped after; leftovers from a dead run go first.
+        if (SpareDatabase::testRestoreUsesTemporary()) {
+            TemporaryDatabase::sweep();
+            $spare = SpareDatabase::openTemporary();
+        } else {
+            $spare = SpareDatabase::open();
+        }
 
         try {
             // backup_runs_kind_index: (kind, started_at DESC).

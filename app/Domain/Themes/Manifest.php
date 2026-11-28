@@ -404,6 +404,20 @@ final readonly class Manifest
     }
 
     /**
+     * The plugin scripts the theme switches off, as `code:output` keys (plugin_scripts.off in the theme
+     * manifest, docs/guides/developers/plugins/scripts.md).
+     *
+     * @return list<string>
+     */
+    public function pluginScriptsOff(): array
+    {
+        $scripts = $this->raw['plugin_scripts'] ?? null;
+        $off = is_array($scripts) ? ($scripts['off'] ?? null) : null;
+
+        return is_array($off) ? array_values(array_filter($off, 'is_string')) : [];
+    }
+
+    /**
      * The cards the theme styles itself, whose core stylesheets it replaces (I-248).
      *
      * @return list<string>

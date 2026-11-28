@@ -32,6 +32,9 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Content\Submissions` | granted `content.submissions` | 1.3.0 |
 | `Teme\Contracts\Cards\CardsChanged` | granted `pages.insert` | 1.5.0 |
 | `Teme\Contracts\Redirects\RedirectWriter` | granted `redirects` | 1.7.0 |
+| `Teme\Contracts\Taxonomy\TermWriter` | granted `terms.write` | next |
+| `Teme\Contracts\Security\SecurityLines` | granted `security.log` | next |
+| `Teme\Contracts\Content\ItemCardReader` | granted `content.read` | next |
 
 ## Teme\Contracts\Admin
 
@@ -39,9 +42,24 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 
 `Teme\Contracts\Admin\AreaContext`, class. Since 1.0.0.
 
-Who is looking at a plugin's area, in which language and time zone, and which of the plugin's own permissions they hold.
+Who is looking at a plugin's area, in which language and time zone, and which of the plugin's own permissions they hold, and the statistics period when the page asks for one.
 
-- `__construct(string $personId, string $locale, string $timezone, array $permissions = [])`. Since 1.0.0.
+- `__construct(string $personId, string $locale, string $timezone, array $permissions = [], ?AreaPeriod $period = null)`. Since 1.0.0.
+
+### AreaPeriod
+
+`Teme\Contracts\Admin\AreaPeriod`, class. Since next.
+
+The statistics window core hands a plugin's area: its id, and the start and end dates of this period and the one to compare it with, as Y-m-d in the site's time zone. Plugins never invent a period; they only read these dates.
+
+- `LAST_7_DAYS` — The six periods core offers; plugins cannot add. Since next.
+- `LAST_30_DAYS`. Since next.
+- `LAST_90_DAYS`. Since next.
+- `THIS_MONTH`. Since next.
+- `LAST_MONTH`. Since next.
+- `THIS_YEAR`. Since next.
+- `__construct(string $id, string $start, string $end, string $compareStart, string $compareEnd)`. Since next.
+- `ids(): array` — The period ids, in the select's order. Since next.
 
 ### Chart
 
@@ -50,7 +68,15 @@ Who is looking at a plugin's area, in which language and time zone, and which of
 A chart block's numbers: its labels, `Y-m-d` dates or category words, and each declared series' values, one per label. Core drops a series it doesn't declare.
 
 - `MOST_LABELS` — The most labels a chart may have: a year of days. Since 1.0.0.
-- `__construct(array $labels, array $series)`. Since 1.0.0.
+- `__construct(array $labels, array $series, array $compare = [])`. Since 1.0.0.
+
+### FieldChoice
+
+`Teme\Contracts\Admin\FieldChoice`, class. Since next.
+
+One option of a select field the plugin lists each time its form opens: the value stored, at most 191 characters, and the label shown as plain text, at most 120 characters.
+
+- `__construct(string $value, string $label)`. Since next.
 
 ### Figure
 
@@ -65,6 +91,14 @@ One figure of a figures block: a number, a ratio shown as a percentage, or a sho
 - `percent(float $ratio, ?float $change = null): self` — A ratio, 0.25 shown as 25%. Since 1.0.0.
 - `text(string $text): self` — Plain text, never HTML; core cuts it to 40 characters. Since 1.0.0.
 
+### HasAreaCounts
+
+`Teme\Contracts\Admin\HasAreaCounts`, interface. Since next.
+
+A plugin area that supplies a count for each of its pages' tabs. Implemented on the same class as PluginArea. A missing or failed page shows no number.
+
+- `counts(AreaContext $context): array` — Counts by page id for tabs that have one. Since next.
+
 ### HasPluginArea
 
 `Teme\Contracts\Admin\HasPluginArea`, interface. Since 1.0.0.
@@ -72,6 +106,22 @@ One figure of a figures block: a number, a ratio shown as a percentage, or a sho
 A plugin whose manifest declares an area: its own admin pages, which core draws from the data it returns.
 
 - `pluginArea(): PluginArea`. Since 1.0.0.
+
+### HasRecordHeader
+
+`Teme\Contracts\Admin\HasRecordHeader`, interface. Since next.
+
+A plugin area that supplies a record's page header: its status and meta. Implemented on the same class as PluginArea. Null means title only.
+
+- `header(string $record, string $id, AreaContext $context): ?RecordHeader` — The header for this record, or null when the page shows only the title. Since next.
+
+### OffersFieldChoices
+
+`Teme\Contracts\Admin\OffersFieldChoices`, interface. Since next.
+
+Lists the options one select field offers, asked when the form opens. Asked within a time budget; one that throws or runs over gives no options, and the field keeps its saved value.
+
+- `fieldChoices(string $form, string $field): array` — The options for one field whose manifest says "choices": "plugin", at most 50, in the order shown. Since next.
 
 ### PluginArea
 
@@ -85,6 +135,15 @@ The data behind a plugin's area, and its writes. Core calls it, under a time bud
 - `values(string $record, string $id, AreaContext $context): ?array` — A record's stored values by field key, or null when there is no such record. Since 1.0.0.
 - `save(string $record, ?string $id, array $values, AreaContext $context): Saved` — Stores a record core has already checked, inside core's transaction. Since 1.0.0.
 - `act(string $record, string $action, array $ids, AreaContext $context): Saved` — Runs a built-in row action on these records: duplicate, enable, disable or delete. Since 1.0.0.
+
+### RecordHeader
+
+`Teme\Contracts\Admin\RecordHeader`, class. Since next.
+
+What a record's page header shows under the title: an optional status pill and up to three plain meta lines. Null from the plugin means title only; a failure to read one never becomes an error page.
+
+- `TONES` — The tones a status pill may take, matching list badges. Since next.
+- `__construct(?string $status = null, string $tone = 'neutral', array $meta = [])`. Since next.
 
 ### Row
 
@@ -220,9 +279,9 @@ The theme's region a card is placed in. Its size is the theme's advice, such as 
 
 `Teme\Contracts\Cards\CardsChanged`, interface. Since 1.5.0.
 
-Tells Teme that what a plugin's cards draw changed, so the pages that drew them are purged after the Operation commits. Offered to a plugin granted pages.insert. Call it only inside an Operation's perform().
+Tells Teme that what a plugin's cards draw changed, so the pages that drew them are purged after the Operation commits. Offered to a plugin granted pages.insert. Call it inside an Operation's perform(), or from a job: a job's call purges, after its work commits, the pages of the content items it names, or else the whole site at most once a minute.
 
-- `notify(): void` — Notes that this plugin's cards changed, for the page cache to purge after commit. Since 1.5.0.
+- `notify(?array $contentIds = null): void` — Notes that this plugin's cards changed, for the page cache to purge after commit. Since 1.5.0.
 
 ### HasCards
 
@@ -420,6 +479,14 @@ How a plugin granted content.write creates and changes items, publishes and sche
 - `schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef` — Schedules the item's latest revision. Since 1.0.0.
 - `linkTranslations(array $itemIds, string $actingPersonId): void` — Links existing items as language versions of one another: every version each already has joins one group. Since 1.0.0.
 
+### FeaturedImage
+
+`Teme\Contracts\Content\FeaturedImage`, class. Since next.
+
+A published item's featured image for a card: its public address and the sizes that exist, never a draft or a private item's. Addresses are made when read from the current site address.
+
+- `__construct(string $id, string $address, array $sizes, ?string $alt = null)`. Since next.
+
 ### HtmlToDocument
 
 `Teme\Contracts\Content\HtmlToDocument`, interface. Since 1.3.0.
@@ -427,6 +494,30 @@ How a plugin granted content.write creates and changes items, publishes and sche
 Turns HTML into the Tiptap document Teme stores, with the same converter Teme's importer uses, offered to every plugin with no capability: it reads nothing and writes nothing. A plugin bringing in text written elsewhere, such as a README turned from Markdown into HTML, converts it here and hands the document to ContentWriter.
 
 - `convert(string $html): array` — The document the HTML becomes: `['type' => 'doc', 'content' => [...]]`, with headings, paragraphs, lists, quotes, code, rules, tables and images as the editor holds them. Since 1.3.0.
+
+### ImageSize
+
+`Teme\Contracts\Content\ImageSize`, class. Since next.
+
+One size of a published item's featured image: its name, pixel size and public address built from the current site address.
+
+- `__construct(string $name, int $width, int $height, string $address)`. Since next.
+
+### ItemCard
+
+`Teme\Contracts\Content\ItemCard`, class. Since next.
+
+A published public item's card for sharing and posting: its excerpt and featured image, never a person and never a draft or private item. Built from the published revision and the current site address.
+
+- `__construct(ItemRef $item, ?string $excerpt, ?FeaturedImage $featuredImage)`. Since next.
+
+### ItemCardReader
+
+`Teme\Contracts\Content\ItemCardReader`, interface. Since next.
+
+A published public item's card for a plugin granted content.read, given beside ContentReader to the same plugins.
+
+- `card(string $itemId): ItemCard` — A published, public item's card: its excerpt and featured image (address and the sizes that exist), built from the published revision and the current site address. Since next.
 
 ### ItemChanges
 
@@ -464,9 +555,9 @@ A content item as a hook tells of it: plain values read after the change was sav
 
 `Teme\Contracts\Content\ItemSnapshot`, class. Since 1.0.0.
 
-One item's working revision: its parts by handle and slug, never a model.
+One item's working revision: its parts by handle and slug, never a model. The owner's account ID is always on a draft read under content.read; the owner's display name is only filled when the plugin was also granted people.read. Never an email, role or any other detail about them.
 
-- `__construct(ItemRef $item, string $revisionId, string $slug, array $body, array $fields, array $terms, array $credits, array $translations, ?DateTimeImmutable $scheduledFor = null)`. Since 1.0.0.
+- `__construct(ItemRef $item, string $revisionId, string $slug, array $body, array $fields, array $terms, array $credits, array $translations, ?DateTimeImmutable $scheduledFor = null, ?string $ownerId = null, ?string $ownerName = null)`. Since 1.0.0.
 
 ### LinkAttributes
 
@@ -622,6 +713,26 @@ A plugin whose manifest declares editor panels: a pane in the content editor tha
 
 - `editorPanels(): array` — The plugin's panels, by declared panel id. Since 1.0.0.
 
+### PanelPreview
+
+`Teme\Contracts\Editor\PanelPreview`, class. Since next.
+
+The preview card a panel shows of what it will send. Core draws the card, takes the picture from the media library by its ID and shows the site's own host; the plugin supplies only the words and that ID, never an address.
+
+- `MOST_TITLE` — The longest title, in characters. Since next.
+- `MOST_DESCRIPTION` — The longest description, in characters. Since next.
+- `__construct(string $title, string $description = '', ?string $mediaId = null)`. Since next.
+
+### PanelRow
+
+`Teme\Contracts\Editor\PanelRow`, class. Since next.
+
+One labelled line of a panel's details: a label, its value and an optional tone. A value is plain text, or a date and time that core formats for the person.
+
+- `MOST_LABEL` — The longest label, in characters. Since next.
+- `MOST_VALUE` — The longest text value, in characters. Since next.
+- `__construct(string $label, DateTimeImmutable|string $value, ?string $tone = null)`. Since next.
+
 ### PanelView
 
 `Teme\Contracts\Editor\PanelView`, class. Since 1.0.0.
@@ -630,7 +741,9 @@ A short status line, its tone, and the suggestions waiting for the person.
 
 - `MOST_SUGGESTIONS` — The most suggestions one view may hold. Since 1.0.0.
 - `MOST_STATUS` — The longest status line, in characters. Since 1.0.0.
-- `__construct(?string $status = null, string $tone = 'neutral', array $suggestions = [])`. Since 1.0.0.
+- `MOST_ROWS` — The most detail rows one view may hold. Since next.
+- `MOST_SAVED` — The longest saved value, in characters. Since next.
+- `__construct(?string $status = null, string $tone = 'neutral', array $suggestions = [], array $rows = [], ?PanelPreview $preview = null, array $saved = [], ?DateTimeImmutable $savedAt = null, ?string $rowsHeading = null)`. Since 1.0.0.
 
 ### SuggestedChange
 
@@ -967,6 +1080,12 @@ What a remote host answered: its status, its body and its headers.
 - `__construct(int $status, string $body, array $headers)`. Since 0.5.0.
 - `json(): mixed` — The body decoded as JSON. Since 0.5.0.
 
+### HttpDownload
+
+`Teme\Contracts\Http\HttpDownload`, class. Since next.
+
+- `__construct(string $path, int $bytes, int $status, string $contentType)`. Since next.
+
 ### HttpFile
 
 `Teme\Contracts\Http\HttpFile`, class. Since 1.7.0.
@@ -974,6 +1093,15 @@ What a remote host answered: its status, its body and its headers.
 One file in a multipart request through the outbound door. It carries either its bytes or the path of a file inside the plugin's own folder, never both.
 
 - `__construct(string $field, string $filename, string $contentType, ?string $bytes = null, ?string $path = null)`. Since 1.7.0.
+
+### OutboundDownloads
+
+`Teme\Contracts\Http\OutboundDownloads`, interface. Since next.
+
+The optional outbound door a plugin with http is given beside OutboundHttp. Both calls follow redirects, at most five a request, and check every hop against the hosts the plugin's consent covers and the addresses they resolve to, exactly as a first request is checked. A download is streamed to a file no answer size limit is exceeded by, the limit the plugin's manifest declares (16 MB when it declares none, 128 MB at most).
+
+- `head(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — Asks for the headers of an address with no body, for example its size or its last change, and returns the answer with an empty body. Since next.
+- `download(string $url, array $headers = [], int $timeoutSeconds = 60): HttpDownload` — Streams the answer to a file in the plugin's own folder and returns it. Since next.
 
 ### OutboundHttp
 
@@ -1009,7 +1137,7 @@ A plugin that reads another system's export file. Its manifest declares each rea
 
 An item as a reader hands it to core. Core converts its content and writes it through its own Operations, as the person who started the import; the reader writes nothing.
 
-- `__construct(string $kind, string $id, string $title = '', string $slug = '', string $status = 'published', ?string $publishedAt = null, ?string $modifiedAt = null, ?string $oldAddress = null, string $content = '', string $format = 'html', ?string $parentId = null, ?string $authorId = null, array $termIds = [], array $fields = [], ?string $postId = null, ?string $menuId = null, ?string $itemType = null, ?string $objectId = null, int $order = 0, string $excerpt = '', bool $sticky = false, ?string $featuredMediaId = null)`. Since 1.8.0.
+- `__construct(string $kind, string $id, string $title = '', string $slug = '', string $status = 'published', ?string $publishedAt = null, ?string $modifiedAt = null, ?string $oldAddress = null, string $content = '', string $format = 'html', ?string $parentId = null, ?string $authorId = null, array $termIds = [], array $fields = [], ?string $postId = null, ?string $menuId = null, ?string $itemType = null, ?string $objectId = null, int $order = 0, string $excerpt = '', bool $sticky = false, ?string $featuredMediaId = null, ?string $language = null, ?string $translationGroup = null)`. Since 1.8.0.
 
 ### ImportKind
 
@@ -1065,7 +1193,7 @@ A page of items. Cursors are opaque to core: it passes back what the reader gave
 
 The answer of a probe. Counts are keyed by ImportKind, and a kind the file doesn't hold is left out.
 
-- `__construct(string $system, ?string $version, ?string $siteAddress, array $languages, array $counts)`. Since 1.8.0.
+- `__construct(string $system, ?string $version, ?string $siteAddress, array $languages, array $counts, ?string $defaultLanguage = null)`. Since 1.8.0.
 
 ### ImportReader
 
@@ -1131,9 +1259,9 @@ One record a plugin receives from the WordPress site an import reads: plain valu
 
 `Teme\Contracts\Insertions\ArticleFacts`, class. Since 1.0.0.
 
-What a contributor learns about the article so it can decide which insertions to give: identity, type, terms, language, authors, size, and its path. Core skips contributors entirely when the item has opted out.
+What a contributor learns about the article so it can decide which insertions to give: identity, type, terms, language, authors, size, path, title, social fields and excerpt. Core skips contributors entirely when the item has opted out.
 
-- `__construct(string $contentId, string $type, array $termIdsByTaxonomy, string $language, array $authorIds, int $words, int $paragraphs, string $path = '')`. Since 1.0.0.
+- `__construct(string $contentId, string $type, array $termIdsByTaxonomy, string $language, array $authorIds, int $words, int $paragraphs, string $path = '', string $title = '', ?string $socialTitle = null, ?string $socialDescription = null, ?string $excerpt = null)`. Since 1.0.0.
 
 ### InlineScripts
 
@@ -1165,9 +1293,9 @@ Something that adds markup inside published articles at named points. Registered
 
 `Teme\Contracts\Insertions\InsertionsChanged`, interface. Since 1.0.0.
 
-Tells Teme that a plugin's insertion rules changed, so pages that drew insertions are purged after the Operation commits. Call it only inside an Operation's perform(); outside one it does nothing useful and may refuse.
+Tells Teme that a plugin's insertion rules changed, so pages that drew insertions are purged after the Operation commits. Call it inside an Operation's perform(), or from a job: a job's call purges, after its work commits, the pages of the content items it names, or else the whole site at most once a minute.
 
-- `notify(): void` — Notes that insertion rules changed, for the page cache to purge after commit. Since 1.0.0.
+- `notify(?array $contentIds = null): void` — Notes that insertion rules changed, for the page cache to purge after commit. Since 1.0.0.
 
 ### PageFacts
 
@@ -1206,17 +1334,23 @@ Where on a public page an insertion sits: the head, the start or end of the body
 - `EVERY_ITEMS`. Since 1.0.0.
 - `REGION`. Since 1.0.0.
 - `FIXED`. Since 1.0.0.
+- `REGION_START` — Inside a theme's region, before its content. Since next.
+- `REGION_END` — Inside a theme's region, after its content. Since next.
 - `LAST_ITEM` — The furthest item of a list afterItem() reaches. Since 1.0.0.
 - `EVERY_ITEMS_MAX` — The most times one everyItems insertion is drawn on a list; a larger ceiling is held to this. Since 1.0.0.
 - `EDGES` — The edges a fixed insertion may hold. Since 1.0.0.
 - `RAIL_WIDTHS` — The widths, in pixels, a side rail may take; the first when none is given. Since 1.0.0.
+- `SHOW_FROM_LEAST` — The narrowest and widest viewport, in pixels, a fixed insertion may show from (fixed()'s $minWidth). Since next.
+- `SHOW_FROM_MOST`. Since next.
 - `head(): self` — The end of the page's head: script sources, a few meta names, preconnect links and approved scripts only. Since 1.0.0.
 - `bodyStart(): self` — The start of the body, after the skip link, above the theme's header. Since 1.0.0.
 - `bodyEnd(): self` — The end of the body, before core's scripts. Since 1.0.0.
 - `afterItem(int $n): self` — After the $n-th item of a list, 1 to LAST_ITEM; never after its last. Since 1.0.0.
 - `everyItems(int $n, int $max = 3): self` — After every $n-th item of a list, at most $max times, and never more than EVERY_ITEMS_MAX. Since 1.0.0.
 - `region(string $slug, string $where = 'after'): self` — Before or after a region the active theme declares, also when the region is empty, on pages whose template draws it. Since 1.0.0.
-- `fixed(string $edge, int $width = 0): self` — Fixed to an edge of the screen: `bottom` or `top`, full width, or a `left` or `right` rail of a width in RAIL_WIDTHS, shown only where the screen has room beside the content. Since 1.0.0.
+- `regionStart(string $slug): self` — Inside a region the active theme declares, at its start, before its content. Since next.
+- `regionEnd(string $slug): self` — Inside a region the active theme declares, at its end, after its content. Since next.
+- `fixed(string $edge, int $width = 0, int $minWidth = 0): self` — Fixed to an edge of the screen: `bottom` or `top`, full width, or a `left` or `right` rail of a width in RAIL_WIDTHS, shown only where the screen has room beside the content. Since 1.0.0.
 
 ### Position
 
@@ -1251,7 +1385,17 @@ What a running job may read and report.
 - `payload(): array` — The payload that was queued with the job. Since 1.0.0.
 - `attempt(): int` — The attempt number, starting at 1. Since 1.0.0.
 - `progress(int $done, int $total, string $message = ''): void` — Reports progress. Since 1.0.0.
-- `personId(): string` — The account ID this run acts for: the person who queued it, or for a schedule the administrator who enabled the plugin. Since 1.0.0.
+- `personId(): string` — The account ID this run acts for: the person who queued it, the person an outer plugin job was acting for when this one was nested from it, or for a schedule the administrator who enabled the plugin. Since 1.0.0.
+- `summary(string $message): void` — Sets the closing line shown when the run finishes. Since next.
+- `permissions(): array` — The ids of this plugin's own permissions the person this run acts for holds, such as `manage-lines`; never another plugin's, and never a role. Since next.
+
+### JobFailed
+
+`Teme\Contracts\Jobs\JobFailed`, class. Since next.
+
+Thrown by a job handler to end the run for good, without another try.
+
+- `permanently(string $reason): self` — Ends this run as failed with this reason (first line, at most 200 characters, or "It failed." when blank), with no retry, whatever `tries` says. Since next.
 
 ### JobHandler
 
@@ -1297,15 +1441,17 @@ How to queue a plugin's job: after a delay, and once while one waits.
 
 `Teme\Contracts\Lists\Cell`, class. Since 1.0.0.
 
-One cell a list column returns for a row: plain text, a number, or a badge with a Status-pill tone. Core draws it; markup is never interpreted.
+One cell a list column returns for a row: plain text, a number, a badge with a Status-pill tone, or (in a plugin area table only) a link to an outside address. Core draws it; markup is never interpreted.
 
 - `TEXT`. Since 1.0.0.
 - `NUMBER`. Since 1.0.0.
 - `BADGE`. Since 1.0.0.
+- `LINK` — An outside address drawn only in a plugin area's table: https, new tab. Since next.
 - `TONES` — The tones a badge may take: the Status pill's. Since 1.0.0.
 - `text(string $text): self` — Plain text, never HTML. Since 1.0.0.
 - `number(int|float $number): self` — A finite number for a numeric column. Since 1.0.0.
 - `badge(string $label, string $tone = 'neutral'): self` — A badge label with one of the Status pill's tones. Since 1.0.0.
+- `link(string $text, string $href): self` — Link text and an outside address for an area table column. Since next.
 
 ### HasListColumns
 
@@ -1466,6 +1612,7 @@ Sends a notice of a declared kind. Core decides who receives it: the site's swit
 
 - `send(string $kind, array $accountIds, NoticeMessage $message): void` — To accounts, by ID; an account that can't receive it is passed over. Since 0.5.0.
 - `sendToAddress(string $kind, string $email, NoticeMessage $message): void` — To an email address with no account behind it, for a required kind only. Since 0.5.0.
+- `sendToAudience(string $kind, NoticeMessage $message): void` — To everyone in the kind's audience: holders of its ability (such as plugins.manage), without the sender listing account IDs. Since next.
 
 ## Teme\Contracts\Operations
 
@@ -1503,6 +1650,22 @@ Names the people who write on the site, for a plugin granted people.read: each o
 
 - `writers(?string $after = null, int $limit = 100): PersonPage` — The active people who may write content, one page at a time. Since 1.0.0.
 
+### PersonInvited
+
+`Teme\Contracts\People\PersonInvited`, class. Since next.
+
+Someone was invited to the site: a new account waits for them to choose a password. Carries their account ID and display name only, never a role or email. Sent after the invitation is saved. Needs people.read.
+
+A hook: its parameters are in the [hooks reference](hooks.md#personinvited).
+
+### PersonJoined
+
+`Teme\Contracts\People\PersonJoined`, class. Since next.
+
+An invited person joined the site by choosing their password. Carries their account ID and display name only, never a role or email. Sent after they join. Needs people.read.
+
+A hook: its parameters are in the [hooks reference](hooks.md#personjoined).
+
 ### PersonPage
 
 `Teme\Contracts\People\PersonPage`, class. Since 1.0.0.
@@ -1525,7 +1688,7 @@ One person as a plugin may know them: their account ID and display name.
 
 `Teme\Contracts\Plugins\Capability`, enum. Since 1.0.0`)..
 
-What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0). DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as Teme verified it, and ContentSubmissions the Submissions door, which keeps what a visitor sends from a public form as an item waiting for review (1.3.0). Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects.
+What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (1.0.0). PeopleRead opens the door that names the site's people: who writes, who is invited, who joins; never an email or a role. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws. PagesHead lets the plugin add `<meta>` tags and structured data to public pages' heads, and Sitemaps its own sitemaps to the site's sitemap index, those its manifest declares (1.1.0). DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as Teme verified it, and ContentSubmissions the Submissions door, which keeps what a visitor sends from a public form as an item waiting for review (1.3.0). SecurityLog opens the SecurityLines door, which writes lines of the kinds the plugin declares under `contributes.securityLog` into core's security log (next). Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects. TermsWrite opens the TermWriter door, to create, update, list and remove terms of the taxonomies the plugin owns. SiteScripts lets the plugin's built scripts, those its manifest declares under contributes.scripts, run in visitors' browsers on the public pages that draw its output (@since next).
 
 - case `ContentRead`. Since 0.5.0.
 - case `ContentWrite`. Since 1.0.0.
@@ -1552,6 +1715,9 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `CommentsCheck`. Since 1.8.0.
 - case `SearchRead`. Since 1.8.0.
 - case `ImportRead`. Since 1.8.0.
+- case `SecurityLog`. Since next.
+- case `TermsWrite`. Since next.
+- case `SiteScripts`. Since next.
 
 ### Plugin
 
@@ -1730,7 +1896,27 @@ Finds published content for a reader's query. Core's implementation uses Postgre
 
 - `search(SearchRequest $request): SearchHits` — The page of hits for the request, most relevant first. Since 0.1.0.
 
+## Teme\Contracts\Security
+
+### SecurityLines
+
+`Teme\Contracts\Security\SecurityLines`, interface. Since next.
+
+Writes a line into the security log under the plugin's name, of a kind the plugin declares under `contributes.securityLog` and with security.log granted. A line may name the person it is about by account ID, so it reaches that person's data export, and may carry an IP address. Lines are rate-limited per plugin; a refused line is not written, and the result says so.
+
+- `write(string $kind, string $text, string|int|null $userId = null, ?string $address = null): bool` — Writes one line, and returns false when the plugin has used up its lines for the hour. Since next.
+
 ## Teme\Contracts\Settings
+
+### PluginSecretStore
+
+`Teme\Contracts\Settings\PluginSecretStore`, interface. Since next.
+
+Keeps up to 100 free-named secrets of up to 4 KB each, encrypted at rest in the plugin's settings group, for the person its work runs for. Only a plugin that declares a secret setting is given it. A key is a lower-case name of 2 to 64 characters, starting with a letter, with letters, digits and underscores; a value is never shown back to a person, only read by the plugin.
+
+- `get(string $key): ?string` — The value kept under the key, or null when none is kept. Since next.
+- `put(string $key, string $value, string $actingPersonId): void` — Keeps the value under the key, replacing any value already there. Since next.
+- `forget(string $key, string $actingPersonId): void` — Removes the key and its value; a key not kept is a no-op. Since next.
 
 ### PluginSettingsWriter
 
@@ -1773,7 +1959,7 @@ One setting's declaration: its type, its default, its constraints and the docume
 - `person(string $key, string $label, string $description, string $since): self` — Someone with an account, stored as their ID in digits, or `''` when nobody is chosen. Since 0.1.0.
 - `hours(string $key, string $label, string $description, string $since): self` — A week of opening hours, saying nothing by default. Since 0.1.0.
 - `term(string $key, string $label, string $description, string $since, string $taxonomy, bool $multiple = false): self` — Terms of one taxonomy, stored as their slugs: one slug, or `''` when none is chosen; with $multiple, a list of slugs, empty by default. Since 1.0.0.
-- `contentType(string $key, string $label, string $description, string $since): self` — One of the site's content types with public addresses, stored as its key, or `''` when none is chosen. Since 1.0.0.
+- `contentType(string $key, string $label, string $description, string $since, bool $multiple = false): self` — One of the site's content types with public addresses, stored as its key, or `''` when none is chosen. Since 1.0.0.
 - `code(string $key, string $label, string $description, string $since): self` — Markup, such as an ad network's snippet, in a plain monospace box, never run or drawn on the settings page; at most 65,535 characters. Since 1.0.0.
 - `repeater(string $key, string $label, string $description, string $since, array $fields): self` — A list of items of one shape, stored as a JSON list of objects keyed by field, empty by default. Since 1.0.0.
 - `itemTitle(string $key): self` — The field of a repeater whose value titles a collapsed item. Since 1.0.0.
@@ -1863,13 +2049,14 @@ Where settings groups are declared.
 
 `Teme\Contracts\Site\SiteInfo`, interface. Since 1.0.0.
 
-The site's public facts, offered to every plugin with no capability: its address, name, language, home page and main feeds, the same in a request, a queued job and the console.
+The site's public facts, offered to every plugin with no capability: its address, name, language, home page, main feeds and time zone, the same in a request, a queued job and the console.
 
 - `address(): string` — The site's address, absolute, with no trailing slash. Since 1.0.0.
 - `name(): string` — The site's name (Settings › General). Since 1.0.0.
 - `language(): string` — The site's default language as a BCP 47 tag. Since 1.0.0.
 - `home(): string` — The home page's address, absolute. Since 1.0.0.
 - `feeds(): array` — The main feed's address for each site language, absolute, the default language's first. Since 1.0.0.
+- `timeZone(): string` — The site's time zone (Settings › General), an IANA name such as Africa/Lagos. Since next.
 
 ## Teme\Contracts\Sitemaps
 
@@ -2033,6 +2220,17 @@ A category or tag as a hook tells of it: plain values, never the term itself.
 A category or tag was renamed, or its slug, parent or description changed. Sent after the change is saved. An import run does not send it yet.
 
 A hook: its parameters are in the [hooks reference](hooks.md#termupdated).
+
+### TermWriter
+
+`Teme\Contracts\Taxonomy\TermWriter`, interface. Since next.
+
+A plugin's door for terms of the taxonomies it owns (those its types file brought), offered when it was granted terms.write. It creates, updates, lists and removes terms of those taxonomies only. Core's and the site's own taxonomies, and another plugin's, stay out of reach. It never makes or changes a translation of a term. Each write goes through as the site.
+
+- `create(string $taxonomy, string $name, ?string $slug = null, ?string $parentId = null, ?string $description = null): TermRef` — Creates a term in one of this plugin's taxonomies, and returns it. Since next.
+- `update(string $termId, string $name, ?string $slug = null, ?string $parentId = null, ?string $description = null): TermRef` — Updates a term this plugin's taxonomies hold, and returns it. Since next.
+- `remove(string $termId): void` — Removes a term of this plugin's taxonomies when nothing uses it and it has no children. Since next.
+- `list(string $taxonomy): array` — The terms of one of this plugin's taxonomies, oldest first. Since next.
 
 ## Teme\Contracts\Themes
 

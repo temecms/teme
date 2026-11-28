@@ -94,6 +94,13 @@ it('hands a plugin nothing that writes, registers or changes a setting', functio
         );
         $promised = array_map(fn (ReflectionMethod $method): string => $method->getName(), (new ReflectionClass($contract))->getMethods());
 
+        // A door may implement more than one contract, such as OutboundHttp and OutboundDownloads: each one's methods are promised.
+        foreach (class_implements($service) ?: [] as $implemented) {
+            if (str_starts_with($implemented, 'Teme\\Contracts\\')) {
+                $promised = [...$promised, ...array_map(fn (ReflectionMethod $method): string => $method->getName(), (new ReflectionClass($implemented))->getMethods())];
+            }
+        }
+
         // The only extras are statics that write nothing: the reader's cache key's name, the door's curl options.
         $statics = [SettingsReader::class => ['cacheKey'], OutboundHttp::class => ['transport']];
 

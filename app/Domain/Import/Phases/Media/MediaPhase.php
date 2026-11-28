@@ -35,6 +35,7 @@ use App\Domain\Import\Phases\RunsInMediaPass;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Phases\Terms\WordPressText;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Uploads\SourceUploads;
 use App\Domain\Media\Downloads\DownloadedFile;
 use App\Domain\Media\Downloads\DownloadRefused;
 use App\Domain\Media\Downloads\FileDownloader;
@@ -73,6 +74,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         private FileDownloader $downloader,
         private FileInspector $inspector,
         private SettingsReader $settings,
+        private SourceUploads $uploads,
     ) {}
 
     public function key(): string
@@ -172,7 +174,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
             }
         }
 
-        return $this->download($item, $wanted);
+        return $this->download($item, $wanted, $context);
     }
 
     public function import(SourceRef $ref, array $item, ImportContext $context, ?PreparedObject $prepared): ImportResult
@@ -228,7 +230,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
             : ImportResult::updated('media', $stored['mediaId'])->withWarning(self::duplicate());
 
         return self::warned($result, [$this->recordFiles($ref, $item, $stored['mediaId'], $context)])
-            ->withFacts([...self::facts($item), 'written' => $stored['written'], 'duplicate' => ! $stored['created']]);
+            ->withFacts([...self::facts($item), 'written' => $stored['written'], 'duplicate' => ! $stored['created'], 'picture_from' => self::source($prepared)]);
     }
 
     /**
@@ -293,7 +295,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         }
 
         return self::warned(ImportResult::updated('media', $mediaId), $said)
-            ->withFacts([...self::facts($item), 'written' => $update['written'], 'duplicate' => false]);
+            ->withFacts([...self::facts($item), 'written' => $update['written'], 'duplicate' => false, 'picture_from' => self::source($prepared)]);
     }
 
     /**
@@ -305,8 +307,15 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      *
      * @throws ImportFailed when trying again later may bring it
      */
-    private function download(array $item, string $wanted): PreparedMedia
+    private function download(array $item, string $wanted, ImportContext $context): PreparedMedia
     {
+        // Every candidate in the uploads copy is tried before the site is asked for anything.
+        $copied = $this->fromCopy($item, $wanted, $context);
+
+        if ($copied !== null) {
+            return PreparedMedia::file($copied, [], true);
+        }
+
         $started = (int) hrtime(true);
 
         try {
@@ -318,8 +327,96 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
                 return self::refusal($refused);
             }
 
-            return $this->fallback($main, rtrim(self::reason($refused), '.'), $started);
+            return $this->fallback($main, rtrim(self::reason($refused), '.'), $started, $context);
         }
+    }
+
+    /**
+     * The attachment's picture from the site's uploads copy, judged as the media
+     * library will judge it: its original first, then its main file, each by the
+     * path its own file names, whatever host serves it; null when the copy lacks
+     * both, or holds neither as a picture Teme will take.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function fromCopy(array $item, string $wanted, ImportContext $context): ?DownloadedFile
+    {
+        $maxBytes = $this->settings->int('media', 'max_upload_mb') * 1024 * 1024;
+        $paths = self::copyPaths($item);
+
+        if ($paths === []) {
+            // No file of its own: the copy answers only for an address on the site.
+            $copied = $this->uploads->download($context->sourceId, $wanted, $maxBytes);
+
+            return $this->judged($copied);
+        }
+
+        foreach ($paths as $relative) {
+            $copied = $this->uploads->downloadFile($context->sourceId, $relative, $wanted, $maxBytes);
+            $judged = $this->judged($copied);
+
+            if ($judged !== null) {
+                return $judged;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * A copied file that Teme will take, counted for the report; null when it
+     * won't do, its file released.
+     */
+    private function judged(?DownloadedFile $copied): ?DownloadedFile
+    {
+        if ($copied === null) {
+            return null;
+        }
+
+        try {
+            $this->judge($copied);
+        } catch (ValidationException) {
+            return null;
+        }
+
+        return $copied;
+    }
+
+    /**
+     * Where a stored picture's file came from, for the run's counts: the site's uploads copy, or the old site.
+     */
+    private static function source(PreparedMedia $prepared): string
+    {
+        return $prepared->fromCopy ? 'copy' : 'site';
+    }
+
+    /**
+     * The paths under the uploads folder an attachment's files are named by: its
+     * original's, then its main file's. Empty for an attachment with no file.
+     *
+     * @param  array<string, mixed>  $item
+     *
+     * @return list<string>
+     */
+    private static function copyPaths(array $item): array
+    {
+        $main = WordPressFiles::relative((string) ($item['file'] ?? ''));
+
+        if ($main === null) {
+            return [];
+        }
+
+        $metadata = is_array($item['metadata'] ?? null) ? $item['metadata'] : [];
+        $paths = [];
+
+        if (is_string($metadata['original_image'] ?? null) && $metadata['original_image'] !== '') {
+            $folder = str_contains($main, '/') ? substr($main, 0, (int) strrpos($main, '/') + 1) : '';
+            $paths[] = $folder.basename($metadata['original_image']);
+        }
+
+        $paths[] = $main;
+
+        return array_values(array_unique($paths));
     }
 
     /**
@@ -328,7 +425,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      *
      * @throws ImportFailed when trying again later may bring it
      */
-    private function fallback(string $main, string $why, int $started): PreparedMedia
+    private function fallback(string $main, string $why, int $started, ImportContext $context): PreparedMedia
     {
         $left = self::ITEM_SECONDS - intdiv((int) hrtime(true) - $started, 1_000_000_000);
 
@@ -351,7 +448,18 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
     private function fetch(string $address, int $seconds): DownloadedFile
     {
         $file = $this->downloader->download($address, seconds: $seconds);
+        $this->judge($file);
 
+        return $file;
+    }
+
+    /**
+     * Judges a downloaded file as the media library will: its type, its size and its pixels, from its bytes. Releases it and throws when it won't do.
+     *
+     * @throws ValidationException
+     */
+    private function judge(DownloadedFile $file): void
+    {
         try {
             $this->inspector->inspect(
                 $file->path,
@@ -364,8 +472,6 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
 
             throw $refused;
         }
-
-        return $file;
     }
 
     /**

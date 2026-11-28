@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Contents\Exceptions\StaleRevisionException;
 use App\Domain\Contents\Operations\Input\SaveDraftInput;
 use App\Domain\Contents\Operations\SaveDraft;
+use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\RunEditorPanelActionInput;
@@ -73,6 +74,10 @@ it('queues the action’s job as the person, with the item, the revision and the
             'revisionId' => $this->post->working_revision_id,
             'values' => ['focus' => 'pruning', 'fresh' => null, 'most' => 5, 'reach' => 'all'],
         ]);
+
+    // A panel action is a person's own click, so its closing line reaches their inbox.
+    Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $pushed): bool => $pushed->actor->userId === (string) $this->editor->id
+        && $pushed->notifyOnFinish === true);
 });
 
 it('makes a unique key that fits, lower case, however long the ids', function (): void {

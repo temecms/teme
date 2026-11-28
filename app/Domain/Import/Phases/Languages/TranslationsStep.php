@@ -63,15 +63,11 @@ final readonly class TranslationsStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
-        // An export file has none of this (docs/architecture/import.md).
-        if ($context->readsFile()) {
-            return StepResult::done();
-        }
-
         if ($cursor === null) {
             app(ClearRunMessages::class)->execute(new ClearRunMessagesInput($context->runId, 'translations.', $context->actorId()));
         }
 
+        // A WordPress export file, and a reader file with no languages, has nothing to link.
         if (! $this->imported->for($context->sourceId)->active) {
             return StepResult::done();
         }
@@ -156,12 +152,33 @@ final readonly class TranslationsStep implements StepPhase
             ->orderBy('id')
             ->cursor();
 
-        $maps = (function () use ($rows): iterable {
+        $maps = (function () use ($rows, $sourceId, $kind, $own): iterable {
             foreach ($rows as $row) {
                 $translations = json_decode((string) $row->translations, true);
 
                 if (is_array($translations) && $row->own !== null) {
                     yield ['id' => (string) $row->own, 'translations' => array_filter($translations, fn (mixed $id): bool => is_int($id) || (is_string($id) && ctype_digit($id)))];
+                }
+            }
+
+            // A reader's opaque translation group: every map row that shares the word is one group.
+            $grouped = [];
+
+            foreach (DB::table('import_map')
+                ->where('source_id', $sourceId)
+                ->where('object_type', self::KINDS[$kind])
+                ->whereRaw("nullif(facts ->> 'translation_group', '') is not null")
+                ->selectRaw("{$own} AS own, facts ->> 'translation_group' AS grp")
+                ->orderBy('id')
+                ->cursor() as $row) {
+                if ($row->own !== null && is_string($row->grp) && $row->grp !== '') {
+                    $grouped[$row->grp][] = (string) $row->own;
+                }
+            }
+
+            foreach ($grouped as $members) {
+                if (count($members) > 1) {
+                    yield ['id' => $members[0], 'translations' => array_slice($members, 1)];
                 }
             }
         })();

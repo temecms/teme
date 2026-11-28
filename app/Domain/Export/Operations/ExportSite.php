@@ -37,6 +37,7 @@ use App\Domain\Types\TypesFile;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
@@ -113,11 +114,23 @@ final class ExportSite extends BaseOperation
                         $file = $folder->ndjson($kind);
 
                         // Its own savepoint: a failed statement in the plugin's code can't abort the export's transaction.
-                        DB::transaction(function () use ($kind, $context, $file): void {
-                            foreach ($kind->lines($context) as $line) {
-                                $file->write($line);
-                            }
-                        });
+                        // A failure from the write itself, or at the savepoint's commit, ends the export and names the file.
+                        try {
+                            DB::transaction(function () use ($kind, $context, $file): void {
+                                foreach ($kind->lines($context) as $line) {
+                                    $file->write($line);
+                                }
+
+                                // Touches the connection after the plugin's lines so a
+                                // swallowed statement failure still aborts this savepoint
+                                // and is reported as the export's fault with the file named.
+                                DB::select('select 1');
+                            });
+                        } catch (PluginKindFailed $failure) {
+                            throw $failure;
+                        } catch (Throwable $failed) {
+                            throw new RuntimeException('Teme couldn’t write '.$kind->name().'.ndjson.', 0, $failed);
+                        }
 
                         $files[] = $file->close();
                         $pluginKinds[] = $kind->toManifest();

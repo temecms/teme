@@ -492,6 +492,22 @@
                 }
             }
         },
+        "plugin_scripts": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Plugin scripts the theme switches off, so it does without them on that output.",
+            "properties": {
+                "off": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "description": "Each script as its plugin's code and output: code:card:<id> or code:insertion:<id>.",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]*:(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$"
+                    }
+                }
+            }
+        },
         "plugin_styles": {
             "type": "object",
             "additionalProperties": false,

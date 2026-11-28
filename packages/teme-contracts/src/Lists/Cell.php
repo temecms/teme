@@ -1,8 +1,9 @@
 <?php
 
 /**
- * One cell a list column returns for a row: plain text, a number, or a badge
- * with a Status-pill tone.
+ * One cell a list column returns for a row: plain text, a number, a badge
+ * with a Status-pill tone, or (in a plugin area table only) a link to an
+ * outside address.
  *
  * @package Teme
  * @since   1.0.0
@@ -16,8 +17,9 @@ namespace Teme\Contracts\Lists;
 use InvalidArgumentException;
 
 /**
- * One cell a list column returns for a row: plain text, a number, or a
- * badge with a Status-pill tone. Core draws it; markup is never interpreted.
+ * One cell a list column returns for a row: plain text, a number, a badge
+ * with a Status-pill tone, or (in a plugin area table only) a link to an
+ * outside address. Core draws it; markup is never interpreted.
  *
  * @since 1.0.0
  */
@@ -33,6 +35,13 @@ final readonly class Cell
     public const string BADGE = 'badge';
 
     /**
+     * An outside address drawn only in a plugin area's table: https, new tab.
+     *
+     * @since next
+     */
+    public const string LINK = 'link';
+
+    /**
      * The tones a badge may take: the Status pill's.
      *
      * @since 1.0.0
@@ -40,12 +49,16 @@ final readonly class Cell
     public const array TONES = ['ok', 'neutral', 'info', 'warn', 'danger'];
 
     /**
+     * @param  string|null  $href  the link's address when kind is link; null otherwise
+     *
      * @since 1.0.0
      */
     private function __construct(
         public string $kind,
         public string|int|float $value,
         public ?string $tone,
+        /** @since next */
+        public ?string $href = null,
     ) {}
 
     /**
@@ -92,5 +105,23 @@ final readonly class Cell
         }
 
         return new self(self::BADGE, $label, $tone);
+    }
+
+    /**
+     * Link text and an outside address for an area table column. Core draws
+     * only a safe https address with no user or password; anything else
+     * shows as no link.
+     *
+     * @throws InvalidArgumentException for empty text
+     *
+     * @since next
+     */
+    public static function link(string $text, string $href): self
+    {
+        if ($text === '') {
+            throw new InvalidArgumentException('A list cell link needs text.');
+        }
+
+        return new self(self::LINK, $text, null, $href);
     }
 }
