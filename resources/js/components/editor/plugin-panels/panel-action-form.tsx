@@ -162,7 +162,7 @@ export function PanelActionForm({
                 }
             }}
         >
-            {savedAt === null && action.fields.length > 0 && (
+            {savedAt === null && Object.keys(saved).length > 0 && action.fields.length > 0 && (
                 <p className="text-ink-2 text-small">
                     {__(':plugin has no saved message for this article yet.', {
                         plugin: panel.plugin,
