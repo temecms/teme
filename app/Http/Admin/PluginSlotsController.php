@@ -6,7 +6,7 @@
  * provider slot, or none. Each change goes through ChooseSlotProvider.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

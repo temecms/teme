@@ -151,7 +151,7 @@ final readonly class Manifest
      * The theme's default site icon, relative to its public folder, or ''
      * when it declares none. The design setting wins over this (issue 388).
      *
-     * @since next
+     * @since 1.8.0
      */
     public function siteIcon(): string
     {
@@ -316,7 +316,7 @@ final readonly class Manifest
      *
      * @return array<string, string>
      *
-     * @since next
+     * @since 1.8.0
      */
     public function customTokens(): array
     {
@@ -329,7 +329,7 @@ final readonly class Manifest
      *
      * @return array<string, string>
      *
-     * @since next
+     * @since 1.8.0
      */
     public function customTokensDark(): array
     {
@@ -343,7 +343,7 @@ final readonly class Manifest
      *
      * @return array<string, array{label: string, tokens: array<string, string>|null, tokens_dark: array<string, string>|null, custom_tokens: array<string, string>|null, fonts: string|null}>
      *
-     * @since next
+     * @since 1.8.0
      */
     public function styles(): array
     {

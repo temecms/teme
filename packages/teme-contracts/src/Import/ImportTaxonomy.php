@@ -5,7 +5,7 @@
  * and tags, or a plugin's own taxonomy by its key as Teme has it.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -16,14 +16,14 @@ namespace Teme\Contracts\Import;
 /**
  * The taxonomy words a reader may give a term.
  *
- * @since next
+ * @since 1.8.0
  */
 final class ImportTaxonomy
 {
-    /** @since next */
+    /** @since 1.8.0 */
     public const string CATEGORY = 'category';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string TAG = 'tag';
 
     /**
@@ -34,7 +34,7 @@ final class ImportTaxonomy
      * import checks when it reads the file. The taxonomies Teme keeps for itself, such as `nav_menu`
      * and `language`, are refused even when registered.
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function valid(string $taxonomy): bool
     {

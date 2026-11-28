@@ -7,7 +7,7 @@
  * wrapped in the teme.plugins cascade layer, with a hash of its content as its version.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

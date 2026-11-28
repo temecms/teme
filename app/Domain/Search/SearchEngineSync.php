@@ -8,7 +8,7 @@
  * the next change, which search can tolerate.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

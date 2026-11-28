@@ -5,7 +5,7 @@
  * after, or null when the list ends.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -17,14 +17,14 @@ namespace Teme\Contracts\Import;
  * A page of items. Cursors are opaque to core: it passes back what the
  * reader gave it and nothing else.
  *
- * @since next
+ * @since 1.8.0
  */
 final readonly class ImportPage
 {
     /**
      * @param  list<ImportItem>  $items
      *
-     * @since next
+     * @since 1.8.0
      */
     public function __construct(
         public array $items,

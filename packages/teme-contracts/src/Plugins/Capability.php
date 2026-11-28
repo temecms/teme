@@ -110,12 +110,12 @@ enum Capability: string
     /** @since 1.7.0 */
     case Redirects = 'redirects';
 
-    /** @since next */
+    /** @since 1.8.0 */
     case CommentsCheck = 'comments.check';
 
-    /** @since next */
+    /** @since 1.8.0 */
     case SearchRead = 'search.read';
 
-    /** @since next */
+    /** @since 1.8.0 */
     case ImportRead = 'import.read';
 }

@@ -7,7 +7,7 @@
  * declaration is refused at enable rather than linked on a page.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

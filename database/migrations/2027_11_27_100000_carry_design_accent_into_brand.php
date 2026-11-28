@@ -5,7 +5,7 @@
  * site's identity colour is no longer the theme accent override.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

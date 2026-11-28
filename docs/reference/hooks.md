@@ -54,7 +54,7 @@ An item is about to be saved: a new draft, a saved draft or a publish. It is ask
 - **Class:** `Teme\Contracts\Content\BeforeSave`
 - **Verb:** Gate
 - **Capability:** `content.read`
-- **Since:** next
+- **Since:** 1.8.0
 
 | Parameter | Description |
 |---|---|

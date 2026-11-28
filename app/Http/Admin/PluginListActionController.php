@@ -6,7 +6,7 @@
  * queues the job as the person. It answers with a toast and changes nothing itself.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

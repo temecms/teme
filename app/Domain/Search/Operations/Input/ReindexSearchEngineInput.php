@@ -5,7 +5,7 @@
  * actor is the operator at the server's shell.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

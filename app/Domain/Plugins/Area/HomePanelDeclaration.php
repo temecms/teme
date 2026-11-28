@@ -6,7 +6,7 @@
  * that fill it (docs/guides/developers/plugins/home-panels.md).
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -35,7 +35,7 @@ final readonly class HomePanelDeclaration
      * The registry entry for this panel: owned by its plugin, kind plugin, and
      * with no query, because its blocks are read by the Home screen itself.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function panel(): DashboardPanel
     {

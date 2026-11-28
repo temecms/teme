@@ -5,7 +5,7 @@
  * icons from the design site_icon (issue 388).
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

@@ -74,13 +74,13 @@ final class AreaValidator
     /** The most sections a plugin's settings page splits into. */
     public const int MOST_SETTINGS_SECTIONS = 8;
 
-    /** The most panels a plugin adds to Home. @since next */
+    /** The most panels a plugin adds to Home. @since 1.8.0 */
     public const int MOST_HOME_PANELS = 3;
 
-    /** The most blocks one Home panel shows. @since next */
+    /** The most blocks one Home panel shows. @since 1.8.0 */
     public const int MOST_HOME_BLOCKS = 4;
 
-    /** The kinds of block a Home panel may show: a table as its first rows, read only. @since next */
+    /** The kinds of block a Home panel may show: a table as its first rows, read only. @since 1.8.0 */
     public const array HOME_BLOCKS = ['figures', 'chart', 'table', 'notice'];
 
     /**

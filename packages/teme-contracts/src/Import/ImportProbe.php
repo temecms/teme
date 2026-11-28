@@ -5,7 +5,7 @@
  * from, its version, its languages and how many items of each kind.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -17,7 +17,7 @@ namespace Teme\Contracts\Import;
  * The answer of a probe. Counts are keyed by ImportKind, and a kind the
  * file doesn't hold is left out.
  *
- * @since next
+ * @since 1.8.0
  */
 final readonly class ImportProbe
 {
@@ -25,7 +25,7 @@ final readonly class ImportProbe
      * @param  list<string>  $languages  the languages the site's content is in, as BCP 47 tags
      * @param  array<string, int>  $counts  how many items of each kind the file holds
      *
-     * @since next
+     * @since 1.8.0
      */
     public function __construct(
         public string $system,

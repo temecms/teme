@@ -7,7 +7,7 @@
  * contract yet can't be filled by a plugin.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

@@ -5,7 +5,7 @@
  * kind key, its label, its file types and the plugin that hands it over.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -20,7 +20,7 @@ use App\Domain\Plugins\Seo\SeoPlugin;
  * key is what an import source and an upload store, `reader:` and the
  * plugin's code and the reader's ID.
  *
- * @since next
+ * @since 1.8.0
  */
 final readonly class ImportReaderOffer
 {
@@ -30,7 +30,7 @@ final readonly class ImportReaderOffer
     /**
      * @param  list<string>  $fileTypes  the extensions it reads, without the dot
      *
-     * @since next
+     * @since 1.8.0
      */
     public function __construct(
         public string $readerId,
@@ -42,7 +42,7 @@ final readonly class ImportReaderOffer
     /**
      * The key this reader is stored under: `reader:` and the plugin's code and the reader's ID.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function key(): string
     {

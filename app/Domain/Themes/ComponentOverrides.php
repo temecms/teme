@@ -8,7 +8,7 @@
  * (docs/guides/developers/themes/components.md).
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

@@ -7,7 +7,7 @@
  * set, seeded with landmark ids core and the default theme already write.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

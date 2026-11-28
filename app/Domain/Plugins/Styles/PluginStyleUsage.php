@@ -7,7 +7,7 @@
  * to a request, and start() empties it for each page.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

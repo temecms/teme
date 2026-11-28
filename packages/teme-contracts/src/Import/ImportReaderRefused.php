@@ -5,7 +5,7 @@
  * sentence the person sees in plain words.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -20,14 +20,14 @@ use RuntimeException;
  * system's export or one cut short. Core stops the import and shows the
  * sentence.
  *
- * @since next
+ * @since 1.8.0
  */
 final class ImportReaderRefused extends RuntimeException
 {
     /**
      * A refusal with the sentence the person sees.
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function because(string $sentence): self
     {

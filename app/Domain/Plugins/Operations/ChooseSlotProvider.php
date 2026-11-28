@@ -9,7 +9,7 @@
  * drew the slot's output are purged after commit. Returns the slot.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

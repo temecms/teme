@@ -6,7 +6,7 @@
  * only reads; core does every write, as the person who started the import.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -19,7 +19,7 @@ namespace Teme\Contracts\Import;
  * own path; a reader only reads it, and never writes to it or to the site,
  * nor fetches anything from the network to answer a call.
  *
- * @since next
+ * @since 1.8.0
  */
 interface ImportReader
 {
@@ -28,7 +28,7 @@ interface ImportReader
      *
      * @throws ImportReaderRefused when the file isn't one this reader reads
      *
-     * @since next
+     * @since 1.8.0
      */
     public function probe(string $path): ImportProbe;
 
@@ -39,7 +39,7 @@ interface ImportReader
      *
      * @throws ImportReaderRefused when the file can't be read from there
      *
-     * @since next
+     * @since 1.8.0
      */
     public function page(string $path, ?string $cursor, int $limit): ImportPage;
 
@@ -48,7 +48,7 @@ interface ImportReader
      *
      * @throws ImportReaderRefused when the file holds no such item
      *
-     * @since next
+     * @since 1.8.0
      */
     public function fetch(string $path, string $id): ImportItem;
 }

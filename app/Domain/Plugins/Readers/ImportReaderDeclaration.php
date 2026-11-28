@@ -7,7 +7,7 @@
  * starting plugin must hand over for them.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -24,7 +24,7 @@ use Teme\Contracts\Plugins\Capability;
  * declaration reads its own: the validator refuses a malformed declaration
  * first, so a reader read from a manifest is well formed.
  *
- * @since next
+ * @since 1.8.0
  */
 final class ImportReaderDeclaration
 {
@@ -42,7 +42,7 @@ final class ImportReaderDeclaration
      *
      * @return list<array{id: string, label: string, fileTypes: list<string>}>
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function of(Manifest $manifest): array
     {
@@ -75,7 +75,7 @@ final class ImportReaderDeclaration
      *
      * @return list<string>
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function errors(array $contributes, ?array $capabilities): array
     {
@@ -144,7 +144,7 @@ final class ImportReaderDeclaration
      *
      * @return list<string>
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function startErrors(array $contributes, object $plugin): array
     {

@@ -5,7 +5,7 @@
  * the extension of a file someone uploads.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -24,7 +24,7 @@ use Teme\Contracts\Plugins\Capability;
  * import.read. A reader whose plugin has been turned off is not offered, so
  * a source or file it held is left without a reader, not read by a stale one.
  *
- * @since next
+ * @since 1.8.0
  */
 final class ImportReaders
 {
@@ -35,7 +35,7 @@ final class ImportReaders
      *
      * @return list<ImportReaderOffer>
      *
-     * @since next
+     * @since 1.8.0
      */
     public function all(): array
     {
@@ -57,7 +57,7 @@ final class ImportReaders
     /**
      * The offer stored under a key, or null when its plugin is off or the key names no reader.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function find(string $key): ?ImportReaderOffer
     {
@@ -73,7 +73,7 @@ final class ImportReaders
     /**
      * The first offer whose file types include the file name's extension, or null for none.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function forFileName(string $name): ?ImportReaderOffer
     {
@@ -91,7 +91,7 @@ final class ImportReaders
     /**
      * The reader the offer's plugin hands over for its ID.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function reader(ImportReaderOffer $offer): ImportReader
     {

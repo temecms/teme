@@ -5,7 +5,7 @@
  * hands over the reader for each reader ID it declares.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -18,14 +18,14 @@ namespace Teme\Contracts\Import;
  * each reader by ID (contributes.importReaders), and this method hands over
  * the reader for an ID.
  *
- * @since next
+ * @since 1.8.0
  */
 interface HasImportReader
 {
     /**
      * The reader for one of the IDs the manifest declares.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function importReader(string $readerId): ImportReader;
 }

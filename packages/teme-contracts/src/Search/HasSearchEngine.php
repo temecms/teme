@@ -6,7 +6,7 @@
  * (docs/guides/developers/plugins/search-engine.md).
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -19,21 +19,21 @@ namespace Teme\Contracts\Search;
  * re-checks each one's visibility before showing it, so an outside index that
  * holds a draft never shows it.
  *
- * @since next
+ * @since 1.8.0
  */
 interface HasSearchEngine
 {
     /**
      * The engine that answers the site's searches.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function engine(): SiteSearch;
 
     /**
      * Where the engine keeps the published items, kept in step by core.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function indexer(): SearchIndex;
 }

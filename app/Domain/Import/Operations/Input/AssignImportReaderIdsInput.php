@@ -5,7 +5,7 @@
  * items it read as their kind and source ID, and who reads them (null for the operator).
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

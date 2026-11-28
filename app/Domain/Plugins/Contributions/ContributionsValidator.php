@@ -119,14 +119,14 @@ final class ContributionsValidator implements ContributionsCheck
     /**
      * At most this many list actions per plugin.
      *
-     * @since next
+     * @since 1.8.0
      */
     public const int MOST_LIST_ACTIONS = 3;
 
     /**
      * At most this many of a plugin's list actions offered on each row.
      *
-     * @since next
+     * @since 1.8.0
      */
     public const int MOST_ROW_ACTIONS = 2;
 
