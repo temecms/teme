@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use App\Domain\Plugins\Area\AreaContexts;
+use App\Domain\Plugins\Area\AreaPeriods;
 use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\LoadedPlugins;
@@ -108,10 +109,31 @@ it('hands the chosen period’s dates to figures and charts', function (): void 
     $figures = $screen->data($plugin, 'overview', 'totals', (string) $this->editor->id, [], AreaPeriod::LAST_7_DAYS);
     $chart = $screen->data($plugin, 'overview', 'daily', (string) $this->editor->id, [], AreaPeriod::LAST_7_DAYS);
 
-    expect($figures['items'][0]['label'] ?? null)->toBe('Impressions, last 7 days')
+    expect($figures['items'][0]['label'] ?? null)->toBe('Impressions')
         ->and($figures['items'][0]['change'] ?? null)->toBe(0.25)
         ->and($chart['series'][0]['dashed'] ?? false)->toBeFalse()
         ->and(collect($chart['series'])->firstWhere('dashed', true)['label'] ?? null)->toBe('The 7 days before');
+});
+
+it('keeps the plugin’s figure label when the period changes', function (): void {
+    $plugin = app(PluginAreas::class)->find('placard');
+    $figures = app(PluginAreaScreen::class)
+        ->data($plugin, 'overview', 'totals', (string) $this->editor->id, [], AreaPeriod::THIS_YEAR);
+
+    expect($figures['items'][0]['label'] ?? null)->toBe('Impressions')
+        ->and($figures['items'][0]['thing'] ?? null)->toBe('impressions');
+});
+
+it('writes period dates in the person’s language', function (): void {
+    app()->setLocale('fr');
+
+    $shown = AreaPeriods::shown('2026-10-18', 'UTC', 'fr');
+
+    expect($shown)->toContain('2026')
+        ->and($shown)->not->toBe('Oct 18, 2026')
+        ->and(AreaPeriods::byWeek(AreaPeriod::THIS_YEAR))->toBeTrue()
+        ->and(AreaPeriods::byWeek(AreaPeriod::LAST_90_DAYS))->toBeTrue()
+        ->and(AreaPeriods::byWeek(AreaPeriod::LAST_7_DAYS))->toBeFalse();
 });
 
 it('marks a figures block empty when the plugin returns no figures and declared empty', function (): void {

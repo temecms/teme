@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
 
+use Carbon\CarbonImmutable;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -111,14 +112,24 @@ final class AreaPeriods
     }
 
     /**
-     * A date as people read it, such as "Oct 18, 2026".
+     * A date as people read it in the given language, such as "18 Oct 2026".
      */
-    public static function shown(string $ymd, string $timezone): string
+    public static function shown(string $ymd, string $timezone, ?string $language = null): string
     {
         $zone = new DateTimeZone($timezone !== '' ? $timezone : 'UTC');
         $date = DateTimeImmutable::createFromFormat('Y-m-d', $ymd, $zone) ?: new DateTimeImmutable('now', $zone);
+        $locale = str_replace('-', '_', $language ?? app()->getLocale());
 
-        return $date->format('M j, Y');
+        return CarbonImmutable::instance($date)->locale($locale !== '' ? $locale : 'en')->isoFormat('D MMM YYYY');
+    }
+
+    /**
+     * Whether charts for this period group points by week ("by week") rather
+     * than by day. Long windows (90 days and this year) do.
+     */
+    public static function byWeek(string $id): bool
+    {
+        return in_array(self::id($id), [AreaPeriod::LAST_90_DAYS, AreaPeriod::THIS_YEAR], true);
     }
 
     private static function lastDays(int $days, DateTimeImmutable $today, string $id): AreaPeriod

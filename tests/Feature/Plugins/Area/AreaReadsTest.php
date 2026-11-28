@@ -110,7 +110,7 @@ it('hands the figures and the chart to the page, cleaned', function (): void {
     ($this->overview)($this->editor)->assertInertia(fn (Assert $page) => $page
         ->loadDeferredProps(['block_totals', 'block_daily'], fn (Assert $reload) => $reload
             ->where('block_totals', ['items' => [
-                ['id' => 'impressions', 'label' => 'Impressions, last 30 days', 'format' => 'number', 'value' => 1500, 'change' => 0.12, 'thing' => 'impressions', 'before' => 'the 30 days before'],
+                ['id' => 'impressions', 'label' => 'Impressions', 'format' => 'number', 'value' => 1500, 'change' => 0.12, 'thing' => 'impressions', 'before' => 'the 30 days before'],
                 ['id' => 'ctr', 'label' => 'Click rate', 'format' => 'percent', 'value' => 0.031, 'change' => -0.5, 'thing' => 'click rate', 'before' => 'the 30 days before'],
             ], 'failed' => null])
             ->where('block_daily', ['labels' => ['2026-11-01', '2026-11-02', '2026-11-03'], 'series' => [

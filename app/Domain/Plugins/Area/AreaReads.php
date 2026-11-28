@@ -93,7 +93,6 @@ final class AreaReads
 
         $items = [];
         $refused = ! is_array($given) && $given !== [];
-        $index = 0;
 
         foreach (is_array($block['items'] ?? null) ? $block['items'] : [] as $item) {
             if (! is_array($item) || ! is_string($item['id'] ?? null)) {
@@ -113,14 +112,6 @@ final class AreaReads
             }
 
             $label = AreaWords::text($plugin->code, is_string($item['label'] ?? null) ? $item['label'] : '');
-            // The noun for screen readers: the label before a trailing ", …" period phrase.
-            $thing = str_contains($label, ',')
-                ? trim((string) strstr($label, ',', true))
-                : $label;
-
-            if ($index === 0 && $context->period !== null && $thing !== '') {
-                $label = $thing.', '.AreaPeriods::lower($context->period->id);
-            }
 
             $items[] = [
                 'id' => $item['id'],
@@ -128,10 +119,9 @@ final class AreaReads
                 'format' => $format,
                 'value' => $value === '' ? null : $value,
                 'change' => $change,
-                'thing' => $thing !== '' ? mb_strtolower($thing) : null,
+                'thing' => $label !== '' ? mb_strtolower($label) : null,
                 'before' => $context->period !== null ? AreaPeriods::before($context->period->id) : null,
             ];
-            $index++;
         }
 
         if ($refused) {

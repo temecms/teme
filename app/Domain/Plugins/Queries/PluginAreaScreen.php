@@ -181,13 +181,13 @@ final readonly class PluginAreaScreen
             'id' => $period->id,
             'options' => AreaPeriods::options(),
             'range' => __(':start to :end, in the :zone time zone.', [
-                'start' => AreaPeriods::shown($period->start, $context->timezone),
-                'end' => AreaPeriods::shown($period->end, $context->timezone),
+                'start' => AreaPeriods::shown($period->start, $context->timezone, $context->locale),
+                'end' => AreaPeriods::shown($period->end, $context->timezone, $context->locale),
                 'zone' => $context->timezone,
             ]),
             'compare' => __('Compared with :start to :end.', [
-                'start' => AreaPeriods::shown($period->compareStart, $context->timezone),
-                'end' => AreaPeriods::shown($period->compareEnd, $context->timezone),
+                'start' => AreaPeriods::shown($period->compareStart, $context->timezone, $context->locale),
+                'end' => AreaPeriods::shown($period->compareEnd, $context->timezone, $context->locale),
             ]),
             'timezone' => $context->timezone,
             'lower' => AreaPeriods::lower($period->id),

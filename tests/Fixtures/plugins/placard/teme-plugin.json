@@ -187,7 +187,7 @@
                             "items": [
                                 {
                                     "id": "impressions",
-                                    "label": "Impressions, last 30 days",
+                                    "label": "Impressions",
                                     "format": "number"
                                 },
                                 {

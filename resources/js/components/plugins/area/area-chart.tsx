@@ -92,14 +92,17 @@ export function AreaChart({
         return built;
     }, [data.labels, data.series]);
     const Chart = block.kind === 'bar' ? BarChart : LineChart;
+    // Long periods group by week; the rest by day — from the period id, not
+    // how many points the plugin returned.
     const unit =
-        data.labels.length > 14
+        period?.id === 'last_90_days' || period?.id === 'this_year'
             ? __('by week')
             : __('by day');
+    const title = `${block.label} ${unit}`;
     const ariaLabel =
         period !== null && period !== undefined
-            ? `${block.label}: ${period.range}. ${unit}.`
-            : `${block.label}: ${labels[0] ?? ''}–${labels.at(-1) ?? ''}. ${unit}.`;
+            ? `${title}: ${period.range}.`
+            : `${title}: ${labels[0] ?? ''}–${labels.at(-1) ?? ''}.`;
 
     if (data.empty) {
         return (
@@ -116,7 +119,7 @@ export function AreaChart({
             <figure className="grid gap-3 p-5" aria-label={ariaLabel}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <figcaption className="text-body font-semibold">
-                        {block.label}
+                        {title}
                     </figcaption>
                     <TextButton
                         type="button"
