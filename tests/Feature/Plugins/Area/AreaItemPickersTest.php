@@ -63,7 +63,7 @@ it('accepts a slug a term has now, and refuses one it has not, naming the plugin
         AreaForms::validated([$field], ['tags' => ['rivers-state-budget', 'old-slug']], (string) $this->author->id, 'AdPlacr');
         $this->fail('A slug that is not a term must be refused.');
     } catch (ValidationException $refused) {
-        expect($refused->errors()['values.tags'][0])->toBe('“old-slug” isn’t a term on this site now, so AdPlacr can’t save it. Remove it, or choose the term again.');
+        expect($refused->errors()['values.tags'][0])->toBe('“old-slug” isn’t a tag on this site now, so AdPlacr can’t save it. Remove it, or choose the tag again.');
     }
 });
 

@@ -19,6 +19,7 @@ use App\Domain\Contents\Queries\ItemChoices;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
 use App\Domain\Users\Actors;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -230,7 +231,9 @@ final class AreaForms
                     $missing = array_values(array_diff($list, self::termSlugs(is_string($field['taxonomy']) ? $field['taxonomy'] : '', $list)));
 
                     if ($missing !== []) {
-                        $errors[$path] = __('“:slug” isn’t a term on this site now, so :plugin can’t save it. Remove it, or choose the term again.', ['slug' => $missing[0], 'plugin' => $plugin !== '' ? $plugin : $label]);
+                        $taxonomy = is_string($field['taxonomy']) ? $field['taxonomy'] : '';
+                        $singular = mb_strtolower(app(TaxonomyRegistry::class)->get($taxonomy)->singular);
+                        $errors[$path] = __('“:slug” isn’t a :singular on this site now, so :plugin can’t save it. Remove it, or choose the :singular again.', ['slug' => $missing[0], 'singular' => $singular, 'plugin' => $plugin !== '' ? $plugin : $label]);
                     }
 
                     return $list;
