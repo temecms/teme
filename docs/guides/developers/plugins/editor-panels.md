@@ -80,3 +80,13 @@ $itemId = $context->payload()['itemId'];
 ```
 
 The job runs as the person, so it reads the draft with `ContentReader` and may ask the site's AI, as [Reading content](content-read.md) and [The site's AI connection](ai.md) show. It leaves its results for `view()` to return as suggestions, or writes a new revision through `ContentWriter`; the editor then tells the person the article changed elsewhere, as it does for any save. Report progress as any job does, in [Jobs and schedules](jobs.md): the panel shows the job's label, progress and message while it waits or runs, and for 15 minutes after it ends.
+
+## Rows, a preview and saved values
+
+A panel's view can also say what it knows about the article, in plain words:
+
+- **Rows** (`PanelRow`) are up to ten lines of label and value, under a heading that defaults to "Details" and can be set with `rowsHeading`. A value is text of up to 120 characters, or a date and time, which core writes in the person's time zone and language. A `tone` (`ok`, `neutral`, `info`, `warn` or `danger`) draws the value as a pill.
+- **A preview** (`PanelPreview`) is one card that shows what the post will look like: a title of up to 120 characters, a description of up to 300, and a picture given as the ID of a media item in the library. Core draws it the same way for every plugin, and the picture is never an address you type. Without a picture the card says the article has none. The preview follows the saved draft, not what the person is typing, and the editor says so under it.
+- **Saved values** (`saved`, with `savedAt`) fill the action's fields. Core starts a field with its saved value only while the person hasn't touched it, so a refresh never resets what they are typing. A plugin that gives no saved values keeps its pane as it was, with no empty headings.
+
+Every string you give is cleaned to plain text and cut to its length, so markup is shown as words. Rows, the preview and the saved values come from the same single read of your panel, so they share its time budget.
