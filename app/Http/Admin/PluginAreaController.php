@@ -133,23 +133,14 @@ final class PluginAreaController extends Controller
         return $this->form($request, $code, $record, $id, $screen, $form);
     }
 
-    public function save(Request $request, string $code, string $record, SavePluginRecord $save, PluginAreas $areas, ?string $id = null): RedirectResponse
+    public function save(Request $request, string $code, string $record, SavePluginRecord $save, ?string $id = null): RedirectResponse
     {
         /** @var array<array-key, mixed> $values */
         $values = (array) $request->input('values', []);
 
         $saved = $save->execute(new SavePluginRecordInput($code, $record, $id, $values, (string) $request->user()?->getAuthIdentifier()));
 
-        $plugin = $areas->find($code);
-        $recordLabel = $plugin === null ? $record : AreaWords::text($code, (string) ($plugin->area->record($record)['label'] ?? $record));
-
-        Inertia::flash('toast', $saved['waiting'] === [] || $plugin === null
-            ? ['type' => 'success', 'message' => __('Saved.')]
-            : ['type' => 'info', 'message' => __(':record saved. :plugin can’t reach :hosts yet: it waits for someone who manages plugins to agree.', [
-                'record' => $recordLabel,
-                'plugin' => $plugin->label,
-                'hosts' => implode(', ', $saved['waiting']),
-            ])]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Saved.')]);
 
         return to_route('plugins.area.edit', ['code' => $code, 'record' => $record, 'id' => $saved['id']]);
     }

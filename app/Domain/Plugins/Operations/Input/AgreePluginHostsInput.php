@@ -24,8 +24,6 @@ final readonly class AgreePluginHostsInput implements OperationInput
         public string $name,
         public array $hosts,
         public ?string $actorId,
-        /** 'settings' for hosts a setting names, 'records' for hosts a record named at save. */
-        public string $source = 'settings',
     ) {}
 
     public function actorId(): ?string

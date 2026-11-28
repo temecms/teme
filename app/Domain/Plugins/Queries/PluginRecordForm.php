@@ -23,12 +23,8 @@ use App\Domain\Plugins\Area\AreaForms;
 use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\AreaWords;
-use App\Domain\Plugins\Models\PluginRecord;
-use App\Domain\Plugins\PluginAccess;
-use App\Domain\Plugins\RecordHosts;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentTypeRegistry;
-use App\Domain\Users\Actors;
 use Illuminate\Support\Facades\DB;
 
 final readonly class PluginRecordForm
@@ -46,7 +42,7 @@ final readonly class PluginRecordForm
      * The form's props; null when the record isn't declared, or $id names
      * one the plugin says doesn't exist.
      *
-     * @return array{record: array{id: string, label: string, plural: string}, id: string|null, title: string, sections: list<array{id: string, label: string, description: string, fields: list<array<string, mixed>>}>, values: array<string, mixed>, hosts: list<array{host: string, state: string, by: string|null, at: string|null, canManage: bool}>, failed: string|null, deletable: bool}|null
+     * @return array{record: array{id: string, label: string, plural: string}, id: string|null, title: string, sections: list<array{id: string, label: string, description: string, fields: list<array<string, mixed>>}>, values: array<string, mixed>, failed: string|null, deletable: bool}|null
      */
     public function find(AreaPlugin $plugin, string $record, ?string $id, string $personId): ?array
     {
@@ -90,7 +86,6 @@ final readonly class PluginRecordForm
                 'fields' => array_map(fn (array $field): array => $this->decorate($this->field($field, $plugin), $values, $personId), $section['fields']),
             ], $declared['sections']),
             'values' => $values,
-            'hosts' => $id === null ? [] : $this->hosts($plugin, $id, $personId),
             'failed' => $failed,
             'deletable' => in_array('delete', $plugin->area->actions($record), true),
         ];
@@ -141,32 +136,6 @@ final readonly class PluginRecordForm
             'itemTitle' => $field['itemTitle'],
             'empty' => AreaForms::empty($field),
         ];
-    }
-
-    /**
-     * The outside hosts this record named at its last save, each waiting for
-     * agreement or agreed, with whether this person may agree or remove them.
-     *
-     * @return list<array{host: string, state: string, by: string|null, at: string|null, canManage: bool}>
-     */
-    private function hosts(AreaPlugin $plugin, string $id, string $personId): array
-    {
-        $record = PluginRecord::query()->where('name', $plugin->name)->first();
-        $consent = $record === null ? [] : $record->consent;
-        $agreed = is_array($consent['recordHostsAgreed'] ?? null) ? array_values($consent['recordHostsAgreed']) : [];
-        $canManage = app(Actors::class)->find($personId)?->can(PluginAccess::MANAGE) === true;
-
-        return array_values(array_map(function (array $entry) use ($agreed, $canManage): array {
-            $found = collect($agreed)->firstWhere('host', $entry['host']);
-
-            return [
-                'host' => (string) $entry['host'],
-                'state' => is_array($found) ? 'agreed' : 'waiting',
-                'by' => is_array($found) ? (string) ($found['by'] ?? '') : null,
-                'at' => is_array($found) ? (string) ($found['at'] ?? '') : null,
-                'canManage' => $canManage,
-            ];
-        }, array_filter(RecordHosts::named($consent), fn (array $entry): bool => $entry['record'] === $id)));
     }
 
     /**

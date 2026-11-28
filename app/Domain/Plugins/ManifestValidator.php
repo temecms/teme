@@ -19,7 +19,6 @@ namespace App\Domain\Plugins;
 use App\Domain\Extensions\PackagePictures;
 use App\Domain\Hooks\Reference\HookCatalogue;
 use App\Domain\Import\PluginData\WordPressNames;
-use App\Domain\Plugins\Area\DeclaredArea;
 use App\Domain\Plugins\Console\DeclaredCommands;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Jobs\DeclaredJobs;
@@ -619,22 +618,8 @@ final readonly class ManifestValidator
 
         $errors = [];
         $settings = SettingHosts::urlSettings($read);
-        $area = $read->contributes()['area'] ?? null;
-        $declared = is_array($area) ? DeclaredArea::from($area) : null;
 
         foreach ($keys as $key) {
-            if (is_string($key) && str_contains($key, '.')) {
-                [$record, $field] = array_pad(explode('.', $key, 2), 2, '');
-                $found = $declared?->fields($record);
-                $isUrl = $found !== null && collect($found)->contains(fn (array $one): bool => $one['key'] === $field && $one['type'] === 'url');
-
-                if (! $isUrl) {
-                    $errors[] = __('hostsFrom names :key, which is not a url field of one of its records.', ['key' => $this->show($key)]);
-                }
-
-                continue;
-            }
-
             if (! is_string($key) || ! array_key_exists($key, $settings)) {
                 $errors[] = __('hostsFrom names :key, which is not one of its url or urls settings.', ['key' => $this->show($key)]);
             }

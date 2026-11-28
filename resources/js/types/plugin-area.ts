@@ -170,14 +170,6 @@ export type AreaField = {
 
 export type PluginRecordPageProps = {
     plugin: AreaPluginRef;
-    /** The outside hosts this record named at its last save. */
-    hosts: {
-        host: string;
-        state: 'waiting' | 'agreed';
-        by: string | null;
-        at: string | null;
-        canManage: boolean;
-    }[];
     back: string;
     /** The area's label, for the top-bar crumbs (design system 4.31). */
     area: { label: string };

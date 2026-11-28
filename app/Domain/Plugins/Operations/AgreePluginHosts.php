@@ -22,7 +22,6 @@ use App\Domain\Plugins\Operations\Input\AgreePluginHostsInput;
 use App\Domain\Plugins\PluginAccess;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginSentences;
-use App\Domain\Plugins\RecordHosts;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Users\Actors;
 use Carbon\CarbonImmutable;
@@ -69,18 +68,6 @@ final class AgreePluginHosts extends BaseOperation implements RequiresElevation
         /** @var AgreePluginHostsInput $input */
         $record = PluginRecord::query()->where('name', $input->name)->lockForUpdate()->first()
             ?? throw ValidationException::withMessages(['plugin' => [app(PluginSentences::class)->coreOnly(fn (): string => __('No plugin is named ":name".', ['name' => $input->name]))]]);
-
-        if ($input->source === 'records') {
-            // Only a host a record named, and no one agreed to yet, can be agreed here.
-            $waiting = RecordHosts::waiting($record->consent);
-            $unknown = array_values(array_diff(array_unique($input->hosts), $waiting));
-
-            if ($unknown !== []) {
-                throw ValidationException::withMessages(['hosts' => [app(PluginSentences::class)->coreOnly(fn (): string => __(':host isn’t waiting for agreement.', ['host' => $unknown[0]]))]]);
-            }
-
-            return RecordHosts::agree($input->name, $input->hosts, (int) $input->actorId());
-        }
 
         $consent = $record->consent;
         $agreed = array_values(array_filter((array) ($consent['settingHosts'] ?? []), is_string(...)));

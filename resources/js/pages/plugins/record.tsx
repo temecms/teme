@@ -25,7 +25,6 @@ import { Notice } from '@/components/ui/notice';
 import { __, __n } from '@/lib/i18n';
 import { visibleKeys } from '@/lib/visible-when';
 import type { PluginRecordPageProps } from '@/types/plugin-area';
-import { RecordHostNotices } from '@/components/plugins/area/host-notices';
 
 /**
  * A record's form in a plugin's area (docs/plans/plugin-sockets-2.md, A9):
@@ -164,13 +163,6 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                               'It stays off the site’s pages until someone who can change the site’s code approves it.',
                           )}
                 </Notice>
-            )}
-            {props.hosts.length > 0 && (
-                <RecordHostNotices
-                    code={plugin.code}
-                    plugin={plugin.name}
-                    hosts={props.hosts}
-                />
             )}
             <AreaScriptsProvider value={scripts}>
                 <form onSubmit={submit} noValidate data-test="record-form">
