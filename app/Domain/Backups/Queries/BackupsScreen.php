@@ -18,6 +18,7 @@ namespace App\Domain\Backups\Queries;
 use App\Domain\Backups\BackupDestinationKind;
 use App\Domain\Backups\BackupDestinationState;
 use App\Domain\Backups\BackupKeyRole;
+use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupRunKind;
 use App\Domain\Backups\BackupRunState;
 use App\Domain\Backups\BackupSettings;
@@ -339,14 +340,22 @@ final readonly class BackupsScreen
     }
 
     /**
-     * 1.12e's verdict as the screen leads with it, or null while backups
-     * aren't set up or are paused, which lead with their own words.
+     * 1.12e's verdict as the screen leads with it: null while backups are
+     * paused, which leads with its own words, and while Teme's own backup is
+     * part-way through its setup. Under host, with nothing set up yet, the
+     * host's healthy line (TEME_BACKUPS=host).
      *
      * @return array{level: string, sentence: string, more: list<string>}|null
      */
     public function verdict(CarbonImmutable $now): ?array
     {
-        if ($this->setupState()['state'] !== 'set-up') {
+        $state = $this->setupState()['state'];
+
+        if (BackupMode::isHost() && $state === 'none') {
+            return ['level' => 'green', 'sentence' => __('Backups and restore tests are done by your host.'), 'more' => [__('Teme’s own backup can still be set up as a second copy elsewhere.')]];
+        }
+
+        if ($state !== 'set-up') {
             return null;
         }
 

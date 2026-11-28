@@ -165,3 +165,13 @@ it('names the newest pre-release on an untagged build, which follows the pre-rel
             ->where('running.channel', 'prerelease')
             ->where('newest.version', '0.1.0-rc.15'));
 });
+
+it('says the host keeps a restore point, and that no backup runs before a migration, under TEME_BACKUPS=host', function (): void {
+    $this->actingAs($this->admin)->get('/admin/tools/updates')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('tools/updates')->where('hostKeepsRestorePoint', false));
+
+    config(['teme.backup_mode' => 'host']);
+
+    $this->actingAs($this->admin)->get('/admin/tools/updates')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('tools/updates')->where('hostKeepsRestorePoint', true));
+});

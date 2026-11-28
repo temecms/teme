@@ -39,6 +39,7 @@ final class SecretFiles
         'TEME_AI_OPENROUTER_KEY',
         'TEME_BACKUP_MACHINE_KEY',
         'TEME_VERIFY_DB_PASSWORD',
+        'TEME_RESTORE_DB_PASSWORD',
         'TEME_GITHUB_TOKEN',
         'TEME_DOKPLOY_TOKEN',
         'MEDIA_BUCKET_SECRET_ACCESS_KEY',

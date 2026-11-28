@@ -102,6 +102,9 @@ return [
      */
     'public_csp' => (string) env('TEME_PUBLIC_CSP', 'report-only'),
 
+    // Who backs the site up: teme (Teme does, the default) or host (the host does; Teme asks for nothing it doesn't need).
+    'backup_mode' => (string) env('TEME_BACKUPS', 'teme'),
+
     /*
      * The host's lock on the site's own content types (I-411): true refuses
      * every person's change to them, so they change where they are made and

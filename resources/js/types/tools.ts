@@ -222,6 +222,7 @@ export type UpdateRelease = {
 
 /** Tools › Updates (I-3329). */
 export type UpdatesPage = {
+    hostKeepsRestorePoint: boolean;
     running: {
         version: string;
         tagged: boolean;

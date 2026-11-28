@@ -189,3 +189,12 @@ it('reads DATABASE_URL as the database connection’s address when DB_URL is uns
 
     expect($process->getOutput())->toContain('postgresql://teme:hunter2@db.internal:5432/teme');
 });
+
+it('refuses an unknown TEME_BACKUPS in a plain sentence, and takes teme, host or nothing', function (string $mode, array $expected): void {
+    expect(StartRules::problems(Edge::startableConfig(['teme.backup_mode' => $mode])))->toBe($expected);
+})->with([
+    'an unknown mode' => ['hosted', ['TEME_BACKUPS is “hosted”, which Teme doesn’t know. Use teme or host.']],
+    'teme' => ['teme', []],
+    'host, in any case' => [' Host ', []],
+    'nothing, which means teme' => ['', []],
+]);
