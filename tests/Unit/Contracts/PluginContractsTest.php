@@ -256,7 +256,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
     ]);
 });
 
-it('gives every jobs contract its @since 1.0.0 and nothing from a framework', function (string $class): void {
+it('gives every jobs contract its @since 1.0.0 and nothing from a framework', function (string $class, array $later = []): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since 1.0.0');
@@ -266,7 +266,8 @@ it('gives every jobs contract its @since 1.0.0 and nothing from a framework', fu
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since 1.0.0');
+        // A method added later carries the release it arrived in (.ai/rules/contracts.md).
+        expect($method->getDocComment())->toContain('@since '.($later[$method->getName()] ?? '1.0.0'));
     }
 
     $types = [];
@@ -295,11 +296,11 @@ it('gives every jobs contract its @since 1.0.0 and nothing from a framework', fu
         }
     }
 })->with([
-    Jobs::class,
-    JobHandler::class,
-    JobContext::class,
-    JobStopped::class,
-    PluginHasJobs::class,
+    [Jobs::class],
+    [JobHandler::class],
+    [JobContext::class, ['summary' => 'next', 'permissions' => 'next']],
+    [JobStopped::class],
+    [PluginHasJobs::class],
 ]);
 
 it('decodes an answer’s JSON, and refuses JSON that isn’t', function (): void {

@@ -157,6 +157,7 @@ final class RunPluginJob implements ShouldQueue
             $tracked->payload,
             max(1, $this->attempts()),
             $record->name,
+            $record->code,
             $this->actor,
             $report,
         );
@@ -183,7 +184,7 @@ final class RunPluginJob implements ShouldQueue
             throw $failure;
         }
 
-        $finish->execute(new FinishJobInput($this->trackedJobId, __('Finished.'), $this->actor->userId));
+        $finish->execute(new FinishJobInput($this->trackedJobId, $context->closingMessage(), $this->actor->userId));
     }
 
     public function failed(?Throwable $exception): void

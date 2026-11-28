@@ -395,6 +395,7 @@ it('stops progress after the plugin is disabled', function (): void {
         ['line' => 'should not write'],
         1,
         'tests/jobs',
+        'jobs',
         JobActor::operator(),
         app(ReportJobProgress::class),
     );

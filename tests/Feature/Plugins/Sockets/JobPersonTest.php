@@ -105,11 +105,11 @@ it('says a scheduled run acts for the administrator who enabled the plugin', fun
 });
 
 it('has no person to give for a run of the operator’s, and fails it', function (): void {
-    $context = new PluginJobContext('01k0000000000000000000000a', [], 1, 'tests/librarian', JobActor::operator(), app(ReportJobProgress::class));
+    $context = new PluginJobContext('01k0000000000000000000000a', [], 1, 'tests/librarian', 'librarian', JobActor::operator(), app(ReportJobProgress::class));
 
     expect(fn () => $context->personId())->toThrow(RuntimeException::class, 'This run has no person to act for.')
         ->and(fn () => $context->personId())->not->toThrow(JobStopped::class)
-        ->and((new PluginJobContext('01k0000000000000000000000a', [], 1, 'tests/librarian', JobActor::person($this->admin->id), app(ReportJobProgress::class)))->personId())
+        ->and((new PluginJobContext('01k0000000000000000000000a', [], 1, 'tests/librarian', 'librarian', JobActor::person($this->admin->id), app(ReportJobProgress::class)))->personId())
         ->toBe((string) $this->admin->id);
 });
 

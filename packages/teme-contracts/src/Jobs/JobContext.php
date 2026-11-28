@@ -53,4 +53,22 @@ interface JobContext
      * @since 1.0.0
      */
     public function personId(): string;
+
+    /**
+     * Sets the closing line shown when the run finishes. Without a call, it
+     * stays "Finished."
+     *
+     * @since next
+     */
+    public function summary(string $message): void;
+
+    /**
+     * The ids of this plugin's own permissions the person this run acts for
+     * holds, such as `manage-lines`; never another plugin's, and never a role.
+     *
+     * @return list<string>
+     *
+     * @since next
+     */
+    public function permissions(): array;
 }

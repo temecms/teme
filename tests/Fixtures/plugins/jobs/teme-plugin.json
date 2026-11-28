@@ -15,10 +15,28 @@
         { "key": "progress-write", "label": "Progress write", "tries": 1, "backoff": [1] },
         { "key": "long-call", "label": "Long outbound call", "long": true, "tries": 1, "backoff": [1] },
         { "key": "throw", "label": "Throw once", "tries": 2, "backoff": [1] },
-        { "key": "fail-for-good", "label": "Fail for good", "tries": 3, "backoff": [1, 2, 3] }
+        { "key": "fail-for-good", "label": "Fail for good", "tries": 3, "backoff": [1, 2, 3] },
+        { "key": "summarise", "label": "Summarise", "tries": 1, "backoff": [1] },
+        { "key": "list-permissions", "label": "List permissions", "tries": 1, "backoff": [1] }
     ],
     "schedules": [
         { "job": "write-line", "every": "hour" }
     ],
-    "owns": { "tables": ["jobs_lines"] }
+    "owns": { "tables": ["jobs_lines"] },
+    "contributes": {
+        "permissions": [
+            {
+                "id": "manage-lines",
+                "label": "Manage lines",
+                "description": "Write job lines.",
+                "roles": ["editor"]
+            },
+            {
+                "id": "view-all",
+                "label": "View every line",
+                "description": "See every line.",
+                "roles": []
+            }
+        ]
+    }
 }

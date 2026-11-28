@@ -26,7 +26,7 @@ A long job runs on the long queue, and each outbound call it makes may take up t
 
 Implement `PluginHasJobs` beside `Plugin`. Its `jobs()` answers a `JobHandler` for each declared key; a run whose key has no handler fails at once. Teme builds your plugin with its doors for every run, so a handler can use what your constructor was given: build the handlers there, passing them the doors they need.
 
-A handler's `handle()` receives a `JobContext`: `payload()` is what the job was queued with, `attempt()` counts the tries from 1, and `progress($done, $total, $message)` shows how far it is in **Tools › Jobs**. Call `progress()` as you go. When the run was cancelled, or your plugin was turned off while it ran, `progress()` throws `JobStopped`; let it unwind, and the run ends quietly.
+A handler's `handle()` receives a `JobContext`: `payload()` is what the job was queued with, `attempt()` counts the tries from 1, and `progress($done, $total, $message)` shows how far it is in **Tools › Jobs**. Call `progress()` as you go. When the run was cancelled, or your plugin was turned off while it ran, `progress()` throws `JobStopped`; let it unwind, and the run ends quietly. `summary('Wrote three lines.')` sets the closing line shown when the run finishes; without it, the line stays "Finished." `permissions()` answers the ids of your plugin's own permissions the person this run acts for holds — never another plugin's, and never a role.
 
 ## The person a run acts for
 

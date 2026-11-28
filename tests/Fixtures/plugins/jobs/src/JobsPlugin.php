@@ -36,6 +36,8 @@ final class JobsPlugin implements Plugin, PluginHasJobs
             'long-call' => new LongCallHandler($this->http),
             'throw' => new ThrowHandler,
             'fail-for-good' => new FailForGoodHandler,
+            'summarise' => new SummariseHandler,
+            'list-permissions' => new PermissionsHandler,
         ];
     }
 }
