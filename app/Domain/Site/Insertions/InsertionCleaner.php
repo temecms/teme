@@ -36,21 +36,86 @@ final class InsertionCleaner
     private const array ANIMATIONS = ['animate', 'set'];
 
     /**
+     * Elements dropped with everything in them, in any namespace: a browser
+     * reads them differently from the cleaner (raw text with scripting on, a
+     * template's inert content brought to life, MathML that breaks out of
+     * foreign content), so markup inside them could run once drawn.
+     */
+    private const array DROPPED = ['template', 'noscript', 'noembed', 'noframes', 'mglyph', 'malignmark'];
+
+    /** The prefix of the attributes core's own scripts act on, which plugin markup never carries. */
+    private const string CORE_HOOKS = 'data-teme-';
+
+    /** How many times the cleaner reads its own output again before it gives up on markup that keeps changing. */
+    private const int PASSES = 4;
+
+    /**
+     * Cleans the markup, then reads the result again as a browser would and
+     * cleans that, until a pass changes nothing; markup that still changes
+     * after the last pass is refused whole.
+     *
      * @param  list<string>  $approved  the hashes of the inline scripts approved for the plugin that gave it, as PagePolicy::hash() gives them
      *
      * @return array{html: string, origins: array<string, list<string>>, scripts: list<string>}
      */
     public static function clean(string $html, array $approved = []): array
     {
+        $approved = SiteCode::disallowed() ? [] : array_fill_keys($approved, true);
+        $stable = false;
+        $scripts = [];
+
+        for ($pass = 0; $pass < self::PASSES; $pass++) {
+            [$cleaned, $scripts] = self::pass($html, $approved);
+
+            if ($cleaned === $html) {
+                $stable = true;
+
+                break;
+            }
+
+            $html = $cleaned;
+        }
+
+        if (! $stable) {
+            return ['html' => '', 'origins' => [], 'scripts' => []];
+        }
+
+        $origins = SiteCodePolicy::of($html, [])['origins'];
+        $kept = [];
+
+        foreach (['script-src', 'frame-src', 'img-src'] as $directive) {
+            if (isset($origins[$directive])) {
+                $kept[$directive] = $origins[$directive];
+            }
+        }
+
+        return ['html' => $html, 'origins' => $kept, 'scripts' => $scripts];
+    }
+
+    /**
+     * One reading of the markup: parsed as a document body, cleaned, and
+     * written back.
+     *
+     * @param  array<string, true>  $approved
+     *
+     * @return array{0: string, 1: list<string>}
+     */
+    private static function pass(string $html, array $approved): array
+    {
         $document = HTMLDocument::createFromString('<!DOCTYPE html><html><body>'.$html, LIBXML_NOERROR, 'UTF-8');
         $body = $document->body;
 
         if ($body === null) {
-            return ['html' => '', 'origins' => [], 'scripts' => []];
+            return ['', []];
         }
 
-        $approved = SiteCode::disallowed() ? [] : array_fill_keys($approved, true);
         $scripts = [];
+
+        foreach ([...$body->getElementsByTagName('*')] as $element) {
+            if ($element->parentNode !== null && in_array(strtolower($element->localName), self::DROPPED, true)) {
+                $element->remove();
+            }
+        }
 
         foreach ([...$body->getElementsByTagName('*')] as $element) {
             if ($element->parentNode === null) {
@@ -74,16 +139,7 @@ final class InsertionCleaner
             $cleaned .= $document->saveHtml($child);
         }
 
-        $origins = SiteCodePolicy::of($cleaned, [])['origins'];
-        $kept = [];
-
-        foreach (['script-src', 'frame-src', 'img-src'] as $directive) {
-            if (isset($origins[$directive])) {
-                $kept[$directive] = $origins[$directive];
-            }
-        }
-
-        return ['html' => $cleaned, 'origins' => $kept, 'scripts' => array_keys($scripts)];
+        return [$cleaned, array_keys($scripts)];
     }
 
     /**
@@ -134,7 +190,7 @@ final class InsertionCleaner
         foreach ([...$element->attributes] as $attribute) {
             $attributeName = strtolower($attribute->name);
 
-            if (str_starts_with($attributeName, 'on') || $attributeName === 'srcdoc'
+            if (str_starts_with($attributeName, 'on') || $attributeName === 'srcdoc' || str_starts_with($attributeName, self::CORE_HOOKS)
                 || (in_array($attributeName, self::ADDRESSES, true) && self::unsafe($attribute->value))) {
                 $element->removeAttributeNode($attribute);
             }
