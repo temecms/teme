@@ -3,7 +3,7 @@
 /**
  * Serves one plugin script a manifest declares under contributes.scripts, as text/javascript with
  * a long cache life, since its address carries its content hash. Anything else answers 404, and a
- * script that can't be served safely is recorded as the plugin's fault.
+ * script that can't be served safely is recorded once as the plugin's fault.
  *
  * @package Teme
  * @since   next
@@ -18,6 +18,7 @@ use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Scripts\PluginScriptFile;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 final class PluginScriptController
@@ -32,19 +33,32 @@ final class PluginScriptController
             return response('', 404);
         }
 
+        $verdict = $scripts->verdict($code, $file);
+
+        if ($verdict === null) {
+            return response('', 404);
+        }
+
+        if ($verdict['refused'] !== null) {
+            // Recorded once for each code and file, so asking for the same script again adds no report.
+            if (Cache::add('plugin-scripts-fault:'.$code.':'.$file, true)) {
+                $faults->record($verdict['name'], $code.'#scripts', self::class, new InvalidArgumentException($verdict['refused']));
+            }
+
+            return response('', 404);
+        }
+
         try {
-            $served = $scripts->read($code, $file);
-        } catch (InvalidArgumentException $refused) {
-            $faults->record($code, $code.'#scripts', self::class, $refused);
-
+            $text = $scripts->text($code, $file);
+        } catch (InvalidArgumentException) {
             return response('', 404);
         }
 
-        if ($served === null) {
+        if ($text === null) {
             return response('', 404);
         }
 
-        return response($served['text'], 200, [
+        return response($text, 200, [
             'Content-Type' => 'text/javascript; charset=UTF-8',
             'Cache-Control' => 'public, max-age=31536000, immutable',
             'X-Content-Type-Options' => 'nosniff',

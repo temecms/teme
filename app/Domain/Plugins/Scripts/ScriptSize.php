@@ -15,13 +15,16 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Scripts;
 
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Styles\PluginStylesheet;
+use InvalidArgumentException;
 
 final class ScriptSize
 {
     /**
      * The compressed size of a plugin's declared scripts and whether it is over the budget, or null
-     * when it declares none. A declared file that can't be read adds nothing, and a link on its path
-     * or a file outside the package adds nothing either.
+     * when it declares none. Each file is measured where Teme would serve it, through the same checks
+     * (no link on its path, inside the package), so the figure is the size of what is served. A file
+     * that is refused or missing adds nothing.
      *
      * @return array{bytes: int, over: bool}|null
      */
@@ -34,17 +37,18 @@ final class ScriptSize
             return null;
         }
 
-        $root = realpath($plugin->path);
         $bytes = 0;
 
         foreach ($entries as $entry) {
-            $real = $root === false ? false : realpath($plugin->path.'/'.$entry['file']);
-
-            if ($real === false || ! is_file($real) || ! str_starts_with($real, $root.DIRECTORY_SEPARATOR)) {
+            try {
+                $source = app(PluginStylesheet::class)->source($plugin->name, $entry['file']);
+            } catch (InvalidArgumentException) {
                 continue;
             }
 
-            $bytes += strlen((string) gzencode((string) file_get_contents($real), 9));
+            if ($source !== null) {
+                $bytes += strlen((string) gzencode((string) file_get_contents($source), 9));
+            }
         }
 
         return ['bytes' => $bytes, 'over' => $bytes > PluginScripts::BUDGET];

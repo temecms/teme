@@ -2,10 +2,10 @@
 
 /**
  * The scripts a public page links for the plugin outputs it drew: each recorded output whose enabled
- * plugin has the site.scripts capability and declares a script for it under contributes.scripts, and
- * whose active theme doesn't switch it off. Core serves each script at its own route with the script's
- * content hash as its version. A plugin whose scripts pass 20 KB compressed on one page is recorded as
- * a fault once per version, never blocked.
+ * plugin agreed to site.scripts and declares a script for it under contributes.scripts, and whose
+ * active theme doesn't switch it off. Core serves each script at its own route with the script's content
+ * hash as its version. A script's csp origins the plugin agreed to join the page's policy. A plugin whose
+ * scripts pass 20 KB compressed on one page is recorded as a fault once per version, never blocked.
  *
  * @package Teme
  * @since   next
@@ -19,14 +19,11 @@ namespace App\Domain\Plugins\Scripts;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Manifest;
-use App\Domain\Plugins\PluginRecords;
-use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Styles\PluginStyleUsage;
 use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Themes\ActiveTheme;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
-use Teme\Contracts\Plugins\Capability;
 
 final class PluginScripts
 {
@@ -35,8 +32,6 @@ final class PluginScripts
 
     public function __construct(
         private readonly PluginStyleUsage $usage,
-        private readonly PluginRecords $records,
-        private readonly PluginRegistry $registry,
         private readonly ActiveTheme $theme,
         private readonly PluginScriptFile $files,
         private readonly ListenerFaults $faults,
@@ -51,54 +46,42 @@ final class PluginScripts
      */
     public function links(): array
     {
-        $grants = [];
-        $consents = [];
-        $codes = [];
-
-        foreach ($this->records->enabled() as $record) {
-            $codes[(string) $record->code] = (string) $record->name;
-            $consents[(string) $record->code] = (array) $record->consent;
-            $grants[(string) $record->code] = array_values(array_filter((array) ($record->consent['capabilities'] ?? []), is_string(...)));
-        }
-
+        $served = $this->files->servedAll();
         $switchedOff = $this->theme->get()?->manifest?->pluginScriptsOff() ?? [];
         $links = [];
         $sizes = [];
         $versions = [];
 
         foreach ($this->usage->entries() as $entry) {
-            $name = $codes[$entry['code']] ?? null;
-            $manifest = $name === null ? null : ($this->registry->all()[$name]->manifest ?? null);
+            $found = $served[$entry['code']] ?? null;
 
-            if ($manifest === null
-                || ! in_array(Capability::SiteScripts->value, $grants[$entry['code']] ?? [], true)
-                || in_array($entry['code'].':'.$entry['output'], $switchedOff, true)) {
+            if ($found === null || in_array($entry['code'].':'.$entry['output'], $switchedOff, true)) {
                 continue;
             }
 
-            foreach (DeclaredScripts::entries($manifest->contributes()) as $script) {
+            foreach (DeclaredScripts::entries($found['manifest']->contributes()) as $script) {
                 if ($script['output'] !== $entry['output']) {
                     continue;
                 }
 
-                try {
-                    $served = $this->files->read($entry['code'], $script['file']);
-                } catch (InvalidArgumentException $refused) {
-                    $this->faults->record($name, $entry['code'].'#scripts', self::class, $refused);
+                $verdict = $this->files->verdict($entry['code'], $script['file'], $found);
+
+                if ($verdict === null) {
+                    continue;
+                }
+
+                if ($verdict['refused'] !== null) {
+                    $this->refuse($found['name'], $entry['code'], $script['file'], $verdict['refused']);
 
                     continue;
                 }
 
-                if ($served === null) {
-                    continue;
-                }
-
-                $sizes[$name] = ($sizes[$name] ?? 0) + strlen((string) gzencode($served['text'], 9));
-                $this->allowOrigins($manifest, $consents[$entry['code']] ?? []);
-                $versions[$name] = $manifest->version();
+                $sizes[$found['name']] = ($sizes[$found['name']] ?? 0) + $verdict['gzip'];
+                $versions[$found['name']] = $found['version'];
+                $this->allowOrigins($found['manifest'], $found['consent']);
                 $links[] = [
                     'key' => $entry['code'].':'.$entry['output'],
-                    'href' => route('teme.plugins.scripts', ['code' => $entry['code'], 'file' => $script['file']]).'?v='.$served['hash'],
+                    'href' => route('teme.plugins.scripts', ['code' => $entry['code'], 'file' => $script['file']]).'?v='.$verdict['hash'],
                 ];
             }
         }
@@ -121,6 +104,17 @@ final class PluginScripts
             if (isset(PagePolicy::KINDS[$kind]) && $hosts !== []) {
                 $this->policy->allowOrigins(PagePolicy::KINDS[$kind], array_map(fn (string $host): string => 'https://'.$host, $hosts));
             }
+        }
+    }
+
+    /**
+     * Records a refused script as the plugin's fault, once for each code and file, so pages that keep asking
+     * for it add no more reports.
+     */
+    private function refuse(string $name, string $code, string $file, string $refused): void
+    {
+        if (Cache::add('plugin-scripts-fault:'.$code.':'.$file, true)) {
+            $this->faults->record($name, $code.'#scripts', self::class, new InvalidArgumentException($refused));
         }
     }
 
