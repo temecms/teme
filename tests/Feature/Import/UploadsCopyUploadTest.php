@@ -21,6 +21,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -302,4 +303,48 @@ it('lets only an administrator delete the copy, over HTTP as well', function ():
         ->assertJson(['deleted' => true]);
 
     expect(ImportUpload::query()->whereKey($ready)->exists())->toBeFalse();
+});
+
+it('refuses a copy over the cap, in words, before it looks at the disk', function (): void {
+    $before = DB::table('import_uploads')->count();
+
+    expect(fn () => app(StartUploadsCopy::class)->execute(new StartUploadsCopyInput($this->source->id, 'uploads.zip', 10241 * 1024 * 1024, (string) $this->admin->id)))
+        ->toThrow(fn (ValidationException $refused) => expect(implode(' ', Arr::flatten($refused->errors())))->toContain('larger than 10 GB'))
+        ->and(DB::table('import_uploads')->count())->toBe($before);
+});
+
+it('writes nothing when an editor sends a piece, finishes or cancels an upload an administrator started', function (): void {
+    $started = app(StartUploadsCopy::class)->execute(new StartUploadsCopyInput($this->source->id, 'uploads.zip', 10, (string) $this->admin->id));
+    $before = ImportUpload::query()->whereKey($started['uploadId'])->first(['state', 'received_bytes', 'updated_at']);
+
+    expect(fn () => app(ReceiveUploadsCopyPiece::class)->execute(new ReceiveUploadsCopyPieceInput($started['uploadId'], 0, '0123456789', (string) $this->editor->id)))
+        ->toThrow(AuthorizationException::class)
+        ->and(ImportUpload::query()->whereKey($started['uploadId'])->first(['state', 'received_bytes', 'updated_at']))->toEqual($before);
+
+    expect(fn () => app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($started['uploadId'], (string) $this->editor->id)))
+        ->toThrow(AuthorizationException::class)
+        ->and(ImportUpload::query()->whereKey($started['uploadId'])->value('state'))->toBe('uploading');
+
+    expect(fn () => app(CancelUploadsCopy::class)->execute(new UploadsCopyUploadInput($started['uploadId'], (string) $this->editor->id)))
+        ->toThrow(AuthorizationException::class)
+        ->and(ImportUpload::query()->whereKey($started['uploadId'])->exists())->toBeTrue();
+});
+
+it('attaches a folder copy from the console, and refuses the application’s own folder with the reason', function (): void {
+    $folder = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-console-'.uniqid();
+    mkdir($folder.'/2024/05', recursive: true);
+    file_put_contents($folder.'/2024/05/Harbour One.jpg', dlJpeg(640, 480));
+
+    $this->artisan('teme:import:uploads', ['source' => $this->source->id, 'path' => base_path()])
+        ->assertFailed();
+
+    $this->artisan('teme:import:uploads', ['source' => $this->source->id, 'path' => $folder])
+        ->assertSuccessful();
+
+    expect(ImportUpload::query()->where('source_id', $this->source->id)->where('state', 'ready')->value('kind'))->toBe('folder');
+
+    unlink($folder.'/2024/05/Harbour One.jpg');
+    rmdir($folder.'/2024/05');
+    rmdir($folder.'/2024');
+    rmdir($folder);
 });

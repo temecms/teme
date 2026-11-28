@@ -59,6 +59,12 @@ final class StartUploadsCopy extends BaseOperation
 
         $limitBytes = max(1, (int) config('teme.import.max_uploads_mb')) * 1024 * 1024;
 
+        if ($input->sizeBytes > $limitBytes) {
+            $gigabytes = max(1, intdiv(max(1, (int) config('teme.import.max_uploads_mb')), 1024));
+
+            throw ValidationException::withMessages(['size' => "This copy is larger than {$gigabytes} GB. Attach a folder or a zip on the server instead, with teme:import:uploads."]);
+        }
+
         $free = disk_free_space(Storage::disk('local')->path(''));
 
         if ($free !== false && $input->sizeBytes > $free) {
@@ -66,12 +72,6 @@ final class StartUploadsCopy extends BaseOperation
             $available = number_format($free / 1024 ** 3, 1);
 
             throw ValidationException::withMessages(['size' => "There isn’t enough free space on the server for this copy: it needs {$needed} GB, and {$available} GB is free. Free some space, or attach the folder or zip on the server with teme:import:uploads."]);
-        }
-
-        if ($input->sizeBytes > $limitBytes) {
-            $gigabytes = max(1, intdiv(max(1, (int) config('teme.import.max_uploads_mb')), 1024));
-
-            throw ValidationException::withMessages(['size' => "This copy is larger than {$gigabytes} GB. Attach a folder or a zip on the server instead, with teme:import:uploads."]);
         }
     }
 

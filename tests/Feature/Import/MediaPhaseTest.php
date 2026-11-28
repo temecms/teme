@@ -714,3 +714,22 @@ it('counts a picture the import takes from the old site as the site’s, when no
     expect(DB::table('import_map')->where('source_id', $this->source->id)->where('run_id', $run->id)->whereRaw("facts->>'picture_from' = 'site'")->count())->toBe(1)
         ->and(app(ImportScreen::class)->report($run->id)['pictures'])->toBe(['copy' => 0, 'site' => 1]);
 });
+
+it('reports a 404 for a picture the uploads copy lacks once, not once per place the copy was asked', function (): void {
+    $copy = $this->folder.'-lacks';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Other.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    impRun($this->companion, $this->source, [impAttachment(13, 'Gone')]);
+    [$entry, $codes] = impEntry($this->source, 13);
+
+    expect($codes)->toHaveCount(1)
+        ->and(ImportMessageRecord::query()->where('map_id', $entry->id)->value('message'))->toContain('old.example has no file at this address (404).')
+        ->and(impFileRequests())->toBe(['/wp-content/uploads/2024/05/Gone.jpg', '/wp-content/uploads/2024/05/Gone-scaled.jpg']);
+
+    unlink($copy.'/2024/05/Other.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});

@@ -142,3 +142,39 @@ it('never brings a protected plugin’s folder from a copy, and says why', funct
     rmdir($folder.'/woocommerce_uploads');
     rmdir($folder);
 });
+
+it('refuses a symlink in a folder copy that leads out of the copy', function (): void {
+    $outside = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-outside-'.uniqid().'.jpg';
+    file_put_contents($outside, dlJpeg(640, 480));
+    symlink($outside, $this->folder.'/2024/05/Link Out.jpg');
+
+    $copy = new UploadsCopy(UploadsCopy::FOLDER, $this->folder);
+
+    expect($copy->download('https://old.example/wp-content/uploads/2024/05/Link%20Out.jpg', 1024 * 1024, sys_get_temp_dir()))->toBeNull();
+
+    unlink($this->folder.'/2024/05/Link Out.jpg');
+    unlink($outside);
+});
+
+it('refuses a picture bigger than the limit, from a folder and from a zip entry', function (): void {
+    file_put_contents($this->folder.'/2024/05/Big One.jpg', dlJpeg(640, 480));
+    $folder = new UploadsCopy(UploadsCopy::FOLDER, $this->folder);
+
+    expect($folder->download('https://old.example/wp-content/uploads/2024/05/Big%20One.jpg', 10, sys_get_temp_dir()))->toBeNull();
+
+    $zipPath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-big-'.uniqid().'.zip';
+    $zip = new ZipArchive;
+    $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+    $zip->addFromString('uploads/2024/05/Big One.jpg', dlJpeg(640, 480));
+    $zip->close();
+
+    $archive = new ZipArchive;
+    $archive->open($zipPath);
+    $fromZip = new UploadsCopy(UploadsCopy::ZIP, $zipPath);
+
+    expect($fromZip->download('https://old.example/wp-content/uploads/2024/05/Big%20One.jpg', 10, sys_get_temp_dir(), $archive))->toBeNull();
+
+    $archive->close();
+    unlink($zipPath);
+    unlink($this->folder.'/2024/05/Big One.jpg');
+});

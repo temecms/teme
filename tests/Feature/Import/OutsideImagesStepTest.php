@@ -7,6 +7,8 @@ use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Operations\AttachUploadsCopy;
+use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
 use App\Domain\Import\Phases\Media\ImportedMedia;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
 use App\Domain\Media\Models\Media;
@@ -277,4 +279,24 @@ it('refuses an image whose site resolves to a private network, without connectin
     expect(ImportMapEntry::query()->where('object_type', 'outside-image')->sole()->outcome)->toBe(ImportOutcome::Skipped)
         ->and(oisSaid())->toBe(['outside-image.refused' => ['An image from cdn.partner.example (harbour.jpg) couldn’t come across: cdn.partner.example is on a private network, so Teme won’t connect to it. Posts link to it instead.']])
         ->and(oisAsked('cdn.partner.example'))->toBe(0);
+});
+
+it('brings an own picture from the uploads copy without asking the old site for it', function (): void {
+    $copy = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-ois-copy-'.uniqid();
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Teeth-Whitening.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    oisRun($this->companion, $this->source, [
+        oisItem(20, '<p><img src="https://old.example/wp-content/uploads/2024/05/Teeth-Whitening.jpg" alt="Teeth"></p>'),
+    ], []);
+
+    expect(Http::recorded(fn (ApiRequest $request): bool => str_contains($request->url(), 'Teeth-Whitening.jpg'))->count())->toBe(0)
+        ->and(ImportMapEntry::query()->where('object_type', 'outside-image')->sole()->facts)->toBe(['host' => 'old.example', 'picture_from' => 'copy'])
+        ->and(Media::query()->count())->toBe(1);
+
+    unlink($copy.'/2024/05/Teeth-Whitening.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
 });
