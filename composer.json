@@ -9,7 +9,7 @@
         "php": "^8.4",
         "ext-intl": "*",
         "composer/semver": "^3.5",
-        "gapple/structured-fields": "2.3.3",
+        "gapple/structured-fields": "2.3.4",
         "inertiajs/inertia-laravel": "^3.3",
         "intervention/image": "^4",
         "laravel/ai": "^1.2",
@@ -39,7 +39,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.12",
-        "laravel-lang/lang": "15.38.0",
+        "laravel-lang/lang": "15.39.1",
         "laravel/boost": "*",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",
