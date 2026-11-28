@@ -134,7 +134,7 @@ final class PluginStylesheet
      *
      * @throws InvalidArgumentException when the file is a link or sits outside the package
      */
-    private function source(string $name, string $file): ?string
+    public function source(string $name, string $file): ?string
     {
         $path = $this->registry->all()[$name]->path;
         $root = realpath($path);

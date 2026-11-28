@@ -25,6 +25,7 @@ use App\Http\Site\Middleware\MarkCacheable;
 use App\Http\Site\Middleware\MatchDeclaredRoutes;
 use App\Http\Site\Middleware\ServeRootFiles;
 use App\Http\Site\PendingCommentsController;
+use App\Http\Site\PluginScriptController;
 use App\Http\Site\PluginStylesheetController;
 use App\Http\Site\PolicyReportController;
 use App\Http\Site\PublicController;
@@ -62,6 +63,13 @@ Route::middleware(['throttle:plugin-styles'])->get('_teme/plugins/{code}/{file}'
     ->where('code', '[a-z][a-z0-9-]*')
     ->where('file', '.+\.css')
     ->name('teme.plugins.styles');
+
+// A plugin's declared script, served as text/javascript (docs/guides/developers/plugins/scripts.md).
+// Its code and its file, a path inside the package; anything not declared answers 404.
+Route::middleware(['throttle:plugin-scripts'])->get('_teme/plugins/{code}/{file}', PluginScriptController::class)
+    ->where('code', '[a-z][a-z0-9-]*')
+    ->where('file', '.+\.js')
+    ->name('teme.plugins.scripts');
 
 // The password form's post for an item protected by one (I-1700): no session and no token,
 // tries counted per address; reserved (_teme), so the page cache passes it by.
