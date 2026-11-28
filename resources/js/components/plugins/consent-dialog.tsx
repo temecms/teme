@@ -26,11 +26,15 @@ import type {
  * The words the dialog's button carries: the plain Enable while an earlier
  * agreement still covers what the plugin asks, and Agree and enable whenever
  * a person agrees to access, at the first enable and for an update that asks
- * for more.
+ * for more; Agree alone for a plugin that is running and keeps running.
  */
 export function confirmLabel(plugin: PluginRowPage): string {
-    return plugin.agreedBefore && !plugin.asksMore
-        ? __('Enable :name', { name: plugin.label })
+    if (plugin.agreedBefore && !plugin.asksMore) {
+        return __('Enable :name', { name: plugin.label });
+    }
+
+    return plugin.enabled
+        ? __('Agree to :version', { version: plugin.version })
         : __('Agree and enable :version', { version: plugin.version });
 }
 
@@ -147,15 +151,27 @@ export function ConsentDialog({
                     </Notice>
 
                     {plugin.agreedBefore && plugin.asksMore && (
-                        <p className="text-small">
-                            {__(
-                                'You agreed to what version :agreed asks. Version :version adds the items marked New. Until you agree, :name stays disabled.',
-                                {
-                                    agreed: plugin.agreedVersion ?? '',
-                                    version: plugin.version,
-                                    name: plugin.label,
-                                },
-                            )}
+                        <p
+                            className="text-small"
+                            data-test="consent-agree-again"
+                        >
+                            {plugin.enabled
+                                ? __(
+                                      'You agreed to what version :agreed asks. Version :version adds the items marked New. :name keeps running; agreeing adds the invite and join events and owner names.',
+                                      {
+                                          agreed: plugin.agreedVersion ?? '',
+                                          version: plugin.version,
+                                          name: plugin.label,
+                                      },
+                                  )
+                                : __(
+                                      'You agreed to what version :agreed asks. Version :version adds the items marked New. Until you agree, :name stays disabled.',
+                                      {
+                                          agreed: plugin.agreedVersion ?? '',
+                                          version: plugin.version,
+                                          name: plugin.label,
+                                      },
+                                  )}
                         </p>
                     )}
 

@@ -120,6 +120,10 @@ it('builds code and repeater settings, and refuses a sub-field a repeater can’
         'description' => 'Units.',
         'fields' => [['key' => 'sites', 'type' => 'urls', 'label' => 'Sites', 'description' => 'Many.']],
     ]]))->toThrow(InvalidArgumentException::class, "Repeater [slots] can't hold a urls field [sites].");
+
+    // The manifest refuses a repeater that doesn't document itself; a url field inside one is allowed.
+    expect(($this->errors)([['key' => 'slots', 'type' => 'repeater', 'label' => 'Slots', 'description' => '', 'fields' => [['key' => 'site', 'type' => 'url', 'label' => 'Site', 'description' => '']]]]))
+        ->toBe(['Its settings can’t be used: Setting [plugin.settings.slots] must document itself: label, description and since.']);
 });
 
 it('never lets a plugin write code, or a repeater that holds code, for itself', function (): void {

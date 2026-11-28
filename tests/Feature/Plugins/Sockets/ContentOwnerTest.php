@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Doors\PluginDoors;
+use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\PluginRecords;
 use App\Domain\Support\Security\JobActor;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -26,6 +28,20 @@ afterEach(function (): void {
     app(CurrentJobActor::class)->clear();
 });
 
+/**
+ * Librarian enabled with people.read as agreed from 1.9 on, stamped for the
+ * owner's name; without an enabled record no name is given.
+ */
+function contentOwnerGranted(): void
+{
+    PluginRecord::factory()->enabled()->create([
+        'name' => 'tests/librarian',
+        'code' => 'librarian',
+        'consent' => ['capabilities' => ['content.read', 'people.read'], 'hosts' => [], 'hooks' => [], 'routes' => [], 'peopleRead' => true],
+    ]);
+    app(PluginRecords::class)->changed();
+}
+
 it('gives the item’s owner id under content.read, and never the name without people.read', function (): void {
     $owner = User::factory()->create(['name' => 'Ada Harbour'])->assignRole('editor');
     $item = addrPublished($owner, 'Harbour notes');
@@ -41,6 +57,7 @@ it('gives the owner’s display name only when the plugin also has people.read',
     $owner = User::factory()->create(['name' => 'Ada Harbour'])->assignRole('editor');
     $item = addrPublished($owner, 'Harbour notes');
     app(CurrentJobActor::class)->set(JobActor::person($owner->id));
+    contentOwnerGranted();
 
     $draft = ($this->reader)(['content.read', 'people.read'])->draft($item->id, (string) $owner->id);
 
@@ -52,6 +69,7 @@ it('never puts a role or email on the snapshot’s owner fields', function (): v
     $owner = User::factory()->create(['name' => 'Ada Harbour', 'email' => 'ada@harbour.example'])->assignRole('administrator');
     $item = addrPublished($owner, 'Harbour notes');
     app(CurrentJobActor::class)->set(JobActor::person($owner->id));
+    contentOwnerGranted();
 
     $draft = ($this->reader)(['content.read', 'people.read'])->draft($item->id, (string) $owner->id);
 

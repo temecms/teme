@@ -83,8 +83,9 @@ final class OwnedHooks implements Hooks
     }
 
     /**
-     * PersonInvited and PersonJoined need the wider people.read stamp when
-     * the plugin is installed; core and door tests with no consent still hear them.
+     * PersonInvited and PersonJoined need the wider people.read stamp on the
+     * plugin's enabled record; core hears them, and a plugin with no enabled
+     * record never does.
      *
      * @param  class-string<Hook>  $hook
      */
@@ -96,7 +97,7 @@ final class OwnedHooks implements Hooks
 
         $record = collect(app(PluginRecords::class)->enabled())->first(fn ($row): bool => $row->name === $this->owner);
 
-        return $record === null || Consent::coversWiderPeopleRead((array) $record->consent);
+        return $record !== null && Consent::coversWiderPeopleRead((array) $record->consent);
     }
 
     public function off(Subscription $subscription): void

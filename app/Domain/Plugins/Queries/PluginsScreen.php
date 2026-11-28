@@ -335,10 +335,30 @@ final readonly class PluginsScreen
         }
 
         if ($enabled) {
-            return 'disable';
+            return self::addsOnlyWiderPeopleRead($row, $newImports) ? 'review' : 'disable';
         }
 
         return in_array($row->state, [PluginState::NotEnabled, PluginState::Disabled, PluginState::StoppedByTeme], true) ? 'enable' : null;
+    }
+
+    /**
+     * Whether an Enabled plugin's only addition is the wider people.read:
+     * an older grant keeps running, and agreeing again adds the invite and
+     * join events and owner names, so its row offers Review access.
+     */
+    private static function addsOnlyWiderPeopleRead(PluginRow $row, bool $newImports): bool
+    {
+        if ($row->consent === [] || $row->added['capabilities'] !== [Capability::PeopleRead->value] || $newImports) {
+            return false;
+        }
+
+        foreach (['hosts', 'routes', 'insertionHosts', 'permissions', 'notices', 'requires'] as $kind) {
+            if (($row->added[$kind] ?? []) !== []) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

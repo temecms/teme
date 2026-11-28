@@ -46,8 +46,8 @@ These are all Notifications, sent after commit.
 
 | Hook | When it is sent | Capability |
 |---|---|---|
-| `PersonInvited` | Someone was invited to the site. Carries their account ID and display name only, never a role or email. | `people.read` |
-| `PersonJoined` | An invited person chose their password and joined. Carries their account ID and display name only, never a role or email. | `people.read` |
+| `PersonInvited` | Someone was invited to the site. Carries their account ID and display name only, never a role or email. A plugin whose `people.read` was agreed before 1.9.0 hears it only once an administrator agrees again. | `people.read` |
+| `PersonJoined` | An invited person chose their password and joined. Carries their account ID and display name only, never a role or email. A plugin whose `people.read` was agreed before 1.9.0 hears it only once an administrator agrees again. | `people.read` |
 
 `TermAssigned` is sent once for the item and the change, with a map keyed by taxonomy: for each taxonomy that changed, the IDs of the terms added and the IDs taken off. A save that leaves the terms as they were sends nothing. It is a separate hook from `ContentSaved`, which a save also sends: `ContentSaved` says the item was saved and carries no terms, so listen to `TermAssigned` when you care which terms moved. Changing an item's language sends one `TermAssigned`: its old terms are removed and their versions in the new language are added. Terms deleted outright are not named as removed; listen to `TermDeleted` for those.
 

@@ -241,7 +241,7 @@ final readonly class PluginDoors implements PluginServices
 
     /**
      * Whether this plugin may name draft owners: people.read granted, and
-     * either no installed consent yet (door tests) or the wider stamp.
+     * the wider stamp on its enabled record; no record names no one.
      *
      * @param  list<string>  $capabilities
      */
@@ -253,6 +253,6 @@ final readonly class PluginDoors implements PluginServices
 
         $record = collect(app(PluginRecords::class)->enabled())->first(fn ($row): bool => $row->name === $name);
 
-        return $record === null || Consent::coversWiderPeopleRead((array) $record->consent);
+        return $record !== null && Consent::coversWiderPeopleRead((array) $record->consent);
     }
 }
