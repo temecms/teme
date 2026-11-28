@@ -39,10 +39,10 @@ function ActionIcon({ name }: { name: string | null | undefined }) {
 /**
  * A row's "…" menu (docs/architecture/design-system.md, section 4.17): the
  * state action that applies, then plugins' actions in their order, then the
- * destructive ones last, in red, a separator between the groups (I-3398). Area
- * tables pass `pluginsFirst` so custom actions sit above Enable/Disable. From
- * 640px up it is a dropdown; below that a sheet from the foot. Esc and Tab
- * close it and focus returns to the button.
+ * destructive ones last, in red, a separator between the groups. Area tables
+ * pass `pluginsFirst` so custom actions sit above Enable/Disable. From 640px
+ * up it is a dropdown; below that a sheet from the foot. Esc and Tab close
+ * it and focus returns to the button.
  */
 export function RowMenu({
     items,

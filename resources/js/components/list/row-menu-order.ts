@@ -1,4 +1,4 @@
-/** The "…" menu's order (I-3398): core actions, then plugins' in their order, then the destructive ones, last. Area tables pass `pluginsFirst` so plugin actions sit above Enable/Disable. */
+/** The "…" menu's order: core actions, then plugins' in their order, then the destructive ones, last. Area tables pass `pluginsFirst` so plugin actions sit above Enable/Disable. */
 export function orderRowMenu<
     T extends { owner: string; destructive?: boolean },
 >(
