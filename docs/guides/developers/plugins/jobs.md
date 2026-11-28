@@ -60,7 +60,7 @@ Pass `QueueOptions` as the last argument:
 
 Together they debounce: `new QueueOptions(delaySeconds: 60, uniqueKey: 'sitemap')` on every save sends one ping for a burst of saves. A key is up to 64 lower-case letters, digits and `:._-`, starting with a letter or digit; a delay or key outside those throws an `\InvalidArgumentException`.
 
-A job a person started from an admin action (list actions, Run now, editor-panel actions) tells that person's inbox when it finishes (with the summary, or "Finished."). Background runs — schedules, hooks (including a queue during a signed-in save), nested queues from those — stay off the inbox on success. A failed run always tells whoever started it, and shows on **Tools › Jobs**.
+A job a person started from an admin action (list actions, Run now, editor-panel actions) tells that person's inbox when it finishes (with the summary, or "Finished."). Background runs — schedules, hooks (including a queue during a signed-in save), nested queues from those — stay off the inbox on success. A job queued from inside a person's admin action is that person's too, and tells their inbox when it finishes. A failed run always tells whoever started it, and shows on **Tools › Jobs**.
 
 ## Schedules
 

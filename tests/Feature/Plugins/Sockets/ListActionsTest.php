@@ -76,7 +76,9 @@ it('queues the job for one row as the person who asked, with the item in its pay
         ->and($job->started_by)->toBe($this->admin->id)
         ->and($job->payload)->toEqual(['action' => 'ping-items', 'items' => [(string) $this->others->id]]);
 
-    Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $pushed): bool => $pushed->actor->userId === (string) $this->admin->id);
+    // A list action is a person's own click, so its closing line reaches their inbox.
+    Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $pushed): bool => $pushed->actor->userId === (string) $this->admin->id
+        && $pushed->notifyOnFinish === true);
 });
 
 it('leaves out the items the person can’t edit, queuing the rest, and says how many it left out', function (): void {
