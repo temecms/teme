@@ -114,7 +114,8 @@ it('lists the panel in Tools, pins it to a wide bar, and draws it, the plugin’
         ->assertScript("document.querySelector('[data-slot=\"pane-head\"]').textContent.includes('From Link Finder')")
         ->assertScript("Array.from(document.querySelectorAll('{$this->panel} h3'), (heading) => heading.textContent).join('|') === 'Ask|Suggestions'");
 
-    expect($page->script("() => document.querySelector('{$this->panel}').innerText.includes('Link Finder')"))->toBeFalse()
+    // The body names the plugin only in the note the specification gives when nothing is saved yet.
+    expect($page->script("() => document.querySelector('{$this->panel}').innerText.includes('Link Finder has no saved message for this article yet.')"))->toBeTrue()
         ->and(cmAxeViolations($page))->toBe([])
         ->and(($this->sideways)($page))->toBe(0);
 })->with(['light', 'dark'])->with([1440, 375]);

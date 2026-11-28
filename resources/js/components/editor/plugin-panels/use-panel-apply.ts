@@ -26,7 +26,9 @@ export function usePanelApply({
     taxonomies,
     checkpoint,
     markStale,
+    unsaved,
 }: {
+    unsaved: boolean;
     editor: Editor | null;
     title: string;
     setTitle: Dispatch<SetStateAction<string>>;
@@ -59,6 +61,7 @@ export function usePanelApply({
 
     return useMemo<PanelApply>(
         () => ({
+            unsaved,
             get editor() {
                 return latest.current.editor;
             },
@@ -125,6 +128,6 @@ export function usePanelApply({
                 return () => setChosenTerms(before);
             },
         }),
-        [setTitle, setValues, setChosenTerms],
+        [setTitle, setValues, setChosenTerms, unsaved],
     );
 }

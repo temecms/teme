@@ -205,6 +205,7 @@ export function PluginPanel({
                         tool={panel.tool}
                         plugin={panel.plugin}
                         preview={answer.preview}
+                        unsaved={apply.unsaved}
                     />
                 )}
 

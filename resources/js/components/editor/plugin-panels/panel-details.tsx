@@ -1,12 +1,13 @@
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, TriangleAlertIcon } from 'lucide-react';
 import { StatusPill } from '@/components/ui/status-pill';
-import { adminLocale } from '@/lib/dates';
+import { adminLocale, siteZone } from '@/lib/dates';
 import { __ } from '@/lib/i18n';
 import type { PanelDetailRow, PanelPreviewCard, PanelRowValue } from '@/types';
 
-/** A date and time as the admin's language shows it, in a time element. */
+/** A date and time in the admin's language, in the site's zone, as a time element. */
 function DateValue({ iso }: { iso: string }) {
     const text = new Intl.DateTimeFormat(adminLocale(), {
+        timeZone: siteZone(),
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -15,6 +16,22 @@ function DateValue({ iso }: { iso: string }) {
     }).format(new Date(iso));
 
     return <time dateTime={iso}>{text}</time>;
+}
+
+/** A value as the pill's text: plain text, or a date and time in the same form as DateValue. */
+function valueText(value: PanelRowValue): string {
+    if (typeof value === 'string') {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat(adminLocale(), {
+        timeZone: siteZone(),
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(new Date(value.iso));
 }
 
 /**
@@ -60,26 +77,22 @@ export function PanelRows({
     );
 }
 
-/** A value as text, for a pill. */
-function valueText(value: PanelRowValue): string {
-    return typeof value === 'string'
-        ? value
-        : new Date(value.iso).toLocaleString();
-}
-
 /**
- * The generic link card: a picture on top at about 1.91 to 1, the site's
- * host, the title and the description. Core draws it the same for every
- * plugin; the note says it shows the saved draft.
+ * The generic link card: a picture on top at 1.91 to 1, the site's host,
+ * the title and the description. Core draws it the same for every plugin;
+ * the note says it shows the saved draft, or that the editor has changes.
  */
 export function PanelPreview({
     tool,
     plugin,
     preview,
+    unsaved,
 }: {
     tool: string;
     plugin: string;
     preview: PanelPreviewCard;
+    /** The editor has changes not yet saved; the card still shows the saved draft. */
+    unsaved: boolean;
 }) {
     return (
         <section className="grid gap-3" aria-labelledby={`${tool}-preview`}>
@@ -95,17 +108,17 @@ export function PanelPreview({
                     <img
                         src={preview.picture}
                         alt={preview.title}
-                        className="aspect-video w-full object-cover"
+                        className="aspect-[191/100] w-full object-cover"
                     />
                 ) : (
-                    <div className="text-ink-2 bg-surface-2 flex aspect-auto items-center gap-2 p-3">
+                    <div className="text-ink-2 bg-surface-2 flex items-center gap-2 p-3">
                         <ImageIcon
                             className="size-4 shrink-0"
                             aria-hidden="true"
                         />
                         <span>
                             {__(
-                                'This item has no featured image, so the card shows none.',
+                                'This article has no featured image, so the card shows none.',
                             )}
                         </span>
                     </div>
@@ -126,11 +139,30 @@ export function PanelPreview({
                     )}
                 </figcaption>
             </figure>
-            <p className="text-ink-2 text-small">
-                {__(
-                    'Shows the draft as you last saved it. It looks different on each network; this is the shape they share.',
-                )}
-            </p>
+            {unsaved ? (
+                <p
+                    role="status"
+                    aria-live="polite"
+                    data-test="plugin-panel-unsaved"
+                    className="text-warn-ink text-small flex items-start gap-2"
+                >
+                    <TriangleAlertIcon
+                        className="size-4 shrink-0"
+                        aria-hidden="true"
+                    />
+                    <span>
+                        {__(
+                            'You have unsaved changes. The card shows the draft as you last saved it; save to see them here.',
+                        )}
+                    </span>
+                </p>
+            ) : (
+                <p className="text-ink-2 text-small">
+                    {__(
+                        'Shows the draft as you last saved it. It looks different on each network; this is the shape they share.',
+                    )}
+                </p>
+            )}
         </section>
     );
 }

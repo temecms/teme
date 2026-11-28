@@ -21,6 +21,8 @@ type Undo = (() => void) | null;
 /** What a panel needs of the editor to use a suggestion: nothing is saved until the person saves. */
 export type PanelApply = {
     editor: Editor | null;
+    /** The editor has changes that are not saved yet. */
+    unsaved: boolean;
     checkpoint: () => Promise<string | null>;
     markStale: (answer: Record<string, unknown>) => void;
     /** Sets the title; returns how to put the old one back. */

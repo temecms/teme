@@ -162,6 +162,14 @@ export function PanelActionForm({
                 }
             }}
         >
+            {savedAt === null && action.fields.length > 0 && (
+                <p className="text-ink-2 text-small">
+                    {__(':plugin has no saved message for this article yet.', {
+                        plugin: panel.plugin,
+                    })}
+                </p>
+            )}
+
             {action.fields.map((field) => {
                 const hasSaved = field.key in saved;
                 const changed =
@@ -187,8 +195,8 @@ export function PanelActionForm({
                         {hasSaved && !changed && (
                             <p className="text-ink-2 text-small">
                                 {__(
-                                    'Started from the value saved with this item on :date. Change anything; nothing goes out until you queue it.',
-                                    { date: when },
+                                    'Started from the message :plugin saved with this article on :date. Change anything; nothing goes out until you queue it.',
+                                    { plugin: panel.plugin, date: when },
                                 )}
                             </p>
                         )}
@@ -196,8 +204,8 @@ export function PanelActionForm({
                             <div className="flex flex-wrap items-center gap-2">
                                 <p className="text-ink-2 text-small">
                                     {__(
-                                        'You changed it. The saved value, from :date, is unchanged.',
-                                        { date: when },
+                                        'You changed it. :plugin’s saved message, from :date, is unchanged.',
+                                        { plugin: panel.plugin, date: when },
                                     )}
                                 </p>
                                 <Button
@@ -206,7 +214,7 @@ export function PanelActionForm({
                                     variant="ghost"
                                     onClick={() => useSaved(field.key)}
                                 >
-                                    {__('Use the saved value')}
+                                    {__('Use the saved message')}
                                 </Button>
                             </div>
                         )}
@@ -317,14 +325,24 @@ function PanelFieldControl({
                     }
                 />
             ) : field.type === 'textarea' ? (
-                <Textarea
-                    id={id}
-                    rows={3}
-                    maxLength={field.maxLength ?? undefined}
-                    required={field.required}
-                    value={typeof value === 'string' ? value : ''}
-                    onChange={(event) => onChange(event.target.value)}
-                />
+                <>
+                    <Textarea
+                        id={id}
+                        rows={4}
+                        maxLength={field.maxLength ?? undefined}
+                        required={field.required}
+                        value={typeof value === 'string' ? value : ''}
+                        onChange={(event) => onChange(event.target.value)}
+                    />
+                    {field.maxLength !== null && (
+                        <p className="text-ink-2 text-small">
+                            {__(':n of :max characters.', {
+                                n: typeof value === 'string' ? value.length : 0,
+                                max: field.maxLength,
+                            })}
+                        </p>
+                    )}
+                </>
             ) : field.type === 'number' ? (
                 <Input
                     id={id}
