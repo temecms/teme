@@ -1,3 +1,4 @@
+import { RotateCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ItemChoicesController from '@/actions/App/Http/Admin/Contents/ItemChoicesController';
 import TermSearchController from '@/actions/App/Http/Admin/Taxonomy/TermSearchController';
@@ -78,10 +79,94 @@ function useSearch(
     return { options, loading, failed, again: () => setRetry((n) => n + 1) };
 }
 
+/** One item the search returns: what a picker shows of a post or page. */
+type FoundItem = {
+    id: string;
+    title: string;
+    kind: string;
+    status: string;
+    date: string;
+    filedUnder: string[];
+};
+
 /**
- * A picker of posts and pages, stored as their content IDs, searching as the
- * person types. Only items they may open are offered; a chosen one stays in
- * the chips, and a search that can't run says so, with Try again.
+ * The posts and pages a search finds for the words typed, after a short
+ * wait: the shown items, how many match in all, and whether the search ran.
+ */
+function useItemSearch(query: string) {
+    const [items, setItems] = useState<FoundItem[]>([]);
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const [retry, setRetry] = useState(0);
+
+    useEffect(() => {
+        const typed = query.trim();
+
+        if (typed === '') {
+            setItems([]);
+            setTotal(0);
+            setFailed(false);
+            setLoading(false);
+
+            return;
+        }
+
+        let stale = false;
+        setLoading(true);
+        const timer = window.setTimeout(() => {
+            send(ItemChoicesController({ query: { q: typed } }))
+                .then((answer) => {
+                    if (stale) {
+                        return;
+                    }
+
+                    if (answer.status !== 200) {
+                        setFailed(true);
+                        setItems([]);
+                        setTotal(0);
+                    } else {
+                        const body = answer.body as unknown as {
+                            shown: FoundItem[];
+                            total: number;
+                        };
+                        setFailed(false);
+                        setItems(body.shown);
+                        setTotal(body.total);
+                    }
+
+                    setLoading(false);
+                })
+                .catch(() => {
+                    if (!stale) {
+                        setFailed(true);
+                        setItems([]);
+                        setLoading(false);
+                    }
+                });
+        }, SEARCH_WAIT_MS);
+
+        return () => {
+            stale = true;
+            window.clearTimeout(timer);
+        };
+    }, [query, retry]);
+
+    return {
+        items,
+        total,
+        loading,
+        failed,
+        again: () => setRetry((n) => n + 1),
+    };
+}
+
+/**
+ * A picker of posts and pages, stored as their content IDs, in the shared
+ * combobox: chips of what is chosen, and a search whose results show the words
+ * typed, a Draft pill, the kind and categories and date, and a Chosen mark on
+ * those already picked. Only items the person may open are offered; a search
+ * that can't run says so, with Try again.
  */
 export function ItemsPicker({
     id,
@@ -95,109 +180,86 @@ export function ItemsPicker({
     onChange: (value: unknown) => void;
 }) {
     const [query, setQuery] = useState('');
-    const labels = useRef<Record<string, string>>({});
+    const titles = useRef<Record<string, string>>({});
     const chosen = list(value);
+    const search = useItemSearch(query);
 
     for (const chip of field.chips) {
-        labels.current[chip.value] = chip.label ?? '';
+        titles.current[chip.value] = chip.label ?? '';
     }
 
-    const search = useSearch(query, async (typed) => {
-        try {
-            const answer = await send(
-                ItemChoicesController({ query: { q: typed } }),
-            );
+    const options: ComboboxOption[] = search.items.map((item) => {
+        titles.current[item.id] = item.title;
 
-            if (answer.status !== 200) {
-                return { ok: false, options: [] };
-            }
-
-            const body = answer.body as {
-                shown: {
-                    id: string;
-                    title: string;
-                    kind: string;
-                    status: string;
-                    date: string;
-                }[];
-            };
-
-            return {
-                ok: true,
-                options: body.shown.map((item) => {
-                    labels.current[item.id] = item.title;
-
-                    return {
-                        value: item.id,
-                        label: item.title,
-                        description: `${item.kind} · ${day(item.date)}${item.status === 'published' ? '' : ` · ${__('Draft')}`}`,
-                        disabled: chosen.includes(item.id),
-                    };
-                }),
-            };
-        } catch {
-            return { ok: false, options: [] };
-        }
+        return {
+            value: item.id,
+            label: item.title,
+            description: [
+                item.kind,
+                item.filedUnder.length > 0 ? item.filedUnder.join(', ') : null,
+                day(item.date),
+            ]
+                .filter((part) => part !== null)
+                .join(' · '),
+            pill: item.status === 'published' ? undefined : __('Draft'),
+            marker: chosen.includes(item.id) ? __('Chosen') : undefined,
+            disabled: chosen.includes(item.id),
+        };
     });
 
-    const option = (itemId: string): ComboboxOption => ({
+    const chosenOptions: ComboboxOption[] = chosen.map((itemId) => ({
         value: itemId,
-        label: labels.current[itemId] ?? itemId,
-    });
+        label: titles.current[itemId] ?? itemId,
+    }));
+
+    const typed = query.trim() !== '';
 
     return (
         <div className="grid gap-2" data-test={`items-picker-${field.key}`}>
             <Combobox
                 id={id}
                 multiple
-                options={search.options}
-                value={chosen.map(option)}
+                options={options}
+                value={chosenOptions}
                 onValueChange={(next) => onChange(next.map((one) => one.value))}
-                removeLabel={(item) =>
-                    __('Remove :title', { title: item.label })
-                }
-                placeholder={__('Choose posts and pages')}
+                removeLabel={(item) => __('Remove :title', { title: item.label })}
+                placeholder={__('Search posts and pages')}
                 searchPlaceholder={__('Search posts and pages')}
                 search={{
                     value: query,
                     onChange: setQuery,
                     loading: search.loading,
                 }}
+                searchingText={__('Searching posts and pages…')}
+                highlight={query}
+                footer={
+                    search.total > search.items.length
+                        ? __('Showing :shown of :total. Type more of the title to narrow it.', {
+                              shown: search.items.length,
+                              total: search.total,
+                          })
+                        : undefined
+                }
                 emptyText={
-                    query.trim() === ''
-                        ? __(
-                              'Type a few words from the title. Only posts and pages you can open are listed.',
-                          )
-                        : __(
-                              'No posts and pages match “:query”. Check the spelling, or try fewer words.',
-                              { query: query.trim() },
-                          )
+                    typed
+                        ? __('No posts and pages match “:query”. Check the spelling, or try fewer words.', {
+                              query: query.trim(),
+                          })
+                        : __('Type a few words from the title. Only posts and pages you can open are listed.')
                 }
             />
-            {search.failed && (
-                <Notice
-                    tone="danger"
-                    role="alert"
-                    data-test="items-picker-failed"
-                >
+            {typed && !search.loading && search.failed && (
+                <Notice tone="danger" role="alert" data-test="items-picker-failed">
                     <p>
-                        {__(
-                            'The search couldn’t run this time. Nothing you chose was lost. Try again in a moment.',
-                        )}
+                        {__('The search couldn’t run this time. Nothing you chose was lost. Try again in a moment.')}
                     </p>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={search.again}
-                    >
+                    <Button type="button" size="sm" variant="secondary" onClick={search.again}>
+                        <RotateCw aria-hidden className="size-4" />
                         {__('Try again')}
                     </Button>
                 </Notice>
             )}
-            {field.description !== '' && (
-                <p className="text-small text-ink-2">{field.description}</p>
-            )}
+            {field.description !== '' && <p className="text-small text-ink-2">{field.description}</p>}
         </div>
     );
 }

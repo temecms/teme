@@ -24,6 +24,10 @@ export type ComboboxOption = {
   disabled?: boolean
   /** Choosing it closes the list even where several may be chosen, as an action rather than a choice does. */
   closes?: boolean
+  /** A flat pill after the label, such as Draft. */
+  pill?: string
+  /** A quiet word after the label, such as Chosen, for an option that can't be chosen again. */
+  marker?: string
 }
 
 type ComboboxBase = {
@@ -42,6 +46,12 @@ type ComboboxBase = {
   size?: "md" | "sm"
   "aria-describedby"?: string
   "aria-invalid"?: boolean
+  /** The words typed: each match in an option's label is drawn bold and underlined. */
+  highlight?: string
+  /** A foot line under the options, such as how many are shown of how many match. */
+  footer?: string
+  /** The words shown while a remote search runs, in place of the default. */
+  searchingText?: string
 }
 
 export type ComboboxProps = ComboboxBase &
@@ -222,6 +232,29 @@ function ChosenNames({ names }: { names: string[] }) {
   )
 }
 
+/** The words typed, emphasised: every match bold and underlined. */
+function emphasised(label: string, query: string): React.ReactNode {
+  const words = query
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word !== "")
+    .map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+
+  if (words.length === 0) {
+    return label
+  }
+
+  return label.split(new RegExp(`(${words.join("|")})`, "gi")).map((part, index) =>
+    index % 2 === 1 ? (
+      <strong key={index} className="font-semibold underline">
+        {part}
+      </strong>
+    ) : (
+      part
+    )
+  )
+}
+
 /**
  * One searchable list for the whole admin (docs/architecture/design-system.md,
  * section 4.7): a button like a Select opens a popover whose search field is
@@ -239,6 +272,9 @@ function Combobox(props: ComboboxProps) {
     name,
     disabled = false,
     size = "md",
+    highlight,
+    footer,
+    searchingText,
   } = props
   const multiple = props.multiple === true
   const chosenList = React.useMemo(
@@ -497,7 +533,11 @@ function Combobox(props: ComboboxProps) {
                     >
                       {Icon && <Icon aria-hidden="true" className="size-5 shrink-0 text-ink-2" />}
                       <span className="grid min-w-0 flex-1">
-                        <span className="truncate">{option.label}</span>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="truncate">{highlight ? emphasised(option.label, highlight) : option.label}</span>
+                          {option.pill && <StatusPill tone="neutral" flat>{option.pill}</StatusPill>}
+                          {option.marker && <span className="shrink-0 text-small text-ink-3">{option.marker}</span>}
+                        </span>
                         {option.description && (
                           <span className="truncate text-small text-ink-3">{option.description}</span>
                         )}
@@ -535,7 +575,7 @@ function Combobox(props: ComboboxProps) {
                 className="flex items-center gap-2 px-3 py-2 text-body text-ink-2"
               >
                 <Spinner />
-                {__("Searching…")}
+                {searchingText ?? __("Searching…")}
               </p>
             ) : (
               shown.length === 0 && (
@@ -543,6 +583,11 @@ function Combobox(props: ComboboxProps) {
                   {emptyText ?? __("Nothing matches.")}
                 </p>
               )
+            )}
+            {footer && shown.length > 0 && (
+              <p data-slot="combobox-footer" className="px-3 py-2 text-small text-ink-2">
+                {footer}
+              </p>
             )}
           </ScrollArea>
         </PopoverContent>
