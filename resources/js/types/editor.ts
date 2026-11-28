@@ -515,7 +515,7 @@ export type PluginCheckGroup = {
 /** One field of a plugin panel action's form, as its manifest declares it. */
 export type PanelField = {
     key: string;
-    type: 'text' | 'textarea' | 'select' | 'boolean' | 'number';
+    type: 'text' | 'textarea' | 'select' | 'boolean' | 'number' | 'items';
     label: string;
     required: boolean;
     default: string | number | boolean | null;
@@ -592,6 +592,26 @@ export type PanelJob = {
 };
 
 /** What a panel shows (PanelReads): its status, its suggestions, its jobs, and whether to ask again. */
+/** A detail row's value: plain text, or a date and time the page formats. */
+export type PanelRowValue = string | { kind: 'date'; iso: string };
+
+/** One labelled line of a panel's details. */
+export type PanelDetailRow = {
+    label: string;
+    value: PanelRowValue;
+    tone: 'ok' | 'neutral' | 'info' | 'warn' | 'danger' | null;
+};
+
+/** The preview card of what the plugin will send. */
+export type PanelPreviewCard = {
+    title: string;
+    description: string;
+    /** The picture's address from the library, or null for none. */
+    picture: string | null;
+    /** The site's own host, derived from its address. */
+    host: string | null;
+};
+
 export type PanelAnswer = {
     status: string | null;
     tone: 'ok' | 'neutral' | 'info' | 'warn' | 'danger';
@@ -601,4 +621,12 @@ export type PanelAnswer = {
     busy: boolean;
     /** The plugin's own AI is switched off, or its budget for the month is spent. */
     ai: 'off' | 'budget' | null;
+    /** The heading over the rows, or null when there are none. */
+    rowsHeading: string | null;
+    rows: PanelDetailRow[];
+    preview: PanelPreviewCard | null;
+    /** The saved values of the action fields, by field key. */
+    saved: Record<string, string | number | boolean | null>;
+    /** When the saved values were saved, as an ISO 8601 string, or null. */
+    savedAt: string | null;
 };

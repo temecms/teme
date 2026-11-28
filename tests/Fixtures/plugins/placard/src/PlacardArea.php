@@ -6,11 +6,14 @@ namespace Tests\Fixtures\Plugins\Placard;
 
 use Closure;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Teme\Contracts\Admin\AreaContext;
 use Teme\Contracts\Admin\Chart;
+use Teme\Contracts\Admin\FieldChoice;
 use Teme\Contracts\Admin\Figure;
 use Teme\Contracts\Admin\HasAreaCounts;
 use Teme\Contracts\Admin\HasRecordHeader;
+use Teme\Contracts\Admin\OffersFieldChoices;
 use Teme\Contracts\Admin\PluginArea;
 use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
@@ -25,7 +28,7 @@ use Teme\Contracts\Lists\Cell;
  * the query builder as the handbook allows. Each call can be replaced by a
  * test through $on, and every call is remembered in $calls.
  */
-final class PlacardArea implements HasAreaCounts, HasRecordHeader, PluginArea
+final class PlacardArea implements HasAreaCounts, HasRecordHeader, OffersFieldChoices, PluginArea
 {
     /** @var array<string, Closure> what a test makes a call do instead, by method */
     public static array $on = [];
@@ -33,10 +36,27 @@ final class PlacardArea implements HasAreaCounts, HasRecordHeader, PluginArea
     /** @var list<array{0: string, 1: array<int, mixed>}> every call, its method and arguments */
     public static array $calls = [];
 
+    /** @var list<FieldChoice> what fieldChoices() gives, as a test sets it */
+    public static array $choices = [];
+
+    /** Whether fieldChoices() throws, as a plugin that can't list its accounts does */
+    public static bool $choicesThrow = false;
+
     public static function reset(): void
     {
+        self::$choices = [];
+        self::$choicesThrow = false;
         self::$on = [];
         self::$calls = [];
+    }
+
+    public function fieldChoices(string $form, string $field): array
+    {
+        if (self::$choicesThrow) {
+            throw new RuntimeException('The accounts are not listed today.');
+        }
+
+        return self::$choices;
     }
 
     public function figures(string $page, string $block, AreaContext $context): array

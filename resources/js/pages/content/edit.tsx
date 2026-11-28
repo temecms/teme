@@ -436,6 +436,7 @@ export default function ContentEdit(page: ContentEditPage) {
         taxonomies: session.taxonomies,
         checkpoint,
         markStale: saving.markStale,
+        unsaved: saving.pending,
     });
     const assistantSaving = useMemo(
         () => ({

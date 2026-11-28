@@ -1262,7 +1262,8 @@
                                                             "textarea",
                                                             "select",
                                                             "boolean",
-                                                            "number"
+                                                            "number",
+                                                            "items"
                                                         ],
                                                         "description": "The kind of field."
                                                     },

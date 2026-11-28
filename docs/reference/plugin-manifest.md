@@ -178,7 +178,7 @@
 | `contributes.editorPanels[].actions[].confirm` | string | no | A sentence the person confirms before the job is queued. |  |
 | `contributes.editorPanels[].actions[].fields` | array | no | A small form whose values go to the job. |  |
 | `contributes.editorPanels[].actions[].fields[].key` | string | yes | The value's key in the job's payload. | ^[a-z][a-z0-9_]{0,31}$ |
-| `contributes.editorPanels[].actions[].fields[].type` | enum | yes | The kind of field. | "text", "textarea", "select", "boolean", "number" |
+| `contributes.editorPanels[].actions[].fields[].type` | enum | yes | The kind of field. | "text", "textarea", "select", "boolean", "number", "items" |
 | `contributes.editorPanels[].actions[].fields[].label` | string | yes | The field's label. |  |
 | `contributes.editorPanels[].actions[].fields[].required` | boolean | no | Whether the person must fill it. |  |
 | `contributes.editorPanels[].actions[].fields[].default` |  | no | The value it starts with. |  |

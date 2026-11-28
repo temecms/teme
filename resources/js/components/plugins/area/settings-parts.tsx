@@ -152,6 +152,11 @@ function asAreaField(field: FieldDefinition): AreaField {
                 : field.type === 'number'
                   ? null
                   : '',
+        // Settings never hold record pickers: no slug storage, chips or stale slugs.
+        storeAs: null,
+        chips: [],
+        stale: [],
+        taxonomy: null,
     };
 }
 

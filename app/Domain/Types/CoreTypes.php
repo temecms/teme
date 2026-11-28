@@ -20,6 +20,12 @@ use App\Domain\StructuredData\TypeSchema;
 
 final class CoreTypes
 {
+    /** The key of the core post type. @since next */
+    public const string POST = 'post';
+
+    /** The key of the core page type. @since next */
+    public const string PAGE = 'page';
+
     /** The type of a theme's region's content, which the region code asks for by this name. */
     public const string REGION = 'region';
 

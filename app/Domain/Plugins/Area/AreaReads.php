@@ -27,9 +27,11 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Admin\AreaContext;
 use Teme\Contracts\Admin\Chart;
+use Teme\Contracts\Admin\FieldChoice;
 use Teme\Contracts\Admin\Figure;
 use Teme\Contracts\Admin\HasAreaCounts;
 use Teme\Contracts\Admin\HasRecordHeader;
+use Teme\Contracts\Admin\OffersFieldChoices;
 use Teme\Contracts\Admin\PluginArea;
 use Teme\Contracts\Admin\RecordHeader;
 use Teme\Contracts\Admin\Row;
@@ -491,6 +493,65 @@ final class AreaReads
         }
 
         return $kept;
+    }
+
+    /**
+     * The options a plugin lists for one select field whose choices come from
+     * it: at most 50, labels as plain text, each value once. Null when the
+     * plugin couldn't answer in time, or doesn't offer choices; $failed then
+     * says why, in the words the form shows.
+     *
+     * @return list<array{value: string, label: string}>|null
+     */
+    public function fieldChoices(AreaPlugin $plugin, string $record, string $field, ?string &$failed = null): ?array
+    {
+        $failed = null;
+        $answered = false;
+        $given = $this->call($plugin, "choices {$record}.{$field}", function (PluginArea $data) use ($record, $field): ?array {
+            if (! $data instanceof OffersFieldChoices) {
+                throw new AreaAnswerRefused("The plugin doesn’t offer choices for {$field}.");
+            }
+
+            return $data->fieldChoices($record, $field);
+        }, $answered);
+
+        if (! $answered) {
+            $failed = $this->failure($plugin);
+
+            return null;
+        }
+
+        $options = [];
+        $seen = [];
+        $refused = false;
+
+        foreach (is_array($given) ? $given : [] as $choice) {
+            if (! $choice instanceof FieldChoice) {
+                $refused = true;
+
+                continue;
+            }
+
+            $value = mb_substr(trim(strip_tags($choice->value)), 0, 191);
+            $label = mb_substr(trim(strip_tags($choice->label)), 0, 120);
+
+            if ($value === '' || $label === '' || isset($seen[$value])) {
+                continue;
+            }
+
+            $seen[$value] = true;
+            $options[] = ['value' => $value, 'label' => $label];
+
+            if (count($options) === 50) {
+                break;
+            }
+        }
+
+        if ($refused || ! is_array($given)) {
+            $this->fault($plugin, new AreaAnswerRefused("The choices of {$record}.{$field} answered with the wrong shape."));
+        }
+
+        return $options;
     }
 
     /**

@@ -198,6 +198,7 @@ export type AreaField = {
         | 'datetime'
         | 'types'
         | 'terms'
+        | 'items'
         | 'region'
         | 'repeater';
     label: string;
@@ -215,6 +216,23 @@ export type AreaField = {
     itemLabel: string;
     itemTitle: string | null;
     empty: unknown;
+    /** A terms field stores each term's slug, not its ID. */
+    storeAs: 'id' | 'slug' | null;
+    /** A select whose options the plugin lists as the form opens. */
+    fromPlugin?: boolean;
+    /** The line shown when the plugin couldn't list its options this time; null when it could. */
+    choicesFailed?: string | null;
+    /** The chosen items, or the stored slugs, with the name each one has now (null: none). */
+    chips: { value: string; label: string | null; kind?: string }[];
+    /** The slugs a terms field stores that no term has now. */
+    stale: string[];
+    /** The taxonomy a terms field draws its terms from. */
+    taxonomy?: string | null;
+    /** The taxonomy's singular name in lower case, for a sentence about one of its terms. */
+    taxonomySingular?: string | null;
+    taxonomyPlural?: string | null;
+    /** The plugin's name, as the words it shows name it. */
+    plugin?: string;
 };
 
 export type PluginRecordPageProps = {

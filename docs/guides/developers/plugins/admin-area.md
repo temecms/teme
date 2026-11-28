@@ -71,11 +71,18 @@ The field types are the settings types `text`, `textarea`, `number`, `boolean`, 
 | `code` | Markup in a monospace box, up to 65,535 characters, never run in the admin |
 | `datetime` | A date and time in ISO 8601, in the site's time zone |
 | `types` | Content-type keys, from core's list |
-| `terms` | Term IDs of the taxonomy named in `taxonomy` |
+| `terms` | Terms of the taxonomy named in `taxonomy`, stored as their IDs, or as their slugs with `storeAs: "slug"` |
+| `items` | Posts and pages, stored as their content IDs. The picker lists only what the person may open |
 | `region` | A slug of the active theme's regions |
 | `repeater` | A list of items, each with its own `fields` |
 
 A repeater gives `fields` (any type but another repeater), `minItems`, `maxItems` (up to 50, 20 when left out), `itemLabel` and `itemTitle`, the sub-field whose value names each item. People add, collapse, remove and move items with Move up and Move down.
+
+A `terms` field picks terms by searching as the person types. By default it stores each term's ID, which follows a term if it is renamed. Give `storeAs: "slug"` to store the slug instead, the short form in the term's address such as `rivers-state-budget`. A slug is what your `save()` receives. If a term is renamed or deleted, the stored slug stays as it was and the form warns about it; a slug no term has any more is refused when the person saves, so they choose the term again.
+
+A `select` may leave out its `options` and take its choices from your plugin instead, with `"choices": "plugin"`. Its form then asks your area object each time it opens, so the list is current: a plugin that keeps accounts lists them, for example. Your area object implements `Teme\Contracts\Admin\OffersFieldChoices`, whose `fieldChoices($record, $field)` returns up to 50 `FieldChoice` values, each a `value` and a `label` shown as plain text. A select names either its `options` or `"choices": "plugin"`, never both. If your call throws or runs over its time, the field is disabled, shows the saved value with ", as saved", and says that the plugin couldn't list its choices this time; the rest of the form still saves. At save, core checks the value against a fresh answer, and if your plugin can't answer then, it keeps the saved value.
+
+An `items` field stores the IDs of posts and pages. The picker searches their titles and offers at most six, with the total, and it only offers items the person may open now. Stored items the person can't open are kept as they are when someone else saves the record, and the rest of the form still saves.
 
 A field with `visibleWhen` is shown only while its condition holds, such as `{"location": "after_paragraph"}`. A condition names fields declared before it. A hidden field is never checked, and never sent to your `save()`: what it held stays as it was.
 

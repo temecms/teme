@@ -119,3 +119,13 @@ it('reads an area’s icon, and plug when none is named', function (): void {
     expect(DeclaredArea::from($this->area)->icon)->toBe('plug')
         ->and(DeclaredArea::from([...$this->area, 'icon' => 'send'])->icon)->toBe('send');
 });
+
+it('carries a terms field’s storeAs from the manifest into the declared field, so a slug field stores slugs', function (): void {
+    $area = $this->area;
+    $area['records'][0]['sections'][0]['fields'][] = ['key' => 'tag_rule', 'type' => 'terms', 'label' => 'Tags', 'taxonomy' => 'tag', 'storeAs' => 'slug'];
+
+    $declared = DeclaredArea::from($area);
+    $field = collect($declared->fields($area['records'][0]['id']))->firstWhere('key', 'tag_rule');
+
+    expect($field['storeAs'] ?? null)->toBe('slug');
+});

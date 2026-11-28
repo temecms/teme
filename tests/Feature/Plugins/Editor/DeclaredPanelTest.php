@@ -80,7 +80,7 @@ it('refuses a panel out of bounds, in one plain sentence each', function (array 
     'a field key in capitals' => [[['editorPanels.0.actions.1.fields.0.key', 'Focus']], 'A panel field’s key must be lower-case letters, digits and underscores, starting with a letter.'],
     'two fields of one key' => [[['editorPanels.0.actions.1.fields.1.key', 'focus']], 'Two fields of one action can’t share the key focus.'],
     'a field of an unknown key' => [[['editorPanels.0.actions.1.fields.0.scripts', true]], 'A panel field can’t have scripts.'],
-    'a field of an unknown type' => [[['editorPanels.0.actions.1.fields.0.type', 'url']], 'A panel field’s type must be text, textarea, select, boolean or number.'],
+    'a field of an unknown type' => [[['editorPanels.0.actions.1.fields.0.type', 'url']], 'A panel field’s type must be text, textarea, select, boolean, number or items.'],
     'a field of no label' => [[['editorPanels.0.actions.1.fields.0.label', '']], 'A panel field’s label must be 1 to 40 characters.'],
     'required as a word' => [[['editorPanels.0.actions.1.fields.0.required', 'yes']], 'A panel field’s required must be true or false.'],
     'text over 500' => [[['editorPanels.0.actions.1.fields.0.maxLength', 501]], 'A text field’s maxLength must be from 1 to 500.'],

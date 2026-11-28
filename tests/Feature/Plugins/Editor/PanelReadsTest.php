@@ -6,11 +6,14 @@ use App\Domain\Plugins\Editor\PanelTooSlow;
 use App\Domain\Plugins\Editor\SuggestionRefused;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Teme\Contracts\Editor\EditorPanel;
 use Teme\Contracts\Editor\EditorPanelContext;
+use Teme\Contracts\Editor\PanelPreview;
+use Teme\Contracts\Editor\PanelRow;
 use Teme\Contracts\Editor\PanelView;
 use Teme\Contracts\Editor\SuggestedChange;
 use Teme\Contracts\Editor\Suggestion;
@@ -165,4 +168,26 @@ it('is forbidden to a person who doesn’t see the panel, and never asks the plu
     ($this->read)($author)->assertForbidden();
 
     expect(Linkfinder::$asked)->toBe([]);
+});
+
+it('hands the rows, the preview card and the saved values to the editor as plain values', function (): void {
+    Linkfinder::$view = fn (): PanelView => new PanelView(
+        status: 'Ready',
+        rows: [new PanelRow('Network', '<b>Mastodon</b>'), new PanelRow('Goes out', new DateTimeImmutable('2026-11-29T08:30:00+00:00'), 'info')],
+        preview: new PanelPreview('A “title”', 'The description.', null),
+        saved: ['message' => "Saved\u{202E} text", 'count' => 3],
+        savedAt: new DateTimeImmutable('2026-11-21T17:12:00+00:00'),
+        rowsHeading: 'This article on the networks',
+    );
+
+    $json = ($this->read)()->assertOk()->json();
+
+    expect($json['rowsHeading'])->toBe('This article on the networks')
+        ->and($json['rows'])->toBe([
+            ['label' => 'Network', 'value' => '<b>Mastodon</b>', 'tone' => null],
+            ['label' => 'Goes out', 'value' => ['kind' => 'date', 'iso' => '2026-11-29T08:30:00+00:00'], 'tone' => 'info'],
+        ])
+        ->and($json['preview'])->toMatchArray(['title' => 'A “title”', 'description' => 'The description.', 'picture' => null])
+        ->and($json['saved'])->toBe(['message' => 'Saved text', 'count' => 3])
+        ->and($json['savedAt'])->toBe('2026-11-21T17:12:00+00:00');
 });

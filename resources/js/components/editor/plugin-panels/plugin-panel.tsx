@@ -32,6 +32,7 @@ import type { EditorPluginPanel, PanelAnswer, PanelJob } from '@/types';
 import { PANEL_WORDS } from './panel-words';
 import { PanelActionForm } from './panel-action-form';
 import { PanelSuggestions } from './panel-suggestions';
+import { PanelPreview, PanelRows } from './panel-details';
 import type { PanelApply } from './panel-suggestions';
 
 /** A panel's or row action's icon, from the closed list its manifest chooses from. */
@@ -56,6 +57,9 @@ export const PANEL_ICONS: Record<string, LucideIcon> = {
     code: Code,
     grid: Grid2X2,
 };
+
+/** No saved values yet: one object, so the form's effect isn't run again on every draw. */
+const NO_SAVED: PanelAnswer['saved'] = {};
 
 /** How often the panel asks again while its work waits or runs, and for how long at most. */
 const POLL_MS = 5_000;
@@ -200,6 +204,27 @@ export function PluginPanel({
                     </p>
                 )}
 
+            {answer !== null &&
+                answer.failed === null &&
+                answer.rows.length > 0 && (
+                    <PanelRows
+                        heading={answer.rowsHeading ?? __('Details')}
+                        rows={answer.rows}
+                        tool={panel.tool}
+                    />
+                )}
+
+            {answer !== null &&
+                answer.failed === null &&
+                answer.preview !== null && (
+                    <PanelPreview
+                        tool={panel.tool}
+                        plugin={panel.plugin}
+                        preview={answer.preview}
+                        unsaved={apply.unsaved}
+                    />
+                )}
+
             {panel.actions.length > 0 &&
                 answer?.failed == null &&
                 (answer?.ai ?? null) === null && (
@@ -223,6 +248,8 @@ export function PluginPanel({
                                 checkpoint={apply.checkpoint}
                                 onStale={apply.markStale}
                                 onAnswer={(next) => setAnswer(next)}
+                                saved={answer?.saved ?? NO_SAVED}
+                                savedAt={answer?.savedAt ?? null}
                             />
                         ))}
                     </section>

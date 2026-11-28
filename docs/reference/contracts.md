@@ -70,6 +70,14 @@ A chart block's numbers: its labels, `Y-m-d` dates or category words, and each d
 - `MOST_LABELS` — The most labels a chart may have: a year of days. Since 1.0.0.
 - `__construct(array $labels, array $series, array $compare = [])`. Since 1.0.0.
 
+### FieldChoice
+
+`Teme\Contracts\Admin\FieldChoice`, class. Since next.
+
+One option of a select field the plugin lists each time its form opens: the value stored, at most 191 characters, and the label shown as plain text, at most 120 characters.
+
+- `__construct(string $value, string $label)`. Since next.
+
 ### Figure
 
 `Teme\Contracts\Admin\Figure`, class. Since 1.0.0.
@@ -106,6 +114,14 @@ A plugin whose manifest declares an area: its own admin pages, which core draws 
 A plugin area that supplies a record's page header: its status and meta. Implemented on the same class as PluginArea. Null means title only.
 
 - `header(string $record, string $id, AreaContext $context): ?RecordHeader` — The header for this record, or null when the page shows only the title. Since next.
+
+### OffersFieldChoices
+
+`Teme\Contracts\Admin\OffersFieldChoices`, interface. Since next.
+
+Lists the options one select field offers, asked when the form opens. Asked within a time budget; one that throws or runs over gives no options, and the field keeps its saved value.
+
+- `fieldChoices(string $form, string $field): array` — The options for one field whose manifest says "choices": "plugin", at most 50, in the order shown. Since next.
 
 ### PluginArea
 
@@ -697,6 +713,26 @@ A plugin whose manifest declares editor panels: a pane in the content editor tha
 
 - `editorPanels(): array` — The plugin's panels, by declared panel id. Since 1.0.0.
 
+### PanelPreview
+
+`Teme\Contracts\Editor\PanelPreview`, class. Since next.
+
+The preview card a panel shows of what it will send. Core draws the card, takes the picture from the media library by its ID and shows the site's own host; the plugin supplies only the words and that ID, never an address.
+
+- `MOST_TITLE` — The longest title, in characters. Since next.
+- `MOST_DESCRIPTION` — The longest description, in characters. Since next.
+- `__construct(string $title, string $description = '', ?string $mediaId = null)`. Since next.
+
+### PanelRow
+
+`Teme\Contracts\Editor\PanelRow`, class. Since next.
+
+One labelled line of a panel's details: a label, its value and an optional tone. A value is plain text, or a date and time that core formats for the person.
+
+- `MOST_LABEL` — The longest label, in characters. Since next.
+- `MOST_VALUE` — The longest text value, in characters. Since next.
+- `__construct(string $label, DateTimeImmutable|string $value, ?string $tone = null)`. Since next.
+
 ### PanelView
 
 `Teme\Contracts\Editor\PanelView`, class. Since 1.0.0.
@@ -705,7 +741,9 @@ A short status line, its tone, and the suggestions waiting for the person.
 
 - `MOST_SUGGESTIONS` — The most suggestions one view may hold. Since 1.0.0.
 - `MOST_STATUS` — The longest status line, in characters. Since 1.0.0.
-- `__construct(?string $status = null, string $tone = 'neutral', array $suggestions = [])`. Since 1.0.0.
+- `MOST_ROWS` — The most detail rows one view may hold. Since next.
+- `MOST_SAVED` — The longest saved value, in characters. Since next.
+- `__construct(?string $status = null, string $tone = 'neutral', array $suggestions = [], array $rows = [], ?PanelPreview $preview = null, array $saved = [], ?DateTimeImmutable $savedAt = null, ?string $rowsHeading = null)`. Since 1.0.0.
 
 ### SuggestedChange
 
