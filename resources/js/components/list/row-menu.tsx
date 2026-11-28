@@ -202,22 +202,15 @@ function MenuItem({
                         asChild
                         variant={variant}
                         disabled={processing}
-                        onSelect={() => {
-                            // Form submit is handled by the button; keep the menu
-                            // open until success so an error can show.
-                        }}
+                        // The form submits; the menu stays open until it has,
+                        // so an error can show beside the action.
+                        onSelect={(event) => event.preventDefault()}
                     >
                         <Button
                             type="submit"
                             variant="ghost"
                             data-action={item.id}
                             className="w-full justify-start gap-2"
-                            onClick={(event) => {
-                                // Phone sheet items close on click; prevent that
-                                // until the form has finished by stopping close via
-                                // not using onSelect close for asChild submit.
-                                event.stopPropagation();
-                            }}
                         >
                             <ActionIcon name={item.icon} />
                             {item.label}
