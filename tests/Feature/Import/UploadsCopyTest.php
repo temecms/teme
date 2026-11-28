@@ -69,7 +69,7 @@ it('reads a picture out of a zip entry by entry, and lacks what the zip lacks', 
     $zip->addFromString('uploads/2024/05/Harbour One.jpg', dlJpeg(640, 480));
     $zip->close();
 
-    $copy = new UploadsCopy(UploadsCopy::ZIP, $zipPath);
+    $copy = new UploadsCopy(UploadsCopy::ZIP, $zipPath, 'uploads/');
 
     expect($copy->download('https://old.example/wp-content/uploads/2024/05/Harbour%20One.jpg', 1024 * 1024, sys_get_temp_dir()))->not->toBeNull()
         ->and($copy->download('https://old.example/wp-content/uploads/2024/05/Missing.jpg', 1024 * 1024, sys_get_temp_dir()))->toBeNull();

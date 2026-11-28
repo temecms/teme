@@ -649,3 +649,41 @@ it('brings a picture the uploads copy has with no request to the old site, and a
     rmdir($copy.'/2024');
     rmdir($copy);
 });
+
+it('takes a scaled picture’s main file from the uploads copy before asking the old site for its original', function (): void {
+    $copy = $this->folder.'-order';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One-scaled.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    impRun($this->companion, $this->source, [impAttachment(12)]);
+
+    expect(impFileRequests())->toBe([])
+        ->and(Media::query()->count())->toBe(1);
+
+    unlink($copy.'/2024/05/Harbour One-scaled.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});
+
+it('takes a picture from the copy when the attachment’s file is on another host, such as a CDN', function (): void {
+    $copy = $this->folder.'-cdn';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+    $cdn = impAttachment(12, fields: [
+        'url' => 'https://cdn.example.net/wp-content/uploads/2024/05/Harbour%20One-scaled.jpg',
+        'original_url' => 'https://cdn.example.net/wp-content/uploads/2024/05/Harbour%20One.jpg',
+    ]);
+
+    impRun($this->companion, $this->source, [$cdn]);
+
+    expect(impFileRequests())->toBe([])
+        ->and(Media::query()->count())->toBe(1);
+
+    unlink($copy.'/2024/05/Harbour One.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});

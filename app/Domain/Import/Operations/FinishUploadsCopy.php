@@ -19,6 +19,7 @@ use App\Domain\Import\Models\ImportUpload;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\UploadsCopyUploadInput;
 use App\Domain\Import\Uploads\KeptUploads;
+use App\Domain\Import\Uploads\UploadsCopy;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -60,35 +61,49 @@ final class FinishUploadsCopy extends BaseOperation
         }
 
         $zip = new ZipArchive;
+        $refusal = null;
+        $prefix = null;
 
         if ($zip->open((string) $upload->path, ZipArchive::RDONLY) !== true) {
-            KeptUploads::forget($upload);
+            $refusal = 'That file isn’t a zip of the uploads folder. Zip the wp-content/uploads folder itself and try again.';
+        } else {
+            $prefix = UploadsCopy::prefixOfZip($zip);
+
+            if (UploadsCopy::holdsTooMany($zip->numFiles)) {
+                $refusal = 'That zip holds more files than a copy may. Zip the uploads folder by year, or attach it on the server.';
+            } elseif ($prefix === null) {
+                $refusal = 'The zip holds no uploads folder. Zip the wp-content/uploads folder itself and try again.';
+            }
+
+            $zip->close();
+        }
+
+        if ($refusal !== null) {
+            DB::afterCommit(fn () => KeptUploads::forget($upload));
             $upload->delete();
 
             return [
                 'uploadId' => (string) $upload->id,
                 'sourceId' => (string) $upload->source_id,
-                'refused' => 'That file isn’t a zip of the uploads folder. Zip the wp-content/uploads folder itself and try again.',
+                'refused' => $refusal,
             ];
         }
 
-        $zip->close();
-
-        $replaced = DB::transaction(function () use ($upload): ?ImportUpload {
+        $replaced = DB::transaction(function () use ($upload, $prefix): ?ImportUpload {
             $previous = ImportUpload::query()->where('source_id', $upload->source_id)->where('state', 'ready')->lockForUpdate()->first();
 
             if ($previous !== null) {
                 $previous->delete();
             }
 
-            $upload->forceFill(['state' => 'ready'])->save();
+            $upload->forceFill(['state' => 'ready', 'prefix' => $prefix])->save();
 
             return $previous;
         });
 
         // The file of the copy it replaces goes only after the change is committed.
         if ($replaced !== null) {
-            KeptUploads::forget($replaced);
+            DB::afterCommit(fn () => KeptUploads::forget($replaced));
         }
 
         return ['uploadId' => (string) $upload->id, 'sourceId' => (string) $upload->source_id, 'refused' => null];

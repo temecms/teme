@@ -15,6 +15,8 @@ use App\Domain\Import\Operations\Input\UploadsCopyUploadInput;
 use App\Domain\Import\Operations\ReceiveUploadsCopyPiece;
 use App\Domain\Import\Operations\StartUploadsCopy;
 use App\Domain\Import\Queries\ImportUploadCopies;
+use App\Domain\Import\Uploads\SourceUploads;
+use App\Domain\Import\Uploads\UploadsCopy;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -170,4 +172,34 @@ it('asks the site for nothing the copy has, through the HTTP routes as an admini
         ->postJson("/admin/tools/import/{$this->source->id}/uploads/start", ['name' => 'uploads.zip', 'size' => 10])
         ->assertForbidden();
 
+});
+
+it('finds the uploads folder inside a zip whose top folder is another, and refuses a zip with none', function (): void {
+    $zipPath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'teme-prefix-'.uniqid().'.zip';
+    $zip = new ZipArchive;
+    $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+    $zip->addFromString('site-backup/uploads/2024/05/Harbour One.jpg', dlJpeg(640, 480));
+    $zip->close();
+    $bytes = (string) file_get_contents($zipPath);
+    $uploadId = uploadCopy($this->source->id, $bytes, (string) $this->admin->id, 4096);
+
+    expect(app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($uploadId, (string) $this->admin->id))['refused'])->toBeNull()
+        ->and(ImportUpload::query()->whereKey($uploadId)->value('prefix'))->toBe('site-backup/uploads/')
+        ->and(app(SourceUploads::class)->downloadFile($this->source->id, '2024/05/Harbour One.jpg', 'https://old.example/wp-content/uploads/2024/05/Harbour%20One.jpg', 1024 * 1024))->not->toBeNull();
+
+    $empty = new ZipArchive;
+    $empty->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+    $empty->addFromString('readme.txt', 'nothing here');
+    $empty->close();
+    $bytes = (string) file_get_contents($zipPath);
+    $noUploads = uploadCopy($this->source->id, $bytes, (string) $this->admin->id, 4096);
+
+    expect(app(FinishUploadsCopy::class)->execute(new UploadsCopyUploadInput($noUploads, (string) $this->admin->id))['refused'])->toContain('uploads folder');
+
+    unlink($zipPath);
+});
+
+it('refuses a zip that holds more entries than the copy may', function (): void {
+    expect(UploadsCopy::holdsTooMany(UploadsCopy::MOST_ENTRIES + 1))->toBeTrue()
+        ->and(UploadsCopy::holdsTooMany(UploadsCopy::MOST_ENTRIES))->toBeFalse();
 });

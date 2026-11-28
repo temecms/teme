@@ -83,7 +83,7 @@ final class StartUploadsCopy extends BaseOperation
 
         return DB::transaction(function () use ($source, $input, $id, $path): array {
             foreach (ImportUpload::query()->where('source_id', $source->id)->where('state', 'uploading')->lockForUpdate()->get() as $unfinished) {
-                KeptUploads::forget($unfinished);
+                DB::afterCommit(fn () => KeptUploads::forget($unfinished));
                 $unfinished->delete();
             }
 

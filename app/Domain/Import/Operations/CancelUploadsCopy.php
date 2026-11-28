@@ -18,6 +18,7 @@ use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\UploadsCopyUploadInput;
 use App\Domain\Import\Uploads\KeptUploads;
 use App\Domain\Support\Operations\BaseOperation;
+use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 
 final class CancelUploadsCopy extends BaseOperation
@@ -40,7 +41,7 @@ final class CancelUploadsCopy extends BaseOperation
         $upload = ImportUpload::query()->whereKey($input->uploadId)->where('state', 'uploading')->first();
 
         if ($upload !== null) {
-            KeptUploads::forget($upload);
+            DB::afterCommit(fn () => KeptUploads::forget($upload));
             $upload->delete();
         }
 

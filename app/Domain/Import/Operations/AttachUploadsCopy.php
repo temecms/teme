@@ -59,11 +59,13 @@ final class AttachUploadsCopy extends BaseOperation
         $source = $this->sourceFor($input->source);
         $path = $this->kindOf($input->path);
 
-        $replaced = DB::transaction(function () use ($source, $path, $input): ?ImportUpload {
+        DB::transaction(function () use ($source, $path, $input): void {
             $previous = ImportUpload::query()->where('source_id', $source->id)->where('state', 'ready')->lockForUpdate()->first();
 
             if ($previous !== null) {
                 $previous->delete();
+                // A copy Teme stored is deleted only once the change is committed; one the operator named never is.
+                DB::afterCommit(fn () => KeptUploads::forget($previous));
             }
 
             ImportUpload::query()->create([
@@ -71,6 +73,7 @@ final class AttachUploadsCopy extends BaseOperation
                 'state' => 'ready',
                 'kind' => $path['kind'],
                 'path' => $path['path'],
+                'prefix' => $path['prefix'],
                 'name' => basename($path['path']),
                 'size_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
                 'received_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
@@ -78,13 +81,7 @@ final class AttachUploadsCopy extends BaseOperation
                 'attached_by' => $input->actorId() === null ? null : (int) $input->actorId(),
             ]);
 
-            return $previous;
         });
-
-        // A copy Teme stored is deleted only after the change is committed; one the operator named never is.
-        if ($replaced !== null) {
-            KeptUploads::forget($replaced);
-        }
 
         return ['sourceId' => (string) $source->id, 'kind' => $path['kind'], 'path' => $path['path']];
     }
@@ -100,9 +97,10 @@ final class AttachUploadsCopy extends BaseOperation
     }
 
     /**
-     * The folder or zip's kind and its real path, or a refusal naming what is wrong.
+     * The folder or zip's kind, its real path and the folder inside it that holds
+     * the uploads, or a refusal naming what is wrong.
      *
-     * @return array{kind: string, path: string}
+     * @return array{kind: string, path: string, prefix: string}
      *
      * @throws ValidationException
      */
@@ -115,15 +113,31 @@ final class AttachUploadsCopy extends BaseOperation
         }
 
         if ($real !== false && is_dir($real) && is_readable($real)) {
-            return ['kind' => UploadsCopy::FOLDER, 'path' => $real];
+            $prefix = UploadsCopy::prefixOfFolder($real);
+
+            if ($prefix === null) {
+                throw ValidationException::withMessages(['path' => 'That folder isn’t readable. Name the wp-content/uploads folder itself.']);
+            }
+
+            return ['kind' => UploadsCopy::FOLDER, 'path' => $real, 'prefix' => $prefix];
         }
 
         $zip = new ZipArchive;
 
         if ($real !== false && is_file($real) && strtolower(pathinfo($real, PATHINFO_EXTENSION)) === 'zip' && $zip->open($real, ZipArchive::RDONLY) === true) {
+            $prefix = UploadsCopy::prefixOfZip($zip);
+            $tooMany = UploadsCopy::holdsTooMany($zip->numFiles);
             $zip->close();
 
-            return ['kind' => UploadsCopy::ZIP, 'path' => $real];
+            if ($tooMany) {
+                throw ValidationException::withMessages(['path' => 'That zip holds more files than a copy may. Zip the uploads folder by year.']);
+            }
+
+            if ($prefix === null) {
+                throw ValidationException::withMessages(['path' => 'The zip holds no uploads folder. Zip the wp-content/uploads folder itself.']);
+            }
+
+            return ['kind' => UploadsCopy::ZIP, 'path' => $real, 'prefix' => $prefix];
         }
 
         throw ValidationException::withMessages(['path' => 'Name a folder or a .zip of the uploads folder that this server can read.']);

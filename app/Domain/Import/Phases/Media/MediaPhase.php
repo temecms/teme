@@ -311,10 +311,17 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      */
     private function download(array $item, string $wanted, ImportContext $context): PreparedMedia
     {
+        // Every candidate in the uploads copy is tried before the site is asked for anything (#791).
+        $copied = $this->fromCopy($item, $wanted, $context);
+
+        if ($copied !== null) {
+            return PreparedMedia::file($copied);
+        }
+
         $started = (int) hrtime(true);
 
         try {
-            return PreparedMedia::file($this->fetch($wanted, self::SECONDS, $context));
+            return PreparedMedia::file($this->fetch($wanted, self::SECONDS));
         } catch (DownloadRefused|ValidationException $refused) {
             $main = is_string($item['url'] ?? null) ? trim($item['url']) : '';
 
@@ -324,6 +331,88 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
 
             return $this->fallback($main, rtrim(self::reason($refused), '.'), $started, $context);
         }
+    }
+
+    /**
+     * The attachment's picture from the site's uploads copy, judged as the media
+     * library will judge it: its original first, then its main file, each by the
+     * path its own file names, whatever host serves it; null when the copy lacks
+     * both, or holds neither as a picture Teme will take.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    private function fromCopy(array $item, string $wanted, ImportContext $context): ?DownloadedFile
+    {
+        $maxBytes = $this->settings->int('media', 'max_upload_mb') * 1024 * 1024;
+        $paths = self::copyPaths($item);
+
+        if ($paths === []) {
+            // No file of its own: the copy answers only for an address on the site.
+            $copied = $this->uploads->download($context->sourceId, $wanted, $maxBytes);
+
+            return $this->judged($copied, $context);
+        }
+
+        foreach ($paths as $relative) {
+            $copied = $this->uploads->downloadFile($context->sourceId, $relative, $wanted, $maxBytes);
+            $judged = $this->judged($copied, $context);
+
+            if ($judged !== null) {
+                return $judged;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * A copied file that Teme will take, counted for the report; null when it
+     * won't do, its file released.
+     */
+    private function judged(?DownloadedFile $copied, ImportContext $context): ?DownloadedFile
+    {
+        if ($copied === null) {
+            return null;
+        }
+
+        try {
+            $this->judge($copied);
+        } catch (ValidationException) {
+            return null;
+        }
+
+        $this->counted(true, $context);
+
+        return $copied;
+    }
+
+    /**
+     * The paths under the uploads folder an attachment's files are named by: its
+     * original's, then its main file's. Empty for an attachment with no file.
+     *
+     * @param  array<string, mixed>  $item
+     *
+     * @return list<string>
+     */
+    private static function copyPaths(array $item): array
+    {
+        $main = WordPressFiles::relative((string) ($item['file'] ?? ''));
+
+        if ($main === null) {
+            return [];
+        }
+
+        $metadata = is_array($item['metadata'] ?? null) ? $item['metadata'] : [];
+        $paths = [];
+
+        if (is_string($metadata['original_image'] ?? null) && $metadata['original_image'] !== '') {
+            $folder = str_contains($main, '/') ? substr($main, 0, (int) strrpos($main, '/') + 1) : '';
+            $paths[] = $folder.basename($metadata['original_image']);
+        }
+
+        $paths[] = $main;
+
+        return array_values(array_unique($paths));
     }
 
     /**
@@ -337,7 +426,7 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
         $left = self::ITEM_SECONDS - intdiv((int) hrtime(true) - $started, 1_000_000_000);
 
         try {
-            $file = $this->fetch($main, max(5, $left), $context);
+            $file = $this->fetch($main, max(5, $left));
         } catch (DownloadRefused|ValidationException $refused) {
             return self::refusal($refused);
         }
@@ -352,25 +441,10 @@ final readonly class MediaPhase implements ListPhase, PreparesObjects, RunsInMed
      * @throws DownloadRefused
      * @throws ValidationException
      */
-    private function fetch(string $address, int $seconds, ImportContext $context): DownloadedFile
+    private function fetch(string $address, int $seconds): DownloadedFile
     {
-        // The site's uploads copy first, when it has one: a picture it has is never asked of the site. One it lacks, or one Teme won't take, falls back to the site.
-        $copied = $this->uploads->download($context->sourceId, $address, $this->settings->int('media', 'max_upload_mb') * 1024 * 1024);
-
-        if ($copied !== null) {
-            try {
-                $this->judge($copied);
-                $this->counted(true, $context);
-
-                return $copied;
-            } catch (ValidationException) {
-                // The copy's picture is refused: the site's copy is asked for instead.
-            }
-        }
-
         $file = $this->downloader->download($address, seconds: $seconds);
         $this->judge($file);
-        $this->counted(false, $context);
 
         return $file;
     }

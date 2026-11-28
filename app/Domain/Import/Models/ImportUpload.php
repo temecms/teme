@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $size_bytes
  * @property int|null $attached_by
  * @property string $state
+ * @property string $prefix
  * @property int $received_bytes
  * @property bool $kept_by_teme
  * @property int $copied_pictures
