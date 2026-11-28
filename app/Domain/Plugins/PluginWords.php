@@ -75,7 +75,7 @@ final readonly class PluginWords
             Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
             Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
-            Capability::PeopleRead->value => __('See the names of the people who write on this site'),
+            Capability::PeopleRead->value => __('See the names and IDs of the site’s people: who writes, who is invited, who joins. Never an email or a role.'),
             Capability::NoticesSend->value => __('Send notices to people on this site, by email or in their inbox: :kinds', ['kinds' => implode('; ', $notices)]),
             Capability::PagesHead->value => __('Add tags that search engines and social sites read, and structured data, to the head of your site’s public pages'),
             Capability::Sitemaps->value => __('Add its own sitemaps to your site’s sitemap index'),

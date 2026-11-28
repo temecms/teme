@@ -29,8 +29,9 @@ namespace Teme\Contracts\Plugins;
  * page: the head, the top and bottom of the body, between the items of a
  * list, beside a theme's regions, and fixed to the screen's edge. Ai opens
  * SiteAi, the site's own AI connection, for the tasks the plugin declares
- * (1.0.0). PeopleRead opens the door that names the people who write on the
- * site. NoticesSend opens the Notices door, for the kinds of notice the
+ * (1.0.0). PeopleRead opens the door that names the site's people: who
+ * writes, who is invited, who joins; never an email or a role. NoticesSend
+ * opens the Notices door, for the kinds of notice the
  * plugin declares, and ContentLinks the hook that sets attributes on the
  * links an article draws. PagesHead lets the plugin add `<meta>` tags and
  * structured data to public pages' heads, and Sitemaps its own sitemaps to
