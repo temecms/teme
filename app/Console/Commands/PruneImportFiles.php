@@ -17,6 +17,8 @@ namespace App\Console\Commands;
 
 use App\Domain\Import\Operations\DeleteImportFile;
 use App\Domain\Import\Operations\Input\DeleteImportFileInput;
+use App\Domain\Import\Operations\Input\PruneUploadsCopiesInput;
+use App\Domain\Import\Operations\PruneUploadsCopies;
 use App\Domain\Import\Queries\ImportFiles;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -29,9 +31,9 @@ final class PruneImportFiles extends Command
     protected $signature = 'teme:import:prune-files';
 
     /** @var string */
-    protected $description = 'Delete uploaded WordPress export files 30 days after the last import from them ended';
+    protected $description = 'Delete uploaded WordPress export files 30 days after the last import from them ended, and uploads copies no import has used for 30 days';
 
-    public function handle(ImportFiles $files, DeleteImportFile $delete): int
+    public function handle(ImportFiles $files, DeleteImportFile $delete, PruneUploadsCopies $copies): int
     {
         // The operator, as teme:trash:purge is (docs/architecture/operations.md).
         $this->laravel->instance(Elevation::class, new OperatorElevation);
@@ -47,6 +49,9 @@ final class PruneImportFiles extends Command
         }
 
         $this->info(trans_choice('Deleted :count export file.|Deleted :count export files.', $deleted));
+
+        $pruned = $copies->execute(new PruneUploadsCopiesInput(null));
+        $this->info(trans_choice('Deleted :count uploads copy or abandoned upload.|Deleted :count uploads copies or abandoned uploads.', $pruned));
 
         return self::SUCCESS;
     }

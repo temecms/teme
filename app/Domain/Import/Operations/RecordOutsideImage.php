@@ -63,7 +63,7 @@ final class RecordOutsideImage extends BaseOperation
                 'status' => $input->outcome->status(),
                 'outcome' => $input->outcome,
                 'source_hash' => null,
-                'facts' => ['host' => $input->host],
+                'facts' => ['host' => $input->host, ...($input->source === null ? [] : ['picture_from' => $input->source])],
                 'run_id' => $input->runId,
                 'imported_at' => now(),
             ],

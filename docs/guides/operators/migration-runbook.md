@@ -51,6 +51,22 @@ Where the companion plugin can't be installed, or the old site is gone, use its 
 
 The file brings the content and each item's address, but not passwords and roles, site settings, widgets and theme settings, redirects kept by plugins or spam comments; the plan lists them. In Stage 3, bring what changed by exporting the site again and choosing **Upload a newer file** on the report, in place of the catch-up command in step 3.2. When the import is done, choose **Delete the file…** on the report: the file holds drafts, private posts and people's email addresses. Teme deletes it 30 days after the last import from it in any case.
 
+### If the old site's pictures are on a copy of its uploads folder
+
+When the old site is closed, offline, or only on a local address, or when a live import would put many pictures' worth of load on it, bring a copy of its `wp-content/uploads` folder instead. Zip that folder once, off-peak, on the old site's server. To attach a folder that is already on this server, copy it here with `rsync`. Teme matches each picture by its path under `uploads/` and fetches only what the copy lacks. Attach the copy to the site's import on the server, where it stays where it is and Teme never changes or deletes it:
+
+```bash
+docker compose exec web php artisan teme:import:uploads https://old.example.com /srv/old-site/wp-content/uploads
+```
+
+The path is a folder, or a `.zip` of the folder, that the server can read. Attaching again replaces the copy. A catch-up reuses the copy. Import readers get no pictures from the copy in this release: their media carry only a file name.
+
+A zip's table of contents is read into memory while the import runs, and that grows with the number of files, so a zip of more than 200,000 entries is refused when it is attached. Teme needs free disk space at least as large as a browser upload before it accepts one, and says so in words when there isn't enough.
+
+The copy never brings the files in the folders of protected plugins (`woocommerce_uploads`, `wc-logs`, `gravity_forms`, `wpforms` and `ninja-forms`), since those hold order forms, receipts and logs. Each is left out, and the copy's panel and the import's report say how many files were left out and in which folders. Dot-files and dot-folders are never read from a copy either.
+
+A copy of up to 10 GB can also be uploaded in the browser, on the import's plan, in pieces like an export file. The cap is the `teme.import.max_uploads_mb` setting (`TEME_IMPORT_MAX_UPLOADS_MB`). A larger copy goes on the server with the command. A browser copy is kept on the private disk and deleted when it is replaced, when it is deleted with **Delete the copy now** on the plan, when its upload is left unfinished for a day, or 30 days after the last import from its site ended; a folder named on the server is never deleted by Teme. **Delete the copy now** is refused while an import from the site is running. The report counts the pictures each run brought from the copy and from the old site.
+
 ## Stage 3: Rehearse the cut-over
 
 | Step | What to do | Took | Surprise |

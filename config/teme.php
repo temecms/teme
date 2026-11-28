@@ -85,6 +85,12 @@ return [
     'import' => [
         'local_sources' => env('APP_ENV', 'production') === 'local',
         'max_file_mb' => (int) env('TEME_IMPORT_MAX_FILE_MB', 2048),
+        /*
+         * The largest uploads copy (a zip of the old site's wp-content/uploads)
+         * the browser may send in pieces, in megabytes, 10 GB by default. A
+         * larger copy is attached on the server with teme:import:uploads.
+         */
+        'max_uploads_mb' => (int) env('TEME_IMPORT_MAX_UPLOADS_MB', 10240),
     ],
 
     /*

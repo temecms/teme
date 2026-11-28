@@ -9,6 +9,8 @@ use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Operations\AttachUploadsCopy;
+use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
 use App\Domain\Import\Operations\Input\StartImportRunInput;
 use App\Domain\Import\Operations\StartImportRun;
 use App\Domain\Import\Phases\Finish\DeletedStep;
@@ -19,6 +21,7 @@ use App\Domain\Import\Phases\Media\ImportedMedia;
 use App\Domain\Import\Phases\Media\MediaParentsStep;
 use App\Domain\Import\Phases\Media\MediaPhase;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
+use App\Domain\Import\Queries\ImportScreen;
 use App\Domain\Media\Downloads\FileDownloader;
 use App\Domain\Media\Models\Media;
 use App\Domain\Support\Security\JobActor;
@@ -627,4 +630,106 @@ it('reads no media list when the articles come first, live or from a file, and k
         ->and($context(['media' => 'links'], null)->keepsOldSiteMedia())->toBeFalse()
         ->and($context(['media' => 'download'], 'file-1')->keepsOldSiteMedia())->toBeFalse()
         ->and($context([], null)->keepsOldSiteMedia())->toBeFalse();
+});
+
+it('brings a picture the uploads copy has with no request to the old site, and asks the site for one it lacks', function (): void {
+    $copy = $this->folder.'-copy';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    impRun($this->companion, $this->source, [impAttachment(12), impAttachment(13, 'Gone')]);
+
+    expect(impFileRequests())->not->toContain('/wp-content/uploads/2024/05/Harbour One.jpg')
+        ->and(impFileRequests())->toContain('/wp-content/uploads/2024/05/Gone.jpg')
+        ->and(Media::query()->count())->toBe(1)
+        ->and(is_file($copy.'/2024/05/Harbour One.jpg'))->toBeTrue();
+
+    unlink($copy.'/2024/05/Harbour One.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});
+
+it('takes a scaled picture’s main file from the uploads copy before asking the old site for its original', function (): void {
+    $copy = $this->folder.'-order';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One-scaled.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    impRun($this->companion, $this->source, [impAttachment(12)]);
+
+    expect(impFileRequests())->toBe([])
+        ->and(Media::query()->count())->toBe(1);
+
+    unlink($copy.'/2024/05/Harbour One-scaled.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});
+
+it('takes a picture from the copy when the attachment’s file is on another host, such as a CDN', function (): void {
+    $copy = $this->folder.'-cdn';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+    $cdn = impAttachment(12, fields: [
+        'url' => 'https://cdn.example.net/wp-content/uploads/2024/05/Harbour%20One-scaled.jpg',
+        'original_url' => 'https://cdn.example.net/wp-content/uploads/2024/05/Harbour%20One.jpg',
+    ]);
+
+    impRun($this->companion, $this->source, [$cdn]);
+
+    expect(impFileRequests())->toBe([])
+        ->and(Media::query()->count())->toBe(1);
+
+    unlink($copy.'/2024/05/Harbour One.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});
+
+it('records on each picture’s import entry whether it came from the copy, and the run counts them by where they came from', function (): void {
+    $copy = $this->folder.'-counted';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Harbour One.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    $run = impRun($this->companion, $this->source, [impAttachment(12)]);
+
+    expect(DB::table('import_map')->where('source_id', $this->source->id)->where('run_id', $run->id)->whereRaw("facts->>'picture_from' = 'copy'")->count())->toBe(1)
+        ->and(app(ImportScreen::class)->report($run->id)['pictures'])->toBe(['copy' => 1, 'site' => 0]);
+
+    unlink($copy.'/2024/05/Harbour One.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
+});
+
+it('counts a picture the import takes from the old site as the site’s, when no copy has it', function (): void {
+    $this->files['/wp-content/uploads/2024/05/Harbour One.jpg'] = $this->harbour;
+
+    $run = impRun($this->companion, $this->source, [impAttachment(12)]);
+
+    expect(DB::table('import_map')->where('source_id', $this->source->id)->where('run_id', $run->id)->whereRaw("facts->>'picture_from' = 'site'")->count())->toBe(1)
+        ->and(app(ImportScreen::class)->report($run->id)['pictures'])->toBe(['copy' => 0, 'site' => 1]);
+});
+
+it('reports a 404 for a picture the uploads copy lacks once, not once per place the copy was asked', function (): void {
+    $copy = $this->folder.'-lacks';
+    mkdir($copy.'/2024/05', recursive: true);
+    file_put_contents($copy.'/2024/05/Other.jpg', $this->harbour);
+    scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $copy, null)));
+
+    impRun($this->companion, $this->source, [impAttachment(13, 'Gone')]);
+    [$entry, $codes] = impEntry($this->source, 13);
+
+    expect($codes)->toHaveCount(1)
+        ->and(ImportMessageRecord::query()->where('map_id', $entry->id)->value('message'))->toContain('old.example has no file at this address (404).')
+        ->and(impFileRequests())->toBe(['/wp-content/uploads/2024/05/Gone.jpg', '/wp-content/uploads/2024/05/Gone-scaled.jpg']);
+
+    unlink($copy.'/2024/05/Other.jpg');
+    rmdir($copy.'/2024/05');
+    rmdir($copy.'/2024');
+    rmdir($copy);
 });

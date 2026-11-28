@@ -16,6 +16,7 @@ use App\Domain\Import\Planning\CompanionPlugin;
 use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Planning\ImportChoices;
 use App\Domain\Import\Queries\ImportScreen;
+use App\Domain\Import\Queries\ImportUploadCopies;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Import\Tracking\ImportRunJobs;
 use App\Domain\Jobs\Queries\TrackedJobList;
@@ -47,7 +48,7 @@ final class ImportScreenController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $source, ImportScreen $screen, TrackedJobList $jobs, ImportAnalysis $analysis, ImportChoices $choices, SettingsReader $settings): Response
+    public function show(Request $request, string $source, ImportScreen $screen, TrackedJobList $jobs, ImportAnalysis $analysis, ImportChoices $choices, SettingsReader $settings, ImportUploadCopies $copies): Response
     {
         $site = $screen->site($source);
         abort_if($site === null, 404);
@@ -75,11 +76,14 @@ final class ImportScreenController extends Controller
                 'attention' => route('tools.importer.download', ['run' => $runId, 'file' => 'attention'], false),
             ],
             // Deferred, so a slow site never holds the page (I-227).
-            'plan' => $step === 'plan' ? Inertia::defer(fn (): array => self::plan($request, $source, $person, $analysis, $choices, $screen)) : null,
+            'plan' => $step === 'plan' ? Inertia::defer(fn (): array => self::plan($request, $source, $person, $analysis, $choices, $screen, $copies)) : null,
             // Report (and any step) can restore ticks after the password confirm.
             'rememberedHosts' => $rememberedHosts,
             'siteTimezone' => $settings->string('general', 'timezone'),
             'maxFileMb' => max(1, (int) config('teme.import.max_file_mb')),
+            // The site's uploads copy, and the largest one the browser may send.
+            'uploadsCopy' => $copies->forSource($source),
+            'maxUploadsMb' => max(1, (int) config('teme.import.max_uploads_mb')),
         ]);
     }
 
@@ -104,14 +108,14 @@ final class ImportScreenController extends Controller
      * confirmation; or why the site couldn't be read. Suggested hosts are
      * filled from that same analysis read.
      *
-     * @return array{analysis: array<string, mixed>|null, problem: string|null, form: array<string, mixed>|null, fileForm: array<string, mixed>|null, oldSiteAnswers: bool|null, remembered: mixed, resumeStart: bool, rememberedHosts: list<string>|null, suggestedHosts: list<array{host: string, links: int}>}
+     * @return array{analysis: array<string, mixed>|null, problem: string|null, form: array<string, mixed>|null, fileForm: array<string, mixed>|null, oldSiteAnswers: bool|null, copyReady: bool, remembered: mixed, resumeStart: bool, rememberedHosts: list<string>|null, suggestedHosts: list<array{host: string, links: int}>}
      */
-    private static function plan(Request $request, string $source, string $person, ImportAnalysis $analysis, ImportChoices $choices, ImportScreen $screen): array
+    private static function plan(Request $request, string $source, string $person, ImportAnalysis $analysis, ImportChoices $choices, ImportScreen $screen, ImportUploadCopies $copies): array
     {
         try {
             $read = $analysis->read($source);
         } catch (SourceRefused|AddressRefused $refused) {
-            return ['analysis' => null, 'problem' => $refused->sentence(), 'form' => null, 'fileForm' => null, 'oldSiteAnswers' => null, 'remembered' => null, 'resumeStart' => false, 'rememberedHosts' => null, 'suggestedHosts' => []];
+            return ['analysis' => null, 'problem' => $refused->sentence(), 'form' => null, 'fileForm' => null, 'oldSiteAnswers' => null, 'copyReady' => false, 'remembered' => null, 'resumeStart' => false, 'rememberedHosts' => null, 'suggestedHosts' => []];
         }
 
         $site = $screen->site($source);
@@ -128,6 +132,8 @@ final class ImportScreenController extends Controller
                 : null,
             // Whether the old site answers now, so its media files can be downloaded during the import.
             'oldSiteAnswers' => isset($site['file']['id']) ? app(FileDownloader::class)->answers($site['address']) : null,
+            // A ready uploads copy lets the media choices stay open when the old site doesn't answer (#791).
+            'copyReady' => $copies->forSource($source) !== null,
             'remembered' => $request->session()->get(ImportRunController::REMEMBERED.$source),
             // A start the password's confirmation interrupted: the plan sends it again once, now the password is confirmed.
             'resumeStart' => self::resumes($request, $source),

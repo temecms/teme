@@ -1,0 +1,146 @@
+<?php
+
+/**
+ * Attaches a copy of an old site's uploads folder to the site's import: a
+ * folder or a .zip already on this server, read in place and never deleted
+ * or changed. The site is named by its ID or its address. One copy per site;
+ * attaching again replaces it. Needs `imports.run`, or the operator's shell.
+ *
+ * @package Teme
+ * @since   next
+ * @license MIT
+ */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Operations;
+
+use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Models\ImportUpload;
+use App\Domain\Import\Operations\Input\AttachUploadsCopyInput;
+use App\Domain\Import\Uploads\KeptUploads;
+use App\Domain\Import\Uploads\UploadsCopy;
+use App\Domain\Support\Operations\BaseOperation;
+use App\Domain\Support\Security\Operator;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Operations\OperationInput;
+use ZipArchive;
+
+final class AttachUploadsCopy extends BaseOperation
+{
+    /**
+     * Only the operator at the server's shell attaches a path on the server: a person in the browser never names one.
+     */
+    protected function authorize(OperationInput $input): void
+    {
+        if (! Operator::isPresent()) {
+            throw new AuthorizationException('Not permitted to import a site.');
+        }
+    }
+
+    protected function validate(OperationInput $input): void
+    {
+        /** @var AttachUploadsCopyInput $input */
+        if ($this->sourceFor($input->source) === null) {
+            throw ValidationException::withMessages(['source' => 'No import site matches that ID or address.']);
+        }
+
+        $this->kindOf($input->path);
+    }
+
+    /**
+     * @return array{sourceId: string, kind: string, path: string}
+     */
+    protected function perform(OperationInput $input): array
+    {
+        /** @var AttachUploadsCopyInput $input */
+        $source = $this->sourceFor($input->source);
+        $path = $this->kindOf($input->path);
+
+        DB::transaction(function () use ($source, $path, $input): void {
+            $previous = ImportUpload::query()->where('source_id', $source->id)->where('state', 'ready')->lockForUpdate()->first();
+
+            if ($previous !== null) {
+                $previous->delete();
+                // A copy Teme stored is deleted only once the change is committed; one the operator named never is.
+                DB::afterCommit(fn () => KeptUploads::forget($previous));
+            }
+
+            ImportUpload::query()->create([
+                'source_id' => $source->id,
+                'state' => 'ready',
+                'kind' => $path['kind'],
+                'path' => $path['path'],
+                'prefix' => $path['prefix'],
+                'left_out' => (new UploadsCopy($path['kind'], $path['path'], $path['prefix']))->leftOut(),
+                'name' => basename($path['path']),
+                'size_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
+                'received_bytes' => $path['kind'] === UploadsCopy::ZIP ? (int) filesize($path['path']) : 0,
+                'kept_by_teme' => false,
+                'attached_by' => $input->actorId() === null ? null : (int) $input->actorId(),
+            ]);
+
+        });
+
+        return ['sourceId' => (string) $source->id, 'kind' => $path['kind'], 'path' => $path['path']];
+    }
+
+    /**
+     * The site named by its ID or its address, or null.
+     */
+    private function sourceFor(string $reference): ?ImportSource
+    {
+        return ImportSource::query()
+            ->where(fn ($query) => $query->whereKey($reference)->orWhere('address', $reference))
+            ->first();
+    }
+
+    /**
+     * The folder or zip's kind, its real path and the folder inside it that holds
+     * the uploads, or a refusal naming what is wrong.
+     *
+     * @return array{kind: string, path: string, prefix: string}
+     *
+     * @throws ValidationException
+     */
+    private function kindOf(string $path): array
+    {
+        $real = realpath($path);
+
+        if ($real !== false && UploadsCopy::reachesApplication($real)) {
+            throw ValidationException::withMessages(['path' => 'That is the application’s own folder, or one that holds it. Name the uploads folder itself, such as the old site’s wp-content/uploads.']);
+        }
+
+        if ($real !== false && is_dir($real) && is_readable($real)) {
+            $prefix = UploadsCopy::prefixOfFolder($real);
+
+            if ($prefix === null) {
+                throw ValidationException::withMessages(['path' => 'That folder isn’t readable. Name the wp-content/uploads folder itself.']);
+            }
+
+            return ['kind' => UploadsCopy::FOLDER, 'path' => $real, 'prefix' => $prefix];
+        }
+
+        $zip = new ZipArchive;
+
+        if ($real !== false && is_file($real) && strtolower(pathinfo($real, PATHINFO_EXTENSION)) === 'zip' && $zip->open($real, ZipArchive::RDONLY) === true) {
+            $prefix = UploadsCopy::prefixOfZip($zip);
+            $tooMany = UploadsCopy::holdsTooMany($zip->numFiles);
+            $zip->close();
+
+            if ($tooMany) {
+                throw ValidationException::withMessages(['path' => 'That zip holds more files than a copy may. Zip the uploads folder by year.']);
+            }
+
+            if ($prefix === null) {
+                throw ValidationException::withMessages(['path' => 'The zip holds no uploads folder. Zip the wp-content/uploads folder itself.']);
+            }
+
+            return ['kind' => UploadsCopy::ZIP, 'path' => $real, 'prefix' => $prefix];
+        }
+
+        throw ValidationException::withMessages(['path' => 'Name a folder or a .zip of the uploads folder that this server can read.']);
+    }
+}
