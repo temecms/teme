@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Area;
 
 /**
- * @phpstan-type Field array{key: string, type: string, label: string, description: string, required: bool, maxLength: int|null, min: int|null, max: int|null, options: array<string, string>, default: mixed, visibleWhen: array<string, mixed>, scripts: bool, taxonomy: string|null, fields: list<array<string, mixed>>, minItems: int, maxItems: int, itemLabel: string, itemTitle: string|null}
+ * @phpstan-type Field array{key: string, type: string, label: string, description: string, required: bool, maxLength: int|null, min: int|null, max: int|null, options: array<string, string>, default: mixed, visibleWhen: array<string, mixed>, scripts: bool, taxonomy: string|null, storeAs: string|null, fields: list<array<string, mixed>>, minItems: int, maxItems: int, itemLabel: string, itemTitle: string|null}
  * @phpstan-type Block array<string, mixed>
  * @phpstan-type Page array{id: string, label: string, blocks: list<array<string, mixed>>}
  * @phpstan-type Section array{id: string, label: string, description: string, fields: list<Field>}
@@ -247,6 +247,7 @@ final readonly class DeclaredArea
             'visibleWhen' => $visibleWhen,
             'scripts' => ($field['scripts'] ?? false) === true,
             'taxonomy' => is_string($field['taxonomy'] ?? null) ? $field['taxonomy'] : null,
+            'storeAs' => is_string($field['storeAs'] ?? null) ? $field['storeAs'] : null,
             'fields' => array_map(self::field(...), self::list($field['fields'] ?? null)),
             'minItems' => is_int($field['minItems'] ?? null) ? $field['minItems'] : 0,
             'maxItems' => is_int($field['maxItems'] ?? null) ? $field['maxItems'] : AreaValidator::DEFAULT_MOST_ITEMS,
