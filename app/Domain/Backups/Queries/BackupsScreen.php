@@ -340,19 +340,22 @@ final readonly class BackupsScreen
     }
 
     /**
-     * 1.12e's verdict as the screen leads with it, or null while backups
-     * aren't set up or are paused, which lead with their own words.
+     * 1.12e's verdict as the screen leads with it: null while backups are
+     * paused, which leads with its own words, and while Teme's own backup is
+     * part-way through its setup. Under host, with nothing set up yet, the
+     * host's healthy line (TEME_BACKUPS=host).
      *
      * @return array{level: string, sentence: string, more: list<string>}|null
      */
     public function verdict(CarbonImmutable $now): ?array
     {
-        // Under host the host does the backups and restore tests: one healthy line, until Teme's own is set up (TEME_BACKUPS=host).
-        if (BackupMode::isHost() && $this->setupState()['state'] !== 'set-up') {
-            return ['level' => 'green', 'sentence' => __('Backups and restore tests are done by your host.'), 'more' => [__('Teme’s own backup can still be set up as a second copy elsewhere, on Tools › Backups.')]];
+        $state = $this->setupState()['state'];
+
+        if (BackupMode::isHost() && $state === 'none') {
+            return ['level' => 'green', 'sentence' => __('Backups and restore tests are done by your host.'), 'more' => [__('Teme’s own backup can still be set up as a second copy elsewhere.')]];
         }
 
-        if ($this->setupState()['state'] !== 'set-up') {
+        if ($state !== 'set-up') {
             return null;
         }
 

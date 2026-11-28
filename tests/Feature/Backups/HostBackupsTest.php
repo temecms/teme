@@ -12,10 +12,14 @@ use App\Domain\Backups\Queries\BackupStatus;
 use App\Domain\Deployment\Health\Checks\TestRestoreDatabase;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SettingsRepository;
+use App\Models\User;
 use Carbon\CarbonImmutable;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Inertia\Testing\AssertableInertia;
 use Tests\Fixtures\Backups\BackupRecords;
+use Tests\Fixtures\Backups\ScreenRecords;
 use Tests\Fixtures\Backups\VerifyDatabase;
 
 uses(RefreshDatabase::class);
@@ -94,6 +98,24 @@ it('leads Tools › Backups with one healthy line under host, while Teme’s own
     expect($screen)->toBe([
         'level' => 'green',
         'sentence' => 'Backups and restore tests are done by your host.',
-        'more' => ['Teme’s own backup can still be set up as a second copy elsewhere, on Tools › Backups.'],
+        'more' => ['Teme’s own backup can still be set up as a second copy elsewhere.'],
     ]);
+});
+
+it('gives the screen the host line as its verdict, and keeps paused on its own state under host', function (): void {
+    config(['teme.backup_mode' => 'host']);
+    $this->seed(RoleSeeder::class);
+    $admin = User::factory()->create()->assignRole('administrator');
+
+    $this->actingAs($admin)->get('/admin/tools/backups')->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('setup.state', 'none')
+        ->where('verdict.level', 'green')
+        ->where('verdict.sentence', 'Backups and restore tests are done by your host.')
+        ->where('verdict.more', ['Teme’s own backup can still be set up as a second copy elsewhere.']));
+
+    ScreenRecords::place('This server', ['paused_at' => now()]);
+
+    $this->actingAs($admin)->get('/admin/tools/backups')->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('setup.state', 'paused')
+        ->where('verdict', null));
 });

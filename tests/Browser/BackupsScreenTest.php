@@ -272,3 +272,12 @@ it('stops asking once the first backup has failed', function (): void {
 
     expect($page->script($count))->toBe($before);
 });
+
+it('shows the host’s healthy state under TEME_BACKUPS=host, and not the red “not backed up” block', function (): void {
+    config(['teme.backup_mode' => 'host']);
+
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/backups');
+    ($this->seen)($page, 'Backups and restore tests are done by your host.');
+    $page->assertScript('!document.body.innerText.includes("Your site is not backed up.")');
+    $page->assertScript('document.querySelector(\'[data-test="backup-verdict"]\').dataset.tone === "ok"');
+});
