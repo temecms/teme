@@ -634,7 +634,7 @@ final class AreaValidator
     {
         $type = $field['type'] ?? null;
         $key = is_string($field['key'] ?? null) ? $field['key'] : '';
-        $errors = $this->unknownKeys($field, ['key', 'type', 'label', 'description', 'required', 'maxLength', 'min', 'max', 'options', 'default', 'visibleWhen', 'scripts', 'taxonomy', 'storeAs', 'fields', 'minItems', 'maxItems', 'itemLabel', 'itemTitle']);
+        $errors = $this->unknownKeys($field, ['key', 'type', 'label', 'description', 'required', 'maxLength', 'min', 'max', 'options', 'default', 'visibleWhen', 'scripts', 'taxonomy', 'storeAs', 'fields', 'minItems', 'maxItems', 'itemLabel', 'itemTitle', 'choices']);
 
         if (preg_match(ContributionsValidator::KEY, $key) !== 1) {
             $errors[] = __('A field’s key must be 2 to 41 lower-case letters, digits and underscores, starting with a letter.');
@@ -666,7 +666,20 @@ final class AreaValidator
             }
         }
 
-        if (in_array($type, ['select', 'multiselect'], true) && ! $this->options($field['options'] ?? null)) {
+        // A select's choices may come from the plugin, when its form opens, instead of its own options.
+        if (array_key_exists('choices', $field)) {
+            if ($type !== 'select') {
+                $errors[] = __('Only a select field may take its choices from the plugin.');
+            } elseif ($field['choices'] !== 'plugin') {
+                $errors[] = __('A field’s choices can only be "plugin", or left out.');
+            } elseif (array_key_exists('options', $field)) {
+                $errors[] = __('A select takes either its options or "choices": "plugin", not both.');
+            }
+        }
+
+        $fromPlugin = $type === 'select' && ($field['choices'] ?? null) === 'plugin';
+
+        if (in_array($type, ['select', 'multiselect'], true) && ! $fromPlugin && ! $this->options($field['options'] ?? null)) {
             $errors[] = __('The field :key needs its options.', ['key' => $key]);
         }
 
