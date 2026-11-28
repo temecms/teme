@@ -721,6 +721,7 @@ it('says on the plan that a reader’s other languages gain an address prefix', 
     readerReadToEnd($file);
 
     expect($file->refresh()->report['notes']['language-prefix']['count'])->toBe(1)
+        ->and($file->report['notes']['language-prefix']['sentence'])->toContain('French (/fr/)')
         ->and($file->report['notes']['language-prefix']['sentence'])->toContain('first part of the address')
         ->and($file->report['notes'])->not->toHaveKey('language');
 });
@@ -1220,6 +1221,140 @@ it('resolves rows on both sides of a resolve chunk boundary', function (): void 
         ->and($early['parent'])->toBe($later['id'])
         ->and($file->report['notes'] ?? [])->not->toHaveKey('comment')
         ->and($file->report['notes'] ?? [])->not->toHaveKey('parent');
+});
+
+it('resolves reader rows a chunk at a time under a deadline and resumes', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2, 'teme.import.reader_resolve_chunk' => 1]);
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'comment', 'id' => 'c1', 'postId' => 'later-post', 'status' => 'published', 'content' => 'Waiting', 'authorName' => 'Sam'],
+            ['kind' => 'post', 'id' => 'early-post', 'title' => 'Early', 'slug' => 'early', 'status' => 'published', 'content' => '<p>Early</p>', 'parentId' => 'later-post'],
+            ['kind' => 'term', 'id' => 'child-term', 'taxonomy' => 'category', 'name' => 'Child term', 'slug' => 'child-term', 'parentId' => 'parent-term'],
+            ['kind' => 'post', 'id' => 'fill', 'title' => 'Fill', 'slug' => 'fill', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'post', 'id' => 'later-post', 'title' => 'Later', 'slug' => 'later', 'status' => 'published', 'content' => '<p>Later</p>'],
+            ['kind' => 'term', 'id' => 'parent-term', 'taxonomy' => 'category', 'name' => 'Parent term', 'slug' => 'parent-term'],
+        ],
+    ];
+
+    $file = readerUploaded('resume-resolve.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    foreach (DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw('jsonb_exists(payload, ?)', ['reader_refs'])->get(['list', 'object_id', 'payload']) as $row) {
+        $payload = json_decode((string) $row->payload, true);
+        $refs = $payload['reader_refs'] ?? [];
+
+        if (isset($refs['parent'])) {
+            $payload['parent'] = 0;
+        }
+
+        if (isset($refs['on'])) {
+            $payload['post_id'] = null;
+        }
+
+        DB::table('import_file_rows')->where(['file_id' => $file->id, 'list' => $row->list, 'object_id' => $row->object_id])->update([
+            'payload' => json_encode($payload, JSON_THROW_ON_ERROR),
+        ]);
+    }
+
+    $spent = CarbonImmutable::now()->subSecond();
+    $first = app(ResolveImportReaderRows::class)->execute(new ResolveImportReaderRowsInput(
+        $file->id,
+        'https://old.example.com',
+        fixtureReaderKey(),
+        (string) test()->admin->id,
+        null,
+        null,
+        $spent,
+    ));
+
+    expect($first['done'])->toBeFalse()
+        ->and($first['afterList'])->not->toBeNull()
+        ->and($first['notes'])->toBeArray();
+
+    $second = app(ResolveImportReaderRows::class)->execute(new ResolveImportReaderRowsInput(
+        $file->id,
+        'https://old.example.com',
+        fixtureReaderKey(),
+        (string) test()->admin->id,
+        $first['afterList'],
+        $first['afterObjectId'],
+        null,
+    ));
+
+    expect($second['done'])->toBeTrue();
+
+    $comment = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'comments')->value('payload'), true);
+    $early = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Early'")->value('payload'), true);
+    $later = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Later'")->value('payload'), true);
+    $child = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'slug' = 'child-term'")->value('payload'), true);
+    $parent = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'slug' = 'parent-term'")->value('payload'), true);
+
+    expect($comment['post_id'])->toBe($later['id'])
+        ->and($early['parent'])->toBe($later['id'])
+        ->and($child['parent'])->toBe($parent['id']);
+});
+
+it('does not open the reader again while a resolve is in progress', function (): void {
+    readersEnabled();
+    config(['teme.import.reader_page_size' => 2, 'teme.import.reader_resolve_chunk' => 1]);
+
+    $export = [
+        'system' => 'Fake export',
+        'version' => '2',
+        'site' => 'https://old.example.com',
+        'languages' => ['en'],
+        'items' => [
+            ['kind' => 'comment', 'id' => 'c1', 'postId' => 'later-post', 'status' => 'published', 'content' => 'Waiting', 'authorName' => 'Sam'],
+            ['kind' => 'post', 'id' => 'early-post', 'title' => 'Early', 'slug' => 'early', 'status' => 'published', 'content' => '<p>Early</p>', 'parentId' => 'later-post'],
+            ['kind' => 'post', 'id' => 'fill', 'title' => 'Fill', 'slug' => 'fill', 'status' => 'published', 'content' => '<p>f</p>'],
+            ['kind' => 'post', 'id' => 'later-post', 'title' => 'Later', 'slug' => 'later', 'status' => 'published', 'content' => '<p>Later</p>'],
+        ],
+    ];
+
+    $file = readerUploaded('resolving-marker.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    expect($file->refresh()->state)->toBe('ready');
+
+    // Put the file back into reading with a resolving marker and unresolved refs, as a timed-out resolve would.
+    foreach (DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw('jsonb_exists(payload, ?)', ['reader_refs'])->get(['list', 'object_id', 'payload']) as $row) {
+        $payload = json_decode((string) $row->payload, true);
+        $refs = $payload['reader_refs'] ?? [];
+        if (isset($refs['parent'])) {
+            $payload['parent'] = 0;
+        }
+        if (isset($refs['on'])) {
+            $payload['post_id'] = null;
+        }
+        DB::table('import_file_rows')->where(['file_id' => $file->id, 'list' => $row->list, 'object_id' => $row->object_id])->update([
+            'payload' => json_encode($payload, JSON_THROW_ON_ERROR),
+        ]);
+    }
+
+    $facts = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'file-facts')->value('payload'), true);
+    $facts['readerCursor'] = null;
+    $facts['readerResolving'] = ['list' => null, 'object_id' => null];
+    DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'file-facts')->update([
+        'payload' => json_encode($facts, JSON_THROW_ON_ERROR),
+    ]);
+    DB::table('import_files')->where('id', $file->id)->update(['state' => 'reading']);
+
+    FakeImportReader::resetPageCalls();
+    readerReadToEnd($file->refresh());
+
+    $comment = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'comments')->value('payload'), true);
+    $early = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Early'")->value('payload'), true);
+    $later = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->whereRaw("payload->>'title' = 'Later'")->value('payload'), true);
+
+    expect($file->refresh()->state)->toBe('ready')
+        ->and(FakeImportReader::$pageCalls)->toBe(0)
+        ->and($comment['post_id'])->toBe($later['id'])
+        ->and($early['parent'])->toBe($later['id']);
 });
 
 it('writes nothing from ResolveImportReaderRows when the person may not import', function (): void {

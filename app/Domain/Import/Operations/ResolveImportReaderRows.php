@@ -4,7 +4,8 @@
  * Fills a reader file's later-page references from the engine IDs already
  * assigned: parents, authors, featured pictures, terms, posts, menus and
  * menu targets, by joining each row's stored source IDs to import_reader_ids.
- * Who may import may call it; the reader is not opened again.
+ * Pages on (list, object_id), resumes under a deadline, and counts gap notes
+ * per chunk. Who may import may call it; the reader is not opened again.
  *
  * @package Teme
  * @since   next
@@ -20,10 +21,12 @@ use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\ResolveImportReaderRowsInput;
 use App\Domain\Import\Reader\ReaderRows;
 use App\Domain\Support\Operations\BaseOperation;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Teme\Contracts\Import\ImportKind;
+use Teme\Contracts\Import\ImportMenuItemType;
 use Teme\Contracts\Operations\OperationInput;
 
 final class ResolveImportReaderRows extends BaseOperation
@@ -31,6 +34,15 @@ final class ResolveImportReaderRows extends BaseOperation
     use AuthorizesImports;
 
     private const int CHUNK = 500;
+
+    private const array NOTE_SENTENCES = [
+        'comment' => 'Comments on posts that aren’t in this file weren’t brought.',
+        'menu-item' => 'Menu items in menus that aren’t in this file weren’t brought.',
+        'term' => 'Terms of posts and pages that aren’t in this file weren’t brought, so those posts aren’t filed under them.',
+        'featured-image' => 'Featured pictures that aren’t in this file weren’t brought, so those posts have none for now.',
+        'menu-target' => 'Menu items that point at a post, page or term that isn’t in this file were brought with nothing to point at.',
+        'parent' => 'Items whose parent isn’t in this file were placed at the top, with no parent.',
+    ];
 
     protected function authorize(OperationInput $input): void
     {
@@ -51,17 +63,29 @@ final class ResolveImportReaderRows extends BaseOperation
     }
 
     /**
-     * How many rows were rewritten.
+     * How far the resolve got: rewritten count, whether every row was visited,
+     * the keyset to resume from, and gap notes counted on the chunks this call saw.
+     *
+     * @return array{rewritten: int, done: bool, afterList: ?string, afterObjectId: ?int, notes: array<string, array{count: int, examples: list<string>, sentence: string}>}
      */
-    protected function perform(OperationInput $input): int
+    protected function perform(OperationInput $input): array
     {
         /** @var ResolveImportReaderRowsInput $input */
         $rewritten = 0;
-        $afterList = null;
-        $afterId = null;
+        $afterList = $input->afterList;
+        $afterId = $input->afterObjectId;
         $chunk = $this->chunkSize();
+        $notes = [];
+        $chunks = 0;
+        $done = true;
 
         do {
+            if ($chunks > 0 && $this->pastDeadline($input->deadline)) {
+                $done = false;
+
+                break;
+            }
+
             $query = DB::table('import_file_rows')
                 ->where('file_id', $input->fileId)
                 ->whereRaw('jsonb_exists(payload, ?)', ['reader_refs'])
@@ -84,6 +108,7 @@ final class ResolveImportReaderRows extends BaseOperation
                 break;
             }
 
+            $chunks++;
             $wanted = [];
             $last = $rows->last();
             $afterList = (string) $last->list;
@@ -109,6 +134,7 @@ final class ResolveImportReaderRows extends BaseOperation
                 }
 
                 $next = $this->filled((string) $row->list, $payload, $ids, $input->fileId);
+                $this->noteRow($notes, (string) $row->list, $next);
 
                 if ($next === $payload) {
                     continue;
@@ -126,9 +152,25 @@ final class ResolveImportReaderRows extends BaseOperation
                 DB::table('import_file_rows')->upsert($batch, ['file_id', 'list', 'object_id'], ['payload']);
                 $rewritten += count($batch);
             }
-        } while ($rows->count() === $chunk);
 
-        return $rewritten;
+            if ($rows->count() < $chunk) {
+                break;
+            }
+
+            if ($this->pastDeadline($input->deadline)) {
+                $done = false;
+
+                break;
+            }
+        } while (true);
+
+        return [
+            'rewritten' => $rewritten,
+            'done' => $done,
+            'afterList' => $done ? null : $afterList,
+            'afterObjectId' => $done ? null : $afterId,
+            'notes' => $notes,
+        ];
     }
 
     /**
@@ -140,6 +182,83 @@ final class ResolveImportReaderRows extends BaseOperation
         $size = (int) config('teme.import.reader_resolve_chunk', self::CHUNK);
 
         return $size > 0 ? $size : self::CHUNK;
+    }
+
+    private function pastDeadline(?CarbonImmutable $deadline): bool
+    {
+        return $deadline !== null && CarbonImmutable::now()->greaterThanOrEqualTo($deadline);
+    }
+
+    /**
+     * Adds one row's unresolved gaps to the running note counts.
+     *
+     * @param  array<string, array{count: int, examples: list<string>, sentence: string}>  $notes
+     * @param  array<string, mixed>  $payload
+     */
+    private function noteRow(array &$notes, string $list, array $payload): void
+    {
+        $refs = is_array($payload['reader_refs'] ?? null) ? $payload['reader_refs'] : [];
+        $example = is_string($payload['source_id'] ?? null) && $payload['source_id'] !== ''
+            ? (string) $payload['source_id']
+            : (string) ($payload['id'] ?? '');
+
+        if ($list === ItemRows::COMMENTS && ($payload['post_id'] ?? null) === null && is_string($refs['on'] ?? null)) {
+            $this->addNote($notes, 'comment', $example);
+        }
+
+        if ($list === ItemRows::MENU_ITEMS && (int) ($payload['menu'] ?? 0) === 0 && is_string($refs['menu'] ?? null)) {
+            $this->addNote($notes, 'menu-item', $example);
+        }
+
+        if ($list === ItemRows::CONTENT) {
+            if (is_array($refs['terms'] ?? null) && count($refs['terms']) > 0) {
+                $held = 0;
+
+                foreach (is_array($payload['terms'] ?? null) ? $payload['terms'] : [] as $ids) {
+                    $held += is_array($ids) ? count($ids) : 0;
+                }
+
+                if ($held < count($refs['terms'])) {
+                    $this->addNote($notes, 'term', $example);
+                }
+            }
+
+            if (is_string($refs['featured'] ?? null) && ($payload['featured_media'] ?? null) === null) {
+                $this->addNote($notes, 'featured-image', $example);
+            }
+        }
+
+        if ($list === ItemRows::MENU_ITEMS
+            && in_array($refs['object_kind'] ?? null, [ImportMenuItemType::CONTENT, ImportMenuItemType::TERM], true)
+            && (int) ($payload['object_id'] ?? 0) === 0
+            && (int) ($payload['menu'] ?? 0) !== 0) {
+            $this->addNote($notes, 'menu-target', $example);
+        }
+
+        if (is_string($refs['parent'] ?? null) && (int) ($payload['parent'] ?? 0) === 0
+            && ! ($list === ItemRows::COMMENTS && ($payload['post_id'] ?? null) === null)
+            && ! ($list === ItemRows::MENU_ITEMS && (int) ($payload['menu'] ?? 0) === 0)) {
+            $this->addNote($notes, 'parent', $example);
+        }
+    }
+
+    /**
+     * @param  array<string, array{count: int, examples: list<string>, sentence: string}>  $notes
+     */
+    private function addNote(array &$notes, string $kind, string $example): void
+    {
+        $held = $notes[$kind] ?? ['count' => 0, 'examples' => [], 'sentence' => self::NOTE_SENTENCES[$kind]];
+        $examples = $held['examples'];
+
+        if ($example !== '' && count($examples) < 5 && ! in_array($example, $examples, true)) {
+            $examples[] = $example;
+        }
+
+        $notes[$kind] = [
+            'count' => (int) $held['count'] + 1,
+            'examples' => $examples,
+            'sentence' => $held['sentence'],
+        ];
     }
 
     /**

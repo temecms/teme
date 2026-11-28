@@ -2,7 +2,8 @@
 
 /**
  * What ResolveImportReaderRows needs: the file whose rows hold source IDs,
- * the site and reader those IDs were assigned for, and who asks.
+ * the site and reader those IDs were assigned for, an optional keyset to
+ * resume from, an optional deadline, and who asks.
  *
  * @package Teme
  * @since   next
@@ -13,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
 
+use Carbon\CarbonImmutable;
 use Teme\Contracts\Operations\OperationInput;
 
 final readonly class ResolveImportReaderRowsInput implements OperationInput
@@ -22,6 +24,9 @@ final readonly class ResolveImportReaderRowsInput implements OperationInput
         public string $siteAddress,
         public string $reader,
         public ?string $actorId = null,
+        public ?string $afterList = null,
+        public ?int $afterObjectId = null,
+        public ?CarbonImmutable $deadline = null,
     ) {}
 
     public function actorId(): ?string

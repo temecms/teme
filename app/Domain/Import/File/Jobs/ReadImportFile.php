@@ -159,8 +159,10 @@ final class ReadImportFile implements ShouldQueue
      * keep(), as a WordPress export is. A stored cursor resumes the next
      * part; later-page references are resolved by joining stored source IDs
      * to import_reader_ids once every page is kept — the reader runs once.
-     * A refusal stops the file with its sentence; any other failure is
-     * recorded as the plugin's fault and stops it too.
+     * Resolve itself resumes under the deadline from a stored marker, so a
+     * timed-out job never opens the file again. A refusal stops the file with
+     * its sentence; any other failure is recorded as the plugin's fault and
+     * stops it too.
      */
     private function readReader(ImportFile $file, CarbonImmutable $deadline): void
     {
@@ -175,6 +177,29 @@ final class ReadImportFile implements ShouldQueue
 
         $path = Storage::disk('local')->path($file->path());
         $state = $this->readerState($file);
+        $address = ReaderSite::address((string) ($file->site_address ?: ''));
+        $readerKey = (string) $file->reader;
+        $channel = ['siteAddress' => $file->site_address, 'version' => $file->wxr_version, 'madeAt' => null];
+
+        if ($state['resolving'] !== null) {
+            if ($address === '' || $channel['siteAddress'] === null || $channel['siteAddress'] === '') {
+                $this->refuseReader('This export doesn’t name its site, so Teme can’t tell where it came from.');
+
+                return;
+            }
+
+            $this->resolveReader(
+                $file,
+                $address,
+                $readerKey,
+                $channel,
+                $state,
+                $deadline,
+                is_string($state['defaultLanguage'] ?? null) ? $state['defaultLanguage'] : app(SiteLanguages::class)->defaultTag(),
+            );
+
+            return;
+        }
 
         try {
             $reader = $readers->reader($offer);
@@ -198,7 +223,6 @@ final class ReadImportFile implements ShouldQueue
 
         $channel = ['siteAddress' => $probe->siteAddress, 'version' => $probe->version, 'madeAt' => null];
         $address = ReaderSite::address((string) $probe->siteAddress);
-        $readerKey = (string) $file->reader;
         $from = $file->read_items;
         $cursor = $state['cursor'];
         $given = $state['given'];
@@ -257,6 +281,12 @@ final class ReadImportFile implements ShouldQueue
             $rows = ReaderRows::build($page->items, $this->blocks(), $ids, $known);
             $to = $from + count($page->items);
             [$languages, $types, $taxonomies] = $this->gatherLanguages($page->items, $probe->languages, $languages, $types, $taxonomies);
+            $bytes = 0;
+
+            foreach ($rows as $row) {
+                $bytes += strlen((string) json_encode($row['payload']));
+            }
+
             $counted = self::noFacts();
             $counted['readerCursor'] = $next;
             $counted['readerGiven'] = array_keys($given);
@@ -266,33 +296,32 @@ final class ReadImportFile implements ShouldQueue
             $counted['readerTaxonomies'] = array_keys($taxonomies);
             $counted['notes'] = $this->notesOf($page->items, $from === 0 ? $languages : [], null);
 
+            if ($next === null) {
+                $counted['readerResolving'] = ['list' => null, 'object_id' => null];
+            }
+
             if (! $this->keep($from, $to, $rows, $counted, $channel)) {
                 return;
             }
 
             if ($next === null) {
-                app(ResolveImportReaderRows::class)->execute(new ResolveImportReaderRowsInput(
-                    $file->id,
+                $this->resolveReader(
+                    $file->refresh(),
                     $address,
                     $readerKey,
-                    $this->actor->userId,
-                ));
-                $notes = $this->notesAfterResolve($file->id, $languages);
-                $finish = self::noFacts();
-                $finish['notes'] = $notes;
-                $finish['replaceNotes'] = true;
-                $finish['readerCursor'] = null;
-                $finish['readerGiven'] = array_keys($given);
-                $finish['readerLanguages'] = $languages;
-                $finish['readerDefaultLanguage'] = $defaultLanguage;
-                $finish['readerTypes'] = array_keys($types);
-                $finish['readerTaxonomies'] = array_keys($taxonomies);
-
-                if (! $this->keep($to, $to, [], $finish, $channel)) {
-                    return;
-                }
-
-                app(FinishReadingImportFile::class)->execute(new FinishReadingImportFileInput($this->fileId, $this->actor->userId));
+                    $channel,
+                    [
+                        'cursor' => null,
+                        'given' => $given,
+                        'languages' => $languages,
+                        'types' => $types,
+                        'taxonomies' => $taxonomies,
+                        'resolving' => ['list' => null, 'object_id' => null],
+                        'defaultLanguage' => $defaultLanguage,
+                    ],
+                    $deadline,
+                    $defaultLanguage,
+                );
 
                 return;
             }
@@ -301,7 +330,7 @@ final class ReadImportFile implements ShouldQueue
             $cursor = $next;
             $pagesThisPart++;
 
-            if (self::outOfTime($deadline) || $pagesThisPart >= self::readerPagesPerPart()) {
+            if (self::outOfTime($deadline) || $pagesThisPart >= self::readerPagesPerPart() || $bytes >= self::BYTES) {
                 dispatch(new self($this->fileId, $this->actor));
 
                 return;
@@ -310,10 +339,103 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
+     * Fills later-page references under the deadline, counting gap notes per
+     * chunk, and finishes the file when every row has been visited.
+     *
+     * @param  array{siteAddress: string|null, version: string|null, madeAt: string|null}  $channel
+     * @param  array{cursor: string|null, given: array<string, true>, languages: list<string>, types: array<string, true>, taxonomies: array<string, true>, resolving: array{list: ?string, object_id: ?int}|null, defaultLanguage?: string|null}  $state
+     */
+    private function resolveReader(
+        ImportFile $file,
+        string $address,
+        string $readerKey,
+        array $channel,
+        array $state,
+        CarbonImmutable $deadline,
+        string $defaultLanguage,
+    ): void {
+        $resolving = $state['resolving'] ?? ['list' => null, 'object_id' => null];
+        $result = app(ResolveImportReaderRows::class)->execute(new ResolveImportReaderRowsInput(
+            $file->id,
+            $address,
+            $readerKey,
+            $this->actor->userId,
+            is_string($resolving['list'] ?? null) ? $resolving['list'] : null,
+            isset($resolving['object_id']) && is_int($resolving['object_id']) ? $resolving['object_id'] : (isset($resolving['object_id']) && is_numeric($resolving['object_id']) ? (int) $resolving['object_id'] : null),
+            $deadline,
+        ));
+
+        $at = (int) $file->read_items;
+        $progress = self::noFacts();
+        $progress['notes'] = $result['notes'];
+        $progress['readerCursor'] = null;
+        $progress['readerGiven'] = array_keys($state['given']);
+        $progress['readerLanguages'] = $state['languages'];
+        $progress['readerDefaultLanguage'] = $defaultLanguage;
+        $progress['readerTypes'] = array_keys($state['types']);
+        $progress['readerTaxonomies'] = array_keys($state['taxonomies']);
+
+        if (! $result['done']) {
+            $progress['readerResolving'] = [
+                'list' => $result['afterList'],
+                'object_id' => $result['afterObjectId'],
+            ];
+
+            if (! $this->keep($at, $at, [], $progress, $channel)) {
+                return;
+            }
+
+            dispatch(new self($this->fileId, $this->actor));
+
+            return;
+        }
+
+        $progress['notes'] = $this->withLanguagePrefixNote(
+            $this->mergedResolveNotes($file->id, $result['notes']),
+            $state['languages'],
+        );
+        $progress['replaceNotes'] = true;
+        $progress['readerResolving'] = null;
+
+        if (! $this->keep($at, $at, [], $progress, $channel)) {
+            return;
+        }
+
+        app(FinishReadingImportFile::class)->execute(new FinishReadingImportFileInput($this->fileId, $this->actor->userId));
+    }
+
+    /**
+     * Gap notes already kept from earlier resolve parts, plus this part's, so
+     * a replaceNotes finish does not drop what a timed-out part already counted.
+     *
+     * @param  array<string, array{count: int, examples: list<string>, sentence: string}>  $fresh
+     *
+     * @return array<string, array{count: int, examples: list<string>, sentence: string}>
+     */
+    private function mergedResolveNotes(string $fileId, array $fresh): array
+    {
+        $stored = DB::table('import_file_rows')->where(['file_id' => $fileId, 'list' => ItemRows::FACTS, 'object_id' => 0])->value('payload');
+        $facts = is_string($stored) ? json_decode($stored, true) : null;
+        $notes = is_array($facts) && is_array($facts['notes'] ?? null) ? $facts['notes'] : [];
+        unset($notes['language-prefix']);
+
+        foreach ($fresh as $kind => $note) {
+            $held = is_array($notes[$kind] ?? null) ? $notes[$kind] : ['count' => 0, 'examples' => [], 'sentence' => $note['sentence']];
+            $notes[$kind] = [
+                'count' => (int) $held['count'] + $note['count'],
+                'examples' => array_slice([...$held['examples'], ...$note['examples']], 0, 5),
+                'sentence' => $held['sentence'],
+            ];
+        }
+
+        return $notes;
+    }
+
+    /**
      * The cursor and recent given cursors, and the languages, types and
      * taxonomies gathered so far, as the last keep stored them.
      *
-     * @return array{cursor: string|null, given: array<string, true>, languages: list<string>, types: array<string, true>, taxonomies: array<string, true>}
+     * @return array{cursor: string|null, given: array<string, true>, languages: list<string>, types: array<string, true>, taxonomies: array<string, true>, resolving: array{list: ?string, object_id: ?int}|null, defaultLanguage: string|null}
      */
     private function readerState(ImportFile $file): array
     {
@@ -325,6 +447,8 @@ final class ReadImportFile implements ShouldQueue
         foreach (is_array($facts['readerGiven'] ?? null) ? $facts['readerGiven'] : [] as $cursor) {
             if (is_string($cursor) && $cursor !== '') {
                 $given[$cursor] = true;
+            } elseif (is_int($cursor) || (is_float($cursor) && $cursor == (int) $cursor)) {
+                $given[(string) (int) $cursor] = true;
             }
         }
 
@@ -345,12 +469,31 @@ final class ReadImportFile implements ShouldQueue
             }
         }
 
+        $resolving = null;
+
+        if (array_key_exists('readerResolving', $facts) && is_array($facts['readerResolving'])) {
+            $resolving = [
+                'list' => isset($facts['readerResolving']['list']) && is_string($facts['readerResolving']['list'])
+                    ? $facts['readerResolving']['list']
+                    : null,
+                'object_id' => isset($facts['readerResolving']['object_id']) && is_numeric($facts['readerResolving']['object_id'])
+                    ? (int) $facts['readerResolving']['object_id']
+                    : null,
+            ];
+        }
+
+        $defaultLanguage = is_string($facts['readerDefaultLanguage'] ?? null) && $facts['readerDefaultLanguage'] !== ''
+            ? (string) $facts['readerDefaultLanguage']
+            : null;
+
         return [
             'cursor' => is_string($cursor) && $cursor !== '' ? $cursor : null,
             'given' => $given,
             'languages' => $languages,
             'types' => $types,
             'taxonomies' => $taxonomies,
+            'resolving' => $resolving,
+            'defaultLanguage' => $defaultLanguage,
         ];
     }
 
@@ -460,102 +603,18 @@ final class ReadImportFile implements ShouldQueue
     }
 
     /**
-     * Notes from unresolved reader_refs after the join resolve, plus the
-     * language-prefix note naming each language the site lacks.
+     * Gap notes from resolve, plus the language-prefix note naming each
+     * language the site lacks and its /prefix/.
      *
+     * @param  array<string, array{count: int, examples: list<string>, sentence: string}>  $notes
      * @param  list<string>  $languages
      *
      * @return array<string, array{count: int, examples: list<string>, sentence: string}>
      */
-    private function notesAfterResolve(string $fileId, array $languages): array
+    private function withLanguagePrefixNote(array $notes, array $languages): array
     {
-        $notes = [];
-        $withoutPost = [];
-        $withoutMenu = [];
-        $withoutTerm = [];
-        $withoutPicture = [];
-        $withoutTarget = [];
-        $orphans = [];
-
-        foreach (DB::table('import_file_rows')
-            ->where('file_id', $fileId)
-            ->whereRaw('jsonb_exists(payload, ?)', ['reader_refs'])
-            ->get(['list', 'object_id', 'payload']) as $row) {
-            $payload = is_string($row->payload) ? json_decode($row->payload, true) : null;
-
-            if (! is_array($payload)) {
-                continue;
-            }
-
-            $refs = is_array($payload['reader_refs'] ?? null) ? $payload['reader_refs'] : [];
-            $example = is_string($payload['source_id'] ?? null) && $payload['source_id'] !== ''
-                ? (string) $payload['source_id']
-                : (string) ($payload['id'] ?? $row->object_id);
-
-            if ($row->list === ItemRows::COMMENTS && ($payload['post_id'] ?? null) === null && is_string($refs['on'] ?? null)) {
-                $withoutPost[] = $example;
-            }
-
-            if ($row->list === ItemRows::MENU_ITEMS && (int) ($payload['menu'] ?? 0) === 0 && is_string($refs['menu'] ?? null)) {
-                $withoutMenu[] = $example;
-            }
-
-            if ($row->list === ItemRows::CONTENT) {
-                if (is_array($refs['terms'] ?? null) && count($refs['terms']) > 0) {
-                    $held = 0;
-
-                    foreach (is_array($payload['terms'] ?? null) ? $payload['terms'] : [] as $ids) {
-                        $held += is_array($ids) ? count($ids) : 0;
-                    }
-
-                    if ($held < count($refs['terms'])) {
-                        $withoutTerm[] = $example;
-                    }
-                }
-
-                if (is_string($refs['featured'] ?? null) && ($payload['featured_media'] ?? null) === null) {
-                    $withoutPicture[] = $example;
-                }
-            }
-
-            if ($row->list === ItemRows::MENU_ITEMS
-                && in_array($refs['object_kind'] ?? null, [ImportMenuItemType::CONTENT, ImportMenuItemType::TERM], true)
-                && (int) ($payload['object_id'] ?? 0) === 0
-                && (int) ($payload['menu'] ?? 0) !== 0) {
-                $withoutTarget[] = $example;
-            }
-
-            if (is_string($refs['parent'] ?? null) && (int) ($payload['parent'] ?? 0) === 0
-                && ! ($row->list === ItemRows::COMMENTS && ($payload['post_id'] ?? null) === null)
-                && ! ($row->list === ItemRows::MENU_ITEMS && (int) ($payload['menu'] ?? 0) === 0)) {
-                $orphans[] = $example;
-            }
-        }
-
-        foreach ([
-            'comment' => [$withoutPost, 'Comments on posts that aren’t in this file weren’t brought.'],
-            'menu-item' => [$withoutMenu, 'Menu items in menus that aren’t in this file weren’t brought.'],
-            'term' => [$withoutTerm, 'Terms of posts and pages that aren’t in this file weren’t brought, so those posts aren’t filed under them.'],
-            'featured-image' => [$withoutPicture, 'Featured pictures that aren’t in this file weren’t brought, so those posts have none for now.'],
-            'menu-target' => [$withoutTarget, 'Menu items that point at a post, page or term that isn’t in this file were brought with nothing to point at.'],
-            'parent' => [$orphans, 'Items whose parent isn’t in this file were placed at the top, with no parent.'],
-        ] as $kind => [$ids, $sentence]) {
-            if ($ids !== []) {
-                $notes[$kind] = ['count' => count($ids), 'examples' => array_slice($ids, 0, 5), 'sentence' => $sentence];
-            }
-        }
-
-        $named = array_values(array_unique(array_filter($languages, fn (string $tag): bool => $tag !== '')));
-        $site = app(SiteLanguages::class);
-        $lacking = array_values(array_filter($named, fn (string $tag): bool => $tag !== $site->defaultTag() && ! $site->has($tag)));
-
-        if ($lacking !== []) {
-            $listed = implode(', ', array_map(fn (string $tag): string => $tag.' (/'.$tag.'/)', $lacking));
-            $notes['language-prefix'] = [
-                'count' => count($lacking),
-                'examples' => $lacking,
-                'sentence' => 'This file brings languages the site doesn’t have yet — '.$listed.' — each added with that first part of the address.',
-            ];
+        foreach ($this->languagePrefixNote($languages) as $kind => $note) {
+            $notes[$kind] = $note;
         }
 
         return $notes;
@@ -563,7 +622,7 @@ final class ReadImportFile implements ShouldQueue
 
     /**
      * The language-prefix note for the first page, naming each language the
-     * site lacks and its /prefix/. Cross-page gaps are counted after resolve.
+     * site lacks and its /prefix/. Cross-page gaps are counted during resolve.
      *
      * @param  list<ImportItem>  $items
      * @param  list<string>  $languages
@@ -573,13 +632,29 @@ final class ReadImportFile implements ShouldQueue
     private function notesOf(array $items, array $languages, mixed $presence = null): array
     {
         unset($items, $presence);
+
+        return $this->languagePrefixNote($languages);
+    }
+
+    /**
+     * @param  list<string>  $languages
+     *
+     * @return array<string, array{count: int, examples: list<string>, sentence: string}>
+     */
+    private function languagePrefixNote(array $languages): array
+    {
         $notes = [];
         $named = array_values(array_unique(array_filter($languages, fn (string $tag): bool => $tag !== '')));
         $site = app(SiteLanguages::class);
+        $offered = (array) config('languages');
         $lacking = array_values(array_filter($named, fn (string $tag): bool => $tag !== $site->defaultTag() && ! $site->has($tag)));
 
         if ($lacking !== []) {
-            $listed = implode(', ', array_map(fn (string $tag): string => $tag.' (/'.$tag.'/)', $lacking));
+            $listed = implode(', ', array_map(function (string $tag) use ($offered): string {
+                $name = is_array($offered[$tag] ?? null) ? (string) ($offered[$tag]['label'] ?? $tag) : $tag;
+
+                return $name.' (/'.$tag.'/)';
+            }, $lacking));
             $notes['language-prefix'] = [
                 'count' => count($lacking),
                 'examples' => $lacking,
