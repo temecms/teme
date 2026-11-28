@@ -210,6 +210,9 @@ final readonly class ArticleViews
             words: (int) $revision->word_count,
             paragraphs: $paragraphs,
             path: $url,
+            title: (string) $revision->title,
+            socialTitle: self::text($fields[BuiltInFields::SOCIAL_TITLE] ?? null),
+            socialDescription: self::text($fields[BuiltInFields::SOCIAL_DESCRIPTION] ?? null),
         );
 
         // The page's own contributors are asked with this article's facts (docs/plans/plugin-sockets-2.md).
