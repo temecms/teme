@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Addresses\Addresses;
 use App\Domain\Comments\Checks\CommentChecks;
 use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Comments\Models\Comment;
+use App\Domain\Contents\Models\Content;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -29,7 +31,18 @@ beforeEach(function (): void {
     $this->author = User::factory()->create(['name' => 'Jane Doe', 'email' => 'jane@example.com'])->assignRole('author');
     $this->item = cmItem($this->author);
     Fielded::reset();
+    config(['teme.theme_paths' => []]);
+    themeActivate('default');
+    ltTypes();
 });
+
+/**
+ * The item's public path, as its page is addressed.
+ */
+function itemPathOf(Content $item): string
+{
+    return (string) parse_url(Addresses::urlFor($item), PHP_URL_PATH);
+}
 
 /**
  * Enables the fielded fixture as the operator, with its manifest's contributes replaced when given, and loads it.
@@ -54,6 +67,7 @@ function fieldedEnabled(?array $contributes = null): void
  * The fields a comment posts from the item's page, with the honeypot and tokens every form carries.
  *
  * @param  array<string, string>  $extra
+ *
  * @return array<string, string>
  */
 function fieldedPost(array $extra = []): array
@@ -64,18 +78,18 @@ function fieldedPost(array $extra = []): array
 it('draws the static field the chosen plugin declares inside the comment form', function (): void {
     fieldedEnabled();
 
-    $this->get('/harbour-news/')->assertOk()->assertSee('name="hp-stamp" value="lively"', false);
+    addrGet(itemPathOf($this->item))->assertOk()->assertSee('name="hp-stamp" value="lively"', false);
 });
 
 it('draws no declared field when no plugin fills the comment-check slot', function (): void {
-    $this->get('/harbour-news/')->assertOk()->assertDontSee('hp-stamp', false);
+    addrGet(itemPathOf($this->item))->assertOk()->assertDontSee('hp-stamp', false);
 });
 
 it('draws a time field empty, so a cached page never carries a stale time', function (): void {
     fieldedEnabled(['provides' => ['comment-check'], 'commentField' => ['name' => 'clock-stamp', 'make' => 'time']]);
 
-    $first = $this->get('/harbour-news/')->assertOk()->assertSee('name="clock-stamp" value="" data-teme-time', false);
-    $second = $this->get('/harbour-news/')->assertOk()->assertSee('name="clock-stamp" value="" data-teme-time', false);
+    $first = addrGet(itemPathOf($this->item))->assertOk()->assertSee('name="clock-stamp" value="" data-teme-time', false);
+    $second = addrGet(itemPathOf($this->item))->assertOk()->assertSee('name="clock-stamp" value="" data-teme-time', false);
 
     expect($first->getContent())->toBe($second->getContent());
 });
@@ -83,7 +97,7 @@ it('draws a time field empty, so a cached page never carries a stale time', func
 it('draws a trap off-screen, the way core’s honeypot is drawn', function (): void {
     fieldedEnabled(['provides' => ['comment-check'], 'commentField' => ['name' => 'bait-field', 'make' => 'trap']]);
 
-    $this->get('/harbour-news/')->assertOk()
+    addrGet(itemPathOf($this->item))->assertOk()
         ->assertSee('<div class="teme-hp" aria-hidden="true">', false)
         ->assertSee('name="bait-field" tabindex="-1"', false);
 });

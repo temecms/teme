@@ -73,6 +73,10 @@ final class CommentChecks
 
         $running = $plugin->running;
 
+        if (! $running instanceof HasCommentCheck) {
+            return null;
+        }
+
         // A failure, a late answer or a skipped plugin is recorded by SeoPlugins::ask; no opinion then.
         $answered = $this->plugins->ask($plugin, self::SOCKET, HasCommentCheck::class, self::CALL_BUDGET_MS, function () use ($running, $comment): ?ModerationVerdict {
             $answer = $running->check($comment);

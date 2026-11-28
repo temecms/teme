@@ -24,7 +24,11 @@ use Illuminate\View\Component;
  */
 final class CommentFormFields extends Component
 {
-    /** The comment-check plugin's declared field, or null when none is declared. */
+    /**
+     * The comment-check plugin's declared field, or null when none is declared.
+     *
+     * @var array{name: string, make: string, value: string}|null
+     */
     public ?array $field;
 
     /**
