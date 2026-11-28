@@ -18,7 +18,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Listing your plugin or theme in Teme's directory](start/publishing.md): How a plugin or theme gets into Teme's free directory, so every Teme site can find and install it from Add plugin or Add theme.
 - [For agents](for-agents.md): How agents should read this handbook and llms.txt, choose a plugin's capabilities, and write an AGENTS.md for it.
 - [Plugins writing content](plugins/content-write.md): How a plugin granted content.write creates, changes, publishes, unpublishes and schedules items, with their slugs, credits and language versions, always on behalf of a named person.
-- [Reading content](plugins/content-read.md): How a plugin with content.read lists the site's published items a page at a time, and reads an item's draft and the queue of unpublished items for the person its work acts for.
+- [Reading content](plugins/content-read.md): How a plugin with content.read lists the site's published items a page at a time, reads a published item's card, and reads an item's draft and the queue of unpublished items for the person its work acts for.
 - [What visitors send from a public form](plugins/submissions.md): How a plugin with content.submissions keeps what a visitor sends from its public form as an item waiting for review, written as the site itself, and how Teme limits how many it takes.
 - [Reading Teme's directory](plugins/directory.md): How a plugin with directory.read reads the plugins and themes Teme's directory lists, as Teme verified them, and why an answer may be empty.
 - [Adding redirects from a plugin](plugins/redirects.md): How a plugin with the redirects capability adds, lists and removes its own redirects, which Teme writes as the site and marks on Tools › Redirects, and what it can never touch.
@@ -39,7 +39,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [List columns](plugins/list-columns.md): How a plugin adds a column to the admin's content lists.
 - [List filters](plugins/list-filters.md): How a plugin adds a filter to the admin's content lists, a select of options it declares.
 - [List actions](plugins/list-actions.md): How a plugin adds row and bulk actions to the admin's content lists.
-- [Feeds and the site](plugins/feeds-and-site.md): How a plugin adds links to the site's feeds, reads the site's address, name, language and feeds, hears which feeds a change touched, and posts a form to a service outside the site.
+- [Feeds and the site](plugins/feeds-and-site.md): How a plugin adds links to the site's feeds, reads the site's address, name, language, feeds and time zone, hears which feeds a change touched, and posts a form to a service outside the site.
 - [The site's AI connection](plugins/ai.md): How a plugin asks the site's own AI connection for the tasks it declares, and what Teme records and limits for it.
 - [Your own hooks, and plugins that need other plugins](plugins/your-own-hooks.md): How a plugin declares hooks of its own for other plugins, sends them through HookSender, and how an add-on requires the plugin it extends and listens to those hooks.
 - [Check an item before it is saved](plugins/before-save.md): How a plugin is asked before an item is saved or published, how it refuses a save with a reason, and what happens when its check fails or runs too long.

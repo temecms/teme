@@ -181,7 +181,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [PluginList::class, '1.0.0'],
     [PageInsertionContributor::class, '1.0.0'],
     [PageInsertion::class, '1.0.0'],
-    [PagePosition::class, '1.0.0'],
+    [PagePosition::class, '1.0.0', ['regionStart' => 'next', 'regionEnd' => 'next']],
     [PageFacts::class, '1.0.0'],
     [InlineScripts::class, '1.0.0'],
     [SiteAi::class, '1.0.0'],
