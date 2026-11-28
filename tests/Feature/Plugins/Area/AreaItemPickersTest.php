@@ -82,3 +82,30 @@ it('lists only the posts and pages the person may open, six at most, with the to
         ->and($asStranger['total'])->toBe(8)
         ->and(array_column($asStranger['shown'], 'title'))->each->not->toContain('Roses my draft');
 });
+
+it('never lists or accepts a private published item the person may not edit', function (): void {
+    $private = addrPublished($this->author, 'Private rose notes');
+    $private->forceFill(['visibility' => 'private'])->save();
+
+    expect(ItemChoices::search('Private rose', (string) $this->stranger->id))->toMatchArray(['shown' => [], 'total' => 0])
+        ->and(fn () => AreaForms::validated([pickerField([])], ['picks' => [$private->id]], (string) $this->stranger->id, 'Placard'))->toThrow(ValidationException::class);
+});
+
+it('counts every readable match in the query, not only the first candidates', function (): void {
+    foreach (range(1, ItemChoices::SHOWN + 2) as $n) {
+        addrPublished($this->author, "Rose note {$n}");
+    }
+
+    expect(ItemChoices::search('Rose note', (string) $this->stranger->id)['total'])->toBe(ItemChoices::SHOWN + 2)
+        ->and(count(ItemChoices::search('Rose note', (string) $this->stranger->id)['shown']))->toBe(ItemChoices::SHOWN);
+});
+
+it('keeps an item the record already stores that this person can’t read, and refuses one added now', function (): void {
+    $private = addrPublished($this->author, 'Held rose note');
+    $private->forceFill(['visibility' => 'private'])->save();
+    $field = pickerField([]);
+
+    expect(AreaForms::validated([$field], ['picks' => [$private->id]], (string) $this->stranger->id, 'Placard', ['picks' => [$private->id]]))
+        ->toBe(['picks' => [$private->id]])
+        ->and(fn () => AreaForms::validated([$field], ['picks' => [$private->id]], (string) $this->stranger->id, 'Placard', ['picks' => []]))->toThrow(ValidationException::class);
+});

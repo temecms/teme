@@ -15,15 +15,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
 
-use App\Domain\Contents\Models\Content;
+use App\Domain\Contents\Queries\ItemChoices;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
-use App\Domain\Types\CoreTypes;
 use App\Domain\Users\Actors;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Settings\SettingsReader;
@@ -48,10 +46,11 @@ final class AreaForms
      * @param  array<array-key, mixed>  $values  as sent
      * @param  string|null  $personId  the person saving: the items they may open are the only ones accepted
      * @param  string  $plugin  the plugin's name, as a refusal names it
+     * @param  array<string, mixed>  $stored  the values the record stores now, by key: an item it already holds is kept, not refused, when this person can't read it
      *
      * @return array<string, mixed>
      */
-    public static function validated(array $fields, array $values, ?string $personId = null, string $plugin = ''): array
+    public static function validated(array $fields, array $values, ?string $personId = null, string $plugin = '', array $stored = []): array
     {
         $shown = VisibleWhen::visibleValues($fields, $values);
         $errors = [];
@@ -64,7 +63,7 @@ final class AreaForms
                 continue;
             }
 
-            $kept[$key] = self::one($field, $shown[$key], "values.{$key}", $errors, $personId, $plugin);
+            $kept[$key] = self::one($field, $shown[$key], "values.{$key}", $errors, $personId, $plugin, is_array($stored[$key] ?? null) ? $stored[$key] : []);
         }
 
         if ($errors !== []) {
@@ -166,8 +165,9 @@ final class AreaForms
      *
      * @param  array<string, mixed>  $field
      * @param  array<string, array<mixed>|string>  $errors  each refused value's sentence, by its path
+     * @param  list<mixed>  $held  the items the record stores now: kept, not refused, when this person can't read them
      */
-    private static function one(array $field, mixed $value, string $path, array &$errors, ?string $personId = null, string $plugin = ''): mixed
+    private static function one(array $field, mixed $value, string $path, array &$errors, ?string $personId = null, string $plugin = '', array $held = []): mixed
     {
         $label = (string) $field['label'];
         $empty = $value === null || $value === '' || $value === [];
@@ -251,7 +251,10 @@ final class AreaForms
             case 'items':
                 $list = is_array($value) ? array_values(array_unique(array_map(fn (mixed $one): string => is_scalar($one) ? (string) $one : '', $value))) : null;
 
-                if ($list === null || array_diff($list, self::readableItems($list, $personId)) !== []) {
+                // An item the record already stores, which this person can't read now, is kept as it is, not refused.
+                $alreadyStored = array_map(strval(...), $held);
+
+                if ($list === null || array_diff($list, self::readableItems($list, $personId), $alreadyStored) !== []) {
                     $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
                 }
 
@@ -392,11 +395,7 @@ final class AreaForms
             return [];
         }
 
-        return Content::query()->whereIn('id', $ids)->whereIn('type', [CoreTypes::POST, CoreTypes::PAGE])->whereNull('deleted_at')->get()
-            ->filter(fn (Content $item): bool => $item->status === 'published' || Gate::forUser($person)->allows('update', $item))
-            ->map(fn (Content $item): string => (string) $item->id)
-            ->values()
-            ->all();
+        return ItemChoices::readableIds($ids, $person);
     }
 
     /**

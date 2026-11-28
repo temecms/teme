@@ -16,18 +16,17 @@ declare(strict_types=1);
 namespace App\Domain\Contents\Queries;
 
 use App\Domain\Contents\Models\Content;
+use App\Domain\Contents\Visibility;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\CoreTypes;
 use App\Domain\Users\Actors;
-use Illuminate\Support\Facades\Gate;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 final class ItemChoices
 {
     /** The most items shown at once. @since next */
     public const int SHOWN = 6;
-
-    /** The most candidates one search reads. @since next */
-    public const int CANDIDATES = 200;
 
     /**
      * A type's name in the admin's language, as the picker shows it beside an item.
@@ -46,8 +45,39 @@ final class ItemChoices
     }
 
     /**
+     * The posts and pages the person may read: published and public, or any
+     * item (draft, private or protected) the person may edit. Its rules are
+     * the rules of the update gate, applied in the query.
+     *
+     * @return Builder<Content>
+     *
+     * @since next
+     */
+    public static function readable(User $person): Builder
+    {
+        $registry = app(ContentTypeRegistry::class);
+        $query = Content::query()->whereNull('deleted_at')->whereIn('type', [CoreTypes::POST, CoreTypes::PAGE]);
+
+        return $query->where(function (Builder $readable) use ($person, $registry): void {
+            $readable->where(fn (Builder $live): Builder => $live->where('status', 'published')->where('visibility', Visibility::Public->value));
+
+            foreach ([CoreTypes::POST, CoreTypes::PAGE] as $type) {
+                if ($person->can($registry->ability($type, 'edit.any'))) {
+                    $readable->orWhere('type', $type);
+
+                    continue;
+                }
+
+                if ($person->can($registry->ability($type, 'edit.own'))) {
+                    $readable->orWhere(fn (Builder $own): Builder => $own->where('type', $type)->where('author_id', $person->getKey()));
+                }
+            }
+        });
+    }
+
+    /**
      * The first SHOWN items whose title holds the words typed, that the person
-     * may open, with how many in all; nothing when nothing is typed.
+     * may read, with how many in all; nothing when nothing is typed.
      *
      * @return array{shown: list<array{id: string, title: string, kind: string, status: string, date: string}>, total: int}
      *
@@ -62,26 +92,36 @@ final class ItemChoices
             return ['shown' => [], 'total' => 0];
         }
 
-        $readable = Content::query()
-            ->whereNull('deleted_at')
-            ->whereIn('type', [CoreTypes::POST, CoreTypes::PAGE])
-            ->where('title', 'ilike', '%'.addcslashes($needle, '%_\\').'%')
-            ->orderByDesc('updated_at')
-            ->orderByDesc('id')
-            ->limit(self::CANDIDATES)
-            ->get()
-            ->filter(fn (Content $item): bool => $item->status === 'published' || Gate::forUser($person)->allows('update', $item))
-            ->values();
+        $matches = self::readable($person)->where('title', 'ilike', '%'.addcslashes($needle, '%_\\').'%');
+        $items = (clone $matches)->orderByDesc('updated_at')->orderByDesc('id')->limit(self::SHOWN)->get();
 
         return [
-            'shown' => $readable->take(self::SHOWN)->map(fn (Content $item): array => [
+            'shown' => $items->map(fn (Content $item): array => [
                 'id' => (string) $item->id,
                 'title' => (string) $item->title,
                 'kind' => self::kindLabel((string) $item->type),
                 'status' => (string) $item->status,
                 'date' => ($item->published_at ?? $item->updated_at)->toIso8601String(),
-            ])->all(),
-            'total' => $readable->count(),
+            ])->values()->all(),
+            'total' => $matches->count(),
         ];
+    }
+
+    /**
+     * The IDs among these that are posts or pages the person may read now.
+     *
+     * @param  list<string>  $ids
+     *
+     * @return list<string>
+     *
+     * @since next
+     */
+    public static function readableIds(array $ids, User $person): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return self::readable($person)->whereIn('id', $ids)->pluck('id')->map(fn (mixed $id): string => (string) $id)->values()->all();
     }
 }
