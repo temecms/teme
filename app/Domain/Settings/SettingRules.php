@@ -88,7 +88,9 @@ final class SettingRules
             SettingType::Term => $setting->multiple
                 ? ['nullable', 'array', 'max:'.self::MOST_TERMS, self::terms($setting)]
                 : [$presence, 'string', self::terms($setting)],
-            SettingType::ContentType => [$presence, 'string', self::contentType(...)],
+            SettingType::ContentType => $setting->multiple
+                ? ['nullable', 'array', 'max:'.self::MOST_TERMS, self::contentTypes(...)]
+                : [$presence, 'string', self::contentType(...)],
             SettingType::Secret => [],
             SettingType::Code => [$presence, 'string', 'max:'.self::MOST_CODE],
             // Its items one by one, under values.{key}.{n}.{field} (docs/plans/plugin-sockets-2.md, A5).
@@ -174,7 +176,10 @@ final class SettingRules
             SettingType::Term => $setting->multiple
                 ? array_values(array_unique(array_map(strval(...), array_filter((array) $raw, fn (mixed $slug): bool => is_scalar($slug) && trim((string) $slug) !== ''))))
                 : (is_scalar($raw) ? trim((string) $raw) : ''),
-            SettingType::ContentType => is_scalar($raw) ? trim((string) $raw) : '',
+            // Drops empties and duplicates, keeping the order chosen.
+            SettingType::ContentType => $setting->multiple
+                ? array_values(array_unique(array_map(strval(...), array_filter((array) $raw, fn (mixed $key): bool => is_scalar($key) && trim((string) $key) !== ''))))
+                : (is_scalar($raw) ? trim((string) $raw) : ''),
             SettingType::Code => is_scalar($raw) ? (string) $raw : '',
             SettingType::Repeater => self::items($setting, $raw),
             default => trim((string) $raw),
@@ -388,6 +393,19 @@ final class SettingRules
      * A type setting's value must be a content type with public addresses.
      * An empty value clears the setting, and never reaches this rule.
      */
+    private static function contentTypes(string $attribute, mixed $value, Closure $fail): void
+    {
+        $types = app(ContentTypeRegistry::class);
+
+        foreach (is_array($value) ? $value : [$value] as $key) {
+            if (! is_string($key) || ! $types->has($key) || ! $types->get($key)->public) {
+                $fail(__('Choose a content type this site shows to readers here.'));
+
+                return;
+            }
+        }
+    }
+
     private static function contentType(string $attribute, mixed $value, Closure $fail): void
     {
         $types = app(ContentTypeRegistry::class);

@@ -19,7 +19,7 @@ A key is 2 to 41 lower-case letters, digits and underscores, starting with a let
 - `default`, the value before anyone changes it;
 - `options`, value to label, for a `select` or a `multiselect`;
 - `min` and `max` for a number, `maxLength` for text;
-- `taxonomy`, for a `term`, which it must name, and `multiple`, true to choose several terms;
+- `taxonomy`, for a `term`, which it must name, and `multiple`, true to choose several terms or several types;
 - `required`, `example` (a hint shown with the field) and `unit` (shown beside a number).
 
 Teme checks the declarations when the plugin is enabled and again each time it starts. If any one is wrong, it registers none of the plugin's contributions and the plugin doesn't start. Nothing is stored by declaring: a plugin that stops leaves its saved values in place for when it starts again.
@@ -49,7 +49,7 @@ Ask for `SettingsReader` in your plugin's constructor, as [Your first plugin](..
 
 A `person` setting is drawn with core's person picker, offering the people who may write, and saved only as someone with an account. The reader answers it as that account's ID, a string, or an empty string while nobody is chosen: use it, for example, as the person a plugin credits by default.
 
-A `term` setting offers the terms of the taxonomy it names, such as `category`, by name, up to the first 500. It is saved only as terms that taxonomy has, and the reader answers their slugs: one slug as a string, or with `multiple` a list of slugs (read it with `stringList()`), empty while none is chosen. A `type` setting offers the content types with public addresses, and the reader answers the chosen type's key, such as `post`. A term or type that is removed later stays saved until someone saves the group again, so check it still exists before you use it.
+A `term` setting offers the terms of the taxonomy it names, such as `category`, by name, up to the first 500. It is saved only as terms that taxonomy has, and the reader answers their slugs: one slug as a string, or with `multiple` a list of slugs (read it with `stringList()`), empty while none is chosen. A `type` setting offers the content types with public addresses, and the reader answers the chosen type's key, such as `post`, or with `multiple` a list of keys (read it with `stringList()`), empty while none is chosen. A term or type that is removed later stays saved until someone saves the group again, so check it still exists before you use it.
 
 The reader never answers a secret. Read the settings when you need them, not once in the constructor, so a saved change counts on the next request.
 

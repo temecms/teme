@@ -160,7 +160,7 @@ final class DeclaredSettings
             'color' => Setting::color($key, $label, $description, $version),
             'person' => Setting::person($key, $label, $description, $version),
             'term' => Setting::term($key, $label, $description, $version, self::text($declared, 'taxonomy'), ($declared['multiple'] ?? false) === true),
-            'type' => Setting::contentType($key, $label, $description, $version),
+            'type' => Setting::contentType($key, $label, $description, $version, ($declared['multiple'] ?? false) === true),
             'code' => Setting::code($key, $label, $description, $version),
             // Its fields one level down, built by the same rules (docs/plans/plugin-sockets-2.md, A5).
             'repeater' => Setting::repeater($key, $label, $description, $version, array_map(

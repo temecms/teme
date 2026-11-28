@@ -507,7 +507,7 @@
                             },
                             "multiple": {
                                 "type": "boolean",
-                                "description": "For a term: whether several may be chosen."
+                                "description": "For a term or a type: whether several may be chosen."
                             },
                             "section": {
                                 "type": "string",

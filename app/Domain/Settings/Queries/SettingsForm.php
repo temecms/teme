@@ -218,7 +218,7 @@ final class SettingsForm
                 'fields' => array_map($this->field(...), $setting->fields),
                 'itemTitle' => $setting->itemTitle,
             ] : []),
-            ...($setting->type === SettingType::Term ? ['multiple' => $setting->multiple] : []),
+            ...(in_array($setting->type, [SettingType::Term, SettingType::ContentType], true) ? ['multiple' => $setting->multiple] : []),
         ];
     }
 

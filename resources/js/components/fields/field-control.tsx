@@ -141,7 +141,10 @@ export function FieldControl({
             );
         case 'term':
         case 'type': {
-            if (field.type === 'term' && field.multiple) {
+            if (
+                field.multiple &&
+                (field.type === 'term' || field.type === 'type')
+            ) {
                 return (
                     <Choices
                         id={id}
