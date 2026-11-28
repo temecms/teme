@@ -156,7 +156,6 @@ export type ContentIndexPage = {
         key: string;
         label: string;
         options: { value: string; label: string }[];
-        selected: string | null;
     }[];
     /** Values for shown plugin columns only: key → row id → cell. */
     pluginCells: Record<string, Record<string, PluginCellValue>>;

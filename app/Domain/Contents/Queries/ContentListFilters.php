@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
+use App\Domain\Plugins\ListFilters\DeclaredListFilter;
 use App\Domain\Plugins\ListFilters\PluginListFilters;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\Taxonomy;
@@ -40,8 +41,9 @@ final readonly class ContentListFilters
      * string value, then the month when it reads as `YYYY-MM`, in `$timezone`.
      *
      * @param  array<string, mixed>  $query
+     * @param  list<DeclaredListFilter>|null  $listFilters  the plugins' filters offered on this type, when the caller has them; read again when null
      */
-    public static function read(array $query, ContentType $type, string $timezone): self
+    public static function read(array $query, ContentType $type, string $timezone, ?array $listFilters = null): self
     {
         $taxonomyKeys = array_map(fn (Taxonomy $taxonomy): string => $taxonomy->key, app(TaxonomyRegistry::class)->forType($type->key));
 
@@ -61,7 +63,7 @@ final readonly class ContentListFilters
         // A plugin's filter: one of its declared options, matched exactly; any other value is no filter (issue 802).
         $pluginFilters = [];
 
-        foreach (app(PluginListFilters::class)->forType($type->key) as $filter) {
+        foreach ($listFilters ?? app(PluginListFilters::class)->forType($type->key) as $filter) {
             $value = $query[$filter->key] ?? null;
 
             if (is_string($value) && array_key_exists($value, $filter->options)) {

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Hooks\ListenerFaults;
+use App\Domain\Plugins\ListFilters\ListFilterUnavailable;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
@@ -76,14 +78,13 @@ it('ignores a value that is not one of the declared options', function (): void 
         ->and($page['filters'])->not->toHaveKey('plugin:listfilters:review-state');
 });
 
-it('offers the select with the declared options only, in the person’s language', function (): void {
+it('offers the select with the declared options only', function (): void {
     $page = ($this->page)();
 
     expect($page['listFilters'])->toBe([[
         'key' => 'plugin:listfilters:review-state',
         'label' => 'Review state',
         'options' => [['value' => 'ready', 'label' => 'Ready'], ['value' => 'stale', 'label' => 'Stale']],
-        'selected' => null,
     ]]);
 });
 
@@ -107,4 +108,26 @@ it('reads the plugin’s table through its index, as the list’s query does', f
     });
 
     expect($plan)->toContain('listfilters_scores_state_index');
+});
+
+it('drops a filter whose table is gone, records a fault under its plugin, and still loads the list', function (): void {
+    $faults = new class implements ListenerFaults
+    {
+        /** @var list<array{owner: string, id: string, hook: string, failure: Throwable}> */
+        public array $recorded = [];
+
+        public function record(string $owner, string $id, string $hook, Throwable $failure): void
+        {
+            $this->recorded[] = ['owner' => $owner, 'id' => $id, 'hook' => $hook, 'failure' => $failure];
+        }
+    };
+    app()->instance(ListenerFaults::class, $faults);
+    DB::statement('DROP TABLE listfilters_scores');
+
+    $page = ($this->page)(['plugin:listfilters:review-state' => 'ready']);
+
+    expect($page['listFilters'])->toBe([])
+        ->and($page['filters'])->not->toHaveKey('plugin:listfilters:review-state')
+        ->and(array_column($faults->recorded, 'owner'))->toBe(['tests/listfilters'])
+        ->and($faults->recorded[0]['failure'])->toBeInstanceOf(ListFilterUnavailable::class);
 });
