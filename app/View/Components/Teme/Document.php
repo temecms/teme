@@ -19,6 +19,7 @@ use App\Domain\Design\Contrast;
 use App\Domain\Design\SiteDesign;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Plugins\Scripts\PluginScripts;
 use App\Domain\Plugins\Styles\PluginStyles;
 use App\Domain\Site\Document\DocumentHead;
 use App\Domain\Site\Document\DocumentMeta;
@@ -357,6 +358,17 @@ final class Document extends Component
         $this->headPluginStyles = app(PluginStyles::class)->links();
 
         return $this->headPluginStyles;
+    }
+
+    /**
+     * The scripts of the plugin outputs the page draws, each keyed as `code:output`, linked as modules
+     * after the body (docs/guides/developers/plugins/scripts.md).
+     *
+     * @return list<array{key: string, href: string}>
+     */
+    public function pluginScripts(): array
+    {
+        return app(PluginScripts::class)->links();
     }
 
     /**

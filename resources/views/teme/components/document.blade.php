@@ -49,6 +49,9 @@
 @foreach ($lateStyles() as $style)
     <link rel="stylesheet" href="{{ $style['href'] }}" data-teme-plugin-style="{{ $style['key'] }}">
 @endforeach
+@foreach ($pluginScripts() as $script)
+    <script type="module" defer src="{{ $script['href'] }}" data-teme-plugin-script="{{ $script['key'] }}"></script>
+@endforeach
     {{-- Core's small script: in a browser that signed in, it asks who is reading, and adds the "Edit" link right after the skip link, outside the theme's markup, in a navigation landmark named by its own words, as WordPress's admin bar and Ghost's toolbar are, so no content sits outside a landmark. The same for every reader, so the page stays shared; a browser with no marker asks nothing. It keeps its answer under `Symbol.for('teme.reader')`, so core's comments script, drawn after it on a page with a comment form, reads the same answer and never asks twice. --}}
     <x-teme::inline-script name="session">
     (() => {
