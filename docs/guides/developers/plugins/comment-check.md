@@ -43,7 +43,7 @@ The plugin may declare one hidden field in its manifest, under `contributes`:
 
 The field is drawn only for the plugin the administrator chose for the comment-check slot, and only where core draws its comment form, including a theme's own form that includes the comment form's fields. A field needs the `comment-check` slot in `provides` and `comments.check`.
 
-Its value reaches the check in `signals`, keyed by the field's name. A form that arrives without the field, such as one a bot stripped, gives the check a signal `missing-field` with the field's name instead. A check should treat that as a signal of its own, not as a value.
+Its value reaches the check in `signals`, keyed by the field's name. A form that arrives without the field, such as one a bot stripped, gives the check a signal `missing-field` with the field's name instead. A value longer than the field's limit, 200 characters, is not sent: the check gets a signal `too-long` with the field's name instead. A check should treat both as signals of their own, not as values.
 
 ## What the plugin may keep
 
@@ -53,7 +53,7 @@ If your check keeps anything, hear about erasure the way any plugin does: contri
 
 ## Fediverse replies
 
-A reply that comes in from the fediverse, or an edit to one, is asked of the check the same way, before it is saved.
+A reply that comes in from the fediverse, or an edit to one, is asked of the check the same way, before it is saved. Such a reply carries no hidden field, so its `signals` stay empty, and a check should not read that as a missing field or as a bot.
 
 ## How verdicts combine
 

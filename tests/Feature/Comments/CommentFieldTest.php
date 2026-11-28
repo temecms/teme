@@ -10,17 +10,21 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\ChooseSlotProvider;
+use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\ChooseSlotProviderInput;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Slots\PluginSlots;
+use App\Domain\Site\ViewModels\CommentFormView;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Blade;
 use Tests\Fixtures\Plugins\Fielded\Fielded;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -172,4 +176,58 @@ it('draws only the field of the plugin chosen for the slot, when two plugins fil
     app()->forgetInstance(CommentChecks::class);
 
     addrGet(itemPathOf($this->item))->assertOk()->assertSee('name="hp-stamp" value="lively"', false);
+});
+
+it('purges the cached comment pages when the comment check provider is chosen', function (): void {
+    $folder = cacheOn();
+    fieldedEnabled();
+    addrGet(itemPathOf($this->item))->assertOk()->assertSee('hp-stamp', false);
+    expect(cacheEntry(itemPathOf($this->item)))->not->toBeNull();
+
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(ChooseSlotProvider::class)->execute(new ChooseSlotProviderInput(PluginSlots::COMMENT_CHECK, 'tests/fielded', null));
+    app()->forgetInstance(Elevation::class);
+
+    expect(cacheEntry(itemPathOf($this->item)))->toBeNull();
+    cacheOff($folder);
+});
+
+it('purges the cached comment pages when a comment check plugin is enabled or disabled', function (): void {
+    $folder = cacheOn();
+    fieldedEnabled();
+    addrGet(itemPathOf($this->item))->assertOk()->assertSee('hp-stamp', false);
+
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/fielded', null));
+    app()->forgetInstance(Elevation::class);
+
+    expect(cacheEntry(itemPathOf($this->item)))->toBeNull();
+    cacheOff($folder);
+});
+
+it('reads no field whose name core uses, even when the manifest on disk was changed', function (): void {
+    PluginFixtures::use(PluginFixtures::copy('fielded', ['contributes' => ['provides' => ['comment-check'], 'commentField' => ['name' => 'token', 'make' => 'static', 'value' => 'x']]]));
+    $manifest = app(PluginRegistry::class)->find('tests/fielded')?->manifest;
+
+    expect(CommentField::of($manifest))->toBeNull();
+});
+
+it('hands a value longer than the field allows to the check as a flag, never the value', function (): void {
+    fieldedEnabled();
+
+    $this->post('/_teme/comments', fieldedPost(['hp-stamp' => str_repeat('x', CommentField::MOST_VALUE + 1)]));
+
+    expect(Fielded::$signals)->toBe([['too-long' => 'hp-stamp']]);
+});
+
+it('draws the declared field inside a theme’s own comment form, which includes the fields', function (): void {
+    config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/overrides-form')]]);
+    themeActivate('overrides-form');
+    fieldedEnabled();
+    $form = new CommentFormView(action: '/_teme/comments', path: itemPathOf($this->item), parentId: null, parentName: null, askWebsite: false, signedInOnly: false, keepIpDays: 30);
+
+    $html = Blade::render('<x-teme::comment-form :form="$form" />', ['form' => $form]);
+
+    expect($html)->toContain('data-override="comment-form"')
+        ->toContain('name="hp-stamp" value="lively"');
 });

@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Http\Site;
 
+use App\Domain\Comments\Checks\CommentField;
 use Illuminate\Http\Request;
 
 final readonly class CommentPost
@@ -41,7 +42,14 @@ final readonly class CommentPost
         $signals = [];
 
         if ($field !== null) {
-            $signals = is_string($request->input($field)) ? [$field => $request->input($field)] : ['missing-field' => $field];
+            $posted = $request->input($field);
+
+            // A value over the field's limit reaches the check as a flag, never as the value (issue 805).
+            $signals = match (true) {
+                ! is_string($posted) => ['missing-field' => $field],
+                mb_strlen($posted) > CommentField::MOST_VALUE => ['too-long' => $field],
+                default => [$field => $posted],
+            };
         }
 
         return new self($value('path'), $value('parent'), $value('text'), $value('name'), $value('email'), $value('url'), $value('token'), $value('subject'), $signals);
