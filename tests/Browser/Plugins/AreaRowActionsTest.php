@@ -127,3 +127,30 @@ it('draws the network report link, custom row actions, confirm, and queued pill 
     $page->keys('[role="menu"]', 'Escape');
     cmNoJavaScriptErrors($page);
 });
+
+it('draws the ads table as cards on a phone: report as body, facts, and Edit under the name', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.querySelectorAll(\'[data-slot="list-card"]\').length === 3');
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const card = document.querySelector('[data-slot="list-card"]');
+            const facts = card?.querySelector('[data-card="facts"]');
+            const body = card?.querySelector('[data-card="body"]');
+            const title = card?.querySelector('[data-card="title"]');
+            const text = title?.textContent ?? '';
+
+            return card !== null
+                && facts?.getAttribute('data-card') === 'facts'
+                && (facts?.textContent ?? '').includes('Between items on lists')
+                && (facts?.textContent ?? '').includes('Active')
+                && body !== null
+                && (body.textContent ?? '').includes('Open report')
+                && text.includes('Edit')
+                && text.includes('Duplicate')
+                && card.querySelector('[data-test="row-menu"]') !== null;
+        }
+        JS);
+
+    cmNoJavaScriptErrors($page);
+});

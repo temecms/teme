@@ -449,6 +449,39 @@ export function AreaTable({
                 rowKey={(row) => row.id}
                 caption={record.plural}
                 selectedKeys={selected}
+                cards={{
+                    titleColumn: block.columns[0]?.id ?? 'name',
+                    select:
+                        block.bulkActions.length > 0 ? 'select' : undefined,
+                    menu: 'actions',
+                    body: block.columns.find((column) => column.kind === 'link')
+                        ?.id,
+                    facts: block.columns
+                        .slice(1)
+                        .filter((column) => column.kind !== 'link')
+                        .map((column) => column.id),
+                    selectLabel: __('Select every :plural shown', {
+                        plural: record.plural.toLowerCase(),
+                    }),
+                    sort: (() => {
+                        const options = block.columns
+                            .filter((column) => column.sortable)
+                            .map((column) => ({
+                                key: column.id,
+                                label: column.label,
+                            }));
+
+                        if (options.length === 0) {
+                            return undefined;
+                        }
+
+                        return {
+                            options,
+                            current: ask.sort ?? options[0].key,
+                            direction: ask.direction ?? 'desc',
+                        };
+                    })(),
+                }}
                 onSort={(key, direction) =>
                     onAsk({
                         ...ask,
