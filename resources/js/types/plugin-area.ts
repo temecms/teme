@@ -137,6 +137,8 @@ export type AreaRowsData = {
         id: string;
         cells: Record<string, PluginCellValue>;
         unavailable: string[];
+        /** Custom action ids with a waiting or running job for this row. */
+        queued?: string[];
     }[];
     total: number | null;
     failed: string | null;

@@ -17,9 +17,12 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Area;
 
 use App\Domain\Hooks\ListenerFaults;
+use App\Domain\Jobs\JobState;
+use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Plugins\Columns\CellText;
 use App\Domain\Plugins\Columns\ColumnClock;
 use App\Domain\Plugins\Columns\PluginColumns;
+use App\Domain\Plugins\Operations\RunPluginAction;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Admin\AreaContext;
@@ -53,6 +56,9 @@ final class AreaReads
 
     /** The largest tab count drawn; above it the tab shows no number. @since next */
     public const int MOST_COUNT = 1_000_000;
+
+    /** The most unavailable action ids kept on one row. @since next */
+    public const int MOST_UNAVAILABLE = 20;
 
     private int $spent = 0;
 
@@ -258,7 +264,7 @@ final class AreaReads
      *
      * @param  array<string, mixed>  $table
      *
-     * @return array{rows: list<array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string}>, unavailable: list<string>}>, total: int|null, failed: string|null}
+     * @return array{rows: list<array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string}>, unavailable: list<string>, queued: list<string>}>, total: int|null, failed: string|null}
      */
     public function rows(AreaPlugin $plugin, array $table, TableQuery $query, AreaContext $context): array
     {
@@ -277,6 +283,11 @@ final class AreaReads
             }
         }
 
+        $custom = array_values(array_filter(
+            is_array($table['rowActions'] ?? null) ? $table['rowActions'] : [],
+            fn (mixed $id): bool => is_string($id) && ! in_array($id, AreaValidator::ROW_ACTIONS, true),
+        ));
+
         $rows = [];
         $refused = false;
 
@@ -290,6 +301,12 @@ final class AreaReads
 
         if ($refused || count($given->rows) > $query->perPage) {
             $this->fault($plugin, new AreaAnswerRefused("The rows of {$record} answered with the wrong shape."));
+        }
+
+        $queued = $this->queuedByRow($custom, array_column($rows, 'id'));
+
+        foreach ($rows as $index => $row) {
+            $rows[$index]['queued'] = $queued[$row['id']] ?? [];
         }
 
         return ['rows' => $rows, 'total' => $given->total, 'failed' => null];
@@ -326,7 +343,54 @@ final class AreaReads
             }
         }
 
-        return ['id' => $row->id, 'cells' => $cells, 'unavailable' => array_values(array_filter($row->unavailable, is_string(...)))];
+        $unavailable = array_values(array_filter($row->unavailable, is_string(...)));
+
+        return [
+            'id' => $row->id,
+            'cells' => $cells,
+            'unavailable' => array_slice($unavailable, 0, self::MOST_UNAVAILABLE),
+            'queued' => [],
+        ];
+    }
+
+    /**
+     * Custom action ids with a waiting or running job for each row, keyed by
+     * record id.
+     *
+     * @param  list<string>  $actions
+     * @param  list<string>  $recordIds
+     *
+     * @return array<string, list<string>>
+     */
+    private function queuedByRow(array $actions, array $recordIds): array
+    {
+        if ($actions === [] || $recordIds === []) {
+            return [];
+        }
+
+        $keys = [];
+
+        foreach ($recordIds as $recordId) {
+            foreach ($actions as $action) {
+                $keys[RunPluginAction::uniqueKey($action, $recordId)] = [$recordId, $action];
+            }
+        }
+
+        $found = [];
+
+        foreach (TrackedJob::query()
+            ->whereIn('state', [JobState::Waiting, JobState::Running])
+            ->whereIn('unique_key', array_keys($keys))
+            ->pluck('unique_key') as $key) {
+            if (! is_string($key) || ! isset($keys[$key])) {
+                continue;
+            }
+
+            [$recordId, $action] = $keys[$key];
+            $found[$recordId][] = $action;
+        }
+
+        return $found;
     }
 
     /**

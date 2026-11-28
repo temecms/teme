@@ -11,9 +11,11 @@
 declare(strict_types=1);
 
 use App\Domain\Jobs\Models\TrackedJob;
+use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\RunPluginActionInput;
 use App\Domain\Plugins\Operations\RunPluginAction;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
@@ -24,6 +26,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Fixtures\Plugins\Placard\PlacardArea;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -105,7 +108,7 @@ it('queues a custom row action as the clicker for that row, with the plugin’s 
         ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
             'record' => $this->id,
-            'name' => 'Summer sale',
+            'kind' => 'ad',
         ])
         ->assertRedirect(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->assertInertiaFlash('toast', [
@@ -125,7 +128,7 @@ it('queues a confirming row action with its own figures toast', function (): voi
         ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'reset-stats']), [
             'record' => $this->id,
-            'name' => 'Summer sale',
+            'kind' => 'ad',
         ])
         ->assertInertiaFlash('toast', [
             'type' => 'success',
@@ -140,10 +143,38 @@ it('refuses, queuing nothing, a custom row action for a person without the area�
         ->from(route('plugins.area.show', ['code' => 'placard', 'page' => 'ads']))
         ->post(route('plugins.area.action', ['code' => 'placard', 'action' => 'check-code']), [
             'record' => $this->id,
-            'name' => 'Summer sale',
+            'kind' => 'ad',
         ])
         ->assertInertiaFlash('toast.type', 'error');
 
     expect(TrackedJob::query()->count())->toBe(0);
     Queue::assertNothingPushed();
+});
+
+it('leaves row-only actions off the settings group and refuses the wrong record shape', function (): void {
+    expect(app(PluginActions::class)->forGroup('plugin.placard'))
+        ->toBe([
+            ['id' => 'prune-now', 'label' => 'Prune now', 'description' => 'Removes statistics older than a year.'],
+        ]);
+
+    expect(fn () => app(RunPluginAction::class)->execute(new RunPluginActionInput(
+        'placard',
+        'check-code',
+        (string) $this->editor->id,
+        'plugin.placard.manage',
+    )))->toThrow(ValidationException::class);
+
+    expect(fn () => app(RunPluginAction::class)->execute(new RunPluginActionInput(
+        'placard',
+        'prune-now',
+        (string) $this->editor->id,
+        'plugin.placard.manage',
+        $this->id,
+    )))->toThrow(ValidationException::class);
+});
+
+it('keeps the record id’s case in the unique key and hashes a long one', function (): void {
+    expect(RunPluginAction::uniqueKey('check-code', 'AbC'))->toBe('action:check-code:AbC')
+        ->and(strlen(RunPluginAction::uniqueKey('check-code', str_repeat('x', 80))))->toBeLessThanOrEqual(64)
+        ->and(RunPluginAction::uniqueKey('check-code', str_repeat('x', 80)))->not->toContain(str_repeat('x', 20));
 });

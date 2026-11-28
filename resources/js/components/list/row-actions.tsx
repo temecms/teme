@@ -28,6 +28,8 @@ type Entry = {
     owner: string;
     label: string;
     destructive?: boolean;
+    /** Optional Lucide name from the admin icon set (area custom actions). */
+    icon?: string | null;
 };
 
 /**

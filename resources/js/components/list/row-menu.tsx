@@ -1,6 +1,7 @@
 import { Form, Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { PANEL_ICONS } from '@/components/editor/plugin-panels/plugin-panel';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,20 +20,39 @@ import { __ } from '@/lib/i18n';
 import type { RowAction } from './row-actions';
 import { orderRowMenu } from './row-menu-order';
 
+/** The optional icon beside a menu label, when the action names one. */
+function ActionIcon({ name }: { name: string | null | undefined }) {
+    if (name === null || name === undefined || name === '') {
+        return null;
+    }
+
+    const Icon = PANEL_ICONS[name];
+
+    if (Icon === undefined) {
+        return null;
+    }
+
+    return <Icon aria-hidden="true" className="size-4 shrink-0" />;
+}
+
 /**
  * A row's "…" menu (docs/architecture/design-system.md, section 4.17): the
  * state action that applies, then plugins' actions in their order, then the
- * destructive ones last, in red, a separator between the groups (I-3398). It
+ * destructive ones last, in red, a separator between the groups (I-3398). Area
+ * tables pass `pluginsFirst` so custom actions sit above Enable/Disable. It
  * opens below its button and never locks the page; Esc and Tab close it and
  * focus returns to the button.
  */
 export function RowMenu({
     items,
     title,
+    pluginsFirst = false,
 }: {
     items: RowAction[];
     /** The row's title, as shown: it names the button. */
     title: string;
+    /** Area tables: plugin actions, then Enable/Disable, then Delete. */
+    pluginsFirst?: boolean;
 }) {
     const [open, setOpen] = useState(false);
     // The button's name as a tooltip, never over its own open menu.
@@ -43,10 +63,14 @@ export function RowMenu({
     useEffect(() => setContainer(document.querySelector('main')), []);
     const handOff = useRef(false);
     const label = __('More actions for :title', { title });
-    const { core, plugins, destructive } = orderRowMenu(items);
-    const groups = [core, plugins, destructive].filter(
-        (group) => group.length > 0,
-    );
+    const ordered = orderRowMenu(items, { pluginsFirst });
+    const groups = pluginsFirst
+        ? [ordered.plugins, ordered.core, ordered.destructive].filter(
+              (group) => group.length > 0,
+          )
+        : [ordered.core, ordered.plugins, ordered.destructive].filter(
+              (group) => group.length > 0,
+          );
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
@@ -120,14 +144,17 @@ function MenuItem({
                         target="_blank"
                         rel="noreferrer"
                         data-action={item.id}
+                        className="gap-2"
                     >
+                        <ActionIcon name={item.icon} />
                         {item.label}
                         <span className="sr-only">
                             {__(', opens in a new tab')}
                         </span>
                     </a>
                 ) : (
-                    <Link href={item.href} data-action={item.id}>
+                    <Link href={item.href} data-action={item.id} className="gap-2">
+                        <ActionIcon name={item.icon} />
                         {item.label}
                     </Link>
                 )}
@@ -140,6 +167,7 @@ function MenuItem({
             <DropdownMenuItem
                 variant={variant}
                 data-action={item.id}
+                className="gap-2"
                 onSelect={() => {
                     if (item.movesFocus) {
                         onHandOff();
@@ -148,6 +176,7 @@ function MenuItem({
                     item.onSelect();
                 }}
             >
+                <ActionIcon name={item.icon} />
                 {item.label}
             </DropdownMenuItem>
         );
@@ -169,8 +198,9 @@ function MenuItem({
                             type="submit"
                             variant="ghost"
                             data-action={item.id}
-                            className="w-full justify-start"
+                            className="w-full justify-start gap-2"
                         >
+                            <ActionIcon name={item.icon} />
                             {item.label}
                         </Button>
                     </DropdownMenuItem>

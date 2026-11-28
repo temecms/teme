@@ -27,6 +27,7 @@ use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Jobs\QueueOptions;
 use Teme\Contracts\Operations\OperationInput;
 
@@ -55,7 +56,29 @@ final class RunPluginAction extends BaseOperation
         }
     }
 
-    protected function validate(OperationInput $input): void {}
+    /** The longest record id a row action may name. */
+    private const int MOST_RECORD = 120;
+
+    protected function validate(OperationInput $input): void
+    {
+        /** @var RunPluginActionInput $input */
+        $action = $this->actions->find($input->code, $input->action)
+            ?? throw new AuthorizationException(__('Not permitted.'));
+
+        $hasRecord = $input->recordId !== null && $input->recordId !== '';
+
+        if ($action['row'] === true && ! $hasRecord) {
+            throw ValidationException::withMessages(['record' => __('This action needs a row.')]);
+        }
+
+        if ($action['row'] !== true && $hasRecord) {
+            throw ValidationException::withMessages(['record' => __('This action doesn’t run on a row.')]);
+        }
+
+        if ($hasRecord && mb_strlen((string) $input->recordId) > self::MOST_RECORD) {
+            throw ValidationException::withMessages(['record' => __('That record id is too long.')]);
+        }
+    }
 
     /**
      * Whether the permission passed is this plugin's area's own, for an
@@ -98,7 +121,8 @@ final class RunPluginAction extends BaseOperation
     /**
      * The key that keeps a second click from queuing the same work while
      * one waits: the action alone on a settings button, or the action and
-     * the row when the click came from a table.
+     * the row when the click came from a table. The record id keeps its case;
+     * a key over 64 characters is hashed.
      *
      * @since next
      */
@@ -108,9 +132,12 @@ final class RunPluginAction extends BaseOperation
             return 'action:'.$action;
         }
 
-        $record = strtolower($recordId);
-        $key = "action:{$action}:{$record}";
+        $key = "action:{$action}:{$recordId}";
 
-        return strlen($key) <= self::KEY_LENGTH ? $key : 'action:'.substr(sha1($action), 0, 12).':'.$record;
+        if (strlen($key) <= self::KEY_LENGTH) {
+            return $key;
+        }
+
+        return 'action:'.substr(sha1($action.':'.$recordId), 0, self::KEY_LENGTH - strlen('action:'));
     }
 }

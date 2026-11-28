@@ -15,8 +15,10 @@ declare(strict_types=1);
 namespace App\Http\Admin;
 
 use App\Domain\Extensions\PackagePictures;
+use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Area\AreaEntries;
 use App\Domain\Plugins\Area\AreaPlugin;
+use App\Domain\Plugins\Area\AreaReads;
 use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Area\PluginAreas;
@@ -176,19 +178,20 @@ final class PluginAreaController extends Controller
         return $request->boolean('leave') ? redirect($this->listing($code, $record)) : back();
     }
 
-    public function action(Request $request, string $code, string $action, PluginAreas $areas, PluginActions $actions, RunPluginAction $run): RedirectResponse
+    public function action(Request $request, string $code, string $action, PluginAreas $areas, PluginActions $actions, RunPluginAction $run, AreaReads $reads): RedirectResponse
     {
         $plugin = $areas->find($code);
         // The area's permission answers only for an action its own pages offer (A6).
         $offered = $plugin !== null && in_array($action, $plugin->area->offeredActions(), true);
         $recordId = $request->filled('record') ? $request->string('record')->toString() : null;
-        $name = $request->filled('name') ? $request->string('name')->toString() : null;
+        $kind = $request->filled('kind') ? $request->string('kind')->toString() : null;
+        $personId = (string) $request->user()?->getAuthIdentifier();
 
         try {
             $queued = $run->execute(new RunPluginActionInput(
                 $code,
                 $action,
-                (string) $request->user()?->getAuthIdentifier(),
+                $personId,
                 $offered ? $plugin->ability() : null,
                 $recordId,
             ));
@@ -200,10 +203,13 @@ final class PluginAreaController extends Controller
         }
 
         $label = $queued['label'];
+        $name = $plugin !== null && $recordId !== null
+            ? $this->recordTitle($plugin, $kind, $recordId, $personId, $reads)
+            : null;
 
         if ($recordId !== null && $name !== null) {
             $declared = $actions->find($code, $action);
-            $pluginName = $plugin !== null ? $plugin->label : $code;
+            $pluginName = $plugin->label;
             $toast = RowActionWords::fill(
                 $declared['toast'] ?? RowActionWords::toast($label, null, static fn (string $english): string => $english),
                 ['name' => $name, 'plugin' => $pluginName, 'action' => $label],
@@ -215,6 +221,47 @@ final class PluginAreaController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => $toast]);
 
         return back();
+    }
+
+    /**
+     * The record's title from the plugin's stored values, never the client's
+     * posted name. Null when the kind or record is missing.
+     */
+    private function recordTitle(AreaPlugin $plugin, ?string $kind, string $recordId, string $personId, AreaReads $reads): ?string
+    {
+        $declared = is_string($kind) ? $plugin->area->record($kind) : null;
+
+        if ($declared === null) {
+            foreach ($plugin->area->records as $one) {
+                if (is_array($one) && is_string($one['id'] ?? null)) {
+                    $declared = $one;
+                    $kind = $one['id'];
+                    break;
+                }
+            }
+        }
+
+        if ($declared === null || ! is_string($kind) || ! is_string($declared['titleField'] ?? null)) {
+            return null;
+        }
+
+        $failed = null;
+        $values = $reads->values(
+            $plugin,
+            $kind,
+            $recordId,
+            $plugin->area->fields($kind),
+            AreaContexts::for($plugin->code, $personId),
+            $failed,
+        );
+
+        if (! is_array($values)) {
+            return null;
+        }
+
+        $title = $values[$declared['titleField']] ?? null;
+
+        return is_string($title) && $title !== '' ? mb_substr($title, 0, 200) : null;
     }
 
     /**

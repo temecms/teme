@@ -88,18 +88,18 @@ it('refuses, queuing nothing, a person without the area’s permission', functio
     Queue::assertNothingPushed();
 });
 
-it('queues the same action on another row while one waits, and returns the waiting job for a second click on the same row', function (): void {
+it('queues the same row action on another row while one waits, and returns the waiting job for a second click on the same row', function (): void {
     $ability = 'plugin.placard.manage';
-    $first = app(RunPluginAction::class)->execute(new RunPluginActionInput('placard', 'prune-now', (string) $this->editor->id, $ability, '11'));
-    $other = app(RunPluginAction::class)->execute(new RunPluginActionInput('placard', 'prune-now', (string) $this->editor->id, $ability, '22'));
-    $again = app(RunPluginAction::class)->execute(new RunPluginActionInput('placard', 'prune-now', (string) $this->editor->id, $ability, '11'));
+    $first = app(RunPluginAction::class)->execute(new RunPluginActionInput('placard', 'check-code', (string) $this->editor->id, $ability, '11'));
+    $other = app(RunPluginAction::class)->execute(new RunPluginActionInput('placard', 'check-code', (string) $this->editor->id, $ability, '22'));
+    $again = app(RunPluginAction::class)->execute(new RunPluginActionInput('placard', 'check-code', (string) $this->editor->id, $ability, '11'));
 
     expect($other['job'])->not->toBe($first['job'])
         ->and($again['job'])->toBe($first['job'])
         ->and(TrackedJob::query()->count())->toBe(2)
-        ->and(TrackedJob::query()->where('id', $first['job'])->value('unique_key'))->toBe(RunPluginAction::uniqueKey('prune-now', '11'))
-        ->and(TrackedJob::query()->where('id', $other['job'])->value('unique_key'))->toBe(RunPluginAction::uniqueKey('prune-now', '22'))
-        ->and(TrackedJob::query()->where('id', $first['job'])->value('payload'))->toBe(['action' => 'prune-now', 'record' => '11']);
+        ->and(TrackedJob::query()->where('id', $first['job'])->value('unique_key'))->toBe(RunPluginAction::uniqueKey('check-code', '11'))
+        ->and(TrackedJob::query()->where('id', $other['job'])->value('unique_key'))->toBe(RunPluginAction::uniqueKey('check-code', '22'))
+        ->and(TrackedJob::query()->where('id', $first['job'])->value('payload'))->toBe(['action' => 'check-code', 'record' => '11']);
 
     Queue::assertPushed(RunPluginJob::class, 2);
 });

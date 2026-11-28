@@ -54,6 +54,11 @@ final readonly class PluginActions
         $locale = app()->getLocale();
 
         foreach ($this->declared($record) as $action) {
+            // Row-only actions belong on area tables, never as settings buttons.
+            if ($action['row'] === true) {
+                continue;
+            }
+
             $actions[] = [
                 'id' => $action['id'],
                 'label' => $words->text($action['label'], $locale),

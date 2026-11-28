@@ -130,13 +130,14 @@ export function AreaTable({
                 code: plugin.code,
                 action: action.id,
             }),
-            { record: row.id, name: titleOf(row) },
+            { record: row.id, kind: block.record.id },
             {
                 preserveScroll: true,
                 onStart: () => setBusy(true),
                 onFinish: () => setBusy(false),
                 onSuccess: () => {
                     setConfirming(null);
+                    // Optimistic until the deferred rows reload with server queued state.
                     setQueued((current) => ({
                         ...current,
                         [row.id]: [
@@ -167,6 +168,7 @@ export function AreaTable({
                 id: action,
                 owner: plugin.name,
                 label: custom.label,
+                icon: custom.icon,
                 onSelect: () =>
                     custom.confirm !== null
                         ? setConfirming({ action: custom, row })
@@ -278,7 +280,13 @@ export function AreaTable({
                     />
                 );
                 const line = lineOf(row);
-                const waiting = (queued[row.id] ?? [])
+                const waitingIds = [
+                    ...new Set([
+                        ...(row.queued ?? []),
+                        ...(queued[row.id] ?? []),
+                    ]),
+                ];
+                const waiting = waitingIds
                     .map((id) => customById[id])
                     .filter((action): action is AreaCustomRowAction => action !== undefined);
 
@@ -328,7 +336,11 @@ export function AreaTable({
             width: 64,
             cell: (row: Row) =>
                 menuOf(row).length > 0 ? (
-                    <RowMenu items={menuOf(row)} title={titleOf(row)} />
+                    <RowMenu
+                        items={menuOf(row)}
+                        title={titleOf(row)}
+                        pluginsFirst
+                    />
                 ) : null,
         },
     ];
