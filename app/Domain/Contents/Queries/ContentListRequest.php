@@ -54,5 +54,12 @@ final readonly class ContentListRequest
         public ?string $language = null,
         /** The page asked for by number, 1 to ListPages::CAP; a cursor wins over it (I-3421). */
         public int $page = 1,
+        /**
+         * The plugins' list filters the address names: each plugin table, the column read and the
+         * item column, with the option chosen. Every one narrows the list, with the others (issue 802).
+         *
+         * @var list<array{table: string, column: string, item: string, value: string}>
+         */
+        public array $pluginFilters = [],
     ) {}
 }

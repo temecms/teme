@@ -151,6 +151,12 @@ export type ContentIndexPage = {
     chosenTerms: Record<string, string>;
     /** Every plugin column offered for this type. */
     pluginColumns: PluginColumn[];
+    /** The plugins' list filters for this type: a select of their declared options (issue 802). */
+    listFilters: {
+        key: string;
+        label: string;
+        options: { value: string; label: string }[];
+    }[];
     /** Values for shown plugin columns only: key → row id → cell. */
     pluginCells: Record<string, Record<string, PluginCellValue>>;
     /** Plugin labels whose columns couldn't be shown this time. */

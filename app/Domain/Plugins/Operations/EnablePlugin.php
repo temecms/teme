@@ -30,6 +30,8 @@ use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\Downloads\DeclaredDownloads;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
+use App\Domain\Plugins\ListFilters\ListFilterIndexes;
+use App\Domain\Plugins\ListFilters\PluginListFilters;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
@@ -74,6 +76,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly ScheduleRunner $schedules,
         private readonly Dependencies $dependencies,
         private readonly ApplyPluginTypes $types,
+        private readonly PluginListFilters $listFilters,
+        private readonly ListFilterIndexes $listFilterIndexes,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -121,6 +125,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         if ($collisions !== []) {
             throw ValidationException::withMessages(['plugin' => $collisions]);
+        }
+
+        // Nor more list filters on one list than the lists hold, asked before its migrations run (issue 802); perform checks again under a lock.
+        $refusedBeside = $this->listFilters->refusalBeside(PluginListFilters::declared($manifest), $input->name, PluginRecord::query()->where('state', PluginRecord::ENABLED)->get()->all());
+
+        if ($refusedBeside !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedBeside]]);
         }
 
         // Nor a console command that exists: a plugin never replaces one.
@@ -182,6 +193,16 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
         }
 
+        // Its list filters are checked against the tables its own migrations made, and against the other plugins' filters on each list, under a lock on every enabled plugin's row (issue 802). A refusal undoes the migrations too.
+        $enabledRecords = PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->lockForUpdate()->get()->all();
+        $declaredFilters = PluginListFilters::declared($manifest);
+        $refusedFilters = $this->listFilters->refusalBeside($declaredFilters, $input->name, $enabledRecords)
+            ?? $this->listFilterIndexes->refusal($manifest, $this->migrations->ownedTables($migrations));
+
+        if ($refusedFilters !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedFilters]]);
+        }
+
         $consentedBy = $input->actorId() ?? $input->schedulesAs;
         // The permission lines agreed before, so an update gives only a role newly agreed to.
         $agreedBefore = array_values(array_filter((array) ($record->consent['permissions'] ?? []), is_string(...)));
@@ -204,6 +225,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->permissions($manifest),
                 ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
                 // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
+                ...($declaredFilters === [] ? [] : ['listFilters' => $declaredFilters]),
                 ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
                 ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
                 // So a larger file limit in an update asks again (docs/guides/developers/plugins/outbound-files.md).

@@ -44,6 +44,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Stylesheets for a plugin's output](plugins/styles.md)
 - [The fediverse](plugins/fediverse.md)
 - [List columns](plugins/list-columns.md)
+- [List filters](plugins/list-filters.md)
 - [List actions](plugins/list-actions.md)
 - [Feeds and the site](plugins/feeds-and-site.md)
 - [The site's AI connection](plugins/ai.md)

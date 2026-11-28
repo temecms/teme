@@ -1,0 +1,28 @@
+{
+    "manifest": 1,
+    "name": "tests/listfilters",
+    "code": "listfilters",
+    "label": "List filters",
+    "description": "A plugin the tests enable, which keeps one column of its own for a filter on the post list.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\ListFilters\\ListFilters",
+    "capabilities": [],
+    "owns": { "tables": ["listfilters_scores"] },
+    "contributes": {
+        "listFilters": [
+            {
+                "id": "review-state",
+                "label": "Review state",
+                "types": ["post"],
+                "options": [
+                    { "value": "ready", "label": "Ready" },
+                    { "value": "stale", "label": "Stale" }
+                ],
+                "table": "listfilters_scores",
+                "column": "state",
+                "item": "content_id"
+            }
+        ]
+    }
+}

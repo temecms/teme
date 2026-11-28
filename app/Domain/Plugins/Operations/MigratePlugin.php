@@ -18,6 +18,8 @@ namespace App\Domain\Plugins\Operations;
 use App\Domain\Cache\PageTags;
 use App\Domain\Comments\Checks\CommentField;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\ListFilters\ListFilterIndexes;
+use App\Domain\Plugins\ListFilters\PluginListFilters;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\ApplyPluginTypesInput;
@@ -50,6 +52,8 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
         private readonly PublicRouteRegistry $publicRoutes,
         private readonly RouteCollisions $routeCollisions,
         private readonly ApplyPluginTypes $types,
+        private readonly PluginListFilters $listFilters,
+        private readonly ListFilterIndexes $listFilterIndexes,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -112,13 +116,33 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
         }
 
+        // Its list filters are checked as enabling checks them, against the tables its migrations now have and the other plugins' filters on each list, under a lock on every enabled plugin's row. A refusal undoes these migrations (issue 802).
+        $manifest = $found->manifest ?? throw ValidationException::withMessages(['plugin' => ['The plugin has no teme-plugin.json.']]);
+        $declaredFilters = PluginListFilters::declared($manifest);
+        $enabledRecords = PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->lockForUpdate()->get()->all();
+        $refusedFilters = $this->listFilters->refusalBeside($declaredFilters, $input->name, $enabledRecords)
+            ?? $this->listFilterIndexes->refusal($manifest, $this->migrations->ownedTables($migrations));
+
+        if ($refusedFilters !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedFilters]]);
+        }
+
+        // What is offered from now on is what was checked: the snapshot the plugin's consent holds (issue 802).
+        $consent = $record->consent;
+
+        if ($declaredFilters === []) {
+            unset($consent['listFilters']);
+        } else {
+            $consent['listFilters'] = $declaredFilters;
+        }
+
         $ran = array_values(array_diff(array_keys($migrations), $before));
-        $record->fill(['migrations' => $migrations])->save();
+        $record->fill(['migrations' => $migrations, 'consent' => $consent])->save();
 
         // An update's types file, as its migrations (docs/architecture/plugins.md, *Content types from a plugin*).
         if (PluginTypesFile::waiting($this->registry->fresh($found), $record->types)) {
             $this->types->execute(new ApplyPluginTypesInput($input->name, $input->actorId()));
-            $ran[] = $found->manifest === null ? 'types' : (PluginTypesFile::declared($found->manifest) ?? 'types');
+            $ran[] = PluginTypesFile::declared($manifest) ?? 'types';
         }
 
         if ($ran !== []) {

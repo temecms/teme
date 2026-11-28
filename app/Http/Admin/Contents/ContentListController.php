@@ -25,6 +25,8 @@ use App\Domain\Contents\Queries\SingleItem;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\Columns\DeclaredColumn;
 use App\Domain\Plugins\Columns\PluginColumns;
+use App\Domain\Plugins\ListFilters\DeclaredListFilter;
+use App\Domain\Plugins\ListFilters\PluginListFilters;
 use App\Domain\Plugins\Lists\ListActions;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
@@ -46,7 +48,7 @@ use Teme\Contracts\Settings\SettingsReader;
 
 final class ContentListController extends Controller
 {
-    public function index(Request $request, string $type, ContentList $list, AuthorOptions $authors, TaxonomyRegistry $taxonomies, SettingsReader $settings, TermPicker $termPicker, PluginColumns $pluginColumns, SiteLanguages $languages, ListActions $listActions): Response|RedirectResponse
+    public function index(Request $request, string $type, ContentList $list, AuthorOptions $authors, TaxonomyRegistry $taxonomies, SettingsReader $settings, TermPicker $termPicker, PluginColumns $pluginColumns, PluginListFilters $pluginListFilters, SiteLanguages $languages, ListActions $listActions): Response|RedirectResponse
     {
         $contentType = $this->type($type);
         $singleItem = $contentType->single ? SingleItem::of($contentType->key) : null;
@@ -63,7 +65,9 @@ final class ContentListController extends Controller
         // The Comments column: a type that takes comments, while they're on (1.8c's D21).
         $takesComments = Modules::on(Modules::COMMENTS) && $contentType->comments !== null;
         $person = $viewer === null ? [] : PreferencesFor::user($viewer);
-        $filters = ContentListFilters::read($request->query(), $contentType, $settings->string('general', 'timezone'));
+        // The plugins' filters offered here, read once: the select and the list both take this result (issue 802).
+        $offeredFilters = $pluginListFilters->forType($contentType->key);
+        $filters = ContentListFilters::read($request->query(), $contentType, $settings->string('general', 'timezone'), $offeredFilters);
         $listRequest = $filters->request(
             $contentType,
             (int) $viewer?->getAuthIdentifier(),
@@ -154,6 +158,12 @@ final class ContentListController extends Controller
             'hasParent' => $contentType->hierarchical,
             'hasTemplate' => $contentType->supports('template'),
             'pluginColumns' => array_map(fn (DeclaredColumn $column): array => $column->toArray(), $offered),
+            // The plugins' filters for this type: a select of their declared options (issue 802).
+            'listFilters' => array_map(fn (DeclaredListFilter $filter): array => [
+                'key' => $filter->key,
+                'label' => $filter->label,
+                'options' => array_map(fn (string $value, string $label): array => ['value' => $value, 'label' => $label], array_keys($filter->options), array_values($filter->options)),
+            ], $offeredFilters),
             'pluginCells' => $cells->values,
             'pluginColumnProblems' => $cells->problems,
         ]);

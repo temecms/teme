@@ -37,6 +37,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Stylesheets for a plugin's output](plugins/styles.md): How a plugin ships a built stylesheet for its cards and its page insertions, so Teme serves it, wrapped in its own cascade layer, only on a page that shows that output.
 - [The fediverse](plugins/fediverse.md): What core does on the fediverse by itself, and the sockets a plugin can use to hear activities, handle them, change what is sent, and send its own.
 - [List columns](plugins/list-columns.md): How a plugin adds a column to the admin's content lists.
+- [List filters](plugins/list-filters.md): How a plugin adds a filter to the admin's content lists, a select of options it declares.
 - [List actions](plugins/list-actions.md): How a plugin adds row and bulk actions to the admin's content lists.
 - [Feeds and the site](plugins/feeds-and-site.md): How a plugin adds links to the site's feeds, reads the site's address, name, language and feeds, hears which feeds a change touched, and posts a form to a service outside the site.
 - [The site's AI connection](plugins/ai.md): How a plugin asks the site's own AI connection for the tasks it declares, and what Teme records and limits for it.

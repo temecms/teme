@@ -1599,6 +1599,25 @@ export default function ContentIndex(page: ContentIndexPage) {
                                 />
                             ),
                         })),
+                        ...page.listFilters.map((listFilter) => ({
+                            key: listFilter.key,
+                            applied: page.filters[listFilter.key] !== undefined,
+                            node: (
+                                <ChoiceFilter
+                                    key={listFilter.key}
+                                    testId={`filter-${listFilter.key.replace(/:/g, '-')}`}
+                                    label={listFilter.label}
+                                    allLabel={__('All :label', {
+                                        label: listFilter.label,
+                                    })}
+                                    options={listFilter.options}
+                                    value={page.filters[listFilter.key]}
+                                    onChange={(value) =>
+                                        filterTo({ [listFilter.key]: value })
+                                    }
+                                />
+                            ),
+                        })),
                         ...(siteLanguages.length > 0
                             ? [
                                   {
