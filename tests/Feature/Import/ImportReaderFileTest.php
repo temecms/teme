@@ -22,6 +22,7 @@ use App\Domain\Import\Operations\Input\StartImportUploadInput;
 use App\Domain\Import\Operations\ReceiveImportPiece;
 use App\Domain\Import\Operations\ResolveImportReaderRows;
 use App\Domain\Import\Operations\StartImportUpload;
+use App\Domain\Import\Source\FileReader;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\DisablePlugin;
@@ -164,9 +165,8 @@ function readerReadToEnd(ImportFile $file): int
 }
 
 /**
- * Starts an import of a ready reader file and works the database queue to its end,
- * as PolylangSite::import does: sync-queue imports leave the settings memo stale
- * under RefreshDatabase's wrapping transaction.
+ * Starts an import of a ready reader file and works the database queue to its end.
+ * Forgets bound settings so this process sees languages the import just wrote.
  */
 function readerImport(ImportFile $file): ImportRun
 {
@@ -1170,6 +1170,44 @@ it('keeps the site’s default when a reader file names another, once the site a
         ->and(app(SiteLanguages::class)->defaultTag())->toBe('en')
         ->and($codes)->toContain('address.language-kept')
         ->and($kept)->toContain("can't change while the site publishes in other languages");
+});
+
+it('does not mark every type translated when a reader file names languages but no tagged items', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['languages'] = ['en'];
+    unset($export['items'][3]['language'], $export['items'][4]['language']);
+
+    $file = readerUploaded('langs-only.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $facts = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'file-facts')->value('payload'), true);
+    $answer = (new FileReader($file->id, (string) $file->source_id))->whole('languages');
+
+    expect($facts['readerTypes'] ?? [])->toBe([])
+        ->and($facts['readerTaxonomies'] ?? [])->toBe([])
+        ->and($answer['active'])->toBeTrue()
+        ->and($answer['post_types'])->toBe([])
+        ->and($answer['taxonomies'])->toBe([]);
+});
+
+it('gathers a language a reader item carries that the probe omitted', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['languages'] = ['en'];
+    $export['items'][3]['language'] = 'de';
+    $export['items'][3]['title'] = 'Hallo';
+
+    $file = readerUploaded('probe-gap.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+
+    $facts = json_decode((string) DB::table('import_file_rows')->where('file_id', $file->id)->where('list', 'file-facts')->value('payload'), true);
+
+    expect($facts['readerLanguages'])->toContain('en')
+        ->and($facts['readerLanguages'])->toContain('de')
+        ->and($facts['readerTypes'])->toContain('post');
 });
 
 it('uses the site’s default language when a reader probe names none', function (): void {

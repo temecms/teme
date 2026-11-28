@@ -111,8 +111,7 @@ final class ImportSiteLanguages extends BaseOperation
     protected function afterCommit(mixed $result): void
     {
         // After commit: drop the settings memo and the bound SiteLanguages so a
-        // later phase of the same import (including a sync-queue test under
-        // RefreshDatabase) sees the languages just added.
+        // later phase of the same import sees the languages just added.
         Cache::memo()->forget(SettingsRepository::cacheKey(SiteLanguages::GROUP));
         app()->forgetInstance(SiteLanguages::class);
     }

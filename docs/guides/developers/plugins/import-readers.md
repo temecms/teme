@@ -14,10 +14,10 @@ A reader supplies only what differs per system. It reads an export file, says wh
 
 > **Status.** A reader's file can be uploaded from Tools > Import, where a picker lists the readers the plugins declare, and read. The upload accepts the reader's file types, the reader reads the file a page at a time, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Limits for now:
 >
-> - The file is read once, a page at a time under a 45-second deadline per part, through the same `keep()` path a WordPress export uses. Later-page parents and other references are filled from stored source IDs after the last page — the reader is not opened again. The import upload size cap applies; there is no separate reader size cap. A reader that repeats a cursor is refused.
-> - Menus come across unplaced, since the import plan chooses where each menu sits.
+> - The file is read once, a page at a time under a 45-second deadline per part, through the same `keep()` path a WordPress export uses. A reader must page: it must not hold the whole file in memory. Later-page parents and other references are filled from stored source IDs after the last page, also under the deadline — the reader is not opened again. The import upload size cap applies; there is no separate reader size cap. A reader that repeats a cursor is refused.
+> - Menus come across unplaced, since the import plan chooses where each menu sits. Menus stay in the site's default language.
 > - What the file names but doesn't hold is named, not guessed: orphan comments and menu items, terms and featured pictures the file lacks, and menu items with nothing to point at. The plan lists each kind with a count and the first few IDs before the run, and the run's report lists them as warnings.
-> - An item may carry a `language` (BCP 47 tag) and an opaque `translationGroup`. The engine adds languages the site lacks (each named with its `/prefix/`), creates each item in its language, and links items that share a translation group. A language Teme doesn't offer yet lands in the site's default language with a warning. A file may name its default language; when it doesn't, the site's default is kept.
+> - An item may carry a `language` (BCP 47 tag) and an opaque `translationGroup`. Language on comments, media and people is ignored. The engine adds languages the site lacks (each named with its label and `/prefix/`), creates each post, page and term in its language, and links items that share a translation group. A language Teme doesn't offer yet lands in the site's default language with a warning. A file may name its default language; when it doesn't, the site's default is kept.
 
 ## Declaring a reader
 

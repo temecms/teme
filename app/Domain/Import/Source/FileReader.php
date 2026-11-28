@@ -83,8 +83,9 @@ final class FileReader implements SourceReader
 
     /**
      * What a reader's file says of its languages, as the companion's languages
-     * route would: active when the file names more than one, each tag a
-     * language with its slug as the address prefix. A WordPress file has none.
+     * route would: active when the file names languages, each tag a language
+     * with its slug as the address prefix, and only the types and taxonomies
+     * items actually carried a language for. A WordPress file has none.
      *
      * @return array<string, mixed>
      */
@@ -134,7 +135,7 @@ final class FileReader implements SourceReader
         $postTypes = [];
 
         foreach (app(ContentTypeRegistry::class)->all() as $type) {
-            if ($type->wordpress !== null && ($carriedTypes === [] || in_array($type->key, $carriedTypes, true) || in_array($type->wordpress, $carriedTypes, true))) {
+            if ($type->wordpress !== null && $carriedTypes !== [] && (in_array($type->key, $carriedTypes, true) || in_array($type->wordpress, $carriedTypes, true))) {
                 $postTypes[] = $type->wordpress;
             }
         }
@@ -144,7 +145,7 @@ final class FileReader implements SourceReader
         foreach (app(TaxonomyRegistry::class)->all() as $taxonomy) {
             $name = $taxonomy->wordpress ?? $taxonomy->key;
 
-            if ($carriedTaxonomies === [] || in_array($taxonomy->key, $carriedTaxonomies, true) || in_array($name, $carriedTaxonomies, true)) {
+            if ($carriedTaxonomies !== [] && (in_array($taxonomy->key, $carriedTaxonomies, true) || in_array($name, $carriedTaxonomies, true))) {
                 if ($taxonomy->wordpress !== null || in_array($taxonomy->key, $carriedTaxonomies, true)) {
                     $taxonomies[] = $name;
                 }
