@@ -82,6 +82,7 @@ final readonly class PluginWords
             Capability::DirectoryRead->value => __('Read the plugins and themes listed in Teme’s directory, as Teme verified them'),
             Capability::ContentSubmissions->value => __('Keep what visitors send from its public forms, as items waiting for someone to review them'),
             Capability::Redirects->value => __('Add redirects from old addresses of your site, and remove the ones it added'),
+            Capability::SiteScripts->value => __('Run its own code in visitors’ browsers on the pages that show its output'),
             default => $capability,
         });
     }

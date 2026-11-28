@@ -24,6 +24,7 @@ use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Readers\ImportReaderDeclaration;
+use App\Domain\Plugins\Scripts\DeclaredScripts;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seo\SeoValidator;
 use App\Domain\Plugins\Slots\PluginSlotDeclaration;
@@ -237,7 +238,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'scripts', 'homePanels', 'importReaders'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -343,6 +344,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         // Its stylesheets, one per output (docs/guides/developers/plugins/styles.md).
         $errors = [...$errors, ...DeclaredStyles::errors($contributes)];
+
+        // Its scripts, one per output, which need site.scripts (docs/guides/developers/plugins/scripts.md).
+        $errors = [...$errors, ...DeclaredScripts::errors($contributes, $capabilities)];
 
         return $errors;
     }
