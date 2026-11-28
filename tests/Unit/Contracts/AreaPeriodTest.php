@@ -14,7 +14,7 @@ use App\Domain\Plugins\Area\AreaPeriods;
 use Teme\Contracts\Admin\AreaPeriod;
 
 it('builds the last 30 days and the 30 days before in the site’s time zone', function (): void {
-    $now = new \DateTimeImmutable('2026-11-28 15:00:00', new \DateTimeZone('Africa/Lagos'));
+    $now = new DateTimeImmutable('2026-11-28 15:00:00', new DateTimeZone('Africa/Lagos'));
     $period = AreaPeriods::of(AreaPeriod::LAST_30_DAYS, 'Africa/Lagos', $now);
 
     expect($period->id)->toBe(AreaPeriod::LAST_30_DAYS)
@@ -25,7 +25,7 @@ it('builds the last 30 days and the 30 days before in the site’s time zone', f
 });
 
 it('builds this month against the same days last month', function (): void {
-    $now = new \DateTimeImmutable('2026-11-18 12:00:00', new \DateTimeZone('UTC'));
+    $now = new DateTimeImmutable('2026-11-18 12:00:00', new DateTimeZone('UTC'));
     $period = AreaPeriods::of(AreaPeriod::THIS_MONTH, 'UTC', $now);
 
     expect($period->start)->toBe('2026-11-01')
@@ -35,7 +35,7 @@ it('builds this month against the same days last month', function (): void {
 });
 
 it('builds this month on the 31st against the last day of a shorter prior month', function (): void {
-    $now = new \DateTimeImmutable('2026-03-31 12:00:00', new \DateTimeZone('UTC'));
+    $now = new DateTimeImmutable('2026-03-31 12:00:00', new DateTimeZone('UTC'));
     $period = AreaPeriods::of(AreaPeriod::THIS_MONTH, 'UTC', $now);
 
     expect($period->start)->toBe('2026-03-01')
@@ -45,7 +45,7 @@ it('builds this month on the 31st against the last day of a shorter prior month'
 });
 
 it('builds last month from a January date against December', function (): void {
-    $now = new \DateTimeImmutable('2026-01-15 12:00:00', new \DateTimeZone('UTC'));
+    $now = new DateTimeImmutable('2026-01-15 12:00:00', new DateTimeZone('UTC'));
     $period = AreaPeriods::of(AreaPeriod::LAST_MONTH, 'UTC', $now);
 
     expect($period->start)->toBe('2025-12-01')
@@ -55,7 +55,7 @@ it('builds last month from a January date against December', function (): void {
 });
 
 it('builds this year on a leap day against the prior 28 February', function (): void {
-    $now = new \DateTimeImmutable('2024-02-29 12:00:00', new \DateTimeZone('UTC'));
+    $now = new DateTimeImmutable('2024-02-29 12:00:00', new DateTimeZone('UTC'));
     $period = AreaPeriods::of(AreaPeriod::THIS_YEAR, 'UTC', $now);
 
     expect($period->start)->toBe('2024-01-01')
@@ -65,7 +65,7 @@ it('builds this year on a leap day against the prior 28 February', function (): 
 });
 
 it('builds the last 7 and 90 days', function (): void {
-    $now = new \DateTimeImmutable('2026-11-28 12:00:00', new \DateTimeZone('UTC'));
+    $now = new DateTimeImmutable('2026-11-28 12:00:00', new DateTimeZone('UTC'));
 
     expect(AreaPeriods::of(AreaPeriod::LAST_7_DAYS, 'UTC', $now)->start)->toBe('2026-11-22')
         ->and(AreaPeriods::of(AreaPeriod::LAST_90_DAYS, 'UTC', $now)->start)->toBe('2026-08-31');
