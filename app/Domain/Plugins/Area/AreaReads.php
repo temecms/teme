@@ -198,7 +198,7 @@ final class AreaReads
      * @param  mixed  $row  what the plugin put in its page of rows
      * @param  array<string, string>  $kinds  each column's kind, by its id
      *
-     * @return array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string}>, unavailable: list<string>}|null
+     * @return array{id: string, cells: array<string, array{kind: string, value: string|int|float, tone?: string, href?: string|null, host?: string|null}>, unavailable: list<string>}|null
      */
     private function row(mixed $row, array $kinds, bool &$refused): ?array
     {
@@ -226,11 +226,12 @@ final class AreaReads
 
     /**
      * One cell, cleaned: false when it isn't a cell of its column's kind,
-     * null when no text is left.
+     * null when no text is left. A link keeps only an https address with
+     * no user or password; anything else is drawn as no link.
      *
      * @param  mixed  $cell  what the plugin put in the row
      *
-     * @return array{kind: string, value: string|int|float, tone?: string}|false|null
+     * @return array{kind: string, value: string|int|float, tone?: string, href?: string|null, host?: string|null}|false|null
      */
     private function cell(mixed $cell, string $kind): array|false|null
     {
@@ -248,9 +249,45 @@ final class AreaReads
             return null;
         }
 
-        return $kind === Cell::BADGE
-            ? ['kind' => Cell::BADGE, 'value' => $clean, 'tone' => $cell->tone ?? 'neutral']
-            : ['kind' => Cell::TEXT, 'value' => $clean];
+        if ($kind === Cell::BADGE) {
+            return ['kind' => Cell::BADGE, 'value' => $clean, 'tone' => $cell->tone ?? 'neutral'];
+        }
+
+        if ($kind === Cell::LINK) {
+            $href = $this->safeHref($cell->href);
+            $host = $href === null ? null : parse_url($href, PHP_URL_HOST);
+
+            return [
+                'kind' => Cell::LINK,
+                'value' => $clean,
+                'href' => $href,
+                'host' => is_string($host) && $host !== '' ? $host : null,
+            ];
+        }
+
+        return ['kind' => Cell::TEXT, 'value' => $clean];
+    }
+
+    /**
+     * An https address with a host and no user or password, or null.
+     */
+    private function safeHref(?string $href): ?string
+    {
+        if ($href === null || $href === '') {
+            return null;
+        }
+
+        $parts = parse_url($href);
+
+        if (! is_array($parts) || ($parts['scheme'] ?? null) !== 'https' || ! is_string($parts['host'] ?? null) || $parts['host'] === '') {
+            return null;
+        }
+
+        if (array_key_exists('user', $parts) || array_key_exists('pass', $parts)) {
+            return null;
+        }
+
+        return $href;
     }
 
     /**

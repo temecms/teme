@@ -675,10 +675,18 @@ final class ContributionsValidator implements ContributionsCheck
 
         $ids = [];
 
+        $rowActions = 0;
+
         foreach ($actions as $action) {
             $action = is_array($action) ? $action : [];
             $id = is_string($action['id'] ?? null) ? $action['id'] : null;
             $label = $action['label'] ?? null;
+
+            foreach (array_keys($action) as $key) {
+                if (! in_array($key, ['id', 'label', 'description', 'job', 'row', 'confirm', 'icon'], true)) {
+                    $errors[] = __('An action can’t have :key.', ['key' => (string) $key]);
+                }
+            }
 
             if (preg_match(self::LINK_ID, $id ?? '') !== 1) {
                 $errors[] = __('An action’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
@@ -696,11 +704,31 @@ final class ContributionsValidator implements ContributionsCheck
                 $errors[] = __('An action must name the job it queues.');
             }
 
+            if (array_key_exists('row', $action) && ! is_bool($action['row'])) {
+                $errors[] = __('An action’s row must be true or false.');
+            }
+
+            if (($action['row'] ?? false) === true) {
+                $rowActions++;
+            }
+
+            if (array_key_exists('confirm', $action) && (! is_string($action['confirm']) || trim($action['confirm']) === '' || mb_strlen($action['confirm']) > 200)) {
+                $errors[] = __('An action’s confirm sentence must be text of 1 to 200 characters.');
+            }
+
+            if (array_key_exists('icon', $action) && ! in_array($action['icon'], PanelValidator::icons(), true)) {
+                $errors[] = __(':icon isn’t an icon a plugin can use.', ['icon' => is_scalar($action['icon']) ? (string) $action['icon'] : '']);
+            }
+
             if ($id !== null && in_array($id, $ids, true)) {
                 $errors[] = __('Two actions can’t share the id :id.', ['id' => $id]);
             }
 
             $ids[] = $id;
+        }
+
+        if ($rowActions > self::MOST_ROW_ACTIONS) {
+            $errors[] = __('A plugin can mark at most 2 actions for table rows.');
         }
 
         return $errors;

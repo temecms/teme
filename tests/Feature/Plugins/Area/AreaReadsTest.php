@@ -128,10 +128,12 @@ it('hands a table its rows as the person asks: search, filter, sort and page', f
                 ->where('block_ads.rows.0.id', '2')
                 ->where('block_ads.rows.0.cells', [
                     'name' => ['kind' => 'text', 'value' => 'Winter sale'],
+                    'position' => ['kind' => 'text', 'value' => 'Between items on lists'],
                     'status' => ['kind' => 'badge', 'value' => 'Paused', 'tone' => 'neutral'],
+                    'report' => ['kind' => 'link', 'value' => 'Open report', 'href' => 'https://ads.example/report/2', 'host' => 'ads.example'],
                     'impressions' => ['kind' => 'number', 'value' => 300],
                 ])
-                ->where('block_ads.rows.0.unavailable', ['disable'])));
+                ->where('block_ads.rows.0.unavailable', ['disable', 'check-code'])));
 
     $query = PlacardArea::$calls[0][1][1];
 

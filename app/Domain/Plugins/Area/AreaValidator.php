@@ -35,8 +35,15 @@ final class AreaValidator
     /** A chart's kinds. */
     public const array CHART_KINDS = ['line', 'bar'];
 
-    /** The actions a row may offer. */
+    /** The built-in actions a row may offer. */
     public const array ROW_ACTIONS = ['edit', 'duplicate', 'enable', 'disable', 'delete'];
+
+    /**
+     * The kinds a table column may take: list kinds, plus a link to an outside address.
+     *
+     * @since next
+     */
+    public const array COLUMN_KINDS = ['text', 'number', 'badge', 'link'];
 
     /** The actions a table may run on the rows chosen. */
     public const array BULK_ACTIONS = ['duplicate', 'enable', 'disable', 'delete'];
@@ -155,7 +162,15 @@ final class AreaValidator
 
         $errors = [];
         $permissions = array_column(array_filter(is_array($contributes['permissions'] ?? null) ? $contributes['permissions'] : [], is_array(...)), 'id');
-        $actions = array_column(array_filter(is_array($contributes['actions'] ?? null) ? $contributes['actions'] : [], is_array(...)), 'id');
+        $declaredActions = array_values(array_filter(is_array($contributes['actions'] ?? null) ? $contributes['actions'] : [], is_array(...)));
+        $actions = array_column($declaredActions, 'id');
+        $rowMarked = [];
+
+        foreach ($declaredActions as $action) {
+            if (($action['row'] ?? false) === true && is_string($action['id'] ?? null)) {
+                $rowMarked[] = $action['id'];
+            }
+        }
 
         foreach (array_keys($area) as $key) {
             if (! in_array($key, ['label', 'description', 'permission', 'menu', 'icon', 'purges', 'pages', 'records'], true)) {
@@ -221,7 +236,7 @@ final class AreaValidator
         foreach ($pages as $page) {
             $page = is_array($page) ? $page : [];
             $id = is_string($page['id'] ?? null) ? $page['id'] : null;
-            array_push($errors, ...$this->pageErrors($page, array_values(array_filter($recordIds, is_string(...))), $actions));
+            array_push($errors, ...$this->pageErrors($page, array_values(array_filter($recordIds, is_string(...))), $actions, $rowMarked));
 
             if ($id !== null && in_array($id, $pageIds, true)) {
                 $errors[] = __('Two pages can’t share the id :id.', ['id' => $id]);
@@ -317,11 +332,12 @@ final class AreaValidator
     /**
      * @param  array<array-key, mixed>  $page
      * @param  list<string>  $records
-     * @param  array<array-key, mixed>  $actions
+     * @param  list<string>  $actions
+     * @param  list<string>  $rowMarked  declared actions marked for table rows
      *
      * @return list<string>
      */
-    private function pageErrors(array $page, array $records, array $actions): array
+    private function pageErrors(array $page, array $records, array $actions, array $rowMarked): array
     {
         $errors = [];
 
@@ -364,7 +380,7 @@ final class AreaValidator
             array_push($errors, ...match ($block['type'] ?? null) {
                 'figures' => $this->figuresErrors($block),
                 'chart' => $this->chartErrors($block),
-                'table' => $this->tableErrors($block, $records),
+                'table' => $this->tableErrors($block, $records, $rowMarked),
                 'actions' => $this->actionsErrors($block, $actions),
                 'notice' => $this->noticeErrors($block),
                 default => [__('A block’s type must be figures, chart, table, actions or notice.')],
@@ -440,10 +456,11 @@ final class AreaValidator
     /**
      * @param  array<array-key, mixed>  $block
      * @param  list<string>  $records
+     * @param  list<string>  $rowMarked  declared actions marked for table rows
      *
      * @return list<string>
      */
-    private function tableErrors(array $block, array $records): array
+    private function tableErrors(array $block, array $records, array $rowMarked): array
     {
         $errors = $this->unknownKeys($block, ['type', 'id', 'record', 'columns', 'search', 'filters', 'perPage', 'rowActions', 'bulkActions']);
 
@@ -466,8 +483,8 @@ final class AreaValidator
                 $errors[] = __('A table’s column needs an id and a label of 1 to 40 characters.');
             }
 
-            if (! in_array($column['kind'] ?? null, ContributionsValidator::COLUMN_KINDS, true)) {
-                $errors[] = __('A column’s kind must be text, number or badge.');
+            if (! in_array($column['kind'] ?? null, self::COLUMN_KINDS, true)) {
+                $errors[] = __('A column’s kind must be text, number, badge or link.');
             }
 
             if (array_key_exists('sortable', $column) && ! is_bool($column['sortable'])) {
@@ -500,8 +517,16 @@ final class AreaValidator
             $errors[] = __('A table shows 1 to 100 rows a page.');
         }
 
-        if (! $this->subset($block['rowActions'] ?? [], self::ROW_ACTIONS)) {
-            $errors[] = __('A table’s row actions must be edit, duplicate, enable, disable or delete.');
+        $allowedRow = [...self::ROW_ACTIONS, ...$rowMarked];
+
+        if (! $this->subset($block['rowActions'] ?? [], $allowedRow)) {
+            $errors[] = __('A table’s row actions must be edit, duplicate, enable, disable, delete, or a declared action marked for rows.');
+        }
+
+        $customInTable = array_values(array_intersect(is_array($block['rowActions'] ?? null) ? $block['rowActions'] : [], $rowMarked));
+
+        if (count($customInTable) > ContributionsValidator::MOST_ROW_ACTIONS) {
+            $errors[] = __('A table offers at most 2 custom row actions.');
         }
 
         if (! $this->subset($block['bulkActions'] ?? [], self::BULK_ACTIONS)) {

@@ -12,12 +12,23 @@ import { PluginCell } from '@/components/list/plugin-cell';
 import type { RowAction } from '@/components/list/row-actions';
 import { RowLine } from '@/components/list/row-line';
 import { RowMenu } from '@/components/list/row-menu';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    Dialog,
+    DialogClose,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
+import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
 import type {
+    AreaCustomRowAction,
     AreaPluginRef,
     AreaRowsData,
     AreaTableAsk,
@@ -72,9 +83,19 @@ export function AreaTable({
 }) {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [deleting, setDeleting] = useState<string[] | null>(null);
+    const [confirming, setConfirming] = useState<{
+        action: AreaCustomRowAction;
+        row: Row;
+    } | null>(null);
     const [busy, setBusy] = useState(false);
     const [search, setSearch] = useState(ask.search ?? '');
+    /** Quiet "Check queued" pills after a custom action, by row id then action id. */
+    const [queued, setQueued] = useState<Record<string, string[]>>({});
     const record = block.record;
+    const customActions = block.customActions ?? [];
+    const customById = Object.fromEntries(
+        customActions.map((action) => [action.id, action]),
+    ) as Record<string, AreaCustomRowAction>;
     const titleColumn = block.columns[0]?.id ?? '';
     const titleOf = (row: Row): string => {
         const cell = row.cells[titleColumn];
@@ -106,6 +127,32 @@ export function AreaTable({
             },
         );
 
+    const runCustom = (action: AreaCustomRowAction, row: Row) =>
+        router.post(
+            PluginAreaController.action.url({
+                code: plugin.code,
+                action: action.id,
+            }),
+            { record: row.id, name: titleOf(row) },
+            {
+                preserveScroll: true,
+                onStart: () => setBusy(true),
+                onFinish: () => setBusy(false),
+                onSuccess: () => {
+                    setConfirming(null);
+                    setQueued((current) => ({
+                        ...current,
+                        [row.id]: [
+                            ...(current[row.id] ?? []).filter(
+                                (id) => id !== action.id,
+                            ),
+                            action.id,
+                        ],
+                    }));
+                },
+            },
+        );
+
     const asAction = (row: Row, action: string): RowAction => {
         if (action === 'edit') {
             return {
@@ -113,6 +160,20 @@ export function AreaTable({
                 owner: 'core',
                 label: actionLabel(action),
                 href: editHref(row),
+            };
+        }
+
+        const custom = customById[action];
+
+        if (custom !== undefined) {
+            return {
+                id: action,
+                owner: plugin.name,
+                label: custom.label,
+                onSelect: () =>
+                    custom.confirm !== null
+                        ? setConfirming({ action: custom, row })
+                        : runCustom(custom, row),
             };
         }
 
@@ -215,6 +276,29 @@ export function AreaTable({
             cell: (row: Row) => {
                 const cell = <PluginCell value={row.cells[column.id]} />;
                 const line = lineOf(row);
+                const waiting = (queued[row.id] ?? [])
+                    .map((id) => customById[id])
+                    .filter((action): action is AreaCustomRowAction => action !== undefined);
+
+                if (column.kind === 'badge' && waiting.length > 0) {
+                    return (
+                        <div className="flex flex-wrap items-center gap-2">
+                            {cell}
+                            {waiting.map((action) => {
+                                const verb =
+                                    action.label
+                                        .replace(/…$/u, '')
+                                        .split(/\s+/)[0] ?? action.label;
+
+                                return (
+                                    <StatusPill key={action.id} tone="info">
+                                        {__(':verb queued', { verb })}
+                                    </StatusPill>
+                                );
+                            })}
+                        </div>
+                    );
+                }
 
                 if (index !== 0) {
                     return cell;
@@ -525,6 +609,58 @@ export function AreaTable({
                     deleting !== null && act('delete', deleting, true)
                 }
             />
+
+            <Dialog
+                open={confirming !== null}
+                onOpenChange={(open) => !open && setConfirming(null)}
+            >
+                <ResponsiveDialogContent phone="foot">
+                    {confirming !== null && (() => {
+                        const base = confirming.action.label
+                            .replace(/…$/u, '')
+                            .trim();
+                        const [verb, ...rest] = base.split(/\s+/);
+                        const mid =
+                            rest.length > 0 ? ` the ${rest.join(' ')}` : '';
+
+                        return (
+                            <>
+                                <DialogHeader>
+                                    <DialogTitle>
+                                        {__(':verb:mid for “:name”?', {
+                                            verb: verb ?? base,
+                                            mid,
+                                            name: titleOf(confirming.row),
+                                        })}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {confirming.action.confirm}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button variant="outline">
+                                            {__('Keep them')}
+                                        </Button>
+                                    </DialogClose>
+                                    <Button
+                                        variant="destructive"
+                                        disabled={busy}
+                                        onClick={() =>
+                                            runCustom(
+                                                confirming.action,
+                                                confirming.row,
+                                            )
+                                        }
+                                    >
+                                        {base}
+                                    </Button>
+                                </DialogFooter>
+                            </>
+                        );
+                    })()}
+                </ResponsiveDialogContent>
+            </Dialog>
         </section>
     );
 }

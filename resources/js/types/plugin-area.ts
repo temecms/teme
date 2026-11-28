@@ -27,6 +27,13 @@ export type AreaChartBlock = {
     series: { id: string; label: string }[];
 };
 
+export type AreaCustomRowAction = {
+    id: string;
+    label: string;
+    confirm: string | null;
+    icon: string | null;
+};
+
 export type AreaTableBlock = {
     id: string;
     type: 'table';
@@ -34,7 +41,7 @@ export type AreaTableBlock = {
     columns: {
         id: string;
         label: string;
-        kind: 'text' | 'number' | 'badge';
+        kind: 'text' | 'number' | 'badge' | 'link';
         sortable: boolean;
     }[];
     search: boolean;
@@ -46,6 +53,8 @@ export type AreaTableBlock = {
     perPage: number;
     rowActions: string[];
     bulkActions: string[];
+    /** Declared actions marked for rows, in menu order before Enable/Disable. */
+    customActions?: AreaCustomRowAction[];
 };
 
 export type AreaActionsBlock = {

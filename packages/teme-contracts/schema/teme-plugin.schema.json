@@ -781,7 +781,7 @@
                 "actions": {
                     "type": "array",
                     "maxItems": 3,
-                    "description": "Buttons on the plugin's settings page, each queuing one of its declared jobs. Needs jobs.",
+                    "description": "Buttons on the plugin's settings page, each queuing one of its declared jobs. An action marked row may also appear in an area table's row menu. Needs jobs.",
                     "items": {
                         "type": "object",
                         "required": ["id", "label", "job"],
@@ -807,6 +807,43 @@
                                 "type": "string",
                                 "pattern": "^[a-z][a-z0-9-]{0,47}$",
                                 "description": "The key of the declared job it queues."
+                            },
+                            "row": {
+                                "type": "boolean",
+                                "$comment": "@since next",
+                                "description": "Offered in an area table's row menu when that table names this action. Never bulk. At most two actions may be marked."
+                            },
+                            "confirm": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "$comment": "@since next",
+                                "description": "A sentence the person confirms before the job is queued from a row."
+                            },
+                            "icon": {
+                                "enum": [
+                                    "plug",
+                                    "link",
+                                    "external-link",
+                                    "settings",
+                                    "send",
+                                    "bell",
+                                    "refresh-cw",
+                                    "chart-line",
+                                    "sparkles",
+                                    "pen-line",
+                                    "list-checks",
+                                    "mail",
+                                    "inbox",
+                                    "layout",
+                                    "list",
+                                    "user",
+                                    "globe",
+                                    "code",
+                                    "grid"
+                                ],
+                                "$comment": "@since next",
+                                "description": "The Lucide icon beside the action in a row menu."
                             }
                         }
                     }

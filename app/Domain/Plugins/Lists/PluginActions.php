@@ -67,7 +67,7 @@ final readonly class PluginActions
      * One declared action of an enabled plugin granted jobs, by the plugin's
      * code and the action's id; null when there is none.
      *
-     * @return array{id: string, label: string, description: string|null, job: string, name: string}|null
+     * @return array{id: string, label: string, description: string|null, job: string, row: bool, confirm: string|null, icon: string|null, name: string}|null
      */
     public function find(string $code, string $id): ?array
     {
@@ -96,7 +96,7 @@ final readonly class PluginActions
     }
 
     /**
-     * @return list<array{id: string, label: string, description: string|null, job: string}>
+     * @return list<array{id: string, label: string, description: string|null, job: string, row: bool, confirm: string|null, icon: string|null}>
      */
     private function declared(PluginRecord $record): array
     {
@@ -112,6 +112,9 @@ final readonly class PluginActions
                     'label' => $entry['label'],
                     'description' => is_string($entry['description'] ?? null) ? $entry['description'] : null,
                     'job' => $entry['job'],
+                    'row' => ($entry['row'] ?? false) === true,
+                    'confirm' => is_string($entry['confirm'] ?? null) ? $entry['confirm'] : null,
+                    'icon' => is_string($entry['icon'] ?? null) ? $entry['icon'] : null,
                 ];
             }
         }

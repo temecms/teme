@@ -20,6 +20,7 @@ use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\AreaWords;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Area\PluginAreas;
+use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\Operations\ActOnPluginRecords;
 use App\Domain\Plugins\Operations\Input\ActOnPluginRecordsInput;
 use App\Domain\Plugins\Operations\Input\RunPluginActionInput;
@@ -162,14 +163,22 @@ final class PluginAreaController extends Controller
         return $request->boolean('leave') ? redirect($this->listing($code, $record)) : back();
     }
 
-    public function action(Request $request, string $code, string $action, PluginAreas $areas, RunPluginAction $run): RedirectResponse
+    public function action(Request $request, string $code, string $action, PluginAreas $areas, PluginActions $actions, RunPluginAction $run): RedirectResponse
     {
         $plugin = $areas->find($code);
         // The area's permission answers only for an action its own pages offer (A6).
         $offered = $plugin !== null && in_array($action, $plugin->area->offeredActions(), true);
+        $recordId = $request->filled('record') ? $request->string('record')->toString() : null;
+        $name = $request->filled('name') ? $request->string('name')->toString() : null;
 
         try {
-            $queued = $run->execute(new RunPluginActionInput($code, $action, (string) $request->user()?->getAuthIdentifier(), $offered ? $plugin->ability() : null));
+            $queued = $run->execute(new RunPluginActionInput(
+                $code,
+                $action,
+                (string) $request->user()?->getAuthIdentifier(),
+                $offered ? $plugin->ability() : null,
+                $recordId,
+            ));
         } catch (AuthorizationException|ValidationException $refused) {
             $message = $refused instanceof ValidationException ? (string) collect($refused->errors())->flatten()->first() : $refused->getMessage();
             Inertia::flash('toast', ['type' => 'error', 'message' => $message]);
@@ -177,7 +186,29 @@ final class PluginAreaController extends Controller
             return back();
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __(':label queued.', ['label' => $queued['label']])]);
+        $label = $queued['label'];
+
+        if ($recordId !== null && $name !== null) {
+            $parts = explode(' ', $label, 2);
+            $verb = (string) preg_replace('/…$/u', '', $parts[0]);
+            $declared = $actions->find($code, $action);
+            $pluginName = $plugin !== null ? $plugin->label : $code;
+            $toast = ($declared['confirm'] ?? null) !== null
+                ? __(':verb queued for “:name”. Its figures show zero once :plugin has finished.', [
+                    'verb' => $verb,
+                    'name' => $name,
+                    'plugin' => $pluginName,
+                ])
+                : __(':verb queued for “:name”. Its status updates when :plugin has finished.', [
+                    'verb' => $verb,
+                    'name' => $name,
+                    'plugin' => $pluginName,
+                ]);
+        } else {
+            $toast = __(':label queued.', ['label' => $label]);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $toast]);
 
         return back();
     }

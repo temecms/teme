@@ -64,7 +64,7 @@ export function RowMenu({
                         </Button>
                     </DropdownMenuTrigger>
                 </TooltipTrigger>
-                <TooltipContent>{label}</TooltipContent>
+                <TooltipContent>{__('More actions')}</TooltipContent>
             </Tooltip>
             {/* Drawn inside the main landmark, not at the end of the page, so the open menu stays in it, as the account menu stays in the banner. */}
             <DropdownMenuContent

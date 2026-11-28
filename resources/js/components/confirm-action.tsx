@@ -26,6 +26,7 @@ export function ConfirmAction({
     title,
     description,
     confirmLabel,
+    cancelLabel,
     confirmVariant = 'destructive',
     when = true,
     onConfirm,
@@ -34,6 +35,8 @@ export function ConfirmAction({
     title: string;
     description: string;
     confirmLabel: string;
+    /** Replaces Cancel when the ask names what keeping means, such as Keep them. */
+    cancelLabel?: string;
     /** `default` for a step that asks first but removes nothing, such as a restore. */
     confirmVariant?: 'destructive' | 'default';
     when?: boolean;
@@ -65,7 +68,9 @@ export function ConfirmAction({
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="outline">{__('Cancel')}</Button>
+                            <Button variant="outline">
+                                {cancelLabel ?? __('Cancel')}
+                            </Button>
                         </DialogClose>
                         <Button
                             variant={confirmVariant}

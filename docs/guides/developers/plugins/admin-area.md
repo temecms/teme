@@ -50,13 +50,15 @@ A page draws its blocks in order:
 |---|---|---|
 | `figures` | A row of figures, each with its change | `items`, each an `id`, a `label` and a `format`: `number`, `percent` or `text` |
 | `chart` | A line or bar chart, with a table of the same numbers for screen readers | `label`, `kind` (`line` or `bar`) and `series`, each an `id` and a `label` |
-| `table` | One record's rows, with search, filters, sorting, pages, a row menu and bulk actions | `record`, `columns` (`text`, `number` or `badge`, `sortable`), `search`, `filters`, `perPage` (up to 100), `rowActions`, `bulkActions` |
+| `table` | One record's rows, with search, filters, sorting, pages, a row menu and bulk actions | `record`, `columns` (`text`, `number`, `badge` or `link`, `sortable`), `search`, `filters`, `perPage` (up to 100), `rowActions`, `bulkActions` |
 | `actions` | Buttons that queue the jobs behind your declared actions | `actions`, ids from `contributes.actions` |
 | `notice` | One line of text | `text` and a `tone` |
 
 Each figures, chart and table block loads on its own, after the page, so one slow block never holds the others.
 
-Row actions are `edit`, `duplicate`, `enable`, `disable` and `delete`; bulk actions are the same without `edit`. Core asks before a delete, and acts on at most 100 records at once. A row can leave an action out by naming it in its `unavailable` list.
+Row actions are `edit`, `duplicate`, `enable`, `disable` and `delete`, and up to two of your own actions marked `"row": true` under `contributes.actions` (never bulk). Bulk actions are the built-in ones without `edit`. Core asks before a delete, and before a custom action that declares `confirm`. A row can leave an action out by naming it in its `unavailable` list.
+
+A `link` column shows an outside address: the cell is `Cell::link($text, $href)`. Core draws only an `https://` address with no user or password, in a new tab with the host under the link; anything else shows as no link. Content lists never use link cells.
 
 ## The forms
 
@@ -96,7 +98,7 @@ The class named under `plugin` in the manifest implements `HasPluginArea` beside
 | `save($record, $id, $values, $context)` | Stores the checked values and answers `Saved` with the record's id; `$id` is null for a new one |
 | `act($record, $action, $ids, $context)` | Runs `duplicate`, `enable`, `disable` or `delete` on those records |
 
-A row's cells are list `Cell` values by column id: `Cell::text()`, `Cell::number()` or `Cell::badge()`. Core shows everything you hand it as text, never as markup.
+A row's cells are list `Cell` values by column id: `Cell::text()`, `Cell::number()`, `Cell::badge()`, or `Cell::link()` for a `link` column. Core shows everything you hand it as text, never as markup.
 
 ## Budgets and refusals
 

@@ -155,7 +155,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListColumn::class, '1.0.0'],
     [ListRows::class, '1.0.0'],
     [ListRow::class, '1.0.0'],
-    [Cell::class, '1.0.0'],
+    [Cell::class, '1.0.0', ['link' => 'next']],
     [SiteInfo::class, '1.0.0'],
     [PluginSettingsWriter::class, '1.0.0'],
     [QueueOptions::class, '1.0.0'],

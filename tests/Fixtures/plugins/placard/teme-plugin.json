@@ -26,6 +26,22 @@
             "backoff": [
                 1
             ]
+        },
+        {
+            "key": "check-code",
+            "label": "Check the ad code",
+            "tries": 1,
+            "backoff": [
+                1
+            ]
+        },
+        {
+            "key": "reset-stats",
+            "label": "Reset statistics",
+            "tries": 1,
+            "backoff": [
+                1
+            ]
         }
     ],
     "contributes": {
@@ -124,6 +140,21 @@
                 "label": "Prune now",
                 "description": "Removes statistics older than a year.",
                 "job": "prune"
+            },
+            {
+                "id": "check-code",
+                "label": "Check the ad code",
+                "job": "check-code",
+                "row": true,
+                "icon": "code"
+            },
+            {
+                "id": "reset-stats",
+                "label": "Reset statistics…",
+                "job": "reset-stats",
+                "row": true,
+                "icon": "refresh-cw",
+                "confirm": "Its impressions and clicks go back to zero for every period. This can’t be undone."
             }
         ],
         "area": {
@@ -202,9 +233,19 @@
                                     "kind": "text"
                                 },
                                 {
+                                    "id": "position",
+                                    "label": "Position",
+                                    "kind": "text"
+                                },
+                                {
                                     "id": "status",
                                     "label": "Status",
                                     "kind": "badge"
+                                },
+                                {
+                                    "id": "report",
+                                    "label": "Network report",
+                                    "kind": "link"
                                 },
                                 {
                                     "id": "impressions",
@@ -228,6 +269,8 @@
                             "rowActions": [
                                 "edit",
                                 "duplicate",
+                                "check-code",
+                                "reset-stats",
                                 "enable",
                                 "disable",
                                 "delete"

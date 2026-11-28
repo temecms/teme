@@ -238,6 +238,28 @@ final readonly class PluginAreaScreen
             $frame['perPage'] = is_int($block['perPage'] ?? null) ? $block['perPage'] : 20;
             $frame['rowActions'] = array_values(array_filter(is_array($block['rowActions'] ?? null) ? $block['rowActions'] : [], is_string(...)));
             $frame['bulkActions'] = array_values(array_filter(is_array($block['bulkActions'] ?? null) ? $block['bulkActions'] : [], is_string(...)));
+            $custom = [];
+
+            foreach ($frame['rowActions'] as $actionId) {
+                if (in_array($actionId, ['edit', 'duplicate', 'enable', 'disable', 'delete'], true)) {
+                    continue;
+                }
+
+                $action = $this->actions->find($plugin->code, $actionId);
+
+                if ($action === null || $action['row'] !== true) {
+                    continue;
+                }
+
+                $custom[] = [
+                    'id' => $action['id'],
+                    'label' => $words($action['label']),
+                    'confirm' => $action['confirm'] === null ? null : $words($action['confirm']),
+                    'icon' => $action['icon'],
+                ];
+            }
+
+            $frame['customActions'] = $custom;
         } elseif ($type === 'actions') {
             $offered = [];
 

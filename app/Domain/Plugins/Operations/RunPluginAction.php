@@ -1,10 +1,11 @@
 <?php
 
 /**
- * Runs an action from a plugin's settings page (docs/proposals/plugin-sockets-1.md):
- * queues the job it names as the person who clicked, with the action in its
- * payload, once while one waits. Returns the tracked job's ID and the
- * action's label.
+ * Runs an action from a plugin's settings page or an area table row
+ * (docs/proposals/plugin-sockets-1.md): queues the job it names as the
+ * person who clicked, with the action in its payload, once while one waits
+ * for that action and row. Returns the tracked job's ID and the action's
+ * label.
  *
  * @package Teme
  * @since   1.0.0
@@ -31,6 +32,9 @@ use Teme\Contracts\Operations\OperationInput;
 
 final class RunPluginAction extends BaseOperation
 {
+    /** The longest unique key a queued job may carry. */
+    private const int KEY_LENGTH = 64;
+
     public function __construct(
         private readonly Actors $actors,
         private readonly PluginActions $actions,
@@ -74,9 +78,39 @@ final class RunPluginAction extends BaseOperation
         $action = $this->actions->find($input->code, $input->action)
             ?? throw new AuthorizationException(__('Not permitted.'));
 
+        $payload = ['action' => $action['id']];
+
+        if ($input->recordId !== null && $input->recordId !== '') {
+            $payload['record'] = $input->recordId;
+        }
+
         $jobs = new PluginJobs($action['name'], $input->code, $this->start, $this->registry, JobActor::person($input->actorId));
-        $id = $jobs->queue($action['job'], ['action' => $action['id']], $action['label'], new QueueOptions(uniqueKey: "action:{$action['id']}"));
+        $id = $jobs->queue(
+            $action['job'],
+            $payload,
+            $action['label'],
+            new QueueOptions(uniqueKey: self::uniqueKey($action['id'], $input->recordId)),
+        );
 
         return ['job' => $id, 'label' => $action['label']];
+    }
+
+    /**
+     * The key that keeps a second click from queuing the same work while
+     * one waits: the action alone on a settings button, or the action and
+     * the row when the click came from a table.
+     *
+     * @since next
+     */
+    public static function uniqueKey(string $action, ?string $recordId = null): string
+    {
+        if ($recordId === null || $recordId === '') {
+            return 'action:'.$action;
+        }
+
+        $record = strtolower($recordId);
+        $key = "action:{$action}:{$record}";
+
+        return strlen($key) <= self::KEY_LENGTH ? $key : 'action:'.substr(sha1($action), 0, 12).':'.$record;
     }
 }

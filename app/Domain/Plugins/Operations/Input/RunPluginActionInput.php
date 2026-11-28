@@ -2,7 +2,9 @@
 
 /**
  * What RunPluginAction needs: the plugin's code, the action's id, the
- * person who clicked it, and, from a plugin's own area, the area's permission.
+ * person who clicked it, from a plugin's own area the area's permission,
+ * and for a table row the record's id so one waiting run does not block
+ * another row.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -22,6 +24,8 @@ final readonly class RunPluginActionInput implements OperationInput
         public string $action,
         public string $actorId,
         public ?string $permission = null,
+        /** The row's id when the click came from an area table. @since next */
+        public ?string $recordId = null,
     ) {}
 
     public function actorId(): string

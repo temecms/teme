@@ -67,15 +67,37 @@ final class PlacardArea implements PluginArea
 
             $total = $builder->count();
             $builder->orderBy($query->sort === 'impressions' ? 'impressions' : 'id', $query->direction);
-            $rows = $builder->forPage($query->page, $query->perPage)->get()->map(fn (object $ad): Row => new Row(
-                (string) $ad->id,
-                [
-                    'name' => Cell::text((string) $ad->name),
-                    'status' => Cell::badge($ad->status === 'active' ? 'Active' : 'Paused', $ad->status === 'active' ? 'ok' : 'neutral'),
-                    'impressions' => Cell::number((int) $ad->impressions),
-                ],
-                [$ad->status === 'active' ? 'enable' : 'disable'],
-            ))->all();
+            $rows = $builder->forPage($query->page, $query->perPage)->get()->map(function (object $ad): Row {
+                /** @var array<string, mixed> $data */
+                $data = json_decode((string) ($ad->data ?? '{}'), true) ?: [];
+                $location = is_string($data['location'] ?? null) ? $data['location'] : 'between_items';
+                $unavailable = [$ad->status === 'active' ? 'enable' : 'disable'];
+
+                // Check only on active ads; Reset only when there are impressions.
+                if ($ad->status !== 'active') {
+                    $unavailable[] = 'check-code';
+                }
+
+                if ((int) $ad->impressions <= 0) {
+                    $unavailable[] = 'reset-stats';
+                }
+
+                return new Row(
+                    (string) $ad->id,
+                    [
+                        'name' => Cell::text((string) $ad->name),
+                        'position' => Cell::text(match ($location) {
+                            'after_paragraph' => 'After a paragraph',
+                            'region' => 'In a theme region',
+                            default => 'Between items on lists',
+                        }),
+                        'status' => Cell::badge($ad->status === 'active' ? 'Active' : 'Paused', $ad->status === 'active' ? 'ok' : 'neutral'),
+                        'report' => Cell::link('Open report', 'https://ads.example/report/'.$ad->id),
+                        'impressions' => Cell::number((int) $ad->impressions),
+                    ],
+                    $unavailable,
+                );
+            })->all();
 
             return new RowPage(array_values($rows), $total);
         });

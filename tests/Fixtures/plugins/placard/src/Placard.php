@@ -30,6 +30,10 @@ final class Placard implements HasPluginArea, Plugin, PluginHasJobs
      */
     public function jobs(): array
     {
-        return ['prune' => new PruneHandler];
+        return [
+            'prune' => new PruneHandler,
+            'check-code' => new PruneHandler,
+            'reset-stats' => new PruneHandler,
+        ];
     }
 }
