@@ -33,6 +33,17 @@ final class FakeImportReader implements ImportReader
     /** The statuses a fake item may carry, which are Teme's. */
     private const array STATUSES = ['published', 'draft', 'private', 'scheduled', 'trashed', 'spam'];
 
+    /** How many times page() has been called since the last reset, for tests. */
+    public static int $pageCalls = 0;
+
+    /**
+     * Clears the page-call counter tests use.
+     */
+    public static function resetPageCalls(): void
+    {
+        self::$pageCalls = 0;
+    }
+
     /**
      * @since 1.8.0
      */
@@ -45,12 +56,16 @@ final class FakeImportReader implements ImportReader
             $counts[$item->kind] = ($counts[$item->kind] ?? 0) + 1;
         }
 
+        $languages = array_values(array_map(strval(...), (array) ($file['languages'] ?? [])));
+        $default = isset($file['defaultLanguage']) ? (string) $file['defaultLanguage'] : null;
+
         return new ImportProbe(
             system: $file['system'],
             version: isset($file['version']) ? (string) $file['version'] : null,
             siteAddress: isset($file['site']) ? (string) $file['site'] : null,
-            languages: array_values((array) ($file['languages'] ?? [])),
+            languages: $languages,
             counts: $counts,
+            defaultLanguage: $default !== null && $default !== '' ? $default : null,
         );
     }
 
@@ -59,6 +74,7 @@ final class FakeImportReader implements ImportReader
      */
     public function page(string $path, ?string $cursor, int $limit): ImportPage
     {
+        self::$pageCalls++;
         $items = $this->file($path)['items'];
         $start = $cursor === null ? 0 : (int) $cursor;
         $page = array_slice($items, $start, $limit);
@@ -84,7 +100,7 @@ final class FakeImportReader implements ImportReader
     /**
      * The file's items in the neutral shape, read on each call.
      *
-     * @return array{system: string, version: mixed, site: mixed, languages: mixed, items: list<ImportItem>}
+     * @return array{system: string, version: mixed, site: mixed, languages: mixed, defaultLanguage: mixed, items: list<ImportItem>}
      *
      * @throws ImportReaderRefused when the file isn't a fake export
      */
@@ -106,7 +122,14 @@ final class FakeImportReader implements ImportReader
             $items[] = $this->item(is_array($raw) ? $raw : []);
         }
 
-        return ['system' => $file['system'], 'version' => $file['version'] ?? null, 'site' => $file['site'] ?? null, 'languages' => $file['languages'] ?? [], 'items' => $items];
+        return [
+            'system' => $file['system'],
+            'version' => $file['version'] ?? null,
+            'site' => $file['site'] ?? null,
+            'languages' => $file['languages'] ?? [],
+            'defaultLanguage' => $file['defaultLanguage'] ?? null,
+            'items' => $items,
+        ];
     }
 
     /**
@@ -163,6 +186,8 @@ final class FakeImportReader implements ImportReader
             excerpt: (string) ($raw['excerpt'] ?? ''),
             sticky: (bool) ($raw['sticky'] ?? false),
             featuredMediaId: isset($raw['featuredMediaId']) ? (string) $raw['featuredMediaId'] : null,
+            language: isset($raw['language']) ? (string) $raw['language'] : null,
+            translationGroup: isset($raw['translationGroup']) ? (string) $raw['translationGroup'] : null,
         );
     }
 }

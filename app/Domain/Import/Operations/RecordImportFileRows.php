@@ -94,7 +94,7 @@ final class RecordImportFileRows extends BaseOperation
     /**
      * Adds the part's counts to the file's own row of them.
      *
-     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes?: array<string, array{count: int, examples: list<string>, sentence: string}>}  $facts
+     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes?: array<string, array{count: int, examples: list<string>, sentence: string}>, readerCursor?: string|null, readerGiven?: list<string>, readerLanguages?: list<string>, readerDefaultLanguage?: string|null, readerTypes?: list<string>, readerTaxonomies?: list<string>, readerResolving?: array{list: ?string, object_id: ?int}|null, replaceNotes?: bool}  $facts
      */
     private function keepFacts(string $fileId, array $facts): void
     {
@@ -118,7 +118,9 @@ final class RecordImportFileRows extends BaseOperation
 
         $dropped = is_array($kept['dropped'] ?? null) ? $kept['dropped'] : [];
 
-        $notes = is_array($kept['notes'] ?? null) ? $kept['notes'] : [];
+        $notes = ($facts['replaceNotes'] ?? false) === true
+            ? []
+            : (is_array($kept['notes'] ?? null) ? $kept['notes'] : []);
 
         foreach ($facts['notes'] ?? [] as $kind => $note) {
             $held = is_array($notes[$kind] ?? null) ? $notes[$kind] : ['count' => 0, 'examples' => [], 'sentence' => $note['sentence']];
@@ -136,6 +138,48 @@ final class RecordImportFileRows extends BaseOperation
             'dropped_count' => (int) ($kept['dropped_count'] ?? 0) + count($facts['dropped']),
             'notes' => $notes,
         ];
+
+        if (array_key_exists('readerCursor', $facts)) {
+            $payload['readerCursor'] = $facts['readerCursor'];
+        } elseif (array_key_exists('readerCursor', $kept)) {
+            $payload['readerCursor'] = $kept['readerCursor'];
+        }
+
+        if (array_key_exists('readerGiven', $facts)) {
+            $payload['readerGiven'] = $facts['readerGiven'];
+        } elseif (is_array($kept['readerGiven'] ?? null)) {
+            $payload['readerGiven'] = $kept['readerGiven'];
+        }
+
+        if (array_key_exists('readerLanguages', $facts)) {
+            $payload['readerLanguages'] = $facts['readerLanguages'];
+        } elseif (is_array($kept['readerLanguages'] ?? null)) {
+            $payload['readerLanguages'] = $kept['readerLanguages'];
+        }
+
+        if (array_key_exists('readerDefaultLanguage', $facts)) {
+            $payload['readerDefaultLanguage'] = $facts['readerDefaultLanguage'];
+        } elseif (array_key_exists('readerDefaultLanguage', $kept)) {
+            $payload['readerDefaultLanguage'] = $kept['readerDefaultLanguage'];
+        }
+
+        if (array_key_exists('readerTypes', $facts)) {
+            $payload['readerTypes'] = $facts['readerTypes'];
+        } elseif (is_array($kept['readerTypes'] ?? null)) {
+            $payload['readerTypes'] = $kept['readerTypes'];
+        }
+
+        if (array_key_exists('readerTaxonomies', $facts)) {
+            $payload['readerTaxonomies'] = $facts['readerTaxonomies'];
+        } elseif (is_array($kept['readerTaxonomies'] ?? null)) {
+            $payload['readerTaxonomies'] = $kept['readerTaxonomies'];
+        }
+
+        if (array_key_exists('readerResolving', $facts)) {
+            $payload['readerResolving'] = $facts['readerResolving'];
+        } elseif (array_key_exists('readerResolving', $kept)) {
+            $payload['readerResolving'] = $kept['readerResolving'];
+        }
 
         DB::table('import_file_rows')->upsert(
             [['file_id' => $fileId, 'list' => ItemRows::FACTS, 'object_id' => 0, 'payload' => json_encode($payload, JSON_THROW_ON_ERROR)]],

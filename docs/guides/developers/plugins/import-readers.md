@@ -12,12 +12,12 @@ Teme's import engine is opened at one end: the end that reads the old site. A pl
 
 A reader supplies only what differs per system. It reads an export file, says what the file holds, and hands over each item in Teme's neutral shape. It writes nothing. Teme's own operations do every write, as the person who started the import.
 
-> **Status.** A reader's file can be uploaded from Tools > Import, where a picker lists the readers the plugins declare, and read. The upload accepts the reader's file types, the reader reads the file, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Three limits for now:
+> **Status.** A reader's file can be uploaded from Tools > Import, where a picker lists the readers the plugins declare, and read. The upload accepts the reader's file types, the reader reads the file a page at a time, and its items become the rows an import reads, so a plan and a run work on it as they do on a WordPress file. Limits for now:
 >
-> - The whole file is read in one job under a 45-second deadline. A file over 64 MB is refused when its upload starts, with a plain sentence. Page-by-page reading for larger files is not in this release.
-> - Menus come across unplaced, since the import plan chooses where each menu sits.
+> - The file is read once, a page at a time under a 45-second deadline per part, through the same `keep()` path a WordPress export uses. A reader must page: it must not hold the whole file in memory. Later-page parents and other references are filled from stored source IDs after the last page, also under the deadline — the reader is not opened again. The import upload size cap applies; there is no separate reader size cap. A reader that repeats a cursor is refused.
+> - Menus come across unplaced, since the import plan chooses where each menu sits. Menus stay in the site's default language.
 > - What the file names but doesn't hold is named, not guessed: orphan comments and menu items, terms and featured pictures the file lacks, and menu items with nothing to point at. The plan lists each kind with a count and the first few IDs before the run, and the run's report lists them as warnings.
-> - An item's language is not carried. When a file holds more than one language, every item is imported into the site's default language, and the report says so once. Per-item language is not in this release.
+> - An item may carry a `language` (BCP 47 tag) and an opaque `translationGroup`. Language on comments, media and people is ignored. The engine adds languages the site lacks (each named with its label and `/prefix/`), creates each post, page and term in its language, and links items that share a translation group. A language Teme doesn't offer yet lands in the site's default language with a warning. A file may name its default language; when it doesn't, the site's default is kept.
 
 ## Declaring a reader
 
@@ -60,9 +60,11 @@ Each item is an `ImportItem`, in Teme's words. Its `kind` is one of the kinds in
 - `excerpt` is a post's or page's summary, and `sticky` pins a post to the front page.
 - `featuredMediaId` names the media item a post or page uses as its picture.
 - `order` is an item's position among its siblings, such as a menu item's place in its menu.
+- `language` is an optional BCP 47 tag for the item's language.
+- `translationGroup` is an optional opaque word shared by every translation of the item in the file.
 - `fields` holds what a kind needs beyond these. For a `person` they are `login`, `email` and `displayName`. For a `term` they are `taxonomy`, `name` and `description`. For `media` they are `url`, `mime`, `alt`, `caption` and `description`.
 
-A reader may add further values to `fields` for what its system holds beyond these.
+A reader may add further values to `fields` for what its system holds beyond these. The file may name its default language; the testing kit's fake export uses `defaultLanguage` beside `languages`.
 
 ## Comments and menus
 
@@ -81,7 +83,7 @@ A person with no login becomes an author with a login made from their name, the 
 
 ## Trying a reader
 
-The testing kit's `Teme\Testing\FakeImportReader` reads a JSON file of `system`, `version`, `site`, `languages` and `items`, where each item names its `kind` and `id`. It is the model to copy: a reader is a class that turns a file into items, and the tests check the items it returns.
+The testing kit's `Teme\Testing\FakeImportReader` reads a JSON file of `system`, `version`, `site`, `languages`, optional `defaultLanguage` and `items`, where each item names its `kind` and `id`, and may name `language` and `translationGroup`. It is the model to copy: a reader is a class that turns a file into items, and the tests check the items it returns. A two-language sample lives at `packages/teme-testing/samples/fake-export-languages.json`.
 
 ## What a reader must not do
 

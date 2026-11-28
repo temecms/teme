@@ -23,7 +23,9 @@ namespace Teme\Contracts\Import;
  * spam for a comment. Dates
  * are UTC, as `Y-m-d H:i:s`, or null. The `fields` hold what a kind needs
  * beyond these: a term's taxonomy, a person's login and email, a media
- * item's URL and mime type, and so on, each named in the guide.
+ * item's URL and mime type, and so on, each named in the guide. An optional
+ * `language` is a BCP 47 tag; an optional `translationGroup` is an opaque
+ * word shared by every translation of the item.
  *
  * @since 1.8.0
  */
@@ -58,5 +60,17 @@ final readonly class ImportItem
         public string $excerpt = '',
         public bool $sticky = false,
         public ?string $featuredMediaId = null,
+        /**
+         * The item's language as a BCP 47 tag, or null when the file doesn't name one.
+         *
+         * @since next
+         */
+        public ?string $language = null,
+        /**
+         * An opaque word shared by every translation of this item in the file; null when it has none.
+         *
+         * @since next
+         */
+        public ?string $translationGroup = null,
     ) {}
 }

@@ -23,10 +23,12 @@ use App\Domain\Import\Operations\Input\ImportSiteLanguagesInput;
 use App\Domain\Languages\LanguageLock;
 use App\Domain\Languages\Operations\Concerns\WritesSiteLanguages;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Settings\SettingsRepository;
 use App\Domain\Settings\SettingsWrite;
 use App\Domain\Settings\SettingsWriter;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
@@ -108,6 +110,9 @@ final class ImportSiteLanguages extends BaseOperation
 
     protected function afterCommit(mixed $result): void
     {
+        // After commit: drop the settings memo and the bound SiteLanguages so a
+        // later phase of the same import sees the languages just added.
+        Cache::memo()->forget(SettingsRepository::cacheKey(SiteLanguages::GROUP));
         app()->forgetInstance(SiteLanguages::class);
     }
 

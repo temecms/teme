@@ -17,6 +17,9 @@ use App\Domain\Import\File\FileAddresses;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\WordPressRecords;
+use App\Domain\Languages\SiteLanguages;
+use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -71,11 +74,94 @@ final class FileReader implements SourceReader
             'analyze' => ['report' => $this->report()],
             'settings' => $this->settings(),
             'menus' => $this->menus(),
-            // Polylang's terms only warn: everything comes across in the site's own language.
-            'languages' => ['active' => false],
+            // A reader's languages become the site's; a WordPress file's Polylang terms only warn.
+            'languages' => $this->languages(),
             'urls' => ['items' => [['id' => 0, 'kind' => 'home', 'url' => $this->home().'/']]],
             default => throw SourceRefused::notCompanion(),
         };
+    }
+
+    /**
+     * What a reader's file says of its languages, as the companion's languages
+     * route would: active when the file names languages, each tag a language
+     * with its slug as the address prefix, and only the types and taxonomies
+     * items actually carried a language for. A WordPress file has none.
+     *
+     * @return array<string, mixed>
+     */
+    private function languages(): array
+    {
+        $file = ImportFile::query()->whereKey($this->fileId)->first(['reader']);
+
+        if ($file?->reader === null) {
+            return ['active' => false];
+        }
+
+        $stored = DB::table('import_file_rows')->where(['file_id' => $this->fileId, 'list' => ItemRows::FACTS, 'object_id' => 0])->value('payload');
+        $facts = is_string($stored) ? json_decode($stored, true) : null;
+        $facts = is_array($facts) ? $facts : [];
+        $tags = array_values(array_filter(array_map(strval(...), is_array($facts['readerLanguages'] ?? null) ? $facts['readerLanguages'] : []), fn (string $tag): bool => $tag !== ''));
+        $siteDefault = app(SiteLanguages::class)->defaultTag();
+        $default = is_string($facts['readerDefaultLanguage'] ?? null) && $facts['readerDefaultLanguage'] !== ''
+            ? (string) $facts['readerDefaultLanguage']
+            : $siteDefault;
+
+        if ($tags === [] || $default === '') {
+            return ['active' => false];
+        }
+
+        if (! in_array($default, $tags, true)) {
+            $tags = [$default, ...$tags];
+        }
+
+        $offered = (array) config('languages');
+        $languages = [];
+
+        foreach ($tags as $index => $tag) {
+            $slug = $tag;
+            $locale = is_array($offered[$tag] ?? null) ? (string) ($offered[$tag]['og'] ?? str_replace('-', '_', $tag)) : str_replace('-', '_', $tag);
+            $name = is_array($offered[$tag] ?? null) ? (string) ($offered[$tag]['label'] ?? $tag) : $tag;
+            $languages[] = [
+                'slug' => $slug,
+                'locale' => $locale,
+                'name' => $name,
+                'rtl' => is_array($offered[$tag] ?? null) && ($offered[$tag]['direction'] ?? 'ltr') === 'rtl',
+                'order' => $index,
+            ];
+        }
+
+        $carriedTypes = is_array($facts['readerTypes'] ?? null) ? $facts['readerTypes'] : [];
+        $carriedTaxonomies = is_array($facts['readerTaxonomies'] ?? null) ? $facts['readerTaxonomies'] : [];
+        $postTypes = [];
+
+        foreach (app(ContentTypeRegistry::class)->all() as $type) {
+            if ($type->wordpress !== null && $carriedTypes !== [] && (in_array($type->key, $carriedTypes, true) || in_array($type->wordpress, $carriedTypes, true))) {
+                $postTypes[] = $type->wordpress;
+            }
+        }
+
+        $taxonomies = [];
+
+        foreach (app(TaxonomyRegistry::class)->all() as $taxonomy) {
+            $name = $taxonomy->wordpress ?? $taxonomy->key;
+
+            if ($carriedTaxonomies !== [] && (in_array($taxonomy->key, $carriedTaxonomies, true) || in_array($name, $carriedTaxonomies, true))) {
+                if ($taxonomy->wordpress !== null || in_array($taxonomy->key, $carriedTaxonomies, true)) {
+                    $taxonomies[] = $name;
+                }
+            }
+        }
+
+        return [
+            'active' => true,
+            'default' => $default,
+            'languages' => $languages,
+            'options' => ['force_lang' => 1, 'hide_default' => true],
+            'post_types' => $postTypes,
+            'taxonomies' => array_values(array_unique($taxonomies)),
+            'menus' => [],
+            'strings' => [],
+        ];
     }
 
     /**
