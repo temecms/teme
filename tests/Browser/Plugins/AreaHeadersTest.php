@@ -49,6 +49,7 @@ beforeEach(function (): void {
     app()->instance(LoadedPlugins::class, new LoadedPlugins);
     PlacardArea::reset();
     $this->editor = User::factory()->create(['name' => 'Eve Editor'])->assignRole('editor');
+    $this->admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
 
     PluginFixtures::use('placard');
     $manifest = PluginFixtures::manifest('placard');
@@ -93,9 +94,39 @@ it('draws the record header with status, meta, All ads and Delete ad', function 
     cmNoJavaScriptErrors($page);
 });
 
-it('draws the period select, range line, Counting pill and waiting-script banner', function (): void {
+it('draws status only when the header has a pill and no meta', function (): void {
+    PlacardArea::$on['header'] = fn (): RecordHeader => new RecordHeader('Paused', 'neutral', []);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), "/admin/plugin/placard/records/ad/{$this->id}");
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="record-header-meta"]\') !== null');
+
+    $page->assertSee('Paused')
+        ->assertDontSee('impressions in the last 30 days')
+        ->assertScript(<<<'JS'
+            () => {
+                const meta = document.querySelector('[data-test="record-header-meta"]');
+                return meta !== null
+                    && (meta.textContent ?? '').includes('Paused')
+                    && !(meta.textContent ?? '').includes('·');
+            }
+            JS);
+    cmNoJavaScriptErrors($page);
+});
+
+it('keeps title only when the plugin supplies no record header', function (): void {
+    PlacardArea::$on['header'] = fn (): ?RecordHeader => null;
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), "/admin/plugin/placard/records/ad/{$this->id}");
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="record-form"]\') !== null');
+
+    $page->assertSee('Summer sale')
+        ->assertDontSee('40 impressions in the last 30 days')
+        ->assertNotPresent('[data-test="record-header-meta"]');
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws the period select, range line and Counting pill on overview', function (): void {
     PlacardArea::$on['counts'] = fn (AreaContext $context): array => ['overview' => 0, 'ads' => 1];
-    ScriptRequests::fromMarkup('placard', 'Ad: Ad code', '<script>adsbygoogle.push({})</script>', (string) $this->editor->id);
 
     $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="area-period"]\') !== null');
@@ -104,11 +135,129 @@ it('draws the period select, range line, Counting pill and waiting-script banner
         ->assertSee('Last 30 days')
         ->assertSee('in the')
         ->assertSee('time zone')
-        ->assertSee('Compared with')
-        ->assertSee('1 script waits for approval. Until it’s approved, its ad shows without it.')
-        ->assertSee('Review scripts');
+        ->assertSee('Compared with');
 
-    // Other tab shows Counting until counts arrive, then the number.
-    cmWaitUntil($page, 'document.body.innerText.includes("Ads") && (document.body.innerText.includes("Counting") || document.body.innerText.match(/Ads\\s*1/))');
+    // On the way: Counting is sr-only inside the pulsing pill, or the count has already arrived.
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="tab-counting"]\') !== null || /Ads\\s*1/.test(document.body.innerText)');
+    $page->assertScript(<<<'JS'
+        () => {
+            const pill = document.querySelector('[data-test="tab-counting"]');
+            if (pill !== null) {
+                const name = pill.querySelector('.sr-only');
+                return (name?.textContent ?? '').includes('Counting');
+            }
+
+            return /Ads\s*1/.test(document.body.innerText);
+        }
+        JS);
+    cmNoJavaScriptErrors($page);
+});
+
+it('shows the Ads tab count once deferred counts arrive', function (): void {
+    PlacardArea::$on['counts'] = fn (AreaContext $context): array => ['overview' => 0, 'ads' => 1];
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, '/Ads\\s*1/.test(document.body.innerText)');
+
+    $page->assertScript(<<<'JS'
+        () => document.querySelector('[data-test="tab-counting"]') === null
+            && /Ads\s*1/.test(document.body.innerText)
+        JS);
+    cmNoJavaScriptErrors($page);
+});
+
+it('shows no tab count when deferred counts fail', function (): void {
+    PlacardArea::$on['counts'] = function (): never {
+        throw new RuntimeException('counts broken');
+    };
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-period"]\') !== null');
+    // Wait until the Counting pill has gone and Ads has no trailing number.
+    cmWaitUntil($page, <<<'JS'
+        (() => {
+            if (document.querySelector('[data-test="tab-counting"]') !== null) {
+                return false;
+            }
+            const ads = [...document.querySelectorAll('[data-slot="in-page-nav"] a')]
+                .find((link) => (link.textContent ?? '').includes('Ads'));
+            return ads !== undefined && !/Ads\s*\d/.test(ads.textContent ?? '');
+        })()
+        JS);
+
+    cmNoJavaScriptErrors($page);
+});
+
+it('shows Loading the new period… then the Last 7 days range', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'#area-period\') !== null');
+
+    $page->click('#area-period');
+    cmWaitUntil($page, 'document.querySelector(\'[role="option"]\') !== null');
+    $page->click('[role="option"] >> text="Last 7 days"');
+
+    cmWaitUntil($page, 'document.body.innerText.includes("Loading the new period…") || document.body.innerText.includes("Last 7 days")');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-period-range"]\')?.textContent?.includes("Compared with") === true && !document.body.innerText.includes("Loading the new period…")');
+
+    $page->assertSee('Last 7 days')
+        ->assertSee('Compared with')
+        ->assertScript('document.activeElement?.id === "area-period" || document.activeElement?.closest("#area-period") !== null || document.getElementById("area-period")?.contains(document.activeElement)');
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws No statistics yet when figures are empty', function (): void {
+    PlacardArea::$on['figures'] = fn (): array => [];
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-figures-empty"]\') !== null');
+
+    $page->assertSee('No statistics yet')
+        ->assertSee('Figures appear the day after an ad first shows.');
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws a failed figures block with Try again', function (): void {
+    PlacardArea::$on['figures'] = function (): array {
+        throw new RuntimeException('boom');
+    };
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard');
+    cmWaitUntil($page, 'document.body.innerText.includes("couldn’t be shown")');
+
+    $page->assertSee('This part of Placard couldn’t be shown this time.')
+        ->assertSee('Try again');
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws the waiting-script banner on the ads list with Review scripts for an administrator', function (): void {
+    ScriptRequests::fromMarkup('placard', 'Ad: Ad code', '<script>adsbygoogle.push({})</script>', (string) $this->admin->id);
+
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-scripts-waiting"]\') !== null');
+
+    $page->assertSee('1 script waits for approval. Until it’s approved, its ad shows without it.')
+        ->assertSee('Review scripts')
+        ->assertPresent('[data-test="area-review-scripts"]');
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws several waiting scripts without Review scripts for an editor', function (): void {
+    ScriptRequests::fromMarkup('placard', 'Ad: One', '<script>one()</script>', (string) $this->editor->id);
+    ScriptRequests::fromMarkup('placard', 'Ad: Two', '<script>two()</script>', (string) $this->editor->id);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-scripts-waiting"]\') !== null');
+
+    $page->assertSee('2 scripts wait for approval. Until they’re approved, their ads show without them.')
+        ->assertDontSee('Review scripts')
+        ->assertNotPresent('[data-test="area-review-scripts"]');
+    cmNoJavaScriptErrors($page);
+});
+
+it('hides the waiting-script banner when none wait', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="area-table"]\') !== null || document.querySelector(\'[data-test="area-blocks"]\') !== null');
+
+    $page->assertNotPresent('[data-test="area-scripts-waiting"]');
     cmNoJavaScriptErrors($page);
 });

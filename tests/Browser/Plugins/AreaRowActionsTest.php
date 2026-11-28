@@ -23,6 +23,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Teme\Contracts\Admin\Row;
+use Teme\Contracts\Admin\RowPage;
+use Teme\Contracts\Lists\Cell;
 use Tests\Fixtures\Plugins\Placard\PlacardArea;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -152,5 +155,59 @@ it('draws the ads table as cards on a phone: report as body, facts, and Edit und
         }
         JS);
 
+    // Menu opens as a sheet from the foot.
+    $page->click('[data-slot="list-card"]:has-text("Ad 01") [data-test="row-menu"]');
+    shellSettled($page, '[data-slot="sheet-content"]');
+    $page->assertScript(<<<'JS'
+        () => {
+            const sheet = document.querySelector('[data-slot="sheet-content"]');
+            return sheet !== null
+                && sheet.querySelector('[role="menu"]') !== null
+                && (sheet.textContent ?? '').includes('Check the ad code')
+                && (sheet.textContent ?? '').includes('Disable');
+        }
+        JS);
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws No report link when a row’s report is not https', function (): void {
+    PlacardArea::$on['rows'] = fn (): RowPage => new RowPage([
+        new Row('1', [
+            'name' => Cell::text('No link ad'),
+            'position' => Cell::text('Between items on lists'),
+            'status' => Cell::badge('Active', 'ok'),
+            'report' => Cell::link('Open report', 'http://ads.example/report/1'),
+            'impressions' => Cell::number(0),
+        ], ['enable', 'reset-stats']),
+    ], 1);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.body.innerText.includes("No report link")');
+
+    $page->assertSee('No report link')
+        ->assertDontSee('Open report');
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws the empty ads table with No ads yet', function (): void {
+    PlacardArea::$on['rows'] = fn (): RowPage => new RowPage([], 0);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.body.innerText.includes("No ads yet")');
+
+    $page->assertSee('No ads yet.');
+    cmNoJavaScriptErrors($page);
+});
+
+it('draws the table failure line with Try again', function (): void {
+    PlacardArea::$on['rows'] = function (): never {
+        throw new RuntimeException('rows broken');
+    };
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/plugin/placard/ads');
+    cmWaitUntil($page, 'document.body.innerText.includes("couldn’t be shown")');
+
+    $page->assertSee('This part of Placard couldn’t be shown this time.')
+        ->assertSee('Try again');
     cmNoJavaScriptErrors($page);
 });

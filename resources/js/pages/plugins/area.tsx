@@ -304,7 +304,7 @@ export default function PluginArea(props: PluginAreaPageProps) {
                         className="mb-4"
                         data-test="area-scripts-waiting"
                         action={
-                            reviewScripts !== undefined ? (
+                            reviewScripts ? (
                                 <Button asChild variant="neutral" size="sm">
                                     <Link
                                         href={reviewScripts}
