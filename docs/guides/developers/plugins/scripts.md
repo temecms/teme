@@ -46,7 +46,7 @@ Scripts come from Teme's own origin, so the site's `'self'` rule admits them. Th
 
 ## Size
 
-A plugin's scripts on one page are measured compressed. Past 20 KB, Teme records a fault for the plugin once for each version. It never blocks a script for its size.
+A plugin's scripts on one page are measured compressed. Past 20 KB, Teme records a fault for the plugin once for each version, and the Plugins screen warns on its row. It never blocks a script for its size.
 
 ## A theme switching one off
 
@@ -58,6 +58,10 @@ A theme can switch a plugin's script off by output, so it does without the scrip
 
 Each entry is the plugin's code and the output, `code:card:<id>` or `code:insertion:<id>`.
 
+## Size on the Plugins screen
+
+The Plugins screen shows each plugin's declared scripts as their compressed size, on its row, whether or not the plugin is enabled. Past 20 KB it warns on the row. It never stops the plugin from running.
+
 ## What is not in this release
 
-The compressed size is not yet shown on the plugin's row in Plugins, and the script's own check of the page it runs on is left to the plugin.
+A script's size is measured per plugin, not per script, and only the scripts it declares are counted. The size on a page is the total of the plugin's scripts that page links.

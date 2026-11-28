@@ -31,6 +31,7 @@ use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\Scripts\ScriptSize;
 use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Settings\Models\SettingsGroupRecord;
@@ -108,6 +109,8 @@ final readonly class PluginsScreen
                 'reason' => $row->reason,
                 // Why its schedules don't run, shown as a warning in its row (docs/proposals/plugin-sockets-1.md).
                 'schedules' => $row->schedules,
+                // How big its declared scripts are, compressed, and whether they pass the budget: a warning, never a block (docs/guides/developers/plugins/scripts.md).
+                'scripts' => ScriptSize::of($this->registry->find($row->name)),
                 'enabled' => $enabled,
                 'needsAttention' => in_array($row->state, self::NEEDS_ATTENTION, true),
                 'action' => $this->action($row, $enabled, $newImports || ($row->added['aiTasks'] ?? []) !== []),

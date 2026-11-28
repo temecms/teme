@@ -337,6 +337,32 @@ export function PluginRow({
                             {plugin.schedules}
                         </p>
                     )}
+                    {plugin.scripts !== null && (
+                        <p
+                            data-test="plugin-scripts"
+                            className={cn(
+                                'text-small',
+                                plugin.scripts.over
+                                    ? 'text-warn-ink'
+                                    : 'text-ink-2',
+                            )}
+                        >
+                            {plugin.scripts.over
+                                ? __(
+                                      'Its scripts are :size KB compressed, over the 20 KB budget. They still run.',
+                                      {
+                                          size: (
+                                              plugin.scripts.bytes / 1024
+                                          ).toFixed(1),
+                                      },
+                                  )
+                                : __('Its scripts are :size KB compressed.', {
+                                      size: (
+                                          plugin.scripts.bytes / 1024
+                                      ).toFixed(1),
+                                  })}
+                        </p>
+                    )}
                     {(plugin.requires.length > 0 ||
                         plugin.requiredBy.length > 0) && (
                         <div className="text-small text-ink-2 grid gap-1 pt-1">
