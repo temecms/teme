@@ -110,3 +110,9 @@ Teme checks both declarations and answers both on the page's data today; the pan
 To give people a way in from **Tools**, add an entry under `contributes.admin` with `surface` set to `tools`, an `id`, a `label` and where it goes in `to`: `settings` opens your settings group, or an `https://` address opens that. An `icon` and a `description` are optional.
 
 Next: [Hooks](../concepts/hooks.md), and the generated [Plugin manifest reference](../../../reference/plugin-manifest.md) for every key.
+
+## Keeping a secret your plugin receives
+
+A token from a connect flow, or a webhook secret for one record, is not a setting you declared: it arrives while the plugin runs. A plugin that declares at least one `secret` setting is also given the `PluginSecretStore` door, which keeps up to 100 such secrets, each up to 4 KB, encrypted at rest beside its settings. It has three calls: `put($key, $value, $actingPersonId)`, `get($key)` and `forget($key, $actingPersonId)`. A name is 2 to 64 lower-case letters, digits and underscores, starting with a letter.
+
+The person it writes for must be the one who started the work and must manage plugins, and the plugin must be enabled; otherwise the call is refused and nothing is written. A value is never shown back in the admin: the plugin reads it, and the administrator sees only that the change happened.

@@ -70,6 +70,7 @@ use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Redirects\RedirectWriter;
 use Teme\Contracts\Security\SecurityLines;
+use Teme\Contracts\Settings\PluginSecretStore;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -182,6 +183,11 @@ final readonly class PluginDoors implements PluginServices
         }
 
         $manifest = $this->registry->find($name)?->manifest;
+        // Its free secrets, for a plugin that declares a secret setting (docs/guides/developers/plugins/settings.md).
+        if (is_array($manifest?->contributes()['settings'] ?? null) && array_any($manifest->contributes()['settings'], fn (mixed $setting): bool => is_array($setting) && ($setting['type'] ?? null) === 'secret')) {
+            $offered[PluginSecretStore::class] = new PluginSecretStoreWrites($code);
+        }
+
         // Its lines under the plugin's name, of the kinds its manifest declares (docs/guides/developers/plugins/security-log.md).
         if (in_array(Capability::SecurityLog->value, $capabilities, true)) {
             $offered[SecurityLines::class] = new PluginSecurityLines($code, $manifest === null ? [] : DeclaredSecurityKinds::of($manifest), $this->securityLog);
