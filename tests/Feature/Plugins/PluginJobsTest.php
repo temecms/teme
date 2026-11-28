@@ -17,6 +17,7 @@ use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Doors\HostResolver;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\Doors\PluginHttp;
+use App\Domain\Plugins\Downloads\DownloadFolders;
 use App\Domain\Plugins\Jobs\PluginJobContext;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\LoadedPlugins;
@@ -40,8 +41,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Teme\Contracts\Http\OutboundDownloads;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Jobs\JobFailed;
 use Teme\Contracts\Jobs\Jobs;
@@ -515,6 +518,26 @@ it('builds a long job with a 300-second outbound ceiling and 1800-second timeout
     $ceiling = (new ReflectionProperty($doors[OutboundHttp::class], 'mostSeconds'))->getValue($doors[OutboundHttp::class]);
 
     expect($ceiling)->toBe(300);
+});
+
+it('offers downloads to a plugin built for a long job’s run, as RunPluginJob builds it', function (): void {
+    ($this->enable)();
+    Http::fake(['https://api.example.com/*' => Http::response('country data', 200)]);
+
+    $plugin = app(PluginRegistry::class)->find('tests/jobs') ?? throw new RuntimeException('The jobs plugin is missing.');
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $instance = app(PluginLoader::class)->instance($plugin, $record, httpSeconds: 300, answerBytes: PluginHttp::LONG_ANSWER_BYTES);
+    $doors = app(PluginDoors::class)->for('tests/jobs', 'jobs', ['http'], ['api.example.com'], httpSeconds: 300);
+
+    try {
+        $file = $instance->http->download('https://api.example.com/countries.mmdb');
+
+        expect($doors[OutboundDownloads::class] ?? null)->toBeInstanceOf(PluginHttp::class)
+            ->and(file_get_contents($file->path))->toBe('country data')
+            ->and(str_starts_with($file->path, DownloadFolders::pathFor('jobs')))->toBeTrue();
+    } finally {
+        File::deleteDirectory(DownloadFolders::pathFor('jobs'));
+    }
 });
 
 it('runs a job queued by a person as that person', function (): void {

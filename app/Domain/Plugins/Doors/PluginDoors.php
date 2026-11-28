@@ -139,12 +139,13 @@ final readonly class PluginDoors implements PluginServices
         if (in_array(Capability::Http->value, $capabilities, true)) {
             // The hosts agreed in its settings are read at each call, never fixed here (docs/plans/plugin-sockets-1.md, A2).
             // Downloads are a long job's only, into the plugin's own folder (docs/guides/developers/plugins/outbound-files.md).
+            $longRun = $long || $httpSeconds !== null;
             $downloadManifest = $this->registry->find($name)?->manifest;
             $downloads = $downloadManifest === null ? DeclaredDownloads::DEFAULT_BYTES : DeclaredDownloads::of($downloadManifest);
-            $http = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path, downloadFolder: $long ? DownloadFolders::pathFor($code) : null, downloadBytes: $downloads);
+            $http = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name), ownPath: $this->registry->find($name)?->path, downloadFolder: $longRun ? DownloadFolders::pathFor($code) : null, downloadBytes: $downloads);
             $offered[OutboundHttp::class] = $http;
 
-            if ($long) {
+            if ($longRun) {
                 $offered[OutboundDownloads::class] = $http;
             }
         }
