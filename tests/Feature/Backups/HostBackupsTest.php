@@ -9,7 +9,11 @@ use App\Domain\Backups\BackupSettings;
 use App\Domain\Backups\BackupVerdict;
 use App\Domain\Backups\Queries\BackupsScreen;
 use App\Domain\Backups\Queries\BackupStatus;
+use App\Domain\Backups\Verify\TemporaryDatabase;
+use App\Domain\Deployment\Health\Checks\RestoreAccount;
 use App\Domain\Deployment\Health\Checks\TestRestoreDatabase;
+use App\Domain\Deployment\Health\Finding;
+use App\Domain\Deployment\Health\Severity;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SettingsRepository;
 use App\Models\User;
@@ -42,16 +46,14 @@ it('runs Teme’s own backups unless TEME_BACKUPS says the host does them', func
     expect(BackupMode::isHost())->toBeTrue();
 });
 
-it('stops the start in a plain sentence for an unknown TEME_BACKUPS value', function (): void {
-    config(['teme.backup_mode' => 'hosted']);
-
-    BackupMode::assertValid();
-})->throws(InvalidArgumentException::class, 'TEME_BACKUPS is “hosted”, which Teme doesn’t know. Use teme or host.');
-
-it('accepts teme and host, in any case and with spaces', function (): void {
+it('accepts teme and host, in any case and with spaces, and no value at all as teme', function (): void {
     config(['teme.backup_mode' => ' Host ']);
+    expect(BackupMode::problemFor(' Host '))->toBeNull()
+        ->and(BackupMode::isHost())->toBeTrue();
 
-    expect(fn () => BackupMode::assertValid())->not->toThrow(InvalidArgumentException::class);
+    config(['teme.backup_mode' => '']);
+    expect(BackupMode::problemFor(''))->toBeNull()
+        ->and(BackupMode::isHost())->toBeFalse();
 });
 
 it('shows one healthy state, with no warning, when the host does the backups and Teme’s is not set up', function (): void {
@@ -65,7 +67,7 @@ it('shows one healthy state, with no warning, when the host does the backups and
 });
 
 it('asks for no spare database under host, even once Teme’s own backup is set up', function (): void {
-    config(['teme.backup_mode' => 'host']);
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_restore.username' => 'teme_restore_role']);
     $place = BackupRecords::destination(['kind' => BackupDestinationKind::S3]);
     BackupRecords::key($place, ['role' => BackupKeyRole::Recovery, 'label' => 'Recovery key', 'added_at' => now()->subDays(3)]);
     BackupRecords::run(['started_at' => now()->subHours(3), 'ended_at' => now()->subHours(3)]);
@@ -118,4 +120,44 @@ it('gives the screen the host line as its verdict, and keeps paused on its own s
     $this->actingAs($admin)->get('/admin/tools/backups')->assertInertia(fn (AssertableInertia $page) => $page
         ->where('setup.state', 'paused')
         ->where('verdict', null));
+});
+
+it('says in the verdict that the weekly test restore has no restore account, once Teme’s own backup is set up under host', function (): void {
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_restore.username' => null]);
+    $place = BackupRecords::destination(['kind' => BackupDestinationKind::S3]);
+    BackupRecords::key($place, ['role' => BackupKeyRole::Recovery, 'label' => 'Recovery key', 'added_at' => now()->subDays(3)]);
+    BackupRecords::run(['started_at' => now()->subHours(3), 'ended_at' => now()->subHours(3)]);
+
+    expect(app(BackupStatus::class)->verdict()->cautions)->toBe([BackupStatus::NO_RESTORE_ACCOUNT]);
+
+    config(['database.connections.teme_restore.username' => 'teme_restore_role']);
+
+    expect(app(BackupStatus::class)->verdict()->cautions)->not->toContain(BackupStatus::NO_RESTORE_ACCOUNT);
+});
+
+it('checks the restore account in the doctor under host, and says nothing when there is none', function (): void {
+    expect((new RestoreAccount)->examine())->toBe([]);
+
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_restore.username' => null]);
+    expect((new RestoreAccount)->examine())->toBe([]);
+});
+
+it('warns in the doctor when the restore account is the site’s own role', function (): void {
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_restore' => [...DB::connection()->getConfig(), 'database' => 'postgres']]);
+    DB::purge(TemporaryDatabase::CONNECTION);
+
+    $findings = (new RestoreAccount)->examine();
+
+    expect($findings[0]->severity)->toBe(Severity::Warning)
+        ->and($findings[0]->message)->toContain('site’s own role');
+});
+
+it('warns in the doctor when the restore account is a superuser', function (): void {
+    // The test's own role is a superuser here, and is the restore account too: the check reads what the server says.
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_restore' => [...DB::connection()->getConfig(), 'database' => 'postgres']]);
+    DB::purge(TemporaryDatabase::CONNECTION);
+
+    $messages = array_map(fn (Finding $finding): string => $finding->message, (new RestoreAccount)->examine());
+
+    expect($messages)->toContain(collect($messages)->first(fn (string $message): bool => str_contains($message, 'is a superuser')));
 });

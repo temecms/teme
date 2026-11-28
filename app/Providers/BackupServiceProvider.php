@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Backups\BackupLock;
-use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\BackupSettings;
 use App\Domain\Backups\RandomRecoveryKeys;
 use App\Domain\Backups\RecoveryKeySource;
@@ -39,9 +38,6 @@ final class BackupServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // TEME_BACKUPS must name a mode Teme knows, or the start stops here.
-        BackupMode::assertValid();
-
         $this->app->make(SettingsRegistrar::class)->group(BackupSettings::group());
 
         // The backups' verdict on every admin page (I-362); its email starts from teme:backup:due.
