@@ -121,10 +121,11 @@ it('never needs a person, and never reads a draft’s working fields', function 
     $item = pageArticle($author, 'Published words', excerpt: 'On the quay.');
     docSave($item, $author, docWith(docText('Working')), fields: [
         BuiltInFields::EXCERPT => 'Still a draft excerpt.',
-    ]);
+    ], title: 'Draft title only');
 
     $card = ($this->reader)()->card($item->id);
 
     expect($card->excerpt)->toBe('On the quay.')
+        ->and($card->item->title)->toBe('Published words')
         ->and($card->item->status)->toBe('published');
 });

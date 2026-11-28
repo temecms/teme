@@ -24,6 +24,7 @@ use App\Domain\Media\MediaUrls;
 use Teme\Contracts\Content\FeaturedImage;
 use Teme\Contracts\Content\ImageSize;
 use Teme\Contracts\Content\ItemCard;
+use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Content\ReadRefused;
 
 final readonly class ItemCards
@@ -45,13 +46,24 @@ final readonly class ItemCards
             throw new ReadRefused(__('Only a published public item has a card.'));
         }
 
-        $fields = (array) ContentRevision::query()->whereKey($content->published_revision_id)->value('fields');
+        $revision = ContentRevision::query()->whereKey($content->published_revision_id)->firstOrFail(['title', 'fields']);
+        $fields = (array) $revision->fields;
         $excerpt = self::text($fields[BuiltInFields::EXCERPT] ?? null);
         $featured = $fields[BuiltInFields::FEATURED_IMAGE] ?? null;
         $mediaId = is_array($featured) && is_string($featured['id'] ?? null) ? (string) $featured['id'] : null;
+        $item = Payloads::item($content);
 
         return new ItemCard(
-            Payloads::item($content),
+            new ItemRef(
+                $item->id,
+                $item->type,
+                (string) $revision->title,
+                $item->status,
+                $item->url,
+                $item->language,
+                $item->indexable,
+                $item->submission,
+            ),
             $excerpt,
             $mediaId === null ? null : $this->featured($mediaId),
         );
