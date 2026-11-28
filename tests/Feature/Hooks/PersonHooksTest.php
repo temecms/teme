@@ -11,6 +11,7 @@ use App\Domain\Users\Operations\InviteUser;
 use App\Models\User;
 use ArrayObject;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Hooks\HookRefused;
@@ -96,4 +97,73 @@ it('refuses a PersonInvited subscription without people.read', function (): void
 
     expect(fn () => $hooks->on(PersonInvited::class, function (): void {}))
         ->toThrow(HookRefused::class, 'It listens for PersonInvited without asking for people.read in its teme-plugin.json.');
+});
+
+it('refuses a PersonJoined subscription without people.read', function (): void {
+    $hooks = app(DispatcherSubscriptions::class)->for('tests/hello', ['content.read'], ['PersonJoined'], []);
+
+    expect(fn () => $hooks->on(PersonJoined::class, function (): void {}))
+        ->toThrow(HookRefused::class, 'It listens for PersonJoined without asking for people.read in its teme-plugin.json.');
+});
+
+it('sends no PersonInvited when the invite is refused, and writes nothing', function (): void {
+    $heard = personHookRecord(PersonInvited::class);
+    $this->withElevation();
+    $editor = User::factory()->create()->assignRole('editor');
+
+    expect(fn () => app(InviteUser::class)->execute(new InviteUserInput(
+        name: 'Ada Harbour',
+        email: 'ada@harbour.example',
+        role: 'editor',
+        actorId: (string) $editor->id,
+        deliver: false,
+    )))->toThrow(AuthorizationException::class);
+
+    expect($heard)->toHaveCount(0)
+        ->and(User::query()->where('email', 'ada@harbour.example')->exists())->toBeFalse();
+});
+
+it('sends no PersonJoined when accepting the invitation is refused', function (): void {
+    $this->withElevation();
+    $result = app(InviteUser::class)->execute(new InviteUserInput(
+        name: 'Ada Harbour',
+        email: 'ada@harbour.example',
+        role: 'author',
+        actorId: (string) $this->admin->id,
+        deliver: false,
+    ));
+    $heard = personHookRecord(PersonJoined::class);
+
+    expect(fn () => app(AcceptInvitation::class)->execute(new AcceptInvitationInput(
+        'ada@harbour.example',
+        'not-the-token',
+        'a-brand-new-long-passphrase',
+        'a-brand-new-long-passphrase',
+    )))->toThrow(AuthorizationException::class);
+
+    expect($heard)->toHaveCount(0)
+        ->and(User::query()->find($result['userId'])?->email_verified_at)->toBeNull();
+});
+
+it('sends no PersonInvited when the invite’s transaction rolls back', function (): void {
+    $heard = personHookRecord(PersonInvited::class);
+    $this->withElevation();
+
+    try {
+        DB::transaction(function (): void {
+            app(InviteUser::class)->execute(new InviteUserInput(
+                name: 'Ada Harbour',
+                email: 'ada@harbour.example',
+                role: 'editor',
+                actorId: (string) $this->admin->id,
+                deliver: false,
+            ));
+
+            throw new RuntimeException('Undo.');
+        });
+    } catch (RuntimeException) {
+    }
+
+    expect($heard)->toHaveCount(0)
+        ->and(User::query()->where('email', 'ada@harbour.example')->exists())->toBeFalse();
 });

@@ -59,11 +59,14 @@ final class NoticeSender implements Notices
             throw new InvalidArgumentException("Notice kind [{$kind}] has no audience to send to.");
         }
 
-        $ids = User::permission($declared->audience)
-            ->orderBy('id')
-            ->pluck('id')
-            ->map(strval(...))
-            ->all();
+        // Same ability check NoticeChoices uses when each notice is delivered.
+        $ids = [];
+
+        foreach (User::query()->orderBy('id')->cursor() as $user) {
+            if ($user->can($declared->audience)) {
+                $ids[] = (string) $user->id;
+            }
+        }
 
         $this->send($kind, $ids, $message);
     }

@@ -81,11 +81,13 @@ final readonly class PluginNotices implements Notices
             throw new InvalidArgumentException(__('The plugin doesn’t declare the kind of notice :kind.', ['kind' => $kind]));
         }
 
-        $ids = User::permission($ability)
-            ->orderBy('id')
-            ->pluck('id')
-            ->map(strval(...))
-            ->all();
+        $ids = [];
+
+        foreach (User::query()->orderBy('id')->cursor() as $user) {
+            if ($user->can($ability)) {
+                $ids[] = (string) $user->id;
+            }
+        }
 
         $this->send($kind, $ids, $message);
     }

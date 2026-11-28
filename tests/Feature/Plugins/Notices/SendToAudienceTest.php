@@ -3,17 +3,28 @@
 declare(strict_types=1);
 
 use App\Domain\Notices\NoticeMail;
+use App\Domain\Notices\NoticeRegistry;
+use App\Domain\Notices\NoticeSender;
 use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Preferences\PreferenceRegistry;
+use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
+use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
+use Teme\Contracts\Notices\NoticeKind;
 use Teme\Contracts\Notices\NoticeMessage;
+use Teme\Contracts\Notices\Notices;
 use Tests\Fixtures\Plugins\PluginFixtures;
 use Tests\Fixtures\Plugins\Relay\RelayPlugin;
 
@@ -70,6 +81,107 @@ it('refuses sendToAudience for a kind the plugin doesn’t declare', function ()
 
     expect(fn () => $this->notices->sendToAudience('comments.waiting', new NoticeMessage('Hello', [])))
         ->toThrow(InvalidArgumentException::class, 'The plugin doesn’t declare the kind of notice comments.waiting.');
+
+    Notification::assertNothingSent();
+});
+
+it('sends to Gate-only audience holders, not only Spatie permissions', function (): void {
+    Notification::fake();
+    Gate::define('tests.harbour', fn (User $user): bool => (string) $user->id === (string) $this->editor->id);
+    app(NoticeRegistry::class)->register(new NoticeKind(
+        'tests.harbour_alert',
+        'Harbour alerts',
+        audience: 'tests.harbour',
+        channels: [NoticeKind::MAIL],
+        defaults: [NoticeKind::MAIL],
+    ));
+
+    app(Notices::class)->sendToAudience('tests.harbour_alert', new NoticeMessage('The tide turned', []));
+
+    Notification::assertSentTo($this->editor, NoticeMail::class);
+    Notification::assertNotSentTo($this->admin, NoticeMail::class);
+    Notification::assertNotSentTo($this->ada, NoticeMail::class);
+});
+
+it('sends a plugin-permission kind through sendToAudience to its holders', function (): void {
+    Notification::fake();
+    app()->instance(Elevation::class, new OperatorElevation);
+    $contributes = PluginFixtures::manifest('relay')['contributes'];
+    $contributes['permissions'] = [['id' => 'review', 'label' => 'Review articles', 'description' => 'Look over articles.', 'roles' => ['editor']]];
+    $contributes['notices'][] = ['id' => 'review_waiting', 'label' => 'Email me when an article waits for review', 'audience' => 'review', 'channels' => ['mail'], 'defaults' => ['mail']];
+    PluginFixtures::use(PluginFixtures::copy('relay', ['contributes' => $contributes]));
+    $manifest = app(PluginRegistry::class)->find('tests/relay')?->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/relay',
+        $manifest?->version() ?? '1.0.0',
+        $manifest?->capabilities() ?? [],
+        [],
+        $manifest?->hooks() ?? [],
+        null,
+    ));
+    app()->forgetScopedInstances();
+    app()->forgetInstance(PreferenceRegistry::class);
+    app()->instance(LoadedPlugins::class, new LoadedPlugins);
+    app(PluginLoader::class)->load();
+    $relay = app(LoadedPlugins::class)->running()['tests/relay'] ?? null;
+    expect($relay)->toBeInstanceOf(RelayPlugin::class, (string) app(LoadedPlugins::class)->failure('tests/relay'));
+
+    $relay->notices->sendToAudience('review_waiting', new NoticeMessage('An article waits for review', []));
+
+    Notification::assertSentTo($this->editor, NoticeMail::class);
+    Notification::assertSentTo($this->admin, NoticeMail::class);
+    Notification::assertNotSentTo($this->ada, NoticeMail::class);
+});
+
+it('drops sendToAudience deliveries beyond 100 an hour', function (): void {
+    Notification::fake();
+    $stalled = new NoticeMessage('The article queue stopped', []);
+
+    foreach (range(1, 102) as $ignored) {
+        $this->notices->sendToAudience('queue_stalled', $stalled);
+    }
+
+    Notification::assertSentToTimes($this->admin, NoticeMail::class, 100);
+});
+
+it('refuses sendToAudience for a kind with no audience', function (): void {
+    Notification::fake();
+    app(NoticeRegistry::class)->register(new NoticeKind(
+        'tests.no_audience',
+        'No audience',
+        audience: null,
+        channels: [NoticeKind::MAIL],
+        defaults: [NoticeKind::MAIL],
+        required: true,
+    ));
+
+    expect(fn () => app(NoticeSender::class)->sendToAudience('tests.no_audience', new NoticeMessage('Hello', [])))
+        ->toThrow(InvalidArgumentException::class, 'Notice kind [tests.no_audience] has no audience to send to.');
+
+    Notification::assertNothingSent();
+});
+
+it('refuses sendToAudience for a starter kind with no acting person', function (): void {
+    Notification::fake();
+    app(CurrentJobActor::class)->clear();
+
+    expect(fn () => $this->notices->sendToAudience('job_failed', new NoticeMessage('Failed', [])))
+        ->toThrow(InvalidArgumentException::class, 'This kind of notice goes only to the person the plugin’s work acts for.');
+
+    Notification::assertNothingSent();
+});
+
+it('sends nothing from a rolled-back sendToAudience', function (): void {
+    Notification::fake();
+
+    try {
+        DB::transaction(function (): void {
+            $this->notices->sendToAudience('queue_stalled', new NoticeMessage('The article queue stopped', []));
+
+            throw new RuntimeException('Undo.');
+        });
+    } catch (RuntimeException) {
+    }
 
     Notification::assertNothingSent();
 });

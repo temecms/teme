@@ -5,14 +5,18 @@ declare(strict_types=1);
 use App\Domain\Contents\Operations\ChangeVisibility;
 use App\Domain\Contents\Operations\Input\ChangeVisibilityInput;
 use App\Domain\Fields\BuiltInFields;
+use App\Domain\Media\Operations\Input\MediaActionInput;
+use App\Domain\Media\Operations\TrashMedia;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ItemCard;
 use Teme\Contracts\Content\ReadRefused;
+use Tests\Fixtures\Languages\Languages;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
@@ -80,7 +84,7 @@ it('builds the featured image address from the current media address', function 
         ->and($after)->toStartWith('https://two.example/');
 });
 
-it('refuses a draft, a private item, a password-protected item and a missing one', function (Closure $item, string $words): void {
+it('refuses a draft, a private item, a password-protected item, a scheduled item, a trashed item, a hidden language and a missing one', function (Closure $item, string $words): void {
     $author = User::factory()->create()->assignRole('editor');
     $id = $item($author);
 
@@ -110,11 +114,51 @@ it('refuses a draft, a private item, a password-protected item and a missing one
         },
         'Only a published public item has a card.',
     ],
+    'a scheduled item' => [
+        function (User $author): string {
+            $item = lifecycleDraft($author, 'Later ferry');
+            schedFor($item, $author, now()->addDay()->toIso8601String());
+
+            return $item->id;
+        },
+        'Only a published public item has a card.',
+    ],
+    'a trashed item' => [
+        function (User $author): string {
+            $item = pageArticle($author, 'Gone harbour');
+            pageTrash($item, $author);
+
+            return $item->id;
+        },
+        'Only a published public item has a card.',
+    ],
+    'a hidden language' => [
+        function (User $author): string {
+            Languages::set(['es'], hidden: ['es']);
+            $item = pageArticle($author, 'Puerto oculto');
+            DB::table('contents')->where('id', $item->id)->update(['language' => 'es']);
+
+            return $item->id;
+        },
+        'Only a published public item has a card.',
+    ],
     'a missing item' => [
         fn (User $author): string => '01jc4r2v9d8f7g6h5j4k3m2n1p',
         'Only a published public item has a card.',
     ],
 ]);
+
+it('gives a null featured image when the media is in the trash', function (): void {
+    $author = User::factory()->create()->assignRole('editor');
+    $image = pageImage($author, 800, 600);
+    $item = pageArticle($author, 'Missing picture', featured: $image);
+    app(TrashMedia::class)->execute(new MediaActionInput((string) $image->id, (string) $author->id));
+
+    $card = ($this->reader)()->card($item->id);
+
+    expect($card->featuredImage)->toBeNull()
+        ->and($card->item->title)->toBe('Missing picture');
+});
 
 it('never needs a person, and never reads a draft’s working fields', function (): void {
     $author = User::factory()->create()->assignRole('editor');
