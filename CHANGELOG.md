@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.8.1] — 2026-11-28
+
+### Security
+
+- **Plugin markup on public pages could run script.** Teme cleans the markup a plugin inserts into pages and articles, but some markup reads differently to the cleaner and to a browser, and some was never looked at (a template's content). A plugin allowed to insert markup could use this to run script that the cleaner and the site-code approval should have stopped. The cleaner now leaves out the elements that read differently, cleans its own result again until nothing changes, and refuses markup that keeps changing. Plugin markup can no longer carry the `data-teme-` attributes core's own scripts act on (#824). Every site running a plugin that inserts markup should update.
+
 ## [1.8.0] — 2026-11-28
 
 ### Added
