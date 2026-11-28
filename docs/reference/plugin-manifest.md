@@ -15,7 +15,7 @@
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `requires.plugins` | object | no | Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions", "redirects", "comments.check", "search.read", "import.read" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps", "directory.read", "content.submissions", "redirects", "comments.check", "search.read", "import.read", "security.log", "terms.write", "site.scripts" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -78,7 +78,7 @@
 | `contributes.settings[].example` | string | no | An example value shown as a hint. |  |
 | `contributes.settings[].unit` | string | no | The unit shown beside a number. |  |
 | `contributes.settings[].taxonomy` | string | no | For a term: the taxonomy its terms come from. | ^[a-z][a-z0-9_]{0,31}$ |
-| `contributes.settings[].multiple` | boolean | no | For a term: whether several may be chosen. |  |
+| `contributes.settings[].multiple` | boolean | no | For a term or a type: whether several may be chosen. |  |
 | `contributes.settings[].section` | string | no | The id of the settingsSections entry the setting sits in. |  |
 | `contributes.settings[].visibleWhen` | object | no | Shows the setting only while every earlier setting named has this value, or one of a list of values. |  |
 | `contributes.settings[].fields` | array | no | A repeater's fields, one item's worth: scalar types and code. |  |
@@ -105,6 +105,16 @@
 | `contributes.admin[].description` | string | no | What the entry opens. |  |
 | `contributes.admin[].icon` | enum | no |  | "plug", "link", "external-link", "settings", "send", "bell", "refresh-cw", "chart-line" |
 | `contributes.admin[].to` | string | yes | Where it leads: the plugin's settings, or an https address. | ^(settings\|https://.+)$ |
+| `contributes.listFilters` | array | no | Filters the plugin adds to the content lists: a select of declared options, matched exactly against a column the plugin keeps in its own table, keyed by content id. |  |
+| `contributes.listFilters[].id` | string | yes | The filter's id, unique within the plugin. | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.listFilters[].label` | string | yes | The filter's name on the list. |  |
+| `contributes.listFilters[].types` | array | yes | The content type keys the filter applies to. |  |
+| `contributes.listFilters[].options` | array | yes | The values the select offers, each matched exactly. |  |
+| `contributes.listFilters[].options[].value` | string | yes | The value kept in the column. | ^[a-z0-9][a-z0-9_-]{0,39}$ |
+| `contributes.listFilters[].options[].label` | string | yes | The option's text. |  |
+| `contributes.listFilters[].table` | string | yes | The plugin's table, listed under owns.tables. | ^[a-z][a-z0-9_]{0,62}$ |
+| `contributes.listFilters[].column` | string | yes | The column read, which must lead a valid index on the table. | ^[a-z][a-z0-9_]{0,62}$ |
+| `contributes.listFilters[].item` | string | yes | The column holding the content id the row belongs to. | ^[a-z][a-z0-9_]{0,62}$ |
 | `contributes.columns` | array | no | Columns the plugin adds to the content lists. |  |
 | `contributes.columns[].id` | string | yes | The column's id. | ^[a-z][a-z0-9-]{1,39}$ |
 | `contributes.columns[].label` | string | yes | The heading and the name in Columns. |  |
@@ -121,11 +131,16 @@
 | `contributes.listActions[].bulk` | boolean | no | Offered in the bulk bar, for the selected items. |  |
 | `contributes.listActions[].confirm` | string | no | A sentence the person reads before the job is queued. |  |
 | `contributes.listActions[].job` | string | yes | The key of the declared job it queues. | ^[a-z][a-z0-9-]{0,47}$ |
-| `contributes.actions` | array | no | Buttons on the plugin's settings page, each queuing one of its declared jobs. Needs jobs. |  |
+| `contributes.actions` | array | no | Buttons on the plugin's settings page, each queuing one of its declared jobs. An action marked row may also appear in an area table's row menu. Needs jobs. |  |
 | `contributes.actions[].id` | string | yes | The action's id. | ^[a-z][a-z0-9-]{1,39}$ |
 | `contributes.actions[].label` | string | yes | The button's words. |  |
 | `contributes.actions[].description` | string | no | What the action does, beside the button. |  |
 | `contributes.actions[].job` | string | yes | The key of the declared job it queues. | ^[a-z][a-z0-9-]{0,47}$ |
+| `contributes.actions[].row` | boolean | no | Offered in an area table's row menu when that table names this action. Never bulk. At most two actions may be marked. |  |
+| `contributes.actions[].confirm` |  | no | Ask before queuing from a row: a sentence (the dialog text), or title, text, button and cancel. Core fills defaults for anything left out. |  |
+| `contributes.actions[].toast` | string | no | The success toast after the row action queues. May use {name}, {action} and {plugin}. Core's default is Queued: {action} for “{name}”. |  |
+| `contributes.actions[].queued` | string | no | The quiet pill after the row's status while the job runs. Core's default is Queued. |  |
+| `contributes.actions[].icon` | enum | no | The Lucide icon beside the action in a row menu. | "plug", "link", "external-link", "settings", "send", "bell", "refresh-cw", "chart-line", "sparkles", "pen-line", "list-checks", "mail", "inbox", "layout", "list", "user", "globe", "code", "grid" |
 | `contributes.lists` | array | no | Small tables on the plugin's settings page. |  |
 | `contributes.lists[].id` | string | yes | The list's id. | ^[a-z][a-z0-9-]{1,39}$ |
 | `contributes.lists[].label` | string | yes | The list's heading. |  |
@@ -200,9 +215,16 @@
 | `contributes.structuredData.types` | array | no | schema.org types, such as FAQPage. |  |
 | `contributes.structuredData.properties` | array | no | schema.org properties, such as acceptedAnswer. |  |
 | `contributes.provides` | array | no | The provider slots the plugin fills: the administrator picks one plugin per slot in Plugins > Provider choices (docs/guides/developers/plugins/provider-slots.md). A slot names what the plugin implements; the image service slot also needs imageService. | "image-service", "search", "comment-check" |
+| `contributes.commentField` | object | no | One hidden field the comment form carries for the comment-check plugin, whose check is given its value as a signal. Needs comments.check and the comment-check slot in provides; the field is drawn only for the plugin the administrator chose for that slot (docs/guides/developers/plugins/comment-check.md). |  |
+| `contributes.commentField.name` | string | yes | The field's name, which the check's signals are keyed by. Not a name core's comment form uses. | ^[a-z][a-z0-9-]{2,39}$ |
+| `contributes.commentField.make` | string | yes | static: a fixed value; time: the browser's time, filled in when the form is first touched; trap: an off-screen field no person sees. | "static", "time", "trap" |
+| `contributes.commentField.value` | string | no | The fixed value of a static field. Only a static field takes one. |  |
 | `contributes.styles` | array | no | Built stylesheets, one per card or page insertion. Linked only on a page that draws that output, in the plugins cascade layer. |  |
 | `contributes.styles[].output` | string | yes | The output the sheet styles: card:<id> or insertion:<id>. | ^(card:[a-z][a-z0-9-]{1,40}\|insertion:[a-z][a-z0-9-]{1,40})$ |
 | `contributes.styles[].file` | string | yes | A .css file inside the plugin's package, relative to its root. | ^(?!/)(?!.*\\)(?!.*(^\|/)\.\.(/\|$)).+\.css$ |
+| `contributes.scripts` | array | no | Built scripts, one per card or page insertion. Linked only on a page that draws that output, as a module after the body. |  |
+| `contributes.scripts[].output` | string | yes | The output the script belongs to: card:<id> or insertion:<id>. | ^(card:[a-z][a-z0-9-]{1,40}\|insertion:[a-z][a-z0-9-]{1,40})$ |
+| `contributes.scripts[].file` | string | yes | A self-contained .js file inside the plugin's package, relative to its root. | ^(?!/)(?!.*\\)(?!.*(^\|/)\.\.(/\|$)).+\.js$ |
 | `contributes.imageService` | object | no | An image service whose driver gives images' addresses at render time, in place of the sizes core made at upload. Needs media.read; the plugin implements HasImageService. |  |
 | `contributes.imageService.label` | string | yes | The service's name, as the consent names it. |  |
 | `contributes.imageService.host` | string | yes | The host its addresses are on, served over https, which joins the img-src of the content security policy. | ^(?:\*\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$ |
@@ -221,6 +243,11 @@
 | `contributes.commands[].options[].name` | string | yes |  | ^[a-z][a-z0-9-]{0,29}$ |
 | `contributes.commands[].options[].description` | string | yes |  |  |
 | `contributes.commands[].options[].value` | boolean | no | Whether the option takes a value, as --limit=5; a flag, as --force, when false or absent. |  |
+| `contributes.downloads` | object | no | The largest file the plugin's downloads may hold, with http; 16 MB when none is declared, 1 MB to 128 MB when one is. |  |
+| `contributes.downloads.maxBytes` | integer | yes | The largest file, in bytes. |  |
+| `contributes.securityLog` | array | no | Kinds of line the plugin writes into the security log, with security.log; never required. |  |
+| `contributes.securityLog[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
+| `contributes.securityLog[].label` | string | yes | What an administrator reads for this kind. |  |
 | `contributes.notices` | array | no | Kinds of notice the plugin sends through Notices, with notices.send; never required. |  |
 | `contributes.notices[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
 | `contributes.notices[].label` | string | yes | The choice as Account › Notifications words it. |  |

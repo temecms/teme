@@ -23,8 +23,6 @@ use Teme\Contracts\Plugins\Capability;
 /**
  * The one hidden field a comment-check plugin may add to the comment form, declared in its manifest. It names the field, says how
  * its value is made, and is read back only after the manifest's own checks have passed again.
- *
- * @since next
  */
 final class CommentField
 {
@@ -38,7 +36,7 @@ final class CommentField
     public const int MOST_VALUE = 200;
 
     /** Names core's comment form already carries, or reports itself. */
-    public const array RESERVED = ['path', 'parent', 'text', 'name', 'email', 'url', 'token', 'subject', 'remember', 'missing-field'];
+    public const array RESERVED = ['path', 'parent', 'text', 'name', 'email', 'url', 'token', 'subject', 'remember', 'missing-field', 'too-long'];
 
     /**
      * The declaration, or null when the manifest declares none or it isn't well formed (the validator refused it first).

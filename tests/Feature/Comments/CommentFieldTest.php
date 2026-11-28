@@ -139,7 +139,8 @@ it('refuses a field name core uses, or one that is not a name', function (): voi
 
     expect($errors(['name' => 'subject', 'make' => 'trap']))->not->toBe([])
         ->and($errors(['name' => 'Bad Name', 'make' => 'trap']))->not->toBe([])
-        ->and($errors(['name' => 'missing-field', 'make' => 'trap']))->not->toBe([]);
+        ->and($errors(['name' => 'missing-field', 'make' => 'trap']))->not->toBe([])
+        ->and($errors(['name' => 'too-long', 'make' => 'trap']))->not->toBe([]);
 });
 
 it('refuses an unknown kind, a static field without a value, and a field no comment check provides', function (): void {
