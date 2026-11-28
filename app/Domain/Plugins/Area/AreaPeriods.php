@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
 
-use Carbon\CarbonImmutable;
+use App\Domain\Site\SiteDates;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -112,15 +112,17 @@ final class AreaPeriods
     }
 
     /**
-     * A date as people read it in the given language, such as "18 Oct 2026".
+     * A date as people read it in the given language, in its own order and
+     * short month, as the admin shows dates elsewhere: "Oct 18, 2026" in
+     * English, "18 oct. 2026" in French.
      */
     public static function shown(string $ymd, string $timezone, ?string $language = null): string
     {
         $zone = new DateTimeZone($timezone !== '' ? $timezone : 'UTC');
         $date = DateTimeImmutable::createFromFormat('Y-m-d', $ymd, $zone) ?: new DateTimeImmutable('now', $zone);
-        $locale = str_replace('-', '_', $language ?? app()->getLocale());
+        $language = $language ?? app()->getLocale();
 
-        return CarbonImmutable::instance($date)->locale($locale !== '' ? $locale : 'en')->isoFormat('D MMM YYYY');
+        return SiteDates::show($date, $language !== '' ? $language : 'en', 'll');
     }
 
     /**

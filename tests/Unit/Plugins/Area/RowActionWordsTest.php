@@ -65,3 +65,17 @@ it('keeps a plugin’s own confirm words and toast without rewriting the label',
 it('answers null confirm when the action does not ask first', function (): void {
     expect(RowActionWords::confirm('Check the ad code', null, fn (string $english): string => $english))->toBeNull();
 });
+
+it('fills core defaults for confirm, toast, queued, Cancel, button and empty:true wording', function (): void {
+    $words = static fn (string $english): string => $english;
+
+    expect(RowActionWords::confirm('Reset statistics…', [], $words))->toBe([
+        'title' => 'Run “Reset statistics…” on “{name}”?',
+        'text' => null,
+        'button' => 'Reset statistics',
+        'cancel' => 'Cancel',
+    ])
+        ->and(RowActionWords::toast('Check the ad code', null, $words))->toBe('Queued: Check the ad code for “{name}”.')
+        ->and(RowActionWords::queued('Check the ad code', null, $words))->toBe('Queued')
+        ->and(RowActionWords::buttonLabel('Reset statistics…'))->toBe('Reset statistics');
+});

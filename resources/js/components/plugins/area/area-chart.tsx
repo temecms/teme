@@ -83,10 +83,7 @@ export function AreaChart({
             ),
             total: data.series
                 .filter((series) => !series.dashed)
-                .reduce(
-                    (sum, series) => sum + (series.values[index] ?? 0),
-                    0,
-                ),
+                .reduce((sum, series) => sum + (series.values[index] ?? 0), 0),
         }));
 
         return built;
@@ -94,11 +91,11 @@ export function AreaChart({
     const Chart = block.kind === 'bar' ? BarChart : LineChart;
     // Long periods group by week; the rest by day — from the period id, not
     // how many points the plugin returned.
-    const unit =
-        period?.id === 'last_90_days' || period?.id === 'this_year'
-            ? __('by week')
-            : __('by day');
-    const title = `${block.label} ${unit}`;
+    const byWeek = period?.id === 'last_90_days' || period?.id === 'this_year';
+    // One sentence per unit, so a translator can put the label where their language needs it.
+    const title = byWeek
+        ? __(':label by week', { label: block.label })
+        : __(':label by day', { label: block.label });
     const ariaLabel =
         period !== null && period !== undefined
             ? `${title}: ${period.range}.`

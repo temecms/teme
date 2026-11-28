@@ -93,7 +93,10 @@ export function AreaTable({
     const customById = Object.fromEntries(
         customActions.map((action) => [action.id, action]),
     ) as Record<string, AreaCustomRowAction>;
-    const hasStatus = block.columns.some((column) => column.kind === 'badge');
+    const firstBadge = block.columns.find(
+        (column) => column.kind === 'badge',
+    )?.id;
+    const hasStatus = firstBadge !== undefined;
     const titleColumn = block.columns[0]?.id ?? '';
     const titleOf = (row: Row): string => {
         const cell = row.cells[titleColumn];
@@ -103,7 +106,9 @@ export function AreaTable({
     const waitingFor = (row: Row): AreaCustomRowAction[] =>
         [...new Set([...(row.queued ?? []), ...(queued[row.id] ?? [])])]
             .map((id) => customById[id])
-            .filter((action): action is AreaCustomRowAction => action !== undefined);
+            .filter(
+                (action): action is AreaCustomRowAction => action !== undefined,
+            );
 
     // Once deferred rows reload, the server’s queued list is truth: drop
     // optimistic pills the server no longer lists (job finished).
@@ -336,8 +341,8 @@ export function AreaTable({
                         </span>
                     ) : null;
 
-                // Once after status when the table has a badge column.
-                if (column.kind === 'badge' && pills !== null) {
+                // Once per row, after the first badge column when the table has one.
+                if (column.id === firstBadge && pills !== null) {
                     return (
                         <div className="flex flex-wrap items-center gap-2">
                             {cell}
@@ -498,8 +503,7 @@ export function AreaTable({
                 selectedKeys={selected}
                 cards={{
                     titleColumn: block.columns[0]?.id ?? 'name',
-                    select:
-                        block.bulkActions.length > 0 ? 'select' : undefined,
+                    select: block.bulkActions.length > 0 ? 'select' : undefined,
                     menu: 'actions',
                     body: block.columns.find((column) => column.kind === 'link')
                         ?.id,
@@ -709,8 +713,7 @@ export function AreaTable({
                     confirmLabel={confirming.action.confirm.button}
                     cancelLabel={confirming.action.confirm.cancel}
                     onConfirm={() =>
-                        !busy &&
-                        runCustom(confirming.action, confirming.row)
+                        !busy && runCustom(confirming.action, confirming.row)
                     }
                 />
             )}

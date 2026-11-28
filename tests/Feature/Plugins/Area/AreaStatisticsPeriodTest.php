@@ -125,13 +125,13 @@ it('keeps the plugin’s figure label when the period changes', function (): voi
         ->and($figures['items'][0]['thing'] ?? null)->toBe('impressions');
 });
 
-it('writes period dates in the person’s language', function (): void {
+it('writes period dates in the person’s language, in that language’s own order', function (): void {
     app()->setLocale('fr');
 
     $shown = AreaPeriods::shown('2026-10-18', 'UTC', 'fr');
 
-    expect($shown)->toContain('2026')
-        ->and($shown)->not->toBe('Oct 18, 2026')
+    expect($shown)->toBe('18 oct. 2026')
+        ->and(AreaPeriods::shown('2026-10-18', 'UTC', 'en'))->toBe('Oct 18, 2026')
         ->and(AreaPeriods::byWeek(AreaPeriod::THIS_YEAR))->toBeTrue()
         ->and(AreaPeriods::byWeek(AreaPeriod::LAST_90_DAYS))->toBeTrue()
         ->and(AreaPeriods::byWeek(AreaPeriod::LAST_7_DAYS))->toBeFalse();
@@ -214,4 +214,13 @@ it('accepts empty true on a figures block and refuses a bad empty', function ():
         '1.0.0',
         ['jobs'],
     ))->toContain('A figures block’s empty must be true, or text of 1 to 200 characters.');
+});
+
+it('compares the last 7 and the last 90 days with the same number of days just before them', function (): void {
+    $now = new DateTimeImmutable('2026-10-18 15:00', new DateTimeZone('UTC'));
+    $week = AreaPeriods::of(AreaPeriod::LAST_7_DAYS, 'UTC', $now);
+    $quarter = AreaPeriods::of(AreaPeriod::LAST_90_DAYS, 'UTC', $now);
+
+    expect([$week->start, $week->end, $week->compareStart, $week->compareEnd])->toBe(['2026-10-12', '2026-10-18', '2026-10-05', '2026-10-11'])
+        ->and([$quarter->start, $quarter->end, $quarter->compareStart, $quarter->compareEnd])->toBe(['2026-07-21', '2026-10-18', '2026-04-22', '2026-07-20']);
 });
