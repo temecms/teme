@@ -45,5 +45,5 @@ Write the sheet's rules as they are: Teme wraps them in `@layer teme.plugins`. R
 
 ## Not in this version
 
-- Scripts. A plugin's scripts are not loaded by this mechanism yet.
+- Scripts. Those have their own guide, [Scripts for a plugin's output](scripts.md).
 - A stylesheet for the whole page. Only cards and insertions have one.

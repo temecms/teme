@@ -35,3 +35,13 @@ php artisan teme:theme:check your-theme
 ```
 
 The report lists each built file's compressed size, the CSS and JavaScript totals against their budgets (15 KB CSS, 20 KB JavaScript), and any warning when a total is over. Errors (a missing build, an inline script, a broken manifest) fail the check; an over-budget warning does not.
+
+## Plugin scripts a theme switches off
+
+A plugin's built script for a card or a page insertion can be switched off by the theme that draws it, so the theme does without it on that output. The theme names each one by its plugin's code and output:
+
+```json
+"plugin_scripts": { "off": ["gallery:card:gallery"] }
+```
+
+Each entry is `code:card:<id>` or `code:insertion:<id>`, and a name that doesn't match that form is refused when the theme is checked. The plugin's script is then not linked on that output's pages. Its styles are switched off with `plugin_styles.off` in the same way. See [Scripts for a plugin's output](../plugins/scripts.md).

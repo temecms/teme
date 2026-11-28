@@ -14,11 +14,13 @@ declare(strict_types=1);
 
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
+use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Scripts\DeclaredScripts;
 use App\Domain\Plugins\Scripts\PluginScriptFile;
@@ -190,4 +192,33 @@ it('says in plain words, shared with the stylesheets, why a plugin file is refus
     ($this->restart)();
 
     expect(app(PluginScriptFile::class)->verdict('cardbox', 'dist/note.js')['refused'])->toBe('A plugin file may not be a link.');
+});
+
+it('gives a changed script a new hash in its address, once its plugin has a new version', function (): void {
+    ($this->enable)(['dist/note.js' => 'a = 1;']);
+    $before = app(PluginScriptFile::class)->verdict('cardbox', 'dist/note.js')['hash'];
+
+    $cardbox = json_decode((string) file_get_contents(PluginFixtures::path('cardbox').'/teme-plugin.json'), true, flags: JSON_THROW_ON_ERROR);
+    PluginFixtures::use(PluginFixtures::copy('cardbox', [
+        'version' => '1.0.1',
+        'capabilities' => ['pages.insert', 'site.scripts'],
+        'contributes' => [...$cardbox['contributes'], 'scripts' => [['output' => 'card:note', 'file' => 'dist/note.js']]],
+    ], [], ['dist/note.js' => 'a = 2;']));
+    ($this->restart)();
+
+    expect(app(PluginScriptFile::class)->verdict('cardbox', 'dist/note.js')['hash'])->not->toBe($before)
+        ->and($before)->toBe(substr(hash('sha256', 'a = 1;'), 0, 12));
+});
+
+it('answers 404 for a declared script whose owner never agreed to site.scripts', function (): void {
+    ($this->enable)();
+    $record = PluginRecord::query()->where('name', 'tests/cardbox')->firstOrFail();
+    $consent = (array) $record->consent;
+    $consent['capabilities'] = array_values(array_diff((array) $consent['capabilities'], ['site.scripts']));
+    $record->forceFill(['consent' => $consent])->save();
+    app(PluginRecords::class)->changed();
+    ($this->restart)();
+
+    $this->get('/_teme/plugin-scripts/cardbox/dist/note.js')->assertNotFound();
+    expect(app(PluginScriptFile::class)->verdict('cardbox', 'dist/note.js'))->toBeNull();
 });

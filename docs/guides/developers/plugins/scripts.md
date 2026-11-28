@@ -32,7 +32,7 @@ The plugin lists its scripts under `contributes.scripts`, one per output:
 
 ## How it is served
 
-Teme serves each declared script at `/_teme/plugins/{code}/{file}` as `text/javascript`, with `X-Content-Type-Options: nosniff` and a long cache life. Its address carries a hash of its content, so a changed file gets a new address. Anything not declared, a disabled plugin, a path outside the package and a symbolic link all answer 404.
+Teme serves each declared script at `/_teme/plugin-scripts/{code}/{file}` as `text/javascript`, with `X-Content-Type-Options: nosniff` and a long cache life. Its address carries a hash of its content, so a changed file gets a new address. Anything not declared, a plugin that is disabled or never agreed to `site.scripts`, a path outside the package and a symbolic link all answer 404. A refused script is recorded as the plugin's fault once per script, not once per request.
 
 ## How it is linked
 
@@ -42,11 +42,7 @@ A public page links a script as `<script type="module" defer>` after the body's 
 - the plugin is enabled and asks for `site.scripts`;
 - the active theme does not switch the script off.
 
-Scripts come from Teme's own origin, so the site's `'self'` rule admits them. There is no inline script and no `eval`. A plugin that needs to load from another origin names it under its manifest's `csp`, as before, and the administrator's consent shows it.
-
-## Size
-
-A plugin's scripts on one page are measured compressed. Past 20 KB, Teme records a fault for the plugin once for each version, and the Plugins screen warns on its row. It never blocks a script for its size.
+Scripts come from Teme's own origin, so the site's `'self'` rule admits them. There is no inline script and no `eval`. A plugin that needs to load from another origin names it under its manifest's `csp`. Those origins are allowed when the plugin asks for `site.scripts`, and they join the page's policy for the directives the manifest names, only on pages that link one of its scripts. The administrator's consent shows them.
 
 ## A theme switching one off
 
@@ -58,10 +54,15 @@ A theme can switch a plugin's script off by output, so it does without the scrip
 
 Each entry is the plugin's code and the output, `code:card:<id>` or `code:insertion:<id>`.
 
-## Size on the Plugins screen
+## Size
 
-The Plugins screen shows each plugin's declared scripts as their compressed size, on its row, whether or not the plugin is enabled. Past 20 KB it warns on the row. It never stops the plugin from running.
+A plugin's scripts on one page are measured compressed. Past 20 KB, Teme records a fault for the plugin once for each version. The Plugins screen shows each plugin's declared scripts as their compressed size, on its row and in its consent dialog, whether or not the plugin is enabled, and warns past 20 KB. It never stops the plugin from running.
+
+## Traps
+
+- A script that ends with a `//# sourceMappingURL=` line asks the browser for a `.map` file. Teme serves only the declared file, so that request answers 404. Build without the source-map comment, or ship the map as its own declared file.
+- A card drawn inside a lazy region fragment gets no script, just as it gets no stylesheet. The script is linked only on a page where the card is drawn in the page itself.
 
 ## What is not in this release
 
-A script's size is measured per plugin, not per script, and only the scripts it declares are counted. The size on a page is the total of the plugin's scripts that page links.
+The size is measured per plugin, not per script, and only the scripts it declares are counted. The per-page fault is a report for the plugin, not a block, and the maintainers have deferred the rest of the budget work. A script can also be put in an insertion's markup directly, as before, but Teme does not check, serve or switch those, so a declared script is the supported way.
