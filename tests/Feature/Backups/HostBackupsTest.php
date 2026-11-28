@@ -188,3 +188,24 @@ it('keeps the banner silent under host while Teme’s own backup is not set up',
 
     expect(app(BackupsSafe::class)->banner())->toBeNull();
 });
+
+it('asks for no restore account under host when a spare database is named, since the test restore uses that', function (): void {
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_restore.username' => null, 'database.connections.teme_verify.database' => 'teme_named_verify']);
+    $place = BackupRecords::destination(['kind' => BackupDestinationKind::S3]);
+    BackupRecords::key($place, ['role' => BackupKeyRole::Recovery, 'label' => 'Recovery key', 'added_at' => now()->subDays(3)]);
+    BackupRecords::run(['started_at' => now()->subHours(3), 'ended_at' => now()->subHours(3)]);
+
+    expect(app(BackupStatus::class)->verdict()->cautions)->not->toContain(BackupStatus::NO_RESTORE_ACCOUNT);
+});
+
+it('checks a spare database named explicitly under host in the doctor', function (): void {
+    config(['teme.backup_mode' => 'host', 'database.connections.teme_verify.database' => 'not-a-spare']);
+
+    $messages = array_map(fn (Finding $finding): string => $finding->message, (new TestRestoreDatabase)->examine());
+
+    expect($messages)->toContain('TEME_VERIFY_DATABASE is not-a-spare, but Teme test-restores only into a database whose name ends in _verify and holds only letters, digits, dots, hyphens and underscores.');
+
+    config(['database.connections.teme_verify.database' => null]);
+
+    expect((new TestRestoreDatabase)->examine())->toBe([]);
+});

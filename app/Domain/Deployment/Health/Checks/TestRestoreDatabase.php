@@ -15,7 +15,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
 
-use App\Domain\Backups\BackupMode;
 use App\Domain\Backups\Verify\SpareDatabase;
 use App\Domain\Deployment\Health\DoctorCheck;
 use App\Domain\Deployment\Health\Finding;
@@ -33,8 +32,8 @@ final readonly class TestRestoreDatabase implements DoctorCheck
 
     public function examine(): array
     {
-        // Under host the host restores-tests its own copies, so no spare database is asked for (TEME_BACKUPS=host).
-        if (BackupMode::isHost()) {
+        // Under host with no spare named, the test restore uses a temporary database, so none is asked for (TEME_BACKUPS=host); a named spare is checked.
+        if (SpareDatabase::testRestoreUsesTemporary()) {
             return [];
         }
 

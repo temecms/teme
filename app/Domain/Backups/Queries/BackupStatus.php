@@ -133,8 +133,8 @@ final readonly class BackupStatus
             $cautions[] = self::OFF_SERVER;
         }
 
-        // Under host the test restore needs its own account, not the spare database (TEME_BACKUPS=host).
-        if (BackupMode::isHost() && ! TemporaryDatabase::configured()) {
+        // Under host with no spare named, the test restore needs its own account (TEME_BACKUPS=host); a named spare wins.
+        if (SpareDatabase::testRestoreUsesTemporary() && ! TemporaryDatabase::configured()) {
             $cautions[] = self::NO_RESTORE_ACCOUNT;
         }
 
