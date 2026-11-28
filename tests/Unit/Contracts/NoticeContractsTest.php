@@ -7,7 +7,7 @@ use Teme\Contracts\Notices\NoticeMessage;
 use Teme\Contracts\Notices\NoticeRegistrar;
 use Teme\Contracts\Notices\Notices;
 
-it('gives every notice contract its @since, no preview line and nothing from a framework', function (string $class): void {
+it('gives every notice contract its @since, no preview line and nothing from a framework', function (string $class, array $later = []): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since 0.5.0')
@@ -18,7 +18,8 @@ it('gives every notice contract its @since, no preview line and nothing from a f
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since 0.5.0');
+        // A method added later carries the release it arrived in (.ai/rules/contracts.md).
+        expect($method->getDocComment())->toContain('@since '.($later[$method->getName()] ?? '0.5.0'));
     }
 
     $types = [];
@@ -51,10 +52,10 @@ it('gives every notice contract its @since, no preview line and nothing from a f
         }
     }
 })->with([
-    NoticeKind::class,
-    NoticeMessage::class,
-    NoticeRegistrar::class,
-    Notices::class,
+    [NoticeKind::class],
+    [NoticeMessage::class],
+    [NoticeRegistrar::class],
+    [Notices::class, ['sendToAudience' => 'next']],
 ]);
 
 it('gives the kind its constants a @since too', function (): void {

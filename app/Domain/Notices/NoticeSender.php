@@ -51,6 +51,23 @@ final class NoticeSender implements Notices
         });
     }
 
+    public function sendToAudience(string $kind, NoticeMessage $message): void
+    {
+        $declared = $this->check($kind, $message);
+
+        if ($declared->audience === null || $declared->audience === '') {
+            throw new InvalidArgumentException("Notice kind [{$kind}] has no audience to send to.");
+        }
+
+        $ids = User::permission($declared->audience)
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(strval(...))
+            ->all();
+
+        $this->send($kind, $ids, $message);
+    }
+
     private function check(string $kind, NoticeMessage $message): NoticeKind
     {
         $declared = $this->registry->get($kind) ?? throw new InvalidArgumentException("No notice kind is called [{$kind}].");
