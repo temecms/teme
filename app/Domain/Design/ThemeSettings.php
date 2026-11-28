@@ -88,7 +88,7 @@ final readonly class ThemeSettings
         }
 
         return [
-            Setting::select(ManifestValidator::STYLE_SETTING, 'Style', 'Which look the theme draws with.', 'next', $options)
+            Setting::select(ManifestValidator::STYLE_SETTING, 'Style', 'Which look the theme draws with.', '1.8.0', $options)
                 ->default((string) array_key_first($options))
                 ->fieldset('site'),
         ];

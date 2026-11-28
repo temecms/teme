@@ -147,7 +147,7 @@ final readonly class ImportFiles
     /**
      * Returns what a reader's file holds that Teme doesn't bring, as rows for the plan and the report: each with its kind, its plain name, its count, the first IDs and its sentence. Empty for a file with none, or a WordPress file.
      *
-     * @since next
+     * @since 1.8.0
      *
      * @return list<array{kind: string, group: string, count: int, examples: list<string>, sentence: string}>
      */

@@ -6,7 +6,7 @@
  * served safely is recorded as the plugin's fault.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

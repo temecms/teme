@@ -6,7 +6,7 @@
  * deletion, so the engine is eventually consistent with the site.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

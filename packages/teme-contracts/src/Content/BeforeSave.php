@@ -5,7 +5,7 @@
  * plugin can refuse it and say why.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -29,7 +29,7 @@ use Teme\Contracts\Hooks\HookContract;
  *
  * Listening needs the content.read capability.
  *
- * @since next
+ * @since 1.8.0
  */
 #[HookContract(capability: 'content.read')]
 final readonly class BeforeSave implements Gate
@@ -43,7 +43,7 @@ final readonly class BeforeSave implements Gate
      * @param  array<string, mixed>  $fields  the fields as they would be saved
      * @param  string|null  $actorId  the account ID of the person saving it, or null when none
      *
-     * @since next
+     * @since 1.8.0
      */
     public function __construct(
         public ?string $itemId,

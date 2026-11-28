@@ -268,8 +268,8 @@ Changing these requires `settings.design.manage`. Since 0.1.0.
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
 | `design.theme` | select | `"default"` | The theme the public site is drawn with. A theme that can't be used gives visitors plain pages until it is fixed. | 0.1.0 |
-| `design.brand` | color | `""` | The site's identity colour: the browser tab, and --teme-brand for themes. Empty leaves the token unset. A theme may opt to use it as its accent. | next |
-| `design.site_icon` | media | `""` | The favicon and home-screen icon. Empty uses the active theme’s default, when it has one. | next |
+| `design.brand` | color | `""` | The site's identity colour: the browser tab, and --teme-brand for themes. Empty leaves the token unset. A theme may opt to use it as its accent. | 1.8.0 |
+| `design.site_icon` | media | `""` | The favicon and home-screen icon. Empty uses the active theme’s default, when it has one. | 1.8.0 |
 
 ## Teme Default
 

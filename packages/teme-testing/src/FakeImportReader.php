@@ -5,7 +5,7 @@
  * page, a term and a person, and proves the import socket carries them.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -26,7 +26,7 @@ use Teme\Contracts\Import\ImportReaderRefused;
  * item names its `kind` and `id`; the other keys are the kind's fields, as
  * the guide names them. A cursor is the count of items read so far.
  *
- * @since next
+ * @since 1.8.0
  */
 final class FakeImportReader implements ImportReader
 {
@@ -34,7 +34,7 @@ final class FakeImportReader implements ImportReader
     private const array STATUSES = ['published', 'draft', 'private', 'scheduled', 'trashed', 'spam'];
 
     /**
-     * @since next
+     * @since 1.8.0
      */
     public function probe(string $path): ImportProbe
     {
@@ -55,7 +55,7 @@ final class FakeImportReader implements ImportReader
     }
 
     /**
-     * @since next
+     * @since 1.8.0
      */
     public function page(string $path, ?string $cursor, int $limit): ImportPage
     {
@@ -68,7 +68,7 @@ final class FakeImportReader implements ImportReader
     }
 
     /**
-     * @since next
+     * @since 1.8.0
      */
     public function fetch(string $path, string $id): ImportItem
     {

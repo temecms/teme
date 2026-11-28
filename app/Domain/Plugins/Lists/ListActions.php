@@ -6,7 +6,7 @@
  * selected items. Offered only while the plugin is enabled and granted jobs.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

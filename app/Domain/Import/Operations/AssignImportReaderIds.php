@@ -7,7 +7,7 @@
  * it was, and an added item takes an ID nothing else has.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

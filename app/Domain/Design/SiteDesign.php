@@ -67,7 +67,7 @@ final class SiteDesign
      * Whether the active theme uses the site's brand as its accent
      * (`use_brand_colour`), so Document writes accent from brand.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function usesBrandAsAccent(): bool
     {
@@ -79,7 +79,7 @@ final class SiteDesign
      * the theme declares none or the value is not one of them. A design
      * preview's draft is read through SettingsReader.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function style(): ?string
     {

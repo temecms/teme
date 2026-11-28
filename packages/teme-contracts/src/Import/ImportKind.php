@@ -5,7 +5,7 @@
  * person, a media item, a comment or a menu, in Teme's words.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -17,32 +17,32 @@ namespace Teme\Contracts\Import;
  * The item kinds a reader maps its items to. A reader uses only these, so
  * core knows where each item goes.
  *
- * @since next
+ * @since 1.8.0
  */
 final class ImportKind
 {
-    /** @since next */
+    /** @since 1.8.0 */
     public const string POST = 'post';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string PAGE = 'page';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string TERM = 'term';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string PERSON = 'person';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string MEDIA = 'media';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string COMMENT = 'comment';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string MENU = 'menu';
 
-    /** @since next */
+    /** @since 1.8.0 */
     public const string MENU_ITEM = 'menu-item';
 
     /**
@@ -50,7 +50,7 @@ final class ImportKind
      *
      * @return list<string>
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function all(): array
     {

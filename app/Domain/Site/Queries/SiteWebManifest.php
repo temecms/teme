@@ -5,7 +5,7 @@
  * design site_icon when its favicon variants already exist (issue 388).
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

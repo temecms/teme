@@ -5,7 +5,7 @@
  * favicon sizes (issue 388), as ShareImageUse does for share images.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

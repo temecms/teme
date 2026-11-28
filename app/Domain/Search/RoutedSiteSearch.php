@@ -8,7 +8,7 @@
  * cache is told which lists the search draws, so a publish purges them.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

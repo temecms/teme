@@ -6,7 +6,7 @@
  * content in the source's markup, and its terms and author by source ID.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -25,7 +25,7 @@ namespace Teme\Contracts\Import;
  * beyond these: a term's taxonomy, a person's login and email, a media
  * item's URL and mime type, and so on, each named in the guide.
  *
- * @since next
+ * @since 1.8.0
  */
 final readonly class ImportItem
 {
@@ -33,7 +33,7 @@ final readonly class ImportItem
      * @param  list<string>  $termIds  the source IDs of the terms the item is in
      * @param  array<string, scalar|array<array-key, mixed>|null>  $fields  what the kind needs beyond these fields
      *
-     * @since next
+     * @since 1.8.0
      */
     public function __construct(
         public string $kind,

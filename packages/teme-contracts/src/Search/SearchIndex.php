@@ -6,7 +6,7 @@
  * removed (docs/guides/developers/plugins/search-engine.md).
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -18,21 +18,21 @@ namespace Teme\Contracts\Search;
  * Keeps a search engine's index in step with the site's published items.
  * Core calls it after each change, so it may be behind for a moment.
  *
- * @since next
+ * @since 1.8.0
  */
 interface SearchIndex
 {
     /**
      * Adds or replaces one published item.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function index(SearchEntry $entry): void;
 
     /**
      * Drops an item that is no longer published.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function remove(string $contentId): void;
 }

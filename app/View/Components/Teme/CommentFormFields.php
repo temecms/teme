@@ -5,7 +5,7 @@
  * carries (issue 788). A theme's override of the comment form includes it inside its form, and core's form does too.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

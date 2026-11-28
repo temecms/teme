@@ -4,6 +4,46 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.8.0] — 2026-11-28
+
+### Added
+
+**For site owners**
+
+- **Provider choices** (Plugins › Provider choices): pick which enabled plugin fills the image service, search and comment check, or none. A plugin turned off has its choice cleared, with a notice, and a warning shows while a chosen plugin is missing (#779).
+- **The brand colour** is now the site's identity colour, written for themes as `--teme-brand` and used for the browser's theme colour. A theme can use it as its accent; the default theme does unless you switch that off. Your existing colour carries over (#261).
+- **A site icon** in Settings › Design: the favicon and home-screen icon, made as PNG in the sizes browsers and phones ask for, with the active theme's icon as the default (#388).
+- **Style variations:** a theme with several looks offers them in a Style select (#371).
+
+**For plugin authors**
+
+- **Comment check:** a plugin can judge each comment, and each fediverse reply, before it's saved; the stricter verdict wins. Core's block list still applies after a plugin approves; nobody who looks after an item is asked about; and the cheap refusals (comments off, signed-in only, rate limits, duplicates, the fediverse hourly limit, edits by someone else) happen before a plugin is asked (#360).
+- **Search engines:** with the new `search.read` permission, a plugin can answer the site's searches. Its index follows publishes, unpublishes, trashes and deletions; switching engines refreshes cached search pages; every hit is re-checked as public, in the reader's language and of a searched type; snippets are escaped; and core's search stands in when the engine fails or is slow (#780).
+- **Check before save:** a plugin listening for `BeforeSave` can refuse a save or a schedule with a reason. A slow or failing check lets the save through. A plugin's own writes and a scheduled publish when it runs aren't asked (#781).
+- **Import readers:** a plugin can teach Teme's import to read another system's export file, through the same plan, runs, report and redirects as WordPress's. Tools › Import asks which reader reads an upload; each item keeps its old address, which redirects; a second import changes nothing. People with no login come across as authors; a plugin's registered taxonomies come across. Everything a file can't bring is named on the plan and in the run's report, never dropped silently (#782).
+- **Stylesheets:** a plugin can ship a built stylesheet for each card or page insertion. Teme serves it itself, inside a cascade layer below the theme's rules, only on pages that draw that output, and refuses a sheet it can't serve safely. A theme can switch a plugin's stylesheet off (#783).
+- **List actions:** row actions on content lists, and bulk actions for the selected items, each queuing the plugin's job as the person who clicked, after a confirm sentence where the plugin sets one (#118).
+- **Home panels:** a plugin's panel on Home, under its area's permission, with tables keeping their date and badge formats (#784).
+
+**For theme authors**
+
+- **Fonts:** core writes the `@font-face` rules from the manifest's fonts, with `unicode_range`; leave them out if the theme ships its own (#372).
+- **Your own tokens** with `custom_tokens` and `custom_tokens_dark`, beyond core's list (#370), and **style variations** as named sets of tokens, fonts and accent (#371).
+- **Overrides of core's components** (region, navigation, languages, image, between-items, comment form), each declared with the contract it was written against. The document shell and the script helpers can't be overridden, and a comment-form override must keep core's fields, which the theme check enforces (#788).
+- **More setting types:** number, image, menu, links, url and textarea, with groups drawn as foldable sections. Templates read an image as address and alt, and a menu as navigation items (#373, #685).
+- **Headings:** every heading in the body has a stable id, and articles give templates a headings list for contents links (#369).
+- **Front-page regions** "Front page top" and "Front page sections", for a static front page (#593).
+- **Tables:** core wraps every table in the body so a wide one scrolls sideways, and the default theme styles them (#19).
+- **The theme check** reads every view, finds between-items in skin folders, and says when a check couldn't run (#686). The script budget warning is 20 KB compressed, and the guide covers scripts under the page's security policy (#374).
+- **The view-data name `plugins`** is reserved for core; themes offer share buttons, contents and the like as their own settings (#20).
+- **Default theme on phones:** long words, addresses and code lines no longer widen the page; inline code and rules are styled (#594, #91).
+
+### Not in this release
+
+- The comment form's hidden field for comment checks (issue 805), and erasure of a commenter's data reaching a comment check: the guide asks checks to keep nothing for now.
+- Filters on content lists for plugins (issue 802).
+- Import readers read a whole file in one job, so a file over 64 MB is refused when its upload starts (issue 811); a per-item language isn't carried yet, so a file in several languages comes across in the site's default language, and the report says so (issue 810). A plugin's taxonomy reaches a post only where its content type has that taxonomy; otherwise the report says the post isn't filed under it.
+
 ## [1.7.1] — 2026-11-27
 
 ### Fixed

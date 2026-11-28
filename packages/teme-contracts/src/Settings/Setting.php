@@ -61,7 +61,7 @@ final class Setting
         /**
          * A number setting's step on the form; null when any whole number in bounds is fine.
          *
-         * @since next
+         * @since 1.8.0
          */
         public readonly ?int $step = null,
         public readonly bool $required = false,
@@ -90,7 +90,7 @@ final class Setting
          * A titled foldable section inside a theme fieldset; null when the
          * setting sits at the top of its fieldset with no group.
          *
-         * @since next
+         * @since 1.8.0
          */
         public readonly ?string $group = null,
     ) {}
@@ -363,7 +363,7 @@ final class Setting
     /**
      * A number setting's step: the value must be a multiple of this, at least 1.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function step(int $step): self
     {
@@ -463,7 +463,7 @@ final class Setting
     /**
      * A titled foldable section inside a theme fieldset. Empty is refused.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function group(string $label): self
     {

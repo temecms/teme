@@ -9,7 +9,7 @@
  * nothing itself.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -21,7 +21,7 @@ use App\Domain\Plugins\PluginRegistry;
 
 final class PluginHomePanels
 {
-    /** Where plugins' panels sort: after core's own panels, in the order they were declared. @since next */
+    /** Where plugins' panels sort: after core's own panels, in the order they were declared. @since 1.8.0 */
     public const int FIRST_ORDER = 700;
 
     /** @var list<HomePanelDeclaration>|null the declarations, read once per request */
@@ -77,7 +77,7 @@ final class PluginHomePanels
     /**
      * The declared panel with this key, or null when no enabled plugin declares it.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function find(string $key): ?HomePanelDeclaration
     {

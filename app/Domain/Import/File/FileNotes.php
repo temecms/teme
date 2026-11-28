@@ -6,7 +6,7 @@
  * run's report with the first few IDs of the items it counts.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -17,7 +17,7 @@ namespace App\Domain\Import\File;
 /**
  * Turns a file report's notes into the rows the plan and the run's report show.
  *
- * @since next
+ * @since 1.8.0
  */
 final class FileNotes
 {
@@ -39,7 +39,7 @@ final class FileNotes
      *
      * @return list<array{kind: string, group: string, count: int, examples: list<string>, sentence: string}>
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function rows(array $notes): array
     {

@@ -43,7 +43,7 @@ final class MediaVariants
      *
      * @var array<string, array{0: int, 1: int}>
      *
-     * @since next
+     * @since 1.8.0
      */
     public const array ICONS = ['icon-32' => [32, 32], 'icon-180' => [180, 180], 'icon-192' => [192, 192], 'icon-512' => [512, 512]];
 

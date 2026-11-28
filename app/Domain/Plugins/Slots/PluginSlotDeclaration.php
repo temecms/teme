@@ -7,7 +7,7 @@
  * each slot's contract.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

@@ -28,7 +28,7 @@ final readonly class LinkTag
         /**
          * An icon's sizes, such as "32x32", or null when the link has none.
          *
-         * @since next
+         * @since 1.8.0
          */
         public ?string $sizes = null,
     ) {

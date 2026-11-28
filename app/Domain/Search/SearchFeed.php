@@ -7,7 +7,7 @@
  * Each change is queued after commit, and only while an engine is chosen.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

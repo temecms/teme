@@ -7,7 +7,7 @@
  * over its time lets the save through, and its fault is recorded.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

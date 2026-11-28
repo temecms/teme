@@ -6,7 +6,7 @@
  * at them, then content, media, comments and menu items in the file's order.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -34,7 +34,7 @@ use Teme\Contracts\Import\ImportKind;
  * rows keep the words WordPress uses, so each one is translated here, inside
  * core.
  *
- * @since next
+ * @since 1.8.0
  */
 final class ReaderRows
 {
@@ -98,7 +98,7 @@ final class ReaderRows
      *
      * @return list<array{list: string, id: int, payload: array<string, mixed>}>
      *
-     * @since next
+     * @since 1.8.0
      */
     public static function build(array $items, ContentBlocks $blocks, array $ids): array
     {

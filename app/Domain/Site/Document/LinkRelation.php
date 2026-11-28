@@ -26,21 +26,21 @@ enum LinkRelation: string
      * The site's favicon and sized icons. Core only: HeadCleaner drops a
      * plugin's icon links (issue 388).
      *
-     * @since next
+     * @since 1.8.0
      */
     case Icon = 'icon';
 
     /**
      * The icon a home screen uses. Core only (issue 388).
      *
-     * @since next
+     * @since 1.8.0
      */
     case AppleTouchIcon = 'apple-touch-icon';
 
     /**
      * The web app manifest that names the 192 and 512 icons. Core only.
      *
-     * @since next
+     * @since 1.8.0
      */
     case Manifest = 'manifest';
 

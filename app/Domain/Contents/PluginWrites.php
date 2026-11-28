@@ -7,7 +7,7 @@
  * Bound scoped, like the plugin job's actor: one request or job.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

@@ -6,7 +6,7 @@
  * link to it or build a contents list without parsing the body.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

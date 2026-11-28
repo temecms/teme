@@ -7,7 +7,7 @@
  * off keeps the notice saying so, until an administrator chooses again.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 

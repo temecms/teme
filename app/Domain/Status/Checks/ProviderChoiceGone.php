@@ -7,7 +7,7 @@
  * here: its notice on Provider choices already does.
  *
  * @package Teme
- * @since   next
+ * @since   1.8.0
  * @license MIT
  */
 
@@ -33,7 +33,7 @@ final readonly class ProviderChoiceGone implements StatusCheck
     /**
      * The check's stable key, matched by Home's summary rows.
      *
-     * @since next
+     * @since 1.8.0
      */
     public function key(): string
     {
@@ -46,7 +46,7 @@ final readonly class ProviderChoiceGone implements StatusCheck
     }
 
     /**
-     * @since next
+     * @since 1.8.0
      */
     public function label(): string
     {
@@ -56,7 +56,7 @@ final readonly class ProviderChoiceGone implements StatusCheck
     /**
      * The banner for the first lost choice, linking to Provider choices (left out on that page itself).
      *
-     * @since next
+     * @since 1.8.0
      */
     public function banner(): ?StatusBanner
     {
