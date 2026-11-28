@@ -31,6 +31,7 @@ use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Settings\Models\SettingsGroupRecord;
@@ -92,6 +93,7 @@ final readonly class PluginsScreen
             $words = ManifestText::for($row->code);
             $locale = app()->getLocale();
             $notices = $manifest === null ? [] : array_column(DeclaredNotices::of($manifest), 'label');
+            $securityKinds = $manifest === null ? [] : array_values(DeclaredSecurityKinds::of($manifest));
 
             return [
                 'name' => $row->name,
@@ -115,7 +117,7 @@ final readonly class PluginsScreen
                 'adds' => array_map(fn (string $label): string => $words->text($label, $locale), [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)]),
                 'agreedVersion' => $record?->version,
                 'agreed' => [
-                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : []))), notices: $notices),
+                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : []))), notices: $notices, securityKinds: $securityKinds),
                     ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
                     ...$this->permissionLines($manifest, (array) ($row->consent['permissions'] ?? []), false),
                     ...$this->panelLines($manifest, $row->consent['capabilities'] ?? []),
@@ -135,6 +137,7 @@ final readonly class PluginsScreen
                     $aiTasks,
                     $newAiTasks,
                     notices: $notices,
+                    securityKinds: $securityKinds,
                 ), ...$this->insertionHostsLine(
                     $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
                     $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
@@ -347,14 +350,15 @@ final readonly class PluginsScreen
      * @param  list<DeclaredAiTask>  $aiTasks
      * @param  list<string>  $newAiTasks
      * @param  list<string>  $notices  the labels of the kinds of notice it declares
+     * @param  list<string>  $securityKinds  the labels of the kinds of security log line it declares
      *
      * @return list<array{words: string, new: bool}>
      */
-    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false, array $aiTasks = [], array $newAiTasks = [], array $notices = []): array
+    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false, array $aiTasks = [], array $newAiTasks = [], array $notices = [], array $securityKinds = []): array
     {
         $labels = array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks);
         $lines = array_map(fn (string $capability): array => [
-            'words' => PluginWords::capability($capability, $hosts, $imports, $labels, $notices),
+            'words' => PluginWords::capability($capability, $hosts, $imports, $labels, $notices, $securityKinds),
             'new' => in_array($capability, $newCapabilities, true) || ($capability === 'http' && $newHosts !== []) || ($capability === Capability::ImportWordPress->value && $newImports),
         ], $capabilities);
 

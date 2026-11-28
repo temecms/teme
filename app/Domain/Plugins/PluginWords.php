@@ -53,8 +53,9 @@ final readonly class PluginWords
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
      * @param  list<string>  $aiTasks  the declared AI tasks' labels
      * @param  list<string>  $notices  the labels of the kinds of notice it declares
+     * @param  list<string>  $securityKinds  the labels of the kinds of security log line it declares
      */
-    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = [], array $notices = []): string
+    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = [], array $notices = [], array $securityKinds = []): string
     {
         return self::core(fn (): string => match ($capability) {
             Capability::Ai->value => __('Use your site’s AI connection (Settings › AI) for: :tasks. What it sends goes to the AI service chosen there, and it spends your site’s AI budget.', ['tasks' => implode(', ', $aiTasks)]),
@@ -82,6 +83,7 @@ final readonly class PluginWords
             Capability::DirectoryRead->value => __('Read the plugins and themes listed in Teme’s directory, as Teme verified them'),
             Capability::ContentSubmissions->value => __('Keep what visitors send from its public forms, as items waiting for someone to review them'),
             Capability::Redirects->value => __('Add redirects from old addresses of your site, and remove the ones it added'),
+            Capability::SecurityLog->value => __('Write lines into your site’s security log under its own name: :kinds', ['kinds' => implode('; ', $securityKinds)]),
             default => $capability,
         });
     }

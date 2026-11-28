@@ -44,13 +44,18 @@ final class SecurityLogHolder implements PersonalDataHolder
             ->orderBy('id')
             ->offset(($page - 1) * self::EXPORT_PAGE)
             ->limit(self::EXPORT_PAGE + 1)
-            ->get(['type', 'first_at', 'last_at', 'count', 'ip']);
+            ->get(['type', 'first_at', 'last_at', 'count', 'ip', 'context']);
 
         $groups = [];
 
         foreach ($rows->take(self::EXPORT_PAGE) as $row) {
+            // A plugin's line keeps its kind and its text in the context (PluginSecurityLines).
+            $context = json_decode((string) $row->context, true);
+            $line = is_array($context) && is_string($context['text'] ?? null) ? [__('Line') => (string) ($context['kind'] ?? ''), __('Text') => $context['text']] : [];
+
             $groups[] = new ExportGroup(__('Security event'), array_filter([
                 __('Event') => (string) $row->type,
+                ...$line,
                 __('First') => CarbonImmutable::parse((string) $row->first_at)->toIso8601String(),
                 __('Last') => CarbonImmutable::parse((string) $row->last_at)->toIso8601String(),
                 __('Times') => (string) $row->count,

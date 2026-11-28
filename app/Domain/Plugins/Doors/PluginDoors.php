@@ -43,7 +43,9 @@ use App\Domain\Plugins\Notices\NoticeRate;
 use App\Domain\Plugins\Notices\PluginNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\SettingHosts;
+use App\Domain\Security\SecurityLog;
 use App\Domain\Site\CoreSiteInfo;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use App\Domain\Site\Insertions\Scripts\PluginInlineScripts;
@@ -67,6 +69,7 @@ use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Redirects\RedirectWriter;
+use Teme\Contracts\Security\SecurityLines;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -90,6 +93,7 @@ final readonly class PluginDoors implements PluginServices
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
         private HtmlToDocument $html,
+        private SecurityLog $securityLog,
     ) {}
 
     /**
@@ -178,6 +182,11 @@ final readonly class PluginDoors implements PluginServices
         }
 
         $manifest = $this->registry->find($name)?->manifest;
+        // Its lines under the plugin's name, of the kinds its manifest declares (docs/guides/developers/plugins/security-log.md).
+        if (in_array(Capability::SecurityLog->value, $capabilities, true)) {
+            $offered[SecurityLines::class] = new PluginSecurityLines($code, $manifest === null ? [] : DeclaredSecurityKinds::of($manifest), $this->securityLog);
+        }
+
         $declaredHooks = $manifest === null ? [] : DeclaredHooks::of($manifest);
 
         // Only a plugin that declares a task it may ask for (I-3434).

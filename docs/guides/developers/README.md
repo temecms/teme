@@ -28,6 +28,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [What visitors send from a public form](plugins/submissions.md)
 - [Reading Teme's directory](plugins/directory.md)
 - [Adding redirects from a plugin](plugins/redirects.md)
+- [Writing lines to the security log](plugins/security-log.md)
 - [Sending files and raw bodies](plugins/outbound-files.md)
 - [Jobs and schedules](plugins/jobs.md)
 - [Console commands from a plugin](plugins/commands.md)

@@ -53,6 +53,30 @@ final class SecurityLog
             SQL, $bindings);
     }
 
+    /**
+     * Writes one line of a named kind, such as a plugin's, never counted and
+     * never grouped: the kind and the context are the caller's to keep short.
+     *
+     * @param  array<string, scalar|list<scalar>|null>  $context
+     */
+    public function recordNamed(string $type, int|string|null $userId, ?string $email, array $context): void
+    {
+        $now = Date::now();
+
+        DB::table('security_events')->insert([
+            'type' => $type,
+            'subject' => self::subject($userId, $email),
+            'user_id' => $userId === null ? null : (int) $userId,
+            'ip' => (string) (request()->ip() ?? ''),
+            'hour' => $now->startOfHour(),
+            'context' => json_encode($context, JSON_THROW_ON_ERROR),
+            'first_at' => $now,
+            'last_at' => $now,
+            'counted' => false,
+            'count' => 1,
+        ]);
+    }
+
     public static function subject(int|string|null $userId, ?string $email): string
     {
         if ($userId !== null) {
