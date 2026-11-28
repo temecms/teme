@@ -88,6 +88,7 @@ final readonly class PluginWords
             Capability::Redirects->value => __('Add redirects from old addresses of your site, and remove the ones it added'),
             Capability::SecurityLog->value => __('Write lines into your site’s security log under its own name: :kinds', ['kinds' => implode('; ', $securityKinds)]),
             Capability::TermsWrite->value => __('Create, change and remove terms of the taxonomies it brings'),
+            Capability::SiteScripts->value => __('Run its own code in visitors’ browsers on the pages that show its output'),
             default => $capability,
         });
     }

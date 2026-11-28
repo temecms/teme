@@ -134,7 +134,7 @@ final class PluginStylesheet
      *
      * @throws InvalidArgumentException when the file is a link or sits outside the package
      */
-    private function source(string $name, string $file): ?string
+    public function source(string $name, string $file): ?string
     {
         $path = $this->registry->all()[$name]->path;
         $root = realpath($path);
@@ -149,14 +149,14 @@ final class PluginStylesheet
             $walk .= '/'.$part;
 
             if (is_link($walk)) {
-                throw new InvalidArgumentException('A stylesheet may not be a link.');
+                throw new InvalidArgumentException('A plugin file may not be a link.');
             }
         }
 
         $real = realpath($path.'/'.$file);
 
         if ($real === false || ! is_file($real) || ! str_starts_with($real, $root.DIRECTORY_SEPARATOR)) {
-            throw new InvalidArgumentException('A stylesheet must be a plain file inside the package.');
+            throw new InvalidArgumentException('A plugin file must be a plain file inside the package.');
         }
 
         return $real;

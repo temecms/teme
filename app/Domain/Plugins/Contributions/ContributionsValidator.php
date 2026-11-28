@@ -26,6 +26,7 @@ use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Images\ImageServiceDeclaration;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Readers\ImportReaderDeclaration;
+use App\Domain\Plugins\Scripts\DeclaredScripts;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\SecurityLines\DeclaredSecurityKinds;
 use App\Domain\Plugins\Seo\SeoValidator;
@@ -204,12 +205,12 @@ final class ContributionsValidator implements ContributionsCheck
     public function errors(array $contributes, string $version, ?array $capabilities = null): array
     {
         $errors = [];
-        $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true);
+        $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true) || in_array(Capability::SiteScripts->value, $capabilities, true);
 
         foreach (array_keys($contributes) as $surface) {
             // The hosts inserted content loads from, read only for a plugin that inserts (I-3375).
             if ($surface === 'csp' && ! $inserts) {
-                $errors[] = __('A plugin’s csp is read only with content.insert or pages.insert.');
+                $errors[] = __('A plugin’s csp is read only with content.insert, pages.insert or site.scripts.');
             } elseif ($surface === 'provides') {
                 array_push($errors, ...PluginSlotDeclaration::errors($contributes['provides'], $capabilities));
             } elseif ($surface === 'fixedLabel') {
@@ -254,7 +255,7 @@ final class ContributionsValidator implements ContributionsCheck
                 }
 
                 array_push($errors, ...$this->cardErrors($contributes['cards'], $version));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'securityLog', 'downloads', 'commentField'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData', 'imageService', 'exports', 'provides', 'listActions', 'styles', 'homePanels', 'importReaders', 'securityLog', 'downloads', 'commentField', 'scripts'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -363,6 +364,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         // Its stylesheets, one per output (docs/guides/developers/plugins/styles.md).
         $errors = [...$errors, ...DeclaredStyles::errors($contributes)];
+
+        // Its scripts, one per output, which need site.scripts (docs/guides/developers/plugins/scripts.md).
+        $errors = [...$errors, ...DeclaredScripts::errors($contributes, $capabilities)];
 
         return $errors;
     }

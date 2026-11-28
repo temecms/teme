@@ -1,4 +1,5 @@
 import { CheckIcon } from 'lucide-react';
+import { ScriptSizeLine } from '@/components/plugins/script-size-line';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -183,6 +184,11 @@ export function ConsentDialog({
                             </ul>
                         </section>
                     )}
+
+                    <ScriptSizeLine
+                        scripts={plugin.scripts}
+                        testId="consent-scripts"
+                    />
 
                     {plugin.shown.capabilities.includes('ai') && (
                         <p

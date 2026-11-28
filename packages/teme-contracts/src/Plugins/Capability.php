@@ -43,6 +43,8 @@ namespace Teme\Contracts\Plugins;
  * plugin declares under `contributes.securityLog` into core's security log (next).
  * Redirects opens the RedirectWriter door, to add, list and remove the plugin's own redirects.
  * TermsWrite opens the TermWriter door, to create, update, list and remove terms of the taxonomies the plugin owns.
+ * SiteScripts lets the plugin's built scripts, those its manifest declares under contributes.scripts,
+ * run in visitors' browsers on the public pages that draw its output (@since next).
  *
  * @since 0.5.0
  */
@@ -128,4 +130,7 @@ enum Capability: string
 
     /** @since next */
     case TermsWrite = 'terms.write';
+
+    /** @since next */
+    case SiteScripts = 'site.scripts';
 }

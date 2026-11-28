@@ -56,6 +56,8 @@ export type PluginRowPage = {
     reason: string;
     /** Why its schedules don't run, with what to do; null when they do or it has none (docs/proposals/plugin-sockets-1.md). */
     schedules: string | null;
+    /** How big its declared scripts are, compressed, and whether they pass the 20 KB budget; null when it declares none. A warning, never a block. */
+    scripts: { bytes: number; over: boolean } | null;
     enabled: boolean;
     needsAttention: boolean;
     action: 'enable' | 'review' | 'migrate' | 'disable' | null;

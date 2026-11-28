@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
 import type { Change } from '@/components/extensions/installer';
+import { ScriptSizeLine } from '@/components/plugins/script-size-line';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -337,6 +338,10 @@ export function PluginRow({
                             {plugin.schedules}
                         </p>
                     )}
+                    <ScriptSizeLine
+                        scripts={plugin.scripts}
+                        testId="plugin-scripts"
+                    />
                     {(plugin.requires.length > 0 ||
                         plugin.requiredBy.length > 0) && (
                         <div className="text-small text-ink-2 grid gap-1 pt-1">

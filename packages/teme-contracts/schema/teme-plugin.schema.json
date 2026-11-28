@@ -112,7 +112,8 @@
                     "search.read",
                     "import.read",
                     "security.log",
-                    "terms.write"
+                    "terms.write",
+                    "site.scripts"
                 ]
             }
         },
@@ -1403,6 +1404,28 @@
                                 "type": "string",
                                 "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.css$",
                                 "description": "A .css file inside the plugin's package, relative to its root."
+                            }
+                        }
+                    }
+                },
+                "scripts": {
+                    "type": "array",
+                    "maxItems": 40,
+                    "description": "Built scripts, one per card or page insertion. Linked only on a page that draws that output, as a module after the body.",
+                    "items": {
+                        "type": "object",
+                        "required": ["output", "file"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "output": {
+                                "type": "string",
+                                "pattern": "^(card:[a-z][a-z0-9-]{1,40}|insertion:[a-z][a-z0-9-]{1,40})$",
+                                "description": "The output the script belongs to: card:<id> or insertion:<id>."
+                            },
+                            "file": {
+                                "type": "string",
+                                "pattern": "^(?!/)(?!.*\\\\)(?!.*(^|/)\\.\\.(/|$)).+\\.js$",
+                                "description": "A self-contained .js file inside the plugin's package, relative to its root."
                             }
                         }
                     }
