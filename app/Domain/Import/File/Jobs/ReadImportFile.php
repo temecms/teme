@@ -244,6 +244,8 @@ final class ReadImportFile implements ShouldQueue
                 $counted['readerCursor'] = $next;
                 $counted['readerGiven'] = array_keys($given);
                 $counted['readerResolving'] = $next === null;
+                $counted['readerLanguages'] = $probe->languages;
+                $counted['readerDefaultLanguage'] = $probe->defaultLanguage ?? ($probe->languages[0] ?? null);
 
                 if (! $this->keep($from, $to, $rows, $counted, $channel)) {
                     return;
@@ -411,6 +413,8 @@ final class ReadImportFile implements ShouldQueue
                 $counted['readerCursor'] = $next;
                 $counted['readerGiven'] = array_keys($given);
                 $counted['readerResolving'] = true;
+                $counted['readerLanguages'] = $probe->languages;
+                $counted['readerDefaultLanguage'] = $probe->defaultLanguage ?? ($probe->languages[0] ?? null);
 
                 if ($next === null) {
                     $counted['notes'] = $this->notesAcross($reader, $path, $probe->languages, $presence);
@@ -516,8 +520,8 @@ final class ReadImportFile implements ShouldQueue
      * What a reader's file holds that Teme doesn't bring, counted and named
      * for the report: comments on posts the file doesn't have, menu items in
      * menus it doesn't have, menu items that point at nothing in the file,
-     * terms and featured pictures the file doesn't have, and a file in more
-     * than one language, whose items come across in the site's default language.
+     * terms and featured pictures the file doesn't have, and a file whose
+     * other languages will gain an address prefix when the import runs.
      *
      * @param  list<ImportItem>  $items
      * @param  list<string>  $languages
@@ -600,8 +604,14 @@ final class ReadImportFile implements ShouldQueue
             $notes['parent'] = ['count' => count($orphans), 'examples' => array_slice($orphans, 0, 5), 'sentence' => 'Items whose parent isn’t in this file were placed at the top, with no parent.'];
         }
 
-        if (count(array_unique($languages)) > 1) {
-            $notes['language'] = ['count' => 1, 'examples' => [], 'sentence' => 'This file has more than one language, and its items come across in the site’s default language.'];
+        $named = array_values(array_unique(array_filter($languages, fn (string $tag): bool => $tag !== '')));
+
+        if (count($named) > 1) {
+            $notes['language-prefix'] = [
+                'count' => count($named) - 1,
+                'examples' => [],
+                'sentence' => 'Each language this file brings that the site doesn’t have yet is added with a first part of the address, such as /fr/.',
+            ];
         }
 
         return $notes;

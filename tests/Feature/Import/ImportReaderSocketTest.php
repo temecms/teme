@@ -92,9 +92,25 @@ it('probes a fake export: its system, languages and counts of each kind', functi
         ->and($probe->version)->toBe('2')
         ->and($probe->siteAddress)->toBe('https://old.example.com')
         ->and($probe->languages)->toBe(['en'])
+        ->and($probe->defaultLanguage)->toBe('en')
         ->and($probe->counts)->toBe([ImportKind::PERSON => 1, ImportKind::TERM => 1, ImportKind::MEDIA => 1, ImportKind::POST => 1, ImportKind::PAGE => 1]);
 
     unlink($path);
+});
+
+it('probes the two-language sample and carries language and translationGroup on its items', function (): void {
+    $path = base_path('packages/teme-testing/samples/fake-export-languages.json');
+    $reader = new FakeImportReader;
+    $probe = $reader->probe($path);
+    $hello = $reader->fetch($path, 'i1');
+    $bonjour = $reader->fetch($path, 'i2');
+
+    expect($probe->languages)->toBe(['en', 'fr'])
+        ->and($probe->defaultLanguage)->toBe('en')
+        ->and($hello->language)->toBe('en')
+        ->and($hello->translationGroup)->toBe('hello')
+        ->and($bonjour->language)->toBe('fr')
+        ->and($bonjour->translationGroup)->toBe('hello');
 });
 
 it('lists a fake export a page at a time, in order, and fetches one item by its ID', function (): void {

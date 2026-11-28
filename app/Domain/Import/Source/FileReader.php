@@ -17,6 +17,8 @@ use App\Domain\Import\File\FileAddresses;
 use App\Domain\Import\File\ItemRows;
 use App\Domain\Import\Models\ImportFile;
 use App\Domain\Import\WordPressRecords;
+use App\Domain\Types\ContentTypeRegistry;
+use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -71,11 +73,82 @@ final class FileReader implements SourceReader
             'analyze' => ['report' => $this->report()],
             'settings' => $this->settings(),
             'menus' => $this->menus(),
-            // Polylang's terms only warn: everything comes across in the site's own language.
-            'languages' => ['active' => false],
+            // A reader's languages become the site's; a WordPress file's Polylang terms only warn.
+            'languages' => $this->languages(),
             'urls' => ['items' => [['id' => 0, 'kind' => 'home', 'url' => $this->home().'/']]],
             default => throw SourceRefused::notCompanion(),
         };
+    }
+
+    /**
+     * What a reader's file says of its languages, as the companion's languages
+     * route would: active when the file names more than one, each tag a
+     * language with its slug as the address prefix. A WordPress file has none.
+     *
+     * @return array<string, mixed>
+     */
+    private function languages(): array
+    {
+        $file = ImportFile::query()->whereKey($this->fileId)->first(['reader']);
+
+        if ($file?->reader === null) {
+            return ['active' => false];
+        }
+
+        $stored = DB::table('import_file_rows')->where(['file_id' => $this->fileId, 'list' => ItemRows::FACTS, 'object_id' => 0])->value('payload');
+        $facts = is_string($stored) ? json_decode($stored, true) : null;
+        $facts = is_array($facts) ? $facts : [];
+        $tags = array_values(array_filter(array_map(strval(...), is_array($facts['readerLanguages'] ?? null) ? $facts['readerLanguages'] : []), fn (string $tag): bool => $tag !== ''));
+        $default = is_string($facts['readerDefaultLanguage'] ?? null) && $facts['readerDefaultLanguage'] !== ''
+            ? (string) $facts['readerDefaultLanguage']
+            : ($tags[0] ?? '');
+
+        if ($tags === [] || $default === '' || ! in_array($default, $tags, true)) {
+            return ['active' => false];
+        }
+
+        $offered = (array) config('languages');
+        $languages = [];
+
+        foreach ($tags as $index => $tag) {
+            $slug = $tag;
+            $locale = is_array($offered[$tag] ?? null) ? (string) ($offered[$tag]['og'] ?? str_replace('-', '_', $tag)) : str_replace('-', '_', $tag);
+            $name = is_array($offered[$tag] ?? null) ? (string) ($offered[$tag]['label'] ?? $tag) : $tag;
+            $languages[] = [
+                'slug' => $slug,
+                'locale' => $locale,
+                'name' => $name,
+                'rtl' => is_array($offered[$tag] ?? null) && ($offered[$tag]['direction'] ?? 'ltr') === 'rtl',
+                'order' => $index,
+            ];
+        }
+
+        $postTypes = [];
+
+        foreach (app(ContentTypeRegistry::class)->all() as $type) {
+            if ($type->wordpress !== null) {
+                $postTypes[] = $type->wordpress;
+            }
+        }
+
+        $taxonomies = [];
+
+        foreach (app(TaxonomyRegistry::class)->all() as $taxonomy) {
+            if ($taxonomy->wordpress !== null) {
+                $taxonomies[] = $taxonomy->wordpress;
+            }
+        }
+
+        return [
+            'active' => true,
+            'default' => $default,
+            'languages' => $languages,
+            'options' => ['force_lang' => 1, 'hide_default' => true],
+            'post_types' => $postTypes,
+            'taxonomies' => $taxonomies,
+            'menus' => [],
+            'strings' => [],
+        ];
     }
 
     /**

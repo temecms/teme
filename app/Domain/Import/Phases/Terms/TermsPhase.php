@@ -105,9 +105,16 @@ final readonly class TermsPhase implements ListPhase
         $language = $termId === null
             ? app(ImportedLanguages::class)->stored($context->sourceId, $item['language'] ?? null, app(SiteLanguages::class)->translatesTaxonomy($taxonomy->key))
             : Term::query()->whereKey($termId)->value('language');
+        $languageNotes = [];
 
         if ($language === false) {
-            return ImportResult::skipped(new ImportMessage('term.language-missing', __('Its language on the old site isn’t one of this site’s, so it wasn’t imported. The Languages step of the report says why.')));
+            // A reader's unknown language lands in the default language with a warning (issue 810).
+            if (($item['reader'] ?? false) === true) {
+                $language = null;
+                $languageNotes[] = new ImportMessage('term.language-unknown', __('Its language on the old site isn’t one Teme offers yet, so it came across in this site’s default language.'));
+            } else {
+                return ImportResult::skipped(new ImportMessage('term.language-missing', __('Its language on the old site isn’t one of this site’s, so it wasn’t imported. The Languages step of the report says why.')));
+            }
         }
 
         $name = mb_substr(WordPressText::decoded($item['name'] ?? ''), 0, 200);
@@ -169,6 +176,10 @@ final readonly class TermsPhase implements ListPhase
 
         if (is_array($item['seo'] ?? null) && array_filter($item['seo'], fn (mixed $value): bool => $value !== null) !== []) {
             $result = $result->withWarning(new ImportMessage('term.seo-not-kept', 'Its own SEO settings from WordPress aren’t kept: Teme has none for categories and tags yet.'));
+        }
+
+        foreach ($languageNotes as $note) {
+            $result = $result->withWarning($note);
         }
 
         return $result->withFacts($this->facts($item, $wordpressTaxonomy, $parent));
@@ -272,6 +283,10 @@ final readonly class TermsPhase implements ListPhase
         if (array_key_exists('language', $item)) {
             $facts['language'] = $item['language'];
             $facts['translations'] = is_array($item['translations'] ?? null) ? $item['translations'] : [];
+        }
+
+        if (is_string($item['translation_group'] ?? null) && $item['translation_group'] !== '') {
+            $facts['translation_group'] = $item['translation_group'];
         }
 
         return $facts;

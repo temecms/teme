@@ -59,15 +59,11 @@ final readonly class LanguagesStep implements StepPhase
 
     public function run(ImportContext $context, SourceReader $reader, ?string $cursor): StepResult
     {
-        // An export file has none of this (docs/architecture/import.md).
-        if ($context->readsFile()) {
-            return StepResult::done();
-        }
-
         app(ClearRunMessages::class)->execute(new ClearRunMessagesInput($context->runId, 'languages.', $context->actorId()));
 
         $languages = $this->imported->for($context->sourceId);
 
+        // A WordPress export file, and a reader file with no languages, leave the site as it is.
         if (! $languages->active) {
             return StepResult::done();
         }

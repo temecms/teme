@@ -7,6 +7,7 @@ use App\Domain\Import\File\Jobs\ReadImportFile;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportFile;
+use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Operations\AssignImportReaderIds;
@@ -19,6 +20,7 @@ use App\Domain\Import\Operations\Input\ReceiveImportPieceInput;
 use App\Domain\Import\Operations\Input\StartImportUploadInput;
 use App\Domain\Import\Operations\ReceiveImportPiece;
 use App\Domain\Import\Operations\StartImportUpload;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -27,6 +29,7 @@ use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Readers\ImportReaders;
+use App\Domain\Site\AddressSettings;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\OperatorElevation;
@@ -38,6 +41,7 @@ use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -148,6 +152,28 @@ function readerReadToEnd(ImportFile $file): int
     Queue::swap($fake);
 
     return $parts;
+}
+
+/**
+ * Starts an import of a ready reader file and works the database queue to its end,
+ * as PolylangSite::import does: sync-queue imports leave the settings memo stale
+ * under RefreshDatabase's wrapping transaction.
+ */
+function readerImport(ImportFile $file): ImportRun
+{
+    config(['queue.default' => 'database', 'queue.connections.database-long.driver' => 'database']);
+
+    $run = FileImports::run($file);
+
+    for ($jobs = 0; $jobs < 2000 && DB::table('jobs')->exists(); $jobs++) {
+        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'long,default', '--once' => true, '--sleep' => 0]);
+    }
+
+    app()->forgetInstance(SiteLanguages::class);
+    app()->forgetInstance(AddressSettings::class);
+    app()->forgetScopedInstances();
+
+    return ImportRun::query()->findOrFail($run->id);
 }
 
 it('reads a reader’s file into a ready file and a source of the reader’s kind', function (): void {
@@ -674,17 +700,20 @@ it('counts and names a reader’s menu items whose menu isn’t in the file, in 
         ->and($file->report['notes']['menu-item']['examples'])->toBe(['mi9']);
 });
 
-it('says once, in the report, that a reader’s items come across in the site’s default language', function (): void {
+it('says on the plan that a reader’s other languages gain an address prefix', function (): void {
     readersEnabled();
 
     $export = fakeSiteExport();
     $export['languages'] = ['en', 'fr'];
+    $export['defaultLanguage'] = 'en';
+    $export['items'][3]['language'] = 'en';
 
     $file = readerUploaded('site.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
     readerReadToEnd($file);
 
-    expect($file->refresh()->report['notes']['language']['count'])->toBe(1)
-        ->and($file->report['notes']['language']['sentence'])->toContain('site’s default language');
+    expect($file->refresh()->report['notes']['language-prefix']['count'])->toBe(1)
+        ->and($file->report['notes']['language-prefix']['sentence'])->toContain('first part of the address')
+        ->and($file->report['notes'])->not->toHaveKey('language');
 });
 
 it('carries a reader’s media caption and description', function (): void {
@@ -963,4 +992,53 @@ it('keeps memory flat while reading a reader’s file of many pages', function (
     expect($file->refresh()->state)->toBe('ready')
         ->and($file->read_items)->toBe(count($export['items']))
         ->and($used)->toBeLessThan(16 * 1024 * 1024);
+});
+
+it('imports a reader’s two-language sample: adds the missing language, keeps each item’s language, and links translations', function (): void {
+    readersEnabled();
+
+    $bytes = (string) file_get_contents(base_path('packages/teme-testing/samples/fake-export-languages.json'));
+    $file = readerUploaded('langs.json', $bytes, fixtureReaderKey());
+    readerReadToEnd($file);
+    $run = readerImport($file->refresh());
+
+    $hello = DB::table('contents')->where('title', 'Hello')->first();
+    $bonjour = DB::table('contents')->where('title', 'Bonjour')->first();
+    $news = DB::table('terms')->where('slug', 'news')->first();
+    $actualites = DB::table('terms')->where('slug', 'actualites')->first();
+    $languages = app(SiteLanguages::class);
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and($languages->others())->toContain('fr')
+        ->and($languages->prefix('fr'))->toBe('fr')
+        ->and($hello?->language)->toBeNull()
+        ->and($bonjour?->language)->toBe('fr')
+        ->and($hello?->translation_group)->not->toBeNull()
+        ->and($bonjour?->translation_group)->toBe($hello?->translation_group)
+        ->and($news?->language)->toBeNull()
+        ->and($actualites?->language)->toBe('fr')
+        ->and($actualites?->translation_group)->toBe($news?->translation_group)
+        ->and(addrGet('/fr/bonjour/')->getStatusCode())->toBe(200);
+});
+
+it('imports a reader item whose language Teme doesn’t offer in the site’s default language, and says so', function (): void {
+    readersEnabled();
+
+    $export = fakeSiteExport();
+    $export['languages'] = ['en', 'xx'];
+    $export['defaultLanguage'] = 'en';
+    $export['items'][3]['language'] = 'xx';
+    $export['items'][3]['title'] = 'Unknown tongue';
+
+    $file = readerUploaded('unknown.json', json_encode($export, JSON_THROW_ON_ERROR), fixtureReaderKey());
+    readerReadToEnd($file);
+    $run = readerImport($file->refresh());
+
+    $post = DB::table('contents')->where('title', 'Unknown tongue')->first();
+    $codes = ImportMessageRecord::query()->where('run_id', $run->id)->pluck('code')->all();
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and($post)->not->toBeNull()
+        ->and($post->language)->toBeNull()
+        ->and($codes)->toContain('post.language-unknown');
 });

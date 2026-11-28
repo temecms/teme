@@ -17,7 +17,7 @@ A reader supplies only what differs per system. It reads an export file, says wh
 > - The file is read in parts under a 45-second deadline per part, through the same `keep()` path a WordPress export uses. The import upload size cap applies; there is no separate reader size cap. A reader that repeats a cursor is refused.
 > - Menus come across unplaced, since the import plan chooses where each menu sits.
 > - What the file names but doesn't hold is named, not guessed: orphan comments and menu items, terms and featured pictures the file lacks, and menu items with nothing to point at. The plan lists each kind with a count and the first few IDs before the run, and the run's report lists them as warnings.
-> - An item's language is not carried. When a file holds more than one language, every item is imported into the site's default language, and the report says so once. Per-item language is not in this release.
+> - An item may carry a `language` (BCP 47 tag) and an opaque `translationGroup`. The engine adds languages the site lacks (each with an address prefix such as `/fr/`), creates each item in its language, and links items that share a translation group. A language Teme doesn't offer yet lands in the site's default language with a warning. The plan says when addresses will gain a language prefix.
 
 ## Declaring a reader
 
@@ -60,9 +60,11 @@ Each item is an `ImportItem`, in Teme's words. Its `kind` is one of the kinds in
 - `excerpt` is a post's or page's summary, and `sticky` pins a post to the front page.
 - `featuredMediaId` names the media item a post or page uses as its picture.
 - `order` is an item's position among its siblings, such as a menu item's place in its menu.
+- `language` is an optional BCP 47 tag for the item's language.
+- `translationGroup` is an optional opaque word shared by every translation of the item in the file.
 - `fields` holds what a kind needs beyond these. For a `person` they are `login`, `email` and `displayName`. For a `term` they are `taxonomy`, `name` and `description`. For `media` they are `url`, `mime`, `alt`, `caption` and `description`.
 
-A reader may add further values to `fields` for what its system holds beyond these.
+A reader may add further values to `fields` for what its system holds beyond these. The file may name its default language; the testing kit's fake export uses `defaultLanguage` beside `languages`.
 
 ## Comments and menus
 
@@ -81,7 +83,7 @@ A person with no login becomes an author with a login made from their name, the 
 
 ## Trying a reader
 
-The testing kit's `Teme\Testing\FakeImportReader` reads a JSON file of `system`, `version`, `site`, `languages` and `items`, where each item names its `kind` and `id`. It is the model to copy: a reader is a class that turns a file into items, and the tests check the items it returns.
+The testing kit's `Teme\Testing\FakeImportReader` reads a JSON file of `system`, `version`, `site`, `languages`, optional `defaultLanguage` and `items`, where each item names its `kind` and `id`, and may name `language` and `translationGroup`. It is the model to copy: a reader is a class that turns a file into items, and the tests check the items it returns. A two-language sample lives at `packages/teme-testing/samples/fake-export-languages.json`.
 
 ## What a reader must not do
 

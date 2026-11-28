@@ -94,7 +94,7 @@ final class RecordImportFileRows extends BaseOperation
     /**
      * Adds the part's counts to the file's own row of them.
      *
-     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes?: array<string, array{count: int, examples: list<string>, sentence: string}>, readerCursor?: string|null, readerGiven?: list<string>, readerResolving?: bool, replaceNotes?: bool}  $facts
+     * @param  array{seo: list<string>, images: array{total: int, own: int, hosts: array<string, int>}, dropped: list<array{post_id: int, key: string}>, notes?: array<string, array{count: int, examples: list<string>, sentence: string}>, readerCursor?: string|null, readerGiven?: list<string>, readerResolving?: bool, readerLanguages?: list<string>, readerDefaultLanguage?: string|null, replaceNotes?: bool}  $facts
      */
     private function keepFacts(string $fileId, array $facts): void
     {
@@ -155,6 +155,18 @@ final class RecordImportFileRows extends BaseOperation
             $payload['readerResolving'] = (bool) $facts['readerResolving'];
         } elseif (array_key_exists('readerResolving', $kept)) {
             $payload['readerResolving'] = (bool) $kept['readerResolving'];
+        }
+
+        if (array_key_exists('readerLanguages', $facts)) {
+            $payload['readerLanguages'] = $facts['readerLanguages'];
+        } elseif (is_array($kept['readerLanguages'] ?? null)) {
+            $payload['readerLanguages'] = $kept['readerLanguages'];
+        }
+
+        if (array_key_exists('readerDefaultLanguage', $facts)) {
+            $payload['readerDefaultLanguage'] = $facts['readerDefaultLanguage'];
+        } elseif (array_key_exists('readerDefaultLanguage', $kept)) {
+            $payload['readerDefaultLanguage'] = $kept['readerDefaultLanguage'];
         }
 
         DB::table('import_file_rows')->upsert(

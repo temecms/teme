@@ -217,12 +217,20 @@ final class ContentPhase implements ListPhase, PreparesObjects
         $id = strtolower((string) Str::ulid());
         // Created in its language at its old address, linked to its translations at the end (I-3446).
         $language = app(ImportedLanguages::class)->stored($context->sourceId, $item['language'] ?? null, app(SiteLanguages::class)->translates($type->key));
+        $notes = [];
 
         if ($language === false) {
-            return ImportResult::skipped(new ImportMessage('post.language-missing', __('Its language on the old site isn’t one of this site’s, so it wasn’t imported. The Languages step of the report says why.')));
+            // A reader's unknown language lands in the default language with a warning (issue 810).
+            if (($item['reader'] ?? false) === true) {
+                $language = null;
+                $notes[] = new ImportMessage('post.language-unknown', __('Its language on the old site isn’t one Teme offers yet, so it came across in this site’s default language.'));
+            } else {
+                return ImportResult::skipped(new ImportMessage('post.language-missing', __('Its language on the old site isn’t one of this site’s, so it wasn’t imported. The Languages step of the report says why.')));
+            }
         }
 
-        [$decided, $notes, $extra] = $this->decide($ref, $item, $type, $state, $conversion, $site, $context, $language);
+        [$decided, $decideNotes, $extra] = $this->decide($ref, $item, $type, $state, $conversion, $site, $context, $language);
+        $notes = [...$notes, ...$decideNotes];
         $same = $this->sameHere($decided, $context->sourceId);
 
         // Teme already has this post, with its title and publication time, from elsewhere: it isn't brought twice,
@@ -483,6 +491,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             'visibility' => $state['visibility'],
             'language' => is_string($item['language'] ?? null) ? $item['language'] : null,
             'translations' => is_array($item['translations'] ?? null) ? $item['translations'] : null,
+            'translation_group' => is_string($item['translation_group'] ?? null) ? $item['translation_group'] : null,
         ]);
     }
 

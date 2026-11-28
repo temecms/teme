@@ -348,7 +348,13 @@ final class ReaderRows
         return [
             'list' => TermRows::listOf($taxonomy),
             'id' => $id,
-            'payload' => [...$payload, 'reader' => true],
+            'payload' => [
+                ...$payload,
+                'reader' => true,
+                'language' => $item->language,
+                'translation_group' => $item->translationGroup,
+                'translations' => [],
+            ],
         ];
     }
 
@@ -411,6 +417,9 @@ final class ReaderRows
             'comment_count' => 0,
             'status_before_trash' => null,
             'trashed_at' => null,
+            'language' => $item->language,
+            'translation_group' => $item->translationGroup,
+            'translations' => [],
         ];
     }
 
