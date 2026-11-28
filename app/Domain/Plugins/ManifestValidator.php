@@ -179,6 +179,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version(), $read->capabilities()));
         array_push($errors, ...$this->feedLinks($read));
         array_push($errors, ...$this->columns($read));
+        array_push($errors, ...$this->listFilterTables($read));
         array_push($errors, ...$this->aiTasks($read));
         array_push($errors, ...$this->notices($read));
         array_push($errors, ...$this->commands($manifest, $read));
@@ -194,6 +195,25 @@ final readonly class ManifestValidator
         array_push($errors, ...PackagePictures::errors($manifest, 'plugin'));
 
         return $errors;
+    }
+
+    /**
+     * A list filter reads only a table its plugin lists under owns.tables, so
+     * a filter can never narrow a list by another plugin's or core's data.
+     *
+     * @return list<string>
+     */
+    private function listFilterTables(Manifest $read): array
+    {
+        $listed = $read->ownsTables();
+
+        foreach ($read->contributes()['listFilters'] ?? [] as $entry) {
+            if (is_array($entry) && is_string($entry['table'] ?? null) && ! in_array($entry['table'], $listed, true)) {
+                return [__('A list filter reads :table, which the plugin doesn’t list under owns.tables.', ['table' => $entry['table']])];
+            }
+        }
+
+        return [];
     }
 
     /**

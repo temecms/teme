@@ -78,7 +78,7 @@ it('refuses to enable a plugin whose filter column leads no index, and writes no
     PluginFixtures::use('listfilters');
 
     expect(fn () => ($this->enable)('tests/listfilters'))
-        ->toThrow(ValidationException::class, 'The list filter “Review state” reads listfilters_scores.state, which no valid index leads with, so the plugin can’t be enabled.')
+        ->toThrow(ValidationException::class, 'The list filter “Review state” reads listfilters_scores.state, which no valid index leads with, so the filter can’t be used.')
         ->and(Schema::hasTable('listfilters_scores'))->toBeFalse()
         ->and(PluginRecord::query()->where('name', 'tests/listfilters')->where('state', PluginRecord::ENABLED)->exists())->toBeFalse();
 });
@@ -102,7 +102,9 @@ it('refuses a filter whose column the table does not have', function (): void {
     PluginFixtures::use($folder);
 
     expect(fn () => ($this->enable)('tests/listfilters'))
-        ->toThrow(ValidationException::class, 'The list filter “Review state” reads listfilters_scores.missing, which the table doesn’t have.');
+        ->toThrow(ValidationException::class, 'The list filter “Review state” reads listfilters_scores.missing, which the table doesn’t have.')
+        ->and(Schema::hasTable('listfilters_scores'))->toBeFalse()
+        ->and(PluginRecord::query()->where('name', 'tests/listfilters')->where('state', PluginRecord::ENABLED)->exists())->toBeFalse();
 });
 
 it('refuses a third filter on one list, and writes nothing', function (): void {

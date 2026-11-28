@@ -1,9 +1,10 @@
 <?php
 
 /**
- * The list filters enabled plugins declare for a content type, read from their
- * manifests, and the refusal that keeps a list to three filters. A filter reads
- * only the declared options, matched exactly against a column the plugin owns.
+ * The list filters enabled plugins offer for each content type. What is offered
+ * is the snapshot recorded with the plugin's consent, the filters as they were
+ * checked at enable or at its database changes, never a manifest nobody checked.
+ * Also the refusal that keeps a list to three filters, across every plugin.
  *
  * @package Teme
  * @since   next
@@ -14,10 +15,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\ListFilters;
 
+use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestText;
+use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRecords;
-use App\Domain\Plugins\PluginRegistry;
+use Throwable;
 
 final readonly class PluginListFilters
 {
@@ -26,34 +29,34 @@ final readonly class PluginListFilters
 
     public function __construct(
         private PluginRecords $records,
-        private PluginRegistry $registry,
+        private ListFilterIndexes $indexes,
     ) {}
 
     /**
-     * The filters offered on this content type's list, from each enabled
-     * plugin in name order then declared order; at most MOST_PER_LIST.
+     * The filters offered on this content type's list, from each enabled plugin
+     * in name order then its declared order, at most MOST_PER_LIST. A filter whose
+     * table or columns are gone is recorded as a fault and left out.
      *
      * @return list<DeclaredListFilter>
      */
     public function forType(string $type): array
     {
-        $found = $this->registry->all();
         $filters = [];
 
         foreach ($this->records->enabled() as $record) {
-            $plugin = $found[$record->name] ?? null;
-            $manifest = $plugin?->manifest;
-
-            if ($plugin === null || $manifest === null) {
-                continue;
-            }
-
-            $code = $plugin->code;
-            $words = ManifestText::for($code);
+            $words = ManifestText::for($record->code);
             $locale = app()->getLocale();
 
-            foreach ($manifest->contributes()['listFilters'] ?? [] as $entry) {
-                if (! is_array($entry) || ! in_array($type, $entry['types'] ?? [], true)) {
+            foreach ($this->snapshot($record) as $entry) {
+                if (! in_array($type, $entry['types'], true)) {
+                    continue;
+                }
+
+                $key = 'plugin:'.$record->code.':'.$entry['id'];
+
+                if (! $this->indexes->stillThere($entry['table'], $entry['column'], $entry['item'])) {
+                    $this->fault($record->name, $key, new ListFilterUnavailable($key, $entry['table']));
+
                     continue;
                 }
 
@@ -64,7 +67,7 @@ final readonly class PluginListFilters
                 }
 
                 $filters[] = new DeclaredListFilter(
-                    key: 'plugin:'.$code.':'.$entry['id'],
+                    key: $key,
                     owner: $record->name,
                     label: $words->text($entry['label'], $locale),
                     options: $options,
@@ -79,21 +82,61 @@ final readonly class PluginListFilters
     }
 
     /**
-     * The sentence that refuses enabling $manifest when the filters it declares
-     * would put more than MOST_PER_LIST on one content type's list beside those
-     * of the $others; null when they fit.
+     * The entries a manifest declares, normalised to the keys the snapshot keeps:
+     * what is recorded with the plugin's consent when it is checked.
      *
-     * @param  list<Manifest>  $others
+     * @return list<array{id: string, label: string, types: list<string>, options: list<array{value: string, label: string}>, table: string, column: string, item: string}>
      */
-    public function refusalBeside(Manifest $manifest, array $others): ?string
+    public static function declared(Manifest $manifest): array
     {
-        $own = $this->declaredTypes($manifest);
+        $declared = [];
+
+        foreach ($manifest->contributes()['listFilters'] ?? [] as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $declared[] = [
+                'id' => (string) $entry['id'],
+                'label' => (string) $entry['label'],
+                'types' => array_values($entry['types']),
+                'options' => array_map(fn (array $option): array => ['value' => (string) $option['value'], 'label' => (string) $option['label']], array_values($entry['options'])),
+                'table' => (string) $entry['table'],
+                'column' => (string) $entry['column'],
+                'item' => (string) $entry['item'],
+            ];
+        }
+
+        return $declared;
+    }
+
+    /**
+     * The sentence that refuses checking $declared for the plugin $name when it
+     * would put more than MOST_PER_LIST filters on one content type's list beside
+     * the filters of the other $enabled plugins' recorded snapshots; null when they fit.
+     *
+     * @param  list<array{types: list<string>}>  $declared
+     * @param  list<PluginRecord>  $enabled
+     */
+    public function refusalBeside(array $declared, string $name, array $enabled): ?string
+    {
+        $own = [];
+
+        foreach ($declared as $entry) {
+            foreach ($entry['types'] as $type) {
+                $own[$type] = ($own[$type] ?? 0) + 1;
+            }
+        }
 
         foreach ($own as $type => $count) {
             $beside = 0;
 
-            foreach ($others as $other) {
-                $beside += count(array_filter($this->declaredFilters($other), fn (array $entry): bool => in_array($type, $entry['types'] ?? [], true)));
+            foreach ($enabled as $record) {
+                if ($record->name === $name) {
+                    continue;
+                }
+
+                $beside += count(array_filter($this->snapshot($record), fn (array $entry): bool => in_array($type, $entry['types'], true)));
             }
 
             if ($beside + $count > self::MOST_PER_LIST) {
@@ -109,30 +152,23 @@ final readonly class PluginListFilters
     }
 
     /**
-     * How many of the manifest's filters apply to each content type, by key.
+     * The checked filters a record holds; none for a plugin that declares none.
      *
-     * @return array<string, int>
+     * @return list<array{id: string, label: string, types: list<string>, options: list<array{value: string, label: string}>, table: string, column: string, item: string}>
      */
-    private function declaredTypes(Manifest $manifest): array
+    private function snapshot(PluginRecord $record): array
     {
-        $counts = [];
+        $entries = $record->consent['listFilters'] ?? [];
 
-        foreach ($this->declaredFilters($manifest) as $entry) {
-            foreach ($entry['types'] ?? [] as $type) {
-                $counts[$type] = ($counts[$type] ?? 0) + 1;
-            }
-        }
-
-        return $counts;
+        return is_array($entries) ? array_values(array_filter($entries, is_array(...))) : [];
     }
 
-    /**
-     * @return list<array{types?: list<string>}>
-     */
-    private function declaredFilters(Manifest $manifest): array
+    private function fault(string $owner, string $key, Throwable $failure): void
     {
-        $declared = $manifest->contributes()['listFilters'] ?? [];
-
-        return is_array($declared) ? array_values(array_filter($declared, is_array(...))) : [];
+        try {
+            app(ListenerFaults::class)->record($owner, $key, 'list-filter', $failure);
+        } catch (Throwable) {
+            //
+        }
     }
 }

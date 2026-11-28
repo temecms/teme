@@ -125,11 +125,11 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => $collisions]);
         }
 
-        // Nor more list filters on one list than the lists hold (issue 802).
-        $refusedFilters = $this->listFilters->refusalBeside($manifest, array_values(array_filter($others, fn (Manifest $other): bool => $other->raw()['name'] !== $manifest->raw()['name'])));
+        // Nor more list filters on one list than the lists hold, asked before its migrations run (issue 802); perform checks again under a lock.
+        $refusedBeside = $this->listFilters->refusalBeside(PluginListFilters::declared($manifest), $input->name, PluginRecord::query()->where('state', PluginRecord::ENABLED)->get()->all());
 
-        if ($refusedFilters !== null) {
-            throw ValidationException::withMessages(['plugin' => [$refusedFilters]]);
+        if ($refusedBeside !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedBeside]]);
         }
 
         // Nor a console command that exists: a plugin never replaces one.
@@ -191,11 +191,14 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
         }
 
-        // Each list filter reads a column of the plugin's own table that a valid index leads with, checked here so a refusal undoes the migrations too (issue 802).
-        $unindexed = $this->listFilterIndexes->refusal($manifest);
+        // Its list filters are checked against the tables its own migrations made, and against the other plugins' filters on each list, under a lock on every enabled plugin's row (issue 802). A refusal undoes the migrations too.
+        $enabledRecords = PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->lockForUpdate()->get()->all();
+        $declaredFilters = PluginListFilters::declared($manifest);
+        $refusedFilters = $this->listFilters->refusalBeside($declaredFilters, $input->name, $enabledRecords)
+            ?? $this->listFilterIndexes->refusal($manifest, $this->migrations->ownedTables($migrations));
 
-        if ($unindexed !== null) {
-            throw ValidationException::withMessages(['plugin' => [$unindexed]]);
+        if ($refusedFilters !== null) {
+            throw ValidationException::withMessages(['plugin' => [$refusedFilters]]);
         }
 
         $consentedBy = $input->actorId() ?? $input->schedulesAs;
@@ -220,6 +223,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->permissions($manifest),
                 ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
                 // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
+                ...($declaredFilters === [] ? [] : ['listFilters' => $declaredFilters]),
                 ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
                 ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
             ],
