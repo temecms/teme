@@ -230,6 +230,37 @@ it('fails a permanent JobFailed once, without a retry or a log line, whatever tr
     Exceptions::assertNotReported(JobFailed::class);
 });
 
+it('cuts a permanent JobFailed reason to its first line, and empty to It failed', function (string $reason, string $message): void {
+    ($this->enable)();
+    Queue::fake();
+    Exceptions::fake();
+    $id = ($this->jobs)()->queue('fail-for-good', ['reason' => $reason]);
+
+    $job = new RunPluginJob('jobs', 'fail-for-good', $id, JobActor::operator());
+    $job->handle(
+        app(PluginRegistry::class),
+        app(PluginLoader::class),
+        app(SafeMode::class),
+        app(CancelJob::class),
+        app(FailJob::class),
+        app(FinishJob::class),
+        app(ReportJobProgress::class),
+    );
+
+    expect(TrackedJob::query()->findOrFail($id)->only(['state', 'message']))
+        ->toEqual(['state' => JobState::Failed, 'message' => $message])
+        ->and($job->tries)->toBe(1);
+
+    Exceptions::assertNotReported(JobFailed::class);
+})->with([
+    'long multi-line' => [
+        str_repeat('b', 250)."\nAnd more detail that must not show.",
+        str_repeat('b', 200),
+    ],
+    'empty' => ['', 'It failed.'],
+    'whitespace only' => ["  \n", 'It failed.'],
+]);
+
 it('refuses a payload over 64 KB or with an object', function (): void {
     ($this->enable)();
     Queue::fake();

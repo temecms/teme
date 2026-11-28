@@ -68,11 +68,23 @@ final class PluginJobContext implements JobContext
     }
 
     /**
-     * The closing line FinishJob should record: the summary, or "Finished."
+     * The closing line FinishJob should record: the summary's first line cut
+     * at 500 characters, or "Finished." when none was set or it is blank.
      */
     public function closingMessage(): string
     {
-        return $this->summary ?? __('Finished.');
+        if ($this->summary === null) {
+            return __('Finished.');
+        }
+
+        $line = strtok(str_replace("\r\n", "\n", $this->summary), "\n");
+        $line = is_string($line) ? trim($line) : '';
+
+        if ($line === '') {
+            return __('Finished.');
+        }
+
+        return mb_substr($line, 0, 500);
     }
 
     public function permissions(): array

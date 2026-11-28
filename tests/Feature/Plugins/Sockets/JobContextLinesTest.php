@@ -124,3 +124,24 @@ it('answers no permissions for a run of the operator’s', function (): void {
 
     expect($context->permissions())->toBe([]);
 });
+
+it('cuts an over-long or multi-line summary to the first line of at most 500 characters, and empty to Finished', function (): void {
+    $context = new PluginJobContext(
+        '01k0000000000000000000000a',
+        [],
+        1,
+        'tests/jobs',
+        'jobs',
+        JobActor::person($this->admin->id),
+        app(ReportJobProgress::class),
+    );
+
+    $context->summary("First line that is fine.\nSecond line dropped.");
+    expect($context->closingMessage())->toBe('First line that is fine.');
+
+    $context->summary(str_repeat('a', 600));
+    expect($context->closingMessage())->toBe(str_repeat('a', 500));
+
+    $context->summary('   ');
+    expect($context->closingMessage())->toBe('Finished.');
+});

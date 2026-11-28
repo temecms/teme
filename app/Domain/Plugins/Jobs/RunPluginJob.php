@@ -173,7 +173,7 @@ final class RunPluginJob implements ShouldQueue
         } catch (JobFailed $failed) {
             // The handler said this failure isn't worth another try.
             $this->tries = 1;
-            $fail->execute(new FailJobInput($this->trackedJobId, $failed->getMessage(), $this->actor->userId));
+            $fail->execute(new FailJobInput($this->trackedJobId, self::failureMessage($failed->getMessage()), $this->actor->userId));
 
             return;
         } catch (JobStopped) {
@@ -192,14 +192,27 @@ final class RunPluginJob implements ShouldQueue
     {
         $this->actor->bind();
 
-        $message = $exception === null ? __('It failed.') : self::firstLine($exception->getMessage());
+        app(FailJob::class)->execute(new FailJobInput(
+            $this->trackedJobId,
+            $exception === null ? __('It failed.') : self::failureMessage($exception->getMessage()),
+            $this->actor->userId,
+        ));
+    }
 
-        app(FailJob::class)->execute(new FailJobInput($this->trackedJobId, $message, $this->actor->userId));
+    /**
+     * The first line of a failure, cut at 200 characters, or "It failed." when blank.
+     */
+    private static function failureMessage(string $message): string
+    {
+        $line = self::firstLine($message);
+
+        return $line === '' ? __('It failed.') : $line;
     }
 
     private static function firstLine(string $message): string
     {
-        $line = strtok(str_replace("\r\n", "\n", $message), "\n") ?: $message;
+        $line = strtok(str_replace("\r\n", "\n", $message), "\n");
+        $line = is_string($line) ? trim($line) : trim($message);
 
         return mb_substr($line, 0, 200);
     }

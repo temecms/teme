@@ -15,6 +15,6 @@ final class FailForGoodHandler implements JobHandler
 {
     public function handle(JobContext $context): void
     {
-        throw JobFailed::permanently('Search Console isn’t connected.');
+        throw JobFailed::permanently((string) ($context->payload()['reason'] ?? 'Search Console isn’t connected.'));
     }
 }
