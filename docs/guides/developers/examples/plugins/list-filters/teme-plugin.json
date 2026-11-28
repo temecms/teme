@@ -1,0 +1,28 @@
+{
+    "manifest": 1,
+    "name": "example/review-scores",
+    "code": "review-scores",
+    "label": "Review scores",
+    "description": "Keeps a review state for each post and page, so the lists can filter by it.",
+    "version": "1.0.0",
+    "requires": { "teme": "^1.8" },
+    "plugin": "Example\\ReviewScores\\ReviewScores",
+    "capabilities": [],
+    "owns": { "tables": ["review_scores_states"] },
+    "contributes": {
+        "listFilters": [
+            {
+                "id": "review-state",
+                "label": "Review state",
+                "types": ["post", "page"],
+                "options": [
+                    { "value": "ready", "label": "Ready" },
+                    { "value": "stale", "label": "Stale" }
+                ],
+                "table": "review_scores_states",
+                "column": "state",
+                "item": "content_id"
+            }
+        ]
+    }
+}

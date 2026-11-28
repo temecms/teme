@@ -59,6 +59,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/styles.md',
         'plugins/fediverse.md',
         'plugins/list-columns.md',
+        'plugins/list-filters.md',
         'plugins/list-actions.md',
         'plugins/feeds-and-site.md',
         'plugins/ai.md',
