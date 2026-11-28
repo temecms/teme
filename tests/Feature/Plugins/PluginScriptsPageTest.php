@@ -23,6 +23,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
@@ -60,7 +61,7 @@ afterEach(function (): void {
     PluginFixtures::forget();
 });
 
-it('links a plugin’s script as a module after the body on a page that draws its card', function (): void {
+it('links a plugin’s script as a deferred module near the end of the body on a page that draws its card', function (): void {
     ($this->enable)();
     $region = regionCreate($this->editor, 'open', 'sidebar');
     regionSave($region, $this->editor, [($this->note)()]);
@@ -70,10 +71,10 @@ it('links a plugin’s script as a module after the body on a page that draws it
     $html = addrGet('/a-story/')->assertOk()->getContent();
 
     expect($html)
-        ->toContain('/_teme/plugins/cardbox/dist/note.js?v=')
-        ->toContain('<script type="module" defer src="/_teme/plugins/cardbox/dist/note.js?v=')
-        ->toContain('data-teme-plugin-script="cardbox:card:note"')
-        ->and(strpos($html, 'data-teme-plugin-script'))->toBeGreaterThan(strpos($html, '</body>') ?: strpos($html, '<body'));
+        ->toMatch('#<script type="module" defer src="[^"]*/_teme/plugin-scripts/cardbox/dist/note\.js\?v=[0-9a-f]+" data-teme-plugin-script="cardbox:card:note"></script>#')
+        ->and(strpos($html, 'data-teme-plugin-script'))
+        ->toBeGreaterThan(strpos($html, '<body'))
+        ->toBeLessThan(strpos($html, '</body>'));
 });
 
 it('does not link a script on a page that draws no card of the plugin', function (): void {
@@ -85,19 +86,37 @@ it('does not link a script on a page that draws no card of the plugin', function
 });
 
 it('refuses at enable a plugin that declares scripts without the site.scripts capability', function (): void {
-    expect(fn () => ($this->enable)(false))->toThrow(Illuminate\Validation\ValidationException::class);
+    expect(fn () => ($this->enable)(false))->toThrow(ValidationException::class);
+});
+
+it('keeps the script link on a real page-cache hit', function (): void {
+    $folder = cacheOn();
+    ($this->enable)();
+    $region = regionCreate($this->editor, 'open', 'sidebar');
+    regionSave($region, $this->editor, [($this->note)()]);
+    listsPublish($region, $this->editor);
+    pageArticle($this->editor, 'A story');
+
+    $first = addrGet('/a-story/')->assertOk();
+    $second = addrGet('/a-story/')->assertOk();
+
+    expect($first->headers->get('X-Teme-Cache'))->not->toBe('HIT')
+        ->and($second->headers->get('X-Teme-Cache'))->toBe('HIT')
+        ->and($second->getContent())->toContain('data-teme-plugin-script="cardbox:card:note"');
+
+    cacheOff($folder);
 });
 
 it('answers 404 for a script the plugin does not declare', function (): void {
     ($this->enable)();
 
-    addrGet('/_teme/plugins/cardbox/dist/other.js')->assertNotFound();
+    addrGet('/_teme/plugin-scripts/cardbox/dist/other.js')->assertNotFound();
 });
 
 it('serves a declared script as javascript with no sniffing', function (): void {
     ($this->enable)();
 
-    $response = addrGet('/_teme/plugins/cardbox/dist/note.js')->assertOk();
+    $response = addrGet('/_teme/plugin-scripts/cardbox/dist/note.js')->assertOk();
 
     expect($response->headers->get('Content-Type'))->toStartWith('text/javascript')
         ->and($response->headers->get('X-Content-Type-Options'))->toBe('nosniff')

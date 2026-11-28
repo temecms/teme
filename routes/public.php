@@ -64,9 +64,10 @@ Route::middleware(['throttle:plugin-styles'])->get('_teme/plugins/{code}/{file}'
     ->where('file', '.+\.css')
     ->name('teme.plugins.styles');
 
-// A plugin's declared script, served as text/javascript (docs/guides/developers/plugins/scripts.md).
+// A plugin's declared script, served as text/javascript (docs/guides/developers/plugins/scripts.md). Its own path:
+// a route on the stylesheets' path would replace it, since Laravel keys routes by method and path.
 // Its code and its file, a path inside the package; anything not declared answers 404.
-Route::middleware(['throttle:plugin-scripts'])->get('_teme/plugins/{code}/{file}', PluginScriptController::class)
+Route::middleware(['throttle:plugin-scripts'])->get('_teme/plugin-scripts/{code}/{file}', PluginScriptController::class)
     ->where('code', '[a-z][a-z0-9-]*')
     ->where('file', '.+\.js')
     ->name('teme.plugins.scripts');
