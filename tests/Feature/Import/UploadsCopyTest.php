@@ -113,12 +113,37 @@ it('brings a picture the copy has without asking the site, and asks the site for
 it('refuses to attach the application, its storage or public folder, or any folder above them', function (): void {
     $this->source = importSource();
 
-    foreach ([base_path(), storage_path(), public_path(), dirname(base_path())] as $path) {
+    foreach ([base_path(), storage_path(), storage_path('app'), public_path(), dirname(base_path())] as $path) {
         expect(fn () => scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $path, null))))
             ->toThrow(ValidationException::class);
     }
 
     expect(ImportUpload::query()->where('source_id', $this->source->id)->exists())->toBeFalse();
+});
+
+it('sees a folder inside or above the application whichever separator its path uses', function (): void {
+    $inside = realpath(storage_path('app')) ?: storage_path('app');
+
+    expect(UploadsCopy::reachesApplication($inside))->toBeTrue()
+        ->and(UploadsCopy::reachesApplication(str_replace('\\', '/', $inside)))->toBeTrue()
+        ->and(UploadsCopy::reachesApplication(dirname(base_path())))->toBeTrue()
+        ->and(UploadsCopy::reachesApplication($this->folder))->toBeFalse();
+});
+
+it('refuses a folder that is neither an uploads folder nor holds one, and writes no copy', function (): void {
+    $broad = $this->folder.DIRECTORY_SEPARATOR.'site-root';
+    mkdir($broad.DIRECTORY_SEPARATOR.'logs', recursive: true);
+    file_put_contents($broad.DIRECTORY_SEPARATOR.'backup.sql', 'INSERT INTO users VALUES (1);');
+
+    expect(fn () => scElevated(fn (): array => app(AttachUploadsCopy::class)->execute(new AttachUploadsCopyInput($this->source->id, $broad, null))))
+        ->toThrow(ValidationException::class, 'That folder doesn’t look like an uploads folder')
+        ->and(ImportUpload::query()->where('source_id', $this->source->id)->exists())->toBeFalse()
+        ->and(UploadsCopy::prefixOfFolder($this->folder))->toBe('')
+        ->and(UploadsCopy::prefixOfFolder($broad))->toBeNull();
+
+    mkdir($broad.DIRECTORY_SEPARATOR.'uploads');
+
+    expect(UploadsCopy::prefixOfFolder($broad))->toBe('uploads/');
 });
 
 it('never reads a dot-file or a dot-folder from a copy', function (): void {

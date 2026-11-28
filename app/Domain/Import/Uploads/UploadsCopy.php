@@ -223,7 +223,7 @@ final readonly class UploadsCopy
 
             foreach ($files as $file) {
                 if ($file->isFile() && ! $file->isLink()) {
-                    yield substr($file->getPathname(), strlen($root));
+                    yield str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($root)));
                 }
             }
 
@@ -262,10 +262,10 @@ final readonly class UploadsCopy
      */
     public static function reachesApplication(string $real): bool
     {
-        $real = rtrim($real, '/').'/';
+        $real = self::slashed($real);
 
         foreach ([base_path(), storage_path(), public_path()] as $root) {
-            $root = (realpath($root) ?: $root).'/';
+            $root = self::slashed(realpath($root) ?: $root);
 
             if (str_starts_with($real, $root) || str_starts_with($root, $real)) {
                 return true;
@@ -273,6 +273,15 @@ final readonly class UploadsCopy
         }
 
         return false;
+    }
+
+    /**
+     * A path with forward slashes only, ending in one, so paths compare the
+     * same on Windows, where realpath() gives backslashes, as on Linux.
+     */
+    private static function slashed(string $path): string
+    {
+        return rtrim(str_replace('\\', '/', $path), '/').'/';
     }
 
     /**
@@ -304,8 +313,10 @@ final readonly class UploadsCopy
     }
 
     /**
-     * The folder inside a folder copy that holds the uploads: '' when the folder
-     * is the uploads folder itself, 'uploads/' when it holds one, or null.
+     * The folder inside a folder copy that holds the uploads: 'uploads/' when it
+     * holds one, '' when it is the uploads folder itself (named uploads, or
+     * holding year folders such as 2024), or null for any other folder, which
+     * would be too broad to bring files from (a web root, a home folder).
      */
     public static function prefixOfFolder(string $folder): ?string
     {
@@ -313,7 +324,21 @@ final readonly class UploadsCopy
             return 'uploads/';
         }
 
-        return is_dir($folder) ? '' : null;
+        if (! is_dir($folder)) {
+            return null;
+        }
+
+        if (strtolower(basename($folder)) === 'uploads') {
+            return '';
+        }
+
+        foreach (glob($folder.DIRECTORY_SEPARATOR.'[0-9][0-9][0-9][0-9]', GLOB_ONLYDIR) ?: [] as $year) {
+            if (preg_match('/^\d{4}$/', basename($year)) === 1) {
+                return '';
+            }
+        }
+
+        return null;
     }
 
     /**

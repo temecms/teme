@@ -117,7 +117,7 @@ final class AttachUploadsCopy extends BaseOperation
             $prefix = UploadsCopy::prefixOfFolder($real);
 
             if ($prefix === null) {
-                throw ValidationException::withMessages(['path' => 'That folder isn’t readable. Name the wp-content/uploads folder itself.']);
+                throw ValidationException::withMessages(['path' => 'That folder doesn’t look like an uploads folder: it is not named uploads, holds no uploads folder and no year folders such as 2024. Name the wp-content/uploads folder itself, so no other files on the server can be brought in.']);
             }
 
             return ['kind' => UploadsCopy::FOLDER, 'path' => $real, 'prefix' => $prefix];
